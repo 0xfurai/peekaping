@@ -99,6 +99,18 @@ func (r *SQLRepositoryImpl) ListMemberships(ctx context.Context, userID string) 
 	return memberships, nil
 }
 
+func (r *SQLRepositoryImpl) FindByID(ctx context.Context, id ID) (*Workspace, error) {
+	sm := new(sqlModel)
+	err := dbtx.DB(ctx, r.db).NewSelect().Model(sm).Where("w.id = ?", string(id)).Scan(ctx)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return sm.toDomain(), nil
+}
+
 func (r *SQLRepositoryImpl) FindOldest(ctx context.Context) (*Workspace, error) {
 	sm := new(sqlModel)
 	err := dbtx.DB(ctx, r.db).NewSelect().Model(sm).Order("w.created_at", "w.id").Limit(1).Scan(ctx)

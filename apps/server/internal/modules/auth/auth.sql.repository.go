@@ -17,16 +17,20 @@ import (
 type sqlModel struct {
 	bun.BaseModel `bun:"table:users,alias:u"`
 
-	ID             string    `bun:"id,pk"`
-	Email          string    `bun:"email,unique,notnull"`
-	Password       string    `bun:"password,notnull"`
-	Active         bool      `bun:"active,notnull,default:true"`
-	TwoFASecret    string    `bun:"twofa_secret"`
-	TwoFAStatus    bool      `bun:"twofa_status,notnull,default:false"`
-	TwoFALastToken string    `bun:"twofa_last_token"`
-	InstanceAdmin  bool      `bun:"instance_admin,notnull,default:false"`
-	CreatedAt      time.Time `bun:"created_at,nullzero,notnull,default:current_timestamp"`
-	UpdatedAt      time.Time `bun:"updated_at,nullzero,notnull,default:current_timestamp"`
+	ID             string `bun:"id,pk"`
+	Email          string `bun:"email,unique,notnull"`
+	Password       string `bun:"password,notnull"`
+	Active         bool   `bun:"active,notnull,default:true"`
+	TwoFASecret    string `bun:"twofa_secret"`
+	TwoFAStatus    bool   `bun:"twofa_status,notnull,default:false"`
+	TwoFALastToken string `bun:"twofa_last_token"`
+	InstanceAdmin  bool   `bun:"instance_admin,notnull,default:false"`
+
+	EmailVerifiedAt  *time.Time `bun:"email_verified_at"`
+	TokensValidAfter *time.Time `bun:"tokens_valid_after"`
+
+	CreatedAt time.Time `bun:"created_at,nullzero,notnull,default:current_timestamp"`
+	UpdatedAt time.Time `bun:"updated_at,nullzero,notnull,default:current_timestamp"`
 }
 
 func toDomainModelFromSQL(sm *sqlModel) *Model {
@@ -39,8 +43,12 @@ func toDomainModelFromSQL(sm *sqlModel) *Model {
 		TwoFAStatus:    sm.TwoFAStatus,
 		TwoFALastToken: sm.TwoFALastToken,
 		InstanceAdmin:  sm.InstanceAdmin,
-		CreatedAt:      sm.CreatedAt,
-		UpdatedAt:      sm.UpdatedAt,
+
+		EmailVerifiedAt:  sm.EmailVerifiedAt,
+		TokensValidAfter: sm.TokensValidAfter,
+
+		CreatedAt: sm.CreatedAt,
+		UpdatedAt: sm.UpdatedAt,
 	}
 }
 
@@ -54,8 +62,12 @@ func toSQLModel(m *Model) *sqlModel {
 		TwoFAStatus:    m.TwoFAStatus,
 		TwoFALastToken: m.TwoFALastToken,
 		InstanceAdmin:  m.InstanceAdmin,
-		CreatedAt:      m.CreatedAt,
-		UpdatedAt:      m.UpdatedAt,
+
+		EmailVerifiedAt:  m.EmailVerifiedAt,
+		TokensValidAfter: m.TokensValidAfter,
+
+		CreatedAt: m.CreatedAt,
+		UpdatedAt: m.UpdatedAt,
 	}
 }
 

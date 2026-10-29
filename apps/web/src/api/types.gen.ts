@@ -53,6 +53,15 @@ export type ApiKeyUpdateApiKeyDto = {
     | undefined;
 };
 
+export type AuthAuthConfigResponse = {
+  accountEmails: boolean;
+};
+
+export type AuthForgotPasswordDto = {
+  email: string;
+  [key: string]: unknown | string;
+};
+
 export type AuthLoginDto = {
   email: string;
   password: string;
@@ -67,6 +76,7 @@ export type AuthLoginResponse = {
 };
 
 export type AuthMeResponse = {
+  accountEmails: boolean;
   defaultWorkspaceId: string | null;
   user: AuthMeUser;
   workspaces: Array<AuthMeWorkspace> | null;
@@ -74,6 +84,7 @@ export type AuthMeResponse = {
 
 export type AuthMeUser = {
   email: string;
+  emailVerified: boolean;
   id: string;
   instanceAdmin: boolean;
 };
@@ -103,6 +114,12 @@ export type AuthRegisterDto = {
   inviteToken?: string;
   password: string;
   [key: string]: unknown | string | undefined;
+};
+
+export type AuthResetPasswordDto = {
+  password: string;
+  token: string;
+  [key: string]: unknown | string;
 };
 
 export type AuthTwoFaDisableRequestDto = {
@@ -136,6 +153,11 @@ export type AuthTwoFaVerifyResponseDto = {
 export type AuthUpdatePasswordDto = {
   currentPassword: string;
   newPassword: string;
+  [key: string]: unknown | string;
+};
+
+export type AuthVerifyEmailDto = {
+  token: string;
   [key: string]: unknown | string;
 };
 
@@ -1268,6 +1290,11 @@ export type UtilsApiResponseApiKeyApiKeyWithTokenResponse = {
   message: string;
 };
 
+export type UtilsApiResponseAuthAuthConfigResponse = {
+  data: AuthAuthConfigResponse;
+  message: string;
+};
+
 export type UtilsApiResponseAuthLoginResponse = {
   data: AuthLoginResponse;
   message: string;
@@ -1764,6 +1791,71 @@ export type PostAuth2FaVerifyResponses = {
 export type PostAuth2FaVerifyResponse =
   PostAuth2FaVerifyResponses[keyof PostAuth2FaVerifyResponses];
 
+export type GetAuthConfigData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/v1/auth/config";
+};
+
+export type GetAuthConfigErrors = {
+  /**
+   * Internal Server Error
+   */
+  500: HttpxErrorBody;
+};
+
+export type GetAuthConfigError = GetAuthConfigErrors[keyof GetAuthConfigErrors];
+
+export type GetAuthConfigResponses = {
+  /**
+   * OK
+   */
+  200: UtilsApiResponseAuthAuthConfigResponse;
+};
+
+export type GetAuthConfigResponse =
+  GetAuthConfigResponses[keyof GetAuthConfigResponses];
+
+export type PostAuthForgotPasswordData = {
+  body: AuthForgotPasswordDto;
+  path?: never;
+  query?: never;
+  url: "/api/v1/auth/forgot-password";
+};
+
+export type PostAuthForgotPasswordErrors = {
+  /**
+   * Bad Request
+   */
+  400: HttpxErrorBody;
+  /**
+   * Not Found
+   */
+  404: HttpxErrorBody;
+  /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
+  /**
+   * Internal Server Error
+   */
+  500: HttpxErrorBody;
+};
+
+export type PostAuthForgotPasswordError =
+  PostAuthForgotPasswordErrors[keyof PostAuthForgotPasswordErrors];
+
+export type PostAuthForgotPasswordResponses = {
+  /**
+   * Accepted
+   */
+  202: UtilsApiResponseAny;
+};
+
+export type PostAuthForgotPasswordResponse =
+  PostAuthForgotPasswordResponses[keyof PostAuthForgotPasswordResponses];
+
 export type PostAuthLoginData = {
   body: AuthLoginDto;
   path?: never;
@@ -1914,6 +2006,127 @@ export type PostAuthRegisterResponses = {
 
 export type PostAuthRegisterResponse =
   PostAuthRegisterResponses[keyof PostAuthRegisterResponses];
+
+export type PostAuthResetPasswordData = {
+  body: AuthResetPasswordDto;
+  path?: never;
+  query?: never;
+  url: "/api/v1/auth/reset-password";
+};
+
+export type PostAuthResetPasswordErrors = {
+  /**
+   * Bad Request
+   */
+  400: HttpxErrorBody;
+  /**
+   * Request Entity Too Large
+   */
+  413: HttpxErrorBody;
+  /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
+  /**
+   * Internal Server Error
+   */
+  500: HttpxErrorBody;
+};
+
+export type PostAuthResetPasswordError =
+  PostAuthResetPasswordErrors[keyof PostAuthResetPasswordErrors];
+
+export type PostAuthResetPasswordResponses = {
+  /**
+   * OK
+   */
+  200: UtilsApiResponseAny;
+};
+
+export type PostAuthResetPasswordResponse =
+  PostAuthResetPasswordResponses[keyof PostAuthResetPasswordResponses];
+
+export type PostAuthVerifyEmailData = {
+  body: AuthVerifyEmailDto;
+  path?: never;
+  query?: never;
+  url: "/api/v1/auth/verify-email";
+};
+
+export type PostAuthVerifyEmailErrors = {
+  /**
+   * Bad Request
+   */
+  400: HttpxErrorBody;
+  /**
+   * Request Entity Too Large
+   */
+  413: HttpxErrorBody;
+  /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
+  /**
+   * Internal Server Error
+   */
+  500: HttpxErrorBody;
+};
+
+export type PostAuthVerifyEmailError =
+  PostAuthVerifyEmailErrors[keyof PostAuthVerifyEmailErrors];
+
+export type PostAuthVerifyEmailResponses = {
+  /**
+   * OK
+   */
+  200: UtilsApiResponseAny;
+};
+
+export type PostAuthVerifyEmailResponse =
+  PostAuthVerifyEmailResponses[keyof PostAuthVerifyEmailResponses];
+
+export type PostAuthVerifyEmailResendData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/v1/auth/verify-email/resend";
+};
+
+export type PostAuthVerifyEmailResendErrors = {
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
+  /**
+   * Not Found
+   */
+  404: HttpxErrorBody;
+  /**
+   * Conflict
+   */
+  409: HttpxErrorBody;
+  /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
+  /**
+   * Internal Server Error
+   */
+  500: HttpxErrorBody;
+};
+
+export type PostAuthVerifyEmailResendError =
+  PostAuthVerifyEmailResendErrors[keyof PostAuthVerifyEmailResendErrors];
+
+export type PostAuthVerifyEmailResendResponses = {
+  /**
+   * Accepted
+   */
+  202: UtilsApiResponseAny;
+};
+
+export type PostAuthVerifyEmailResendResponse =
+  PostAuthVerifyEmailResendResponses[keyof PostAuthVerifyEmailResendResponses];
 
 export type GetBadgeByMonitorIdCertExpData = {
   body?: never;
@@ -5893,6 +6106,10 @@ export type PostWorkspaceInvitesErrors = {
    * Conflict
    */
   409: HttpxErrorBody;
+  /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
   /**
    * Internal Server Error
    */

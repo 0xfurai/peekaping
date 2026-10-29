@@ -6,7 +6,9 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"math"
 	"peekaping/internal/modules/shared"
+	"strconv"
 	"sync"
 	"time"
 
@@ -26,7 +28,35 @@ type Claims struct {
 	// PasswordFingerprint is set on refresh tokens: it identifies the password the
 	// user had when the token was issued, so a password change ends older ones.
 	PasswordFingerprint string `json:"pwf,omitempty"`
+	// AuthTime is when the session began: the login or signup that started it. A refresh copies
+	// it into the tokens it makes, so a session is judged by its start and not by the refresh.
+	// Tokens issued before this claim existed lack it, and iat stands in.
+	AuthTime *SessionTime `json:"auth_time,omitempty"`
 	jwt.RegisteredClaims
+}
+
+// SessionTime is a moment to the millisecond, which travels in a token as seconds with three
+// decimals, like jwt.NumericDate. It reads the number back to the nearest millisecond: jwt.NumericDate
+// truncates, so a moment that is copied from one token to the next could lose a millisecond each time.
+type SessionTime struct{ time.Time }
+
+// newSessionTime truncates, as iat does: a session that begins in the millisecond a cutoff is set in
+// is the new one, and rounding up could put a session that began before the cutoff in that millisecond
+func newSessionTime(t time.Time) *SessionTime {
+	return &SessionTime{t.UTC().Truncate(time.Millisecond)}
+}
+
+func (t SessionTime) MarshalJSON() ([]byte, error) {
+	return []byte(strconv.FormatFloat(float64(t.Time.UnixMilli())/1000, 'f', 3, 64)), nil
+}
+
+func (t *SessionTime) UnmarshalJSON(data []byte) error {
+	seconds, err := strconv.ParseFloat(string(data), 64)
+	if err != nil || math.IsNaN(seconds) || math.IsInf(seconds, 0) {
+		return fmt.Errorf("auth_time is not a number of seconds: %s", data)
+	}
+	t.Time = time.UnixMilli(int64(math.Round(seconds * 1000))).UTC()
+	return nil
 }
 
 // passwordFingerprint identifies a user's password without revealing it: the
@@ -34,6 +64,26 @@ type Claims struct {
 func passwordFingerprint(passwordHash string) string {
 	sum := sha256.Sum256([]byte(passwordHash))
 	return hex.EncodeToString(sum[:16])
+}
+
+func init() {
+	// A token carries the time it was issued (iat) to the millisecond, not to the second. A password
+	// reset ends the sessions issued before it, and a user who signs in again right after it must
+	// get a session that works: with whole seconds, a token issued before the reset and one issued
+	// after it could not be told apart within the second it happened in.
+	jwt.TimePrecision = time.Millisecond
+}
+
+// clockSkewLeeway is how far the clocks of two replicas may differ. nbf is exact to the millisecond,
+// so without it a token made on one replica could be "not valid yet" on another whose clock is
+// a few milliseconds behind. The tokens_valid_after cutoff stays strict.
+const clockSkewLeeway = 5 * time.Second
+
+// SessionCutoffs says when a user's earlier sessions were ended
+type SessionCutoffs interface {
+	// TokensValidAfter returns the moment before which issued tokens no longer work, nil for none
+	// and for a user that doesn't exist
+	TokensValidAfter(ctx context.Context, userID string) (*time.Time, error)
 }
 
 // secretTTL is how long a signing secret stays in memory before it is read from
@@ -51,8 +101,20 @@ type TokenMaker struct {
 	logger         *zap.SugaredLogger
 	clock          func() time.Time
 
+	// cutoffs ends the sessions issued before a user's tokens_valid_after. Nil checks nothing.
+	cutoffs SessionCutoffs
+
 	mu      sync.Mutex
 	secrets map[string]cachedSecret
+}
+
+// WithSessionCutoffs makes VerifyToken refuse a token issued before its user's cutoff (a password
+// reset ends every session). It reads the cutoff from the database on every verification, one
+// primary-key lookup, and does not cache it: a reset takes effect on every API replica at once,
+// and a cache would keep an ended session alive for as long as it lasts. It returns the maker.
+func (maker *TokenMaker) WithSessionCutoffs(cutoffs SessionCutoffs) *TokenMaker {
+	maker.cutoffs = cutoffs
+	return maker
 }
 
 func NewTokenMaker(settingService shared.SettingService, logger *zap.SugaredLogger) *TokenMaker {
@@ -100,7 +162,14 @@ func (maker *TokenMaker) refreshSecret(ctx context.Context) (string, error) {
 	return maker.secret(ctx, shared.RefreshTokenSecretKey, "refresh token secret key")
 }
 
+// CreateAccessToken makes the access token of a session that begins now
 func (maker *TokenMaker) CreateAccessToken(ctx context.Context, user *Model) (string, error) {
+	return maker.CreateAccessTokenForSession(ctx, user, maker.clock())
+}
+
+// CreateAccessTokenForSession makes an access token for a session that began at authTime: now for
+// a login or signup, the refresh token's auth_time for a refresh
+func (maker *TokenMaker) CreateAccessTokenForSession(ctx context.Context, user *Model, authTime time.Time) (string, error) {
 	// Get access token expiration
 	expirySetting, err := maker.settingService.GetByKey(ctx, "ACCESS_TOKEN_EXPIRED_IN")
 	if err != nil {
@@ -121,10 +190,16 @@ func (maker *TokenMaker) CreateAccessToken(ctx context.Context, user *Model) (st
 		return "", err
 	}
 
-	return maker.createToken(user, "access", accessExpiry, secretKey)
+	return maker.createToken(user, "access", accessExpiry, secretKey, authTime)
 }
 
+// CreateRefreshToken makes the refresh token of a session that begins now
 func (maker *TokenMaker) CreateRefreshToken(ctx context.Context, user *Model) (string, error) {
+	return maker.CreateRefreshTokenForSession(ctx, user, maker.clock())
+}
+
+// CreateRefreshTokenForSession is CreateAccessTokenForSession for a refresh token
+func (maker *TokenMaker) CreateRefreshTokenForSession(ctx context.Context, user *Model, authTime time.Time) (string, error) {
 	// Get refresh token expiration
 	expirySetting, err := maker.settingService.GetByKey(ctx, "REFRESH_TOKEN_EXPIRED_IN")
 	if err != nil {
@@ -145,14 +220,15 @@ func (maker *TokenMaker) CreateRefreshToken(ctx context.Context, user *Model) (s
 		return "", err
 	}
 
-	return maker.createToken(user, "refresh", refreshExpiry, secretKey)
+	return maker.createToken(user, "refresh", refreshExpiry, secretKey, authTime)
 }
 
-func (maker *TokenMaker) createToken(user *Model, tokenType string, duration time.Duration, secretKey string) (string, error) {
+func (maker *TokenMaker) createToken(user *Model, tokenType string, duration time.Duration, secretKey string, authTime time.Time) (string, error) {
 	claims := &Claims{
-		UserID: user.ID,
-		Email:  user.Email,
-		Type:   tokenType,
+		UserID:   user.ID,
+		Email:    user.Email,
+		Type:     tokenType,
+		AuthTime: newSessionTime(authTime),
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().UTC().Add(duration)),
 			IssuedAt:  jwt.NewNumericDate(time.Now().UTC()),
@@ -166,6 +242,18 @@ func (maker *TokenMaker) createToken(user *Model, tokenType string, duration tim
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString([]byte(secretKey))
+}
+
+// sessionStart is when the session of the claims began: auth_time, or the issue time of a token
+// that predates the claim. Nil when the token says neither.
+func (claims *Claims) sessionStart() *time.Time {
+	if claims.AuthTime != nil {
+		return &claims.AuthTime.Time
+	}
+	if claims.IssuedAt != nil {
+		return &claims.IssuedAt.Time
+	}
+	return nil
 }
 
 func (maker *TokenMaker) VerifyToken(ctx context.Context, tokenString string, tokenType string) (*Claims, error) {
@@ -188,7 +276,7 @@ func (maker *TokenMaker) VerifyToken(ctx context.Context, tokenString string, to
 	// Tokens are signed with HS256 only, so any other algorithm is rejected.
 	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
 		return []byte(secretKey), nil
-	}, jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Alg()}))
+	}, jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Alg()}), jwt.WithLeeway(clockSkewLeeway))
 
 	if err != nil {
 		if errors.Is(err, jwt.ErrTokenExpired) {
@@ -202,5 +290,36 @@ func (maker *TokenMaker) VerifyToken(ctx context.Context, tokenString string, to
 		return nil, ErrInvalidToken
 	}
 
+	if err := maker.checkSessionNotEnded(ctx, claims); err != nil {
+		return nil, err
+	}
+
 	return claims, nil
+}
+
+// checkSessionNotEnded refuses a token of a session that began before its user's sessions were ended. A failure to
+// read the cutoff refuses the token too, since a token that might be an ended session must not pass.
+func (maker *TokenMaker) checkSessionNotEnded(ctx context.Context, claims *Claims) error {
+	if maker.cutoffs == nil {
+		return nil
+	}
+	cutoff, err := maker.cutoffs.TokensValidAfter(ctx, claims.UserID)
+	if err != nil {
+		maker.logger.Errorw("Failed to read when the sessions of a user were ended", "userId", claims.UserID, "error", err)
+		return fmt.Errorf("failed to check the session: %w", err)
+	}
+	if cutoff == nil {
+		return nil
+	}
+	// A session is judged by when it began, not by when a token of it was minted: a refresh that
+	// raced a reset mints its tokens after the cutoff, and they still belong to the ended session
+	start := claims.sessionStart()
+	if start == nil {
+		return ErrInvalidToken
+	}
+	// Round to the millisecond: a fractional time does not survive the float it travels as exactly
+	if start.Round(time.Millisecond).Before(cutoff.Round(time.Millisecond)) {
+		return ErrInvalidToken
+	}
+	return nil
 }

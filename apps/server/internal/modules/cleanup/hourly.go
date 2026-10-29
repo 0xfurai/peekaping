@@ -25,6 +25,16 @@ type Retention struct {
 	TLSInfoDays int
 }
 
+// AccountTokens deletes the account tokens (password reset and email verification links) that no
+// longer matter. auth.AccountRepository is one.
+type AccountTokens interface {
+	// DeleteSpentTokens deletes the tokens used or expired before the cutoff
+	DeleteSpentTokens(ctx context.Context, before time.Time) (int64, error)
+}
+
+// spentTokenRetention is how long an account token that was used or has expired is kept
+const spentTokenRetention = 24 * time.Hour
+
 // hourlyCleanup is the job that runs every hour: it deletes the heartbeats past the data retention
 // period of their workspace, the probes' status changes past the longest of those periods, the expired stats, the old notification history and the
 // old TLS info.
@@ -37,6 +47,7 @@ type hourlyCleanup struct {
 	notificationHistory notification_sent_history.Service
 	tlsInfo             monitor_tls_info.Service
 	probes              probe.Service
+	accountTokens       AccountTokens
 	lock                RunLock
 	retention           Retention
 	logger              *zap.SugaredLogger
@@ -75,4 +86,5 @@ func (h *hourlyCleanup) runHourly(ctx context.Context, now time.Time) {
 	cleanupNotificationHistory(h.notificationHistory, h.retention.NotificationHistoryDays, h.logger)
 	cleanupMonitorTLSInfo(h.tlsInfo, h.retention.TLSInfoDays, h.logger)
 	cleanupProbeStatusChanges(h.probes, h.workspaces, h.workspaceSettings, h.logger)
+	cleanupAccountTokens(h.accountTokens, now, h.logger)
 }

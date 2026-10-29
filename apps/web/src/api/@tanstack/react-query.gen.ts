@@ -11,10 +11,15 @@ import {
   postAuth2FaDisable,
   postAuth2FaSetup,
   postAuth2FaVerify,
+  getAuthConfig,
+  postAuthForgotPassword,
   postAuthLogin,
   putAuthPassword,
   postAuthRefresh,
   postAuthRegister,
+  postAuthResetPassword,
+  postAuthVerifyEmail,
+  postAuthVerifyEmailResend,
   getBadgeByMonitorIdCertExp,
   getBadgeByMonitorIdPing,
   getBadgeByMonitorIdPingByDuration,
@@ -135,6 +140,10 @@ import type {
   PostAuth2FaVerifyData,
   PostAuth2FaVerifyError,
   PostAuth2FaVerifyResponse,
+  GetAuthConfigData,
+  PostAuthForgotPasswordData,
+  PostAuthForgotPasswordError,
+  PostAuthForgotPasswordResponse,
   PostAuthLoginData,
   PostAuthLoginError,
   PostAuthLoginResponse,
@@ -147,6 +156,15 @@ import type {
   PostAuthRegisterData,
   PostAuthRegisterError,
   PostAuthRegisterResponse,
+  PostAuthResetPasswordData,
+  PostAuthResetPasswordError,
+  PostAuthResetPasswordResponse,
+  PostAuthVerifyEmailData,
+  PostAuthVerifyEmailError,
+  PostAuthVerifyEmailResponse,
+  PostAuthVerifyEmailResendData,
+  PostAuthVerifyEmailResendError,
+  PostAuthVerifyEmailResendResponse,
   GetBadgeByMonitorIdCertExpData,
   GetBadgeByMonitorIdPingData,
   GetBadgeByMonitorIdPingByDurationData,
@@ -705,6 +723,81 @@ export const postAuth2FaVerifyMutation = (
   return mutationOptions;
 };
 
+export const getAuthConfigQueryKey = (options?: Options<GetAuthConfigData>) =>
+  createQueryKey("getAuthConfig", options);
+
+/**
+ * Get the install's account email setting
+ * Whether the install sends account emails (a password reset link, an email verification link and emailed invites): accountEmails is true when ACCOUNT_SMTP_HOST is set. When it is false the app offers none of them.
+ */
+export const getAuthConfigOptions = (options?: Options<GetAuthConfigData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getAuthConfig({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getAuthConfigQueryKey(options),
+  });
+};
+
+export const postAuthForgotPasswordQueryKey = (
+  options: Options<PostAuthForgotPasswordData>
+) => createQueryKey("postAuthForgotPassword", options);
+
+/**
+ * Ask for a password reset link
+ * Emails a single-use link that resets the password and expires in one hour, if an account has the email. The answer is 202 with the same body whether it does or not, so it does not tell which addresses have accounts. At most 5 emails per hour go to one address (the request is answered the same and sends nothing past that), and a client address that asks more than 20 times an hour gets 429. 404 when the install sends no account emails.
+ */
+export const postAuthForgotPasswordOptions = (
+  options: Options<PostAuthForgotPasswordData>
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await postAuthForgotPassword({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: postAuthForgotPasswordQueryKey(options),
+  });
+};
+
+/**
+ * Ask for a password reset link
+ * Emails a single-use link that resets the password and expires in one hour, if an account has the email. The answer is 202 with the same body whether it does or not, so it does not tell which addresses have accounts. At most 5 emails per hour go to one address (the request is answered the same and sends nothing past that), and a client address that asks more than 20 times an hour gets 429. 404 when the install sends no account emails.
+ */
+export const postAuthForgotPasswordMutation = (
+  options?: Partial<Options<PostAuthForgotPasswordData>>
+): UseMutationOptions<
+  PostAuthForgotPasswordResponse,
+  AxiosError<PostAuthForgotPasswordError>,
+  Options<PostAuthForgotPasswordData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PostAuthForgotPasswordResponse,
+    AxiosError<PostAuthForgotPasswordError>,
+    Options<PostAuthForgotPasswordData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await postAuthForgotPassword({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
 export const postAuthLoginQueryKey = (options: Options<PostAuthLoginData>) =>
   createQueryKey("postAuthLogin", options);
 
@@ -786,6 +879,7 @@ export const postAuthRefreshQueryKey = (
 
 /**
  * Refresh access token
+ * Refuses a refresh token issued before the user's last password change or password reset.
  */
 export const postAuthRefreshOptions = (
   options: Options<PostAuthRefreshData>
@@ -806,6 +900,7 @@ export const postAuthRefreshOptions = (
 
 /**
  * Refresh access token
+ * Refuses a refresh token issued before the user's last password change or password reset.
  */
 export const postAuthRefreshMutation = (
   options?: Partial<Options<PostAuthRefreshData>>
@@ -874,6 +969,165 @@ export const postAuthRegisterMutation = (
   > = {
     mutationFn: async (localOptions) => {
       const { data } = await postAuthRegister({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const postAuthResetPasswordQueryKey = (
+  options: Options<PostAuthResetPasswordData>
+) => createQueryKey("postAuthResetPassword", options);
+
+/**
+ * Reset the password with a reset link's token
+ * Sets the new password (the signup rules apply), marks the token used and ends every session of the user: refresh tokens and access tokens issued before are refused. The user's other unused reset links stop working. A token that is unknown, used or expired answers 400. At most 20 requests per hour from one client address; more answer 429.
+ */
+export const postAuthResetPasswordOptions = (
+  options: Options<PostAuthResetPasswordData>
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await postAuthResetPassword({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: postAuthResetPasswordQueryKey(options),
+  });
+};
+
+/**
+ * Reset the password with a reset link's token
+ * Sets the new password (the signup rules apply), marks the token used and ends every session of the user: refresh tokens and access tokens issued before are refused. The user's other unused reset links stop working. A token that is unknown, used or expired answers 400. At most 20 requests per hour from one client address; more answer 429.
+ */
+export const postAuthResetPasswordMutation = (
+  options?: Partial<Options<PostAuthResetPasswordData>>
+): UseMutationOptions<
+  PostAuthResetPasswordResponse,
+  AxiosError<PostAuthResetPasswordError>,
+  Options<PostAuthResetPasswordData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PostAuthResetPasswordResponse,
+    AxiosError<PostAuthResetPasswordError>,
+    Options<PostAuthResetPasswordData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await postAuthResetPassword({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const postAuthVerifyEmailQueryKey = (
+  options: Options<PostAuthVerifyEmailData>
+) => createQueryKey("postAuthVerifyEmail", options);
+
+/**
+ * Verify an email address with a verification link's token
+ * Records that the account's address was verified and marks the token used. A token that is unknown, used or expired answers 400. At most 20 requests per hour from one client address; more answer 429.
+ */
+export const postAuthVerifyEmailOptions = (
+  options: Options<PostAuthVerifyEmailData>
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await postAuthVerifyEmail({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: postAuthVerifyEmailQueryKey(options),
+  });
+};
+
+/**
+ * Verify an email address with a verification link's token
+ * Records that the account's address was verified and marks the token used. A token that is unknown, used or expired answers 400. At most 20 requests per hour from one client address; more answer 429.
+ */
+export const postAuthVerifyEmailMutation = (
+  options?: Partial<Options<PostAuthVerifyEmailData>>
+): UseMutationOptions<
+  PostAuthVerifyEmailResponse,
+  AxiosError<PostAuthVerifyEmailError>,
+  Options<PostAuthVerifyEmailData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PostAuthVerifyEmailResponse,
+    AxiosError<PostAuthVerifyEmailError>,
+    Options<PostAuthVerifyEmailData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await postAuthVerifyEmail({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const postAuthVerifyEmailResendQueryKey = (
+  options?: Options<PostAuthVerifyEmailResendData>
+) => createQueryKey("postAuthVerifyEmailResend", options);
+
+/**
+ * Send the verification link again
+ * Emails the signed-in user a new verification link; the earlier ones stop working. 409 when the address is verified already, 404 when the install sends no account emails, and 429 past 5 requests per hour for the address or 20 per client address.
+ */
+export const postAuthVerifyEmailResendOptions = (
+  options?: Options<PostAuthVerifyEmailResendData>
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await postAuthVerifyEmailResend({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: postAuthVerifyEmailResendQueryKey(options),
+  });
+};
+
+/**
+ * Send the verification link again
+ * Emails the signed-in user a new verification link; the earlier ones stop working. 409 when the address is verified already, 404 when the install sends no account emails, and 429 past 5 requests per hour for the address or 20 per client address.
+ */
+export const postAuthVerifyEmailResendMutation = (
+  options?: Partial<Options<PostAuthVerifyEmailResendData>>
+): UseMutationOptions<
+  PostAuthVerifyEmailResendResponse,
+  AxiosError<PostAuthVerifyEmailResendError>,
+  Options<PostAuthVerifyEmailResendData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PostAuthVerifyEmailResendResponse,
+    AxiosError<PostAuthVerifyEmailResendError>,
+    Options<PostAuthVerifyEmailResendData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await postAuthVerifyEmailResend({
         ...options,
         ...localOptions,
         throwOnError: true,
@@ -3579,7 +3833,7 @@ export const postWorkspaceInvitesQueryKey = (
 
 /**
  * Invite someone to the workspace
- * An admin or owner invites an email with a role; only an owner invites an owner. The answer holds the invite's link, once. It works once, for 7 days, for the account with that email. Nothing is emailed: copy the link to the person you invite. An earlier invite for the same email is revoked.
+ * An admin or owner invites an email with a role; only an owner invites an owner. The answer holds the invite's link, once. It works once, for 7 days, for the account with that email. The link is also emailed to the invited address when the install sends account emails (ACCOUNT_SMTP_HOST is set); otherwise copy it to the person you invite. An earlier invite for the same email is revoked. Each invite can send an email, so a caller (a user, or the API keys of a workspace together) makes at most 20 an hour and one address gets at most 3 an hour; past either the answer is 429. A caller that may not invite is refused before either limit counts.
  */
 export const postWorkspaceInvitesOptions = (
   options: Options<PostWorkspaceInvitesData>
@@ -3600,7 +3854,7 @@ export const postWorkspaceInvitesOptions = (
 
 /**
  * Invite someone to the workspace
- * An admin or owner invites an email with a role; only an owner invites an owner. The answer holds the invite's link, once. It works once, for 7 days, for the account with that email. Nothing is emailed: copy the link to the person you invite. An earlier invite for the same email is revoked.
+ * An admin or owner invites an email with a role; only an owner invites an owner. The answer holds the invite's link, once. It works once, for 7 days, for the account with that email. The link is also emailed to the invited address when the install sends account emails (ACCOUNT_SMTP_HOST is set); otherwise copy it to the person you invite. An earlier invite for the same email is revoked. Each invite can send an email, so a caller (a user, or the API keys of a workspace together) makes at most 20 an hour and one address gets at most 3 an hour; past either the answer is 429. A caller that may not invite is refused before either limit counts.
  */
 export const postWorkspaceInvitesMutation = (
   options?: Partial<Options<PostWorkspaceInvitesData>>

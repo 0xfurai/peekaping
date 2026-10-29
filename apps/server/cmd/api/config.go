@@ -97,6 +97,19 @@ type Config struct {
 	// sets the probe offline runs on the api replica that holds the leader lock. Validated in
 	// Validate().
 	ProbeOfflineAfter time.Duration `env:"PROBE_OFFLINE_AFTER" default:"3m"`
+
+	// Account emails: password reset, email verification and invites are sent by one sender for
+	// the whole install. With ACCOUNT_SMTP_HOST unset (the default) they are off: the app shows
+	// no "Forgot password" link and no verification banner, and invites are copied, not emailed.
+	// ACCOUNT_SMTP_FROM is required when the host is set, which ValidateAccountSMTP checks.
+	AccountSMTPHost     string `env:"ACCOUNT_SMTP_HOST"`
+	AccountSMTPPort     int    `env:"ACCOUNT_SMTP_PORT" validate:"min=1,max=65535" default:"587"`
+	AccountSMTPUser     string `env:"ACCOUNT_SMTP_USER"`
+	AccountSMTPPassword string `env:"ACCOUNT_SMTP_PASSWORD"`
+	AccountSMTPFrom     string `env:"ACCOUNT_SMTP_FROM"`
+	// AccountSMTPTLS is how the connection is secured: starttls (the default, and it fails when
+	// the server doesn't offer it), tls (TLS from the first byte, usually port 465) or none
+	AccountSMTPTLS string `env:"ACCOUNT_SMTP_TLS" validate:"oneof=starttls tls none" default:"starttls"`
 }
 
 // LoadAndValidate loads and validates the API service configuration
@@ -191,6 +204,11 @@ func Validate(cfg *Config) error {
 		return fmt.Errorf("PROBE_OFFLINE_AFTER must be at most %s", config.MaxProbeOfflineAfter)
 	}
 
+	// A sender host without a sender address stops startup, not the first password reset
+	if err := config.ValidateAccountSMTP(cfg.AccountSMTPHost, cfg.AccountSMTPFrom, cfg.AccountSMTPTLS); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -232,6 +250,12 @@ func (c *Config) ToInternalConfig() *config.Config {
 		ErrorReportingDSN:            c.ErrorReportingDSN,
 		ProbeBootstrapToken:          c.ProbeBootstrapToken,
 		ProbeOfflineAfter:            c.ProbeOfflineAfter,
+		AccountSMTPHost:              c.AccountSMTPHost,
+		AccountSMTPPort:              c.AccountSMTPPort,
+		AccountSMTPUser:              c.AccountSMTPUser,
+		AccountSMTPPassword:          c.AccountSMTPPassword,
+		AccountSMTPFrom:              c.AccountSMTPFrom,
+		AccountSMTPTLS:               c.AccountSMTPTLS,
 
 		NotificationHistoryRetentionDays: c.NotificationHistoryRetentionDays,
 		TLSInfoRetentionDays:             c.TLSInfoRetentionDays,

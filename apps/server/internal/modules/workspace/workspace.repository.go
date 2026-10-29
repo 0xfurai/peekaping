@@ -13,6 +13,8 @@ type Repository interface {
 	// ListMemberships returns the user's places in workspaces, the one they joined first at the
 	// front: that is their default workspace. The workspace ID breaks a tie.
 	ListMemberships(ctx context.Context, userID string) ([]Membership, error)
+	// FindByID returns the workspace, or nil when there is none with the ID.
+	FindByID(ctx context.Context, id ID) (*Workspace, error)
 	// FindOldest returns the workspace that was created first, or nil when the install has none.
 	FindOldest(ctx context.Context) (*Workspace, error)
 	// ListIDsAnyWorkspace returns the ID of every workspace of the install, the oldest first. It

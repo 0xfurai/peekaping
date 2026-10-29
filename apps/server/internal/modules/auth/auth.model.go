@@ -14,9 +14,16 @@ type Model struct {
 	TwoFALastToken string `json:"-"`
 	// InstanceAdmin is whether the user manages what belongs to the install and not to a workspace.
 	// It is not in the API yet.
-	InstanceAdmin bool      `json:"-"`
-	CreatedAt     time.Time `json:"createdAt"`
-	UpdatedAt     time.Time `json:"updatedAt"`
+	InstanceAdmin bool `json:"-"`
+	// EmailVerifiedAt is when the user followed the link in the verification email, or when an
+	// upgrade counted the account as verified. Nil means it was not. It is not in the API apart
+	// from GET /me.
+	EmailVerifiedAt *time.Time `json:"-"`
+	// TokensValidAfter ends the sessions issued before it: an access or refresh token issued
+	// earlier is refused. A password reset sets it. Nil means no session was ended.
+	TokensValidAfter *time.Time `json:"-"`
+	CreatedAt        time.Time  `json:"createdAt"`
+	UpdatedAt        time.Time  `json:"updatedAt"`
 }
 
 type UpdateModel struct {

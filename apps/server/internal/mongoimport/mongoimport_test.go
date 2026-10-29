@@ -157,6 +157,22 @@ func checkAccounts(t *testing.T, in *mongoimporttest.Install, db *bun.DB, report
 		}, r.Fixed)
 	})
 
+	// The imported users were never asked to verify their email, and the new database asks every
+	// user who is not verified once ACCOUNT_SMTP_* is set, so the importer counts them as verified,
+	// as the upgrade migration does for the users of an install
+	t.Run("users are verified", func(t *testing.T) {
+		before := time.Now().Add(-time.Minute)
+		sqlUsers := auth.NewSQLRepository(db)
+		for _, email := range []string{mongoimporttest.AdminEmail, "second@example.com"} {
+			got, err := sqlUsers.FindByEmail(ctx, email)
+			require.NoError(t, err)
+			require.NotNil(t, got, email)
+			require.NotNil(t, got.EmailVerifiedAt, "%s must count as verified", email)
+			assert.True(t, got.EmailVerifiedAt.After(before), "%s was verified at %s", email, got.EmailVerifiedAt)
+			assert.True(t, got.EmailVerifiedAt.Before(time.Now().Add(time.Minute)), "%s was verified at %s", email, got.EmailVerifiedAt)
+		}
+	})
+
 	t.Run("settings", func(t *testing.T) {
 		sqlSettings := setting.NewSQLRepository(db)
 		// The JWT signing secrets come across, or every session and refresh token would stop working

@@ -339,3 +339,31 @@ func TestSQLiteStartupCheckRefusesAnUnknownValue(t *testing.T) {
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "SQLiteStartupCheck must be one of: quick full off")
 }
+
+func TestLoadAndValidate_AccountSMTPIsLoadedFromTheEnvironment(t *testing.T) {
+	unsetRedis(t)
+	t.Setenv("DB_TYPE", "sqlite")
+	t.Setenv("DB_NAME", "peekaping.db")
+	t.Setenv("ACCOUNT_SMTP_HOST", "smtp.example.com")
+	t.Setenv("ACCOUNT_SMTP_FROM", "no-reply@example.com")
+
+	cfg, err := LoadAndValidate(t.TempDir())
+	require.NoError(t, err)
+
+	internal := cfg.ToInternalConfig()
+	assert.True(t, internal.AccountEmailsEnabled())
+	assert.Equal(t, 587, internal.AccountSMTPPort)
+	assert.Equal(t, "starttls", internal.AccountSMTPTLS)
+	assert.Equal(t, "no-reply@example.com", internal.AccountSMTPFrom)
+}
+
+func TestLoadAndValidate_AccountSMTPHostWithoutFromStopsStartup(t *testing.T) {
+	unsetRedis(t)
+	t.Setenv("DB_TYPE", "sqlite")
+	t.Setenv("DB_NAME", "peekaping.db")
+	t.Setenv("ACCOUNT_SMTP_HOST", "smtp.example.com")
+
+	_, err := LoadAndValidate(t.TempDir())
+
+	assert.ErrorContains(t, err, "ACCOUNT_SMTP_FROM is required when ACCOUNT_SMTP_HOST is set")
+}

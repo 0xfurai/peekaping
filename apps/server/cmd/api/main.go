@@ -24,6 +24,8 @@ import (
 	"peekaping/internal/app"
 	"peekaping/internal/config"
 	"peekaping/internal/httpx"
+	"peekaping/internal/mailer"
+	"peekaping/internal/modules/auth"
 	"peekaping/internal/modules/cleanup"
 	"peekaping/internal/modules/error_reporting"
 	"peekaping/internal/modules/events"
@@ -119,6 +121,7 @@ type parts struct {
 	WebSocket *websocket.Server
 	Consumer  *notification_channel.QueueConsumer
 	EventBus  events.EventBus
+	Mailer    *mailer.Mailer
 	Database  graceful.Database
 
 	Settings             setting.Service
@@ -128,6 +131,7 @@ type parts struct {
 	Stats                stats.Service
 	NotificationHistory  notification_sent_history.Service
 	TLSInfo              monitor_tls_info.Service
+	AccountTokens        auth.AccountRepository
 	CleanupLock          cleanup.RunLock
 	Monitors             monitor.Service
 	Probes               probe.Service
@@ -255,7 +259,7 @@ func startJobs(ctx context.Context, p parts, cfg *config.Config, logger *zap.Sug
 		NotificationHistoryDays: cfg.NotificationHistoryRetentionDays,
 		TLSInfoDays:             cfg.TLSInfoRetentionDays,
 	}
-	hourly, err := cleanup.StartCleanupCron(p.Heartbeats, p.Workspaces, p.WorkspaceSettings, p.Stats, p.NotificationHistory, p.TLSInfo, p.Probes, p.CleanupLock, retention, logger)
+	hourly, err := cleanup.StartCleanupCron(p.Heartbeats, p.Workspaces, p.WorkspaceSettings, p.Stats, p.NotificationHistory, p.TLSInfo, p.Probes, p.AccountTokens, p.CleanupLock, retention, logger)
 	if err != nil {
 		return j, fmt.Errorf("failed to start the hourly cleanup: %w", err)
 	}
@@ -443,6 +447,11 @@ func shutdown(httpServer *http.Server, handlers *graceful.RunningHandlers, webso
 		errs = append(errs, err)
 		running = append(running, "HTTP handlers")
 	}
+
+	// No handler can start an account email any more. Let the ones being sent go out before the
+	// database closes: a send reads and writes it. It is bound by graceful.MailerDrain, which the
+	// shares of shutdownTimeouts don't include: it waits only while a send is running.
+	graceful.DrainMailer(p.Mailer, graceful.MailerDrain, logger)
 
 	busCtx, cancelBus := context.WithTimeout(context.Background(), shutdownTimeouts.EventBus)
 	defer cancelBus()

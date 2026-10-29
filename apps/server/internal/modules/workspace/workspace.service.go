@@ -9,9 +9,11 @@ import (
 	"fmt"
 	"strings"
 	"time"
+	"unicode"
 
 	"peekaping/internal/config"
 	"peekaping/internal/dbtx"
+	"peekaping/internal/mailer"
 	"peekaping/internal/modules/events"
 
 	"github.com/google/uuid"
@@ -72,6 +74,7 @@ type ServiceImpl struct {
 	transactor dbtx.Transactor
 	bus        events.EventBus
 	clientURL  string
+	mailer     *mailer.Mailer
 	logger     *zap.SugaredLogger
 	now        func() time.Time
 }
@@ -83,6 +86,7 @@ func NewService(
 	transactor dbtx.Transactor,
 	bus events.EventBus,
 	cfg *config.Config,
+	mailer *mailer.Mailer,
 	logger *zap.SugaredLogger,
 ) Service {
 	return &ServiceImpl{
@@ -92,6 +96,7 @@ func NewService(
 		transactor: transactor,
 		bus:        bus,
 		clientURL:  cfg.ClientURL,
+		mailer:     mailer,
 		logger:     logger.Named("[workspace-service]"),
 		now:        time.Now,
 	}
@@ -227,13 +232,10 @@ func (s *ServiceImpl) ListInvites(ctx context.Context) ([]Invite, error) {
 }
 
 func (s *ServiceImpl) CreateInvite(ctx context.Context, userID, email string, role Role) (*CreatedInvite, error) {
-	id, actor, err := scope(ctx, RoleAdmin)
-	if err != nil {
+	if err := RequireInvite(ctx, role); err != nil {
 		return nil, err
 	}
-	if err := CanInvite(actor, role); err != nil {
-		return nil, err
-	}
+	id, _, _ := FromContext(ctx)
 	email = normalizeEmail(email)
 	token, hash, err := newInviteToken()
 	if err != nil {
@@ -263,7 +265,50 @@ func (s *ServiceImpl) CreateInvite(ctx context.Context, userID, email string, ro
 	if err != nil {
 		return nil, err
 	}
-	return &CreatedInvite{Invite: invite, Token: token, Link: s.inviteLink(token)}, nil
+	created := &CreatedInvite{Invite: invite, Token: token, Link: s.inviteLink(token)}
+	s.emailInvite(ctx, created)
+	return created, nil
+}
+
+// emailInvite emails the invite's link to the invited address, when the install has a sender for
+// account emails. The invite is made already and its answer carries the link, so a failure is
+// logged and nothing more.
+func (s *ServiceImpl) emailInvite(ctx context.Context, created *CreatedInvite) {
+	if !s.mailer.Enabled() {
+		return
+	}
+	// The name of the workspace and the inviter are looked up in the request's context, before it ends
+	workspaceName := ""
+	if stored, err := s.workspaces.FindByID(ctx, created.WorkspaceID); err != nil {
+		s.logger.Errorw("Failed to read the workspace of an invite to email it", "inviteId", created.ID, "error", err)
+	} else if stored != nil {
+		workspaceName = singleLine(stored.Name)
+	}
+	inviter := ""
+	if created.InvitedBy != nil {
+		email, err := s.members.UserEmail(ctx, *created.InvitedBy)
+		if err != nil {
+			s.logger.Errorw("Failed to read the inviter of an invite to email it", "inviteId", created.ID, "error", err)
+		}
+		inviter = email
+	}
+	if workspaceName == "" {
+		workspaceName = "a workspace"
+	}
+	message := mailer.Invite(workspaceName, inviter, string(created.Role), created.Link, InviteLifetime)
+	s.mailer.Deliver(created.Email, message.Subject, message.Text, message.HTML)
+}
+
+// singleLine turns each control character (a line break, a tab) into a space. The name of a workspace
+// goes into the subject of the invite email, and the mailer refuses a subject with a line break
+// (it would add headers), which would leave the invite unsent.
+func singleLine(name string) string {
+	return strings.TrimSpace(strings.Map(func(r rune) rune {
+		if unicode.IsControl(r) {
+			return ' '
+		}
+		return r
+	}, name))
 }
 
 func (s *ServiceImpl) RevokeInvite(ctx context.Context, inviteID string) error {

@@ -26,6 +26,7 @@ import (
 	"peekaping/internal"
 	"peekaping/internal/config"
 	"peekaping/internal/infra"
+	"peekaping/internal/mailer"
 	"peekaping/internal/modules/api_key"
 	"peekaping/internal/modules/auth"
 	"peekaping/internal/modules/badge"
@@ -74,6 +75,7 @@ func Register(container *dig.Container, cfg *config.Config) error {
 		internal.ProvideLogger,
 		internal.ProvideTrustedProxies,
 		internal.ProvideCORSOrigins,
+		mailer.New,
 		provideProbeLookup,
 		provideProbeMonitorAssigner,
 		provideStaleProbeLookup,

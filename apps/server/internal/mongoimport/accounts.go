@@ -21,6 +21,9 @@ type userRow struct {
 	TwoFALastToken string    `bun:"twofa_last_token" max:"6"`
 	CreatedAt      time.Time `bun:"created_at"`
 	UpdatedAt      time.Time `bun:"updated_at"`
+	// EmailVerifiedAt counts an imported account as verified, as an upgrade does for the users
+	// of an install: they were never asked to verify, and nothing changes for them
+	EmailVerifiedAt time.Time `bun:"email_verified_at"`
 }
 
 // copyUsers copies the users with their password hashes and two-factor secrets,
@@ -54,6 +57,8 @@ func (c *copier) copyUsers(ctx context.Context) error {
 			TwoFALastToken: d.str("twofa_last_token"),
 			CreatedAt:      created,
 			UpdatedAt:      updated,
+
+			EmailVerifiedAt: time.Now().UTC(),
 		})
 	})
 	if err != nil {
