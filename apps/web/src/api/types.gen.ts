@@ -289,16 +289,12 @@ export type AdminUpdateWorkspaceDto = {
   /**
    * Give the workspace limits of its own, which replace the install's defaults whole. A limit left out, or 0, is none, so {} is a workspace with no limits at all, whatever the defaults say. Not with clearLimits.
    */
-  limits?: AdminWorkspaceLimitsDto | null;
+  limits?: AdminWorkspaceLimitsDto;
   /**
    * Suspend (true) or resume (false) the workspace.
    */
   suspended?: boolean;
-  [key: string]:
-    | unknown
-    | boolean
-    | (AdminWorkspaceLimitsDto | null)
-    | undefined;
+  [key: string]: unknown | boolean | AdminWorkspaceLimitsDto | undefined;
 };
 
 export type AdminUserResponse = {
