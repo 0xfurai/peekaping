@@ -13,7 +13,9 @@ const runFromLabel = (probe: Pick<ProbeProbeResponse, "name" | "location">): str
   probe.location ? `${probe.name} · ${probe.location}` : probe.name;
 
 // The list for a monitor of the type, with the probes in `ticked` ticked. It is hidden when there is
-// nothing to choose: one probe to run on, or a push monitor, which is fixed to the local probe.
+// nothing to choose: no probe to run on, one probe the monitor already runs on, or a push monitor,
+// which is fixed to the local probe. One probe is shown when the monitor runs on a probe that isn't
+// a choice (disabled, or no longer running the type), so that it can move to that probe.
 export const runFromChoices = (
   probes: ProbeProbeResponse[],
   type: string,
@@ -24,7 +26,9 @@ export const runFromChoices = (
     label: runFromLabel(probe),
     ticked: ticked.includes(probe.id),
   }));
-  return { choices, hidden: type === "push" || choices.length <= 1 };
+  const offTheList = ticked.some((id) => !choices.some((choice) => choice.id === id));
+  const nothingToChoose = choices.length === 0 || (choices.length === 1 && !offTheList);
+  return { choices, hidden: type === "push" || nothingToChoose };
 };
 
 // The probes a new monitor of the type starts on: the default ones that run it. With a single probe

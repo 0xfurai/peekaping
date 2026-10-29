@@ -53,8 +53,10 @@ export function VerificationBannerView({
   onResend: () => void;
 }) {
   const { t } = useLocalizedTranslation();
-  // The address turned out to be verified already
-  if (outcome === "already_verified") return null;
+  // The address turned out to be verified already, and /me is fetched again. A workspace held back
+  // keeps its notice until /me says it runs; there is nothing left to resend.
+  const verified = outcome === "already_verified";
+  if (verified && !suspended) return null;
 
   const status =
     outcome === "sent"
@@ -74,7 +76,7 @@ export function VerificationBannerView({
             ? t(owner ? "auth.suspension_notice.message" : "auth.suspension_notice.member_message")
             : t("auth.verification_banner.message", { email })}
         </span>
-        {canResend && (
+        {canResend && !verified && (
           <Button type="button" size="sm" variant="outline" disabled={pending} onClick={onResend}>
             {pending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {t("auth.resend.button")}
