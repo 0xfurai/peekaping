@@ -1405,7 +1405,8 @@
       "updated_success": "Notifier opdateret med succes"
     },
     "new": {
-      "title": "Ny beskedkanal"
+      "title": "Ny beskedkanal",
+      "default_hint": "Denne kanal bliver markeret på nye monitorer."
     },
     "no_important": "Ingen vigtige meddelelser fundet.",
     "placeholders": {

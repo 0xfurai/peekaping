@@ -1405,7 +1405,8 @@
       "updated_success": "Notifier succesvol bijgewerkt"
     },
     "new": {
-      "title": "Nieuw notificatiekanaal"
+      "title": "Nieuw notificatiekanaal",
+      "default_hint": "Dit kanaal wordt aangevinkt bij nieuwe monitors."
     },
     "no_important": "Geen belangrijke meldingen gevonden.",
     "placeholders": {
