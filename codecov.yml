@@ -6,9 +6,13 @@ coverage:
       default:
         target: auto
         threshold: 1%
+        # A PR runs only the critical API tests (.github/workflows/test.yml), so its coverage is
+        # lower than main's full run. The checks report, but don't fail
+        informational: true
     patch:
       default:
         target: 70%
+        informational: true
 
 # Each workflow uploads under its own flag. The MongoDB import and Integration
 # tests workflows run only when apps/server changes, so a web-only PR has one

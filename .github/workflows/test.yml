@@ -126,6 +126,10 @@ jobs:
 
       - name: Run server tests with coverage
         working-directory: apps/server
+        env:
+          # The API tests a PR runs: workspace isolation, auth and sessions, API keys, the API
+          # contract, monitor CRUD and the private-address block. About 100 of the ~670
+          CRITICAL_API_TESTS: '^(TestIsolation|TestAuthAPI|TestMe|TestAPIKeyWorkspace|TestOpenAPI|TestHTTPContract|TestRouteTable|TestMonitorsAPI|TestBlockPrivateTargets)(_|$)'
         run: |
           pwd
           # A failing go test must fail the step: without pipefail, the exit status of the
@@ -134,11 +138,20 @@ jobs:
           # -coverpkg credits code that tests in other packages reach, such as
           # the controllers internal/apitest drives through the router, and the Go
           # migrations in cmd/bun/migrations that tests in other packages run. The timeout
-          # is per package: internal/apitest runs its tests one at a time, and with
-          # coverage it takes more than five minutes on its own now, so it gets twenty.
-          # -count=1 so that a cached result never stands in for a run against the
-          # PostgreSQL service
-          go test -timeout 1200s -count=1 -v -coverprofile=coverage.txt -coverpkg=./internal/...,./cmd/bun/migrations ./internal/... ./cmd/... | tee server-test.log
+          # is per package, and internal/apitest is the slowest one. -count=1 so that a cached
+          # result never stands in for a run against the PostgreSQL service. -parallel 4: the
+          # API tests run in parallel, four at a time, as many as a GitHub-hosted runner has CPUs
+          flags="-timeout 1200s -count=1 -parallel 4 -v -coverpkg=./internal/...,./cmd/bun/migrations"
+          if [ "$GITHUB_EVENT_NAME" = pull_request ]; then
+            # A PR runs every other package's tests, and of the API tests only the critical set
+            # (CRITICAL_API_TESTS). All of them run after merge and nightly
+            go test $flags -coverprofile=coverage.txt $(go list ./internal/... ./cmd/... | grep -v '/internal/apitest$') | tee server-test.log
+            go test $flags -coverprofile=coverage-api.txt -run "$CRITICAL_API_TESTS" ./internal/apitest/ | tee -a server-test.log
+            # One profile for the upload: the second one without its mode line
+            tail -n +2 coverage-api.txt >> coverage.txt
+          else
+            go test $flags -coverprofile=coverage.txt ./internal/... ./cmd/... | tee server-test.log
+          fi
           # Every PostgreSQL subtest skips with this message when the variable is unset, which
           # would leave this job green without running them
           if grep -q 'set PEE_TEST_POSTGRES_DSN' server-test.log; then
@@ -202,15 +215,17 @@ jobs:
         # On the GitHub-hosted runners internal/apitest alone takes 1395 to 1491 seconds under
         # -race, and it hit a 1800 second timeout once with nothing hung, so the per-package
         # timeout leaves room for a slower run. -count=1 as in the test job
-        run: go test -race -timeout 3000s -count=1 ./internal/... ./cmd/...
+        run: go test -race -timeout 3000s -count=1 -parallel 4 ./internal/... ./cmd/...
 
 
 
   # The API tests again with the settings of Peekaping Cloud (PEE_TEST_CLOUD=1, cloudConfig in
   # internal/apitest/cloud_test.go), which the guards of the cloud add to as they land. The test job
   # runs the same tests with the self-host defaults. PostgreSQL is there for the isolation suite's
-  # PostgreSQL run. No coverage: the test job has it
+  # PostgreSQL run. No coverage: the test job has it. It runs after merge and nightly, not on PRs:
+  # it is the whole API suite a second time
   api-cloud:
+    if: ${{ github.event_name != 'pull_request' }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
@@ -247,4 +262,4 @@ jobs:
       - name: Run API tests with the cloud's settings
         working-directory: apps/server
         # internal/apitest takes more than five minutes now
-        run: go test -timeout 1200s -count=1 ./internal/apitest/...
+        run: go test -timeout 1200s -count=1 -parallel 4 ./internal/apitest/...
