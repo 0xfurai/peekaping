@@ -161,10 +161,13 @@ jobs:
           flags: server
 
   # The race detector slows the tests down several times over, so it runs beside the
-  # main job without coverage instead of making that job slower
-  race:
+  # main job without coverage instead of making that job slower. internal/apitest runs its
+  # tests one at a time and takes about 1500 seconds under -race, more than all the other
+  # packages together, so its tests are split between the race-api shards and race-packages
+  # tests the rest. The race job passes once all of them have
+  race-packages:
     runs-on: nexus-runner
-    timeout-minutes: 60
+    timeout-minutes: 30
 
     # The same PostgreSQL as the test job, so its subtests run under the race detector too
     services:
@@ -199,12 +202,144 @@ jobs:
 
       - name: Run server tests with the race detector
         working-directory: apps/server
-        # On the GitHub-hosted runners internal/apitest alone takes 1395 to 1491 seconds under
-        # -race, and it hit a 1800 second timeout once with nothing hung, so the per-package
-        # timeout leaves room for a slower run. -count=1 and -p 4 as in the test job
-        run: go test -race -p 4 -timeout 3000s -count=1 ./internal/... ./cmd/...
+        # Every package but internal/apitest, which the race-api shards run. The slowest left
+        # are internal/infra and internal/modules/auth, at 470 and 340 seconds under -race on
+        # nexus-runner, so the per-package timeout of the test job leaves room for a slower
+        # run. -count=1 and -p 4 as in the test job
+        run: |
+          set -o pipefail
+          pkgs=$(go list ./internal/... ./cmd/... | grep -v '/internal/apitest$')
+          go test -race -p 4 -timeout 1200s -count=1 $pkgs
 
+  # internal/apitest's tests under the race detector, split between the shards. Each shard
+  # lists the package's tests, sorts them and takes every fourth one, so a new test lands in
+  # a shard on its own. The race job checks that the shards ran every test once
+  race-api:
+    name: race-api (${{ matrix.shard }}/4)
+    runs-on: nexus-runner
+    timeout-minutes: 30
 
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+
+    # Each shard has a PostgreSQL of its own, as in race-packages
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: pg
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+          --tmpfs /var/lib/postgresql/data
+
+    env:
+      PEE_TEST_POSTGRES_DSN: postgres://postgres:pg@127.0.0.1:5432/postgres?sslmode=disable
+      SHARDS: 4
+      SHARD: ${{ matrix.shard }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.26.4'
+          cache-dependency-path: apps/server/go.sum
+
+      - name: Install dependencies
+        working-directory: apps/server
+        run: go mod download
+
+      # The list comes from the test binary built with -race, the one the next step runs, so
+      # build tags leave out the same tests in both. Tests, examples and fuzz tests are what
+      # -run selects; benchmarks don't run without -bench
+      - name: Pick this shard's API tests
+        working-directory: apps/server
+        run: |
+          set -o pipefail
+          mkdir -p race-api
+          go test -race -list '.*' ./internal/apitest/ | grep -E '^(Test|Example|Fuzz)' | LC_ALL=C sort > race-api/all.txt
+          # The names go into a regexp as they are
+          if grep -vE '^[A-Za-z0-9_]+$' race-api/all.txt; then
+            echo 'These test names need escaping in the -run regexp'
+            exit 1
+          fi
+          awk -v n="$SHARDS" -v i="$SHARD" 'NR % n == i % n' race-api/all.txt > race-api/shard.txt
+          echo "Shard $SHARD of $SHARDS runs $(wc -l < race-api/shard.txt) of $(wc -l < race-api/all.txt) tests"
+
+      - name: Run this shard's API tests with the race detector
+        working-directory: apps/server
+        # A shard takes about a quarter of the package's 1500 seconds. -v so that the race job
+        # can check which tests ran
+        run: |
+          set -o pipefail
+          go test -race -timeout 1200s -count=1 -v -run "^($(paste -sd '|' race-api/shard.txt))\$" ./internal/apitest/ | tee race-api/test.log
+          grep -E '^--- (PASS|FAIL|SKIP): ' race-api/test.log | awk '{print $3}' | LC_ALL=C sort > race-api/ran.txt
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: race-api-${{ matrix.shard }}
+          path: |
+            apps/server/race-api/all.txt
+            apps/server/race-api/shard.txt
+            apps/server/race-api/ran.txt
+          retention-days: 3
+
+  # One check for the whole race run: it fails if any race job failed or the shards didn't
+  # run every API test exactly once
+  race:
+    needs: [race-packages, race-api]
+    if: ${{ !cancelled() }}
+    runs-on: nexus-runner
+    timeout-minutes: 10
+
+    steps:
+      - name: Check that the race jobs passed
+        env:
+          PACKAGES: ${{ needs.race-packages.result }}
+          API: ${{ needs.race-api.result }}
+        run: |
+          echo "race-packages: $PACKAGES, race-api: $API"
+          [ "$PACKAGES" = success ] && [ "$API" = success ]
+
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: race-api-*
+          path: race-api
+
+      - name: Check that the shards ran every API test once
+        run: |
+          set -o pipefail
+          shards=$(ls -d race-api/race-api-* | wc -l)
+          if [ "$shards" -ne 4 ]; then
+            echo "Found the lists of $shards shards, not 4"
+            exit 1
+          fi
+          for f in race-api/*/all.txt; do
+            if ! cmp -s "$f" race-api/race-api-1/all.txt; then
+              echo "$f lists other tests than shard 1:"
+              diff race-api/race-api-1/all.txt "$f" || true
+              exit 1
+            fi
+          done
+          cat race-api/*/ran.txt | LC_ALL=C sort > ran.txt
+          if [ -n "$(uniq -d ran.txt)" ]; then
+            echo 'These tests ran in more than one shard:'
+            uniq -d ran.txt
+            exit 1
+          fi
+          if ! diff race-api/race-api-1/all.txt ran.txt; then
+            echo 'The tests the shards ran (>) differ from the package'"'"'s tests (<)'
+            exit 1
+          fi
+          echo "The shards ran each of the $(wc -l < ran.txt) API tests once"
 
   # The API tests again with the settings of Peekaping Cloud (PEE_TEST_CLOUD=1, cloudConfig in
   # internal/apitest/cloud_test.go), which the guards of the cloud add to as they land. The test job
