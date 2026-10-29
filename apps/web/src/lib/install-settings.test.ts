@@ -214,6 +214,15 @@ describe("defaultLimitsSchema", () => {
     }
   });
 
+  it("refuses a number too long to hold exactly, which the save would send rounded or as null", () => {
+    for (const name of Object.keys(unset)) {
+      for (const refused of ["1".repeat(400), "9007199254740993"]) {
+        expect(errorOf(20, name, refused), `${name} ${refused.length} digits`).toBe(t("limits.invalid"));
+      }
+    }
+    expect(errorOf(20, "monitors", "9007199254740991")).toBeUndefined();
+  });
+
   it("refuses a shortest check interval below the install's minimum", () => {
     expect(errorOf(20, "min_check_interval", "20")).toBeUndefined();
     expect(errorOf(20, "min_check_interval", "1")).toBe(

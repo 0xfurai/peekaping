@@ -24,6 +24,16 @@ type memoryStore struct {
 	fail   error
 	// hold, when set, stops the next read of its key after it took the value, until released
 	hold *hold
+	// failWrite, when set, is asked before each write (a set or a delete) of a key, and the write
+	// fails without storing anything when it says so: a save that fails partway
+	failWrite func(key string) bool
+}
+
+var errWriteFailed = errors.New("write failed")
+
+// failsWrite is whether the write of key fails. The caller holds s.mu.
+func (s *memoryStore) failsWrite(key string) bool {
+	return s.failWrite != nil && s.failWrite(key)
 }
 
 // hold is a read that a test stops in the middle: entered closes when the read has taken the
@@ -75,6 +85,9 @@ func (s *memoryStore) GetByKey(_ context.Context, key string) (*shared.SettingMo
 func (s *memoryStore) SetByKey(_ context.Context, key string, entity *shared.SettingModel) (*shared.SettingModel, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	if s.failsWrite(key) {
+		return nil, errWriteFailed
+	}
 	s.values[key], s.types[key] = entity.Value, entity.Type
 	return entity, nil
 }
@@ -82,6 +95,9 @@ func (s *memoryStore) SetByKey(_ context.Context, key string, entity *shared.Set
 func (s *memoryStore) DeleteByKey(_ context.Context, key string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	if s.failsWrite(key) {
+		return errWriteFailed
+	}
 	delete(s.values, key)
 	return nil
 }
@@ -516,6 +532,94 @@ func TestUpdate_ANewPasswordSentWithTheNewServerIsUsed(t *testing.T) {
 	assert.Equal(t, &AccountSMTP{Host: "smtp.other.example", Port: 2525, User: "mailer", Password: "other-secret", From: "no-reply@peek.example", TLS: "tls"}, r.AccountSMTP(ctx))
 }
 
+// The store has no transaction, so a save that fails partway keeps the writes made before the one
+// that failed. The old password must never be left next to a new endpoint, where it would go to
+// the new server.
+func TestUpdate_AFailedWriteOnANewEndpointKeepsNoOldPassword(t *testing.T) {
+	t.Run("failing at the host leaves no password", func(t *testing.T) {
+		store := savedSender()
+		store.failWrite = func(key string) bool { return key == KeySMTPHost }
+		r, _ := newResolver(t, defaults(), store)
+
+		_, err := r.Update(ctx, Change{SMTPHost: ptr("smtp.other.example")})
+
+		require.ErrorIs(t, err, errWriteFailed)
+		_, stored := store.get(KeySMTPPassword)
+		assert.False(t, stored, "the old password is cleared before the endpoint changes")
+	})
+
+	for name, change := range map[string]Change{
+		"host":                  {SMTPHost: ptr("smtp.other.example")},
+		"user":                  {SMTPUser: ptr("someone-else")},
+		"port and tls":          {SMTPPort: ptr(465), SMTPTLS: ptr("starttls")},
+		"host and new password": {SMTPHost: ptr("smtp.other.example"), SMTPPassword: ptr("other-secret")},
+		"user and new password": {SMTPUser: ptr("someone-else"), SMTPPassword: ptr("other-secret")},
+		"all and new password": {
+			SMTPHost: ptr("smtp.other.example"), SMTPPort: ptr(465), SMTPUser: ptr("someone-else"),
+			SMTPTLS: ptr("starttls"), SMTPPassword: ptr("other-secret"), SMTPFrom: ptr("no-reply@other.example"),
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			// Each write in turn is the one that fails, until a save goes through
+			for failAt := 1; ; failAt++ {
+				store := savedSender()
+				writes := 0
+				store.failWrite = func(string) bool { writes++; return writes == failAt }
+				r, _ := newResolver(t, defaults(), store)
+
+				_, err := r.Update(ctx, change)
+				if err == nil {
+					require.Greater(t, failAt, 1, "the change writes something")
+					break
+				}
+				require.ErrorIs(t, err, errWriteFailed)
+
+				same := map[string]string{KeySMTPHost: "smtp.peek.example", KeySMTPPort: "2525", KeySMTPUser: "mailer", KeySMTPTLS: "tls"}
+				moved := false
+				for key, before := range same {
+					if after, _ := store.get(key); after != before {
+						moved = true
+					}
+				}
+				password, _ := store.get(KeySMTPPassword)
+				if moved {
+					assert.NotEqual(t, "secret", password, "write %d failed: the old password is stored next to a new endpoint", failAt)
+				}
+				if sender := r.AccountSMTP(ctx); sender != nil && sender.Host == "smtp.other.example" {
+					assert.NotEqual(t, "secret", sender.Password, "write %d failed: the old password would go to the new host", failAt)
+				}
+			}
+		})
+	}
+}
+
+// Open signup needs a sender, since new accounts must verify their email address. A save that
+// opens signup and adds the sender, and fails partway, must not leave signup open with no sender.
+func TestUpdate_AFailedWriteNeverOpensSignupWithoutASender(t *testing.T) {
+	change := Change{
+		SignupMode: ptr(config.SignupModeOpen), SMTPHost: ptr("smtp.peek.example"), SMTPPort: ptr(2525),
+		SMTPFrom: ptr("no-reply@peek.example"),
+	}
+	// Each write in turn is the one that fails, until a save goes through
+	for failAt := 1; ; failAt++ {
+		store := newMemoryStore()
+		writes := 0
+		store.failWrite = func(string) bool { writes++; return writes == failAt }
+		r, _ := newResolver(t, defaults(), store)
+
+		_, err := r.Update(ctx, change)
+		if err == nil {
+			require.Greater(t, failAt, 1, "the change writes something")
+			break
+		}
+		require.ErrorIs(t, err, errWriteFailed)
+		if mode, _ := store.get(KeySignupMode); mode == config.SignupModeOpen {
+			host, _ := store.get(KeySMTPHost)
+			assert.NotEmpty(t, host, "write %d failed: signup is open with no sender", failAt)
+		}
+	}
+}
+
 func TestUpdate_AnySenderVariableInTheEnvironmentLocksTheWholeSender(t *testing.T) {
 	for name, tc := range map[string]struct {
 		change Change
@@ -653,6 +757,29 @@ func TestUpdate_SavesAndClearsADefaultLimit(t *testing.T) {
 	require.NoError(t, err)
 	assert.Nil(t, got.Monitors.Value, "cleared, there is no limit")
 	assert.Equal(t, ptr(30), got.MinCheckInterval.Value, "a limit the change leaves out stays")
+}
+
+// A save that changes the endpoint, or opens signup, writes in another order: the default limits
+// it sends are stored all the same
+func TestUpdate_ADefaultLimitSavedWithAnEndpointChangeIsStored(t *testing.T) {
+	for name, change := range map[string]Change{
+		"endpoint":     {SMTPHost: ptr("smtp.other.example"), SMTPPassword: ptr("other-secret")},
+		"open signup":  {SignupMode: ptr("open")},
+		"endpoint too": {SMTPHost: ptr("smtp.other.example"), SignupMode: ptr("open")},
+	} {
+		t.Run(name, func(t *testing.T) {
+			store := savedSender()
+			r, _ := newResolver(t, defaults(), store)
+			change.WorkspaceLimits = map[string]*int{LimitMonitors: ptr(25)}
+
+			changed, err := r.Update(ctx, change)
+
+			require.NoError(t, err)
+			assert.Contains(t, changed, "workspaceLimits.monitors")
+			saved, _ := store.get("install.workspace_limits.monitors")
+			assert.Equal(t, "25", saved)
+		})
+	}
 }
 
 func TestUpdate_RefusesADefaultLimitTheEnvironmentSets(t *testing.T) {

@@ -62,7 +62,7 @@
           },
           "retention_days": {
             "$ref": "#/components/schemas/admin.LimitSettingResponse",
-            "description": "The longest data retention period a workspace may keep, in days."
+            "description": "The longest data retention period a workspace may keep, in days: the hourly cleanup deletes a workspace's heartbeats past it when the workspace's own period is longer."
           },
           "status_pages": {
             "$ref": "#/components/schemas/admin.LimitSettingResponse",
@@ -556,8 +556,9 @@
             ]
           },
           "retention_days": {
-            "description": "The longest data retention period a workspace may keep, 1 to 36500 days. Null clears it: no limit.",
+            "description": "The longest data retention period a workspace may keep, 1 to 36500 days: the hourly cleanup deletes a workspace's heartbeats past it when the workspace's own period is longer. Null clears it: no limit.",
             "format": "int64",
+            "maximum": 36500,
             "minimum": 1,
             "type": [
               "integer",
@@ -652,14 +653,7 @@
             "type": "boolean"
           },
           "limits": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/admin.WorkspaceLimitsDto"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "$ref": "#/components/schemas/admin.WorkspaceLimitsDto",
             "description": "Give the workspace limits of its own, which replace the install's defaults whole. A limit left out, or 0, is none, so {} is a workspace with no limits at all, whatever the defaults say. Not with clearLimits."
           },
           "suspended": {

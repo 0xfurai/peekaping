@@ -19,8 +19,9 @@ import (
 	"go.uber.org/zap"
 )
 
-// readCaps is every workspace's limits, for one run of the cleanup. When they can't be read it logs
-// why, and the run goes by the workspaces' own periods alone: a cap only ever shortens a period, so
+// readCaps is every workspace's limits, for one run of the cleanup: the run reads them once, so
+// that its heartbeat and probe status change cleanups go by the same caps. When they can't be read
+// it logs why, and the run goes by the workspaces' own periods alone: a cap only ever shortens a period, so
 // that keeps everything the caps would. A nil source is no caps.
 func readCaps(ctx context.Context, caps limits.Source, logger *zap.SugaredLogger) limits.Snapshot {
 	if caps == nil {
@@ -63,17 +64,17 @@ func workspaceCutoff(ctx context.Context, workspaceSettings setting.WorkspaceSer
 
 // cleanupHeartbeats goes through the workspaces and deletes each one's heartbeats older than its own
 // data retention period, or its cap when that is shorter, so a lowered cap trims the history on the
-// next run. A workspace whose period can't be used is skipped, and the others go on.
-func cleanupHeartbeats(heartbeatService heartbeat.Service, workspaces workspace.Repository, workspaceSettings setting.WorkspaceService, caps limits.Source, logger *zap.SugaredLogger) {
+// next run. caps are the run's, from readCaps. A workspace whose period can't be used is skipped,
+// and the others go on.
+func cleanupHeartbeats(heartbeatService heartbeat.Service, workspaces workspace.Repository, workspaceSettings setting.WorkspaceService, caps limits.Snapshot, logger *zap.SugaredLogger) {
 	ctx := context.Background()
 	ids, err := workspaces.ListIDsAnyWorkspace(ctx)
 	if err != nil {
 		logger.Errorw("Failed to list the workspaces, not deleting heartbeats", "error", err)
 		return
 	}
-	periodCaps := readCaps(ctx, caps, logger)
 	for _, id := range ids {
-		cutoff, ok := workspaceCutoff(ctx, workspaceSettings, periodCaps, id, "heartbeats", logger)
+		cutoff, ok := workspaceCutoff(ctx, workspaceSettings, caps, id, "heartbeats", logger)
 		if !ok {
 			continue
 		}
@@ -90,18 +91,18 @@ func cleanupHeartbeats(heartbeatService heartbeat.Service, workspaces workspace.
 // period the workspaces keep, each capped as its heartbeats are, except each probe's latest one
 // before it, so that the status of a probe at the start of any range is still known. Probes belong to the install, so no one workspace's
 // period decides. One with none stored counts as 365 days. If any workspace's period can't be used,
-// the run deletes nothing: that period might be the longest, so no cutoff is a safe guess.
-func cleanupProbeStatusChanges(probeService probe.Service, workspaces workspace.Repository, workspaceSettings setting.WorkspaceService, caps limits.Source, logger *zap.SugaredLogger) {
+// the run deletes nothing: that period might be the longest, so no cutoff is a safe guess. caps are
+// the run's, from readCaps.
+func cleanupProbeStatusChanges(probeService probe.Service, workspaces workspace.Repository, workspaceSettings setting.WorkspaceService, caps limits.Snapshot, logger *zap.SugaredLogger) {
 	ctx := context.Background()
 	ids, err := workspaces.ListIDsAnyWorkspace(ctx)
 	if err != nil {
 		logger.Errorw("Failed to list the workspaces, not deleting probe status changes", "error", err)
 		return
 	}
-	periodCaps := readCaps(ctx, caps, logger)
 	var cutoff time.Time
 	for i, id := range ids {
-		workspaceCut, ok := workspaceCutoff(ctx, workspaceSettings, periodCaps, id, "probe status changes", logger)
+		workspaceCut, ok := workspaceCutoff(ctx, workspaceSettings, caps, id, "probe status changes", logger)
 		if !ok {
 			return
 		}

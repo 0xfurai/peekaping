@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"peekaping/internal/limits"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor_tls_info"
 	"peekaping/internal/modules/notification_sent_history"
@@ -284,4 +285,33 @@ func TestHourlyCleanupDeletesTheAccountTokensSpentMoreThanADayAgo(t *testing.T) 
 
 	assert.EqualValues(t, 1, c.accountTokens.Load())
 	assert.Equal(t, noon.Add(-24*time.Hour), time.Unix(0, c.cutoff.Load()).UTC())
+}
+
+// countingCaps is a limits source that counts how many times the workspaces' limits are read
+type countingCaps struct {
+	limits.Source
+	reads *atomic.Int32
+}
+
+func (s countingCaps) Snapshot(context.Context) (limits.Snapshot, error) {
+	s.reads.Add(1)
+	return limits.Snapshot{}, nil
+}
+
+// One run reads the workspaces' limits once, after it claims the hour, so that its heartbeat and
+// probe status change cleanups go by the same caps. A skipped hour reads none.
+func TestHourlyCleanupReadsTheCapsOncePerRun(t *testing.T) {
+	c := &cleanups{}
+	var reads atomic.Int32
+	replica := newReplica(c, NewMemoryRunLock(), zap.NewNop().Sugar())
+	replica.caps = countingCaps{reads: &reads}
+
+	replica.runHourly(context.Background(), noon)
+	require.Equal(t, [5]int32{1, 1, 1, 1, 1}, c.all())
+	assert.EqualValues(t, 1, reads.Load(), "one read for the heartbeats and the probe status changes")
+
+	other := newReplica(c, heldLock{}, zap.NewNop().Sugar())
+	other.caps = countingCaps{reads: &reads}
+	other.runHourly(context.Background(), noon)
+	assert.EqualValues(t, 1, reads.Load(), "a replica that doesn't claim the hour reads no caps")
 }

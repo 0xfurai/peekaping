@@ -148,7 +148,8 @@ export const defaultLimitsSchema = (
           const value = typed.trim();
           if (value === "" || setting.locked || value === (setting.value?.toString() ?? "")) return;
           let message: string | undefined;
-          if (!/^\d+$/.test(value)) message = t("limits.invalid");
+          // A number too long to hold exactly would be sent rounded, or as null (no limit)
+          if (!/^\d+$/.test(value) || !Number.isSafeInteger(Number(value))) message = t("limits.invalid");
           else if (Number(value) < min)
             message =
               name === "min_check_interval"

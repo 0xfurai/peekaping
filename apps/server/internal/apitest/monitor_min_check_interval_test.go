@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"strconv"
 	"testing"
 
 	"peekaping/internal/config"
@@ -42,7 +43,7 @@ func assertIntervalTooShort(t *testing.T, w *httpRecorder, field string, minimum
 	assert.Equal(t, "INTERVAL_TOO_SHORT", got.Error.Code)
 	assert.Equal(t, field, got.Error.Field)
 	assert.Equal(t, minimum, got.Error.Minimum)
-	assert.Contains(t, got.Message, "60", "the message names the minimum")
+	assert.Contains(t, got.Message, strconv.Itoa(minimum), "the message names the minimum")
 	assert.Contains(t, got.Message, field)
 }
 
@@ -95,6 +96,33 @@ func TestMinCheckInterval_ASaveBelowTheMinimumIsRefused(t *testing.T) {
 	interval, retry := intervalsOf(t, a, id)
 	assert.Equal(t, 60, interval, "and the refused updates changed nothing")
 	assert.Equal(t, 60, retry)
+}
+
+// An interval below 20 fails the DTOs' own rule before the service's check. It is the same refusal,
+// so it answers the same code, with the minimum the install allows: 20 with MIN_CHECK_INTERVAL
+// unset, and the raised minimum when it is set.
+func TestMinCheckInterval_ASaveBelowTwentyAnswersTheCodeAndTheMinimum(t *testing.T) {
+	for name, tc := range map[string]struct {
+		options []func(*config.Config)
+		minimum int
+	}{
+		"unset":  {nil, 20},
+		"raised": {[]func(*config.Config){withMinCheckInterval(60)}, 60},
+	} {
+		t.Run(name, func(t *testing.T) {
+			a := newAppWithAdmin(t, tc.options...)
+			id := a.createHTTPMonitor(t, "Site", "")
+			path := monitorsPath + "/" + id
+
+			for _, field := range []string{"interval", "retry_interval"} {
+				t.Run(field, func(t *testing.T) {
+					assertIntervalTooShort(t, a.request(t, http.MethodPost, monitorsPath, with(httpMonitorBody("Other", ""), field, 10), a.asAdmin), field, tc.minimum)
+					assertIntervalTooShort(t, a.request(t, http.MethodPut, path, with(httpMonitorBody("Site", ""), field, 10), a.asAdmin), field, tc.minimum)
+					assertIntervalTooShort(t, a.request(t, http.MethodPatch, path, map[string]any{field: 10}, a.asAdmin), field, tc.minimum)
+				})
+			}
+		})
+	}
 }
 
 func TestMinCheckInterval_TheMinimumItselfSaves(t *testing.T) {

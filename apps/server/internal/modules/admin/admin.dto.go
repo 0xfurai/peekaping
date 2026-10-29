@@ -118,8 +118,9 @@ type UpdateWorkspaceDto struct {
 	// missing, so it is not nullable.
 	Suspended *bool `json:"suspended,omitempty" doc:"Suspend (true) or resume (false) the workspace." nullable:"false"`
 	// Limits gives the workspace limits of its own (PP-160), which replace the install's defaults
-	// whole: a limit left out, or 0, is none, so {} is no limits at all
-	Limits *WorkspaceLimitsDto `json:"limits,omitempty" doc:"Give the workspace limits of its own, which replace the install's defaults whole. A limit left out, or 0, is none, so {} is a workspace with no limits at all, whatever the defaults say. Not with clearLimits."`
+	// whole: a limit left out, or 0, is none, so {} is no limits at all. A null reads as missing,
+	// so it is not nullable: clearLimits removes them.
+	Limits *WorkspaceLimitsDto `json:"limits,omitempty" doc:"Give the workspace limits of its own, which replace the install's defaults whole. A limit left out, or 0, is none, so {} is a workspace with no limits at all, whatever the defaults say. Not with clearLimits." nullable:"false"`
 	// ClearLimits removes the workspace's own limits, so that the install's defaults apply again
 	ClearLimits bool `json:"clearLimits,omitempty" doc:"true removes the workspace's own limits, so that the install's defaults apply to it again. Not with limits."`
 }
