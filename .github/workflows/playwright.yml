@@ -165,6 +165,12 @@ jobs:
     - name: Load image
       run: docker load --input "$RUNNER_TEMP/images/single.tar"
     - name: Test the single image's user, ports and shutdown
+      # nexus-runner runs Docker in a Kubernetes pod with its own user namespace, which maps
+      # 65536 IDs. Docker there sets no ping_group_range and refuses default Docker's
+      # 0 2147483647, so the default run gets every group the namespace has: the image's ping
+      # checks then run as on default Docker
+      env:
+        BUNDLE_TEST_PING_GROUP_RANGE: 0 65535
       run: scripts/test-single-user.sh peekaping-peekaping
 
   playwright-tests:

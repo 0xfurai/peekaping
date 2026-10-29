@@ -11,8 +11,9 @@
 #
 # Usage: scripts/test-single-user.sh [image]
 # Without an image, it builds Dockerfile.single from the repo root. Set
-# BUNDLE_TEST_PREFIX to name the test containers something else.
-# Needs docker, curl and jq.
+# BUNDLE_TEST_PREFIX to name the test containers something else, and
+# BUNDLE_TEST_PING_GROUP_RANGE where Docker runs in a user namespace (see the
+# default run). Needs docker, curl and jq.
 set -u
 
 image=${1:-}
@@ -233,8 +234,19 @@ socket_args=()
 [ -S "$socket" ] && socket_args=(-v "$socket:$socket")
 # SERVER_PORT and REDIS_HOST as a cluster-mode .env sets them: single mode
 # serves port 8383 regardless, and ignores Redis.
+# A Docker that runs in a user namespace (rootless Docker, or a Kubernetes pod with
+# its own user namespace such as nexus-runner's) doesn't give containers the
+# ping_group_range of default Docker, and refuses its value, 0 2147483647. There
+# BUNDLE_TEST_PING_GROUP_RANGE stands in for it, so that the ping checks test the
+# image as default Docker runs it. Unset, the default run passes no sysctl.
+ping_args=()
+if [ -n "${BUNDLE_TEST_PING_GROUP_RANGE:-}" ]; then
+  echo "note - the default run sets net.ipv4.ping_group_range=$BUNDLE_TEST_PING_GROUP_RANGE in place of default Docker's"
+  ping_args=(--sysctl "net.ipv4.ping_group_range=$BUNDLE_TEST_PING_GROUP_RANGE")
+fi
 # The ${a[@]+...} form keeps bash 3.2 (macOS) from failing on an empty array under set -u.
-start "$prefix-default" -e SERVER_PORT=8034 -e REDIS_HOST=redis ${socket_args[@]+"${socket_args[@]}"}
+start "$prefix-default" -e SERVER_PORT=8034 -e REDIS_HOST=redis ${socket_args[@]+"${socket_args[@]}"} \
+  ${ping_args[@]+"${ping_args[@]}"}
 if check "starts and reports healthy" wait_healthy "$prefix-default"; then
   check "peekaping runs as 1000:1000" eq "$(ids "$prefix-default" peekaping)" 1000:1000
   for proc in $root_procs; do
