@@ -31,7 +31,7 @@ concurrency:
 
 jobs:
   import-mongo:
-    runs-on: nexus-runner
+    runs-on: ubuntu-latest
 
     services:
       mongo:
