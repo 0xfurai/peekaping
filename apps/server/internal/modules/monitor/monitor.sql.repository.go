@@ -537,29 +537,80 @@ func (r *SQLRepositoryImpl) AddProbeToAllAnyWorkspace(ctx context.Context, probe
 
 	// This is the one place that decides which monitors a probe is assigned. A probe belongs to the
 	// install, so it is assigned the monitors of every workspace (ADR 0005 section 10).
-	var rows []struct {
-		ID          string `bun:"id"`
-		WorkspaceID string `bun:"workspace_id"`
-		// Probes is how many probe rows the monitor has. One with none runs on the local probe.
-		Probes int `bun:"probes"`
-	}
-	query := db.NewSelect().Model((*sqlModel)(nil)).
-		ColumnExpr("m.id AS id").ColumnExpr("m.workspace_id AS workspace_id").
-		ColumnExpr("(SELECT COUNT(*) FROM monitor_probes WHERE monitor_id = m.id) AS probes").
-		Where("m.type <> ?", pushType).
-		Where("NOT EXISTS (SELECT 1 FROM monitor_probes WHERE monitor_id = m.id AND probe_id = ?)", probeID).
-		Order("m.id")
-	if len(supportedTypes) > 0 {
-		query = query.Where("m.type IN (?)", bun.In(supportedTypes))
-	}
-	if err := query.Scan(ctx, &rows); err != nil {
-		return nil, 0, err
+	candidates := func() *bun.SelectQuery {
+		query := db.NewSelect().Model((*sqlModel)(nil)).
+			Where("m.type <> ?", pushType).
+			Where("NOT EXISTS (SELECT 1 FROM monitor_probes WHERE monitor_id = m.id AND probe_id = ?)", probeID)
+		if len(supportedTypes) > 0 {
+			query = query.Where("m.type IN (?)", bun.In(supportedTypes))
+		}
+		return query
 	}
 	var snapshot limits.Snapshot
 	if r.limits != nil {
 		var err error
 		if snapshot, err = r.limits.Snapshot(ctx); err != nil {
 			return nil, 0, fmt.Errorf("read the workspaces' limits: %w", err)
+		}
+	}
+
+	// The workspaces with a limit on probes are held before their monitors' probes are counted, and
+	// until the new links are committed, so that an update of a monitor's probes, or another
+	// assignment, can't add one beside this one past the limit (limits.LockWorkspace). They are
+	// held in id order, so that two assignments at once never each wait for one the other holds.
+	held := map[string]bool{}
+	hold := func(workspaceIDs []string) error {
+		var limited []string
+		for _, id := range workspaceIDs {
+			if l, _ := snapshot.For(workspace.ID(id)); l.ProbesPerMonitor != nil && !held[id] {
+				limited = append(limited, id)
+			}
+		}
+		slices.Sort(limited)
+		for _, id := range slices.Compact(limited) {
+			if err := r.LockWorkspace(ctx, workspace.ID(id)); err != nil {
+				return fmt.Errorf("lock the workspace: %w", err)
+			}
+			held[id] = true
+		}
+		return nil
+	}
+	if r.limits != nil {
+		var workspaceIDs []string
+		if err := candidates().ColumnExpr("m.workspace_id").Distinct().Scan(ctx, &workspaceIDs); err != nil {
+			return nil, 0, err
+		}
+		if err := hold(workspaceIDs); err != nil {
+			return nil, 0, err
+		}
+	}
+
+	var rows []struct {
+		ID          string `bun:"id"`
+		WorkspaceID string `bun:"workspace_id"`
+		// Probes is how many probe rows the monitor has. One with none runs on the local probe.
+		Probes int `bun:"probes"`
+	}
+	for {
+		rows = rows[:0]
+		if err := candidates().
+			ColumnExpr("m.id AS id").ColumnExpr("m.workspace_id AS workspace_id").
+			ColumnExpr("(SELECT COUNT(*) FROM monitor_probes WHERE monitor_id = m.id) AS probes").
+			Order("m.id").Scan(ctx, &rows); err != nil {
+			return nil, 0, err
+		}
+		// A monitor created since the read of the workspaces can be of one this doesn't hold yet. It
+		// is held now, and the probes counted again.
+		before := len(held)
+		workspaceIDs := make([]string, len(rows))
+		for i, row := range rows {
+			workspaceIDs[i] = row.WorkspaceID
+		}
+		if err := hold(workspaceIDs); err != nil {
+			return nil, 0, err
+		}
+		if len(held) == before {
+			break
 		}
 	}
 
