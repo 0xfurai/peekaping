@@ -27,6 +27,11 @@ on:
     branches: [ main, master ]
     tags:
       - 'v*'
+  # Nightly, for the race job, which runs only here and when started by hand, and for
+  # flaky tests. The other test workflows run at the same time
+  schedule:
+    - cron: '17 3 * * *'
+  workflow_dispatch:
 
 # A new push to a PR replaces its run in progress, which would otherwise keep
 # its runners busy testing a commit nobody waits for. Other runs get a group of
@@ -37,7 +42,7 @@ concurrency:
 
 jobs:
   test:
-    runs-on: nexus-runner
+    runs-on: ubuntu-latest
 
     # The repository tests run their PostgreSQL subtests only when PEE_TEST_POSTGRES_DSN is set.
     # Each test creates a schema or database of its own, so they share this one server
@@ -152,10 +157,12 @@ jobs:
           file: apps/server/coverage.txt
           flags: server
 
-  # The race detector slows the tests down several times over, so it runs beside the
-  # main job without coverage instead of making that job slower
+  # The race detector slows the tests down several times over: internal/apitest alone takes
+  # about 25 minutes under -race. So it runs only nightly and when started by hand, not on
+  # PRs or pushes to main
   race:
-    runs-on: nexus-runner
+    if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
     timeout-minutes: 60
 
     # The same PostgreSQL as the test job, so its subtests run under the race detector too
@@ -202,7 +209,7 @@ jobs:
   # runs the same tests with the self-host defaults. PostgreSQL is there for the isolation suite's
   # PostgreSQL run. No coverage: the test job has it
   api-cloud:
-    runs-on: nexus-runner
+    runs-on: ubuntu-latest
     timeout-minutes: 20
 
     services:
