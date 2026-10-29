@@ -750,6 +750,7 @@
       "shared": {
         "intervals": {
           "heartbeat_retry": "فاصله تکرار تپش قلب (تلاش مجدد هر {{seconds}} ثانیه)",
+          "interval_too_short": "نمی‌تواند کمتر از {{minimum}} ثانیه باشد",
           "max_retries_description": "حداکثر تعداد تکرارها قبل از علامت‌گذاری سرویس به‌عنوان خاموش و ارسال اعلان",
           "request_timeout": "مهلت درخواست (مهلت پس از {{seconds}} ثانیه)",
           "resend_notification": "ارسال مجدد اعلان اگر X بار متوالی خاموش باشد (ارسال مجدد غیرفعال)",

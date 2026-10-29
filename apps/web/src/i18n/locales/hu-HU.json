@@ -750,6 +750,7 @@
       "shared": {
         "intervals": {
           "heartbeat_retry": "Szívverés újrapróbálkozási intervallum (újrapróbálkozás minden {{seconds}} másodpercben)",
+          "interval_too_short": "Nem lehet kevesebb {{minimum}} másodpercnél",
           "max_retries_description": "A szolgáltatás leállásáig és értesítés küldéséig maximális újrapróbálkozások száma",
           "request_timeout": "Kérés időtúllépés ({{seconds}} másodperc után)",
           "resend_notification": "Értesítés újraküldése, ha X alkalommal egymás után le van (újraküldés letiltva)",

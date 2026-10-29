@@ -42,6 +42,8 @@ import {
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 import { useProbes } from "@/hooks/useProbes";
 import { useCurrentAccess } from "@/hooks/useCurrentAccess";
+import { useMinCheckInterval } from "@/hooks/useMinCheckInterval";
+import { withMinimumIntervals } from "../monitor-types/shared/intervals-support";
 import { checkMonitorValues } from "../monitor-types/shared/check-values";
 import { allNotificationChannelsOptions, defaultChannelIds } from "../monitor-types/shared/channel-support";
 import { useWorkspacePath } from "@/hooks/useWorkspacePath";
@@ -112,6 +114,7 @@ export const MonitorFormProvider: React.FC<MonitorFormProviderProps> = ({
 
   const { probes } = useProbes();
   const { instanceAdmin } = useCurrentAccess();
+  const minCheckInterval = useMinCheckInterval();
   const probesChosenByHand = useRef(false);
 
   // A new monitor that isn't a clone starts with the workspace's default channels ticked: from the
@@ -135,11 +138,16 @@ export const MonitorFormProvider: React.FC<MonitorFormProviderProps> = ({
   const typeSetByForm = useRef(startingType.type);
 
   const form = useForm<MonitorFormValues>({
-    defaultValues:
+    // A monitor's interval and retry interval start at least at the install's minimum, a clone's and
+    // an edit's too: the monitor may be stored below a minimum raised since. It already runs at the
+    // minimum, and the API refuses a save below it, even of the stored values.
+    defaultValues: withMinimumIntervals(
       initialValues ??
-      (channels?.data
-        ? { ...startingType.defaultValues, notification_ids: startingChannelIds.current }
-        : startingType.defaultValues),
+        (channels?.data
+          ? { ...startingType.defaultValues, notification_ids: startingChannelIds.current }
+          : startingType.defaultValues),
+      minCheckInterval
+    ),
     // The schema, and a check of the probe that it can't make: which probes run which types
     // comes from the probes query
     resolver: (values, context, options) =>
@@ -148,6 +156,7 @@ export const MonitorFormProvider: React.FC<MonitorFormProviderProps> = ({
         saved: monitor?.data,
         // Someone who isn't an instance admin may leave a new monitor on no probe
         mayUseDefaultProbes: !instanceAdmin && mode === "create",
+        minCheckInterval,
       }),
   });
 
@@ -177,8 +186,10 @@ export const MonitorFormProvider: React.FC<MonitorFormProviderProps> = ({
     });
     if (!next) return;
     typeSetByForm.current = next.type;
-    form.reset(valuesForNewType(next.defaultValues as MonitorFormValues, form.getValues()));
-  }, [presetsType, disabledTypes, form]);
+    form.reset(
+      valuesForNewType(withMinimumIntervals(next.defaultValues, minCheckInterval) as MonitorFormValues, form.getValues())
+    );
+  }, [presetsType, disabledTypes, minCheckInterval, form]);
 
   // In edit mode the form shows the saved monitor once it is loaded
   useEffect(() => {
@@ -190,6 +201,17 @@ export const MonitorFormProvider: React.FC<MonitorFormProviderProps> = ({
       toast.error("Failed to load monitor data");
     }
   }, [mode, monitor, form]);
+
+  // The minimum arrives with /me, which the workspace layout has loaded by the time the form shows.
+  // If it comes later, the intervals the user hasn't touched follow it, an edit's too. So does the
+  // saved monitor once the effect above shows it, which is why this one comes after it.
+  useEffect(() => {
+    for (const name of ["interval", "retry_interval"] as const) {
+      if (!form.getFieldState(name).isDirty && Number(form.getValues(name)) < minCheckInterval) {
+        form.setValue(name, minCheckInterval);
+      }
+    }
+  }, [monitor, minCheckInterval, form]);
 
   // Another monitor holding the push token has a message of its own, since the response carries
   // only its code

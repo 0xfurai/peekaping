@@ -67,6 +67,19 @@ describe("firstMonitorBody", () => {
   });
 });
 
+describe("firstMonitorBody, with the install's minimum check interval", () => {
+  const sentAt = (minCheckInterval: number) =>
+    JSON.parse(JSON.stringify(firstMonitorBody({ url: "https://example.com", host: "example.com" }, minCheckInterval)));
+
+  it("starts at the minimum when it is above 20", () => {
+    expect(sentAt(60)).toMatchObject({ interval: 60, retry_interval: 60, timeout: 16 });
+  });
+
+  it("starts at 20 when the minimum is 20", () => {
+    expect(sentAt(20)).toMatchObject({ interval: 20, retry_interval: 20 });
+  });
+});
+
 describe("getStartedChannelTypes", () => {
   it("offers Email first, then Telegram, Slack, Discord and webhook, when the install has a sender", () => {
     expect(getStartedChannelTypes(true)).toEqual(["install_email", "telegram", "slack", "discord", "webhook"]);

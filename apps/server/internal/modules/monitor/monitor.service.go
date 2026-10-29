@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"peekaping/internal/config"
 	"peekaping/internal/dbtx"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/healthcheck/executor"
@@ -31,7 +32,9 @@ type Service interface {
 	Create(ctx context.Context, workspaceID workspace.ID, monitor *CreateUpdateDto) (*Model, error)
 	FindByID(ctx context.Context, workspaceID workspace.ID, id string) (*Model, error)
 	// FindByIDAnyWorkspace is for a path that loads the monitor it was told about, whatever its
-	// workspace: a notification, a public status page, a badge, the probe protocol
+	// workspace: a notification, a public status page, a badge, the probe protocol. The AnyWorkspace
+	// reads (but FindAllAnyWorkspace) serve the checks, so a check interval or retry interval stored
+	// below MIN_CHECK_INTERVAL reads as the minimum there (PP-159).
 	FindByIDAnyWorkspace(ctx context.Context, id string) (*Model, error)
 	FindByIDs(ctx context.Context, workspaceID workspace.ID, ids []string) ([]*Model, error)
 	FindByIDsAnyWorkspace(ctx context.Context, ids []string) ([]*Model, error)
@@ -50,6 +53,9 @@ type Service interface {
 	UpdatePartialAnyWorkspace(ctx context.Context, id string, monitor *PartialUpdateDto, noPublish bool) (*Model, error)
 	Delete(ctx context.Context, workspaceID workspace.ID, id string) error
 	ValidateMonitorConfig(monitorType string, configJSON string) error
+	// MinCheckInterval is the smallest interval and retry interval, in seconds, that a write may
+	// set: MIN_CHECK_INTERVAL, and never below the DTOs' 20, which the service leaves to them
+	MinCheckInterval() int
 
 	// GetHeartbeats, GetStatPoints and GetUptimeStats load the monitor in the workspace first, and
 	// answer ErrMonitorNotFound when it isn't there. The heartbeats and stats are then read by the
@@ -125,6 +131,10 @@ type MonitorServiceImpl struct {
 	logger                     *zap.SugaredLogger
 	// disabledTypes are the monitor types the install turns off (DISABLED_MONITOR_TYPES, PP-157)
 	disabledTypes []string
+	// minCheckInterval is MIN_CHECK_INTERVAL in seconds (PP-159): the smallest interval and retry
+	// interval a write may set, and what the checks use for a monitor stored with less. 0 is no
+	// minimum beyond the DTOs'.
+	minCheckInterval int
 }
 
 // ServiceOption changes how the monitor service behaves, for an install that has a reason to
@@ -135,6 +145,16 @@ type ServiceOption func(*MonitorServiceImpl)
 // disabled.
 func WithServiceDisabledTypes(types []string) ServiceOption {
 	return func(s *MonitorServiceImpl) { s.disabledTypes = types }
+}
+
+// WithServiceMinCheckInterval sets the smallest check interval and retry interval, in seconds, that
+// a create or an update may set. The reads that serve the checks (the AnyWorkspace ones, which the
+// scheduler, the watchdog and the probe protocol use) give a monitor stored with less as the
+// minimum; the workspace's own reads give what is stored. Without it there is no minimum beyond the
+// DTOs' (20), which the controllers enforce: package monitor's dig passes it only when the install
+// raises MIN_CHECK_INTERVAL above 20.
+func WithServiceMinCheckInterval(seconds int) ServiceOption {
+	return func(s *MonitorServiceImpl) { s.minCheckInterval = seconds }
 }
 
 func NewMonitorService(
@@ -176,8 +196,49 @@ func (mr *MonitorServiceImpl) requireTypeEnabled(monitorType string) error {
 	return nil
 }
 
+// requireIntervals refuses an interval or retry interval below the minimum. A zero value counts: the
+// DTOs refuse it too, and 0 is no way around the minimum.
+func (mr *MonitorServiceImpl) requireIntervals(interval, retryInterval *int) error {
+	if interval != nil && *interval < mr.minCheckInterval {
+		return intervalTooShortError("interval", *interval, mr.minCheckInterval)
+	}
+	if retryInterval != nil && *retryInterval < mr.minCheckInterval {
+		return intervalTooShortError("retry_interval", *retryInterval, mr.minCheckInterval)
+	}
+	return nil
+}
+
+func (mr *MonitorServiceImpl) MinCheckInterval() int {
+	return max(mr.minCheckInterval, config.AbsoluteMinCheckInterval)
+}
+
+// atMinimum gives a monitor stored with a check interval or retry interval below the minimum the
+// minimum, for the checks to run on. The model is the caller's own copy, fresh from the repository.
+func (mr *MonitorServiceImpl) atMinimum(m *Model) *Model {
+	if m == nil || mr.minCheckInterval <= 0 {
+		return m
+	}
+	m.Interval = max(m.Interval, mr.minCheckInterval)
+	m.RetryInterval = max(m.RetryInterval, mr.minCheckInterval)
+	return m
+}
+
+// atMinimumAll is atMinimum for a list
+func (mr *MonitorServiceImpl) atMinimumAll(monitors []*Model, err error) ([]*Model, error) {
+	if err != nil {
+		return nil, err
+	}
+	for _, m := range monitors {
+		mr.atMinimum(m)
+	}
+	return monitors, nil
+}
+
 func (mr *MonitorServiceImpl) Create(ctx context.Context, workspaceID workspace.ID, monitorCreateDto *CreateUpdateDto) (*Model, error) {
 	if err := mr.requireTypeEnabled(monitorCreateDto.Type); err != nil {
+		return nil, err
+	}
+	if err := mr.requireIntervals(&monitorCreateDto.Interval, &monitorCreateDto.RetryInterval); err != nil {
 		return nil, err
 	}
 	lowerLinkIDs(monitorCreateDto)
@@ -255,7 +316,11 @@ func (mr *MonitorServiceImpl) FindByID(ctx context.Context, workspaceID workspac
 }
 
 func (mr *MonitorServiceImpl) FindByIDAnyWorkspace(ctx context.Context, id string) (*Model, error) {
-	return mr.monitorRepository.FindByIDAnyWorkspace(ctx, id)
+	found, err := mr.monitorRepository.FindByIDAnyWorkspace(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return mr.atMinimum(found), nil
 }
 
 func (mr *MonitorServiceImpl) FindByIDs(ctx context.Context, workspaceID workspace.ID, ids []string) ([]*Model, error) {
@@ -263,7 +328,7 @@ func (mr *MonitorServiceImpl) FindByIDs(ctx context.Context, workspaceID workspa
 }
 
 func (mr *MonitorServiceImpl) FindByIDsAnyWorkspace(ctx context.Context, ids []string) ([]*Model, error) {
-	return mr.monitorRepository.FindByIDsAnyWorkspace(ctx, ids)
+	return mr.atMinimumAll(mr.monitorRepository.FindByIDsAnyWorkspace(ctx, ids))
 }
 
 func (mr *MonitorServiceImpl) FindAll(ctx context.Context, workspaceID workspace.ID, page int, limit int, q string, active *bool, status *int, tagIds []string) ([]*Model, error) {
@@ -280,18 +345,21 @@ func (mr *MonitorServiceImpl) FindAllAnyWorkspace(ctx context.Context, page int,
 }
 
 func (mr *MonitorServiceImpl) FindActiveAnyWorkspace(ctx context.Context) ([]*Model, error) {
-	return mr.monitorRepository.FindActiveAnyWorkspace(ctx)
+	return mr.atMinimumAll(mr.monitorRepository.FindActiveAnyWorkspace(ctx))
 }
 
 func (mr *MonitorServiceImpl) FindActivePaginatedAnyWorkspace(ctx context.Context, page int, limit int) ([]*Model, error) {
-	return mr.monitorRepository.FindActivePaginatedAnyWorkspace(ctx, page, limit)
+	return mr.atMinimumAll(mr.monitorRepository.FindActivePaginatedAnyWorkspace(ctx, page, limit))
 }
 
 func (mr *MonitorServiceImpl) FindActiveByProbeAnyWorkspace(ctx context.Context, probeID string, page int, limit int) ([]*Model, error) {
-	return mr.monitorRepository.FindActiveByProbeAnyWorkspace(ctx, probeID, page, limit)
+	return mr.atMinimumAll(mr.monitorRepository.FindActiveByProbeAnyWorkspace(ctx, probeID, page, limit))
 }
 
 func (mr *MonitorServiceImpl) UpdateFull(ctx context.Context, workspaceID workspace.ID, id string, monitor *CreateUpdateDto) (*Model, error) {
+	if err := mr.requireIntervals(&monitor.Interval, &monitor.RetryInterval); err != nil {
+		return nil, err
+	}
 	lowerLinkIDs(monitor)
 	model := &Model{
 		ID:             id,
@@ -425,6 +493,11 @@ func (mr *MonitorServiceImpl) updatePartial(ctx context.Context, workspaceID *wo
 			}
 		}
 		if err := mr.validatePartialConfig(current, monitor); err != nil {
+			return err
+		}
+		// Only the intervals the request sends are checked: a monitor stored below the minimum can
+		// still be renamed or paused
+		if err := mr.requireIntervals(monitor.Interval, monitor.RetryInterval); err != nil {
 			return err
 		}
 		if err := validatePartialTimeout(current, monitor); err != nil {
@@ -913,7 +986,11 @@ func (mr *MonitorServiceImpl) GetUptime24hAnyWorkspace(ctx context.Context, id, 
 }
 
 func (mr *MonitorServiceImpl) FindOneByPushTokenAnyWorkspace(ctx context.Context, pushToken string) (*Model, error) {
-	return mr.monitorRepository.FindOneByPushTokenAnyWorkspace(ctx, pushToken)
+	found, err := mr.monitorRepository.FindOneByPushTokenAnyWorkspace(ctx, pushToken)
+	if err != nil {
+		return nil, err
+	}
+	return mr.atMinimum(found), nil
 }
 
 // assignPublishChunk is how many monitors AssignProbeToAll reads back at a time to announce

@@ -750,6 +750,7 @@
       "shared": {
         "intervals": {
           "heartbeat_retry": "Heartbeat ریٹری وقفہ (دوبارہ کوشش ہر {{seconds}} سیکنڈ کے بعد)",
+          "interval_too_short": "{{minimum}} سیکنڈ سے کم نہیں ہو سکتا",
           "max_retries_description": "سروس کو ڈاؤن کے طور پر نشان زد کرنے اور نوٹیفیکیشن بھیجنے سے پہلے زیادہ سے زیادہ دوبارہ کوششیں",
           "request_timeout": "درخواست کا ٹائم آؤٹ ({{seconds}} سیکنڈ کے بعد ٹائم آؤٹ)",
           "resend_notification": "اگر ڈاؤن X بار مسلسل ہو تو نوٹیفکیشن دوبارہ بھیجیں (ریسینڈ غیر فعال)",

@@ -143,6 +143,10 @@ type Config struct {
 	// Checks per minute to one target host that one checking process runs, all workspaces together.
 	// 0, the default, is off.
 	ChecksPerHostPerMinute int `env:"CHECKS_PER_HOST_PER_MINUTE" validate:"min=0" default:"0"`
+
+	// The smallest check interval and retry interval, in seconds, that a monitor can be saved with.
+	// Never below 20: the timeout minimum (16) and the 0.8 rule rely on it.
+	MinCheckInterval int `env:"MIN_CHECK_INTERVAL" validate:"min=20" default:"20"`
 }
 
 // LoadAndValidate loads and validates peekaping's configuration
@@ -320,6 +324,7 @@ func (c *Config) ToInternalConfig() *config.Config {
 		APIRateLimitPerWorkspace:     c.APIRateLimitPerWorkspace,
 		APIRateLimitPerAPIKey:        c.APIRateLimitPerAPIKey,
 		ChecksPerHostPerMinute:       c.ChecksPerHostPerMinute,
+		MinCheckInterval:             c.MinCheckInterval,
 
 		NotificationHistoryRetentionDays: c.NotificationHistoryRetentionDays,
 		TLSInfoRetentionDays:             c.TLSInfoRetentionDays,

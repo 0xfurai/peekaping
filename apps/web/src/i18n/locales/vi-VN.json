@@ -750,6 +750,7 @@
       "shared": {
         "intervals": {
           "heartbeat_retry": "Khoảng thời gian thử lại nhịp tim (Thử lại mỗi {{seconds}} giây)",
+          "interval_too_short": "Không được nhỏ hơn {{minimum}} giây",
           "max_retries_description": "Số lần thử tối đa trước khi dịch vụ được đánh dấu là không khả dụng và gửi thông báo",
           "request_timeout": "Yêu cầu hết thời gian (Hết thời gian sau {{seconds}} giây)",
           "resend_notification": "Gửi lại thông báo nếu bị ngừng X lần liên tiếp (Gửi lại đã vô hiệu)",

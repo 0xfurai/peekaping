@@ -499,6 +499,13 @@
             },
             "type": "array"
           },
+          "minCheckInterval": {
+            "examples": [
+              20
+            ],
+            "format": "int64",
+            "type": "integer"
+          },
           "user": {
             "$ref": "#/components/schemas/auth.MeUser"
           },
@@ -517,7 +524,8 @@
           "workspaces",
           "defaultWorkspaceId",
           "accountEmails",
-          "disabledMonitorTypes"
+          "disabledMonitorTypes",
+          "minCheckInterval"
         ],
         "type": "object"
       },
@@ -1664,6 +1672,61 @@
           "7d",
           "30d",
           "365d"
+        ],
+        "type": "object"
+      },
+      "monitor.IntervalTooShortError": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "examples": [
+              "INTERVAL_TOO_SHORT"
+            ],
+            "type": "string"
+          },
+          "field": {
+            "description": "The field that is below the minimum: interval or retry_interval.",
+            "examples": [
+              "interval"
+            ],
+            "type": "string"
+          },
+          "minimum": {
+            "description": "The smallest interval and retry interval this install allows, in seconds.",
+            "examples": [
+              60
+            ],
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "code",
+          "field",
+          "minimum"
+        ],
+        "type": "object"
+      },
+      "monitor.IntervalTooShortResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "type": "null"
+          },
+          "error": {
+            "$ref": "#/components/schemas/monitor.IntervalTooShortError"
+          },
+          "message": {
+            "examples": [
+              "interval of 30 s is below the minimum of 60 seconds"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "message",
+          "data",
+          "error"
         ],
         "type": "object"
       },
@@ -9966,6 +10029,9 @@
                       "$ref": "#/components/schemas/utils.TargetNotAllowedResponse"
                     },
                     {
+                      "$ref": "#/components/schemas/monitor.IntervalTooShortResponse"
+                    },
+                    {
                       "$ref": "#/components/schemas/httpx.ErrorBody"
                     }
                   ]
@@ -10377,6 +10443,9 @@
                       "$ref": "#/components/schemas/utils.TargetNotAllowedResponse"
                     },
                     {
+                      "$ref": "#/components/schemas/monitor.IntervalTooShortResponse"
+                    },
+                    {
                       "$ref": "#/components/schemas/httpx.ErrorBody"
                     }
                   ]
@@ -10504,6 +10573,9 @@
                     },
                     {
                       "$ref": "#/components/schemas/utils.TargetNotAllowedResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/monitor.IntervalTooShortResponse"
                     },
                     {
                       "$ref": "#/components/schemas/httpx.ErrorBody"

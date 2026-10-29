@@ -229,6 +229,20 @@ A negative value stops startup with a configuration error.
 - A remote probe uses the stricter of its own `CHECKS_PER_HOST_PER_MINUTE` and the server's (the smaller one that is not 0, or whichever is set). The server states its value when the probe says hello, and the probe follows it at each hello. A server or probe from before the setting left it out, which means off.
 - If more monitors want a host than the cap allows, some skip every tick: the cap and the number of monitors on one host have to fit the check intervals. Raise the cap, or give those monitors longer intervals.
 
+### Minimum check interval
+
+`MIN_CHECK_INTERVAL` is the smallest check interval and retry interval a monitor can be saved with. It applies to the api and to `peekaping`. The default is the smallest a monitor can have, so a self-hosted install is unchanged; raise it where many workspaces share the install and short intervals would cost too much.
+
+| Variable | Type | Required | Default | Description |
+|----------|------|----------|---------|-------------|
+| `MIN_CHECK_INTERVAL` | int | No | `20` | The smallest `interval` and `retry_interval`, in seconds |
+
+A value below 20 stops startup with a configuration error: the timeout minimum (16 seconds) and the rule that a timeout is at most 0.8 times the interval rely on it.
+
+- Creating a monitor, or updating one with `PUT` or `PATCH`, with an `interval` or `retry_interval` below the minimum answers 400 with the code `INTERVAL_TOO_SHORT`, the `field` (`interval` or `retry_interval`) and the `minimum`, and a message that names the minimum in seconds. A `PATCH` that sends neither field is not refused because of a lower stored value, so a monitor stored with less can still be renamed or paused.
+- A monitor stored with less, because it was saved before the minimum was raised or imported, is checked at the minimum: the scheduler of `peekaping`, the stale-monitor watchdog and the assignments a remote probe is dealt use the minimum in its place. The API still shows the stored values, and the timeout is kept as stored; a longer interval only loosens the 0.8 rule.
+- `GET /api/v1/me` returns the minimum as `minCheckInterval`. The monitor form uses it as the minimum and the default for the interval and the retry interval, and so does Get started when it creates the first monitor.
+
 ### Metrics Configuration
 
 | Variable | Type | Required | Default | Description |

@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useDisabledMonitorTypes } from "@/hooks/useDisabledMonitorTypes";
+import { useMinCheckInterval } from "@/hooks/useMinCheckInterval";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 import { useWorkspacePath } from "@/hooks/useWorkspacePath";
 import { monitorTypeDisabledReason } from "@/app/monitors/monitor-types/disabled";
@@ -35,6 +36,7 @@ export function MonitorStep({ onCreated }: { onCreated: (monitorId: string) => v
   const workspacePath = useWorkspacePath();
   const queryClient = useQueryClient();
   const httpDisabled = useDisabledMonitorTypes().includes("http");
+  const minCheckInterval = useMinCheckInterval();
   const form = useForm<MonitorStepValues>({
     resolver: zodResolver(createSchema(t)),
     defaultValues: { url: "" },
@@ -52,7 +54,7 @@ export function MonitorStep({ onCreated }: { onCreated: (monitorId: string) => v
 
   const submit = (values: MonitorStepValues) => {
     const parsed = parseMonitorUrl(values.url);
-    if (parsed) create.mutate({ body: firstMonitorBody(parsed) });
+    if (parsed) create.mutate({ body: firstMonitorBody(parsed, minCheckInterval) });
   };
 
   if (httpDisabled) {

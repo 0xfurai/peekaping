@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"peekaping/internal/config"
 	"peekaping/internal/dbtx"
 	"peekaping/internal/modules/workspace"
 
@@ -60,6 +61,8 @@ type ServiceImpl struct {
 	// disabledMonitorTypes are the monitor types the install turns off (DISABLED_MONITOR_TYPES), as
 	// /me lists them
 	disabledMonitorTypes []string
+	// minCheckInterval is MIN_CHECK_INTERVAL in seconds, as /me states it
+	minCheckInterval int
 }
 
 // ServiceOption changes how the service behaves
@@ -75,6 +78,12 @@ func WithOpenSignup(open bool) ServiceOption {
 // DISABLED_MONITOR_TYPES does. Without it none is.
 func WithDisabledMonitorTypes(types []string) ServiceOption {
 	return func(s *ServiceImpl) { s.disabledMonitorTypes = types }
+}
+
+// WithMinCheckInterval sets the smallest check interval, in seconds, that /me tells the app to offer,
+// as MIN_CHECK_INTERVAL does. Without it /me says 20, the smallest any install allows.
+func WithMinCheckInterval(seconds int) ServiceOption {
+	return func(s *ServiceImpl) { s.minCheckInterval = seconds }
 }
 
 func NewService(
@@ -363,6 +372,7 @@ func (s *ServiceImpl) Me(ctx context.Context, userId string) (*MeResponse, error
 		AccountEmails: s.verifier != nil && s.verifier.Enabled(),
 		// A list, never null, so that the app can read it without a check
 		DisabledMonitorTypes: append([]string{}, s.disabledMonitorTypes...),
+		MinCheckInterval:     max(s.minCheckInterval, config.AbsoluteMinCheckInterval),
 	}
 	for i, m := range memberships {
 		me.Workspaces[i] = MeWorkspace{ID: string(m.Workspace.ID), Name: m.Workspace.Name, Role: string(m.Role), Suspended: m.Workspace.Suspended()}

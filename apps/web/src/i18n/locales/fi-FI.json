@@ -750,6 +750,7 @@
       "shared": {
         "intervals": {
           "heartbeat_retry": "Sydämen tarkistuksen uudelleenyritysaika (Uudelleenyrittää joka {{seconds}} sekuntia)",
+          "interval_too_short": "Ei voi olla alle {{minimum}} sekuntia",
           "max_retries_description": "Enimmäismäärä yrityksiä ennen kuin palvelu merkitään alas ja ilmoitus lähetetään",
           "request_timeout": "Pyyntö aikakatkaisu (Aika {{seconds}} sekunnin kuluttua)",
           "resend_notification": "Lähetä ilmoitus uudelleen, jos Down X kertaa peräkkäin (Uudelleenlähetys poistettu käytöstä)",

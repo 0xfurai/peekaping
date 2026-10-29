@@ -101,6 +101,10 @@ config:
     # remote probe), all workspaces together. A check whose turn is a few seconds away waits for it;
     # one further out skips that tick. 0, the default, is off.
     # CHECKS_PER_HOST_PER_MINUTE: "60"
+    # The smallest check interval and retry interval, in seconds, a monitor can be saved with. 20,
+    # the default, is the smallest a monitor can have; a lower value stops startup. A monitor
+    # stored with less is checked at the minimum.
+    # MIN_CHECK_INTERVAL: "60"
     # Proxies whose X-Forwarded-For and X-Real-IP the API believes: IP addresses and
     # CIDR ranges, comma-separated. The login lockout counts failed logins per client
     # address, and a client can send those headers itself, so the API ignores them from

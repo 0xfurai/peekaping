@@ -750,6 +750,7 @@
       "shared": {
         "intervals": {
           "heartbeat_retry": "心跳重试间隔 (每 {{seconds}} 秒重试)",
+          "interval_too_short": "不能少于 {{minimum}} 秒",
           "max_retries_description": "最大重试次数，超过后服务将被标记为宕机并发送通知",
           "request_timeout": "请求超时（{{seconds}} 秒后超时）",
           "resend_notification": "若连续宕机 X 次，重新发送通知（已禁用）",

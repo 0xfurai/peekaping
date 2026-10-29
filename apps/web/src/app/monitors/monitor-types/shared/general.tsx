@@ -6,12 +6,15 @@ import { useLocalizedTranslation } from "@/hooks/useTranslation";
 import { getMonitorType, type MonitorFormValues } from "../registry";
 import { useMonitorTypeOptions } from "./type-options";
 import { useMonitorFormContext } from "../../context/monitor-form-context";
+import { useMinCheckInterval } from "@/hooks/useMinCheckInterval";
+import { withMinimumIntervals } from "./intervals-support";
 import { valuesForNewType } from "./type-change";
 
 const General = () => {
   const { form, mode } = useMonitorFormContext();
   const { t } = useLocalizedTranslation();
   const typeOptions = useMonitorTypeOptions();
+  const minCheckInterval = useMinCheckInterval();
 
   return (
     <>
@@ -44,7 +47,12 @@ const General = () => {
                 // edited monitor keeps its values.
                 const definition = getMonitorType(val);
                 if (mode === "create" && definition) {
-                  form.reset(valuesForNewType(definition.defaultValues as MonitorFormValues, form.getValues()));
+                  form.reset(
+                    valuesForNewType(
+                      withMinimumIntervals(definition.defaultValues, minCheckInterval) as MonitorFormValues,
+                      form.getValues()
+                    )
+                  );
                   return;
                 }
                 field.onChange(val);

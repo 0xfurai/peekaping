@@ -750,6 +750,7 @@
       "shared": {
         "intervals": {
           "heartbeat_retry": "Püütise taaste intervall (Taasta iga {{seconds}} sekundit)",
+          "interval_too_short": "Ei tohi olla alla {{minimum}} sekundi",
           "max_retries_description": "Maksimaalne ürituste arv enne, kui teenus märgitakse alla ja teavitus saadetakse",
           "request_timeout": "Päringu aegumine (aegumine pärast {{seconds}} sekundit)",
           "resend_notification": "Saada teavitus uuesti, kui alla X korda järjest (Uuesti saatmine keelatud)",

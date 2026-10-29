@@ -750,6 +750,7 @@
       "shared": {
         "intervals": {
           "heartbeat_retry": "Heartbeat-retryintervall (forsøk hver {{seconds}} sekund)",
+          "interval_too_short": "Kan ikke være under {{minimum}} sekunder",
           "max_retries_description": "Maksimale forsøk før tjenesten markeres som ned og en varsling sendes.",
           "request_timeout": "Forespørsel timeout (Timeout etter {{seconds}} sekunder)",
           "resend_notification": "Send varsel på nytt hvis ned i X påfølgende ganger (Send på nytt deaktivert)",

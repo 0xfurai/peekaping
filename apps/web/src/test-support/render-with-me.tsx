@@ -15,6 +15,8 @@ export type Access = {
   otherWorkspaces?: { id: string; name: string; role: "member" | "admin" | "owner" }[];
   // The monitor types the install turns off, as /me lists them
   disabledMonitorTypes?: string[];
+  // The smallest check interval the install allows, as /me states it. Left out, /me carries 20.
+  minCheckInterval?: number;
 };
 
 export const USER_EMAIL = "user@example.com";
@@ -47,6 +49,7 @@ export const renderAs = (
       workspaces: [{ id: WORKSPACE_ID, name: "Main", role: access.role }, ...(access.otherWorkspaces ?? [])],
       defaultWorkspaceId: WORKSPACE_ID,
       disabledMonitorTypes: access.disabledMonitorTypes ?? [],
+      minCheckInterval: access.minCheckInterval ?? 20,
     },
   });
   seed?.(queryClient);
