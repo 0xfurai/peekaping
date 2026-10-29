@@ -27,8 +27,8 @@ on:
     branches: [ main, master ]
     tags:
       - 'v*'
-  # Nightly, for the jobs a PR skips (race-api) and for flaky tests. The other test
-  # workflows run at the same time
+  # Nightly, for the race job, which runs only here and when started by hand, and for
+  # flaky tests. The other test workflows run at the same time
   schedule:
     - cron: '17 3 * * *'
   workflow_dispatch:
@@ -165,15 +165,14 @@ jobs:
           file: apps/server/coverage.txt
           flags: server
 
-  # The race detector slows the tests down several times over, so it runs beside the
-  # main job without coverage instead of making that job slower. internal/apitest runs its
-  # tests one at a time and takes about 1500 seconds under -race, more than all the other
-  # packages together, so a PR runs the race detector on every other package
-  # (race-packages) and leaves internal/apitest to race-api, which runs after the merge and
-  # nightly. The race job is one check for both
-  race-packages:
+  # Every package under the race detector. It slows the tests down several times over:
+  # internal/apitest alone, which runs its tests one at a time, takes about 1500 seconds
+  # under -race. So it runs only nightly and when started by hand, not on PRs or pushes
+  # to main
+  race:
+    if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
     runs-on: nexus-runner
-    timeout-minutes: 30
+    timeout-minutes: 60
 
     # The same PostgreSQL as the test job, so its subtests run under the race detector too
     services:
@@ -206,78 +205,11 @@ jobs:
         working-directory: apps/server
         run: go mod download
 
+      # The timeout is per package: internal/apitest takes about 1500 seconds on nexus-runner,
+      # and the others run beside it. -count=1 and -p 4 as in the test job
       - name: Run server tests with the race detector
         working-directory: apps/server
-        # Every package but internal/apitest, which race-api runs. The slowest left are
-        # internal/infra and internal/modules/auth, at 470 and 340 seconds under -race on
-        # nexus-runner, so the per-package timeout of the test job leaves room for a slower
-        # run. -count=1 and -p 4 as in the test job
-        run: |
-          set -o pipefail
-          pkgs=$(go list ./internal/... ./cmd/... | grep -v '/internal/apitest$')
-          go test -race -p 4 -timeout 1200s -count=1 $pkgs
-
-  # internal/apitest's tests under the race detector. They take about 25 minutes, so a PR
-  # skips them: they run on pushes to main, nightly and when started by hand
-  race-api:
-    if: ${{ github.event_name != 'pull_request' }}
-    runs-on: nexus-runner
-    timeout-minutes: 60
-
-    # The same PostgreSQL as race-packages
-    services:
-      postgres:
-        image: postgres:17
-        env:
-          POSTGRES_PASSWORD: pg
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U postgres"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 20
-          --tmpfs /var/lib/postgresql/data
-
-    env:
-      PEE_TEST_POSTGRES_DSN: postgres://postgres:pg@127.0.0.1:5432/postgres?sslmode=disable
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: '1.26.4'
-          cache-dependency-path: apps/server/go.sum
-
-      - name: Install dependencies
-        working-directory: apps/server
-        run: go mod download
-
-      # About 1500 seconds on nexus-runner; the timeout leaves room for a busier runner
-      - name: Run the API tests with the race detector
-        working-directory: apps/server
-        run: go test -race -count=1 -timeout 3000s ./internal/apitest/
-
-  # One check for the whole race run. On a PR it passes when race-packages passes; on other
-  # events race-api must pass too
-  race:
-    needs: [race-packages, race-api]
-    if: ${{ !cancelled() }}
-    runs-on: nexus-runner
-    timeout-minutes: 5
-
-    steps:
-      - name: Check that the race jobs passed
-        env:
-          EVENT: ${{ github.event_name }}
-          PACKAGES: ${{ needs.race-packages.result }}
-          API: ${{ needs.race-api.result }}
-        run: |
-          echo "race-packages: $PACKAGES, race-api: $API"
-          [ "$PACKAGES" = success ] || exit 1
-          [ "$API" = success ] || { [ "$EVENT" = pull_request ] && [ "$API" = skipped ]; }
+        run: go test -race -p 4 -timeout 3000s -count=1 ./internal/... ./cmd/...
 
   # The API tests again with the settings of Peekaping Cloud (PEE_TEST_CLOUD=1, cloudConfig in
   # internal/apitest/cloud_test.go), which the guards of the cloud add to as they land. The test job
