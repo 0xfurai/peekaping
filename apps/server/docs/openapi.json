@@ -471,10 +471,7 @@
           },
           "suspended": {
             "description": "Suspend (true) or resume (false) the workspace.",
-            "type": [
-              "boolean",
-              "null"
-            ]
+            "type": "boolean"
           }
         },
         "type": "object"

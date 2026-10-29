@@ -198,12 +198,11 @@ export type AdminUpdateWorkspaceDto = {
   /**
    * Suspend (true) or resume (false) the workspace.
    */
-  suspended?: boolean | null;
+  suspended?: boolean;
   [key: string]:
     | unknown
     | boolean
     | (AdminWorkspaceLimitsDto | null)
-    | (boolean | null)
     | undefined;
 };
 

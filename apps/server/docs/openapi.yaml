@@ -336,9 +336,7 @@ components:
           description: Give the workspace limits of its own, which replace the install's defaults whole. A limit left out, or 0, is none, so {} is a workspace with no limits at all, whatever the defaults say. Not with clearLimits.
         suspended:
           description: Suspend (true) or resume (false) the workspace.
-          type:
-            - boolean
-            - "null"
+          type: boolean
       type: object
     admin.UserResponse:
       additionalProperties: false
