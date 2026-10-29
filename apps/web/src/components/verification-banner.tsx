@@ -12,6 +12,7 @@ import { useLocation } from "react-router-dom";
 // only on an install that sends account emails, and only while /me says the address is not verified.
 // In a workspace held back until its owner verifies, it says so instead (one notice, not two), also
 // to a member whose own address is fine, to whom it says the owner has to verify; only an unverified user gets Resend.
+// An unverified member also gets the message about their own address, which Resend verifies.
 export function VerificationBanner() {
   const me = useMe().data?.data;
   const { pathname } = useLocation();
@@ -76,6 +77,11 @@ export function VerificationBannerView({
             ? t(owner ? "auth.suspension_notice.message" : "auth.suspension_notice.member_message")
             : t("auth.verification_banner.message", { email })}
         </span>
+        {/* A member's Resend sends the link to their own address, which does not start the owner's
+            monitors, so the banner says whose address it verifies */}
+        {suspended && !owner && canResend && !verified && (
+          <span>{t("auth.verification_banner.message", { email })}</span>
+        )}
         {canResend && !verified && (
           <Button type="button" size="sm" variant="outline" disabled={pending} onClick={onResend}>
             {pending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
