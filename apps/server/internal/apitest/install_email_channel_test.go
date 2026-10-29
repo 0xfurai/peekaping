@@ -46,6 +46,7 @@ func installEmailTeamUnverified(t *testing.T, a *app) workspace.ID {
 }
 
 func TestInstallEmailChannel_AMembersAddressIsSavedAndTheNotificationGoesToIt(t *testing.T) {
+	parallel(t)
 	forEachDatabaseWithMail(t, func(t *testing.T, a *app, mail *smtptest.Server) {
 		team := installEmailTeam(t, a)
 		a.takeNotificationsFromTheQueue(t)
@@ -71,6 +72,7 @@ func TestInstallEmailChannel_AMembersAddressIsSavedAndTheNotificationGoesToIt(t 
 }
 
 func TestInstallEmailChannel_AnotherAddressIsRefusedOnCreateUpdateAndTest(t *testing.T) {
+	parallel(t)
 	forEachDatabaseWithMail(t, func(t *testing.T, a *app, mail *smtptest.Server) {
 		installEmailTeam(t, a)
 		// someone with an account in another workspace is a stranger to this one
@@ -112,6 +114,7 @@ func TestInstallEmailChannel_AnotherAddressIsRefusedOnCreateUpdateAndTest(t *tes
 }
 
 func TestInstallEmailChannel_WithoutASenderACreateAndATestAreRefused(t *testing.T) {
+	parallel(t)
 	forEachDatabaseWith(t, []func(*config.Config){selfHosted}, func(t *testing.T, a *app) {
 		installEmailTeam(t, a)
 
@@ -129,6 +132,7 @@ func TestInstallEmailChannel_WithoutASenderACreateAndATestAreRefused(t *testing.
 }
 
 func TestInstallEmailChannel_WhenTheRecipientLeavesTheWorkspaceNothingIsSent(t *testing.T) {
+	parallel(t)
 	forEachDatabaseWithMail(t, func(t *testing.T, a *app, mail *smtptest.Server) {
 		installEmailTeam(t, a)
 		memberID := a.userID(t, installEmailMember)
@@ -158,6 +162,7 @@ func TestInstallEmailChannel_WhenTheRecipientLeavesTheWorkspaceNothingIsSent(t *
 }
 
 func TestInstallEmailChannel_AnUnverifiedMembersAddressIsSavedButNothingIsSentUntilTheyVerify(t *testing.T) {
+	parallel(t)
 	forEachDatabaseWithMail(t, func(t *testing.T, a *app, mail *smtptest.Server) {
 		installEmailTeamUnverified(t, a)
 		a.takeNotificationsFromTheQueue(t)

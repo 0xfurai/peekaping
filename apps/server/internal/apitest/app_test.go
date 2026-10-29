@@ -78,9 +78,10 @@ func newApp(t *testing.T, options ...func(*config.Config)) *app {
 
 // newAppDecorated is newApp with decorate run on the container once the API's dependencies are
 // registered and before anything is built from them, so that it can swap one of them with
-// container.Decorate.
+// container.Decorate. The test runs in parallel from here on, unless it called serial (parallel_test.go).
 func newAppDecorated(t *testing.T, decorate func(*dig.Container) error, options ...func(*config.Config)) *app {
 	t.Helper()
+	parallel(t)
 	ctx := context.Background()
 	validation.RegisterCustomValidators()
 

@@ -33,9 +33,11 @@ import (
 
 // newSingleApp is an app that runs as peekaping does, in one process: the results a probe posts
 // are stored as heartbeats at once, where cmd/api would queue them for the ingester. Nothing
-// checks the monitors of the local probe, since the app's scheduler is not started.
+// checks the monitors of the local probe, since the app's scheduler is not started. The test runs in
+// parallel from here on, as newApp's does.
 func newSingleApp(t *testing.T) *app {
 	t.Helper()
+	parallel(t)
 	ctx := context.Background()
 	validation.RegisterCustomValidators()
 	cfg := &config.Config{

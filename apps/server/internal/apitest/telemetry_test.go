@@ -15,7 +15,6 @@ import (
 	"peekaping/internal/modules/notification_channel"
 	"peekaping/internal/modules/setting"
 	"peekaping/internal/modules/shared"
-	"peekaping/internal/reporting/reportingtest"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -161,6 +160,7 @@ func TestTelemetryAPI_AnExplicitOptOutSurvivesARestart(t *testing.T) {
 }
 
 func TestTelemetryAPI_KillSwitchesWinWhenNothingIsStored(t *testing.T) {
+	parallel(t)
 	for name, option := range map[string]func(*config.Config){
 		"TELEMETRY=off": withTelemetryEnv("off"),
 	} {
@@ -219,6 +219,7 @@ func TestTelemetryAPI_OptingOutTwiceChangesNothingTheSecondTime(t *testing.T) {
 }
 
 func TestTelemetryAPI_ForcedOffByEnv(t *testing.T) {
+	parallel(t)
 	for name, option := range map[string]func(*config.Config){
 		"TELEMETRY=off":   withTelemetryEnv("off"),
 		"TELEMETRY=false": withTelemetryEnv("false"),
@@ -245,6 +246,7 @@ func TestTelemetryAPI_ForcedOffByEnv(t *testing.T) {
 }
 
 func TestTelemetryAPI_OtherEnvValuesDoNotForceItOff(t *testing.T) {
+	parallel(t)
 	for name, option := range map[string]func(*config.Config){
 		"TELEMETRY=on": withTelemetryEnv("on"),
 		"TELEMETRY=1":  withTelemetryEnv("1"),
@@ -412,7 +414,7 @@ func TestTelemetryAPI_AnyChoiceMarksTheNoticeSeen(t *testing.T) {
 		"error reports off":    func(a *app, t *testing.T) { a.setErrorReporting(t, false) },
 	} {
 		t.Run(name, func(t *testing.T) {
-			reportingtest.Install(t)
+			installReporting(t)
 			a := newAppWithAdmin(t)
 			require.True(t, a.telemetry(t).NoticePending)
 
@@ -432,6 +434,7 @@ func TestTelemetryAPI_APutAnswersWithoutAPendingNotice(t *testing.T) {
 }
 
 func TestTelemetryAPI_NoNoticeWhenBothFeaturesAreForcedOff(t *testing.T) {
+	parallel(t)
 	for name, tc := range map[string]struct {
 		options []func(*config.Config)
 		pending bool
@@ -463,7 +466,7 @@ func TestTelemetryAPI_TheNoticeCannotBeMarkedSeenWithoutTheAdminsJWT(t *testing.
 // same "true", and the two writes must not fail each other: the request that loses the race has
 // stored its choice already, and answering 500 would tell the admin it had not.
 func TestTelemetryAPI_BothChoicesSentAtOnceBothSucceed(t *testing.T) {
-	reportingtest.Install(t)
+	installReporting(t)
 	a := newAppWithAdmin(t)
 	const rounds = 200
 

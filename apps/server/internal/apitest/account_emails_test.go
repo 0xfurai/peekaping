@@ -161,6 +161,7 @@ func (a *app) reset(t *testing.T, token, password string) *httpRecorder {
 
 // AC1: the sender is the install's, and the public config says whether there is one
 func TestAccountEmails_TheConfigSaysWhetherTheInstallHasASender(t *testing.T) {
+	parallel(t)
 	type authConfig struct {
 		AccountEmails bool `json:"accountEmails"`
 	}
@@ -180,6 +181,7 @@ func TestAccountEmails_TheConfigSaysWhetherTheInstallHasASender(t *testing.T) {
 
 // AC5: without a sender nothing changes
 func TestAccountEmails_WithoutASenderThereIsNothingToSendOrVerify(t *testing.T) {
+	parallel(t)
 	forEachDatabaseWith(t, []func(*config.Config){selfHosted}, func(t *testing.T, a *app) {
 		assert.Equal(t, http.StatusNotFound, a.forgot(t, adminEmail).Code, "no reset link without a sender")
 		assert.Equal(t, http.StatusNotFound, a.request(t, http.MethodPost, resendVerifyPath, nil, a.asAdmin).Code)
@@ -196,6 +198,7 @@ func TestAccountEmails_WithoutASenderThereIsNothingToSendOrVerify(t *testing.T) 
 
 // AC2: the reset link answers the same for every address, and sends only for an account
 func TestForgotPassword_AnswersTheSameForAnAddressWithoutAnAccountAndOnlyAnAccountGetsMail(t *testing.T) {
+	parallel(t)
 	forEachDatabaseWithMail(t, func(t *testing.T, a *app, mail *smtptest.Server) {
 		unknown := a.forgot(t, "nobody@example.com")
 		known := a.forgot(t, adminEmail)
@@ -218,6 +221,7 @@ func TestForgotPassword_AnswersTheSameForAnAddressWithoutAnAccountAndOnlyAnAccou
 }
 
 func TestForgotPassword_AnAddressInAnotherCaseFindsTheAccountAndAMalformedOneIsRefused(t *testing.T) {
+	parallel(t)
 	forEachDatabaseWithMail(t, func(t *testing.T, a *app, mail *smtptest.Server) {
 		assert.Equal(t, http.StatusAccepted, a.forgot(t, "ADMIN@example.com").Code)
 		a.settled(t)
@@ -229,6 +233,7 @@ func TestForgotPassword_AnAddressInAnotherCaseFindsTheAccountAndAMalformedOneIsR
 }
 
 func TestForgotPassword_TheTokenIsStoredOnlyAsAHash(t *testing.T) {
+	parallel(t)
 	forEachDatabaseWithMail(t, func(t *testing.T, a *app, mail *smtptest.Server) {
 		a.forgot(t, adminEmail)
 		a.settled(t)
@@ -248,6 +253,7 @@ func TestForgotPassword_TheTokenIsStoredOnlyAsAHash(t *testing.T) {
 
 // AC2: using the link sets the password once, and ends every session
 func TestResetPassword_SetsThePasswordOnceAndEndsEverySession(t *testing.T) {
+	parallel(t)
 	forEachDatabaseWithMail(t, func(t *testing.T, a *app, mail *smtptest.Server) {
 		old := decode[tokens](t, a.login(t, map[string]any{"email": adminEmail, "password": adminPassword}), http.StatusOK)
 		require.Equal(t, http.StatusOK, a.request(t, http.MethodGet, "/api/v1/me", nil, bearer(old.AccessToken)).Code)
@@ -276,6 +282,7 @@ func TestResetPassword_SetsThePasswordOnceAndEndsEverySession(t *testing.T) {
 }
 
 func TestResetPassword_RefusesAnExpiredUnknownOrForeignToken(t *testing.T) {
+	parallel(t)
 	forEachDatabaseWithMail(t, func(t *testing.T, a *app, mail *smtptest.Server) {
 		a.forgot(t, adminEmail)
 		a.settled(t)
@@ -296,6 +303,7 @@ func TestResetPassword_RefusesAnExpiredUnknownOrForeignToken(t *testing.T) {
 
 // The link came to the address, so following it proves the address as a verification link does
 func TestResetPassword_AlsoVerifiesAnAddressThatWasNotVerified(t *testing.T) {
+	parallel(t)
 	forEachDatabaseWithMail(t, func(t *testing.T, a *app, mail *smtptest.Server) {
 		require.False(t, a.me(t, a.asAdmin).User.EmailVerified)
 		a.forgot(t, adminEmail)
@@ -312,6 +320,7 @@ func TestResetPassword_AlsoVerifiesAnAddressThatWasNotVerified(t *testing.T) {
 // A token that is not live is answered before the password is hashed: bcrypt refuses a password
 // longer than 72 bytes, so a request that reached it would answer 500 instead of 400
 func TestResetPassword_ARefusedTokenIsAnsweredBeforeThePasswordIsHashed(t *testing.T) {
+	parallel(t)
 	forEachDatabaseWithMail(t, func(t *testing.T, a *app, mail *smtptest.Server) {
 		tooLongForBcrypt := "Aa1!" + strings.Repeat("x", 80)
 
@@ -323,6 +332,7 @@ func TestResetPassword_ARefusedTokenIsAnsweredBeforeThePasswordIsHashed(t *testi
 }
 
 func TestResetPassword_AWeakPasswordIsRefusedAndTheLinkStillWorks(t *testing.T) {
+	parallel(t)
 	forEachDatabaseWithMail(t, func(t *testing.T, a *app, mail *smtptest.Server) {
 		a.forgot(t, adminEmail)
 		a.settled(t)
@@ -337,6 +347,7 @@ func TestResetPassword_AWeakPasswordIsRefusedAndTheLinkStillWorks(t *testing.T) 
 }
 
 func TestResetPassword_UsingOneLinkEndsTheOthers(t *testing.T) {
+	parallel(t)
 	forEachDatabaseWithMail(t, func(t *testing.T, a *app, mail *smtptest.Server) {
 		a.forgot(t, adminEmail)
 		a.forgot(t, adminEmail)
@@ -353,6 +364,7 @@ func TestResetPassword_UsingOneLinkEndsTheOthers(t *testing.T) {
 }
 
 func TestResetPassword_ConcurrentUsesOfOneLinkSucceedOnce(t *testing.T) {
+	parallel(t)
 	forEachDatabaseWithMail(t, func(t *testing.T, a *app, mail *smtptest.Server) {
 		a.forgot(t, adminEmail)
 		a.settled(t)
@@ -387,6 +399,7 @@ func TestResetPassword_ConcurrentUsesOfOneLinkSucceedOnce(t *testing.T) {
 }
 
 func TestForgotPassword_AtMostFiveEmailsAnHourPerAddressAndTwentyPerClient(t *testing.T) {
+	parallel(t)
 	forEachDatabaseWithMail(t, func(t *testing.T, a *app, mail *smtptest.Server) {
 		for range 7 {
 			assert.Equal(t, http.StatusAccepted, a.forgot(t, adminEmail).Code, "the answer does not change, so it reveals nothing")
@@ -406,6 +419,7 @@ func TestForgotPassword_AtMostFiveEmailsAnHourPerAddressAndTwentyPerClient(t *te
 }
 
 func TestResetPasswordAndVerifyEmail_AreLimitedToTwentyAttemptsAnHourPerClient(t *testing.T) {
+	parallel(t)
 	forEachDatabaseWithMail(t, func(t *testing.T, a *app, mail *smtptest.Server) {
 		unknown := "pkr_" + strings.Repeat("A", 43)
 		for i := range 20 {
@@ -432,6 +446,7 @@ func TestResetPasswordAndVerifyEmail_AreLimitedToTwentyAttemptsAnHourPerClient(t
 // A request whose address cannot be read is counted under that raw address, not under one bucket
 // shared with every other such request
 func TestResetPassword_RequestsWithoutAClientAddressAreCountedByTheirRawAddress(t *testing.T) {
+	parallel(t)
 	forEachDatabaseWithMail(t, func(t *testing.T, a *app, mail *smtptest.Server) {
 		unknown := map[string]any{"token": "pkr_" + strings.Repeat("A", 43), "password": newPassword}
 		from := func(remote string) credentials { return func(req *http.Request) { req.RemoteAddr = remote } }
@@ -446,6 +461,7 @@ func TestResetPassword_RequestsWithoutAClientAddressAreCountedByTheirRawAddress(
 
 // AC3: every new account gets a link, and following it records when
 func TestVerifyEmail_TheFirstUserGetsALinkAndFollowingItVerifiesTheAccount(t *testing.T) {
+	parallel(t)
 	forEachDatabaseWithMail(t, func(t *testing.T, a *app, mail *smtptest.Server) {
 		require.Equal(t, 1, len(mail.Messages()))
 		sent := mail.Messages()[0]
@@ -474,6 +490,7 @@ func TestVerifyEmail_TheFirstUserGetsALinkAndFollowingItVerifiesTheAccount(t *te
 }
 
 func TestVerifyEmail_RefusesAnExpiredUnknownOrForeignToken(t *testing.T) {
+	parallel(t)
 	forEachDatabaseWithMail(t, func(t *testing.T, a *app, mail *smtptest.Server) {
 		token := tokenIn(t, mail.Messages()[0], "pkv_")
 		a.forgot(t, adminEmail)
@@ -489,6 +506,7 @@ func TestVerifyEmail_RefusesAnExpiredUnknownOrForeignToken(t *testing.T) {
 }
 
 func TestVerifyEmail_ResendSendsANewLinkAndRetiresTheOldOne(t *testing.T) {
+	parallel(t)
 	forEachDatabaseWithMail(t, func(t *testing.T, a *app, mail *smtptest.Server) {
 		first := tokenIn(t, mail.Messages()[0], "pkv_")
 
@@ -506,6 +524,7 @@ func TestVerifyEmail_ResendSendsANewLinkAndRetiresTheOldOne(t *testing.T) {
 }
 
 func TestVerifyEmail_ResendIsRefusedWhenVerifiedAndWithoutSignIn(t *testing.T) {
+	parallel(t)
 	forEachDatabaseWithMail(t, func(t *testing.T, a *app, mail *smtptest.Server) {
 		assert.Equal(t, http.StatusUnauthorized, a.request(t, http.MethodPost, resendVerifyPath, nil).Code, "it takes a signed-in user")
 		assert.Equal(t, http.StatusUnauthorized, a.request(t, http.MethodPost, resendVerifyPath, nil, a.withAPIKey).Code, "and not an API key")
@@ -520,6 +539,7 @@ func TestVerifyEmail_ResendIsRefusedWhenVerifiedAndWithoutSignIn(t *testing.T) {
 }
 
 func TestVerifyEmail_ResendIsLimitedToFivePerHour(t *testing.T) {
+	parallel(t)
 	forEachDatabaseWithMail(t, func(t *testing.T, a *app, mail *smtptest.Server) {
 		for i := range 5 {
 			require.Equal(t, http.StatusAccepted, a.request(t, http.MethodPost, resendVerifyPath, nil, a.asAdmin).Code, "request %d", i+1)
@@ -534,6 +554,7 @@ func TestVerifyEmail_ResendIsLimitedToFivePerHour(t *testing.T) {
 }
 
 func TestVerifyEmail_ASignupThroughAnInviteGetsALinkToo(t *testing.T) {
+	parallel(t)
 	forEachDatabaseWithMail(t, func(t *testing.T, a *app, mail *smtptest.Server) {
 		created := a.invite(t, "bob@example.com", "member", a.asAdmin)
 
@@ -578,6 +599,7 @@ func TestVerifyEmail_ASenderThatIsDownDoesNotFailTheSignup(t *testing.T) {
 }
 
 func TestVerifyEmail_WithoutASenderASignupAsksNoOne(t *testing.T) {
+	parallel(t)
 	forEachDatabaseWith(t, []func(*config.Config){selfHosted}, func(t *testing.T, a *app) {
 		created := a.invite(t, "bob@example.com", "member", a.asAdmin)
 		session := decode[registered](t, a.signUpThrough(t, created.Token, "bob@example.com"), http.StatusCreated)
@@ -591,6 +613,7 @@ func TestVerifyEmail_WithoutASenderASignupAsksNoOne(t *testing.T) {
 
 // AC4: an invite is also emailed, and the copyable link stays
 func TestInvites_WithASenderTheInviteIsEmailedAndTheLinkStaysInTheAnswer(t *testing.T) {
+	parallel(t)
 	forEachDatabaseWithMail(t, func(t *testing.T, a *app, mail *smtptest.Server) {
 		created := a.invite(t, "Bob@Example.com", "admin", a.asAdmin)
 
@@ -610,6 +633,7 @@ func TestInvites_WithASenderTheInviteIsEmailedAndTheLinkStaysInTheAnswer(t *test
 }
 
 func TestInvites_AWorkspaceNameWithLineBreaksStillGetsItsInviteEmailed(t *testing.T) {
+	parallel(t)
 	forEachDatabaseWithMail(t, func(t *testing.T, a *app, mail *smtptest.Server) {
 		made := decode[workspaceResponse](t, a.request(t, http.MethodPost, workspacesURL,
 			map[string]any{"name": "Side\r\nBcc: victim@example.com\tproject"}, a.asAdmin), http.StatusCreated)
@@ -626,6 +650,7 @@ func TestInvites_AWorkspaceNameWithLineBreaksStillGetsItsInviteEmailed(t *testin
 }
 
 func TestInvites_AnInviteMadeWithAnAPIKeyIsEmailedWithoutAnInviter(t *testing.T) {
+	parallel(t)
 	forEachDatabaseWithMail(t, func(t *testing.T, a *app, mail *smtptest.Server) {
 		created := a.invite(t, "bob@example.com", "member", a.withAPIKey)
 
@@ -638,6 +663,7 @@ func TestInvites_AnInviteMadeWithAnAPIKeyIsEmailedWithoutAnInviter(t *testing.T)
 }
 
 func TestInvites_ASendFailureStillAnswersWithTheLink(t *testing.T) {
+	parallel(t)
 	forEachDatabaseWithMail(t, func(t *testing.T, a *app, mail *smtptest.Server) {
 		mail.RejectMessages("554 5.7.1 no")
 
@@ -653,6 +679,7 @@ func TestInvites_ASendFailureStillAnswersWithTheLink(t *testing.T) {
 // per recipient address
 
 func TestInvites_AnAddressIsInvitedThreeTimesAnHourAndNoMore(t *testing.T) {
+	parallel(t)
 	forEachDatabaseWithMail(t, func(t *testing.T, a *app, mail *smtptest.Server) {
 		for i := 0; i < 3; i++ {
 			a.invite(t, "Bob@Example.com", "member", a.asAdmin)
@@ -669,6 +696,7 @@ func TestInvites_AnAddressIsInvitedThreeTimesAnHourAndNoMore(t *testing.T) {
 }
 
 func TestInvites_ACallerMakesTwentyInvitesAnHourAndNoMore(t *testing.T) {
+	parallel(t)
 	forEachDatabaseWithMail(t, func(t *testing.T, a *app, mail *smtptest.Server) {
 		for i := 0; i < 20; i++ {
 			a.invite(t, fmt.Sprintf("person%d@example.com", i), "member", a.asAdmin)
@@ -686,6 +714,7 @@ func TestInvites_ACallerMakesTwentyInvitesAnHourAndNoMore(t *testing.T) {
 }
 
 func TestInvites_TheAPIKeysOfAWorkspaceShareTwentyInvitesAnHour(t *testing.T) {
+	parallel(t)
 	forEachDatabaseWithMail(t, func(t *testing.T, a *app, _ *smtptest.Server) {
 		second := decode[struct {
 			Token string `json:"token"`
@@ -710,6 +739,7 @@ func TestInvites_TheAPIKeysOfAWorkspaceShareTwentyInvitesAnHour(t *testing.T) {
 }
 
 func TestInvites_ACallerThatMayNotInviteUsesUpNoAddressQuota(t *testing.T) {
+	parallel(t)
 	forEachDatabaseWithMail(t, func(t *testing.T, a *app, _ *smtptest.Server) {
 		tm := newTeam(t, a)
 		for i := 0; i < 3; i++ {
@@ -729,6 +759,7 @@ func TestInvites_ACallerThatMayNotInviteUsesUpNoAddressQuota(t *testing.T) {
 }
 
 func TestInvites_AnInviteThatIsRefusedForItsBodyDoesNotCountAgainstTheLimits(t *testing.T) {
+	parallel(t)
 	forEachDatabaseWithMail(t, func(t *testing.T, a *app, _ *smtptest.Server) {
 		for i := 0; i < 5; i++ {
 			w := a.request(t, http.MethodPost, invitesPath, map[string]any{"email": "bob@example.com", "role": "emperor"}, a.asAdmin)

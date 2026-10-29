@@ -140,6 +140,7 @@ func TestLimits_Settings_AnInvalidDefaultLimitIsRefusedNamingIt(t *testing.T) {
 // A saved default applies at once to every workspace without limits of its own, and a workspace's
 // own limits still replace the defaults whole
 func TestLimits_Settings_ASavedDefaultAppliesToAWorkspaceWithoutItsOwnLimits(t *testing.T) {
+	parallel(t)
 	forEachBackend(t, func(t *testing.T, backend func(*config.Config)) {
 		a := newAppWithAdmin(t, backend)
 		decode[created](t, a.postPage(t, "one"), http.StatusCreated)

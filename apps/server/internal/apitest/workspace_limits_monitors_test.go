@@ -120,6 +120,7 @@ func (a *app) running(t *testing.T) []string {
 // AC2: a create while the workspace has as many active monitors as its limit is refused, and one
 // below it is not
 func TestLimits_Monitors_ACreateAtTheLimitIsRefused(t *testing.T) {
+	parallel(t)
 	forEachBackend(t, func(t *testing.T, backend func(*config.Config)) {
 		a := newAppWithAdmin(t, backend, withMonitorLimit(2))
 
@@ -146,6 +147,7 @@ func TestLimits_Monitors_ACreateAboveTheLimitIsRefused(t *testing.T) {
 // AC2: a paused monitor doesn't count, so it can be created at the limit; resuming it, by PATCH or
 // PUT, is refused until another is paused
 func TestLimits_Monitors_AResumeAtTheLimitIsRefusedAndPausingIsAllowed(t *testing.T) {
+	parallel(t)
 	forEachBackend(t, func(t *testing.T, backend func(*config.Config)) {
 		a := newAppWithAdmin(t, backend, withMonitorLimit(1))
 		running := a.createHTTPMonitor(t, "Running", "")
@@ -168,6 +170,7 @@ func TestLimits_Monitors_AResumeAtTheLimitIsRefusedAndPausingIsAllowed(t *testin
 // AC2: lowering the limit pauses and deletes nothing. The newest active monitors past it are not
 // run and say over_limit; the owner pauses others to choose which stay; raising it brings them back.
 func TestLimits_Monitors_LoweringTheLimitLeavesEveryMonitorAndRunsTheOldest(t *testing.T) {
+	parallel(t)
 	forEachBackend(t, func(t *testing.T, backend func(*config.Config)) {
 		a := newAppWithAdmin(t, backend)
 		oldest := a.createHTTPMonitor(t, "Oldest", "")
@@ -221,6 +224,7 @@ func (r slowMonitors) CountActive(ctx context.Context, id workspace.ID) (int, er
 
 // AC5: two creates at once at one below the limit end with one of them refused
 func TestLimits_Monitors_TwoCreatesAtOnceBelowTheLimitStoreOne(t *testing.T) {
+	parallel(t)
 	backends := map[string]func(*config.Config){"SQLite": func(*config.Config) {}}
 	if dsn := os.Getenv("PEE_TEST_POSTGRES_DSN"); dsn != "" {
 		backends["PostgreSQL"] = usePostgres(t, dsn)
