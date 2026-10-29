@@ -39,6 +39,10 @@ type ProbeInstanceResponse struct {
 	// an instance that runs every type
 	SupportedTypes []string  `json:"supported_types" validate:"required" nullable:"false"`
 	LastSeenAt     time.Time `json:"last_seen_at" validate:"required"`
+	// EnforcesPrivateTargetBlock is false for an instance of a probe from before the setting, which
+	// ignores the server's BLOCK_PRIVATE_TARGETS: while it is on, such an instance is dealt no
+	// monitors
+	EnforcesPrivateTargetBlock bool `json:"enforces_private_target_block" validate:"required" doc:"Whether the instance's hello said it blocks private targets when the server does. While BLOCK_PRIVATE_TARGETS is on, an instance that didn't (a probe from before the setting) is dealt no monitors: upgrade it."`
 }
 
 // ProbeResponse represents the response for probe operations. It never holds the token or its
@@ -107,6 +111,8 @@ func ToProbeResponse(m *Model) *ProbeResponse {
 			ProtocolVersion: instance.ProtocolVersion,
 			SupportedTypes:  instanceTypes,
 			LastSeenAt:      instance.LastSeenAt,
+
+			EnforcesPrivateTargetBlock: instance.EnforcesPrivateTargetBlock,
 		}
 	}
 	return &ProbeResponse{
