@@ -228,6 +228,7 @@
         "password_set": "Este setată o parolă. Tastați pentru a o înlocui.",
         "password_not_set": "Nicio parolă setată",
         "password_removed": "Parola va fi eliminată la salvare.",
+        "password_reenter": "Schimbarea gazdei, a portului, a securității sau a utilizatorului elimină parola salvată. Introduceți-o din nou.",
         "remove_password": "Elimină parola",
         "keep_password": "Păstrează parola",
         "from": "Adresa expeditorului"

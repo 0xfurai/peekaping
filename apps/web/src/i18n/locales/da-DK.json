@@ -228,6 +228,7 @@
         "password_set": "Der er angivet en adgangskode. Skriv for at erstatte den.",
         "password_not_set": "Ingen adgangskode angivet",
         "password_removed": "Adgangskoden fjernes, når du gemmer.",
+        "password_reenter": "Hvis du ændrer vært, port, sikkerhed eller bruger, fjernes den gemte adgangskode. Indtast den igen.",
         "remove_password": "Fjern adgangskode",
         "keep_password": "Behold adgangskode",
         "from": "Afsenderadresse"

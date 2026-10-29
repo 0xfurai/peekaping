@@ -228,6 +228,7 @@
         "password_set": "Está definida uma palavra-passe. Escreva para a substituir.",
         "password_not_set": "Nenhuma palavra-passe definida",
         "password_removed": "A palavra-passe será removida quando guardar.",
+        "password_reenter": "Alterar o anfitrião, a porta, a segurança ou o utilizador remove a palavra-passe guardada. Introduza-a novamente.",
         "remove_password": "Remover palavra-passe",
         "keep_password": "Manter palavra-passe",
         "from": "Endereço do remetente"

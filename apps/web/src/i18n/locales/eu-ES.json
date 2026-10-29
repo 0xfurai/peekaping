@@ -228,6 +228,7 @@
         "password_set": "Pasahitz bat ezarrita dago. Idatzi ordezkatzeko.",
         "password_not_set": "Ez dago pasahitzik ezarrita",
         "password_removed": "Pasahitza kenduko da gordetzean.",
+        "password_reenter": "Ostalaria, ataka, segurtasuna edo erabiltzailea aldatzean, gordetako pasahitza kentzen da. Idatzi berriro.",
         "remove_password": "Kendu pasahitza",
         "keep_password": "Mantendu pasahitza",
         "from": "Igorlearen helbidea"

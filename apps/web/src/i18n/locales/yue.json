@@ -228,6 +228,7 @@
         "password_set": "已經設定咗密碼。輸入新嘅就會取代佢。",
         "password_not_set": "未設定密碼",
         "password_removed": "儲存嗰陣會移除密碼。",
+        "password_reenter": "更改主機、連接埠、安全設定或者用戶，會移除已儲存嘅密碼。請再輸入一次。",
         "remove_password": "移除密碼",
         "keep_password": "保留密碼",
         "from": "寄件地址"

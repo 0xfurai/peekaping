@@ -228,6 +228,7 @@
         "password_set": "비밀번호가 설정되어 있습니다. 입력하면 바뀝니다.",
         "password_not_set": "설정된 비밀번호 없음",
         "password_removed": "저장하면 비밀번호가 제거됩니다.",
+        "password_reenter": "호스트, 포트, 보안 또는 사용자를 변경하면 저장된 비밀번호가 삭제됩니다. 다시 입력하세요.",
         "remove_password": "비밀번호 제거",
         "keep_password": "비밀번호 유지",
         "from": "발신자 주소"

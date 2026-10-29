@@ -28,6 +28,9 @@ export const DEFAULT_LIMITS = [
 
 export type DefaultLimit = (typeof DEFAULT_LIMITS)[number];
 
+// The key of the save's mutation, so that the form knows while one is pending
+export const SAVE_INSTALL_SETTINGS = ["admin", "settings", "save"] as const;
+
 // The form's values. The password is what the admin typed: empty keeps the one there is.
 export type InstallSettingsFormValues = {
   signupMode: string;
@@ -105,6 +108,17 @@ export const installSettingsChange = (
 export const isDefaultLimit = (typed: string): boolean => {
   const value = typed.trim();
   return value === "" || (/^\d+$/.test(value) && Number(value) >= 1);
+};
+
+// Whether saving the change clears the saved password: a change of the host, port, security or
+// user that sends no password does, so that the password is never sent to another server
+export const clearsSavedPassword = (
+  settings: AdminInstallSettingsResponse,
+  change: AdminUpdateInstallSettingsDto
+): boolean => {
+  const sender = change.accountSmtp;
+  if (!settings.accountSmtp.password.set || !sender || sender.password !== undefined) return false;
+  return [sender.host, sender.port, sender.user, sender.tls].some((value) => value !== undefined);
 };
 
 // The translation key of a setting's label, by its name in the admin API

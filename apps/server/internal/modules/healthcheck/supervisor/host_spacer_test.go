@@ -177,6 +177,27 @@ func TestHostSpacer_ForgetsHostsThatHaveBeenIdleAndBoundsWhatItKeeps(t *testing.
 	assert.LessOrEqual(t, spacer.tracked(), 3, "the map holds at most maxHosts")
 }
 
+func TestHostSpacer_MakingRoomKeepsTheBucketsOfTheCheckItIsFor(t *testing.T) {
+	clock := newFakeClock()
+	spacer := newHostSpacer(60, clock.Now)
+	spacer.maxHosts = 2
+	for range 6 {
+		require.False(t, spacer.Reserve([]string{"busy.example.com"}, time.Minute).Denied)
+	}
+	for range 10 {
+		require.False(t, spacer.Reserve([]string{"busier.example.com"}, time.Minute).Denied)
+	}
+
+	// busy is the bucket idle the soonest, so it is the oldest when new needs room
+	turn := spacer.Reserve([]string{"busy.example.com", "new.example.com"}, 2*time.Second)
+
+	require.True(t, turn.Denied)
+	assert.Equal(t, "busy.example.com", turn.Host)
+	assert.Equal(t, 1, turn.ReportSkipped)
+	assert.Equal(t, 6*time.Second, spacer.Reserve([]string{"busy.example.com"}, time.Minute).Wait,
+		"busy kept its bucket: busier made room")
+}
+
 func TestHostSpacer_ReportsSkippedChecksAtMostOncePerMinutePerHost(t *testing.T) {
 	clock := newFakeClock()
 	spacer := newHostSpacer(60, clock.Now)

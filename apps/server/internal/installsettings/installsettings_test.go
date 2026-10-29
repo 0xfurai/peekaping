@@ -152,16 +152,38 @@ func TestResolver_TheEnvironmentWinsOverAStoredValueAndLocksIt(t *testing.T) {
 	sender := r.AccountSMTP(ctx)
 	require.NotNil(t, sender)
 	assert.Equal(t, "smtp.env.example", sender.Host)
-	// A variable the environment doesn't set still comes from the store
-	assert.Equal(t, "stored-user", sender.User)
+	// The environment sets the whole sender: a sender variable it doesn't set takes its default, not
+	// the stored value
+	assert.Equal(t, "", sender.User)
 
 	view, err := r.Describe(ctx)
 	require.NoError(t, err)
 	assert.Equal(t, Field[string]{Value: "https://env.peek.example", Source: SourceEnvironment, EnvVar: "CLIENT_URL"}, view.PublicURL)
 	assert.True(t, view.PublicURL.Locked())
 	assert.True(t, view.SMTPHost.Locked())
-	assert.False(t, view.SMTPUser.Locked())
-	assert.Equal(t, SourceSaved, view.SMTPUser.Source)
+	assert.Equal(t, Field[string]{Value: "", Source: SourceEnvironment, EnvVar: "ACCOUNT_SMTP_USER"}, view.SMTPUser)
+	assert.False(t, view.SignupMode.Locked(), "a setting outside the sender isn't locked by it")
+}
+
+func TestResolver_AnEnvironmentPasswordIsNeverSentToAStoredHost(t *testing.T) {
+	cfg := defaults()
+	cfg.AccountSMTPPassword = "env-secret"
+	cfg.SetFromEnvironment("ACCOUNT_SMTP_PASSWORD")
+	store := newMemoryStore()
+	store.put(KeySMTPHost, "smtp.stored.example")
+	store.put(KeySMTPUser, "stored-user")
+	store.put(KeySMTPFrom, "no-reply@stored.example")
+	r, _ := newResolver(t, cfg, store)
+
+	assert.Nil(t, r.AccountSMTP(ctx), "the environment sets no host, so there is no sender")
+
+	view, err := r.Describe(ctx)
+	require.NoError(t, err)
+	for name, field := range map[string]Field[string]{"host": view.SMTPHost, "user": view.SMTPUser, "from": view.SMTPFrom, "tls": view.SMTPTLS} {
+		assert.True(t, field.Locked(), name)
+	}
+	assert.True(t, view.SMTPPort.Locked())
+	assert.Equal(t, Field[bool]{Value: true, Source: SourceEnvironment, EnvVar: "ACCOUNT_SMTP_PASSWORD"}, view.SMTPPassword)
 }
 
 func TestResolver_KeepsStoredValuesForItsLifetime(t *testing.T) {
@@ -356,7 +378,7 @@ func TestUpdate_ThePasswordChangesOnlyWhenSent(t *testing.T) {
 	_, err := r.Update(ctx, Change{SMTPHost: ptr("smtp.peek.example"), SMTPFrom: ptr("no-reply@peek.example"), SMTPPassword: ptr("secret")})
 	require.NoError(t, err)
 
-	_, err = r.Update(ctx, Change{SMTPUser: ptr("mailer")})
+	_, err = r.Update(ctx, Change{SMTPFrom: ptr("Peekaping <no-reply@peek.example>")})
 	require.NoError(t, err)
 	assert.Equal(t, "secret", r.AccountSMTP(ctx).Password)
 
@@ -365,6 +387,108 @@ func TestUpdate_ThePasswordChangesOnlyWhenSent(t *testing.T) {
 	assert.Equal(t, "", r.AccountSMTP(ctx).Password)
 	_, stored := store.get(KeySMTPPassword)
 	assert.False(t, stored)
+}
+
+// savedSender is a store with a whole sender saved, its password too
+func savedSender() *memoryStore {
+	store := newMemoryStore()
+	store.put(KeySMTPHost, "smtp.peek.example")
+	store.put(KeySMTPPort, "2525")
+	store.put(KeySMTPUser, "mailer")
+	store.put(KeySMTPPassword, "secret")
+	store.put(KeySMTPFrom, "no-reply@peek.example")
+	store.put(KeySMTPTLS, "tls")
+	return store
+}
+
+func TestUpdate_ChangingWhereThePasswordGoesWithoutOneClearsTheSavedOne(t *testing.T) {
+	for name, change := range map[string]Change{
+		"host":          {SMTPHost: ptr("smtp.other.example")},
+		"port":          {SMTPPort: ptr(465)},
+		"port cleared":  {SMTPPort: ptr(0)},
+		"tls":           {SMTPTLS: ptr("starttls")},
+		"user":          {SMTPUser: ptr("someone-else")},
+		"user cleared":  {SMTPUser: ptr("")},
+		"host and from": {SMTPHost: ptr("smtp.other.example"), SMTPFrom: ptr("no-reply@other.example")},
+	} {
+		t.Run(name, func(t *testing.T) {
+			store := savedSender()
+			r, _ := newResolver(t, defaults(), store)
+
+			changed, err := r.Update(ctx, change)
+
+			require.NoError(t, err)
+			assert.Contains(t, changed, "accountSmtp.password")
+			assert.Equal(t, "", r.AccountSMTP(ctx).Password, "the admin enters the password again")
+			_, stored := store.get(KeySMTPPassword)
+			assert.False(t, stored)
+		})
+	}
+}
+
+func TestUpdate_ThePasswordStaysWhileTheServerAndUserStayTheSame(t *testing.T) {
+	for name, change := range map[string]Change{
+		"from":            {SMTPFrom: ptr("Peekaping <no-reply@peek.example>")},
+		"the same values": {SMTPHost: ptr(" smtp.peek.example "), SMTPPort: ptr(2525), SMTPUser: ptr("mailer"), SMTPTLS: ptr("tls")},
+		"another setting": {PublicURL: ptr("https://peek.example")},
+	} {
+		t.Run(name, func(t *testing.T) {
+			r, _ := newResolver(t, defaults(), savedSender())
+
+			changed, err := r.Update(ctx, change)
+
+			require.NoError(t, err)
+			assert.NotContains(t, changed, "accountSmtp.password")
+			assert.Equal(t, "secret", r.AccountSMTP(ctx).Password)
+		})
+	}
+}
+
+func TestUpdate_ANewPasswordSentWithTheNewServerIsUsed(t *testing.T) {
+	r, _ := newResolver(t, defaults(), savedSender())
+
+	_, err := r.Update(ctx, Change{SMTPHost: ptr("smtp.other.example"), SMTPPassword: ptr("other-secret")})
+
+	require.NoError(t, err)
+	assert.Equal(t, &AccountSMTP{Host: "smtp.other.example", Port: 2525, User: "mailer", Password: "other-secret", From: "no-reply@peek.example", TLS: "tls"}, r.AccountSMTP(ctx))
+}
+
+func TestUpdate_AnySenderVariableInTheEnvironmentLocksTheWholeSender(t *testing.T) {
+	for name, tc := range map[string]struct {
+		change Change
+		field  string
+	}{
+		"host":     {Change{SMTPHost: ptr("smtp.peek.example"), SMTPFrom: ptr("no-reply@peek.example")}, "accountSmtp.host"},
+		"port":     {Change{SMTPPort: ptr(2525)}, "accountSmtp.port"},
+		"user":     {Change{SMTPUser: ptr("mailer")}, "accountSmtp.user"},
+		"from":     {Change{SMTPFrom: ptr("no-reply@peek.example")}, "accountSmtp.from"},
+		"tls":      {Change{SMTPTLS: ptr("none")}, "accountSmtp.tls"},
+		"password": {Change{SMTPPassword: ptr("")}, "accountSmtp.password"},
+	} {
+		t.Run(name, func(t *testing.T) {
+			cfg := defaults()
+			cfg.AccountSMTPPassword = "env-secret"
+			cfg.SetFromEnvironment("ACCOUNT_SMTP_PASSWORD")
+			store := newMemoryStore()
+			r, _ := newResolver(t, cfg, store)
+
+			_, err := r.Update(ctx, tc.change)
+
+			var refused *Error
+			require.ErrorAs(t, err, &refused)
+			assert.Equal(t, CodeLocked, refused.Code)
+			assert.Equal(t, tc.field, refused.Field)
+			assert.Contains(t, refused.Message, "ACCOUNT_SMTP_PASSWORD")
+			assert.Empty(t, store.values, "a refused change stores nothing")
+		})
+	}
+
+	// A setting outside the sender can still change
+	cfg := defaults()
+	cfg.SetFromEnvironment("ACCOUNT_SMTP_PASSWORD")
+	r, _ := newResolver(t, cfg, newMemoryStore())
+	_, err := r.Update(ctx, Change{PublicURL: ptr("https://peek.example")})
+	require.NoError(t, err)
 }
 
 func TestUpdate_ReportsOnlyTheFieldsItChanged(t *testing.T) {

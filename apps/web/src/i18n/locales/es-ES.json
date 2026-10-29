@@ -228,6 +228,7 @@
         "password_set": "Hay una contraseña establecida. Escribe para reemplazarla.",
         "password_not_set": "No hay contraseña establecida",
         "password_removed": "La contraseña se quitará al guardar.",
+        "password_reenter": "Al cambiar el host, el puerto, la seguridad o el usuario se elimina la contraseña guardada. Vuelve a introducirla.",
         "remove_password": "Quitar contraseña",
         "keep_password": "Conservar contraseña",
         "from": "Dirección del remitente"

@@ -228,6 +228,7 @@
         "password_set": "Salasana on asetettu. Kirjoita uusi korvataksesi sen.",
         "password_not_set": "Salasanaa ei ole asetettu",
         "password_removed": "Salasana poistetaan, kun tallennat.",
+        "password_reenter": "Isännän, portin, suojauksen tai käyttäjän vaihtaminen poistaa tallennetun salasanan. Anna se uudelleen.",
         "remove_password": "Poista salasana",
         "keep_password": "Säilytä salasana",
         "from": "Lähettäjän osoite"

@@ -228,6 +228,7 @@
         "password_set": "Parol oʻrnatilgan. Almashtirish uchun yangisini kiriting.",
         "password_not_set": "Parol oʻrnatilmagan",
         "password_removed": "Saqlaganingizda parol olib tashlanadi.",
+        "password_reenter": "Xost, port, xavfsizlik yoki foydalanuvchini o‘zgartirish saqlangan parolni o‘chiradi. Uni qayta kiriting.",
         "remove_password": "Parolni olib tashlash",
         "keep_password": "Parolni qoldirish",
         "from": "Joʻnatuvchi manzili"
