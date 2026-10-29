@@ -14,7 +14,6 @@ import {
   useQuery,
 } from "@tanstack/react-query";
 import {
-  getNotificationChannelsOptions,
   getMonitorsInfiniteQueryKey,
   getMonitorsQueryKey,
   postMonitorsMutation,
@@ -46,8 +45,10 @@ import { useCurrentAccess } from "@/hooks/useCurrentAccess";
 import { useMinCheckInterval } from "@/hooks/useMinCheckInterval";
 import { withMinimumIntervals } from "../monitor-types/shared/intervals-support";
 import { checkMonitorValues } from "../monitor-types/shared/check-values";
-import { defaultChannelIds } from "../monitor-types/shared/channel-support";
+import { allNotificationChannelsOptions, defaultChannelIds } from "../monitor-types/shared/channel-support";
 import { useWorkspacePath } from "@/hooks/useWorkspacePath";
+import { useDisabledMonitorTypes } from "@/hooks/useDisabledMonitorTypes";
+import { selectableMonitorTypes } from "../monitor-types/disabled";
 
 type Mode = "create" | "edit";
 
@@ -120,22 +121,26 @@ export const MonitorFormProvider: React.FC<MonitorFormProviderProps> = ({
   // ones may be old (see below).
   const presetsChannels = mode === "create" && !initialValues;
   const { data: channels, isFetchedAfterMount: channelsFetched } = useQuery({
-    ...getNotificationChannelsOptions(),
+    ...allNotificationChannelsOptions(),
     enabled: presetsChannels,
   });
   const startingChannelIds = useRef(defaultChannelIds(channels?.data));
   const channelsPreset = useRef(false);
 
+  // A new monitor starts as the first type the registry lists that the install doesn't turn off.
+  // Read here, not at module level: the type forms import this module, so the registry is still
+  // loading then.
+  const disabledTypes = useDisabledMonitorTypes();
+  const startingType = selectableMonitorTypes(monitorTypes, { disabled: disabledTypes })[0] ?? monitorTypes[0];
+
   const form = useForm<MonitorFormValues>({
-    // A new monitor starts as the first type the registry lists. Read here, not at module
-    // level: the type forms import this module, so the registry is still loading then.
     // The interval and retry interval start at the install's minimum.
     defaultValues:
       initialValues ??
       withMinimumIntervals(
         channels?.data
-          ? { ...monitorTypes[0].defaultValues, notification_ids: startingChannelIds.current }
-          : monitorTypes[0].defaultValues,
+          ? { ...startingType.defaultValues, notification_ids: startingChannelIds.current }
+          : startingType.defaultValues,
         minCheckInterval
       ),
     // The schema, and a check of the probe that it can't make: which probes run which types
