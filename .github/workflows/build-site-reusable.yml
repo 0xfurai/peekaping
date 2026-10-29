@@ -17,7 +17,7 @@ on:
 
 jobs:
   build:
-    runs-on: nexus-runner
+    runs-on: ubuntu-latest
     permissions:
       contents: read
     defaults:

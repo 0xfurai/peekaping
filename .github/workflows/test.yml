@@ -42,7 +42,7 @@ concurrency:
 
 jobs:
   test:
-    runs-on: nexus-runner
+    runs-on: ubuntu-latest
 
     # The repository tests run their PostgreSQL subtests only when PEE_TEST_POSTGRES_DSN is set.
     # Each test creates a schema or database of its own, so they share this one server
@@ -162,7 +162,7 @@ jobs:
   # PRs or pushes to main
   race:
     if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
-    runs-on: nexus-runner
+    runs-on: ubuntu-latest
     timeout-minutes: 60
 
     # The same PostgreSQL as the test job, so its subtests run under the race detector too
@@ -209,7 +209,7 @@ jobs:
   # runs the same tests with the self-host defaults. PostgreSQL is there for the isolation suite's
   # PostgreSQL run. No coverage: the test job has it
   api-cloud:
-    runs-on: nexus-runner
+    runs-on: ubuntu-latest
     timeout-minutes: 20
 
     services:
