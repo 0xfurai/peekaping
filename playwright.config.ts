@@ -45,7 +45,16 @@ export default defineConfig({
     {
       name: 'chromium',
       testMatch: /\.spec\.ts$/,
+      testIgnore: /admin-settings\.spec\.ts$/,
       dependencies: ['setup'],
+      use: { ...devices['Desktop Chrome'], storageState: 'storageState.json' },
+    },
+    /* The install-wide sender that admin-settings saves would reach the specs running beside it
+       (admin-users expects none), so it runs after all of them. */
+    {
+      name: 'install-settings',
+      testMatch: /admin-settings\.spec\.ts$/,
+      dependencies: ['chromium'],
       use: { ...devices['Desktop Chrome'], storageState: 'storageState.json' },
     },
 
