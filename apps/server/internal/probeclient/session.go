@@ -51,6 +51,9 @@ type SessionConfig struct {
 	ProbeVersion string
 	// SupportedTypes are the monitor types the probe runs, which hello states
 	SupportedTypes []string
+	// EnforcesPrivateTargetBlock is whether the probe blocks private targets when the hello
+	// answer's BlockPrivateTargets asks it to (OnWelcome does it), which hello states
+	EnforcesPrivateTargetBlock bool
 	// HTTPClient makes the requests; http.DefaultClient when nil. The session bounds each call
 	// itself, so the client needs no timeout, and one it has must outlast the long poll. The
 	// session uses a copy of it that refuses a redirect from https to http; the client itself is
@@ -120,6 +123,8 @@ func NewSession(cfg SessionConfig) *Session {
 			Hostname:        hostname,
 			OS:              runtime.GOOS,
 			Arch:            runtime.GOARCH,
+
+			EnforcesPrivateTargetBlock: cfg.EnforcesPrivateTargetBlock,
 		},
 		base:   cfg.Logger,
 		logger: cfg.Logger.With("component", "probe_session"),

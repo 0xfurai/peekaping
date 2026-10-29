@@ -1,18 +1,20 @@
+import { Link } from "react-router-dom";
+
 const EmptyList = ({
   title,
   text,
   actionText,
   onClick,
   secondaryActionText,
-  onSecondaryClick,
+  secondaryTo,
 }: {
   title: string;
   text: string;
   actionText: string;
   onClick: () => void;
-  // A second action, shown beside the first, which stays the primary one
+  // A second action, shown beside the first, which stays the primary one: a link to another page
   secondaryActionText?: string;
-  onSecondaryClick?: () => void;
+  secondaryTo?: string;
 }) => {
   const primary = (
     <button
@@ -23,13 +25,13 @@ const EmptyList = ({
     </button>
   );
   const secondary =
-    secondaryActionText && onSecondaryClick ? (
-      <button
-        onClick={onSecondaryClick}
+    secondaryActionText && secondaryTo ? (
+      <Link
+        to={secondaryTo}
         className="inline-flex items-center px-4 py-2 border border-input bg-background rounded-md hover:bg-accent hover:text-accent-foreground transition-colors"
       >
         {secondaryActionText}
-      </button>
+      </Link>
     ) : null;
 
   return (
