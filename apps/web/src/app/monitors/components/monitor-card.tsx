@@ -10,6 +10,8 @@ import { useLocalizedTranslation } from "@/hooks/useTranslation";
 import { cn } from "@/lib/utils";
 import StaleMarker from "./stale-marker";
 import { getMonitorStatusView } from "./monitor-status";
+import { useWorkspacePath } from "@/hooks/useWorkspacePath";
+import { monitorTypeDisabledReason } from "../monitor-types/disabled";
 
 interface MonitorCardProps {
   monitor: MonitorMonitorResponseDto;
@@ -21,7 +23,14 @@ interface MonitorCardProps {
 
 const MonitorCard = ({ monitor, probes, unsupportedProbeIds }: MonitorCardProps) => {
   const navigate = useNavigate();
+  const workspacePath = useWorkspacePath();
   const { t } = useLocalizedTranslation();
+  // The install turned the monitor's type off: it shows as paused whatever its own setting is,
+  // since nothing checks it, and says why
+  const typeDisabled = monitor.type_disabled === true;
+  // So does a monitor past its workspace's limit of active monitors, which nothing checks either
+  const overLimit = monitor.over_limit === true;
+  const paused = monitor.active === false || typeDisabled || overLimit;
 
   const { data: heartbeats } = useQuery({
     ...getMonitorsByIdHeartbeatsOptions({
@@ -40,7 +49,7 @@ const MonitorCard = ({ monitor, probes, unsupportedProbeIds }: MonitorCardProps)
     <Card
       key={monitor.id}
       className="mb-2 p-2 hover:cursor-pointer light:hover:bg-gray-100 dark:hover:bg-zinc-800"
-      onClick={() => navigate(`/monitors/${monitor.id}`)}
+      onClick={() => navigate(workspacePath(`/monitors/${monitor.id}`))}
       data-testid="monitor-card"
     >
       <CardContent className="px-2">
@@ -48,7 +57,7 @@ const MonitorCard = ({ monitor, probes, unsupportedProbeIds }: MonitorCardProps)
           <div className="flex items-center mb-4 md:mb-0">
             <div className="text-sm text-gray-500 mr-4 min-w-[60px]">
               {(() => {
-                if (monitor.active === false) {
+                if (paused) {
                   return (
                     <span className="flex items-center text-yellow-500 font-semibold">
                       <Pause className="w-5 h-5 mr-1" />{" "}
@@ -77,6 +86,16 @@ const MonitorCard = ({ monitor, probes, unsupportedProbeIds }: MonitorCardProps)
 
             <div className="flex flex-col min-w-[100px]">
               <h3 className="font-bold mb-1">{monitor.name}</h3>
+              {typeDisabled && (
+                <p className="text-xs text-amber-500 mb-1" data-testid="monitor-type-disabled">
+                  {monitorTypeDisabledReason(t, monitor.type ?? "")}
+                </p>
+              )}
+              {overLimit && (
+                <p className="text-xs text-amber-500 mb-1" data-testid="monitor-over-limit">
+                  {t("monitors.over_limit")}
+                </p>
+              )}
               <div className="flex flex-wrap gap-1">
                 <Badge variant={"outline"}>{monitor.type}</Badge>
                 {probes?.map(({ id, name }) => {
@@ -106,7 +125,7 @@ const MonitorCard = ({ monitor, probes, unsupportedProbeIds }: MonitorCardProps)
             <div className="text-sm text-gray-500 mb-1">
               {t("monitors.card.check_interval")} {monitor.interval}s
             </div>
-            {monitor.active !== false && (
+            {!paused && (
               <StaleMarker
                 className="mb-1"
                 staleSince={monitor.stale_since}

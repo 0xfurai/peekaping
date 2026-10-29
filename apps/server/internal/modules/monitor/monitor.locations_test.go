@@ -3,6 +3,7 @@ package monitor
 import (
 	"context"
 	"database/sql"
+	"peekaping/internal/modules/workspace/workspacetest"
 	"sync"
 	"testing"
 	"time"
@@ -49,7 +50,7 @@ func statuses(locations []shared.MonitorLocation) map[string]string {
 // recordLocation records the state, answers the judge with answer, and returns what the judge was
 // given: the rows from before and after, and the status recorded before
 func recordLocation(ctx context.Context, repo MonitorRepository, monitorID string, state shared.LocationState, answer *shared.MonitorStatus) (before, after []shared.MonitorLocation, recorded *shared.MonitorStatus, err error) {
-	err = repo.RecordLocation(ctx, monitorID, state, func(j shared.LocationJudgement) *shared.MonitorStatus {
+	err = repo.RecordLocationAnyWorkspace(ctx, monitorID, state, func(j shared.LocationJudgement) *shared.MonitorStatus {
 		before, after, recorded = j.Before, j.After, j.Recorded
 		return answer
 	})
@@ -83,7 +84,7 @@ func TestSQLRepository_ALocationStartsWithNoStatus(t *testing.T) {
 		setProbeStatus(t, db, "frankfurt", "online")
 		addProbe(t, db, "paris")
 
-		created, err := repo.Create(ctx, monitorOn("Checkout", true, "paris", "local", "frankfurt"))
+		created, err := repo.Create(ctx, testWorkspace, monitorOn("Checkout", true, "paris", "local", "frankfurt"))
 		require.NoError(t, err)
 
 		want := []shared.MonitorLocation{
@@ -92,11 +93,11 @@ func TestSQLRepository_ALocationStartsWithNoStatus(t *testing.T) {
 			{ProbeID: "paris", ProbeName: "Probe paris", Online: false},
 		}
 		assert.Equal(t, want, created.Locations, "the create's answer")
-		found, err := repo.FindByID(ctx, created.ID)
+		found, err := repo.FindByID(ctx, testWorkspace, created.ID)
 		require.NoError(t, err)
 		assert.Equal(t, want, found.Locations, "one monitor")
 		assert.Equal(t, []string{"frankfurt", "local", "paris"}, found.ProbeIDs, "in the order of its probe_ids")
-		all, err := repo.FindAll(ctx, 0, 10, "", nil, nil, nil)
+		all, err := repo.FindAll(ctx, testWorkspace, 0, 10, "", nil, nil, nil)
 		require.NoError(t, err)
 		require.Len(t, all, 1)
 		assert.Equal(t, want, all[0].Locations, "a list")
@@ -108,7 +109,7 @@ func TestSQLRepository_TheLocalProbeIsAlwaysOnline(t *testing.T) {
 		repo := NewSQLRepository(db)
 		ctx := context.Background()
 		setProbeStatus(t, db, "local", "offline") // nothing speaks the probe protocol on most installs
-		created, err := repo.Create(ctx, monitorOn("Checkout", true, "local"))
+		created, err := repo.Create(ctx, testWorkspace, monitorOn("Checkout", true, "local"))
 		require.NoError(t, err)
 
 		assert.True(t, created.Locations[0].Online)
@@ -121,22 +122,22 @@ func TestSQLRepository_InClusterModeTheLocalProbeFollowsItsInstances(t *testing.
 	forEachSQLBackend(t, func(t *testing.T, db *bun.DB) {
 		repo := NewSQLRepository(db, WithLocalProbe(shared.LocalProbeIsItsInstances))
 		ctx := context.Background()
-		created, err := repo.Create(ctx, monitorOn("Checkout", true, "local"))
+		created, err := repo.Create(ctx, testWorkspace, monitorOn("Checkout", true, "local"))
 		require.NoError(t, err)
 
 		setProbeStatus(t, db, "local", "offline")
-		found, err := repo.FindByID(ctx, created.ID)
+		found, err := repo.FindByID(ctx, testWorkspace, created.ID)
 		require.NoError(t, err)
 		assert.False(t, found.Locations[0].Online, "its instances stopped")
 
 		setProbeStatus(t, db, "local", "online")
-		found, err = repo.FindByID(ctx, created.ID)
+		found, err = repo.FindByID(ctx, testWorkspace, created.ID)
 		require.NoError(t, err)
 		assert.True(t, found.Locations[0].Online, "an instance is connected")
 
 		setProbeStatus(t, db, "local", "offline")
 		var judged []shared.MonitorLocation
-		require.NoError(t, repo.RecordLocation(ctx, created.ID, stateOf("local", up, 12, time.Now()), func(j shared.LocationJudgement) *shared.MonitorStatus {
+		require.NoError(t, repo.RecordLocationAnyWorkspace(ctx, created.ID, stateOf("local", up, 12, time.Now()), func(j shared.LocationJudgement) *shared.MonitorStatus {
 			judged = j.After
 			return nil
 		}))
@@ -153,14 +154,14 @@ func TestSQLRepository_InClusterModeAPushMonitorsLocalLocationIsOnlineWithoutIns
 		setProbeStatus(t, db, "local", "offline")
 		push := monitorOn("Nightly backup", true, "local")
 		push.Type = pushType
-		created, err := repo.Create(ctx, push)
+		created, err := repo.Create(ctx, testWorkspace, push)
 		require.NoError(t, err)
-		checked, err := repo.Create(ctx, monitorOn("Checkout", true, "local"))
+		checked, err := repo.Create(ctx, testWorkspace, monitorOn("Checkout", true, "local"))
 		require.NoError(t, err)
 
-		foundPush, err := repo.FindByID(ctx, created.ID)
+		foundPush, err := repo.FindByID(ctx, testWorkspace, created.ID)
 		require.NoError(t, err)
-		foundChecked, err := repo.FindByID(ctx, checked.ID)
+		foundChecked, err := repo.FindByID(ctx, testWorkspace, checked.ID)
 		require.NoError(t, err)
 
 		assert.True(t, foundPush.Locations[0].Online, "the push monitor needs no instance")
@@ -194,7 +195,7 @@ func TestRegisterDependencies_TheRepositoryTakesTheLocalProbesLiveness(t *testin
 				setProbeStatus(t, db, "local", "offline")
 
 				require.NoError(t, container.Invoke(func(repo MonitorRepository) {
-					created, err := repo.Create(context.Background(), monitorOn("Checkout", true, "local"))
+					created, err := repo.Create(context.Background(), testWorkspace, monitorOn("Checkout", true, "local"))
 					require.NoError(t, err)
 					assert.Equal(t, tc.online, created.Locations[0].Online)
 				}))
@@ -208,9 +209,9 @@ func TestSQLRepository_RecordLocationKeepsEachProbesState(t *testing.T) {
 		repo := NewSQLRepository(db)
 		ctx := context.Background()
 		addProbe(t, db, "frankfurt")
-		created, err := repo.Create(ctx, monitorOn("Checkout", true, "local", "frankfurt"))
+		created, err := repo.Create(ctx, testWorkspace, monitorOn("Checkout", true, "local", "frankfurt"))
 		require.NoError(t, err)
-		other, err := repo.Create(ctx, monitorOn("Search", true, "local", "frankfurt"))
+		other, err := repo.Create(ctx, testWorkspace, monitorOn("Search", true, "local", "frankfurt"))
 		require.NoError(t, err)
 		at := time.Date(2026, 10, 24, 12, 0, 0, 0, time.UTC)
 
@@ -229,10 +230,10 @@ func TestSQLRepository_RecordLocationKeepsEachProbesState(t *testing.T) {
 		assert.Equal(t, map[string]string{"frankfurt": "down", "local": "unknown"}, statuses(before), "the next result sees the last one")
 		assert.Equal(t, map[string]string{"frankfurt": "down", "local": "up"}, statuses(after), "and the other probe keeps its state")
 
-		found, err := repo.FindByID(ctx, created.ID)
+		found, err := repo.FindByID(ctx, testWorkspace, created.ID)
 		require.NoError(t, err)
 		assert.Equal(t, after, found.Locations, "the monitor reads what was recorded")
-		untouched, err := repo.FindByID(ctx, other.ID)
+		untouched, err := repo.FindByID(ctx, testWorkspace, other.ID)
 		require.NoError(t, err)
 		assert.Equal(t, map[string]string{"frankfurt": "unknown", "local": "unknown"}, statuses(untouched.Locations), "another monitor's rows are left alone")
 	})
@@ -243,7 +244,7 @@ func TestSQLRepository_RecordLocationForAProbeTheMonitorDoesNotRunOn(t *testing.
 		repo := NewSQLRepository(db)
 		ctx := context.Background()
 		addProbe(t, db, "frankfurt")
-		created, err := repo.Create(ctx, monitorOn("Checkout", true, "local"))
+		created, err := repo.Create(ctx, testWorkspace, monitorOn("Checkout", true, "local"))
 		require.NoError(t, err)
 
 		before, after, _, err := recordLocation(ctx, repo, created.ID, stateOf("frankfurt", up, 20, time.Now()), nil)
@@ -251,7 +252,7 @@ func TestSQLRepository_RecordLocationForAProbeTheMonitorDoesNotRunOn(t *testing.
 		require.NoError(t, err)
 		assert.Equal(t, map[string]string{"local": "unknown"}, statuses(before))
 		assert.Equal(t, map[string]string{"local": "unknown"}, statuses(after), "a probe that was taken off the monitor is not put back")
-		found, err := repo.FindByID(ctx, created.ID)
+		found, err := repo.FindByID(ctx, testWorkspace, created.ID)
 		require.NoError(t, err)
 		assert.Equal(t, []string{"local"}, found.ProbeIDs)
 	})
@@ -261,7 +262,7 @@ func TestSQLRepository_RecordLocationCanClearTheState(t *testing.T) {
 	forEachSQLBackend(t, func(t *testing.T, db *bun.DB) {
 		repo := NewSQLRepository(db)
 		ctx := context.Background()
-		created, err := repo.Create(ctx, monitorOn("Checkout", true, "local"))
+		created, err := repo.Create(ctx, testWorkspace, monitorOn("Checkout", true, "local"))
 		require.NoError(t, err)
 		_, _, _, err = recordLocation(ctx, repo, created.ID, stateOf("local", up, 20, time.Now()), nil)
 		require.NoError(t, err)
@@ -279,7 +280,7 @@ func TestSQLRepository_ChangingProbesKeepsTheStateOfTheOnesThatStay(t *testing.T
 		ctx := context.Background()
 		addProbe(t, db, "frankfurt")
 		addProbe(t, db, "paris")
-		created, err := repo.Create(ctx, monitorOn("Checkout", true, "local", "frankfurt"))
+		created, err := repo.Create(ctx, testWorkspace, monitorOn("Checkout", true, "local", "frankfurt"))
 		require.NoError(t, err)
 		at := time.Date(2026, 10, 24, 12, 0, 0, 0, time.UTC)
 		_, _, _, err = recordLocation(ctx, repo, created.ID, stateOf("local", up, 20, at), nil)
@@ -289,13 +290,13 @@ func TestSQLRepository_ChangingProbesKeepsTheStateOfTheOnesThatStay(t *testing.T
 
 		renamed := *created
 		renamed.Name, renamed.ProbeIDs = "Checkout, renamed", []string{"frankfurt", "paris"}
-		require.NoError(t, repo.UpdateFull(ctx, created.ID, &renamed))
-		found, err := repo.FindByID(ctx, created.ID)
+		require.NoError(t, repo.UpdateFull(ctx, testWorkspace, created.ID, &renamed))
+		found, err := repo.FindByID(ctx, testWorkspace, created.ID)
 		require.NoError(t, err)
 		assert.Equal(t, map[string]string{"frankfurt": "down", "paris": "unknown"}, statuses(found.Locations), "frankfurt stays, local is gone and paris is new")
 
-		require.NoError(t, repo.UpdatePartial(ctx, created.ID, &UpdateModel{ProbeIDs: []string{"local", "frankfurt", "paris"}}))
-		found, err = repo.FindByID(ctx, created.ID)
+		require.NoError(t, repo.UpdatePartial(ctx, testWorkspace, created.ID, &UpdateModel{ProbeIDs: []string{"local", "frankfurt", "paris"}}))
+		found, err = repo.FindByID(ctx, testWorkspace, created.ID)
 		require.NoError(t, err)
 		assert.Equal(t, map[string]string{"frankfurt": "down", "local": "unknown", "paris": "unknown"}, statuses(found.Locations), "a probe that comes back starts over")
 	})
@@ -306,10 +307,10 @@ func TestSQLRepository_AMonitorWithoutARowHasALocalLocation(t *testing.T) {
 		repo := NewSQLRepository(db)
 		ctx := context.Background()
 		rowless := uuid.NewString()
-		_, err := db.Exec(`INSERT INTO monitors (id, type, name, interval, timeout, max_retries, retry_interval, resend_interval, active) VALUES (?, 'http', 'Monitor', 60, 10, 1, 10, 0, ?)`, rowless, true)
+		_, err := db.Exec(`INSERT INTO monitors (id, workspace_id, type, name, interval, timeout, max_retries, retry_interval, resend_interval, active) VALUES (?, (SELECT id FROM workspaces ORDER BY created_at, id LIMIT 1), 'http', 'Monitor', 60, 10, 1, 10, 0, ?)`, rowless, true)
 		require.NoError(t, err)
 
-		found, err := repo.FindByID(ctx, rowless)
+		found, err := repo.FindByID(ctx, testWorkspace, rowless)
 		require.NoError(t, err)
 		assert.Equal(t, []shared.MonitorLocation{{ProbeID: "local", ProbeName: "Local", Online: true}}, found.Locations)
 
@@ -329,7 +330,7 @@ func TestSQLRepository_RecordLocationSerializesResultsOfOneMonitor(t *testing.T)
 		ctx := context.Background()
 		addProbe(t, db, "frankfurt")
 		for round := range 20 {
-			created, err := repo.Create(ctx, monitorOn("Checkout", true, "local", "frankfurt"))
+			created, err := repo.Create(ctx, testWorkspace, monitorOn("Checkout", true, "local", "frankfurt"))
 			require.NoError(t, err)
 			_, _, _, err = recordLocation(ctx, repo, created.ID, stateOf("local", up, 20, time.Now()), statusPtr(up))
 			require.NoError(t, err)
@@ -374,7 +375,7 @@ func TestSQLRepository_RecordLocationHandsTheJudgeTheStatusRecordedBefore(t *tes
 	forEachSQLBackend(t, func(t *testing.T, db *bun.DB) {
 		repo := NewSQLRepository(db)
 		ctx := context.Background()
-		created, err := repo.Create(ctx, monitorOn("Checkout", true, "local"))
+		created, err := repo.Create(ctx, testWorkspace, monitorOn("Checkout", true, "local"))
 		require.NoError(t, err)
 		at := time.Date(2026, 10, 24, 12, 0, 0, 0, time.UTC)
 		answer := func(status shared.MonitorStatus) *shared.MonitorStatus { return &status }
@@ -402,7 +403,7 @@ func TestSQLRepository_RecordLocationRecordsTheStatusOfAMonitorWithoutRows(t *te
 	forEachSQLBackend(t, func(t *testing.T, db *bun.DB) {
 		repo := NewSQLRepository(db)
 		rowless := uuid.NewString()
-		_, err := db.Exec(`INSERT INTO monitors (id, type, name, interval, timeout, max_retries, retry_interval, resend_interval, active) VALUES (?, 'http', 'Monitor', 60, 10, 1, 10, 0, ?)`, rowless, true)
+		_, err := db.Exec(`INSERT INTO monitors (id, workspace_id, type, name, interval, timeout, max_retries, retry_interval, resend_interval, active) VALUES (?, (SELECT id FROM workspaces ORDER BY created_at, id LIMIT 1), 'http', 'Monitor', 60, 10, 1, 10, 0, ?)`, rowless, true)
 		require.NoError(t, err)
 		status := pending
 
@@ -418,9 +419,9 @@ func TestSQLRepository_ResetLocationsForgetsWhereTheMonitorStood(t *testing.T) {
 		repo := NewSQLRepository(db)
 		ctx := context.Background()
 		addProbe(t, db, "frankfurt")
-		created, err := repo.Create(ctx, monitorOn("Checkout", true, "local", "frankfurt"))
+		created, err := repo.Create(ctx, testWorkspace, monitorOn("Checkout", true, "local", "frankfurt"))
 		require.NoError(t, err)
-		other, err := repo.Create(ctx, monitorOn("Search", true, "local"))
+		other, err := repo.Create(ctx, testWorkspace, monitorOn("Search", true, "local"))
 		require.NoError(t, err)
 		status := down
 		for _, id := range []string{created.ID, other.ID} {
@@ -428,13 +429,13 @@ func TestSQLRepository_ResetLocationsForgetsWhereTheMonitorStood(t *testing.T) {
 			require.NoError(t, err)
 		}
 
-		require.NoError(t, repo.ResetLocations(ctx, created.ID))
+		require.NoError(t, repo.ResetLocations(ctx, testWorkspace, created.ID))
 
-		found, err := repo.FindByID(ctx, created.ID)
+		found, err := repo.FindByID(ctx, testWorkspace, created.ID)
 		require.NoError(t, err)
 		assert.Equal(t, map[string]string{"frankfurt": "unknown", "local": "unknown"}, statuses(found.Locations))
 		assert.Nil(t, recordedStatus(t, db, created.ID))
-		untouched, err := repo.FindByID(ctx, other.ID)
+		untouched, err := repo.FindByID(ctx, testWorkspace, other.ID)
 		require.NoError(t, err)
 		assert.Equal(t, map[string]string{"local": "down"}, statuses(untouched.Locations), "another monitor is left alone")
 		assert.NotNil(t, recordedStatus(t, db, other.ID))
@@ -463,10 +464,9 @@ func TestSQLRepository_ProbeStateIsBackfilledFromTheLatestHeartbeat(t *testing.T
 			}
 			newMonitor := func(probeIDs ...string) string {
 				id := uuid.NewString()
-				_, err := db.Exec(`INSERT INTO monitors (id, type, name, interval, timeout, max_retries, retry_interval, resend_interval) VALUES (?, 'http', 'Monitor', 60, 10, 1, 10, 0)`, id)
-				require.NoError(t, err)
+				workspacetest.InsertMonitorWithoutWorkspace(t, db, id)
 				for _, probeID := range probeIDs {
-					_, err = db.Exec(`INSERT INTO monitor_probes (monitor_id, probe_id) VALUES (?, ?)`, id, probeID)
+					_, err := db.Exec(`INSERT INTO monitor_probes (monitor_id, probe_id) VALUES (?, ?)`, id, probeID)
 					require.NoError(t, err)
 				}
 				return id
@@ -485,7 +485,7 @@ func TestSQLRepository_ProbeStateIsBackfilledFromTheLatestHeartbeat(t *testing.T
 			migrateUp(t, db, migrations.Migrations)
 
 			repo := NewSQLRepository(db)
-			found, err := repo.FindByID(ctx, checked)
+			found, err := repo.FindByID(ctx, upgradedWorkspace(t, db), checked)
 			require.NoError(t, err)
 			require.Len(t, found.Locations, 1)
 			assert.Equal(t, "down", statusOf(found.Locations[0]), "the latest heartbeat's status")
@@ -493,14 +493,14 @@ func TestSQLRepository_ProbeStateIsBackfilledFromTheLatestHeartbeat(t *testing.T
 			assert.Equal(t, 900, *found.Locations[0].LastPing)
 			require.NotNil(t, found.Locations[0].LastHeartbeatAt)
 			assert.True(t, noon.Add(time.Minute).Equal(*found.Locations[0].LastHeartbeatAt), "got %s", found.Locations[0].LastHeartbeatAt)
-			found, err = repo.FindByID(ctx, onProbe)
+			found, err = repo.FindByID(ctx, upgradedWorkspace(t, db), onProbe)
 			require.NoError(t, err)
 			assert.Equal(t, "up", statusOf(found.Locations[0]), "a remote probe's row too")
 			assert.Equal(t, 0, *recordedStatus(t, db, checked), "what the monitor last added up to is its latest heartbeat's status")
 			assert.Equal(t, 1, *recordedStatus(t, db, onProbe))
 			assert.Equal(t, 2, *recordedStatus(t, db, noProbeRow), "a monitor without a probe row too")
 			assert.Nil(t, recordedStatus(t, db, neverChecked), "and one with no heartbeat has none recorded")
-			found, err = repo.FindByID(ctx, neverChecked)
+			found, err = repo.FindByID(ctx, upgradedWorkspace(t, db), neverChecked)
 			require.NoError(t, err)
 			assert.Equal(t, shared.MonitorLocation{ProbeID: "local", ProbeName: "Local", Online: true}, found.Locations[0], "a probe with no heartbeat has no state")
 		})

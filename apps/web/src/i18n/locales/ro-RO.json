@@ -3,22 +3,292 @@
     "cancel": "Anulează",
     "saving": "Se salvează..."
   },
+  "admin": {
+    "nav": {
+      "back_to_workspace": "Înapoi la {{name}}",
+      "probes": "Sonde",
+      "title": "Administrare",
+      "users": "Utilizatori",
+      "workspaces": "Spații de lucru",
+      "settings": "Setări"
+    },
+    "users": {
+      "actions": {
+        "delete": "Șterge utilizatorul",
+        "disable": "Dezactivează utilizatorul",
+        "disableTwoFactor": "Dezactivează 2FA",
+        "enable": "Activează utilizatorul",
+        "grantAdmin": "Fă administrator de instanță",
+        "resetLink": "Creează link de resetare",
+        "revokeAdmin": "Elimină administratorul de instanță"
+      },
+      "actions_aria": "Acțiuni pentru {{email}}",
+      "columns": {
+        "created": "Creat",
+        "email": "E-mail",
+        "email_verified": "E-mail verificat",
+        "instance_admin": "Administrator de instanță",
+        "last_sign_in": "Ultima autentificare",
+        "status": "Stare",
+        "two_factor": "2FA",
+        "workspaces": "Spații de lucru"
+      },
+      "confirm": {
+        "cancel": "Anulează",
+        "delete": {
+          "confirm": "Șterge utilizatorul",
+          "description": "Ștergeți {{email}}? Contul este eliminat, la fel și locurile din spațiile de lucru. Această acțiune nu poate fi anulată.",
+          "title": "Șterge utilizatorul"
+        },
+        "disable": {
+          "confirm": "Dezactivează",
+          "description": "{{email}} nu se poate autentifica și este acum deconectat de peste tot. Spațiile sale de lucru continuă să ruleze. Îl puteți activa din nou mai târziu.",
+          "title": "Dezactivează utilizatorul"
+        },
+        "disableTwoFactor": {
+          "confirm": "Dezactivează 2FA",
+          "description": "{{email}} se va autentifica doar cu parola și poate configura din nou 2FA. Faceți asta doar după ce sunteți sigur că persoana respectivă este cea care cere.",
+          "title": "Dezactivează 2FA"
+        }
+      },
+      "description": "Toți cei care au un cont pe această instalare. Administratorii de instanță gestionează instalarea în sine, de exemplu sondele și utilizatorii. Rolul unui utilizator într-un spațiu de lucru este stabilit de proprietarii acelui spațiu de lucru.",
+      "empty": "Nu s-a găsit niciun utilizator",
+      "errors": {
+        "last_instance_admin": "Instalarea are nevoie de cel puțin un administrator de instanță.",
+        "last_owner": "Utilizatorul este ultimul proprietar al {{workspaces}}. Mai întâi desemnați alt proprietar sau ștergeți spațiul de lucru.",
+        "self": "Nu puteți face asta pe propriul cont."
+      },
+      "load_failed": "Nu s-au putut încărca utilizatorii.",
+      "messages": {
+        "admin_granted": "{{email}} este acum administrator de instanță",
+        "admin_revoked": "{{email}} nu mai este administrator de instanță",
+        "deleted": "{{email}} a fost șters",
+        "disabled": "{{email}} este dezactivat și deconectat",
+        "enabled": "{{email}} este activat",
+        "two_factor_off": "2FA este dezactivat pentru {{email}}",
+        "update_failed": "Nu s-a putut actualiza utilizatorul."
+      },
+      "never": "Niciodată",
+      "none": "Niciunul",
+      "page_name": "Utilizatori",
+      "paging": {
+        "next": "Următorul",
+        "page": "Pagina {{page}} din {{pages}}",
+        "previous": "Anterior"
+      },
+      "reset_link": {
+        "close": "Închide",
+        "copied": "Link copiat",
+        "copy": "Copiază linkul",
+        "copy_failed": "Nu s-a putut copia linkul. Selectați-l și copiați-l manual.",
+        "description": "Un link prin care {{email}} își alege o parolă nouă. Copiați-l și transmiteți-l acum: este afișat o singură dată.",
+        "emailed": "Această instalare trimite e-mailuri despre cont, așa că utilizatorul este înștiințat prin e-mail că a fost creat un link pentru el.",
+        "expires": "Linkul funcționează o singură dată și expiră {{when}}.",
+        "failed": "Nu s-a putut crea linkul.",
+        "label": "Link",
+        "making": "Se creează linkul...",
+        "signs_out": "Folosirea linkului deconectează utilizatorul de peste tot.",
+        "title": "Link de resetare a parolei"
+      },
+      "search_label": "Caută utilizatori după e-mail",
+      "search_placeholder": "Caută după e-mail",
+      "total": "{{total}} găsiți",
+      "values": {
+        "active": "Activ",
+        "disabled": "Dezactivat",
+        "no": "Nu",
+        "two_factor_off": "Oprit",
+        "two_factor_on": "Pornit",
+        "yes": "Da"
+      },
+      "you": "tu"
+    },
+    "workspaces": {
+      "actions": {
+        "delete": "Șterge spațiul de lucru",
+        "resume": "Reactivează spațiul de lucru",
+        "suspend": "Suspendă spațiul de lucru",
+        "limits": "Limite"
+      },
+      "actions_aria": "Acțiuni pentru {{name}}",
+      "columns": {
+        "created": "Creat",
+        "custom_domains": "Domenii personalizate",
+        "members": "Membri",
+        "monitors": "Monitoare",
+        "name": "Nume",
+        "owners": "Proprietari",
+        "status": "Stare",
+        "status_pages": "Pagini de stare",
+        "limits": "Limite"
+      },
+      "confirm": {
+        "cancel": "Anulează",
+        "delete": {
+          "confirm": "Șterge spațiul de lucru",
+          "description": "Ștergeți {{name}}? Tot ce conține dispare: monitoarele și istoricul lor, paginile de stare, canalele de notificare și accesul membrilor. Această acțiune nu poate fi anulată.",
+          "name_label": "Introduceți numele spațiului de lucru pentru a confirma: {{name}}",
+          "title": "Șterge spațiul de lucru"
+        },
+        "resume": {
+          "confirm": "Reactivează",
+          "description": "Monitoarele din {{name}} rulează din nou în starea pe care o aveau, iar membrii îl pot folosi ca înainte. Un spațiu de lucru care așteaptă verificarea e-mailului proprietarului continuă să aștepte.",
+          "title": "Reactivează spațiul de lucru"
+        },
+        "suspend": {
+          "confirm": "Suspendă",
+          "description": "Monitoarele din {{name}} nu mai rulează, paginile de stare publice arată că sunt indisponibile, iar membrii văd că este suspendat. Nimic nu este șters și îl puteți reactiva mai târziu.",
+          "title": "Suspendă spațiul de lucru"
+        }
+      },
+      "description": "Toate spațiile de lucru de pe această instalare, cu proprietarii, membrii lor și cât conțin. Se afișează doar numere, nimic din interiorul unui spațiu de lucru.",
+      "empty": "Nu s-a găsit niciun spațiu de lucru",
+      "load_failed": "Nu s-au putut încărca spațiile de lucru.",
+      "messages": {
+        "deleted": "{{name}} a fost șters",
+        "failed": "Nu s-a putut modifica spațiul de lucru.",
+        "resumed": "{{name}} a fost reactivat",
+        "suspended": "{{name}} a fost suspendat"
+      },
+      "monitors": "{{active}} active, {{paused}} în pauză",
+      "none": "Niciunul",
+      "page_name": "Spații de lucru",
+      "paging": {
+        "next": "Următorul",
+        "page": "Pagina {{page}} din {{pages}}",
+        "previous": "Anterior"
+      },
+      "search_label": "Caută spații de lucru după nume sau e-mailul proprietarului",
+      "search_placeholder": "Caută după nume sau e-mailul proprietarului",
+      "status": {
+        "running": "Rulează",
+        "suspended_admin": "Suspendat de un administrator",
+        "suspended_unverified": "Suspendat până când proprietarul își verifică e-mailul"
+      },
+      "total": "{{total}} găsite",
+      "limits": {
+        "item": "{{name}}: {{value}}",
+        "more": "+{{number}} în plus",
+        "unlimited": "Fără limite",
+        "source": {
+          "workspace": "Proprii",
+          "install": "Valorile implicite ale instalării",
+          "none": "Nesetate"
+        },
+        "dialog": {
+          "title": "Limitele pentru {{name}}",
+          "description": "Ce limitează acest spațiu de lucru. Scăderea unei limite nu oprește și nu șterge nimic: cele mai noi monitoare peste limită nu mai rulează până când este din nou loc.",
+          "own": "Limite proprii",
+          "own_help": "Acestea înlocuiesc valorile implicite ale instalării. Lăsați o limită goală pentru a nu avea niciuna.",
+          "unlimited": "Fără limite",
+          "unlimited_help": "Nicio limită, orice ar spune valorile implicite ale instalării.",
+          "defaults": "Folosește valorile implicite ale instalării",
+          "defaults_help": "Limitele implicite din Administrare → Setări, sau niciuna dacă instalarea nu setează.",
+          "save": "Salvează limitele",
+          "cancel": "Anulează",
+          "saved": "Limitele pentru {{name}} au fost salvate",
+          "failed": "Limitele nu au putut fi salvate."
+        }
+      }
+    },
+    "settings": {
+      "page_name": "Setări",
+      "description": "Setările întregii instalări. O valoare setată de mediul serverului este blocată aici.",
+      "load_failed": "Setările nu au putut fi încărcate.",
+      "saved": "Setări salvate",
+      "save_failed": "Setările nu au fost salvate.",
+      "locked": "Setat de mediul serverului",
+      "source": {
+        "environment": "Din mediul serverului",
+        "saved": "Salvat aici",
+        "default": "Implicit"
+      },
+      "signup": {
+        "title": "Înregistrare",
+        "description": "Cine poate crea un cont pe această instalare.",
+        "label": "Mod de înregistrare",
+        "invite": "Doar cu invitație",
+        "open": "Deschisă",
+        "invite_help": "Primul utilizator se înregistrează, iar toți cei de după se alătură unui spațiu de lucru printr-o invitație.",
+        "open_help": "Oricine se poate înregistra și primește propriul spațiu de lucru. Conturile noi își verifică adresa de e-mail, deci este nevoie de un expeditor de e-mail."
+      },
+      "sender": {
+        "title": "Expeditor de e-mail",
+        "description": "Serverul SMTP care trimite e-mailurile contului: linkuri de resetare a parolei, verificarea e-mailului și invitații.",
+        "on": "E-mailurile contului sunt activate.",
+        "off": "E-mailurile contului sunt dezactivate: nu există gazdă SMTP.",
+        "host": "Gazda SMTP",
+        "port": "Port",
+        "tls": "Securitate",
+        "tls_starttls": "STARTTLS",
+        "tls_tls": "TLS",
+        "tls_none": "Niciuna",
+        "user": "Utilizator",
+        "password": "Parola",
+        "password_set": "Este setată o parolă. Tastați pentru a o înlocui.",
+        "password_not_set": "Nicio parolă setată",
+        "password_removed": "Parola va fi eliminată la salvare.",
+        "password_reenter": "Schimbarea gazdei, a portului, a securității sau a utilizatorului elimină parola salvată. Introduceți-o din nou.",
+        "remove_password": "Elimină parola",
+        "keep_password": "Păstrează parola",
+        "from": "Adresa expeditorului"
+      },
+      "public_url": {
+        "title": "URL public",
+        "description": "Adresa aplicației web, pe care o deschid linkurile din e-mailuri și notificări.",
+        "label": "URL public"
+      },
+      "test_email": {
+        "title": "Trimite un e-mail de test",
+        "description": "Trimite un e-mail scurt prin expeditorul salvat, pentru a verifica dacă funcționează.",
+        "to": "Trimite către",
+        "send": "Trimite un e-mail de test",
+        "sending": "Se trimite…",
+        "sent": "E-mailul de test a fost trimis către {{to}}.",
+        "failed": "E-mailul de test nu a fost trimis.",
+        "unsaved": "Expeditorul are modificări nesalvate. Testul folosește expeditorul salvat, așa că salvați mai întâi."
+      },
+      "validation": {
+        "port": "Introduceți un port între 1 și 65535 sau lăsați gol pentru valoarea implicită."
+      },
+      "errors": {
+        "locked": "{{field}} este setat de mediul serverului și nu poate fi modificat aici.",
+        "open_needs_sender": "Înregistrarea deschisă are nevoie de un expeditor de e-mail, pentru că conturile noi își verifică adresa de e-mail. Configurați mai întâi expeditorul sau în aceeași salvare.",
+        "sender_needed": "Înregistrarea este deschisă, iar conturile noi au nevoie de expeditor pentru a-și verifica adresa de e-mail. Treceți mai întâi înregistrarea pe doar cu invitație.",
+        "no_sender": "Nu există expeditor de e-mail. Salvați mai întâi un expeditor."
+      },
+      "limits": {
+        "title": "Limite implicite",
+        "description": "Limitele fiecărui spațiu de lucru care nu are limite proprii. Lăsați o limită goală pentru a nu avea niciuna. Limitele date unui spațiu de lucru pe pagina Spații de lucru le înlocuiesc pe acestea."
+      }
+    }
+  },
   "auth": {
     "login": {
       "description": "Autentifică-te cu e-mailul tău",
       "no_account": "Nu ai un cont?",
       "sign_up": "Înregistrează-te",
       "submit": "Conectare",
-      "title": "Bine ai revenit"
+      "title": "Bine ai revenit",
+      "forgot_password": "Ai uitat parola?",
+      "ask_admin": "Cereți o invitație unui administrator al acestei instalări"
     },
     "register": {
       "description": "Creați contul de admin",
+      "description_open": "Creați-vă contul",
       "have_account": "Ai deja un cont?",
       "sign_in": "Autentificare",
       "submit": "Creează",
       "title": "Salut",
       "telemetry_note": "Anonim: fără numele monitoarelor, URL-uri sau gazde. Îl puteți schimba mai târziu în „Setări”.",
-      "telemetry_whats_sent": "Ce se trimite"
+      "telemetry_whats_sent": "Ce se trimite",
+      "errors": {
+        "rate_limited": "Prea multe înregistrări din rețeaua dvs. Încercați din nou peste o oră.",
+        "email_taken": "Există deja un cont cu acest e-mail.",
+        "sign_in_instead": "Autentificați-vă în schimb.",
+        "check_failed": "Verificarea nu a trecut. Încercați din nou.",
+        "check_load_failed": "Verificarea nu a putut fi încărcată. Verificați conexiunea și încercați din nou."
+      }
     },
     "twofa": {
       "code_label": "Cod 2FA",
@@ -27,6 +297,45 @@
       "title": "Autentificare cu doi factori necesară",
       "verify_button": "Verifică 2FA",
       "verifying": "Se verifică..."
+    },
+    "forgot": {
+      "title": "Resetează parola",
+      "description": "Introdu e-mailul contului tău și îți vom trimite un link.",
+      "submit": "Trimite linkul",
+      "sent": "Dacă există un cont cu acest e-mail, am trimis un link. Este valabil o oră.",
+      "back_to_login": "Înapoi la autentificare"
+    },
+    "reset": {
+      "title": "Alege o parolă nouă",
+      "description": "Introdu o parolă nouă pentru contul tău.",
+      "submit": "Setează parola",
+      "success": "Parola ta a fost schimbată și ai fost deconectat peste tot. Autentifică-te cu parola nouă.",
+      "sign_in": "Autentifică-te",
+      "invalid_link": "Acest link a fost folosit sau a expirat.",
+      "request_new": "Cere un link nou"
+    },
+    "verify": {
+      "title": "Verifică-ți e-mailul",
+      "verifying": "Se verifică e-mailul tău...",
+      "success": "E-mailul tău este verificat.",
+      "open_app": "Deschide Peekaping",
+      "invalid_link": "Acest link a fost folosit sau a expirat."
+    },
+    "errors": {
+      "rate_limited": "Prea multe cereri. Încearcă din nou mai târziu.",
+      "generic": "Ceva nu a mers bine. Încearcă din nou.",
+      "already_verified": "E-mailul tău este deja verificat."
+    },
+    "resend": {
+      "button": "Retrimite",
+      "sent": "Am trimis un link nou. Verifică-ți căsuța de e-mail."
+    },
+    "verification_banner": {
+      "message": "Verifică-ți e-mailul: am trimis un link la {{email}}."
+    },
+    "suspension_notice": {
+      "message": "Monitoarele dvs. pornesc după ce vă verificați e-mailul.",
+      "member_message": "Monitoarele acestui spațiu de lucru pornesc după ce proprietarul său își verifică e-mailul."
     }
   },
   "bars": {
@@ -73,6 +382,7 @@
     "no_tags_available": "Nu există etichete disponibile",
     "please_refresh_page": "Vă rugăm să reîmprospătați pagina.",
     "required": "Obligatoriu",
+    "retry": "Încearcă din nou",
     "save": "Salvează",
     "saving": "Se salvează...",
     "search": "Căutare",
@@ -124,6 +434,33 @@
       "password_required": "Parola este obligatorie",
       "password_min_length": "Parola trebuie să aibă cel puțin 8 caractere",
       "passwords_mismatch": "Parolele nu se potrivesc"
+    }
+  },
+  "invite": {
+    "accept": "Acceptă invitația",
+    "accepting": "Se alătură...",
+    "creating": "Se creează...",
+    "description": "Ai fost invitat să te alături la {{workspace}} ca {{role}}.",
+    "enter_failed": "Te-ai alăturat spațiului de lucru, dar deschiderea lui a eșuat. Încearcă din nou.",
+    "errors": {
+      "other_email": "Această invitație este pentru o altă adresă de e-mail."
+    },
+    "for_email": "Această invitație este pentru {{email}}.",
+    "have_account": "Ai deja un cont?",
+    "open_app": "Deschide Peekaping",
+    "other_account": "Ești autentificat ca {{current}}, dar această invitație este pentru {{invited}}. Deconectează-te, apoi autentifică-te sau înregistrează-te cu {{invited}} ca să o accepți.",
+    "sign_in_instead": "Autentifică-te",
+    "sign_out": "Deconectare",
+    "signup_description": "Alege o parolă pentru a-ți crea contul și a te alătura la {{workspace}} ca {{role}}.",
+    "signup_submit": "Creează cont și alătură-te",
+    "title": "Alătură-te la {{workspace}}",
+    "unavailable": {
+      "accepted": "Această invitație a fost deja folosită.",
+      "expired": "Această invitație a expirat. Cere una nouă.",
+      "not_found": "Acest link de invitație nu există. Verifică dacă l-ai copiat întreg.",
+      "revoked": "Această invitație a fost revocată. Cere una nouă.",
+      "title": "Această invitație nu poate fi folosită",
+      "unknown": "Această invitație nu poate fi folosită. Cere una nouă."
     }
   },
   "maintenance": {
@@ -231,6 +568,79 @@
       "wed": "Mi"
     }
   },
+  "members": {
+    "change_role_aria": "Schimbă rolul lui {{email}}",
+    "errors": {
+      "account_exists": "Există deja un cont cu acest e-mail. Autentifică-te și acceptă invitația.",
+      "already_member": "Această persoană este deja membră a acestui spațiu de lucru.",
+      "forbidden": "Rolul tău din acest spațiu de lucru nu permite această acțiune.",
+      "generic": "Ceva nu a funcționat. Încearcă din nou.",
+      "last_owner": "Un spațiu de lucru are nevoie de cel puțin un proprietar.",
+      "member_not_found": "Acest membru nu mai este în spațiul de lucru."
+    },
+    "invite": {
+      "copied": "Link copiat",
+      "copy": "Copiază",
+      "creating": "Se creează...",
+      "description": "Creează un link pentru o adresă de e-mail și un rol. Nu se trimite niciun e-mail: copiază linkul și trimite-l tu.",
+      "done": "Gata",
+      "email_label": "E-mail",
+      "link_note": "Acest link funcționează o singură dată și expiră în 7 zile. Este afișat doar acum, așa că copiază-l înainte de a părăsi această pagină.",
+      "link_title": "Link de invitație",
+      "role_label": "Rol",
+      "submit": "Creează link de invitație",
+      "title": "Invită pe cineva"
+    },
+    "leave": {
+      "button": "Părăsește spațiul de lucru",
+      "confirm": "Părăsește",
+      "description": "Pierzi imediat accesul la acest spațiu de lucru și la datele lui.",
+      "done": "Ai părăsit spațiul de lucru",
+      "last_owner": "Ești ultimul proprietar, deci nu poți pleca. Fă mai întâi proprietar un alt membru.",
+      "refresh_failed": "Ai părăsit spațiul de lucru, dar încărcarea spațiilor tale de lucru a eșuat. Încearcă din nou.",
+      "title": "Părăsește acest spațiu de lucru"
+    },
+    "list": {
+      "description": "Toți cei care lucrează în acest spațiu de lucru și rolurile lor.",
+      "email": "E-mail",
+      "joined": "S-a alăturat",
+      "role": "Rol",
+      "title": "Membri",
+      "you": "tu"
+    },
+    "page_name": "Membri",
+    "pending": {
+      "description": "Invitații care nu au fost folosite încă. Linkul unei invitații revocate nu mai funcționează.",
+      "email": "E-mail",
+      "empty": "Nicio invitație în așteptare.",
+      "expired": "Expirată",
+      "expires": "Expiră",
+      "revoke": "Revocă",
+      "revoke_aria": "Revocă invitația pentru {{email}}",
+      "revoked": "Invitație revocată",
+      "role": "Rol",
+      "title": "Invitații în așteptare"
+    },
+    "remove": "Elimină",
+    "remove_aria": "Elimină {{email}}",
+    "remove_dialog": {
+      "confirm": "Elimină",
+      "description": "{{email}} pierde imediat accesul la acest spațiu de lucru.",
+      "title": "Elimină membrul"
+    },
+    "removed": "Membru eliminat",
+    "role_updated": "Rol actualizat",
+    "roles": {
+      "admin": "Administrator",
+      "member": "Membru",
+      "owner": "Proprietar"
+    },
+    "settings_card": {
+      "description": "Vezi cine lucrează în acest spațiu de lucru și, dacă ești administrator sau proprietar, invită oameni și gestionează rolurile lor.",
+      "open": "Deschide membrii",
+      "title": "Membri"
+    }
+  },
   "messages": {
     "login_error": "O eroare a apărut în timpul autentificării.",
     "login_no_tokens": "Autentificare reușită, dar nu au fost primite token-uri.",
@@ -258,6 +668,7 @@
     },
     "empty_state": {
       "action": "Creați primul monitor",
+      "add_channel": "Adăugați un canal de notificare",
       "description": "Începe prin crearea primului monitor pentru a urmări starea de sănătate a serviciilor tale.",
       "title": "Nu există monitoare"
     },
@@ -500,6 +911,7 @@
       "shared": {
         "intervals": {
           "heartbeat_retry": "Interval de reîncercare a semnalului de viață (reîncearcă la fiecare {{seconds}} secunde)",
+          "interval_too_short": "Nu poate fi mai mic de {{minimum}} secunde",
           "max_retries_description": "Numărul maxim de încercări înainte ca serviciul să fie marcat ca inactiv și să se trimită o notificare.",
           "request_timeout": "Timeout cerere (Timeout după {{seconds}} secunde)",
           "resend_notification": "Retrimitere notificare dacă serviciul e indisponibil X ori consecutiv (Retrimitere dezactivată)",
@@ -542,6 +954,10 @@
           "select_proxy_placeholder": "Selectează proxy",
           "selected_proxy": "Proxy selectat",
           "title": "Proxy"
+        },
+        "run_from": {
+          "default_locations": "Rulează în locațiile implicite",
+          "label": "Rulează din"
         },
         "tags": {
           "label": "Etichete",
@@ -649,9 +1065,12 @@
     "toasts": {
       "deleted": "Monitor șters",
       "paused": "Monitor în pauză",
+      "push_token_already_used": "Un alt monitor folosește deja acest token push. Generați unul nou.",
       "reset_success": "Datele monitorului au fost resetate cu succes",
       "resumed": "Monitorizarea reluată"
     },
+    "type_disabled": "Tipul {{type}} este dezactivat pe această instalare",
+    "over_limit": "Nu este verificat: spațiul de lucru are mai multe monitoare active decât permite limita sa",
     "view": {
       "buttons": {
         "clone": "Clonează",
@@ -712,6 +1131,7 @@
     }
   },
   "navigation": {
+    "admin": "Administrare",
     "maintenance": "Întreținere",
     "monitors": "Monitoare",
     "notification_channels": "Canale de notificare",
@@ -1123,6 +1543,12 @@
         "signing_secret_docs_link": "Cum se verifică semnătura",
         "signing_secret_label": "Secret de semnare",
         "signing_secret_placeholder": "Lăsați gol pentru a trimite solicitări nesemnate"
+      },
+      "install_email": {
+        "description": "Trimis de această instalare, nu este nevoie de un server SMTP.",
+        "to_description": "Un membru al acestui spațiu de lucru. Notificările se trimit după ce își verifică adresa.",
+        "to_label": "Destinatar",
+        "to_placeholder": "Alegeți un membru"
       }
     },
     "important": "Notificări importante",
@@ -1141,7 +1567,8 @@
       "updated_success": "Notifier actualizat cu succes"
     },
     "new": {
-      "title": "Canal nou de notificare"
+      "title": "Canal nou de notificare",
+      "default_hint": "Acest canal va fi bifat la monitoarele noi."
     },
     "no_important": "Nu există notificări importante.",
     "placeholders": {
@@ -1151,11 +1578,21 @@
     "secret": {
       "reenter_error": "Introduceți din nou acest secret sau eliminați-l: destinația de trimitere s-a schimbat",
       "reenter_hint": "Introduceți din nou acest secret: destinația de trimitere s-a schimbat",
+      "reenter_url_error": "Introduceți din nou datele de autentificare din acest URL: URL-ul s-a schimbat de la salvare",
       "remove": "Elimină",
       "saved_hint": "Salvat — tastați pentru a înlocui"
     }
   },
   "probes": {
+    "default": {
+      "description": "Un monitor creat fără a alege sonde rulează pe sondele implicite care nu sunt dezactivate și rulează tipul său, iar pe sonda locală când niciuna nu o face. Monitoarele existente își păstrează sondele.",
+      "failed": "Nu s-a putut schimba dacă sonda este implicită.",
+      "label": "Sondă implicită",
+      "off": "{{name}} nu mai este o sondă implicită",
+      "on": "{{name}} este acum o sondă implicită",
+      "title": "Implicit pentru monitoarele noi"
+    },
+    "default_badge": "Implicit",
     "page_name": "Sonde",
     "description": "Sondele execută verificările monitoarelor din locurile în care sunt instalate. Sonda locală este chiar Peekaping.",
     "local_name": "Locală",
@@ -1437,7 +1874,9 @@
     "data_retention": {
       "days_label": "Zile",
       "description": "Setează câte zile să păstrezi datele (KEEP_DATA_PERIOD_DAYS).",
-      "title": "Perioada de păstrare a datelor"
+      "read_only": "Doar un administrator sau proprietarul spațiului de lucru poate modifica acest lucru.",
+      "title": "Perioada de păstrare a datelor",
+      "capped": "Până la {{max}} zile în acest spațiu de lucru"
     },
     "error_reporting": {
       "cluster_note": "În modul cluster, o modificare ajunge la toate procesele în cel mult un minut.",
@@ -1463,6 +1902,10 @@
     },
     "validation": {
       "min_days": "Trebuie să fie cel puțin 1 zi"
+    },
+    "workspace_name": {
+      "description": "Numele afișat în comutatorul de spații de lucru și membrilor.",
+      "title": "Numele spațiului de lucru"
     }
   },
   "status": {
@@ -1478,6 +1921,7 @@
       "refresh_in": "Actualizare în",
       "refresh_now": "Reîmprospătează acum",
       "status_page_not_found": "Pagina de stare nu a fost găsită sau nu este publicată.",
+      "status_page_unavailable": "Această pagină de stare nu este disponibilă",
       "under_maintenance": "În întreținere",
       "unknown": "Necunoscut"
     }
@@ -1521,6 +1965,7 @@
     "search_placeholder": "Caută pagini de stare după titlu...",
     "show_locations": "Afișează fiecare locație",
     "show_locations_info": "Pentru monitoarele verificate din mai multe locații, afișează starea și istoricul fiecărei locații",
+    "slug_already_used": "O altă pagină de stare folosește deja această adresă",
     "update_status_page": "Actualizează pagina de stare",
     "view_page": "Vezi pagina"
   },
@@ -1586,5 +2031,93 @@
   "ui": {
     "general": "General",
     "intervals_retries": "Intervale, Reîncercări, Timeout-uri"
+  },
+  "workspaces": {
+    "create": "Creează spațiu de lucru",
+    "create_error": "Nu s-a putut crea spațiul de lucru",
+    "create_first": "Creează un spațiu de lucru",
+    "creating": "Se creează...",
+    "enter": "Deschide spațiul de lucru",
+    "entering": "Se deschide...",
+    "entry_failed": "Spațiul de lucru a fost creat, dar deschiderea lui a eșuat. Încearcă din nou.",
+    "name_label": "Nume",
+    "name_placeholder": "Echipa mea",
+    "name_required": "Introdu un nume",
+    "new": "Spațiu de lucru nou",
+    "new_description": "Un spațiu de lucru are propriile monitoare, canale de notificare, pagini de stare și membri. Vei fi proprietarul lui.",
+    "new_title": "Spațiu de lucru nou",
+    "none_description": "Contul tău nu este membru al niciunui spațiu de lucru, așa că nu este nimic de afișat aici. Roagă pe cineva care administrează un spațiu de lucru să te adauge.",
+    "none_title": "Nu faci încă parte dintr-un spațiu de lucru",
+    "refresh_failed": "Spațiile tale de lucru nu au putut fi încărcate. Verifică conexiunea și încearcă din nou.",
+    "rename_error": "Redenumirea spațiului de lucru a eșuat",
+    "rename_success": "Spațiul de lucru a fost redenumit",
+    "suspended_banner": {
+      "contact": "Pentru contact:",
+      "message": "Acest spațiu de lucru este suspendat de administratorul acestei instalări. Monitoarele sale nu rulează, iar paginile de stare nu sunt disponibile.",
+      "no_contact": "Contactați persoana care administrează această instalare."
+    },
+    "switcher_label": "Schimbă spațiul de lucru"
+  },
+  "get_started": {
+    "page_name": "Primii pași",
+    "skip": "Omite configurarea",
+    "step_of": "Pasul {{current}} din {{total}}",
+    "name": {
+      "description": "Aici se află monitoarele, canalele de notificare și paginile de stare. Îi puteți schimba numele mai târziu în Setări.",
+      "title": "Dați un nume spațiului de lucru"
+    },
+    "monitor": {
+      "create": "Creează monitorul",
+      "create_failed": "Crearea monitorului a eșuat",
+      "creating": "Se creează...",
+      "description": "Introduceți adresa unui site web sau a unui API. Peekaping o verifică și vă anunță când nu mai răspunde.",
+      "full_form": "Sau configurați un monitor cu toate opțiunile",
+      "title": "Adăugați primul monitor",
+      "url_invalid": "Introduceți o adresă care începe cu http:// sau https://",
+      "url_label": "Adresa de monitorizat"
+    },
+    "channel": {
+      "continue_unlinked": "Continuă fără asociere",
+      "description": "Alegeți unde trimite Peekaping o alertă când monitorul dvs. cade. Va deveni implicit pentru monitoarele noi.",
+      "link_failed": "Canalul a fost salvat, dar asocierea cu monitorul a eșuat. Adăugați-l în pagina de editare a monitorului.",
+      "retry_link": "Încearcă din nou asocierea",
+      "title": "Primiți notificări"
+    },
+    "done": {
+      "description": "Peekaping vă monitorizează serviciul. Iată ce puteți face în continuare.",
+      "title": "Totul este gata",
+      "unverified": "Monitorul dvs. va rula după verificarea adresei de e-mail. Căutați linkul de verificare în căsuța de e-mail.",
+      "links": {
+        "members": "Invitați-vă echipa",
+        "monitor": "Deschideți monitorul",
+        "monitors": "Mergeți la monitoare",
+        "probes": "Gestionați sondele",
+        "status_pages": "Publicați o pagină de stare"
+      }
+    }
+  },
+  "limits": {
+    "reached": {
+      "monitors": "Acest spațiu de lucru poate avea cel mult {{max}} monitoare în execuție",
+      "status_pages": "Acest spațiu de lucru poate avea cel mult {{max}} pagini de stare",
+      "custom_domains": "Paginile de stare ale acestui spațiu de lucru pot avea împreună cel mult {{max}} domenii personalizate",
+      "members": "Acest spațiu de lucru poate avea cel mult {{max}} membri, inclusiv invitațiile în așteptare",
+      "owned_workspaces": "Puteți deține cel mult {{max}} spații de lucru",
+      "probes": "Un monitor din acest spațiu de lucru poate rula pe cel mult {{max}} sonde",
+      "retention_days": "Acest spațiu de lucru poate păstra datele cel mult {{max}} zile"
+    },
+    "names": {
+      "monitors": "Monitoare active",
+      "min_check_interval": "Cel mai scurt interval de verificare (secunde)",
+      "status_pages": "Pagini de stare",
+      "custom_domains": "Domenii personalizate",
+      "members": "Membri",
+      "owned_workspaces": "Spații de lucru pe care le poate deține un utilizator",
+      "probes_per_monitor": "Sonde pe monitor",
+      "retention_days": "Păstrarea datelor (zile)"
+    },
+    "none": "Fără limită",
+    "invalid": "Introduceți un număr întreg egal cu 1 sau mai mare, sau lăsați câmpul gol pentru nicio limită.",
+    "retention_too_long": "Nu poate fi mai mare de {{max}} zile"
   }
 }

@@ -2,11 +2,16 @@ package status_page
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"peekaping/internal/httpx"
+	"peekaping/internal/limits"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
+	"peekaping/internal/modules/monitor_status_page"
 	"peekaping/internal/modules/shared"
+	"peekaping/internal/modules/workspace"
+	"peekaping/internal/modules/workspace/workspacehttp"
 	"peekaping/internal/utils"
 	"peekaping/internal/validation"
 	"slices"
@@ -32,6 +37,10 @@ func NewController(service Service, monitorService monitor.Service, heartbeatSer
 	}
 }
 func (c *Controller) Create(ctx context.Context, input *CreateInput) (*httpx.Output[utils.ApiResponse[*Model]], error) {
+	workspaceID, err := workspacehttp.Scope(ctx)
+	if err != nil {
+		return nil, err
+	}
 	dto, decodeErr := input.Decode()
 	if err := decodeErr; err != nil {
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
@@ -41,11 +50,23 @@ func (c *Controller) Create(ctx context.Context, input *CreateInput) (*httpx.Out
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 
-	created, err := c.service.Create(ctx, &dto)
+	created, err := c.service.Create(ctx, workspaceID, &dto)
 	if err != nil {
+		if errors.Is(err, monitor_status_page.ErrUnknownMonitor) {
+			return nil, unknownMonitorResponse()
+		}
 		// Surface domain uniqueness validation errors as 400
-		if domainErr, ok := err.(*DomainAlreadyUsedError); ok {
+		var reached *limits.ReachedError
+		if errors.As(err, &reached) {
+			return nil, limits.Fail(reached)
+		}
+		var domainErr *DomainAlreadyUsedError
+		if errors.As(err, &domainErr) {
 			return nil, httpx.Fail(http.StatusBadRequest, DomainErrorResponse{Error: domainErr})
+		}
+		var slugErr *SlugAlreadyUsedError
+		if errors.As(err, &slugErr) {
+			return nil, httpx.Fail(http.StatusBadRequest, SlugErrorResponse{Error: slugErr})
 		}
 		c.logger.Errorw("Failed to create status page", "error", err)
 		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
@@ -54,9 +75,13 @@ func (c *Controller) Create(ctx context.Context, input *CreateInput) (*httpx.Out
 	return httpx.Reply(http.StatusCreated, utils.NewSuccessResponse("Status page created successfully", created))
 }
 func (c *Controller) FindByID(ctx context.Context, input *FindByIDInput) (*httpx.Output[utils.ApiResponse[*StatusPageWithMonitorsResponseDTO]], error) {
+	workspaceID, err := workspacehttp.Scope(ctx)
+	if err != nil {
+		return nil, err
+	}
 	r := input.Request
 	id := r.PathValue("id")
-	page, err := c.service.FindByIDWithMonitors(ctx, id)
+	page, err := c.service.FindByIDWithMonitors(ctx, workspaceID, id)
 	if err != nil {
 		c.logger.Errorw("Failed to get status page by id", "error", err, "id", id)
 		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
@@ -69,7 +94,10 @@ func (c *Controller) FindByID(ctx context.Context, input *FindByIDInput) (*httpx
 func (c *Controller) FindBySlug(ctx context.Context, input *FindBySlugInput) (*httpx.Output[utils.ApiResponse[*Model]], error) {
 	r := input.Request
 	slug := r.PathValue("slug")
-	page, err := c.service.FindPublishedBySlug(ctx, slug)
+	page, err := c.service.FindPublishedBySlugAnyWorkspace(ctx, slug)
+	if errors.Is(err, ErrUnavailable) {
+		return nil, Unavailable()
+	}
 	if err != nil {
 		c.logger.Errorw("Failed to get status page by slug", "error", err, "slug", slug)
 		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
@@ -82,7 +110,10 @@ func (c *Controller) FindBySlug(ctx context.Context, input *FindBySlugInput) (*h
 func (c *Controller) FindByDomain(ctx context.Context, input *FindByDomainInput) (*httpx.Output[utils.ApiResponse[*Model]], error) {
 	r := input.Request
 	domain := r.PathValue("domain")
-	page, err := c.service.FindPublishedByDomain(ctx, domain)
+	page, err := c.service.FindPublishedByDomainAnyWorkspace(ctx, domain)
+	if errors.Is(err, ErrUnavailable) {
+		return nil, Unavailable()
+	}
 	if err != nil {
 		c.logger.Errorw("Failed to get status page by domain", "error", err, "domain", domain)
 		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
@@ -93,6 +124,10 @@ func (c *Controller) FindByDomain(ctx context.Context, input *FindByDomainInput)
 	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("success", page))
 }
 func (c *Controller) FindAll(ctx context.Context, input *FindAllInput) (*httpx.Output[utils.ApiResponse[[]*Model]], error) {
+	workspaceID, err := workspacehttp.Scope(ctx)
+	if err != nil {
+		return nil, err
+	}
 	r := input.Request
 	page, err := utils.GetQueryInt(r, "page", 0)
 	if err != nil || page < 0 {
@@ -104,7 +139,7 @@ func (c *Controller) FindAll(ctx context.Context, input *FindAllInput) (*httpx.O
 	}
 	q := r.URL.Query().Get("q")
 
-	pages, err := c.service.FindAll(ctx, page, limit, q)
+	pages, err := c.service.FindAll(ctx, workspaceID, page, limit, q)
 	if err != nil {
 		c.logger.Errorw("Failed to get all status pages", "error", err)
 		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
@@ -112,6 +147,10 @@ func (c *Controller) FindAll(ctx context.Context, input *FindAllInput) (*httpx.O
 	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("success", pages))
 }
 func (c *Controller) Update(ctx context.Context, input *UpdateInput) (*httpx.Output[utils.ApiResponse[*Model]], error) {
+	workspaceID, err := workspacehttp.Scope(ctx)
+	if err != nil {
+		return nil, err
+	}
 	r := input.Request
 	id := r.PathValue("id")
 	dto, decodeErr := input.Decode()
@@ -119,15 +158,30 @@ func (c *Controller) Update(ctx context.Context, input *UpdateInput) (*httpx.Out
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 
-	if _, err := utils.RequireRecord(ctx, c.logger, "Status page", c.service.FindByID, id); err != nil {
+	if _, err := utils.RequireRecord(ctx, c.logger, "Status page", findIn(c.service, workspaceID), id); err != nil {
 		return nil, err
 	}
 
-	updated, err := c.service.Update(ctx, id, &dto)
+	updated, err := c.service.Update(ctx, workspaceID, id, &dto)
 	if err != nil {
+		if errors.Is(err, ErrNotFound) {
+			return nil, statusPageNotFoundResponse()
+		}
+		if errors.Is(err, monitor_status_page.ErrUnknownMonitor) {
+			return nil, unknownMonitorResponse()
+		}
 		// Surface domain uniqueness validation errors as 400
-		if domainErr, ok := err.(*DomainAlreadyUsedError); ok {
+		var reached *limits.ReachedError
+		if errors.As(err, &reached) {
+			return nil, limits.Fail(reached)
+		}
+		var domainErr *DomainAlreadyUsedError
+		if errors.As(err, &domainErr) {
 			return nil, httpx.Fail(http.StatusBadRequest, DomainErrorResponse{Error: domainErr})
+		}
+		var slugErr *SlugAlreadyUsedError
+		if errors.As(err, &slugErr) {
+			return nil, httpx.Fail(http.StatusBadRequest, SlugErrorResponse{Error: slugErr})
 		}
 		c.logger.Errorw("Failed to update status page", "error", err, "id", id)
 		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
@@ -135,19 +189,48 @@ func (c *Controller) Update(ctx context.Context, input *UpdateInput) (*httpx.Out
 	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("Status page updated successfully", updated))
 }
 func (c *Controller) Delete(ctx context.Context, input *DeleteInput) (*httpx.Output[utils.ApiResponse[any]], error) {
+	workspaceID, err := workspacehttp.Scope(ctx)
+	if err != nil {
+		return nil, err
+	}
 	r := input.Request
 	id := r.PathValue("id")
-	if _, err := utils.RequireRecord(ctx, c.logger, "Status page", c.service.FindByID, id); err != nil {
+	if _, err := utils.RequireRecord(ctx, c.logger, "Status page", findIn(c.service, workspaceID), id); err != nil {
 		return nil, err
 	}
 
-	err := c.service.Delete(ctx, id)
+	err = c.service.Delete(ctx, workspaceID, id)
 	if err != nil {
+		if errors.Is(err, ErrNotFound) {
+			return nil, statusPageNotFoundResponse()
+		}
 		c.logger.Errorw("Failed to delete status page", "error", err, "id", id)
 		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 	}
 	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse[any]("Status page deleted successfully", nil))
 }
+
+// findIn is the lookup of a page in the workspace of the request: a page of another workspace is
+// not found, as one that doesn't exist is
+func findIn(service Service, workspaceID workspace.ID) func(context.Context, string) (*Model, error) {
+	return func(ctx context.Context, id string) (*Model, error) {
+		return service.FindByID(ctx, workspaceID, id)
+	}
+}
+
+// statusPageNotFoundResponse is the answer for a page that doesn't exist and for one that belongs
+// to another workspace, which a caller can't tell apart
+func statusPageNotFoundResponse() error {
+	return httpx.Fail(http.StatusNotFound, utils.NewFailResponse("Status page not found"))
+}
+
+// unknownMonitorResponse is the 400 for a request that puts on the page a monitor that isn't in
+// its workspace. The message names the kind and not the ID, so a monitor of another workspace and
+// one that doesn't exist get the same answer (docs/adr/0005 section 8).
+func unknownMonitorResponse() error {
+	return httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Monitor not found"))
+}
+
 func (c *Controller) GetMonitorsBySlug(ctx context.Context, input *GetMonitorsBySlugInput) (*httpx.Output[utils.ApiResponse[[]*MonitorWithHeartbeatsAndUptimeDTO]], error) {
 	return c.publicMonitors(ctx, input.Request.PathValue("slug"), 100)
 }
@@ -159,7 +242,10 @@ func (c *Controller) GetMonitorsBySlugForHomepage(ctx context.Context, input *Ge
 // heartbeats, as many as heartbeatLimit, and its 24 hour uptime.
 func (c *Controller) publicMonitors(ctx context.Context, slug string, heartbeatLimit int) (*httpx.Output[utils.ApiResponse[[]*MonitorWithHeartbeatsAndUptimeDTO]], error) {
 	// First get the status page
-	page, err := c.service.FindPublishedBySlug(ctx, slug)
+	page, err := c.service.FindPublishedBySlugAnyWorkspace(ctx, slug)
+	if errors.Is(err, ErrUnavailable) {
+		return nil, Unavailable()
+	}
 	if err != nil {
 		c.logger.Errorw("Failed to get status page by slug", "error", err, "slug", slug)
 		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
@@ -179,7 +265,7 @@ func (c *Controller) publicMonitors(ctx context.Context, slug string, heartbeatL
 	monitorModels := make([]*MonitorWithHeartbeatsAndUptimeDTO, 0, len(monitors))
 	for _, msp := range monitors {
 		// Get the actual monitor data
-		monitorModel, err := c.monitorService.FindByID(ctx, msp.MonitorID)
+		monitorModel, err := c.monitorService.FindByIDAnyWorkspace(ctx, msp.MonitorID)
 		if err != nil {
 			c.logger.Errorw("Failed to get monitor by ID", "error", err, "monitorID", msp.MonitorID)
 			continue
@@ -214,10 +300,12 @@ func (c *Controller) publicMonitors(ctx context.Context, slug string, heartbeatL
 
 		monitorWithData := &MonitorWithHeartbeatsAndUptimeDTO{
 			PublicMonitorDTO: &PublicMonitorDTO{
-				ID:     monitorModel.ID,
-				Type:   monitorModel.Type,
-				Name:   monitorModel.Name,
-				Active: monitorModel.Active,
+				ID:   monitorModel.ID,
+				Type: monitorModel.Type,
+				Name: monitorModel.Name,
+				// A monitor of a type the install turns off is not checked, so a visitor sees it
+				// paused, whatever its own setting is
+				Active: monitorModel.Active && !monitorModel.TypeDisabled,
 				Status: monitorModel.Status,
 			},
 			Heartbeats: publicHeartbeats(heartbeats),
@@ -255,14 +343,14 @@ func (c *Controller) publicLocations(ctx context.Context, m *shared.Monitor, hea
 	for _, location := range locations {
 		// A visitor's page doesn't fail for want of a location's heartbeats, as it doesn't for the
 		// monitor's own: the location is listed without them
-		heartbeats, err := c.monitorService.GetHeartbeats(ctx, m.ID, location.ProbeID, heartbeatLimit, 0, nil, true)
+		heartbeats, err := c.monitorService.GetHeartbeatsAnyWorkspace(ctx, m.ID, location.ProbeID, heartbeatLimit, 0, nil, true)
 		if err != nil {
 			c.logger.Errorw("Failed to get the heartbeats of a location", "error", err, "monitorID", m.ID, "probeID", location.ProbeID)
 			heartbeats = nil
 		}
 		// Only the last 24 hours are shown. Nor does the page fail for want of this number: the
 		// location is listed with a null uptime.
-		uptime24h, err := c.monitorService.GetUptime24h(ctx, m.ID, location.ProbeID)
+		uptime24h, err := c.monitorService.GetUptime24hAnyWorkspace(ctx, m.ID, location.ProbeID)
 		if err != nil {
 			c.logger.Errorw("Failed to get the 24h uptime of a location", "error", err, "monitorID", m.ID, "probeID", location.ProbeID)
 			uptime24h = nil

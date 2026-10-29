@@ -12,6 +12,7 @@ import (
 	"peekaping/internal/config"
 	"peekaping/internal/infra"
 	"peekaping/internal/modules/domain_status_page"
+	"peekaping/internal/modules/workspace/workspacetest"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -74,8 +75,7 @@ func forEachBackend(t *testing.T, fn func(t *testing.T, f fixture)) {
 				svc: domain_status_page.NewService(domain_status_page.NewSQLRepository(db), zap.NewNop().Sugar()),
 				page: func() string {
 					id := uuid.NewString()
-					_, err := db.Exec("INSERT INTO status_pages (id, slug, title) VALUES (?, ?, 'Status')", id, "page-"+id)
-					require.NoError(t, err)
+					workspacetest.InsertStatusPage(t, db, id, "page-"+id)
 					return id
 				},
 			})
@@ -166,5 +166,78 @@ func TestCustomDomains_RemovesOnlyTheDomainsTheyName(t *testing.T) {
 		require.NoError(t, f.svc.DeleteAllDomainsForStatusPage(ctx, internal))
 		assert.Empty(t, domainsOf(t, f.svc, internal))
 		assert.Equal(t, []string{"uptime.example.com"}, domainsOf(t, f.svc, public), "other pages keep their domains")
+	})
+}
+
+// A host name is the same in any case and with spaces around it, so a domain is stored lower-case
+// and trimmed, and found by any spelling of it
+func TestCustomDomains_AreStoredLowerCaseAndTrimmedAndFoundByAnySpelling(t *testing.T) {
+	forEachBackend(t, func(t *testing.T, f fixture) {
+		ctx := context.Background()
+		page := f.page()
+
+		added := add(t, f.svc, page, "  Status.Example.COM ")
+		again := add(t, f.svc, page, "status.example.com")
+
+		assert.Equal(t, "status.example.com", added.Domain)
+		assert.Equal(t, added.ID, again.ID, "the same domain in another spelling is the same row")
+		assert.Equal(t, []string{"status.example.com"}, domainsOf(t, f.svc, page))
+		for _, spelling := range []string{"STATUS.example.com", " status.example.com\t", "status.example.com"} {
+			found, err := f.svc.FindByDomain(ctx, spelling)
+			require.NoError(t, err)
+			require.NotNil(t, found, spelling)
+			assert.Equal(t, page, found.StatusPageID)
+			onPage, err := f.svc.FindByStatusPageAndDomain(ctx, page, spelling)
+			require.NoError(t, err)
+			require.NotNil(t, onPage, spelling)
+		}
+
+		require.NoError(t, f.svc.RemoveDomainFromStatusPage(ctx, page, "Status.Example.com"))
+		assert.Empty(t, domainsOf(t, f.svc, page))
+	})
+}
+
+func TestCustomDomains_TheOtherWaysToWriteOneAreNormalizedToo(t *testing.T) {
+	forEachBackend(t, func(t *testing.T, f fixture) {
+		ctx := context.Background()
+		page := f.page()
+		created, err := f.svc.Create(ctx, &domain_status_page.Model{StatusPageID: page, Domain: " Created.Example "})
+		require.NoError(t, err)
+		assert.Equal(t, "created.example", created.Domain)
+
+		upper := "PARTIAL.Example"
+		updated, err := f.svc.UpdatePartial(ctx, created.ID, &domain_status_page.UpdateModel{Domain: &upper})
+		require.NoError(t, err)
+		assert.Equal(t, "partial.example", updated.Domain)
+
+		updated, err = f.svc.UpdateFull(ctx, created.ID, &domain_status_page.Model{StatusPageID: page, Domain: "Full.Example "})
+		require.NoError(t, err)
+		assert.Equal(t, "full.example", updated.Domain)
+	})
+}
+
+// The service checks first, but two pages can race for one domain, and then the database decides
+func TestCustomDomains_ADomainAnotherPageHoldsIsRefusedInAnyCase(t *testing.T) {
+	forEachBackend(t, func(t *testing.T, f fixture) {
+		ctx := context.Background()
+		holder, other := f.page(), f.page()
+		add(t, f.svc, holder, "status.example.com")
+		var taken *domain_status_page.DomainTakenError
+
+		_, err := f.svc.AddDomainToStatusPage(ctx, other, "Status.Example.com")
+		require.ErrorAs(t, err, &taken)
+		assert.Equal(t, "status.example.com", taken.Domain)
+		_, err = f.svc.Create(ctx, &domain_status_page.Model{StatusPageID: other, Domain: "STATUS.EXAMPLE.COM"})
+		assert.ErrorAs(t, err, &taken)
+
+		mine := add(t, f.svc, other, "mine.example.com")
+		clash := "Status.Example.com"
+		_, err = f.svc.UpdatePartial(ctx, mine.ID, &domain_status_page.UpdateModel{Domain: &clash})
+		assert.ErrorAs(t, err, &taken)
+		_, err = f.svc.UpdateFull(ctx, mine.ID, &domain_status_page.Model{StatusPageID: other, Domain: clash})
+		assert.ErrorAs(t, err, &taken)
+
+		assert.Equal(t, []string{"mine.example.com"}, domainsOf(t, f.svc, other))
+		assert.Equal(t, []string{"status.example.com"}, domainsOf(t, f.svc, holder))
 	})
 }

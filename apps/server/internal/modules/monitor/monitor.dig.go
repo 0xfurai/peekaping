@@ -1,7 +1,9 @@
 package monitor
 
 import (
+	"peekaping/internal/config"
 	"peekaping/internal/dbtx"
+	"peekaping/internal/limits"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/healthcheck/executor"
 	"peekaping/internal/modules/heartbeat"
@@ -37,8 +39,21 @@ type serviceParams struct {
 	// probes but the local one.
 	Probes ProbeLookup `optional:"true"`
 	Logger *zap.SugaredLogger
+	// Config is the install's settings. A container without it disables no monitor type and sets no minimum interval.
+	Config *config.Config `optional:"true"`
+	// Limits are the workspaces' limits, from package limits. A container without them has none.
+	Limits limits.Source `optional:"true"`
 }
 
 func provideMonitorService(p serviceParams) Service {
-	return NewMonitorService(p.Repository, p.Transactor, p.Heartbeats, p.EventBus, p.Notifications, p.Tags, p.ExecutorRegistry, p.Stats, p.Probes, p.Logger)
+	opts := []ServiceOption{WithServiceLimits(p.Limits)}
+	if p.Config != nil {
+		opts = append(opts, WithServiceDisabledTypes(p.Config.DisabledMonitorTypeList()))
+		// 20 is the DTOs' own minimum, which the controllers enforce: the service adds nothing
+		// until the install raises it, so that with MIN_CHECK_INTERVAL unset nothing changes
+		if minimum := p.Config.MinCheckIntervalSeconds(); minimum > config.AbsoluteMinCheckInterval {
+			opts = append(opts, WithServiceMinCheckInterval(minimum))
+		}
+	}
+	return NewMonitorService(p.Repository, p.Transactor, p.Heartbeats, p.EventBus, p.Notifications, p.Tags, p.ExecutorRegistry, p.Stats, p.Probes, p.Logger, opts...)
 }

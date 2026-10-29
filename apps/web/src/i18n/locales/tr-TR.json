@@ -3,22 +3,292 @@
     "cancel": "İptal",
     "saving": "Kaydediliyor..."
   },
+  "admin": {
+    "nav": {
+      "back_to_workspace": "{{name}} çalışma alanına dön",
+      "probes": "Problar",
+      "title": "Yönetici",
+      "users": "Kullanıcılar",
+      "workspaces": "Çalışma alanları",
+      "settings": "Ayarlar"
+    },
+    "users": {
+      "actions": {
+        "delete": "Kullanıcıyı sil",
+        "disable": "Kullanıcıyı devre dışı bırak",
+        "disableTwoFactor": "2FA'yı kapat",
+        "enable": "Kullanıcıyı etkinleştir",
+        "grantAdmin": "Örnek yöneticisi yap",
+        "resetLink": "Sıfırlama bağlantısı oluştur",
+        "revokeAdmin": "Örnek yöneticiliğini kaldır"
+      },
+      "actions_aria": "{{email}} için işlemler",
+      "columns": {
+        "created": "Oluşturulma",
+        "email": "E-posta",
+        "email_verified": "E-posta doğrulandı",
+        "instance_admin": "Örnek yöneticisi",
+        "last_sign_in": "Son giriş",
+        "status": "Durum",
+        "two_factor": "2FA",
+        "workspaces": "Çalışma alanları"
+      },
+      "confirm": {
+        "cancel": "İptal",
+        "delete": {
+          "confirm": "Kullanıcıyı sil",
+          "description": "{{email}} silinsin mi? Hesabı ve çalışma alanlarındaki yeri kaldırılır. Bu işlem geri alınamaz.",
+          "title": "Kullanıcıyı sil"
+        },
+        "disable": {
+          "confirm": "Devre dışı bırak",
+          "description": "{{email}} giriş yapamaz ve her yerde oturumu kapatılır. Çalışma alanları çalışmaya devam eder. Daha sonra tekrar etkinleştirebilirsiniz.",
+          "title": "Kullanıcıyı devre dışı bırak"
+        },
+        "disableTwoFactor": {
+          "confirm": "2FA'yı kapat",
+          "description": "{{email}} yalnızca parolasıyla giriş yapacak ve 2FA'yı yeniden kurabilecek. Bunu yalnızca isteyenin gerçekten o kişi olduğundan emin olduktan sonra yapın.",
+          "title": "2FA'yı kapat"
+        }
+      },
+      "description": "Bu kurulumda hesabı olan herkes. Örnek yöneticileri, problar ve kullanıcılar gibi kurulumun kendisini yönetir. Bir kullanıcının çalışma alanındaki rolünü o çalışma alanının sahipleri belirler.",
+      "empty": "Kullanıcı bulunamadı",
+      "errors": {
+        "last_instance_admin": "Kurulumun en az bir örnek yöneticisi olmalı.",
+        "last_owner": "Kullanıcı {{workspaces}} çalışma alanının son sahibi. Önce başka birini sahip yapın veya çalışma alanını silin.",
+        "self": "Bunu kendi hesabınıza yapamazsınız."
+      },
+      "load_failed": "Kullanıcılar yüklenemedi.",
+      "messages": {
+        "admin_granted": "{{email}} artık bir örnek yöneticisi",
+        "admin_revoked": "{{email}} artık örnek yöneticisi değil",
+        "deleted": "{{email}} silindi",
+        "disabled": "{{email}} devre dışı bırakıldı ve oturumu kapatıldı",
+        "enabled": "{{email}} etkinleştirildi",
+        "two_factor_off": "{{email}} için 2FA kapatıldı",
+        "update_failed": "Kullanıcı güncellenemedi."
+      },
+      "never": "Hiç",
+      "none": "Yok",
+      "page_name": "Kullanıcılar",
+      "paging": {
+        "next": "Sonraki",
+        "page": "Sayfa {{page}} / {{pages}}",
+        "previous": "Önceki"
+      },
+      "reset_link": {
+        "close": "Kapat",
+        "copied": "Bağlantı kopyalandı",
+        "copy": "Bağlantıyı kopyala",
+        "copy_failed": "Bağlantı kopyalanamadı. Seçip elle kopyalayın.",
+        "description": "{{email}} için yeni parola belirleme bağlantısı. Kopyalayıp hemen iletin: yalnızca bir kez gösterilir.",
+        "emailed": "Bu kurulum hesap e-postaları gönderir, bu yüzden kullanıcıya kendisi için bir bağlantı oluşturulduğu e-postayla bildirilir.",
+        "expires": "Bağlantı bir kez çalışır ve {{when}} sona erer.",
+        "failed": "Bağlantı oluşturulamadı.",
+        "label": "Bağlantı",
+        "making": "Bağlantı oluşturuluyor...",
+        "signs_out": "Bağlantıyı kullanmak kullanıcının oturumunu her yerde kapatır.",
+        "title": "Parola sıfırlama bağlantısı"
+      },
+      "search_label": "Kullanıcıları e-postaya göre ara",
+      "search_placeholder": "E-postaya göre ara",
+      "total": "{{total}} bulundu",
+      "values": {
+        "active": "Etkin",
+        "disabled": "Devre dışı",
+        "no": "Hayır",
+        "two_factor_off": "Kapalı",
+        "two_factor_on": "Açık",
+        "yes": "Evet"
+      },
+      "you": "siz"
+    },
+    "workspaces": {
+      "actions": {
+        "delete": "Çalışma alanını sil",
+        "resume": "Çalışma alanını devam ettir",
+        "suspend": "Çalışma alanını askıya al",
+        "limits": "Sınırlar"
+      },
+      "actions_aria": "{{name}} için işlemler",
+      "columns": {
+        "created": "Oluşturulma",
+        "custom_domains": "Özel alan adları",
+        "members": "Üyeler",
+        "monitors": "İzleyiciler",
+        "name": "Ad",
+        "owners": "Sahipler",
+        "status": "Durum",
+        "status_pages": "Durum sayfaları",
+        "limits": "Sınırlar"
+      },
+      "confirm": {
+        "cancel": "İptal",
+        "delete": {
+          "confirm": "Çalışma alanını sil",
+          "description": "{{name}} silinsin mi? İçindeki her şey gider: izleyicileri ve geçmişleri, durum sayfaları, bildirim kanalları ve üyelerinin erişimi. Bu işlem geri alınamaz.",
+          "name_label": "Onaylamak için çalışma alanının adını yazın: {{name}}",
+          "title": "Çalışma alanını sil"
+        },
+        "resume": {
+          "confirm": "Devam ettir",
+          "description": "{{name}} çalışma alanının izleyicileri önceki durumlarıyla yeniden çalışır ve üyeleri onu eskisi gibi kullanabilir. Sahibinin e-posta doğrulamasını bekleyen bir çalışma alanı beklemeye devam eder.",
+          "title": "Çalışma alanını devam ettir"
+        },
+        "suspend": {
+          "confirm": "Askıya al",
+          "description": "{{name}} çalışma alanının izleyicileri durur, herkese açık durum sayfaları kullanılamadıklarını gösterir ve üyeleri askıya alındığını görür. Hiçbir şey silinmez; daha sonra devam ettirebilirsiniz.",
+          "title": "Çalışma alanını askıya al"
+        }
+      },
+      "description": "Bu kurulumdaki tüm çalışma alanları; sahipleri, üyeleri ve ne kadar içerik barındırdıklarıyla birlikte. Yalnızca sayılar gösterilir, bir çalışma alanının içindeki hiçbir şey gösterilmez.",
+      "empty": "Çalışma alanı bulunamadı",
+      "load_failed": "Çalışma alanları yüklenemedi.",
+      "messages": {
+        "deleted": "{{name}} silindi",
+        "failed": "Çalışma alanı değiştirilemedi.",
+        "resumed": "{{name}} devam ettirildi",
+        "suspended": "{{name}} askıya alındı"
+      },
+      "monitors": "{{active}} etkin, {{paused}} duraklatıldı",
+      "none": "Yok",
+      "page_name": "Çalışma alanları",
+      "paging": {
+        "next": "Sonraki",
+        "page": "Sayfa {{page}} / {{pages}}",
+        "previous": "Önceki"
+      },
+      "search_label": "Çalışma alanlarını ada veya sahip e-postasına göre ara",
+      "search_placeholder": "Ada veya sahip e-postasına göre ara",
+      "status": {
+        "running": "Çalışıyor",
+        "suspended_admin": "Bir yönetici tarafından askıya alındı",
+        "suspended_unverified": "Sahibi e-postasını doğrulayana kadar askıya alındı"
+      },
+      "total": "{{total}} bulundu",
+      "limits": {
+        "item": "{{name}}: {{value}}",
+        "more": "+{{number}} tane daha",
+        "unlimited": "Sınır yok",
+        "source": {
+          "workspace": "Kendine ait",
+          "install": "Kurulumun varsayılanları",
+          "none": "Ayarlanmadı"
+        },
+        "dialog": {
+          "title": "{{name}} sınırları",
+          "description": "Bu çalışma alanının tabi olduğu sınırlar. Bir sınırı düşürmek hiçbir şeyi duraklatmaz veya silmez: sınırı aşan en yeni izleyiciler, yeniden yer açılana kadar çalışmayı durdurur.",
+          "own": "Kendi sınırları",
+          "own_help": "Bunlar kurulumun varsayılanlarının yerine geçer. Sınır istemiyorsanız ilgili alanı boş bırakın.",
+          "unlimited": "Sınır yok",
+          "unlimited_help": "Kurulumun varsayılanları ne derse desin, hiçbir sınır yok.",
+          "defaults": "Kurulumun varsayılanlarını kullan",
+          "defaults_help": "Yönetici → Ayarlar bölümündeki varsayılan sınırlar; kurulum hiçbirini belirlemediyse sınır yok.",
+          "save": "Sınırları kaydet",
+          "cancel": "İptal",
+          "saved": "{{name}} sınırları kaydedildi",
+          "failed": "Sınırlar kaydedilemedi."
+        }
+      }
+    },
+    "settings": {
+      "page_name": "Ayarlar",
+      "description": "Tüm kurulumun ayarları. Sunucunun ortamının belirlediği bir değer burada kilitlidir.",
+      "load_failed": "Ayarlar yüklenemedi.",
+      "saved": "Ayarlar kaydedildi",
+      "save_failed": "Ayarlar kaydedilmedi.",
+      "locked": "Sunucunun ortamı tarafından belirlendi",
+      "source": {
+        "environment": "Sunucunun ortamından",
+        "saved": "Burada kaydedildi",
+        "default": "Varsayılan"
+      },
+      "signup": {
+        "title": "Kayıt",
+        "description": "Bu kurulumda kimlerin hesap oluşturabileceği.",
+        "label": "Kayıt modu",
+        "invite": "Yalnızca davetle",
+        "open": "Açık",
+        "invite_help": "İlk kullanıcı kaydolur, sonrakilerin hepsi bir çalışma alanına davetle katılır.",
+        "open_help": "Herkes kaydolabilir ve kendi çalışma alanını alır. Yeni hesaplar e-posta adreslerini doğruladığı için bir e-posta göndericisi gerekir."
+      },
+      "sender": {
+        "title": "E-posta göndericisi",
+        "description": "Hesap e-postalarını gönderen SMTP sunucusu: parola sıfırlama bağlantıları, e-posta doğrulama ve davetler.",
+        "on": "Hesap e-postaları açık.",
+        "off": "Hesap e-postaları kapalı: SMTP sunucusu yok.",
+        "host": "SMTP Sunucusu",
+        "port": "Port",
+        "tls": "Güvenlik",
+        "tls_starttls": "STARTTLS",
+        "tls_tls": "TLS",
+        "tls_none": "Yok",
+        "user": "Kullanıcı",
+        "password": "Parola",
+        "password_set": "Bir parola ayarlı. Değiştirmek için yazın.",
+        "password_not_set": "Parola ayarlı değil",
+        "password_removed": "Kaydettiğinizde parola kaldırılır.",
+        "password_reenter": "Ana makineyi, bağlantı noktasını, güvenliği veya kullanıcıyı değiştirmek kayıtlı parolayı kaldırır. Parolayı yeniden girin.",
+        "remove_password": "Parolayı kaldır",
+        "keep_password": "Parolayı koru",
+        "from": "Gönderen adresi"
+      },
+      "public_url": {
+        "title": "Genel URL",
+        "description": "E-postalardaki ve bildirimlerdeki bağlantıların açtığı web uygulamasının adresi.",
+        "label": "Genel URL"
+      },
+      "test_email": {
+        "title": "Test e-postası gönder",
+        "description": "Çalıştığını kontrol etmek için kayıtlı gönderici üzerinden kısa bir e-posta gönderir.",
+        "to": "Alıcı",
+        "send": "Test e-postası gönder",
+        "sending": "Gönderiliyor…",
+        "sent": "Test e-postası {{to}} adresine gönderildi.",
+        "failed": "Test e-postası gönderilmedi.",
+        "unsaved": "Göndericide kaydedilmemiş değişiklikler var. Test kayıtlı göndericiyi kullanır, bu yüzden önce kaydedin."
+      },
+      "validation": {
+        "port": "1 ile 65535 arasında bir port girin veya varsayılan için boş bırakın."
+      },
+      "errors": {
+        "locked": "{{field}} sunucunun ortamı tarafından belirlenir ve burada değiştirilemez.",
+        "open_needs_sender": "Yeni hesaplar e-posta adreslerini doğruladığı için açık kayıt bir e-posta göndericisi gerektirir. Önce göndericiyi ayarlayın veya aynı kayıtta ayarlayın.",
+        "sender_needed": "Kayıt açık ve yeni hesapların e-posta adreslerini doğrulamak için göndericiye ihtiyacı var. Önce kaydı yalnızca davetle olarak değiştirin.",
+        "no_sender": "E-posta göndericisi yok. Önce bir gönderici kaydedin."
+      },
+      "limits": {
+        "title": "Varsayılan sınırlar",
+        "description": "Kendine ait sınırı olmayan her çalışma alanının sınırları. Sınır istemiyorsanız ilgili alanı boş bırakın. Bir çalışma alanına Çalışma alanları sayfasında verilen sınırlar bunların yerine geçer."
+      }
+    }
+  },
   "auth": {
     "login": {
       "description": "E-posta ile Giriş Yap",
       "no_account": "Hesabınız yok mu?",
       "sign_up": "Kayıt Ol",
       "submit": "Giriş",
-      "title": "Tekrar hoş geldiniz"
+      "title": "Tekrar hoş geldiniz",
+      "forgot_password": "Parolanızı mı unuttunuz?",
+      "ask_admin": "Bu kurulumun bir yöneticisinden davet isteyin"
     },
     "register": {
       "description": "Yönetici hesabınızı oluşturun",
+      "description_open": "Hesabınızı oluşturun",
       "have_account": "Zaten bir hesabınız var mı?",
       "sign_in": "Giriş Yap",
       "submit": "Oluştur",
       "title": "Merhaba",
       "telemetry_note": "Anonim: monitör adları, URL'ler veya ana makineler yok. Bunu daha sonra “Ayarlar” bölümünden değiştirebilirsiniz.",
-      "telemetry_whats_sent": "Neler gönderilir"
+      "telemetry_whats_sent": "Neler gönderilir",
+      "errors": {
+        "rate_limited": "Ağınızdan çok fazla kayıt yapıldı. Bir saat sonra tekrar deneyin.",
+        "email_taken": "Bu e-postayla bir hesap zaten var.",
+        "sign_in_instead": "Bunun yerine oturum açın.",
+        "check_failed": "Doğrulama geçilemedi. Tekrar deneyin.",
+        "check_load_failed": "Doğrulama yüklenemedi. Bağlantınızı kontrol edip tekrar deneyin."
+      }
     },
     "twofa": {
       "code_label": "2FA Kodu",
@@ -27,6 +297,45 @@
       "title": "İki Faktörlü Kimlik Doğrulama Gerekli",
       "verify_button": "2FA'yı doğrula",
       "verifying": "Doğrulanıyor..."
+    },
+    "forgot": {
+      "title": "Parolanızı sıfırlayın",
+      "description": "Hesabınızın e-postasını girin, size bir bağlantı gönderelim.",
+      "submit": "Bağlantı gönder",
+      "sent": "Bu e-postayla bir hesap varsa, bir bağlantı gönderdik. Bir saat geçerlidir.",
+      "back_to_login": "Girişe dön"
+    },
+    "reset": {
+      "title": "Yeni bir parola seçin",
+      "description": "Hesabınız için yeni bir parola girin.",
+      "submit": "Parolayı belirle",
+      "success": "Parolanız değiştirildi ve her yerden çıkış yaptırıldınız. Yeni parolayla giriş yapın.",
+      "sign_in": "Giriş yap",
+      "invalid_link": "Bu bağlantı kullanılmış veya süresi dolmuş.",
+      "request_new": "Yeni bağlantı iste"
+    },
+    "verify": {
+      "title": "E-postanızı doğrulayın",
+      "verifying": "E-postanız doğrulanıyor...",
+      "success": "E-postanız doğrulandı.",
+      "open_app": "Peekaping'i aç",
+      "invalid_link": "Bu bağlantı kullanılmış veya süresi dolmuş."
+    },
+    "errors": {
+      "rate_limited": "Çok fazla istek. Daha sonra tekrar deneyin.",
+      "generic": "Bir şeyler ters gitti. Tekrar deneyin.",
+      "already_verified": "E-postanız zaten doğrulanmış."
+    },
+    "resend": {
+      "button": "Yeniden gönder",
+      "sent": "Yeni bir bağlantı gönderdik. Gelen kutunuzu kontrol edin."
+    },
+    "verification_banner": {
+      "message": "E-postanızı doğrulayın: {{email}} adresine bir bağlantı gönderdik."
+    },
+    "suspension_notice": {
+      "message": "E-postanızı doğruladığınızda monitörleriniz başlar.",
+      "member_message": "Bu çalışma alanının monitörleri, sahibi e-postasını doğruladığında başlar."
     }
   },
   "bars": {
@@ -73,6 +382,7 @@
     "no_tags_available": "Etiket yok",
     "please_refresh_page": "Lütfen sayfayı yenileyin.",
     "required": "Gerekli",
+    "retry": "Yeniden dene",
     "save": "Kaydet",
     "saving": "Kaydediliyor...",
     "search": "Ara",
@@ -124,6 +434,33 @@
       "password_required": "Şifre gereklidir",
       "password_min_length": "Şifre en az 8 karakter olmalıdır",
       "passwords_mismatch": "Parolalar eşleşmiyor"
+    }
+  },
+  "invite": {
+    "accept": "Daveti kabul et",
+    "accepting": "Katılınıyor...",
+    "creating": "Oluşturuluyor...",
+    "description": "{{workspace}} alanına {{role}} olarak katılmaya davet edildiniz.",
+    "enter_failed": "Çalışma alanına katıldınız ancak açılamadı. Yeniden deneyin.",
+    "errors": {
+      "other_email": "Bu davet başka bir e-posta adresi için."
+    },
+    "for_email": "Bu davet {{email}} için.",
+    "have_account": "Zaten bir hesabınız var mı?",
+    "open_app": "Peekaping'i aç",
+    "other_account": "{{current}} olarak giriş yaptınız ancak bu davet {{invited}} için. Kabul etmek için çıkış yapın, ardından {{invited}} ile giriş yapın veya kayıt olun.",
+    "sign_in_instead": "Bunun yerine giriş yap",
+    "sign_out": "Çıkış yap",
+    "signup_description": "Hesabınızı oluşturmak ve {{workspace}} alanına {{role}} olarak katılmak için bir parola seçin.",
+    "signup_submit": "Hesap oluştur ve katıl",
+    "title": "{{workspace}} alanına katıl",
+    "unavailable": {
+      "accepted": "Bu davet zaten kullanılmış.",
+      "expired": "Bu davetin süresi dolmuş. Yenisini isteyin.",
+      "not_found": "Bu davet bağlantısı mevcut değil. Tamamını kopyaladığınızdan emin olun.",
+      "revoked": "Bu davet iptal edilmiş. Yenisini isteyin.",
+      "title": "Bu davet kullanılamıyor",
+      "unknown": "Bu davet kullanılamıyor. Yenisini isteyin."
     }
   },
   "maintenance": {
@@ -231,6 +568,79 @@
       "wed": "Çar"
     }
   },
+  "members": {
+    "change_role_aria": "{{email}} rolünü değiştir",
+    "errors": {
+      "account_exists": "Bu e-posta ile zaten bir hesap var. Giriş yapıp daveti kabul edin.",
+      "already_member": "Bu kişi zaten bu çalışma alanının üyesi.",
+      "forbidden": "Bu çalışma alanındaki rolünüz buna izin vermiyor.",
+      "generic": "Bir şeyler ters gitti. Lütfen tekrar deneyin.",
+      "last_owner": "Bir çalışma alanının en az bir sahibi olmalıdır.",
+      "member_not_found": "Bu üye artık çalışma alanında değil."
+    },
+    "invite": {
+      "copied": "Bağlantı kopyalandı",
+      "copy": "Kopyala",
+      "creating": "Oluşturuluyor...",
+      "description": "Bir e-posta adresi ve rol için bağlantı oluşturun. E-posta gönderilmez: bağlantıyı kopyalayıp kendiniz iletin.",
+      "done": "Bitti",
+      "email_label": "E-posta",
+      "link_note": "Bu bağlantı yalnızca bir kez kullanılabilir ve 7 gün sonra sona erer. Sadece şimdi gösterilir, bu yüzden bu sayfadan ayrılmadan önce kopyalayın.",
+      "link_title": "Davet bağlantısı",
+      "role_label": "Rol",
+      "submit": "Davet bağlantısı oluştur",
+      "title": "Birini davet et"
+    },
+    "leave": {
+      "button": "Çalışma alanından ayrıl",
+      "confirm": "Ayrıl",
+      "description": "Bu çalışma alanına ve verilerine erişiminizi hemen kaybedersiniz.",
+      "done": "Çalışma alanından ayrıldınız",
+      "last_owner": "Son sahip sizsiniz, bu yüzden ayrılamazsınız. Önce başka bir üyeyi sahip yapın.",
+      "refresh_failed": "Çalışma alanından ayrıldınız ancak çalışma alanlarınız yüklenemedi. Yeniden deneyin.",
+      "title": "Bu çalışma alanından ayrıl"
+    },
+    "list": {
+      "description": "Bu çalışma alanında çalışan herkes ve rolleri.",
+      "email": "E-posta",
+      "joined": "Katılma tarihi",
+      "role": "Rol",
+      "title": "Üyeler",
+      "you": "siz"
+    },
+    "page_name": "Üyeler",
+    "pending": {
+      "description": "Henüz kullanılmamış davetler. İptal edilen bir davetin bağlantısı çalışmaz.",
+      "email": "E-posta",
+      "empty": "Bekleyen davet yok.",
+      "expired": "Süresi doldu",
+      "expires": "Sona erer",
+      "revoke": "İptal et",
+      "revoke_aria": "{{email}} için daveti iptal et",
+      "revoked": "Davet iptal edildi",
+      "role": "Rol",
+      "title": "Bekleyen davetler"
+    },
+    "remove": "Kaldır",
+    "remove_aria": "{{email}} kişisini kaldır",
+    "remove_dialog": {
+      "confirm": "Kaldır",
+      "description": "{{email}} bu çalışma alanına erişimini hemen kaybeder.",
+      "title": "Üyeyi kaldır"
+    },
+    "removed": "Üye kaldırıldı",
+    "role_updated": "Rol güncellendi",
+    "roles": {
+      "admin": "Yönetici",
+      "member": "Üye",
+      "owner": "Sahip"
+    },
+    "settings_card": {
+      "description": "Bu çalışma alanında kimlerin çalıştığını görün; yönetici veya sahipseniz kişileri davet edin ve rollerini yönetin.",
+      "open": "Üyeleri aç",
+      "title": "Üyeler"
+    }
+  },
   "messages": {
     "login_error": "Oturum açarken bir hata oluştu.",
     "login_no_tokens": "Giriş başarılı, ancak token alınmadı",
@@ -258,6 +668,7 @@
     },
     "empty_state": {
       "action": "İlk izleme oluştur",
+      "add_channel": "Bildirim kanalı ekle",
       "description": "İlk izleyicinizi oluşturarak hizmetlerinizin sağlığını izlemeye başlayın.",
       "title": "İzleyici bulunamadı"
     },
@@ -500,6 +911,7 @@
       "shared": {
         "intervals": {
           "heartbeat_retry": "Kalp Atışı Tekrar Aralığı (her {{seconds}} saniyede bir yeniden dene)",
+          "interval_too_short": "{{minimum}} saniyeden az olamaz",
           "max_retries_description": "Servisin 'down' olarak işaretlenip bildirim gönderilmeden önceki maksimum yeniden deneme sayısı",
           "request_timeout": "İstek Süresi Doldu ({{seconds}} saniye sonra zaman aşımı)",
           "resend_notification": "X kez arka arkaya kesildiğinde Bildirimi Yeniden Gönder (Yeniden gönderme devre dışı)",
@@ -542,6 +954,10 @@
           "select_proxy_placeholder": "Proxy Seçin",
           "selected_proxy": "Seçilen Proxy",
           "title": "Vekil"
+        },
+        "run_from": {
+          "default_locations": "Varsayılan konumlarda çalışır",
+          "label": "Şuradan çalıştır"
         },
         "tags": {
           "label": "Etiketler",
@@ -649,9 +1065,12 @@
     "toasts": {
       "deleted": "İzleyici silindi",
       "paused": "İzleme duraklatıldı",
+      "push_token_already_used": "Başka bir monitör bu push belirtecini zaten kullanıyor. Yeni bir tane oluşturun.",
       "reset_success": "İzleme verileri başarıyla sıfırlandı",
       "resumed": "İzleme yeniden başladı"
     },
+    "type_disabled": "{{type}} türü bu kurulumda kapalıdır",
+    "over_limit": "Kontrol edilmiyor: çalışma alanında sınırının izin verdiğinden fazla etkin izleyici var",
     "view": {
       "buttons": {
         "clone": "Klonla",
@@ -712,6 +1131,7 @@
     }
   },
   "navigation": {
+    "admin": "Yönetici",
     "maintenance": "Bakım",
     "monitors": "Monitörler",
     "notification_channels": "Bildirim Kanalları",
@@ -1124,6 +1544,12 @@
         "signing_secret_docs_link": "İmza nasıl doğrulanır",
         "signing_secret_label": "İmzalama Gizli Anahtarı",
         "signing_secret_placeholder": "İmzasız istek göndermek için boş bırakın"
+      },
+      "install_email": {
+        "description": "Bu kurulum tarafından gönderilir, SMTP sunucusu gerekmez.",
+        "to_description": "Bu çalışma alanının bir üyesi. Bildirimler, üye adresi doğruladıktan sonra gönderilir.",
+        "to_label": "Alıcı",
+        "to_placeholder": "Bir üye seçin"
       }
     },
     "important": "Önemli Bildirimler",
@@ -1142,7 +1568,8 @@
       "updated_success": "Bildirimci başarıyla güncellendi"
     },
     "new": {
-      "title": "Yeni Bildirim Kanalı"
+      "title": "Yeni Bildirim Kanalı",
+      "default_hint": "Bu kanal yeni monitörlerde işaretli olacak."
     },
     "no_important": "Önemli bildirim bulunamadı.",
     "placeholders": {
@@ -1152,11 +1579,21 @@
     "secret": {
       "reenter_error": "Bu gizli anahtarı yeniden girin veya kaldırın: gönderildiği yer değişti",
       "reenter_hint": "Bu gizli anahtarı yeniden girin: gönderildiği yer değişti",
+      "reenter_url_error": "Bu URL'nin kimlik bilgilerini yeniden girin: URL kaydedildiğinden beri değişti",
       "remove": "Kaldır",
       "saved_hint": "Kaydedildi — değiştirmek için yazın"
     }
   },
   "probes": {
+    "default": {
+      "description": "Prob seçilmeden oluşturulan bir monitör, devre dışı olmayan ve türünü çalıştıran varsayılan problarda, hiçbiri çalıştırmıyorsa yerel probda çalışır. Mevcut monitörler problarını korur.",
+      "failed": "Probun varsayılan olup olmadığı değiştirilemedi.",
+      "label": "Varsayılan prob",
+      "off": "{{name}} artık varsayılan prob değil",
+      "on": "{{name}} artık varsayılan bir prob",
+      "title": "Yeni monitörler için varsayılan"
+    },
+    "default_badge": "Varsayılan",
     "page_name": "Problar",
     "description": "Problar, monitörlerin kontrollerini kurulu oldukları yerlerden çalıştırır. Yerel prob, Peekaping'in kendisidir.",
     "local_name": "Yerel",
@@ -1438,7 +1875,9 @@
     "data_retention": {
       "days_label": "Gün",
       "description": "Veriyi saklayacağınız gün sayısını ayarlayın (KEEP_DATA_PERIOD_DAYS).",
-      "title": "Veri Saklama Süresi"
+      "read_only": "Bunu yalnızca çalışma alanının yöneticisi veya sahibi değiştirebilir.",
+      "title": "Veri Saklama Süresi",
+      "capped": "Bu çalışma alanında en fazla {{max}} gün"
     },
     "error_reporting": {
       "cluster_note": "Küme modunda bir değişiklik her sürece bir dakika içinde ulaşır.",
@@ -1464,6 +1903,10 @@
     },
     "validation": {
       "min_days": "En az 1 gün olmalıdır"
+    },
+    "workspace_name": {
+      "description": "Çalışma alanı değiştiricide ve üyelerine gösterilen ad.",
+      "title": "Çalışma alanı adı"
     }
   },
   "status": {
@@ -1479,6 +1922,7 @@
       "refresh_in": "Yenile",
       "refresh_now": "Şimdi Yenile",
       "status_page_not_found": "Durum sayfası bulunamadı veya yayınlanmamış.",
+      "status_page_unavailable": "Bu durum sayfası kullanılamıyor",
       "under_maintenance": "Bakımda",
       "unknown": "Bilinmeyen"
     }
@@ -1522,6 +1966,7 @@
     "search_placeholder": "Başlığa göre durum sayfalarını ara…",
     "show_locations": "Her konumu göster",
     "show_locations_info": "Birden çok konumdan denetlenen izleyiciler için her konumun durumunu ve geçmişini gösterir",
+    "slug_already_used": "Bu adresi başka bir durum sayfası zaten kullanıyor",
     "update_status_page": "Durum Sayfasını Güncelle",
     "view_page": "Sayfayı Görüntüle"
   },
@@ -1587,5 +2032,93 @@
   "ui": {
     "general": "Genel",
     "intervals_retries": "Aralıklar, Tekrarlar, Zaman Aşımı"
+  },
+  "workspaces": {
+    "create": "Çalışma alanı oluştur",
+    "create_error": "Çalışma alanı oluşturulamadı",
+    "create_first": "Çalışma alanı oluştur",
+    "creating": "Oluşturuluyor...",
+    "enter": "Çalışma alanını aç",
+    "entering": "Açılıyor...",
+    "entry_failed": "Çalışma alanı oluşturuldu ancak açılamadı. Lütfen tekrar deneyin.",
+    "name_label": "Ad",
+    "name_placeholder": "Ekibim",
+    "name_required": "Bir ad girin",
+    "new": "Yeni çalışma alanı",
+    "new_description": "Bir çalışma alanının kendi monitörleri, bildirim kanalları, durum sayfaları ve üyeleri vardır. Sahibi siz olursunuz.",
+    "new_title": "Yeni çalışma alanı",
+    "none_description": "Hesabınız hiçbir çalışma alanının üyesi değil, bu yüzden burada gösterilecek bir şey yok. Bir çalışma alanını yöneten birinden sizi eklemesini isteyin.",
+    "none_title": "Henüz hiçbir çalışma alanında değilsiniz",
+    "refresh_failed": "Çalışma alanlarınız yüklenemedi. Bağlantınızı kontrol edip yeniden deneyin.",
+    "rename_error": "Çalışma alanı yeniden adlandırılamadı",
+    "rename_success": "Çalışma alanı yeniden adlandırıldı",
+    "suspended_banner": {
+      "contact": "İletişim için:",
+      "message": "Bu çalışma alanı, bu kurulumun yöneticisi tarafından askıya alındı. İzleyicileri çalışmıyor ve durum sayfaları kullanılamıyor.",
+      "no_contact": "Bu kurulumu yöneten kişiyle iletişime geçin."
+    },
+    "switcher_label": "Çalışma alanı değiştir"
+  },
+  "get_started": {
+    "page_name": "Başlarken",
+    "skip": "Kurulumu atla",
+    "step_of": "Adım {{current}} / {{total}}",
+    "name": {
+      "description": "İzlemeleriniz, bildirim kanallarınız ve durum sayfalarınız burada yer alır. Adı daha sonra Ayarlar'dan değiştirebilirsiniz.",
+      "title": "Çalışma alanınıza ad verin"
+    },
+    "monitor": {
+      "create": "İzleme oluştur",
+      "create_failed": "İzleme oluşturulamadı",
+      "creating": "Oluşturuluyor...",
+      "description": "Bir web sitesinin veya API'nin adresini girin. Peekaping onu kontrol eder ve yanıt vermeyi bıraktığında sizi bilgilendirir.",
+      "full_form": "Ya da tüm seçeneklerle bir izleme kurun",
+      "title": "İlk izlemenizi ekleyin",
+      "url_invalid": "http:// veya https:// ile başlayan bir adres girin",
+      "url_label": "İzlenecek adres"
+    },
+    "channel": {
+      "continue_unlinked": "Bağlamadan devam et",
+      "description": "İzlemeniz çöktüğünde Peekaping'in uyarıyı nereye göndereceğini seçin. Yeni izlemeler için varsayılan olur.",
+      "link_failed": "Kanal kaydedildi ancak izlemenize bağlanamadı. İzlemenin düzenleme sayfasından ekleyin.",
+      "retry_link": "Yeniden bağlamayı dene",
+      "title": "Bildirim alın"
+    },
+    "done": {
+      "description": "Peekaping hizmetinizi izliyor. Bundan sonra yapabilecekleriniz şunlar.",
+      "title": "Her şey hazır",
+      "unverified": "E-posta adresiniz doğrulandığında izlemeniz çalışmaya başlar. Doğrulama bağlantısı için gelen kutunuza bakın.",
+      "links": {
+        "members": "Ekibinizi davet edin",
+        "monitor": "İzlemenizi açın",
+        "monitors": "İzlemelere git",
+        "probes": "Probları yönet",
+        "status_pages": "Bir durum sayfası yayınlayın"
+      }
+    }
+  },
+  "limits": {
+    "reached": {
+      "monitors": "Bu çalışma alanında en fazla {{max}} izleyici çalışabilir",
+      "status_pages": "Bu çalışma alanında en fazla {{max}} durum sayfası olabilir",
+      "custom_domains": "Bu çalışma alanının durum sayfalarında toplam en fazla {{max}} özel alan adı olabilir",
+      "members": "Bu çalışma alanında, bekleyen davetler dahil, en fazla {{max}} üye olabilir",
+      "owned_workspaces": "En fazla {{max}} çalışma alanına sahip olabilirsiniz",
+      "probes": "Bu çalışma alanındaki bir izleyici en fazla {{max}} prob üzerinde çalışabilir",
+      "retention_days": "Bu çalışma alanı verileri en fazla {{max}} gün saklayabilir"
+    },
+    "names": {
+      "monitors": "Etkin izleyiciler",
+      "min_check_interval": "En kısa kontrol aralığı (saniye)",
+      "status_pages": "Durum sayfaları",
+      "custom_domains": "Özel alan adları",
+      "members": "Üyeler",
+      "owned_workspaces": "Bir kullanıcının sahip olabileceği çalışma alanları",
+      "probes_per_monitor": "İzleyici başına prob",
+      "retention_days": "Veri saklama (gün)"
+    },
+    "none": "Sınır yok",
+    "invalid": "1 veya daha büyük bir tam sayı girin ya da sınır istemiyorsanız boş bırakın.",
+    "retention_too_long": "{{max}} günden fazla olamaz"
   }
 }

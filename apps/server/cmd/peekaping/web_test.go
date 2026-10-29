@@ -28,7 +28,7 @@ const webIndex = "<!doctype html><title>Peekaping</title><script src=\"/env.js\"
 // get sends a GET and returns the response, with its body read
 func get(t *testing.T, target string) (*http.Response, string) {
 	t.Helper()
-	resp, err := http.Get(target)
+	resp, err := testHTTP.Get(target)
 	require.NoError(t, err)
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
@@ -169,7 +169,7 @@ func TestRun_GivesEachRequestBehindTheWebAppOneRequestIDAndOneLogLine(t *testing
 				if incoming != "" {
 					req.Header.Set("X-Request-ID", incoming)
 				}
-				resp, err := http.DefaultClient.Do(req)
+				resp, err := testHTTP.Do(req)
 				require.NoError(t, err)
 				_, err = io.Copy(io.Discard, resp.Body)
 				require.NoError(t, err)

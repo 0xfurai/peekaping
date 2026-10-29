@@ -25,6 +25,12 @@ type Config struct {
 	AllowInsecure bool `env:"PROBE_ALLOW_INSECURE"`
 	// Concurrency is how many checks run at the same time
 	Concurrency int `env:"PROBE_CONCURRENCY" default:"128"`
+	// BlockPrivateTargets keeps the probe's checks from reaching loopback, private and link-local
+	// addresses and cloud metadata. The probe also blocks when the server it connects to does.
+	BlockPrivateTargets bool `env:"BLOCK_PRIVATE_TARGETS" default:"false"`
+	// ChecksPerHostPerMinute caps how many checks to one target host this probe runs per minute.
+	// 0 is off. The probe uses the server's value too when that is stricter.
+	ChecksPerHostPerMinute int `env:"CHECKS_PER_HOST_PER_MINUTE" default:"0"`
 	// ReadyAddr is where the /ready endpoint listens
 	ReadyAddr string `env:"PROBE_READY_ADDR" default:"127.0.0.1:8081"`
 
@@ -64,6 +70,9 @@ func Validate(cfg *Config) error {
 	}
 	if cfg.Concurrency < 1 {
 		problems = append(problems, errors.New("PROBE_CONCURRENCY must be at least 1"))
+	}
+	if cfg.ChecksPerHostPerMinute < 0 {
+		problems = append(problems, errors.New("CHECKS_PER_HOST_PER_MINUTE must be at least 0"))
 	}
 	if err := validateAddr(cfg.ReadyAddr); err != nil {
 		problems = append(problems, err)

@@ -3,7 +3,7 @@ import { withSavedSecret } from "../../secrets";
 
 export const gotifySchema = z.object({
   type: z.literal("gotify"),
-  server_url: z.string().url({ message: "Valid server URL is required" }),
+  server_url: withSavedSecret(z.string().url({ message: "Valid server URL is required" })),
   application_token: withSavedSecret(z.string().min(1, { message: "Application token is required" })),
   priority: z.coerce.number().min(0).max(10).optional(),
   title: z.string().optional(),

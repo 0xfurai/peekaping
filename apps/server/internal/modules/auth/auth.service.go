@@ -5,18 +5,30 @@ import (
 	"crypto/subtle"
 	"encoding/base32"
 	"errors"
+	"strings"
 	"time"
+
+	"peekaping/internal/config"
+	"peekaping/internal/dbtx"
+	"peekaping/internal/installsettings"
+	"peekaping/internal/modules/workspace"
 
 	"github.com/pquerna/otp/totp"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 )
 
+// ErrAccountDisabled is for a sign-in or a refresh by a user an instance admin disabled. It answers
+// 401. The sign-in says so only to someone who knew the password.
+var ErrAccountDisabled = errors.New("this account is disabled")
+
 type Service interface {
 	Register(ctx context.Context, dto RegisterDto) (*LoginResponse, error)
 	Login(ctx context.Context, dto LoginDto) (*LoginResponse, error)
 	RefreshToken(ctx context.Context, refreshToken string) (*LoginResponse, error)
 	UpdatePassword(ctx context.Context, userId string, dto UpdatePasswordDto) error
+	// Me returns the user with their workspaces, or nil for a user that doesn't exist
+	Me(ctx context.Context, userId string) (*MeResponse, error)
 
 	// 2FA methods
 	SetupTwoFA(ctx context.Context, userId, password string) (secret string, provisioningURI string, err error)
@@ -24,25 +36,104 @@ type Service interface {
 	DisableTwoFA(ctx context.Context, userId, password string) error
 }
 
+// Invites is what signup through an invite needs of the workspace module. workspace.Service is one.
+type Invites interface {
+	CheckInvite(ctx context.Context, token, email string) error
+	AcceptInvite(ctx context.Context, token, userID string) (*workspace.Membership, error)
+}
+
+// Verifier is what signup needs of the account emails: whether the install sends them, and to
+// send the verification link of a new account. *AccountService is one. A nil Verifier sends nothing.
+type Verifier interface {
+	Enabled() bool
+	SendVerification(ctx context.Context, user *Model) error
+}
+
 type ServiceImpl struct {
 	repo       Repository
+	transactor dbtx.Transactor
+	workspaces workspace.Repository
+	invites    Invites
 	tokenMaker *TokenMaker
+	verifier   Verifier
 	logger     *zap.SugaredLogger
+	// openSignup is whether signup is open now: anyone may register, and gets a workspace of their
+	// own. Nil is an install whose signup is by invite.
+	openSignup func(ctx context.Context) bool
+	// disabledMonitorTypes are the monitor types the install turns off (DISABLED_MONITOR_TYPES), as
+	// /me lists them
+	disabledMonitorTypes []string
+	// minCheckInterval is MIN_CHECK_INTERVAL in seconds, as /me states it
+	minCheckInterval int
+	// supportContact is SUPPORT_CONTACT, as /me states it: empty when unset
+	supportContact string
+}
+
+// ServiceOption changes how the service behaves
+type ServiceOption func(*ServiceImpl)
+
+// WithOpenSignup lets anyone register, as SIGNUP_MODE=open does. Without it only the install's
+// first user may, apart from those who register through an invite.
+func WithOpenSignup(open bool) ServiceOption {
+	return func(s *ServiceImpl) { s.openSignup = func(context.Context) bool { return open } }
+}
+
+// WithSignupMode reads whether signup is open from the install settings at each registration, so
+// that a mode an instance admin saves takes effect without a restart
+func WithSignupMode(settings *installsettings.Resolver) ServiceOption {
+	return func(s *ServiceImpl) { s.openSignup = settings.SignupOpen }
+}
+
+// WithDisabledMonitorTypes sets the monitor types /me tells the app to hide, as
+// DISABLED_MONITOR_TYPES does. Without it none is.
+func WithDisabledMonitorTypes(types []string) ServiceOption {
+	return func(s *ServiceImpl) { s.disabledMonitorTypes = types }
+}
+
+// WithMinCheckInterval sets the smallest check interval, in seconds, that /me tells the app to offer,
+// as MIN_CHECK_INTERVAL does. Without it /me says 20, the smallest any install allows.
+func WithMinCheckInterval(seconds int) ServiceOption {
+	return func(s *ServiceImpl) { s.minCheckInterval = seconds }
+}
+
+// WithSupportContact sets the contact /me gives a suspended workspace's members, as SUPPORT_CONTACT
+// does. Without it /me says null.
+func WithSupportContact(contact string) ServiceOption {
+	return func(s *ServiceImpl) { s.supportContact = strings.TrimSpace(contact) }
 }
 
 func NewService(
 	repo Repository,
+	transactor dbtx.Transactor,
+	workspaces workspace.Repository,
+	invites Invites,
 	tokenMaker *TokenMaker,
+	verifier Verifier,
 	logger *zap.SugaredLogger,
+	opts ...ServiceOption,
 ) Service {
-	return &ServiceImpl{
+	s := &ServiceImpl{
 		repo:       repo,
+		transactor: transactor,
+		workspaces: workspaces,
+		invites:    invites,
 		tokenMaker: tokenMaker,
+		verifier:   verifier,
 		logger:     logger.Named("[auth-service]"),
 	}
+	for _, opt := range opts {
+		opt(s)
+	}
+	return s
 }
 
 func (s *ServiceImpl) Register(ctx context.Context, dto RegisterDto) (*LoginResponse, error) {
+	if dto.InviteToken != "" {
+		return s.registerThroughInvite(ctx, dto)
+	}
+	if s.openSignup != nil && s.openSignup(ctx) {
+		return s.registerOpen(ctx, dto)
+	}
 	count, err := s.repo.FindAllCount(ctx)
 	if err != nil {
 		return nil, err
@@ -73,11 +164,23 @@ func (s *ServiceImpl) Register(ctx context.Context, dto RegisterDto) (*LoginResp
 		UpdatedAt: time.Now().UTC(),
 	}
 
-	// Save to database, unless another registration got there first
-	user, err = s.repo.CreateFirst(ctx, user)
+	// Save to database, unless another registration got there first. The user is the install's
+	// first, so it is an instance admin and the owner of the first workspace, which is made with
+	// the user and not left for later. An install that has records and no user has a workspace
+	// already, the one its upgrade made, and the user joins that instead of starting another.
+	err = s.transactor.WithTx(ctx, func(ctx context.Context) error {
+		created, err := s.repo.CreateFirst(ctx, user)
+		if err != nil {
+			return err
+		}
+		user = created
+		return s.joinFirstWorkspace(ctx, user.ID, false)
+	})
 	if err != nil {
 		return nil, err
 	}
+	s.askToVerify(ctx, user)
+	s.recordLogin(ctx, user)
 
 	// Generate access token
 	accessToken, err := s.tokenMaker.CreateAccessToken(ctx, user)
@@ -98,6 +201,213 @@ func (s *ServiceImpl) Register(ctx context.Context, dto RegisterDto) (*LoginResp
 	}, nil
 }
 
+// registerOpen creates the account of anyone who signs up when the install is open, with a workspace
+// of their own that they own. The user and the workspace are made in one transaction, so a user is
+// never left without the place they were promised. Only the install's first user is an instance
+// admin. The workspace is suspended until the user's email address is verified, and the verification
+// link is sent once the signup has committed.
+func (s *ServiceImpl) registerOpen(ctx context.Context, dto RegisterDto) (*LoginResponse, error) {
+	// Accounts keep the case their owner typed: the same person in another case is the same address
+	if existing, err := s.repo.FindByEmailIgnoringCase(ctx, dto.Email); err != nil {
+		return nil, err
+	} else if existing != nil {
+		return nil, ErrEmailTaken
+	}
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(dto.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return nil, err
+	}
+	now := time.Now().UTC()
+	user := &Model{Email: strings.TrimSpace(dto.Email), Password: string(hashedPassword), Active: true, CreatedAt: now, UpdatedAt: now}
+	// Counted before the transaction starts: the count reads outside it, and a database with one
+	// connection (SQLite) is held by the transaction
+	count, err := s.repo.FindAllCount(ctx)
+	if err != nil {
+		return nil, err
+	}
+	err = s.transactor.WithTx(ctx, func(ctx context.Context) error {
+		created, first, err := s.createOpenUser(ctx, user, count == 0)
+		if err != nil {
+			return err
+		}
+		user = created
+		if first {
+			// An install that has records and no user has a workspace already, the one its upgrade
+			// made: the user joins that, and it runs as it did. Without one, theirs is suspended.
+			return s.joinFirstWorkspace(ctx, user.ID, user.EmailVerifiedAt == nil)
+		}
+		var made *workspace.Workspace
+		if user.EmailVerifiedAt == nil {
+			made, err = s.workspaces.CreateSuspended(ctx, workspace.FirstWorkspaceName, workspace.SuspendedUnverified)
+		} else {
+			made, err = s.workspaces.Create(ctx, workspace.FirstWorkspaceName)
+		}
+		if err != nil {
+			return err
+		}
+		return s.workspaces.AddMember(ctx, made.ID, user.ID, workspace.RoleOwner)
+	})
+	if err != nil {
+		return nil, err
+	}
+	s.askToVerify(ctx, user)
+	return s.signedIn(ctx, user)
+}
+
+// createOpenUser inserts the user, as the install's first (an instance admin) when it has none, and
+// reports whether it did. Of any number of concurrent signups on a new install exactly one is the
+// first (CreateFirst), and the others are strangers.
+func (s *ServiceImpl) createOpenUser(ctx context.Context, user *Model, installIsEmpty bool) (created *Model, first bool, err error) {
+	if installIsEmpty {
+		created, err = s.repo.CreateFirst(ctx, user)
+		if err == nil {
+			return created, true, nil
+		}
+		if !errors.Is(err, ErrAdminExists) {
+			return nil, false, err
+		}
+	}
+	created, err = s.repo.Create(ctx, user)
+	if err != nil {
+		if dbtx.IsUniqueViolation(err) {
+			return nil, false, ErrEmailTaken
+		}
+		return nil, false, err
+	}
+	return created, false, nil
+}
+
+// askToVerify emails the new user a verification link, when the install has a sender. It runs after
+// the signup committed and never fails it: the user can ask for the link again.
+func (s *ServiceImpl) askToVerify(ctx context.Context, user *Model) {
+	if s.verifier == nil {
+		return
+	}
+	if err := s.verifier.SendVerification(ctx, user); err != nil {
+		s.logger.Errorw("Failed to send the verification email of a new account", "userId", user.ID, "error", err)
+	}
+}
+
+// registerThroughInvite creates the account of someone an invite names. The user is no instance
+// admin and gets no workspace of their own: they join the inviting workspace with the invite's
+// role, in the transaction that creates them, so a user is never left without the place the
+// invite gave. The first-user rule does not apply, and neither does the signup mode: the invite
+// is the permission.
+func (s *ServiceImpl) registerThroughInvite(ctx context.Context, dto RegisterDto) (*LoginResponse, error) {
+	// Ask before spending time on a password: a link that can't be used says why
+	if err := s.invites.CheckInvite(ctx, dto.InviteToken, dto.Email); err != nil {
+		return nil, err
+	}
+	// Accounts keep the case their owner typed, and the invite is lower-cased: the same person may
+	// have an account in another case, and a second one would be a stranger to their workspaces
+	if existing, err := s.repo.FindByEmailIgnoringCase(ctx, dto.Email); err != nil {
+		return nil, err
+	} else if existing != nil {
+		return nil, ErrEmailTaken
+	}
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(dto.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return nil, err
+	}
+	now := time.Now().UTC()
+	user := &Model{Email: strings.TrimSpace(dto.Email), Password: string(hashedPassword), Active: true, CreatedAt: now, UpdatedAt: now}
+	err = s.transactor.WithTx(ctx, func(ctx context.Context) error {
+		created, err := s.repo.Create(ctx, user)
+		if err != nil {
+			if dbtx.IsUniqueViolation(err) {
+				return ErrEmailTaken
+			}
+			return err
+		}
+		user = created
+		// The invite is checked again here, and spent, in the same transaction as the user
+		_, err = s.invites.AcceptInvite(ctx, dto.InviteToken, user.ID)
+		return err
+	})
+	if err != nil {
+		return nil, err
+	}
+	s.askToVerify(ctx, user)
+	return s.signedIn(ctx, user)
+}
+
+// signedIn issues the tokens of a user who just registered
+func (s *ServiceImpl) signedIn(ctx context.Context, user *Model) (*LoginResponse, error) {
+	s.recordLogin(ctx, user)
+	accessToken, err := s.tokenMaker.CreateAccessToken(ctx, user)
+	if err != nil {
+		return nil, err
+	}
+	refreshToken, err := s.tokenMaker.CreateRefreshToken(ctx, user)
+	if err != nil {
+		return nil, err
+	}
+	return &LoginResponse{AccessToken: accessToken, RefreshToken: refreshToken, User: user}, nil
+}
+
+// recordLogin stores when the user signed in. A failure is logged and never fails the sign-in.
+func (s *ServiceImpl) recordLogin(ctx context.Context, user *Model) {
+	if err := s.repo.RecordLogin(ctx, user.ID, time.Now().UTC()); err != nil {
+		s.logger.Errorw("Failed to record when a user signed in", "userId", user.ID, "error", err)
+	}
+}
+
+// joinFirstWorkspace makes the user the owner of the install's oldest workspace, or of a new one
+// when it has none, which is suspended when suspendNew says so
+func (s *ServiceImpl) joinFirstWorkspace(ctx context.Context, userID string, suspendNew bool) error {
+	target, err := s.workspaces.FindOldest(ctx)
+	if err != nil {
+		return err
+	}
+	if target == nil {
+		if suspendNew {
+			target, err = s.workspaces.CreateSuspended(ctx, workspace.FirstWorkspaceName, workspace.SuspendedUnverified)
+		} else {
+			target, err = s.workspaces.Create(ctx, workspace.FirstWorkspaceName)
+		}
+		if err != nil {
+			return err
+		}
+	}
+	return s.workspaces.AddMember(ctx, target.ID, userID, workspace.RoleOwner)
+}
+
+func (s *ServiceImpl) Me(ctx context.Context, userId string) (*MeResponse, error) {
+	user, err := s.repo.FindByID(ctx, userId)
+	if err != nil || user == nil {
+		return nil, err
+	}
+	memberships, err := s.workspaces.ListMemberships(ctx, userId)
+	if err != nil {
+		return nil, err
+	}
+	me := &MeResponse{
+		User:       &MeUser{ID: user.ID, Email: user.Email, InstanceAdmin: user.InstanceAdmin, EmailVerified: user.EmailVerifiedAt != nil},
+		Workspaces: make([]MeWorkspace, len(memberships)),
+
+		AccountEmails: s.verifier != nil && s.verifier.Enabled(),
+		// A list, never null, so that the app can read it without a check
+		DisabledMonitorTypes: append([]string{}, s.disabledMonitorTypes...),
+		MinCheckInterval:     max(s.minCheckInterval, config.AbsoluteMinCheckInterval),
+	}
+	for i, m := range memberships {
+		me.Workspaces[i] = MeWorkspace{ID: string(m.Workspace.ID), Name: m.Workspace.Name, Role: string(m.Role), Suspended: m.Workspace.Suspended()}
+		if m.Workspace.Suspended() {
+			reason := m.Workspace.ShownReason()
+			me.Workspaces[i].SuspendedReason = &reason
+		}
+	}
+	if s.supportContact != "" {
+		contact := s.supportContact
+		me.SupportContact = &contact
+	}
+	if len(memberships) > 0 {
+		defaultID := me.Workspaces[0].ID
+		me.DefaultWorkspaceID = &defaultID
+	}
+	return me, nil
+}
+
 func (s *ServiceImpl) Login(ctx context.Context, dto LoginDto) (*LoginResponse, error) {
 	// Find admin by email
 	user, err := s.repo.FindByEmail(ctx, dto.Email)
@@ -114,6 +424,12 @@ func (s *ServiceImpl) Login(ctx context.Context, dto LoginDto) (*LoginResponse, 
 		return nil, errors.New("invalid credentials")
 	}
 
+	// A disabled account can't sign in. It is said only after the password was right, so that the
+	// answer tells nobody which addresses have accounts.
+	if !user.Active {
+		return nil, ErrAccountDisabled
+	}
+
 	// Enforce 2FA if enabled
 	if user.TwoFASecret != "" && user.TwoFAStatus {
 		if dto.Token == "" {
@@ -123,6 +439,8 @@ func (s *ServiceImpl) Login(ctx context.Context, dto LoginDto) (*LoginResponse, 
 			return nil, errors.New("invalid 2FA token")
 		}
 	}
+
+	s.recordLogin(ctx, user)
 
 	// Generate access token
 	accessToken, err := s.tokenMaker.CreateAccessToken(ctx, user)
@@ -167,14 +485,27 @@ func (s *ServiceImpl) RefreshToken(ctx context.Context, refreshToken string) (*L
 		return nil, errors.New("invalid refresh token")
 	}
 
+	// A disabled account gets no new session, whatever token it still holds
+	if !user.Active {
+		return nil, ErrAccountDisabled
+	}
+
+	// The new tokens belong to the session the refresh token belongs to, and carry its start: a
+	// reset that commits after the user was read here ends that session, whenever these are made.
+	// A token from before auth_time was added falls back to when it was issued.
+	began := time.Now().UTC()
+	if start := claims.SessionStart(); start != nil {
+		began = *start
+	}
+
 	// Generate new access token
-	accessToken, err := s.tokenMaker.CreateAccessToken(ctx, user)
+	accessToken, err := s.tokenMaker.CreateAccessTokenForSession(ctx, user, began)
 	if err != nil {
 		return nil, err
 	}
 
 	// Generate new refresh token
-	newRefreshToken, err := s.tokenMaker.CreateRefreshToken(ctx, user)
+	newRefreshToken, err := s.tokenMaker.CreateRefreshTokenForSession(ctx, user, began)
 	if err != nil {
 		return nil, err
 	}

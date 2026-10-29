@@ -3,22 +3,292 @@
     "cancel": "Bekor qilish",
     "saving": "Saqlanmoqda..."
   },
+  "admin": {
+    "nav": {
+      "back_to_workspace": "{{name}} ga qaytish",
+      "probes": "Zondlar",
+      "title": "Admin",
+      "users": "Foydalanuvchilar",
+      "workspaces": "Ish maydonlari",
+      "settings": "Sozlamalar"
+    },
+    "users": {
+      "actions": {
+        "delete": "Foydalanuvchini o'chirish",
+        "disable": "Foydalanuvchini o'chirib qo'yish",
+        "disableTwoFactor": "2FA ni o'chirish",
+        "enable": "Foydalanuvchini yoqish",
+        "grantAdmin": "Instans admini qilish",
+        "resetLink": "Tiklash havolasini yaratish",
+        "revokeAdmin": "Instans adminligini olib tashlash"
+      },
+      "actions_aria": "{{email}} uchun amallar",
+      "columns": {
+        "created": "Yaratilgan",
+        "email": "E-pochta",
+        "email_verified": "E-pochta tasdiqlangan",
+        "instance_admin": "Instans admini",
+        "last_sign_in": "Oxirgi kirish",
+        "status": "Holati",
+        "two_factor": "2FA",
+        "workspaces": "Ish maydonlari"
+      },
+      "confirm": {
+        "cancel": "Bekor qilish",
+        "delete": {
+          "confirm": "Foydalanuvchini o'chirish",
+          "description": "{{email}} o'chirilsinmi? Uning hisobi va ish maydonlaridagi o'rni ham olib tashlanadi. Buni bekor qilib bo'lmaydi.",
+          "title": "Foydalanuvchini o'chirish"
+        },
+        "disable": {
+          "confirm": "O'chirib qo'yish",
+          "description": "{{email}} kira olmaydi va hamma joyda tizimdan chiqariladi. Uning ish maydonlari ishlashda davom etadi. Keyinroq uni yana yoqishingiz mumkin.",
+          "title": "Foydalanuvchini o'chirib qo'yish"
+        },
+        "disableTwoFactor": {
+          "confirm": "2FA ni o'chirish",
+          "description": "{{email}} faqat paroli bilan kiradi va 2FA ni qayta sozlashi mumkin. Buni faqat so'rov aynan undan ekaniga ishonch hosil qilgandan keyin bajaring.",
+          "title": "2FA ni o'chirish"
+        }
+      },
+      "description": "Ushbu o'rnatishda hisobi bor hamma. Instans adminlari o'rnatishning o'zini boshqaradi, masalan zondlar va foydalanuvchilarni. Foydalanuvchining ish maydonidagi rolini o'sha ish maydoni egalari belgilaydi.",
+      "empty": "Foydalanuvchilar topilmadi",
+      "errors": {
+        "last_instance_admin": "O'rnatishda kamida bitta instans admini bo'lishi kerak.",
+        "last_owner": "Foydalanuvchi {{workspaces}} ning oxirgi egasi. Avval boshqa birovni ega qiling yoki ish maydonini o'chiring.",
+        "self": "Buni o'z hisobingiz bilan qila olmaysiz."
+      },
+      "load_failed": "Foydalanuvchilarni yuklab bo'lmadi.",
+      "messages": {
+        "admin_granted": "{{email}} endi instans admini",
+        "admin_revoked": "{{email}} endi instans admini emas",
+        "deleted": "{{email}} o'chirildi",
+        "disabled": "{{email}} o'chirib qo'yildi va tizimdan chiqarildi",
+        "enabled": "{{email}} yoqildi",
+        "two_factor_off": "{{email}} uchun 2FA o'chirildi",
+        "update_failed": "Foydalanuvchini yangilab bo'lmadi."
+      },
+      "never": "Hech qachon",
+      "none": "Yo'q",
+      "page_name": "Foydalanuvchilar",
+      "paging": {
+        "next": "Keyingi",
+        "page": "{{page}}-sahifa / {{pages}}",
+        "previous": "Oldingi"
+      },
+      "reset_link": {
+        "close": "Yopish",
+        "copied": "Havola nusxalandi",
+        "copy": "Havolani nusxalash",
+        "copy_failed": "Havolani nusxalab bo'lmadi. Uni belgilab, qo'lda nusxalang.",
+        "description": "{{email}} yangi parol tanlashi uchun havola. Uni hoziroq nusxalab, yetkazing: u faqat bir marta ko'rsatiladi.",
+        "emailed": "Bu o'rnatish hisob xatlarini yuboradi, shuning uchun foydalanuvchiga u uchun havola yaratilgani haqida e-pochta orqali xabar beriladi.",
+        "expires": "Havola bir marta ishlaydi va {{when}} muddati tugaydi.",
+        "failed": "Havolani yaratib bo'lmadi.",
+        "label": "Havola",
+        "making": "Havola yaratilmoqda...",
+        "signs_out": "Havoladan foydalanish foydalanuvchini hamma joyda tizimdan chiqaradi.",
+        "title": "Parolni tiklash havolasi"
+      },
+      "search_label": "Foydalanuvchilarni e-pochta bo'yicha qidirish",
+      "search_placeholder": "E-pochta bo'yicha qidirish",
+      "total": "{{total}} ta topildi",
+      "values": {
+        "active": "Faol",
+        "disabled": "O'chirilgan",
+        "no": "Yo'q",
+        "two_factor_off": "O'chiq",
+        "two_factor_on": "Yoqilgan",
+        "yes": "Ha"
+      },
+      "you": "siz"
+    },
+    "workspaces": {
+      "actions": {
+        "delete": "Ish maydonini o'chirish",
+        "resume": "Ish maydonini davom ettirish",
+        "suspend": "Ish maydonini to'xtatib qo'yish",
+        "limits": "Chegaralar"
+      },
+      "actions_aria": "{{name}} uchun amallar",
+      "columns": {
+        "created": "Yaratilgan",
+        "custom_domains": "Maxsus domenlar",
+        "members": "A'zolar",
+        "monitors": "Kuzatishlar",
+        "name": "Nomi",
+        "owners": "Egalari",
+        "status": "Holati",
+        "status_pages": "Holat sahifalari",
+        "limits": "Chegaralar"
+      },
+      "confirm": {
+        "cancel": "Bekor qilish",
+        "delete": {
+          "confirm": "Ish maydonini o'chirish",
+          "description": "{{name}} o'chirilsinmi? Undagi hamma narsa yo'qoladi: kuzatishlari va ularning tarixi, holat sahifalari, xabarnoma kanallari va a'zolarining kirish huquqi. Buni bekor qilib bo'lmaydi.",
+          "name_label": "Tasdiqlash uchun ish maydoni nomini kiriting: {{name}}",
+          "title": "Ish maydonini o'chirish"
+        },
+        "resume": {
+          "confirm": "Davom ettirish",
+          "description": "{{name}} kuzatishlari avvalgi holatida yana ishlaydi va a'zolari undan avvalgidek foydalana oladi. Egasining e-pochta tasdiqlashini kutayotgan ish maydoni kutishda davom etadi.",
+          "title": "Ish maydonini davom ettirish"
+        },
+        "suspend": {
+          "confirm": "To'xtatib qo'yish",
+          "description": "{{name}} kuzatishlari ishlashdan to'xtaydi, uning ommaviy holat sahifalarida ular mavjud emasligi ko'rsatiladi va a'zolari uning to'xtatib qo'yilganini ko'radi. Hech narsa o'chirilmaydi, keyinroq uni davom ettirishingiz mumkin.",
+          "title": "Ish maydonini to'xtatib qo'yish"
+        }
+      },
+      "description": "Ushbu o'rnatishdagi barcha ish maydonlari, ularning egalari, a'zolari va qancha narsa saqlashi bilan. Faqat sonlar ko'rsatiladi, ish maydoni ichidagi hech narsa ko'rsatilmaydi.",
+      "empty": "Ish maydonlari topilmadi",
+      "load_failed": "Ish maydonlarini yuklab bo'lmadi.",
+      "messages": {
+        "deleted": "{{name}} o'chirildi",
+        "failed": "Ish maydonini o'zgartirib bo'lmadi.",
+        "resumed": "{{name}} davom ettirildi",
+        "suspended": "{{name}} to'xtatib qo'yildi"
+      },
+      "monitors": "{{active}} ta faol, {{paused}} ta pauzada",
+      "none": "Yo'q",
+      "page_name": "Ish maydonlari",
+      "paging": {
+        "next": "Keyingi",
+        "page": "{{page}}-sahifa / {{pages}}",
+        "previous": "Oldingi"
+      },
+      "search_label": "Ish maydonlarini nomi yoki egasining e-pochtasi bo'yicha qidirish",
+      "search_placeholder": "Nomi yoki egasining e-pochtasi bo'yicha qidirish",
+      "status": {
+        "running": "Ishlamoqda",
+        "suspended_admin": "Administrator tomonidan to'xtatib qo'yilgan",
+        "suspended_unverified": "Egasi e-pochtasini tasdiqlaguncha to'xtatib qo'yilgan"
+      },
+      "total": "{{total}} ta topildi",
+      "limits": {
+        "item": "{{name}}: {{value}}",
+        "more": "yana +{{number}} ta",
+        "unlimited": "Chegaralarsiz",
+        "source": {
+          "workspace": "O'ziniki",
+          "install": "O'rnatishning standart qiymatlari",
+          "none": "Belgilanmagan"
+        },
+        "dialog": {
+          "title": "{{name}} chegaralari",
+          "description": "Bu ish maydoni nimaga bog'langan. Chegarani pasaytirish hech narsani to'xtatmaydi va o'chirmaydi: chegaradan oshgan eng yangi monitorlar yana joy bo'lguncha ishlashdan to'xtaydi.",
+          "own": "O'zining chegaralari",
+          "own_help": "Bular o'rnatishning standart qiymatlarini almashtiradi. Chegara kerak bo'lmasa, uni bo'sh qoldiring.",
+          "unlimited": "Chegaralarsiz",
+          "unlimited_help": "O'rnatishning standart qiymatlari nima desa ham, umuman chegara yo'q.",
+          "defaults": "O'rnatishning standart qiymatlaridan foydalanish",
+          "defaults_help": "Admin → Sozlamalardagi standart chegaralar yoki o'rnatish hech narsa belgilamasa, hech qanday chegara yo'q.",
+          "save": "Chegaralarni saqlash",
+          "cancel": "Bekor qilish",
+          "saved": "{{name}} chegaralari saqlandi",
+          "failed": "Chegaralarni saqlab bo'lmadi."
+        }
+      }
+    },
+    "settings": {
+      "page_name": "Sozlamalar",
+      "description": "Butun oʻrnatmaning sozlamalari. Server muhiti belgilagan qiymat bu yerda qulflangan.",
+      "load_failed": "Sozlamalarni yuklab boʻlmadi.",
+      "saved": "Sozlamalar saqlandi",
+      "save_failed": "Sozlamalar saqlanmadi.",
+      "locked": "Server muhiti tomonidan belgilangan",
+      "source": {
+        "environment": "Server muhitidan",
+        "saved": "Shu yerda saqlangan",
+        "default": "Standart"
+      },
+      "signup": {
+        "title": "Roʻyxatdan oʻtish",
+        "description": "Bu oʻrnatmada kim hisob yarata oladi.",
+        "label": "Roʻyxatdan oʻtish rejimi",
+        "invite": "Faqat taklif bilan",
+        "open": "Ochiq",
+        "invite_help": "Birinchi foydalanuvchi roʻyxatdan oʻtadi, undan keyingilarning hammasi taklif orqali ish maydoniga qoʻshiladi.",
+        "open_help": "Har kim roʻyxatdan oʻtib, oʻz ish maydonini oladi. Yangi hisoblar elektron pochta manzilini tasdiqlaydi, shuning uchun pochta joʻnatuvchisi kerak."
+      },
+      "sender": {
+        "title": "Pochta joʻnatuvchisi",
+        "description": "Hisob xatlarini yuboradigan SMTP server: parolni tiklash havolalari, pochtani tasdiqlash va takliflar.",
+        "on": "Hisob xatlari yoqilgan.",
+        "off": "Hisob xatlari oʻchirilgan: SMTP xost yoʻq.",
+        "host": "SMTP Xost",
+        "port": "Port",
+        "tls": "Xavfsizlik",
+        "tls_starttls": "STARTTLS",
+        "tls_tls": "TLS",
+        "tls_none": "Yoʻq",
+        "user": "Foydalanuvchi",
+        "password": "Parol",
+        "password_set": "Parol oʻrnatilgan. Almashtirish uchun yangisini kiriting.",
+        "password_not_set": "Parol oʻrnatilmagan",
+        "password_removed": "Saqlaganingizda parol olib tashlanadi.",
+        "password_reenter": "Xost, port, xavfsizlik yoki foydalanuvchini o‘zgartirish saqlangan parolni o‘chiradi. Uni qayta kiriting.",
+        "remove_password": "Parolni olib tashlash",
+        "keep_password": "Parolni qoldirish",
+        "from": "Joʻnatuvchi manzili"
+      },
+      "public_url": {
+        "title": "Ommaviy URL",
+        "description": "Xatlar va bildirishnomalardagi havolalar ochadigan veb-ilova manzili.",
+        "label": "Ommaviy URL"
+      },
+      "test_email": {
+        "title": "Sinov xatini yuborish",
+        "description": "Ishlashini tekshirish uchun saqlangan joʻnatuvchi orqali qisqa xat yuboradi.",
+        "to": "Kimga yuborish",
+        "send": "Sinov xatini yuborish",
+        "sending": "Yuborilmoqda…",
+        "sent": "Sinov xati {{to}} manziliga yuborildi.",
+        "failed": "Sinov xati yuborilmadi.",
+        "unsaved": "Joʻnatuvchida saqlanmagan oʻzgarishlar bor. Sinov saqlangan joʻnatuvchidan foydalanadi, shuning uchun avval saqlang."
+      },
+      "validation": {
+        "port": "1 dan 65535 gacha port kiriting yoki standart qiymat uchun boʻsh qoldiring."
+      },
+      "errors": {
+        "locked": "{{field}} server muhiti tomonidan belgilangan va bu yerda oʻzgartirib boʻlmaydi.",
+        "open_needs_sender": "Ochiq roʻyxatdan oʻtish uchun pochta joʻnatuvchisi kerak, chunki yangi hisoblar pochta manzilini tasdiqlaydi. Avval joʻnatuvchini sozlang yoki shu saqlashda sozlang.",
+        "sender_needed": "Roʻyxatdan oʻtish ochiq, yangi hisoblarga pochta manzilini tasdiqlash uchun joʻnatuvchi kerak. Avval roʻyxatdan oʻtishni faqat taklif bilan rejimiga oʻtkazing.",
+        "no_sender": "Pochta joʻnatuvchisi yoʻq. Avval joʻnatuvchini saqlang."
+      },
+      "limits": {
+        "title": "Standart chegaralar",
+        "description": "O'z chegarasi bo'lmagan har bir ish maydonining chegaralari. Chegara kerak bo'lmasa, uni bo'sh qoldiring. Ish maydonlari sahifasida ish maydoniga berilgan chegaralar bularni almashtiradi."
+      }
+    }
+  },
   "auth": {
     "login": {
       "description": "E-pochta bilan kirish",
       "no_account": "Hisobingiz yo'qmi?",
       "sign_up": "Ro'yxatdan o'tish",
       "submit": "Kirish",
-      "title": "Xush kelibsiz"
+      "title": "Xush kelibsiz",
+      "forgot_password": "Parolni unutdingizmi?",
+      "ask_admin": "Bu o'rnatishning administratoridan taklifnoma so'rang"
     },
     "register": {
       "description": "Admin hisobingizni yarating",
+      "description_open": "Hisobingizni yarating",
       "have_account": "Allaqachon hisobingiz bormi?",
       "sign_in": "Kirish",
       "submit": "Yaratish",
       "title": "Salom",
       "telemetry_note": "Anonim: monitor nomlari, URL manzillari va xostlarsiz. Buni keyinroq «Sozlamalar» bo'limida o'zgartirishingiz mumkin.",
-      "telemetry_whats_sent": "Nima yuboriladi"
+      "telemetry_whats_sent": "Nima yuboriladi",
+      "errors": {
+        "rate_limited": "Tarmog'ingizdan juda ko'p ro'yxatdan o'tish bo'ldi. Bir soatdan keyin qayta urinib ko'ring.",
+        "email_taken": "Bu elektron pochta bilan hisob allaqachon mavjud.",
+        "sign_in_instead": "Buning o'rniga tizimga kiring.",
+        "check_failed": "Tekshiruvdan o'tilmadi. Qayta urinib ko'ring.",
+        "check_load_failed": "Tekshiruvni yuklab bo'lmadi. Ulanishingizni tekshiring va qayta urinib ko'ring."
+      }
     },
     "twofa": {
       "code_label": "2FA kodi",
@@ -27,6 +297,45 @@
       "title": "Ikki bosqichli autentifikatsiya talab qilinadi",
       "verify_button": "2FA ni tasdiqlash",
       "verifying": "Tasdiqlanmoqda..."
+    },
+    "forgot": {
+      "title": "Parolni tiklash",
+      "description": "Hisobingizning elektron pochtasini kiriting, biz sizga havola yuboramiz.",
+      "submit": "Havolani yuborish",
+      "sent": "Bu elektron pochta bilan hisob mavjud bo'lsa, havola yubordik. U bir soat amal qiladi.",
+      "back_to_login": "Kirishga qaytish"
+    },
+    "reset": {
+      "title": "Yangi parol tanlang",
+      "description": "Hisobingiz uchun yangi parol kiriting.",
+      "submit": "Parolni o'rnatish",
+      "success": "Parolingiz o'zgartirildi va hamma joydan chiqarildingiz. Yangi parol bilan kiring.",
+      "sign_in": "Kirish",
+      "invalid_link": "Bu havola ishlatilgan yoki muddati tugagan.",
+      "request_new": "Yangi havola so'rash"
+    },
+    "verify": {
+      "title": "Elektron pochtangizni tasdiqlang",
+      "verifying": "Elektron pochtangiz tasdiqlanmoqda...",
+      "success": "Elektron pochtangiz tasdiqlandi.",
+      "open_app": "Peekaping'ni ochish",
+      "invalid_link": "Bu havola ishlatilgan yoki muddati tugagan."
+    },
+    "errors": {
+      "rate_limited": "Juda ko'p so'rov. Keyinroq qayta urinib ko'ring.",
+      "generic": "Nimadir xato ketdi. Qayta urinib ko'ring.",
+      "already_verified": "Elektron pochtangiz allaqachon tasdiqlangan."
+    },
+    "resend": {
+      "button": "Qayta yuborish",
+      "sent": "Yangi havola yubordik. Kiruvchi xatlaringizni tekshiring."
+    },
+    "verification_banner": {
+      "message": "Elektron pochtangizni tasdiqlang: {{email}} manziliga havola yubordik."
+    },
+    "suspension_notice": {
+      "message": "Monitorlaringiz elektron pochtangizni tasdiqlaganingizdan so'ng ishga tushadi.",
+      "member_message": "Bu ish maydonining monitorlari egasi elektron pochtasini tasdiqlaganidan so'ng ishga tushadi."
     }
   },
   "bars": {
@@ -73,6 +382,7 @@
     "no_tags_available": "Teglar mavjud emas",
     "please_refresh_page": "Iltimos, sahifani yangilang.",
     "required": "Majburiy",
+    "retry": "Qayta urinish",
     "save": "Saqlash",
     "saving": "Saqlanmoqda...",
     "search": "Qidirish",
@@ -124,6 +434,33 @@
       "password_required": "Parol talab qilinadi",
       "password_min_length": "Parol kamida 8 belgidan iborat bo‘lishi kerak",
       "passwords_mismatch": "Parollar mos kelmadi"
+    }
+  },
+  "invite": {
+    "accept": "Taklifni qabul qilish",
+    "accepting": "Qo'shilmoqda...",
+    "creating": "Yaratilmoqda...",
+    "description": "Sizni {{workspace}} ga {{role}} sifatida qo'shilishga taklif qilishdi.",
+    "enter_failed": "Siz ish maydoniga qo'shildingiz, lekin uni ochib bo'lmadi. Qayta urinib ko'ring.",
+    "errors": {
+      "other_email": "Bu taklif boshqa e-pochta manzili uchun."
+    },
+    "for_email": "Bu taklif {{email}} uchun.",
+    "have_account": "Allaqachon hisobingiz bormi?",
+    "open_app": "Peekaping ni ochish",
+    "other_account": "Siz {{current}} sifatida kirgansiz, lekin bu taklif {{invited}} uchun. Qabul qilish uchun tizimdan chiqing, so'ng {{invited}} bilan kiring yoki ro'yxatdan o'ting.",
+    "sign_in_instead": "Buning o'rniga kirish",
+    "sign_out": "Chiqish",
+    "signup_description": "Hisob yaratish va {{workspace}} ga {{role}} sifatida qo'shilish uchun parol tanlang.",
+    "signup_submit": "Hisob yaratish va qo'shilish",
+    "title": "{{workspace}} ga qo'shilish",
+    "unavailable": {
+      "accepted": "Bu taklif allaqachon ishlatilgan.",
+      "expired": "Bu taklifning muddati tugagan. Yangisini so'rang.",
+      "not_found": "Bunday taklif havolasi mavjud emas. Uni to'liq nusxalaganingizni tekshiring.",
+      "revoked": "Bu taklif bekor qilingan. Yangisini so'rang.",
+      "title": "Bu taklifdan foydalanib bo'lmaydi",
+      "unknown": "Bu taklifdan foydalanib bo'lmaydi. Yangisini so'rang."
     }
   },
   "maintenance": {
@@ -231,6 +568,79 @@
       "wed": "Chorshanba"
     }
   },
+  "members": {
+    "change_role_aria": "{{email}} rolini o'zgartirish",
+    "errors": {
+      "account_exists": "Bu e-pochta bilan hisob allaqachon mavjud. Tizimga kiring va taklifni qabul qiling.",
+      "already_member": "Bu shaxs allaqachon ushbu ish maydonining a'zosi.",
+      "forbidden": "Bu ish maydonidagi rolingiz bunga ruxsat bermaydi.",
+      "generic": "Nimadir xato ketdi. Qayta urinib ko'ring.",
+      "last_owner": "Ish maydonida kamida bitta egasi bo'lishi kerak.",
+      "member_not_found": "Bu a'zo endi ish maydonida emas."
+    },
+    "invite": {
+      "copied": "Havola nusxalandi",
+      "copy": "Nusxalash",
+      "creating": "Yaratilmoqda...",
+      "description": "E-pochta manzili va rol uchun havola yarating. Hech qanday xat yuborilmaydi: havolani nusxalab, o'zingiz yuboring.",
+      "done": "Tayyor",
+      "email_label": "E-pochta",
+      "link_note": "Bu havola bir marta ishlaydi va 7 kundan keyin muddati tugaydi. U faqat hozir ko'rsatiladi, shuning uchun bu sahifadan chiqishdan oldin nusxalab oling.",
+      "link_title": "Taklif havolasi",
+      "role_label": "Rol",
+      "submit": "Taklif havolasini yaratish",
+      "title": "Kimnidir taklif qilish"
+    },
+    "leave": {
+      "button": "Ish maydonidan chiqish",
+      "confirm": "Chiqish",
+      "description": "Siz bu ish maydoniga va uning ma'lumotlariga kirish huquqini darhol yo'qotasiz.",
+      "done": "Siz ish maydonidan chiqdingiz",
+      "last_owner": "Siz oxirgi egasisiz, shuning uchun chiqa olmaysiz. Avval boshqa a'zoni egasi qiling.",
+      "refresh_failed": "Siz ish maydonidan chiqdingiz, lekin ish maydonlaringiz yuklanmadi. Qayta urinib ko'ring.",
+      "title": "Bu ish maydonidan chiqish"
+    },
+    "list": {
+      "description": "Bu ish maydonida ishlaydigan hamma va ularning rollari.",
+      "email": "E-pochta",
+      "joined": "Qo'shilgan sana",
+      "role": "Rol",
+      "title": "A'zolar",
+      "you": "siz"
+    },
+    "page_name": "A'zolar",
+    "pending": {
+      "description": "Hali ishlatilmagan takliflar. Bekor qilingan taklifning havolasi ishlamay qoladi.",
+      "email": "E-pochta",
+      "empty": "Kutilayotgan takliflar yo'q.",
+      "expired": "Muddati tugagan",
+      "expires": "Muddati tugaydi",
+      "revoke": "Bekor qilish",
+      "revoke_aria": "{{email}} uchun taklifni bekor qilish",
+      "revoked": "Taklif bekor qilindi",
+      "role": "Rol",
+      "title": "Kutilayotgan takliflar"
+    },
+    "remove": "Olib tashlash",
+    "remove_aria": "{{email}} ni olib tashlash",
+    "remove_dialog": {
+      "confirm": "Olib tashlash",
+      "description": "{{email}} bu ish maydoniga kirish huquqini darhol yo'qotadi.",
+      "title": "A'zoni olib tashlash"
+    },
+    "removed": "A'zo olib tashlandi",
+    "role_updated": "Rol yangilandi",
+    "roles": {
+      "admin": "Admin",
+      "member": "A'zo",
+      "owner": "Egasi"
+    },
+    "settings_card": {
+      "description": "Bu ish maydonida kimlar ishlashini ko'ring va admin yoki egasi bo'lsangiz, odamlarni taklif qiling hamda ularning rollarini boshqaring.",
+      "open": "A'zolarni ochish",
+      "title": "A'zolar"
+    }
+  },
   "messages": {
     "login_error": "Kirish paytida xatolik yuz berdi",
     "login_no_tokens": "Kirish muvaffaqiyatli, ammo tokenlar olinmadi.",
@@ -258,6 +668,7 @@
     },
     "empty_state": {
       "action": "Birinchi monitoringni yarating",
+      "add_channel": "Xabarnoma kanalini qo'shish",
       "description": "Birinchi monitorni yaratish orqali xizmatlaringizning sog‘lig‘ini kuzatishni boshlang.",
       "title": "Hech qanday monitor topilmadi"
     },
@@ -500,6 +911,7 @@
       "shared": {
         "intervals": {
           "heartbeat_retry": "Qayta urinish intervali (Har {{seconds}} soniyada qayta urinib ko'rish)",
+          "interval_too_short": "{{minimum}} soniyadan kam bo'lmasligi kerak",
           "max_retries_description": "Xizmatni pastda deb belgilashdan va bildirishnoma yuborishdan oldingi maksimal qayta urinishlar soni",
           "request_timeout": "So'rovning muddat tugashi ({{seconds}} soniya o'tgach)",
           "resend_notification": "X ta uzluksiz down bo'lsa, xabarni qayta yuborish (Qayta yuborish o'chirilgan)",
@@ -542,6 +954,10 @@
           "select_proxy_placeholder": "Proksi tanlang",
           "selected_proxy": "Tanlangan proksi",
           "title": "Proksi"
+        },
+        "run_from": {
+          "default_locations": "Standart joylashuvlarda ishlaydi",
+          "label": "Quyidan ishga tushirish"
         },
         "tags": {
           "label": "Teglar",
@@ -649,9 +1065,12 @@
     "toasts": {
       "deleted": "Monitor o'chirildi",
       "paused": "Monitor to'xtatildi",
+      "push_token_already_used": "Boshqa monitor bu push tokenidan allaqachon foydalanmoqda. Yangisini yarating.",
       "reset_success": "Monitor ma'lumotlari muvaffaqiyatli qayta o‘rnatildi",
       "resumed": "Monitoring qayta boshlandi"
     },
+    "type_disabled": "{{type}} turi bu o'rnatishda o'chirilgan",
+    "over_limit": "Tekshirilmaydi: ish maydonida uning chegarasi ruxsat berganidan ko'proq faol monitorlar bor",
     "view": {
       "buttons": {
         "clone": "Klonlash",
@@ -712,6 +1131,7 @@
     }
   },
   "navigation": {
+    "admin": "Admin",
     "maintenance": "Texnik xizmat",
     "monitors": "Monitoring",
     "notification_channels": "Xabarnoma kanallari",
@@ -1123,6 +1543,12 @@
         "signing_secret_docs_link": "Imzoni qanday tekshirish mumkin",
         "signing_secret_label": "Imzolash siri",
         "signing_secret_placeholder": "Imzosiz so‘rovlar yuborish uchun bo‘sh qoldiring"
+      },
+      "install_email": {
+        "description": "Shu o'rnatma yuboradi, SMTP serveri kerak emas.",
+        "to_description": "Ushbu ish maydonining a'zosi. Bildirishnomalar u manzilni tasdiqlagandan keyin yuboriladi.",
+        "to_label": "Qabul qiluvchi",
+        "to_placeholder": "A'zoni tanlang"
       }
     },
     "important": "Muhim Xabarnomalar",
@@ -1141,7 +1567,8 @@
       "updated_success": "Notifikator muvaffaqiyatli yangilandi"
     },
     "new": {
-      "title": "Yangi Bildirishkan kanali"
+      "title": "Yangi Bildirishkan kanali",
+      "default_hint": "Bu kanal yangi monitorlarda belgilangan bo‘ladi."
     },
     "no_important": "Muhim xabarnomalar topilmadi.",
     "placeholders": {
@@ -1151,11 +1578,21 @@
     "secret": {
       "reenter_error": "Bu sirni qayta kiriting yoki olib tashlang: yuboriladigan manzil o‘zgargan",
       "reenter_hint": "Bu sirni qayta kiriting: yuboriladigan manzil o‘zgargan",
+      "reenter_url_error": "Ushbu URL’dagi kirish maʼlumotlarini qayta kiriting: URL saqlanganidan keyin o‘zgargan",
       "remove": "Olib tashlash",
       "saved_hint": "Saqlangan — almashtirish uchun yozing"
     }
   },
   "probes": {
+    "default": {
+      "description": "Zondlar tanlanmasdan yaratilgan monitor o'chirilmagan va uning turini bajaradigan standart zondlarda, hech biri bajarmasa, mahalliy zondda ishlaydi. Mavjud monitorlar o'z zondlarini saqlab qoladi.",
+      "failed": "Zond standart yoki yo'qligini o'zgartirib bo'lmadi.",
+      "label": "Standart zond",
+      "off": "{{name}} endi standart zond emas",
+      "on": "{{name}} endi standart zond",
+      "title": "Yangi monitorlar uchun standart"
+    },
+    "default_badge": "Standart",
     "page_name": "Zondlar",
     "description": "Zondlar monitorlarning tekshiruvlarini ular o‘rnatilgan joylardan bajaradi. Mahalliy zond — bu Peekapingning o‘zi.",
     "local_name": "Mahalliy",
@@ -1437,7 +1874,9 @@
     "data_retention": {
       "days_label": "Kunlar",
       "description": "Ma'lumotlarni necha kun saqlashni belgilang (KEEP_DATA_PERIOD_DAYS).",
-      "title": "Ma'lumot saqlash muddati"
+      "read_only": "Buni faqat ish maydonining administratori yoki egasi o'zgartira oladi.",
+      "title": "Ma'lumot saqlash muddati",
+      "capped": "Bu ish maydonida ko'pi bilan {{max}} kun"
     },
     "error_reporting": {
       "cluster_note": "Klaster rejimida o'zgarish bir daqiqa ichida barcha jarayonlarga yetib boradi.",
@@ -1463,6 +1902,10 @@
     },
     "validation": {
       "min_days": "Kamida 1 kun bo'lishi kerak"
+    },
+    "workspace_name": {
+      "description": "Ish maydonlari almashtirgichida va uning a'zolariga ko'rsatiladigan nom.",
+      "title": "Ish maydoni nomi"
     }
   },
   "status": {
@@ -1478,6 +1921,7 @@
       "refresh_in": "ichida yangilash",
       "refresh_now": "Hozir yangilash",
       "status_page_not_found": "Status sahifasi topilmadi yoki nashr etilmagan.",
+      "status_page_unavailable": "Bu status sahifasi mavjud emas",
       "under_maintenance": "Texnik xizmat ko'rsatilmoqda",
       "unknown": "Noma'lum"
     }
@@ -1521,6 +1965,7 @@
     "search_placeholder": "Status sahifalarini sarlavha bo'yicha qidirish...",
     "show_locations": "Har bir joylashuvni ko'rsatish",
     "show_locations_info": "Bir nechta joylashuvdan tekshiriladigan monitorlar uchun har bir joylashuvning holati va tarixi ko'rsatiladi",
+    "slug_already_used": "Bu manzildan boshqa holat sahifasi allaqachon foydalanmoqda",
     "update_status_page": "Holat sahifasini yangilash",
     "view_page": "Sahifani ko‘rish"
   },
@@ -1586,5 +2031,93 @@
   "ui": {
     "general": "Umumiy",
     "intervals_retries": "Intervallar, Qayta urinishlar, Timeoutlar"
+  },
+  "workspaces": {
+    "create": "Ish maydonini yaratish",
+    "create_error": "Ish maydonini yaratib bo'lmadi",
+    "create_first": "Ish maydoni yaratish",
+    "creating": "Yaratilmoqda...",
+    "enter": "Ish maydonini ochish",
+    "entering": "Ochilmoqda...",
+    "entry_failed": "Ish maydoni yaratildi, lekin uni ochib bo‘lmadi. Qayta urinib ko‘ring.",
+    "name_label": "Nomi",
+    "name_placeholder": "Mening jamoam",
+    "name_required": "Nom kiriting",
+    "new": "Yangi ish maydoni",
+    "new_description": "Ish maydonining o'z monitorlari, bildirishnoma kanallari, holat sahifalari va a'zolari bor. Siz uning egasi bo'lasiz.",
+    "new_title": "Yangi ish maydoni",
+    "none_description": "Hisobingiz hech bir ish maydonining a'zosi emas, shuning uchun bu yerda ko'rsatadigan narsa yo'q. Ish maydonini boshqaradigan kishidan sizni qo'shishini so'rang.",
+    "none_title": "Siz hali hech qanday ish maydonida emassiz",
+    "refresh_failed": "Ish maydonlaringiz yuklanmadi. Ulanishni tekshirib, qayta urinib ko'ring.",
+    "rename_error": "Ish maydoni nomini o'zgartirib bo'lmadi",
+    "rename_success": "Ish maydoni nomi o'zgartirildi",
+    "suspended_banner": {
+      "contact": "Bog'lanish uchun:",
+      "message": "Bu ish maydoni ushbu o'rnatish administratori tomonidan to'xtatib qo'yilgan. Uning kuzatishlari ishlamaydi va holat sahifalari mavjud emas.",
+      "no_contact": "Ushbu o'rnatishni boshqaradigan odamga murojaat qiling."
+    },
+    "switcher_label": "Ish maydonini almashtirish"
+  },
+  "get_started": {
+    "page_name": "Boshlash",
+    "skip": "Sozlashni o'tkazib yuborish",
+    "step_of": "{{current}}-qadam, jami {{total}} ta",
+    "name": {
+      "description": "Monitorlar, bildirishnoma kanallari va holat sahifalaringiz shu yerda turadi. Nomni keyinroq Sozlamalarda o'zgartirishingiz mumkin.",
+      "title": "Ish maydoningizga nom bering"
+    },
+    "monitor": {
+      "create": "Monitoring yaratish",
+      "create_failed": "Monitoringni yaratib bo'lmadi",
+      "creating": "Yaratilmoqda...",
+      "description": "Veb-sayt yoki API manzilini kiriting. Peekaping uni tekshiradi va javob berishdan to'xtaganda sizga xabar beradi.",
+      "full_form": "Yoki monitoringni barcha parametrlar bilan sozlang",
+      "title": "Birinchi monitoringingizni qo'shing",
+      "url_invalid": "http:// yoki https:// bilan boshlanadigan manzilni kiriting",
+      "url_label": "Kuzatiladigan manzil"
+    },
+    "channel": {
+      "continue_unlinked": "Bog'lamasdan davom etish",
+      "description": "Monitoringingiz ishdan chiqqanda Peekaping ogohlantirishni qayerga yuborishini tanlang. U yangi monitoringlar uchun standart bo'ladi.",
+      "link_failed": "Kanal saqlandi, lekin uni monitoringingizga bog'lab bo'lmadi. Uni monitoringni tahrirlash sahifasida qo'shing.",
+      "retry_link": "Qayta bog'lab ko'rish",
+      "title": "Bildirishnomalarni oling"
+    },
+    "done": {
+      "description": "Peekaping xizmatingizni kuzatmoqda. Keyingi qadamda quyidagilarni qilishingiz mumkin.",
+      "title": "Hammasi tayyor",
+      "unverified": "Monitoringingiz elektron pochta manzilingiz tasdiqlangach ishga tushadi. Tasdiqlash havolasi uchun kiruvchi xatlarni tekshiring.",
+      "links": {
+        "members": "Jamoangizni taklif qilish",
+        "monitor": "Monitoringni ochish",
+        "monitors": "Monitoringlarga o'tish",
+        "probes": "Zondlarni boshqarish",
+        "status_pages": "Holat sahifasini e'lon qilish"
+      }
+    }
+  },
+  "limits": {
+    "reached": {
+      "monitors": "Bu ish maydonida ko'pi bilan {{max}} ta monitor ishlashi mumkin",
+      "status_pages": "Bu ish maydonida ko'pi bilan {{max}} ta holat sahifasi bo'lishi mumkin",
+      "custom_domains": "Bu ish maydonining holat sahifalarida jami ko'pi bilan {{max}} ta maxsus domen bo'lishi mumkin",
+      "members": "Bu ish maydonida kutilayotgan takliflar bilan birga ko'pi bilan {{max}} ta a'zo bo'lishi mumkin",
+      "owned_workspaces": "Siz ko'pi bilan {{max}} ta ish maydoniga egalik qila olasiz",
+      "probes": "Bu ish maydonidagi monitor ko'pi bilan {{max}} ta zondda ishlashi mumkin",
+      "retention_days": "Bu ish maydoni ma'lumotlarni ko'pi bilan {{max}} kun saqlashi mumkin"
+    },
+    "names": {
+      "monitors": "Faol monitorlar",
+      "min_check_interval": "Eng qisqa tekshirish intervali (soniya)",
+      "status_pages": "Holat sahifalari",
+      "custom_domains": "Maxsus domenlar",
+      "members": "A'zolar",
+      "owned_workspaces": "Bitta foydalanuvchi egalik qila oladigan ish maydonlari",
+      "probes_per_monitor": "Har bir monitorga zondlar",
+      "retention_days": "Ma'lumotlarni saqlash (kun)"
+    },
+    "none": "Chegarasiz",
+    "invalid": "1 yoki undan katta butun son kiriting yoki chegara kerak bo'lmasa, bo'sh qoldiring.",
+    "retention_too_long": "{{max}} kundan oshmasligi kerak"
   }
 }

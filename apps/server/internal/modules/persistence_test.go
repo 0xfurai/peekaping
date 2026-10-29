@@ -8,6 +8,8 @@ import (
 	"go/token"
 	"os"
 	"path/filepath"
+	"peekaping/internal/modules/workspace"
+	"peekaping/internal/modules/workspace/workspacetest"
 	"strings"
 	"sync"
 	"testing"
@@ -18,8 +20,10 @@ import (
 	"peekaping/internal/modules/monitor_status_page"
 	"peekaping/internal/modules/monitor_tls_info"
 	"peekaping/internal/modules/notification_sent_history"
+	"peekaping/internal/modules/proxy"
 	"peekaping/internal/modules/setting"
 	"peekaping/internal/modules/status_page"
+	"peekaping/internal/modules/tag"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -72,6 +76,12 @@ type repositories struct {
 	statusPageID  string
 	monitorID     string
 	replacementID string
+	// workspaceID is the workspace of the monitors and the maintenance window
+	workspaceID workspace.ID
+	// otherWorkspaceID is a second workspace, with no records
+	otherWorkspaceID workspace.ID
+	proxies          proxy.Repository
+	tags             tag.Repository
 }
 
 func sqlRepositories(t *testing.T, db *bun.DB) repositories {
@@ -83,16 +93,18 @@ func sqlRepositories(t *testing.T, db *bun.DB) repositories {
 	_, err := migrator.Migrate(ctx)
 	require.NoError(t, err)
 	statusID, monitorID, replacementID := uuid.NewString(), uuid.NewString(), uuid.NewString()
-	_, err = db.Exec("INSERT INTO status_pages (id, slug, title) VALUES (?, ?, ?)", statusID, "domain-models", "Domain models")
-	require.NoError(t, err)
+	workspacetest.InsertStatusPage(t, db, statusID, "domain-models")
 	for _, id := range []string{monitorID, replacementID} {
-		_, err = db.Exec(`INSERT INTO monitors (id, type, name, interval, timeout, max_retries, retry_interval, resend_interval) VALUES (?, 'http', 'Monitor', 60, 10, 1, 10, 0)`, id)
+		workspacetest.OldestOrAdd(t, db)
+		_, err = db.Exec(`INSERT INTO monitors (id, workspace_id, type, name, interval, timeout, max_retries, retry_interval, resend_interval) VALUES (?, (SELECT id FROM workspaces ORDER BY created_at, id LIMIT 1), 'http', 'Monitor', 60, 10, 1, 10, 0)`, id)
 		require.NoError(t, err)
 	}
+	workspacetest.Add(t, db, workspacetest.Other, "Other")
 	return repositories{
 		maintenance.NewSQLRepository(db), monitor_status_page.NewSQLRepository(db), domain_status_page.NewSQLRepository(db), status_page.NewSQLRepository(db),
 		setting.NewSQLRepository(db), monitor_tls_info.NewSQLRepository(db), notification_sent_history.NewSQLRepository(db),
-		statusID, monitorID, replacementID,
+		statusID, monitorID, replacementID, workspace.ID(workspacetest.OldestOrAdd(t, db)), workspacetest.Other,
+		proxy.NewSQLRepository(db), tag.NewSQLRepository(db),
 	}
 }
 
@@ -129,15 +141,16 @@ func exerciseRepositories(t *testing.T, repos repositories) {
 		timezone, cron := "UTC", "0 9 * * 1,3"
 		startDate, endDate, interval, duration := "2026-01-01T00:00", "2026-12-31T00:00", 2, 90
 		input := &maintenance.Model{Title: "Maintenance", Description: "Description", Active: true, Strategy: "recurring-weekday", StartDateTime: &startDate, EndDateTime: &endDate, Weekdays: []int{1, 3}, DaysOfMonth: []int{5, 10}, IntervalDay: &interval, Cron: &cron, Timezone: &timezone, Duration: &duration}
-		created, err := repos.maintenance.Create(ctx, input)
+		created, err := repos.maintenance.Create(ctx, repos.workspaceID, input)
 		require.NoError(t, err)
-		actual, err := repos.maintenance.FindByID(ctx, created.ID)
+		actual, err := repos.maintenance.FindByID(ctx, repos.workspaceID, created.ID)
 		require.NoError(t, err)
 		expected := *input
 		expected.ID, expected.CreatedAt, expected.UpdatedAt = actual.ID, actual.CreatedAt, actual.UpdatedAt
+		expected.WorkspaceID = repos.workspaceID
 		assert.Equal(t, &expected, actual)
 		title, active, zero := "", false, 0
-		updated, err := repos.maintenance.UpdatePartial(ctx, created.ID, &maintenance.UpdateModel{Title: &title, Active: &active, IntervalDay: &zero, Weekdays: []int{2, 4}})
+		updated, err := repos.maintenance.UpdatePartial(ctx, repos.workspaceID, created.ID, &maintenance.UpdateModel{Title: &title, Active: &active, IntervalDay: &zero, Weekdays: []int{2, 4}})
 		require.NoError(t, err)
 		assert.Empty(t, updated.Title)
 		assert.False(t, updated.Active)
@@ -145,34 +158,122 @@ func exerciseRepositories(t *testing.T, repos repositories) {
 		assert.Equal(t, []int{2, 4}, updated.Weekdays)
 		assert.Equal(t, input.Description, updated.Description)
 		input.Title = "Replaced"
-		_, err = repos.maintenance.UpdateFull(ctx, created.ID, input)
+		_, err = repos.maintenance.UpdateFull(ctx, repos.workspaceID, created.ID, input)
 		require.NoError(t, err)
-		actual, err = repos.maintenance.FindByID(ctx, created.ID)
+		actual, err = repos.maintenance.FindByID(ctx, repos.workspaceID, created.ID)
 		require.NoError(t, err)
 		assert.Equal(t, input.Title, actual.Title)
 	})
+	// A write names the workspace it runs in, and one that names another workspace's record changes
+	// no row and is reported as not found, whatever the service above it checked first (ADR 0005
+	// section 3). Each write is tried on its own from the other workspace, and the record is read back
+	t.Run("WritesStayInTheirWorkspace", func(t *testing.T) {
+		other := repos.otherWorkspaceID
+
+		kept, err := repos.proxies.Create(ctx, repos.workspaceID, &proxy.Model{Protocol: "http", Host: "mine.example.com", Port: 8080})
+		require.NoError(t, err)
+		host, port := "hijacked.example.com", 1
+		_, err = repos.proxies.UpdateFull(ctx, other, kept.ID, &proxy.Model{Protocol: "http", Host: host, Port: port})
+		assert.ErrorIs(t, err, proxy.ErrNotFound)
+		_, err = repos.proxies.UpdatePartial(ctx, other, kept.ID, &proxy.UpdateModel{Host: &host})
+		assert.ErrorIs(t, err, proxy.ErrNotFound)
+		assert.ErrorIs(t, repos.proxies.Delete(ctx, other, kept.ID), proxy.ErrNotFound)
+		proxyNow, err := repos.proxies.FindByID(ctx, repos.workspaceID, kept.ID)
+		require.NoError(t, err)
+		require.NotNil(t, proxyNow, "the proxy is still there")
+		assert.Equal(t, "mine.example.com", proxyNow.Host)
+
+		tagKept, err := repos.tags.Create(ctx, repos.workspaceID, &tag.Model{Name: "mine", Color: "#3B82F6"})
+		require.NoError(t, err)
+		name := "hijacked"
+		assert.ErrorIs(t, repos.tags.UpdateFull(ctx, other, tagKept.ID, &tag.Model{Name: name, Color: "#000000"}), tag.ErrNotFound)
+		assert.ErrorIs(t, repos.tags.UpdatePartial(ctx, other, tagKept.ID, &tag.UpdateModel{Name: &name}), tag.ErrNotFound)
+		assert.ErrorIs(t, repos.tags.Delete(ctx, other, tagKept.ID), tag.ErrNotFound)
+		tagNow, err := repos.tags.FindByID(ctx, repos.workspaceID, tagKept.ID)
+		require.NoError(t, err)
+		require.NotNil(t, tagNow, "the tag is still there")
+		assert.Equal(t, "mine", tagNow.Name)
+
+		window, err := repos.maintenance.Create(ctx, repos.workspaceID, &maintenance.Model{Title: "Mine", Active: true, Strategy: "manual"})
+		require.NoError(t, err)
+		title, off := "Hijacked", false
+		_, err = repos.maintenance.UpdateFull(ctx, other, window.ID, &maintenance.Model{Title: title, Strategy: "manual"})
+		assert.ErrorIs(t, err, maintenance.ErrNotFound)
+		_, err = repos.maintenance.UpdatePartial(ctx, other, window.ID, &maintenance.UpdateModel{Title: &title})
+		assert.ErrorIs(t, err, maintenance.ErrNotFound)
+		_, err = repos.maintenance.SetActive(ctx, other, window.ID, off)
+		assert.ErrorIs(t, err, maintenance.ErrNotFound)
+		assert.ErrorIs(t, repos.maintenance.Delete(ctx, other, window.ID), maintenance.ErrNotFound)
+		windowNow, err := repos.maintenance.FindByID(ctx, repos.workspaceID, window.ID)
+		require.NoError(t, err)
+		require.NotNil(t, windowNow, "the window is still there")
+		assert.Equal(t, "Mine", windowNow.Title)
+		assert.True(t, windowNow.Active)
+	})
 	t.Run("StatusPageShowLocations", func(t *testing.T) {
-		plain, err := repos.pages.Create(ctx, &status_page.Model{Slug: "plain-page", Title: "Plain"})
+		plain, err := repos.pages.Create(ctx, repos.workspaceID, &status_page.Model{Slug: "plain-page", Title: "Plain"})
 		require.NoError(t, err)
 		assert.False(t, plain.ShowLocations, "a page made without the setting")
-		eachPlace, err := repos.pages.Create(ctx, &status_page.Model{Slug: "each-place", Title: "Each place", ShowLocations: true})
+		eachPlace, err := repos.pages.Create(ctx, repos.workspaceID, &status_page.Model{Slug: "each-place", Title: "Each place", ShowLocations: true})
 		require.NoError(t, err)
-		found, err := repos.pages.FindByID(ctx, eachPlace.ID)
+		found, err := repos.pages.FindByID(ctx, repos.workspaceID, eachPlace.ID)
 		require.NoError(t, err)
 		assert.True(t, found.ShowLocations, "stored on create")
 		title, off, on := "Renamed", false, true
-		require.NoError(t, repos.pages.Update(ctx, eachPlace.ID, &status_page.UpdateModel{Title: &title}))
-		found, err = repos.pages.FindBySlug(ctx, "each-place")
+		require.NoError(t, repos.pages.Update(ctx, repos.workspaceID, eachPlace.ID, &status_page.UpdateModel{Title: &title}))
+		found, err = repos.pages.FindBySlugAnyWorkspace(ctx, "each-place")
 		require.NoError(t, err)
 		assert.True(t, found.ShowLocations, "an update that leaves it out keeps it")
-		require.NoError(t, repos.pages.Update(ctx, eachPlace.ID, &status_page.UpdateModel{ShowLocations: &off}))
-		found, err = repos.pages.FindByID(ctx, eachPlace.ID)
+		require.NoError(t, repos.pages.Update(ctx, repos.workspaceID, eachPlace.ID, &status_page.UpdateModel{ShowLocations: &off}))
+		found, err = repos.pages.FindByID(ctx, repos.workspaceID, eachPlace.ID)
 		require.NoError(t, err)
 		assert.False(t, found.ShowLocations, "turned off")
-		require.NoError(t, repos.pages.Update(ctx, plain.ID, &status_page.UpdateModel{ShowLocations: &on}))
-		found, err = repos.pages.FindByID(ctx, plain.ID)
+		require.NoError(t, repos.pages.Update(ctx, repos.workspaceID, plain.ID, &status_page.UpdateModel{ShowLocations: &on}))
+		found, err = repos.pages.FindByID(ctx, repos.workspaceID, plain.ID)
 		require.NoError(t, err)
 		assert.True(t, found.ShowLocations, "turned on")
+	})
+	t.Run("StatusPageWorkspaces", func(t *testing.T) {
+		mine, err := repos.pages.Create(ctx, repos.workspaceID, &status_page.Model{Slug: "mine", Title: "Mine"})
+		require.NoError(t, err)
+		theirs, err := repos.pages.Create(ctx, repos.otherWorkspaceID, &status_page.Model{Slug: "theirs", Title: "Theirs", WorkspaceID: repos.workspaceID})
+		require.NoError(t, err)
+		assert.Equal(t, repos.workspaceID, mine.WorkspaceID)
+		assert.Equal(t, repos.otherWorkspaceID, theirs.WorkspaceID, "the workspace of the call, not the one the page says")
+
+		found, err := repos.pages.FindByID(ctx, repos.workspaceID, theirs.ID)
+		require.NoError(t, err)
+		assert.Nil(t, found, "another workspace's page is not found")
+		found, err = repos.pages.FindByID(ctx, repos.otherWorkspaceID, theirs.ID)
+		require.NoError(t, err)
+		require.NotNil(t, found)
+		assert.Equal(t, "Theirs", found.Title)
+		title := "Hijacked"
+		assert.ErrorIs(t, repos.pages.Update(ctx, repos.workspaceID, theirs.ID, &status_page.UpdateModel{Title: &title}), status_page.ErrNotFound)
+		assert.ErrorIs(t, repos.pages.Update(ctx, repos.workspaceID, theirs.ID, &status_page.UpdateModel{}), status_page.ErrNotFound, "even an update that changes nothing")
+		assert.ErrorIs(t, repos.pages.Delete(ctx, repos.workspaceID, theirs.ID), status_page.ErrNotFound)
+		found, err = repos.pages.FindByIDAnyWorkspace(ctx, theirs.ID)
+		require.NoError(t, err)
+		require.NotNil(t, found, "and it is as it was")
+		assert.Equal(t, "Theirs", found.Title)
+
+		listed, err := repos.pages.FindAll(ctx, repos.otherWorkspaceID, 0, 100, "")
+		require.NoError(t, err)
+		require.Len(t, listed, 1)
+		assert.Equal(t, theirs.ID, listed[0].ID)
+		listed, err = repos.pages.FindAll(ctx, repos.otherWorkspaceID, 0, 100, "mine")
+		require.NoError(t, err)
+		assert.Empty(t, listed, "a search stays in the workspace")
+		everyone, err := repos.pages.FindAllAnyWorkspace(ctx, 0, 100)
+		require.NoError(t, err)
+		assert.GreaterOrEqual(t, len(everyone), 2)
+
+		// slugs are unique across the install
+		_, err = repos.pages.Create(ctx, repos.otherWorkspaceID, &status_page.Model{Slug: "mine", Title: "Copy"})
+		assert.Error(t, err)
+
+		assert.NoError(t, repos.pages.Delete(ctx, repos.otherWorkspaceID, theirs.ID))
+		assert.ErrorIs(t, repos.pages.Delete(ctx, repos.otherWorkspaceID, theirs.ID), status_page.ErrNotFound, "a page deleted twice")
 	})
 	t.Run("StatusPageMonitors", func(t *testing.T) {
 		created, err := repos.monitors.Create(ctx, &monitor_status_page.Model{StatusPageID: repos.statusPageID, MonitorID: repos.monitorID, Active: true, Order: 3})

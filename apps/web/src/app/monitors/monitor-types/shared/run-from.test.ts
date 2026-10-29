@@ -1,0 +1,167 @@
+import { describe, expect, it } from "vitest";
+import type { ProbeProbeResponse } from "@/api/types.gen";
+import { runFromAfterTypeChange, runFromChoices, runFromDefaultIds, runFromFormIds, toggleRunFrom } from "./run-from";
+
+const probe = (id: string, over: Partial<ProbeProbeResponse> = {}): ProbeProbeResponse => ({
+  id,
+  name: id,
+  location: "",
+  status: "online",
+  supported_types: [],
+  disabled: false,
+  instances: [],
+  assign_all_pending: false,
+  is_default: false,
+  notification_ids: [],
+  token_prefix: "",
+  created_at: "2026-10-23T00:00:00Z",
+  updated_at: "2026-10-23T00:00:00Z",
+  ...over,
+});
+
+const local = probe("local", { name: "Local", location: "Frankfurt", is_default: true });
+const eu = probe("eu", { name: "Berlin", location: "", supported_types: ["http", "tcp"] });
+const us = probe("us", { name: "Virginia", location: "US East", supported_types: ["http"], is_default: true });
+const off = probe("off", { name: "Paused", location: "X", disabled: true });
+
+describe("runFromChoices", () => {
+  it("names each probe with its location, and leaves out an empty location", () => {
+    const { choices } = runFromChoices([local, eu], "http", ["local"]);
+    expect(choices.map((c) => c.label)).toEqual(["Local · Frankfurt", "Berlin"]);
+  });
+
+  it("ticks the ids it is given", () => {
+    const { choices } = runFromChoices([local, eu], "http", ["eu"]);
+    expect(choices.map((c) => [c.id, c.ticked])).toEqual([
+      ["local", false],
+      ["eu", true],
+    ]);
+  });
+
+  it("lists only enabled probes that run the type", () => {
+    const { choices } = runFromChoices([local, eu, us, off], "tcp", []);
+    expect(choices.map((c) => c.id)).toEqual(["local", "eu"]);
+  });
+
+  it("is hidden with one probe to choose from, and shown with two", () => {
+    expect(runFromChoices([local, eu], "docker", []).hidden).toBe(true);
+    expect(runFromChoices([local, eu], "http", []).hidden).toBe(false);
+    expect(runFromChoices([local], "http", []).hidden).toBe(true);
+  });
+
+  it("is hidden for a push monitor, which runs on the local probe", () => {
+    expect(runFromChoices([local, eu], "push", []).hidden).toBe(true);
+  });
+
+  // A saved monitor whose probe was disabled, or no longer runs the type, can move to the one
+  // probe left only through the list
+  it("is shown with one probe to choose from when the monitor runs on a probe that isn't one", () => {
+    expect(runFromChoices([off, eu], "http", ["off"]).hidden).toBe(false);
+    expect(runFromChoices([off, eu], "http", ["eu", "off"]).hidden).toBe(false);
+    expect(runFromChoices([local, eu], "docker", ["eu"]).hidden).toBe(false);
+  });
+
+  it("stays hidden with one probe to choose from that the monitor already runs on", () => {
+    expect(runFromChoices([off, eu], "http", ["eu"]).hidden).toBe(true);
+  });
+
+  it("stays hidden with no probe to choose from", () => {
+    expect(runFromChoices([], "http", ["local"]).hidden).toBe(true);
+    expect(runFromChoices([off], "http", ["off"]).hidden).toBe(true);
+  });
+});
+
+describe("runFromDefaultIds", () => {
+  it("is the default probes that run the type", () => {
+    expect(runFromDefaultIds([local, eu, us], "http")).toEqual(["local", "us"]);
+    expect(runFromDefaultIds([local, eu, us], "tcp")).toEqual(["local"]);
+  });
+
+  it("leaves out a disabled default probe", () => {
+    expect(runFromDefaultIds([{ ...local, disabled: true }, eu, us], "http")).toEqual(["us"]);
+  });
+
+  it("is the one probe there is when the list is hidden, default or not", () => {
+    expect(runFromDefaultIds([local, eu], "docker")).toEqual(["local"]);
+    expect(runFromDefaultIds([eu], "http")).toEqual(["eu"]);
+  });
+
+  // Before the probes load, or when the probes query fails, a new monitor is sent without probes
+  // and the server puts it on the install's default ones
+  it("is none before the probes load", () => {
+    expect(runFromDefaultIds([], "http")).toEqual([]);
+  });
+});
+
+describe("runFromFormIds", () => {
+  const fresh = { presets: true, typeChanged: false, typeIsSaved: false };
+  const saved = { presets: false, typeChanged: false, typeIsSaved: true };
+
+  // The form starts on the local probe; with no probe data the create form is still enabled
+  it("leaves a new monitor on no probe while there is no probe data", () => {
+    expect(runFromFormIds([], "http", ["local"], fresh)).toEqual([]);
+  });
+
+  it("puts a new monitor on the default probes once they load", () => {
+    expect(runFromFormIds([local, eu, us], "http", [], fresh)).toEqual(["local", "us"]);
+  });
+
+  it("keeps a saved monitor's probes while there is no probe data", () => {
+    expect(runFromFormIds([], "http", ["eu", "us"], saved)).toBeUndefined();
+    expect(runFromFormIds([], "tcp", ["eu", "us"], { ...saved, typeChanged: true, typeIsSaved: false })).toBeUndefined();
+  });
+
+  it("keeps a saved monitor's probes while its type does", () => {
+    expect(runFromFormIds([local, eu, us], "http", ["eu", "us"], saved)).toBeUndefined();
+  });
+
+  it("drops the probes that don't run a new type", () => {
+    expect(runFromFormIds([local, eu, us], "tcp", ["eu", "us"], { ...saved, typeChanged: true, typeIsSaved: false })).toEqual([
+      "eu",
+    ]);
+  });
+});
+
+describe("toggleRunFrom", () => {
+  it("adds and removes a probe", () => {
+    expect(toggleRunFrom(["local"], ["local", "eu"], "eu", true)).toEqual(["local", "eu"]);
+    expect(toggleRunFrom(["local", "eu"], ["local", "eu"], "local", false)).toEqual(["eu"]);
+  });
+
+  it("adds a probe once", () => {
+    expect(toggleRunFrom(["eu"], ["eu"], "eu", true)).toEqual(["eu"]);
+  });
+
+  // A saved monitor on a probe that no longer runs its type, or was disabled, is refused on save with
+  // that probe, and the list doesn't show it to untick: the first change drops it
+  it("drops the probes the list doesn't show", () => {
+    expect(toggleRunFrom(["gone", "local"], ["local", "eu"], "eu", true)).toEqual(["local", "eu"]);
+    expect(toggleRunFrom(["gone", "local", "eu"], ["local", "eu"], "local", false)).toEqual(["eu"]);
+    expect(toggleRunFrom(["off"], ["eu"], "eu", true)).toEqual(["eu"]);
+  });
+});
+
+describe("runFromAfterTypeChange", () => {
+  it("drops the probes that don't run the new type", () => {
+    expect(runFromAfterTypeChange([local, eu, us], "tcp", ["eu", "us"])).toEqual(["eu"]);
+  });
+
+  it("keeps a probe that isn't loaded", () => {
+    expect(runFromAfterTypeChange([local, eu, us], "tcp", ["gone", "us"])).toEqual(["gone"]);
+  });
+
+  // The list is hidden with one probe to choose from, and a saved monitor is refused with none, so a
+  // selection the type change empties moves to that probe instead of leaving no way to save
+  it("moves to the one probe that runs the new type when none of its probes does", () => {
+    expect(runFromAfterTypeChange([local, eu, us], "docker", ["eu", "us"])).toEqual(["local"]);
+    expect(runFromAfterTypeChange([off, eu, us], "tcp", ["us"])).toEqual(["eu"]);
+  });
+
+  it("is left empty when the new type has more than one probe to choose from", () => {
+    expect(runFromAfterTypeChange([local, eu, us], "tcp", ["us"])).toEqual([]);
+  });
+
+  it("leaves an empty selection empty", () => {
+    expect(runFromAfterTypeChange([local, eu], "docker", [])).toEqual([]);
+  });
+});

@@ -22,6 +22,8 @@ import (
 	"peekaping/internal/app"
 	"peekaping/internal/config"
 	"peekaping/internal/httpx"
+	"peekaping/internal/limits"
+	"peekaping/internal/mailer"
 	"peekaping/internal/modules/auth"
 	"peekaping/internal/modules/cleanup"
 	"peekaping/internal/modules/error_reporting"
@@ -40,6 +42,7 @@ import (
 	"peekaping/internal/modules/stats"
 	"peekaping/internal/modules/telemetry"
 	"peekaping/internal/modules/websocket"
+	"peekaping/internal/modules/workspace"
 	"peekaping/internal/reporting"
 	graceful "peekaping/internal/shutdown" // aliased: this package has a shutdown function
 	"peekaping/internal/shutdown/lifecycle"
@@ -110,6 +113,7 @@ type parts struct {
 	// ProbeSweep sets the probes whose instances went quiet offline
 	ProbeSweep *probe.Sweep
 	EventBus   events.EventBus
+	Mailer     *mailer.Mailer
 	DB         *bun.DB
 
 	Config               *config.Config
@@ -117,10 +121,13 @@ type parts struct {
 	Probes               probe.Service
 	ProbeWaker           *protocol.Waker
 	Heartbeats           heartbeat.Service
-	Users                auth.Repository
+	Workspaces           workspace.Repository
+	WorkspaceSettings    setting.WorkspaceService
+	Limits               limits.Source
 	Stats                stats.Service
 	NotificationHistory  notification_sent_history.Service
 	TLSInfo              monitor_tls_info.Service
+	AccountTokens        auth.AccountRepository
 	CleanupLock          cleanup.RunLock
 	Monitors             monitor.Service
 	NotificationListener *notification_channel.NotificationEventListener
@@ -261,7 +268,7 @@ func startJobs(ctx context.Context, p parts, cfg *Config, logger *zap.SugaredLog
 		TLSInfoDays:             cfg.TLSInfoRetentionDays,
 	}
 	var err error
-	j.cleanup, err = cleanup.StartCleanupCron(p.Heartbeats, p.Users, p.Settings, p.Stats, p.NotificationHistory, p.TLSInfo, p.Probes, p.CleanupLock, retention, logger)
+	j.cleanup, err = cleanup.StartCleanupCron(p.Heartbeats, p.Workspaces, p.WorkspaceSettings, p.Limits, p.Stats, p.NotificationHistory, p.TLSInfo, p.Probes, p.AccountTokens, p.CleanupLock, retention, logger)
 	if err != nil {
 		return nil, fmt.Errorf("failed to start the hourly cleanup: %w", err)
 	}
@@ -281,7 +288,7 @@ func startJobs(ctx context.Context, p parts, cfg *Config, logger *zap.SugaredLog
 	j.repairDone = make(chan struct{})
 	reporting.Go("repair", func() {
 		defer close(j.repairDone)
-		repaired, err := p.Monitors.RepairStoredStatuses(repairCtx)
+		repaired, err := p.Monitors.RepairStoredStatusesAnyWorkspace(repairCtx)
 		if errors.Is(err, context.Canceled) {
 			logger.Infow("Stopped repairing monitor statuses on shutdown", "repaired", repaired)
 			return
@@ -411,6 +418,11 @@ func shutdown(httpServer *http.Server, handlers *graceful.RunningHandlers, webso
 		errs = append(errs, err)
 		running = append(running, "HTTP handlers")
 	}
+
+	// No handler can start an account email any more. Let the ones being sent go out before the
+	// database closes: a send reads and writes it. It is bound by graceful.MailerDrain, which the
+	// shares of shutdownTimeouts don't include: it waits only while a send is running.
+	graceful.DrainMailer(p.Mailer, graceful.MailerDrain, logger)
 
 	busCtx, cancelBus := context.WithTimeout(context.Background(), shutdownTimeouts.EventBus)
 	defer cancelBus()

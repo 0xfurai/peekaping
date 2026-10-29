@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"peekaping/internal/config"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/shared"
@@ -18,21 +17,21 @@ import (
 // PagerDutyConfig holds the configuration for PagerDuty notifications
 type PagerDutyConfig struct {
 	IntegrationKey string `json:"pagerduty_integration_key" validate:"required" secret:"true"`
-	IntegrationURL string `json:"pagerduty_integration_url" validate:"required,url" endpoint:"true"`
+	IntegrationURL string `json:"pagerduty_integration_url" validate:"required,url" endpoint:"true" urlCredentials:"true" target:"url"`
 	Priority       string `json:"pagerduty_priority"`
 	AutoResolve    string `json:"pagerduty_auto_resolve"`
 }
 
 // PagerDutySender handles sending notifications to PagerDuty
 type PagerDutySender struct {
-	logger *zap.SugaredLogger
-	client *http.Client
-	config *config.Config
+	logger    *zap.SugaredLogger
+	client    *http.Client
+	publicURL PublicURLSource
 }
 
 // NewPagerDutySender creates a new PagerDutySender
-func NewPagerDutySender(logger *zap.SugaredLogger, config *config.Config, client *http.Client) *PagerDutySender {
-	return &PagerDutySender{logger: logger, config: config, client: client}
+func NewPagerDutySender(logger *zap.SugaredLogger, publicURL PublicURLSource, client *http.Client) *PagerDutySender {
+	return &PagerDutySender{logger: logger, publicURL: publicURL, client: client}
 }
 
 func (p *PagerDutySender) Unmarshal(configJSON string) (any, error) {
@@ -174,7 +173,7 @@ func (p *PagerDutySender) Send(
 	}
 
 	// Add client information if base URL is available
-	if link := peekapingLink(p.config.ClientURL, monitor); link != "" {
+	if link := peekapingLink(publicURL(ctx, p.publicURL), monitor); link != "" {
 		payload["client"] = "Peekaping"
 		payload["client_url"] = link
 	}

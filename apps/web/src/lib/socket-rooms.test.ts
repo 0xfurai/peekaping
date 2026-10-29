@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { subscribeToRoom, type RoomSocket } from "./socket-rooms";
+import {
+  heartbeatEvent,
+  monitorRoom,
+  subscribeToRoom,
+  workspaceRoom,
+  type RoomSocket,
+} from "./socket-rooms";
 
 // A socket that records what the client sends and lets a test play the server's side:
 // connect() and disconnect() fire the "connect" listeners the way socket.io-client does.
@@ -176,5 +182,56 @@ describe("subscribeToRoom", () => {
 
     expect(first.sent).toEqual(["join_room monitor:1"]);
     expect(second.sent).toEqual(["join_room monitor:1"]);
+  });
+});
+
+describe("room names", () => {
+  const workspaceId = "0d6f1e0e-6b1c-4d49-8c37-0b5f4a1b3a01";
+
+  it("names the room of a workspace and of a monitor the way the server does", () => {
+    expect(workspaceRoom(workspaceId)).toBe(`workspace:${workspaceId}`);
+    expect(monitorRoom("m-1")).toBe("monitor:m-1");
+  });
+
+  it("names the room of a workspace by its lower-case ID when the address has it in upper case", () => {
+    const upper = workspaceId.toUpperCase();
+    expect(workspaceRoom(upper)).toBe(`workspace:${workspaceId}`);
+    expect(heartbeatEvent(workspaceRoom(upper))).toBe(`workspace:${workspaceId}:heartbeat`);
+  });
+
+  it("names the event a room delivers its heartbeats as", () => {
+    expect(heartbeatEvent(workspaceRoom(workspaceId))).toBe(`workspace:${workspaceId}:heartbeat`);
+    expect(heartbeatEvent(monitorRoom("m-1"))).toBe("monitor:m-1:heartbeat");
+  });
+});
+
+describe("a workspace's room", () => {
+  const first = workspaceRoom("0d6f1e0e-6b1c-4d49-8c37-0b5f4a1b3a01");
+  const second = workspaceRoom("6a1c9d52-3b7e-4f0a-9d1e-5c2b8e7f4a02");
+
+  it("is left, and the next one joined, when the address moves to another workspace", async () => {
+    const socket = new FakeSocket(true);
+    const received: unknown[] = [];
+
+    const unsubscribe = subscribeToRoom(socket, first, heartbeatEvent(first), (hb) => received.push(hb));
+    // The effect's cleanup and its next run happen in the same commit
+    unsubscribe();
+    subscribeToRoom(socket, second, heartbeatEvent(second), (hb) => received.push(hb));
+    await nextTick();
+
+    expect(socket.sent).toEqual([`join_room ${first}`, `join_room ${second}`, `leave_room ${first}`]);
+    socket.receive(heartbeatEvent(first), { id: "stale" });
+    socket.receive(heartbeatEvent(second), { id: "fresh" });
+    expect(received).toEqual([{ id: "fresh" }]);
+  });
+
+  it("is joined again after a reconnect", () => {
+    const socket = new FakeSocket(true);
+    subscribeToRoom(socket, first, heartbeatEvent(first), () => {});
+
+    socket.disconnect();
+    socket.connect();
+
+    expect(socket.sent).toEqual([`join_room ${first}`, `join_room ${first}`]);
   });
 });

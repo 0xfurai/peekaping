@@ -37,8 +37,9 @@ func (a *app) takeNotificationsFromTheQueue(t *testing.T) {
 // both, and each would send it; the queue gives it to one.
 func TestClusterReplicas_AMonitorGoingDownIsNotifiedOnce(t *testing.T) {
 	blockExternalHTTP(t)
-	a := newAppWithAdmin(t)
-	b := newReplica(t, a)
+	// The webhook listens on this machine, which the cloud's run blocks
+	a := newAppWithAdmin(t, withBlockPrivateTargets(false))
+	b := newReplica(t, a, withBlockPrivateTargets(false))
 	a.takeNotificationsFromTheQueue(t)
 	b.takeNotificationsFromTheQueue(t)
 	hook := startRequestReceiver(t)
@@ -201,7 +202,7 @@ func (a *app) findMonitor(t *testing.T, id string) *monitor.Model {
 	var found *monitor.Model
 	require.NoError(t, a.container.Invoke(func(monitors monitor.Service) error {
 		var err error
-		found, err = monitors.FindByID(context.Background(), id)
+		found, err = monitors.FindByIDAnyWorkspace(context.Background(), id)
 		return err
 	}))
 	require.NotNil(t, found)

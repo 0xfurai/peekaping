@@ -11,6 +11,7 @@ import (
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/modules/stats"
 	"peekaping/internal/modules/status_page"
+	"peekaping/internal/modules/workspace"
 	"regexp"
 	"strings"
 	"testing"
@@ -24,135 +25,19 @@ import (
 
 // Mock implementations for all dependencies
 
+// MockMonitorService answers the monitor service calls a badge makes. The rest of the interface
+// panics on the nil embedded service.
 type MockMonitorService struct {
+	monitor.Service
 	mock.Mock
 }
 
-func (m *MockMonitorService) Create(ctx context.Context, monitor *monitor.CreateUpdateDto) (*shared.Monitor, error) {
-	args := m.Called(ctx, monitor)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*shared.Monitor), args.Error(1)
-}
-
-func (m *MockMonitorService) FindByID(ctx context.Context, id string) (*shared.Monitor, error) {
+func (m *MockMonitorService) FindByIDAnyWorkspace(ctx context.Context, id string) (*shared.Monitor, error) {
 	args := m.Called(ctx, id)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
 	return args.Get(0).(*shared.Monitor), args.Error(1)
-}
-
-func (m *MockMonitorService) FindByIDs(ctx context.Context, ids []string) ([]*shared.Monitor, error) {
-	args := m.Called(ctx, ids)
-	return args.Get(0).([]*shared.Monitor), args.Error(1)
-}
-
-func (m *MockMonitorService) FindAll(ctx context.Context, page int, limit int, q string, active *bool, status *int, tagIds []string) ([]*shared.Monitor, error) {
-	args := m.Called(ctx, page, limit, q, active, status, tagIds)
-	return args.Get(0).([]*shared.Monitor), args.Error(1)
-}
-
-func (m *MockMonitorService) FindActive(ctx context.Context) ([]*shared.Monitor, error) {
-	args := m.Called(ctx)
-	return args.Get(0).([]*shared.Monitor), args.Error(1)
-}
-
-func (m *MockMonitorService) UpdateFull(ctx context.Context, id string, monitor *monitor.CreateUpdateDto) (*shared.Monitor, error) {
-	args := m.Called(ctx, id, monitor)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*shared.Monitor), args.Error(1)
-}
-
-func (m *MockMonitorService) UpdatePartial(ctx context.Context, id string, monitor *monitor.PartialUpdateDto, noPublish bool) (*shared.Monitor, error) {
-	args := m.Called(ctx, id, monitor, noPublish)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*shared.Monitor), args.Error(1)
-}
-
-func (m *MockMonitorService) Delete(ctx context.Context, id string) error {
-	args := m.Called(ctx, id)
-	return args.Error(0)
-}
-
-func (m *MockMonitorService) ValidateMonitorConfig(monitorType string, configJSON string) error {
-	args := m.Called(monitorType, configJSON)
-	return args.Error(0)
-}
-
-func (m *MockMonitorService) GetHeartbeats(ctx context.Context, id, probeID string, limit, page int, important *bool, reverse bool) ([]*heartbeat.Model, error) {
-	args := m.Called(ctx, id, limit, page, important, reverse)
-	return args.Get(0).([]*heartbeat.Model), args.Error(1)
-}
-
-func (m *MockMonitorService) RemoveProxyReference(ctx context.Context, proxyId string) error {
-	args := m.Called(ctx, proxyId)
-	return args.Error(0)
-}
-
-func (m *MockMonitorService) FindByProxyId(ctx context.Context, proxyId string) ([]*shared.Monitor, error) {
-	args := m.Called(ctx, proxyId)
-	return args.Get(0).([]*shared.Monitor), args.Error(1)
-}
-
-func (m *MockMonitorService) GetStatPoints(ctx context.Context, id, probeID string, since, until time.Time, granularity string) (*monitor.StatPointsSummaryDto, error) {
-	args := m.Called(ctx, id, since, until, granularity)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*monitor.StatPointsSummaryDto), args.Error(1)
-}
-
-func (m *MockMonitorService) GetUptimeStats(ctx context.Context, id, probeID string) (*monitor.CustomUptimeStatsDto, error) {
-	args := m.Called(ctx, id)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*monitor.CustomUptimeStatsDto), args.Error(1)
-}
-
-func (m *MockMonitorService) FindOneByPushToken(ctx context.Context, pushToken string) (*shared.Monitor, error) {
-	args := m.Called(ctx, pushToken)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*shared.Monitor), args.Error(1)
-}
-
-func (m *MockMonitorService) GetUptime24h(ctx context.Context, id, probeID string) (*float64, error) {
-	args := m.Called(ctx, id, probeID)
-	uptime, _ := args.Get(0).(*float64)
-	return uptime, args.Error(1)
-}
-
-func (m *MockMonitorService) ResetMonitorData(ctx context.Context, id string) error {
-	args := m.Called(ctx, id)
-	return args.Error(0)
-}
-
-func (m *MockMonitorService) RepairStoredStatuses(ctx context.Context) (int, error) {
-	args := m.Called(ctx)
-	return args.Int(0), args.Error(1)
-}
-
-func (m *MockMonitorService) AssignProbeToAll(ctx context.Context, probeID string, supportedTypes []string, claim func(ctx context.Context) (bool, error)) (int, error) {
-	args := m.Called(ctx, probeID, supportedTypes, claim)
-	return args.Int(0), args.Error(1)
-}
-
-func (m *MockMonitorService) FindActiveByProbe(ctx context.Context, probeID string, page int, limit int) ([]*shared.Monitor, error) {
-	args := m.Called(ctx, probeID, page, limit)
-	return args.Get(0).([]*shared.Monitor), args.Error(1)
-}
-
-func (m *MockMonitorService) FindActivePaginated(ctx context.Context, page int, limit int) ([]*shared.Monitor, error) {
-	args := m.Called(ctx, page, limit)
-	return args.Get(0).([]*shared.Monitor), args.Error(1)
 }
 
 type MockHeartbeatService struct {
@@ -190,8 +75,8 @@ func (m *MockHeartbeatService) FindUptimeStatsByMonitorID(ctx context.Context, m
 	return args.Get(0).(map[string]*float64), args.Error(1)
 }
 
-func (m *MockHeartbeatService) DeleteOlderThan(ctx context.Context, cutoff time.Time) (int64, error) {
-	args := m.Called(ctx, cutoff)
+func (m *MockHeartbeatService) DeleteOlderThan(ctx context.Context, workspaceID workspace.ID, cutoff time.Time) (int64, error) {
+	args := m.Called(ctx, workspaceID, cutoff)
 	return args.Get(0).(int64), args.Error(1)
 }
 
@@ -306,7 +191,7 @@ type MockStatusPageService struct {
 	status_page.Service
 }
 
-func (m *MockStatusPageService) IsMonitorPublished(ctx context.Context, monitorID string) (bool, error) {
+func (m *MockStatusPageService) IsMonitorPublishedAnyWorkspace(ctx context.Context, monitorID string) (bool, error) {
 	args := m.Called(ctx, monitorID)
 	return args.Bool(0), args.Error(1)
 }
@@ -432,8 +317,8 @@ func TestServiceImpl_IsMonitorPublic(t *testing.T) {
 	t.Run("monitor is public when on a published status page", func(t *testing.T) {
 		service, mockMonitorService, _, _, _, mockStatusPageService := setupBadgeService()
 
-		mockMonitorService.On("FindByID", ctx, "monitor123").Return(activeMonitor, nil)
-		mockStatusPageService.On("IsMonitorPublished", ctx, "monitor123").Return(true, nil)
+		mockMonitorService.On("FindByIDAnyWorkspace", ctx, "monitor123").Return(activeMonitor, nil)
+		mockStatusPageService.On("IsMonitorPublishedAnyWorkspace", ctx, "monitor123").Return(true, nil)
 
 		result, err := service.IsMonitorPublic(ctx, "monitor123")
 
@@ -446,8 +331,8 @@ func TestServiceImpl_IsMonitorPublic(t *testing.T) {
 	t.Run("monitor is not public when on no published status page", func(t *testing.T) {
 		service, mockMonitorService, _, _, _, mockStatusPageService := setupBadgeService()
 
-		mockMonitorService.On("FindByID", ctx, "monitor123").Return(activeMonitor, nil)
-		mockStatusPageService.On("IsMonitorPublished", ctx, "monitor123").Return(false, nil)
+		mockMonitorService.On("FindByIDAnyWorkspace", ctx, "monitor123").Return(activeMonitor, nil)
+		mockStatusPageService.On("IsMonitorPublishedAnyWorkspace", ctx, "monitor123").Return(false, nil)
 
 		result, err := service.IsMonitorPublic(ctx, "monitor123")
 
@@ -461,7 +346,7 @@ func TestServiceImpl_IsMonitorPublic(t *testing.T) {
 		service, mockMonitorService, _, _, _, _ := setupBadgeService()
 		monitorID := "nonexistent"
 
-		mockMonitorService.On("FindByID", ctx, monitorID).Return(nil, errors.New("not found"))
+		mockMonitorService.On("FindByIDAnyWorkspace", ctx, monitorID).Return(nil, errors.New("not found"))
 
 		result, err := service.IsMonitorPublic(ctx, monitorID)
 
@@ -475,7 +360,7 @@ func TestServiceImpl_IsMonitorPublic(t *testing.T) {
 		service, mockMonitorService, _, _, _, _ := setupBadgeService()
 		monitorID := "monitor123"
 
-		mockMonitorService.On("FindByID", ctx, monitorID).Return(nil, nil)
+		mockMonitorService.On("FindByIDAnyWorkspace", ctx, monitorID).Return(nil, nil)
 
 		result, err := service.IsMonitorPublic(ctx, monitorID)
 
@@ -494,21 +379,21 @@ func TestServiceImpl_IsMonitorPublic(t *testing.T) {
 			Active: false,
 		}
 
-		mockMonitorService.On("FindByID", ctx, monitorID).Return(monitor, nil)
+		mockMonitorService.On("FindByIDAnyWorkspace", ctx, monitorID).Return(monitor, nil)
 
 		result, err := service.IsMonitorPublic(ctx, monitorID)
 
 		assert.NoError(t, err)
 		assert.False(t, result)
 		mockMonitorService.AssertExpectations(t)
-		mockStatusPageService.AssertNotCalled(t, "IsMonitorPublished", mock.Anything, mock.Anything)
+		mockStatusPageService.AssertNotCalled(t, "IsMonitorPublishedAnyWorkspace", mock.Anything, mock.Anything)
 	})
 
 	t.Run("status page lookup fails", func(t *testing.T) {
 		service, mockMonitorService, _, _, _, mockStatusPageService := setupBadgeService()
 
-		mockMonitorService.On("FindByID", ctx, "monitor123").Return(activeMonitor, nil)
-		mockStatusPageService.On("IsMonitorPublished", ctx, "monitor123").Return(false, errors.New("status page error"))
+		mockMonitorService.On("FindByIDAnyWorkspace", ctx, "monitor123").Return(activeMonitor, nil)
+		mockStatusPageService.On("IsMonitorPublishedAnyWorkspace", ctx, "monitor123").Return(false, errors.New("status page error"))
 
 		result, err := service.IsMonitorPublic(ctx, "monitor123")
 
@@ -574,7 +459,7 @@ func TestServiceImpl_GetMonitorBadgeData(t *testing.T) {
 			},
 		}
 
-		mockMonitorService.On("FindByID", ctx, monitorID).Return(monitor, nil)
+		mockMonitorService.On("FindByIDAnyWorkspace", ctx, monitorID).Return(monitor, nil)
 		mockStatsService.On("Summarize", ctx, monitorID, "", ago(24*time.Hour), ago(0)).Return(summary24h, nil).Once()
 		mockStatsService.On("Summarize", ctx, monitorID, "", ago(30*24*time.Hour), ago(0)).Return(summary30d, nil).Once()
 		mockStatsService.On("Summarize", ctx, monitorID, "", ago(90*24*time.Hour), ago(0)).Return(summary90d, nil).Once()
@@ -609,7 +494,7 @@ func TestServiceImpl_GetMonitorBadgeData(t *testing.T) {
 		service, mockMonitorService, _, _, _, _ := setupBadgeService()
 		monitorID := "nonexistent"
 
-		mockMonitorService.On("FindByID", ctx, monitorID).Return(nil, errors.New("not found"))
+		mockMonitorService.On("FindByIDAnyWorkspace", ctx, monitorID).Return(nil, errors.New("not found"))
 
 		result, err := service.GetMonitorBadgeData(ctx, monitorID)
 
@@ -623,7 +508,7 @@ func TestServiceImpl_GetMonitorBadgeData(t *testing.T) {
 		service, mockMonitorService, _, _, _, _ := setupBadgeService()
 		monitorID := "monitor123"
 
-		mockMonitorService.On("FindByID", ctx, monitorID).Return(nil, nil)
+		mockMonitorService.On("FindByIDAnyWorkspace", ctx, monitorID).Return(nil, nil)
 
 		result, err := service.GetMonitorBadgeData(ctx, monitorID)
 
@@ -647,7 +532,7 @@ func TestServiceImpl_GetMonitorBadgeData(t *testing.T) {
 		heartbeats := []*heartbeat.Model{}
 		tlsInfo := &monitor_tls_info.TLSInfo{}
 
-		mockMonitorService.On("FindByID", ctx, monitorID).Return(monitor, nil)
+		mockMonitorService.On("FindByIDAnyWorkspace", ctx, monitorID).Return(monitor, nil)
 		mockStatsService.On("Summarize", ctx, monitorID, "", mock.AnythingOfType("time.Time"), mock.AnythingOfType("time.Time")).Return(&stats.Stats{}, nil).Times(3)
 		mockHeartbeatService.On("FindByMonitorIDPaginated", ctx, monitorID, 1, 0, (*bool)(nil), true).Return(heartbeats, nil)
 		mockTLSInfoService.On("GetTLSInfo", ctx, monitorID).Return(tlsInfo, nil)
@@ -682,7 +567,7 @@ func TestServiceImpl_GetMonitorBadgeData(t *testing.T) {
 		summary := &stats.Stats{}
 		heartbeats := []*heartbeat.Model{}
 
-		mockMonitorService.On("FindByID", ctx, monitorID).Return(monitor, nil)
+		mockMonitorService.On("FindByIDAnyWorkspace", ctx, monitorID).Return(monitor, nil)
 		mockStatsService.On("Summarize", ctx, monitorID, "", mock.AnythingOfType("time.Time"), mock.AnythingOfType("time.Time")).Return(summary, nil).Times(3)
 		mockHeartbeatService.On("FindByMonitorIDPaginated", ctx, monitorID, 1, 0, (*bool)(nil), true).Return(heartbeats, nil)
 		mockTLSInfoService.On("GetTLSInfo", ctx, monitorID).Return(nil, errors.New("TLS error"))
@@ -717,7 +602,7 @@ func TestServiceImpl_GenerateStatusBadge(t *testing.T) {
 
 		options := DefaultBadgeOptions()
 
-		mockMonitorService.On("FindByID", ctx, monitorID).Return(monitor, nil)
+		mockMonitorService.On("FindByIDAnyWorkspace", ctx, monitorID).Return(monitor, nil)
 
 		result, err := service.GenerateStatusBadge(ctx, monitorID, options)
 
@@ -739,7 +624,7 @@ func TestServiceImpl_GenerateStatusBadge(t *testing.T) {
 
 		options := DefaultBadgeOptions()
 
-		mockMonitorService.On("FindByID", ctx, monitorID).Return(monitor, nil)
+		mockMonitorService.On("FindByIDAnyWorkspace", ctx, monitorID).Return(monitor, nil)
 
 		result, err := service.GenerateStatusBadge(ctx, monitorID, options)
 
@@ -761,7 +646,7 @@ func TestServiceImpl_GenerateStatusBadge(t *testing.T) {
 
 		options := DefaultBadgeOptions()
 
-		mockMonitorService.On("FindByID", ctx, monitorID).Return(monitor, nil)
+		mockMonitorService.On("FindByIDAnyWorkspace", ctx, monitorID).Return(monitor, nil)
 
 		result, err := service.GenerateStatusBadge(ctx, monitorID, options)
 
@@ -794,7 +679,7 @@ func TestServiceImpl_GenerateStatusBadge(t *testing.T) {
 			DownColor:   "#ff0000",
 		}
 
-		mockMonitorService.On("FindByID", ctx, monitorID).Return(monitor, nil)
+		mockMonitorService.On("FindByIDAnyWorkspace", ctx, monitorID).Return(monitor, nil)
 
 		result, err := service.GenerateStatusBadge(ctx, monitorID, options)
 
@@ -809,7 +694,7 @@ func TestServiceImpl_GenerateStatusBadge(t *testing.T) {
 
 		options := DefaultBadgeOptions()
 
-		mockMonitorService.On("FindByID", ctx, monitorID).Return(nil, errors.New("not found"))
+		mockMonitorService.On("FindByIDAnyWorkspace", ctx, monitorID).Return(nil, errors.New("not found"))
 
 		result, err := service.GenerateStatusBadge(ctx, monitorID, options)
 
@@ -841,7 +726,7 @@ func TestServiceImpl_GenerateUptimeBadge(t *testing.T) {
 
 		options := DefaultBadgeOptions()
 
-		mockMonitorService.On("FindByID", ctx, monitorID).Return(monitor, nil)
+		mockMonitorService.On("FindByIDAnyWorkspace", ctx, monitorID).Return(monitor, nil)
 		mockStatsService.On("Summarize", ctx, monitorID, "", ago(24*time.Hour), ago(0)).Return(summary, nil)
 
 		result, err := service.GenerateUptimeBadge(ctx, monitorID, duration, options)
@@ -871,7 +756,7 @@ func TestServiceImpl_GenerateUptimeBadge(t *testing.T) {
 
 		options := DefaultBadgeOptions()
 
-		mockMonitorService.On("FindByID", ctx, monitorID).Return(monitor, nil)
+		mockMonitorService.On("FindByIDAnyWorkspace", ctx, monitorID).Return(monitor, nil)
 		mockStatsService.On("Summarize", ctx, monitorID, "", ago(30*24*time.Hour), ago(0)).Return(summary, nil)
 
 		result, err := service.GenerateUptimeBadge(ctx, monitorID, duration, options)
@@ -901,7 +786,7 @@ func TestServiceImpl_GenerateUptimeBadge(t *testing.T) {
 
 		options := DefaultBadgeOptions()
 
-		mockMonitorService.On("FindByID", ctx, monitorID).Return(monitor, nil)
+		mockMonitorService.On("FindByIDAnyWorkspace", ctx, monitorID).Return(monitor, nil)
 		mockStatsService.On("Summarize", ctx, monitorID, "", ago(90*24*time.Hour), ago(0)).Return(summary, nil)
 
 		result, err := service.GenerateUptimeBadge(ctx, monitorID, duration, options)
@@ -926,7 +811,7 @@ func TestServiceImpl_GenerateUptimeBadge(t *testing.T) {
 
 		options := DefaultBadgeOptions()
 
-		mockMonitorService.On("FindByID", ctx, monitorID).Return(monitor, nil)
+		mockMonitorService.On("FindByIDAnyWorkspace", ctx, monitorID).Return(monitor, nil)
 		mockStatsService.On("Summarize", ctx, monitorID, "", ago(24*time.Hour), ago(0)).Return(&stats.Stats{}, nil)
 
 		result, err := service.GenerateUptimeBadge(ctx, monitorID, duration, options)
@@ -944,7 +829,7 @@ func TestServiceImpl_GenerateUptimeBadge(t *testing.T) {
 		options := DefaultBadgeOptions()
 		options.Color = "#123456"
 
-		mockMonitorService.On("FindByID", ctx, monitorID).Return(&shared.Monitor{ID: monitorID, Name: "Test Monitor", Active: true}, nil)
+		mockMonitorService.On("FindByIDAnyWorkspace", ctx, monitorID).Return(&shared.Monitor{ID: monitorID, Name: "Test Monitor", Active: true}, nil)
 		mockStatsService.On("Summarize", ctx, monitorID, "", ago(24*time.Hour), ago(0)).Return(&stats.Stats{}, nil)
 
 		result, err := service.GenerateUptimeBadge(ctx, monitorID, 24, options)
@@ -958,7 +843,7 @@ func TestServiceImpl_GenerateUptimeBadge(t *testing.T) {
 		monitorID := "monitor123"
 		down := 0.0
 
-		mockMonitorService.On("FindByID", ctx, monitorID).Return(&shared.Monitor{ID: monitorID, Name: "Test Monitor", Active: true}, nil)
+		mockMonitorService.On("FindByIDAnyWorkspace", ctx, monitorID).Return(&shared.Monitor{ID: monitorID, Name: "Test Monitor", Active: true}, nil)
 		mockStatsService.On("Summarize", ctx, monitorID, "", ago(24*time.Hour), ago(0)).Return(&stats.Stats{Uptime: &down}, nil)
 
 		result, err := service.GenerateUptimeBadge(ctx, monitorID, 24, DefaultBadgeOptions())
@@ -995,7 +880,7 @@ func TestServiceImpl_GenerateUptimeBadge(t *testing.T) {
 			Suffix:      " Post",
 		}
 
-		mockMonitorService.On("FindByID", ctx, monitorID).Return(monitor, nil)
+		mockMonitorService.On("FindByIDAnyWorkspace", ctx, monitorID).Return(monitor, nil)
 		mockStatsService.On("Summarize", ctx, monitorID, "", ago(24*time.Hour), ago(0)).Return(summary, nil)
 
 		result, err := service.GenerateUptimeBadge(ctx, monitorID, duration, options)
@@ -1029,7 +914,7 @@ func TestServiceImpl_GeneratePingBadge(t *testing.T) {
 
 		options := DefaultBadgeOptions()
 
-		mockMonitorService.On("FindByID", ctx, monitorID).Return(monitor, nil)
+		mockMonitorService.On("FindByIDAnyWorkspace", ctx, monitorID).Return(monitor, nil)
 		mockStatsService.On("Summarize", ctx, monitorID, "", ago(24*time.Hour), ago(0)).Return(summary, nil)
 
 		result, err := service.GeneratePingBadge(ctx, monitorID, duration, options)
@@ -1054,7 +939,7 @@ func TestServiceImpl_GeneratePingBadge(t *testing.T) {
 
 		options := DefaultBadgeOptions()
 
-		mockMonitorService.On("FindByID", ctx, monitorID).Return(monitor, nil)
+		mockMonitorService.On("FindByIDAnyWorkspace", ctx, monitorID).Return(monitor, nil)
 		mockStatsService.On("Summarize", ctx, monitorID, "", ago(24*time.Hour), ago(0)).Return(&stats.Stats{}, nil)
 
 		result, err := service.GeneratePingBadge(ctx, monitorID, duration, options)
@@ -1091,7 +976,7 @@ func TestServiceImpl_GenerateCertExpBadge(t *testing.T) {
 
 		options := DefaultBadgeOptions()
 
-		mockMonitorService.On("FindByID", ctx, monitorID).Return(monitor, nil)
+		mockMonitorService.On("FindByIDAnyWorkspace", ctx, monitorID).Return(monitor, nil)
 		mockTLSInfoService.On("GetTLSInfo", ctx, monitorID).Return(tlsInfo, nil)
 
 		result, err := service.GenerateCertExpBadge(ctx, monitorID, options)
@@ -1124,7 +1009,7 @@ func TestServiceImpl_GenerateCertExpBadge(t *testing.T) {
 
 		options := DefaultBadgeOptions()
 
-		mockMonitorService.On("FindByID", ctx, monitorID).Return(monitor, nil)
+		mockMonitorService.On("FindByIDAnyWorkspace", ctx, monitorID).Return(monitor, nil)
 		mockTLSInfoService.On("GetTLSInfo", ctx, monitorID).Return(tlsInfo, nil)
 
 		result, err := service.GenerateCertExpBadge(ctx, monitorID, options)
@@ -1157,7 +1042,7 @@ func TestServiceImpl_GenerateCertExpBadge(t *testing.T) {
 
 		options := DefaultBadgeOptions()
 
-		mockMonitorService.On("FindByID", ctx, monitorID).Return(monitor, nil)
+		mockMonitorService.On("FindByIDAnyWorkspace", ctx, monitorID).Return(monitor, nil)
 		mockTLSInfoService.On("GetTLSInfo", ctx, monitorID).Return(tlsInfo, nil)
 
 		result, err := service.GenerateCertExpBadge(ctx, monitorID, options)
@@ -1183,7 +1068,7 @@ func TestServiceImpl_GenerateCertExpBadge(t *testing.T) {
 
 		options := DefaultBadgeOptions()
 
-		mockMonitorService.On("FindByID", ctx, monitorID).Return(monitor, nil)
+		mockMonitorService.On("FindByIDAnyWorkspace", ctx, monitorID).Return(monitor, nil)
 		mockTLSInfoService.On("GetTLSInfo", ctx, monitorID).Return(tlsInfo, nil)
 
 		result, err := service.GenerateCertExpBadge(ctx, monitorID, options)
@@ -1220,7 +1105,7 @@ func TestServiceImpl_GenerateResponseBadge(t *testing.T) {
 
 		options := DefaultBadgeOptions()
 
-		mockMonitorService.On("FindByID", ctx, monitorID).Return(monitor, nil)
+		mockMonitorService.On("FindByIDAnyWorkspace", ctx, monitorID).Return(monitor, nil)
 		mockHeartbeatService.On("FindByMonitorIDPaginated", ctx, monitorID, 1, 0, (*bool)(nil), true).Return(heartbeats, nil)
 
 		result, err := service.GenerateResponseBadge(ctx, monitorID, options)
@@ -1246,7 +1131,7 @@ func TestServiceImpl_GenerateResponseBadge(t *testing.T) {
 
 		options := DefaultBadgeOptions()
 
-		mockMonitorService.On("FindByID", ctx, monitorID).Return(monitor, nil)
+		mockMonitorService.On("FindByIDAnyWorkspace", ctx, monitorID).Return(monitor, nil)
 		mockHeartbeatService.On("FindByMonitorIDPaginated", ctx, monitorID, 1, 0, (*bool)(nil), true).Return(heartbeats, nil)
 
 		result, err := service.GenerateResponseBadge(ctx, monitorID, options)
@@ -1285,7 +1170,7 @@ func TestServiceImpl_GenerateResponseBadge(t *testing.T) {
 			Suffix:     " milliseconds",
 		}
 
-		mockMonitorService.On("FindByID", ctx, monitorID).Return(monitor, nil)
+		mockMonitorService.On("FindByIDAnyWorkspace", ctx, monitorID).Return(monitor, nil)
 		mockHeartbeatService.On("FindByMonitorIDPaginated", ctx, monitorID, 1, 0, (*bool)(nil), true).Return(heartbeats, nil)
 
 		result, err := service.GenerateResponseBadge(ctx, monitorID, options)
@@ -1754,7 +1639,7 @@ func TestServiceImpl_GenerateUptimeBadge_ErrorCases(t *testing.T) {
 
 		options := DefaultBadgeOptions()
 
-		mockMonitorService.On("FindByID", ctx, monitorID).Return(nil, errors.New("not found"))
+		mockMonitorService.On("FindByIDAnyWorkspace", ctx, monitorID).Return(nil, errors.New("not found"))
 
 		result, err := service.GenerateUptimeBadge(ctx, monitorID, duration, options)
 
@@ -1777,7 +1662,7 @@ func TestServiceImpl_GenerateUptimeBadge_ErrorCases(t *testing.T) {
 
 		options := DefaultBadgeOptions()
 
-		mockMonitorService.On("FindByID", ctx, monitorID).Return(monitor, nil)
+		mockMonitorService.On("FindByIDAnyWorkspace", ctx, monitorID).Return(monitor, nil)
 		mockStatsService.On("Summarize", ctx, monitorID, "", ago(24*time.Hour), ago(0)).Return(nil, errors.New("stats error"))
 
 		result, err := service.GenerateUptimeBadge(ctx, monitorID, duration, options)
@@ -1799,7 +1684,7 @@ func TestServiceImpl_GeneratePingBadge_ErrorCases(t *testing.T) {
 
 		options := DefaultBadgeOptions()
 
-		mockMonitorService.On("FindByID", ctx, monitorID).Return(nil, errors.New("not found"))
+		mockMonitorService.On("FindByIDAnyWorkspace", ctx, monitorID).Return(nil, errors.New("not found"))
 
 		result, err := service.GeneratePingBadge(ctx, monitorID, duration, options)
 
@@ -1818,7 +1703,7 @@ func TestServiceImpl_GenerateCertExpBadge_ErrorCases(t *testing.T) {
 
 		options := DefaultBadgeOptions()
 
-		mockMonitorService.On("FindByID", ctx, monitorID).Return(nil, errors.New("not found"))
+		mockMonitorService.On("FindByIDAnyWorkspace", ctx, monitorID).Return(nil, errors.New("not found"))
 
 		result, err := service.GenerateCertExpBadge(ctx, monitorID, options)
 
@@ -1840,7 +1725,7 @@ func TestServiceImpl_GenerateCertExpBadge_ErrorCases(t *testing.T) {
 
 		options := DefaultBadgeOptions()
 
-		mockMonitorService.On("FindByID", ctx, monitorID).Return(monitor, nil)
+		mockMonitorService.On("FindByIDAnyWorkspace", ctx, monitorID).Return(monitor, nil)
 		mockTLSInfoService.On("GetTLSInfo", ctx, monitorID).Return(nil, errors.New("TLS error"))
 
 		result, err := service.GenerateCertExpBadge(ctx, monitorID, options)
@@ -1861,7 +1746,7 @@ func TestServiceImpl_GenerateResponseBadge_ErrorCases(t *testing.T) {
 
 		options := DefaultBadgeOptions()
 
-		mockMonitorService.On("FindByID", ctx, monitorID).Return(nil, errors.New("not found"))
+		mockMonitorService.On("FindByIDAnyWorkspace", ctx, monitorID).Return(nil, errors.New("not found"))
 
 		result, err := service.GenerateResponseBadge(ctx, monitorID, options)
 
@@ -1883,7 +1768,7 @@ func TestServiceImpl_GenerateResponseBadge_ErrorCases(t *testing.T) {
 
 		options := DefaultBadgeOptions()
 
-		mockMonitorService.On("FindByID", ctx, monitorID).Return(monitor, nil)
+		mockMonitorService.On("FindByIDAnyWorkspace", ctx, monitorID).Return(monitor, nil)
 		mockHeartbeatService.On("FindByMonitorIDPaginated", ctx, monitorID, 1, 0, (*bool)(nil), true).Return([]*heartbeat.Model{}, errors.New("heartbeat error"))
 
 		result, err := service.GenerateResponseBadge(ctx, monitorID, options)

@@ -2,6 +2,39 @@
 
 import type { Options as ClientOptions, TDataShape, Client } from "./client";
 import type {
+  GetAdminSettingsData,
+  GetAdminSettingsResponses,
+  GetAdminSettingsErrors,
+  PutAdminSettingsData,
+  PutAdminSettingsResponses,
+  PutAdminSettingsErrors,
+  PostAdminSettingsTestEmailData,
+  PostAdminSettingsTestEmailResponses,
+  PostAdminSettingsTestEmailErrors,
+  GetAdminUsersData,
+  GetAdminUsersResponses,
+  GetAdminUsersErrors,
+  DeleteAdminUsersByIdData,
+  DeleteAdminUsersByIdResponses,
+  DeleteAdminUsersByIdErrors,
+  PatchAdminUsersByIdData,
+  PatchAdminUsersByIdResponses,
+  PatchAdminUsersByIdErrors,
+  PostAdminUsersByIdDisable2FaData,
+  PostAdminUsersByIdDisable2FaResponses,
+  PostAdminUsersByIdDisable2FaErrors,
+  PostAdminUsersByIdResetLinkData,
+  PostAdminUsersByIdResetLinkResponses,
+  PostAdminUsersByIdResetLinkErrors,
+  GetAdminWorkspacesData,
+  GetAdminWorkspacesResponses,
+  GetAdminWorkspacesErrors,
+  DeleteAdminWorkspacesByIdData,
+  DeleteAdminWorkspacesByIdResponses,
+  DeleteAdminWorkspacesByIdErrors,
+  PatchAdminWorkspacesByIdData,
+  PatchAdminWorkspacesByIdResponses,
+  PatchAdminWorkspacesByIdErrors,
   GetApiKeysData,
   GetApiKeysResponses,
   GetApiKeysErrors,
@@ -28,6 +61,12 @@ import type {
   PostAuth2FaVerifyData,
   PostAuth2FaVerifyResponses,
   PostAuth2FaVerifyErrors,
+  GetAuthConfigData,
+  GetAuthConfigResponses,
+  GetAuthConfigErrors,
+  PostAuthForgotPasswordData,
+  PostAuthForgotPasswordResponses,
+  PostAuthForgotPasswordErrors,
   PostAuthLoginData,
   PostAuthLoginResponses,
   PostAuthLoginErrors,
@@ -40,6 +79,15 @@ import type {
   PostAuthRegisterData,
   PostAuthRegisterResponses,
   PostAuthRegisterErrors,
+  PostAuthResetPasswordData,
+  PostAuthResetPasswordResponses,
+  PostAuthResetPasswordErrors,
+  PostAuthVerifyEmailData,
+  PostAuthVerifyEmailResponses,
+  PostAuthVerifyEmailErrors,
+  PostAuthVerifyEmailResendData,
+  PostAuthVerifyEmailResendResponses,
+  PostAuthVerifyEmailResendErrors,
   GetBadgeByMonitorIdCertExpData,
   GetBadgeByMonitorIdCertExpResponses,
   GetBadgeByMonitorIdCertExpErrors,
@@ -69,6 +117,12 @@ import type {
   PutErrorReportingErrors,
   GetHealthData,
   GetHealthResponses,
+  GetInvitesByTokenData,
+  GetInvitesByTokenResponses,
+  GetInvitesByTokenErrors,
+  PostInvitesByTokenAcceptData,
+  PostInvitesByTokenAcceptResponses,
+  PostInvitesByTokenAcceptErrors,
   GetMaintenancesData,
   GetMaintenancesResponses,
   GetMaintenancesErrors,
@@ -93,6 +147,9 @@ import type {
   PatchMaintenancesByIdResumeData,
   PatchMaintenancesByIdResumeResponses,
   PatchMaintenancesByIdResumeErrors,
+  GetMeData,
+  GetMeResponses,
+  GetMeErrors,
   GetMonitorsData,
   GetMonitorsResponses,
   GetMonitorsErrors,
@@ -263,6 +320,36 @@ import type {
   PostTelemetryNoticeErrors,
   GetVersionData,
   GetVersionResponses,
+  PatchWorkspaceData,
+  PatchWorkspaceResponses,
+  PatchWorkspaceErrors,
+  GetWorkspaceInvitesData,
+  GetWorkspaceInvitesResponses,
+  GetWorkspaceInvitesErrors,
+  PostWorkspaceInvitesData,
+  PostWorkspaceInvitesResponses,
+  PostWorkspaceInvitesErrors,
+  DeleteWorkspaceInvitesByIdData,
+  DeleteWorkspaceInvitesByIdResponses,
+  DeleteWorkspaceInvitesByIdErrors,
+  PostWorkspaceLeaveData,
+  PostWorkspaceLeaveResponses,
+  PostWorkspaceLeaveErrors,
+  GetWorkspaceLimitsData,
+  GetWorkspaceLimitsResponses,
+  GetWorkspaceLimitsErrors,
+  GetWorkspaceMembersData,
+  GetWorkspaceMembersResponses,
+  GetWorkspaceMembersErrors,
+  DeleteWorkspaceMembersByUserIdData,
+  DeleteWorkspaceMembersByUserIdResponses,
+  DeleteWorkspaceMembersByUserIdErrors,
+  PatchWorkspaceMembersByUserIdData,
+  PatchWorkspaceMembersByUserIdResponses,
+  PatchWorkspaceMembersByUserIdErrors,
+  PostWorkspacesData,
+  PostWorkspacesResponses,
+  PostWorkspacesErrors,
   GetHealthRootData,
   GetHealthRootResponses,
   ProbeGetAssignmentsData,
@@ -295,6 +382,290 @@ export type Options<
    * used to access values that aren't defined as part of the SDK function.
    */
   meta?: Record<string, unknown>;
+};
+
+/**
+ * Get the install settings
+ * Only an instance admin may do this: any other user and any API key get 403. The signup mode (SIGNUP_MODE), the sender of account emails (ACCOUNT_SMTP_*), the public URL (CLIENT_URL) and the default limits of a workspace (workspaceLimits, WORKSPACE_LIMIT_*), each with its value, where the value comes from (environment, saved or default) and whether it is locked. A setting whose environment variable is set takes the environment's value and is locked: it can't be changed here. The SMTP password is never returned, only whether one is set. accountEmails is whether the install has a sender now. A default limit is the limit of every workspace without limits of its own; its value is null for none.
+ */
+export const getAdminSettings = <ThrowOnError extends boolean = false>(
+  options?: Options<GetAdminSettingsData, ThrowOnError>
+) => {
+  return (options?.client ?? _heyApiClient).get<
+    GetAdminSettingsResponses,
+    GetAdminSettingsErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/api/v1/admin/settings",
+    ...options,
+  });
+};
+
+/**
+ * Change the install settings
+ * Only an instance admin may do this. A partial change: a field left out stays as it is, and an empty string (a port of 0) clears the saved value, so that the setting falls back to its default. The password changes only when it is sent. In workspaceLimits a number saves a default limit, null clears it (no limit) and a limit left out stays: each is a whole number of 1 or more, min_check_interval at least MIN_CHECK_INTERVAL and retention_days at most 36500. A setting the server's environment sets is refused with 409 and the code SETTING_LOCKED, naming it in field. A value a setting can't hold is 400 INVALID_SETTING with the field. Open signup without a sender for account emails is 400 OPEN_SIGNUP_NEEDS_SENDER, and removing the sender while signup is open is 400 SENDER_NEEDED_FOR_OPEN_SIGNUP. A refused change saves nothing. A saved change takes effect at once on this server, and on the other api replicas within a few seconds, a default limit as well. The answer is the settings as GET shows them.
+ */
+export const putAdminSettings = <ThrowOnError extends boolean = false>(
+  options: Options<PutAdminSettingsData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).put<
+    PutAdminSettingsResponses,
+    PutAdminSettingsErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/api/v1/admin/settings",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
+  });
+};
+
+/**
+ * Send a test email
+ * Only an instance admin may do this. Sends a fixed test message to the address through the install's sender for account emails as it is now, and answers once the SMTP server took it. Without a sender it answers 400 with the code NO_SENDER. A send that fails answers 502 with the SMTP reply code or the kind of failure, never the server's text.
+ */
+export const postAdminSettingsTestEmail = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<PostAdminSettingsTestEmailData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).post<
+    PostAdminSettingsTestEmailResponses,
+    PostAdminSettingsTestEmailErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/api/v1/admin/settings/test-email",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
+  });
+};
+
+/**
+ * List the users of the install
+ * Only an instance admin may do this: any other user and any API key get 403. Every user with their email, when they signed up and last signed in, whether their email is verified, whether they are an instance admin, whether they are disabled, whether they have 2FA on, and their workspaces with their role in each. q finds the users whose email contains it, ignoring case. The oldest user is first.
+ */
+export const getAdminUsers = <ThrowOnError extends boolean = false>(
+  options?: Options<GetAdminUsersData, ThrowOnError>
+) => {
+  return (options?.client ?? _heyApiClient).get<
+    GetAdminUsersResponses,
+    GetAdminUsersErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/api/v1/admin/users",
+    ...options,
+  });
+};
+
+/**
+ * Delete a user
+ * Only an instance admin may do this. The user's memberships go with them. It is refused (409) for yourself, for the last instance admin, and while the user is the last owner of a workspace: that answer is {"error":{"code":"LAST_OWNER","workspaces":[{"id","name"}]}}, listing the workspaces whose only owner the user is. The other refusals answer with a message.
+ */
+export const deleteAdminUsersById = <ThrowOnError extends boolean = false>(
+  options: Options<DeleteAdminUsersByIdData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).delete<
+    DeleteAdminUsersByIdResponses,
+    DeleteAdminUsersByIdErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/api/v1/admin/users/{id}",
+    ...options,
+  });
+};
+
+/**
+ * Change a user
+ * Only an instance admin may do this. instanceAdmin gives or takes the instance admin flag: the last instance admin can't lose it (409). active false disables the user: they can't sign in, their sessions end at once and their workspaces keep running; an admin can't disable themselves (409). active true enables them again. A field left out stays as it is.
+ */
+export const patchAdminUsersById = <ThrowOnError extends boolean = false>(
+  options: Options<PatchAdminUsersByIdData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).patch<
+    PatchAdminUsersByIdResponses,
+    PatchAdminUsersByIdErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/api/v1/admin/users/{id}",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
+  });
+};
+
+/**
+ * Turn off a user's 2FA
+ * Only an instance admin may do this. The user signs in with their password alone, and can set 2FA up again.
+ */
+export const postAdminUsersByIdDisable2Fa = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<PostAdminUsersByIdDisable2FaData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).post<
+    PostAdminUsersByIdDisable2FaResponses,
+    PostAdminUsersByIdDisable2FaErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/api/v1/admin/users/{id}/disable-2fa",
+    ...options,
+  });
+};
+
+/**
+ * Make a password reset link for a user
+ * Only an instance admin may do this. The answer holds a single-use link to the web app's reset page, once: copy it to the user. It works without a sender for account emails, expires in an hour, and ends all the user's sessions when it is used.
+ */
+export const postAdminUsersByIdResetLink = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<PostAdminUsersByIdResetLinkData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).post<
+    PostAdminUsersByIdResetLinkResponses,
+    PostAdminUsersByIdResetLinkErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/api/v1/admin/users/{id}/reset-link",
+    ...options,
+  });
+};
+
+/**
+ * List the workspaces of the install
+ * Only an instance admin may do this: any other user and any API key get 403. Every workspace with its name, when it was created, its owners' emails, how many members it has, how many monitors are active and paused, how many status pages and custom domains it has, and whether and why it is suspended ("admin" when an instance admin suspended it, "unverified" when it waits for its owner to verify their email address) and since when, and its limits: each value, null for none, and where they come from (its own, the install's defaults or none; owned_workspaces is always the install's). Counts and metadata only: never a monitor's target, a channel or anything else inside a workspace. q finds the workspaces whose name or whose owner's email contains it, ignoring case. The oldest workspace is first.
+ */
+export const getAdminWorkspaces = <ThrowOnError extends boolean = false>(
+  options?: Options<GetAdminWorkspacesData, ThrowOnError>
+) => {
+  return (options?.client ?? _heyApiClient).get<
+    GetAdminWorkspacesResponses,
+    GetAdminWorkspacesErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/api/v1/admin/workspaces",
+    ...options,
+  });
+};
+
+/**
+ * Delete a workspace
+ * Only an instance admin may do this. The workspace and everything in it are deleted for good: its monitors, with their heartbeats and stats, its notification channels, proxies, tags, maintenance windows, status pages and custom domains, its API keys, invites and settings. Its monitors stop at once, its public status pages and badges are gone, and its members' open sockets leave its rooms. Its members keep their accounts and their other workspaces; one who had only this workspace is left with none. An admin may delete a workspace they are a member of. Deleting a workspace that does not exist answers 404.
+ */
+export const deleteAdminWorkspacesById = <ThrowOnError extends boolean = false>(
+  options: Options<DeleteAdminWorkspacesByIdData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).delete<
+    DeleteAdminWorkspacesByIdResponses,
+    DeleteAdminWorkspacesByIdErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/api/v1/admin/workspaces/{id}",
+    ...options,
+  });
+};
+
+/**
+ * Suspend or resume a workspace, or set its limits
+ * Only an instance admin may do this. suspended true suspends the workspace: its monitors stop running, its public status pages and badges answer 503 with the code STATUS_PAGE_UNAVAILABLE, and its members see that it is suspended. Nothing is deleted. suspended false resumes it: the monitors keep the state they had and run again, unless the workspace still waits for its owner to verify their email address, which is a hold of its own that resuming leaves. Suspending a suspended workspace, and resuming one that is not held by an admin, change nothing. limits gives the workspace limits of its own, which replace the install's defaults (Admin → Settings, or WORKSPACE_LIMIT_*) whole: a limit left out, or 0, is none, so {} is a workspace with no limits at all; a value below 0 is 400. clearLimits true removes them, and the install's defaults apply again. A limit that is lowered pauses and deletes nothing. Each set and clear is logged. Name at least one of suspended, limits and clearLimits, and not both limits and clearLimits (400). The answer is the workspace as the list shows it.
+ */
+export const patchAdminWorkspacesById = <ThrowOnError extends boolean = false>(
+  options: Options<PatchAdminWorkspacesByIdData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).patch<
+    PatchAdminWorkspacesByIdResponses,
+    PatchAdminWorkspacesByIdErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/api/v1/admin/workspaces/{id}",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
+  });
 };
 
 /**
@@ -518,6 +889,46 @@ export const postAuth2FaVerify = <ThrowOnError extends boolean = false>(
 };
 
 /**
+ * Get the install's account email setting
+ * Whether the install sends account emails (a password reset link, an email verification link and emailed invites): accountEmails is true when ACCOUNT_SMTP_HOST is set. When it is false the app offers none of them. signupMode is SIGNUP_MODE (invite or open), signupOpen is whether to offer a sign-up form (always in open mode, and in invite mode while the install has no user), firstSignup is whether the install has no user yet in either mode (the next signup becomes its instance admin), and turnstileSiteKey is the public key of the Turnstile widget that open signup shows, or null.
+ */
+export const getAuthConfig = <ThrowOnError extends boolean = false>(
+  options?: Options<GetAuthConfigData, ThrowOnError>
+) => {
+  return (options?.client ?? _heyApiClient).get<
+    GetAuthConfigResponses,
+    GetAuthConfigErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    url: "/api/v1/auth/config",
+    ...options,
+  });
+};
+
+/**
+ * Ask for a password reset link
+ * Emails a single-use link that resets the password and expires in one hour, if an account has the email. The answer is 202 with the same body whether it does or not, so it does not tell which addresses have accounts. At most 5 emails per hour go to one address (the request is answered the same and sends nothing past that), and a client address that asks more than 20 times an hour gets 429. 404 when the install sends no account emails.
+ */
+export const postAuthForgotPassword = <ThrowOnError extends boolean = false>(
+  options: Options<PostAuthForgotPasswordData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).post<
+    PostAuthForgotPasswordResponses,
+    PostAuthForgotPasswordErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    url: "/api/v1/auth/forgot-password",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
+  });
+};
+
+/**
  * Login admin
  */
 export const postAuthLogin = <ThrowOnError extends boolean = false>(
@@ -567,6 +978,7 @@ export const putAuthPassword = <ThrowOnError extends boolean = false>(
 
 /**
  * Refresh access token
+ * Refuses a refresh token issued before the user's last password change or password reset.
  */
 export const postAuthRefresh = <ThrowOnError extends boolean = false>(
   options: Options<PostAuthRefreshData, ThrowOnError>
@@ -588,6 +1000,7 @@ export const postAuthRefresh = <ThrowOnError extends boolean = false>(
 
 /**
  * Register new admin
+ * Who may register depends on SIGNUP_MODE. In invite mode (the default) it creates the install's first user, who is its instance admin and the owner of its first workspace, and refuses once the install has a user (400). In open mode anyone may register: it creates the user and a workspace of their own, "My workspace", that they own. Only the install's very first user is an instance admin. The new workspace is suspended until the user verifies their email address (GET /me says so), and the verification email is sent. In open mode a client address may register 5 times an hour (429), an email that has an account is refused (409), and when the install uses Cloudflare Turnstile the body needs turnstileToken, which the server checks: a missing, refused or unchecked answer is 400. With inviteToken, the token of an invite link, it creates the user the invite names instead: they join the inviting workspace with the invite's role, get no workspace of their own and no instance admin flag. The email must be the invited one (403), and the invite must exist (404) and not be used, expired or revoked (410). An email that has an account already is refused (409): sign in and accept the invite. A workspace that has as many members as its limit refuses it (403 LIMIT_REACHED, limit members), and no account is made.
  */
 export const postAuthRegister = <ThrowOnError extends boolean = false>(
   options: Options<PostAuthRegisterData, ThrowOnError>
@@ -604,6 +1017,74 @@ export const postAuthRegister = <ThrowOnError extends boolean = false>(
       "Content-Type": "application/json",
       ...options.headers,
     },
+  });
+};
+
+/**
+ * Reset the password with a reset link's token
+ * Sets the new password (the signup rules apply), marks the token used and ends every session of the user: refresh tokens and access tokens issued before are refused. The user's other unused reset links stop working. A token that is unknown, used or expired answers 400. At most 20 requests per hour from one client address; more answer 429.
+ */
+export const postAuthResetPassword = <ThrowOnError extends boolean = false>(
+  options: Options<PostAuthResetPasswordData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).post<
+    PostAuthResetPasswordResponses,
+    PostAuthResetPasswordErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    url: "/api/v1/auth/reset-password",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
+  });
+};
+
+/**
+ * Verify an email address with a verification link's token
+ * Records that the account's address was verified and marks the token used. A token that is unknown, used or expired answers 400. At most 20 requests per hour from one client address; more answer 429.
+ */
+export const postAuthVerifyEmail = <ThrowOnError extends boolean = false>(
+  options: Options<PostAuthVerifyEmailData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).post<
+    PostAuthVerifyEmailResponses,
+    PostAuthVerifyEmailErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    url: "/api/v1/auth/verify-email",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
+  });
+};
+
+/**
+ * Send the verification link again
+ * Emails the signed-in user a new verification link; the earlier ones stop working. 409 when the address is verified already, 404 when the install sends no account emails, and 429 past 5 requests per hour for the address or 20 per client address.
+ */
+export const postAuthVerifyEmailResend = <ThrowOnError extends boolean = false>(
+  options?: Options<PostAuthVerifyEmailResendData, ThrowOnError>
+) => {
+  return (options?.client ?? _heyApiClient).post<
+    PostAuthVerifyEmailResendResponses,
+    PostAuthVerifyEmailResendErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/api/v1/auth/verify-email/resend",
+    ...options,
   });
 };
 
@@ -803,6 +1284,48 @@ export const getHealth = <ThrowOnError extends boolean = false>(
   >({
     responseType: "json",
     url: "/api/v1/health",
+    ...options,
+  });
+};
+
+/**
+ * Look at an invite
+ * What the holder of an invite link may see: the workspace's name, the invited email, the role and whether the invite can still be used. It needs no sign-in.
+ */
+export const getInvitesByToken = <ThrowOnError extends boolean = false>(
+  options: Options<GetInvitesByTokenData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).get<
+    GetInvitesByTokenResponses,
+    GetInvitesByTokenErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    url: "/api/v1/invites/{token}",
+    ...options,
+  });
+};
+
+/**
+ * Accept an invite
+ * A signed-in user whose account email is the invited one joins the workspace with the invite's role. A used, expired or revoked invite is refused (410), and so is one for another email (403). Someone without an account signs up through the invite instead (POST /auth/register with inviteToken). An invite counted against the members limit when it was made can be accepted; a workspace that has as many members as its limit refuses it (403 LIMIT_REACHED, limit members).
+ */
+export const postInvitesByTokenAccept = <ThrowOnError extends boolean = false>(
+  options: Options<PostInvitesByTokenAcceptData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).post<
+    PostInvitesByTokenAcceptResponses,
+    PostInvitesByTokenAcceptErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/api/v1/invites/{token}/accept",
     ...options,
   });
 };
@@ -1035,6 +1558,30 @@ export const patchMaintenancesByIdResume = <
       },
     ],
     url: "/api/v1/maintenances/{id}/resume",
+    ...options,
+  });
+};
+
+/**
+ * Get the signed-in user and their workspaces
+ * The user, the workspaces they are a member of with their role in each, and the default workspace: the one they joined first, which a request without X-Workspace-ID runs in. A user in no workspace gets an empty list and a null default.
+ */
+export const getMe = <ThrowOnError extends boolean = false>(
+  options?: Options<GetMeData, ThrowOnError>
+) => {
+  return (options?.client ?? _heyApiClient).get<
+    GetMeResponses,
+    GetMeErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/api/v1/me",
     ...options,
   });
 };
@@ -1596,6 +2143,7 @@ export const putNotificationChannelsById = <
 
 /**
  * Get probes
+ * Every probe, the local probe first. A user who is not an instance admin, and an API key, see each probe with its name, location, status and supported monitor types, but its instances come with an empty hostname, OS, architecture and version and a protocol version of 0, and notification_ids is an empty list.
  */
 export const getProbes = <ThrowOnError extends boolean = false>(
   options?: Options<GetProbesData, ThrowOnError>
@@ -1623,6 +2171,7 @@ export const getProbes = <ThrowOnError extends boolean = false>(
 
 /**
  * Create probe
+ * Only an instance admin may do this: any other user and any API key get 403.
  */
 export const postProbes = <ThrowOnError extends boolean = false>(
   options: Options<PostProbesData, ThrowOnError>
@@ -1637,10 +2186,6 @@ export const postProbes = <ThrowOnError extends boolean = false>(
       {
         scheme: "bearer",
         type: "http",
-      },
-      {
-        name: "X-API-Key",
-        type: "apiKey",
       },
     ],
     url: "/api/v1/probes",
@@ -1682,6 +2227,7 @@ export const getProbesAvailability = <ThrowOnError extends boolean = false>(
 
 /**
  * Delete probe
+ * Only an instance admin may do this: any other user and any API key get 403.
  */
 export const deleteProbesById = <ThrowOnError extends boolean = false>(
   options: Options<DeleteProbesByIdData, ThrowOnError>
@@ -1696,10 +2242,6 @@ export const deleteProbesById = <ThrowOnError extends boolean = false>(
         scheme: "bearer",
         type: "http",
       },
-      {
-        name: "X-API-Key",
-        type: "apiKey",
-      },
     ],
     url: "/api/v1/probes/{id}",
     ...options,
@@ -1708,6 +2250,7 @@ export const deleteProbesById = <ThrowOnError extends boolean = false>(
 
 /**
  * Get probe
+ * A user who is not an instance admin, and an API key, see the probe's name, location, status and supported monitor types, but its instances come with an empty hostname, OS, architecture and version and a protocol version of 0, and notification_ids is an empty list.
  */
 export const getProbesById = <ThrowOnError extends boolean = false>(
   options: Options<GetProbesByIdData, ThrowOnError>
@@ -1735,6 +2278,7 @@ export const getProbesById = <ThrowOnError extends boolean = false>(
 
 /**
  * Update probe
+ * Only an instance admin may do this: any other user and any API key get 403. A field left out stays as it is. is_default marks the probe as one that a monitor created without probe_ids runs on.
  */
 export const putProbesById = <ThrowOnError extends boolean = false>(
   options: Options<PutProbesByIdData, ThrowOnError>
@@ -1750,10 +2294,6 @@ export const putProbesById = <ThrowOnError extends boolean = false>(
         scheme: "bearer",
         type: "http",
       },
-      {
-        name: "X-API-Key",
-        type: "apiKey",
-      },
     ],
     url: "/api/v1/probes/{id}",
     ...options,
@@ -1766,7 +2306,7 @@ export const putProbesById = <ThrowOnError extends boolean = false>(
 
 /**
  * Assign all monitors to a probe
- * Adds the probe to every monitor it can run now: push monitors are left out, and so are the types the probe's online instances don't run. A probe with no instance yet is assigned every monitor by its first hello instead, and the answer says it is pending.
+ * Only an instance admin may do this: any other user and any API key get 403. Adds the probe to every monitor it can run now: push monitors are left out, and so are the types the probe's online instances don't run. A probe with no instance yet is assigned every monitor by its first hello instead, and the answer says it is pending.
  */
 export const postProbesByIdAssignAllMonitors = <
   ThrowOnError extends boolean = false,
@@ -1784,10 +2324,6 @@ export const postProbesByIdAssignAllMonitors = <
         scheme: "bearer",
         type: "http",
       },
-      {
-        name: "X-API-Key",
-        type: "apiKey",
-      },
     ],
     url: "/api/v1/probes/{id}/assign-all-monitors",
     ...options,
@@ -1796,7 +2332,7 @@ export const postProbesByIdAssignAllMonitors = <
 
 /**
  * Get the availability of a probe
- * A probe's online and offline periods over the range and its uptime, with its instances and when each was connected over the last 24 hours.
+ * A probe's online and offline periods over the range and its uptime, with its instances and when each was connected over the last 24 hours. A user who is not an instance admin, and an API key, see each instance with an empty hostname and version.
  */
 export const getProbesByIdAvailability = <ThrowOnError extends boolean = false>(
   options: Options<GetProbesByIdAvailabilityData, ThrowOnError>
@@ -1824,6 +2360,7 @@ export const getProbesByIdAvailability = <ThrowOnError extends boolean = false>(
 
 /**
  * Rotate probe token
+ * Only an instance admin may do this: any other user and any API key get 403.
  */
 export const postProbesByIdRotateToken = <ThrowOnError extends boolean = false>(
   options: Options<PostProbesByIdRotateTokenData, ThrowOnError>
@@ -1838,10 +2375,6 @@ export const postProbesByIdRotateToken = <ThrowOnError extends boolean = false>(
       {
         scheme: "bearer",
         type: "http",
-      },
-      {
-        name: "X-API-Key",
-        type: "apiKey",
       },
     ],
     url: "/api/v1/probes/{id}/rotate-token",
@@ -2025,6 +2558,7 @@ export const putProxiesById = <ThrowOnError extends boolean = false>(
 
 /**
  * Send a heartbeat to a push monitor
+ * Stores the push as the monitor's heartbeat. 404 when no monitor has the token, 400 when the monitor is paused, and 403 when the monitor's workspace is suspended (a new account's workspace is, until its owner verifies their email address, and an instance admin can suspend one), when its type is turned off on this install (DISABLED_MONITOR_TYPES), or when it is past its workspace's limit of active monitors: the push is not stored and sends no notification.
  */
 export const getPushByToken = <ThrowOnError extends boolean = false>(
   options: Options<GetPushByTokenData, ThrowOnError>
@@ -2042,6 +2576,7 @@ export const getPushByToken = <ThrowOnError extends boolean = false>(
 
 /**
  * Delete setting by key
+ * Admins and owners of the request's workspace can delete it; a member gets 403.
  */
 export const deleteSettingsKeyByKey = <ThrowOnError extends boolean = false>(
   options: Options<DeleteSettingsKeyByKeyData, ThrowOnError>
@@ -2069,6 +2604,7 @@ export const deleteSettingsKeyByKey = <ThrowOnError extends boolean = false>(
 
 /**
  * Get setting by key
+ * A setting of the request's workspace; any member can read it.
  */
 export const getSettingsKeyByKey = <ThrowOnError extends boolean = false>(
   options: Options<GetSettingsKeyByKeyData, ThrowOnError>
@@ -2096,7 +2632,7 @@ export const getSettingsKeyByKey = <ThrowOnError extends boolean = false>(
 
 /**
  * Set setting by key
- * Only KEEP_DATA_PERIOD_DAYS can be set, with type int and a whole number of days from 1 to 36500. Every other key returns 404.
+ * Only KEEP_DATA_PERIOD_DAYS can be set, with type int and a whole number of days from 1 to 36500. Every other key returns 404. It is a setting of the request's workspace: members read it, admins and owners change it, and a member's change returns 403. A period longer than the workspace's retention_days limit is refused (403 LIMIT_REACHED, limit retention_days); one at the limit is saved.
  */
 export const putSettingsKeyByKey = <ThrowOnError extends boolean = false>(
   options: Options<PutSettingsKeyByKeyData, ThrowOnError>
@@ -2186,6 +2722,7 @@ export const postStatusPages = <ThrowOnError extends boolean = false>(
 
 /**
  * Get a status page by domain name
+ * Answers 503 with the code STATUS_PAGE_UNAVAILABLE and the message "This status page is unavailable" when the page is published and its workspace is suspended, whether by an instance admin or while it waits for its owner to verify their email address. It does not say which, and a page that is not published is still 404.
  */
 export const getStatusPagesDomainByDomain = <
   ThrowOnError extends boolean = false,
@@ -2205,6 +2742,7 @@ export const getStatusPagesDomainByDomain = <
 
 /**
  * Get a status page by slug
+ * Answers 503 with the code STATUS_PAGE_UNAVAILABLE and the message "This status page is unavailable" when the page is published and its workspace is suspended, whether by an instance admin or while it waits for its owner to verify their email address. It does not say which, and a page that is not published is still 404.
  */
 export const getStatusPagesSlugBySlug = <ThrowOnError extends boolean = false>(
   options: Options<GetStatusPagesSlugBySlugData, ThrowOnError>
@@ -2222,6 +2760,7 @@ export const getStatusPagesSlugBySlug = <ThrowOnError extends boolean = false>(
 
 /**
  * Get monitors for a status page by slug with heartbeats and uptime
+ * Answers 503 with the code STATUS_PAGE_UNAVAILABLE and the message "This status page is unavailable" when the page is published and its workspace is suspended, whether by an instance admin or while it waits for its owner to verify their email address. It does not say which, and a page that is not published is still 404.
  */
 export const getStatusPagesSlugBySlugMonitors = <
   ThrowOnError extends boolean = false,
@@ -2241,6 +2780,7 @@ export const getStatusPagesSlugBySlugMonitors = <
 
 /**
  * Get monitors for a status page by slug for homepage
+ * Answers 503 with the code STATUS_PAGE_UNAVAILABLE and the message "This status page is unavailable" when the page is published and its workspace is suspended, whether by an instance admin or while it waits for its owner to verify their email address. It does not say which, and a page that is not published is still 404.
  */
 export const getStatusPagesSlugBySlugMonitorsHomepage = <
   ThrowOnError extends boolean = false,
@@ -2611,6 +3151,297 @@ export const getVersion = <ThrowOnError extends boolean = false>(
     responseType: "json",
     url: "/api/v1/version",
     ...options,
+  });
+};
+
+/**
+ * Rename the workspace
+ * An admin or owner (or an API key) renames the workspace the request runs in. The name is trimmed and must be 1 to 255 characters. A member is refused (403).
+ */
+export const patchWorkspace = <ThrowOnError extends boolean = false>(
+  options: Options<PatchWorkspaceData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).patch<
+    PatchWorkspaceResponses,
+    PatchWorkspaceErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+      {
+        name: "X-API-Key",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/v1/workspace",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
+  });
+};
+
+/**
+ * List the invites of the workspace
+ * The invites that were neither used nor revoked. An admin or owner sees them. They hold no token: that is shown once, when the invite is made.
+ */
+export const getWorkspaceInvites = <ThrowOnError extends boolean = false>(
+  options?: Options<GetWorkspaceInvitesData, ThrowOnError>
+) => {
+  return (options?.client ?? _heyApiClient).get<
+    GetWorkspaceInvitesResponses,
+    GetWorkspaceInvitesErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+      {
+        name: "X-API-Key",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/v1/workspace/invites",
+    ...options,
+  });
+};
+
+/**
+ * Invite someone to the workspace
+ * An admin or owner invites an email with a role; only an owner invites an owner. The answer holds the invite's link, once. It works once, for 7 days, for the account with that email. The link is also emailed to the invited address when the install sends account emails (ACCOUNT_SMTP_HOST is set); otherwise copy it to the person you invite. An earlier invite for the same email is revoked. Each invite can send an email, so a caller (a user, or the API keys of a workspace together) makes at most 20 an hour and one address gets at most 3 an hour; past either the answer is 429. A caller that may not invite is refused before either limit counts. A workspace whose members and pending invites are as many as its members limit is refused (403 LIMIT_REACHED, limit members); inviting a pending address again replaces its invite and takes no more room.
+ */
+export const postWorkspaceInvites = <ThrowOnError extends boolean = false>(
+  options: Options<PostWorkspaceInvitesData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).post<
+    PostWorkspaceInvitesResponses,
+    PostWorkspaceInvitesErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+      {
+        name: "X-API-Key",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/v1/workspace/invites",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
+  });
+};
+
+/**
+ * Revoke an invite
+ * An admin or owner revokes an invite that was neither used nor revoked; its link stops working.
+ */
+export const deleteWorkspaceInvitesById = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<DeleteWorkspaceInvitesByIdData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).delete<
+    DeleteWorkspaceInvitesByIdResponses,
+    DeleteWorkspaceInvitesByIdErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+      {
+        name: "X-API-Key",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/v1/workspace/invites/{id}",
+    ...options,
+  });
+};
+
+/**
+ * Leave the workspace
+ * The signed-in user leaves the workspace and loses access to it at once. The last owner can't leave (409).
+ */
+export const postWorkspaceLeave = <ThrowOnError extends boolean = false>(
+  options?: Options<PostWorkspaceLeaveData, ThrowOnError>
+) => {
+  return (options?.client ?? _heyApiClient).post<
+    PostWorkspaceLeaveResponses,
+    PostWorkspaceLeaveErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/api/v1/workspace/leave",
+    ...options,
+  });
+};
+
+/**
+ * Get the limits of the workspace
+ * Every member of the workspace (and an API key) sees its limits: for each, its value (null for none), what the workspace has of it and where it comes from: the workspace's own limits, which an instance admin sets, the install's defaults (Admin → Settings, or WORKSPACE_LIMIT_*) or none. An install that sets no limits answers null for each. members counts the pending invites beside the members; owned_workspaces counts the caller's own workspaces (0 for an API key) against the install's defaults alone; min_check_interval is used as the shortest interval that applies, the stricter of MIN_CHECK_INTERVAL and the limit; retention_days as the workspace's data retention period.
+ */
+export const getWorkspaceLimits = <ThrowOnError extends boolean = false>(
+  options?: Options<GetWorkspaceLimitsData, ThrowOnError>
+) => {
+  return (options?.client ?? _heyApiClient).get<
+    GetWorkspaceLimitsResponses,
+    GetWorkspaceLimitsErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+      {
+        name: "X-API-Key",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/v1/workspace/limits",
+    ...options,
+  });
+};
+
+/**
+ * List the members of the workspace
+ * Every member of the workspace sees who is in it and with which role.
+ */
+export const getWorkspaceMembers = <ThrowOnError extends boolean = false>(
+  options?: Options<GetWorkspaceMembersData, ThrowOnError>
+) => {
+  return (options?.client ?? _heyApiClient).get<
+    GetWorkspaceMembersResponses,
+    GetWorkspaceMembersErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+      {
+        name: "X-API-Key",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/v1/workspace/members",
+    ...options,
+  });
+};
+
+/**
+ * Remove a member
+ * An admin or owner removes a member or an admin. Only an owner removes an owner, and the last owner can't be removed (409). The removed user loses access to the workspace at once.
+ */
+export const deleteWorkspaceMembersByUserId = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<DeleteWorkspaceMembersByUserIdData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).delete<
+    DeleteWorkspaceMembersByUserIdResponses,
+    DeleteWorkspaceMembersByUserIdErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+      {
+        name: "X-API-Key",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/v1/workspace/members/{userId}",
+    ...options,
+  });
+};
+
+/**
+ * Change a member's role
+ * An admin or owner changes the role of a member or an admin. Only an owner makes an owner or changes one, and the last owner stays an owner (409).
+ */
+export const patchWorkspaceMembersByUserId = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<PatchWorkspaceMembersByUserIdData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).patch<
+    PatchWorkspaceMembersByUserIdResponses,
+    PatchWorkspaceMembersByUserIdErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+      {
+        name: "X-API-Key",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/v1/workspace/members/{userId}",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
+  });
+};
+
+/**
+ * Create a workspace
+ * Any signed-in user makes a workspace and becomes its owner. It starts with the default settings of a new workspace. A user who owns as many workspaces as the install's default limit of owned workspaces (Admin → Settings, or WORKSPACE_LIMIT_OWNED_WORKSPACES) is refused (403 LIMIT_REACHED, limit owned_workspaces).
+ */
+export const postWorkspaces = <ThrowOnError extends boolean = false>(
+  options: Options<PostWorkspacesData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).post<
+    PostWorkspacesResponses,
+    PostWorkspacesErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/api/v1/workspaces",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
   });
 };
 

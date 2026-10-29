@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/shared"
+	"peekaping/internal/modules/workspace"
 	"testing"
 	"time"
 
@@ -45,8 +46,8 @@ func (m *ExecutorMockHeartbeatService) FindUptimeStatsByMonitorID(ctx context.Co
 	return args.Get(0).(map[string]*float64), args.Error(1)
 }
 
-func (m *ExecutorMockHeartbeatService) DeleteOlderThan(ctx context.Context, cutoff time.Time) (int64, error) {
-	args := m.Called(ctx, cutoff)
+func (m *ExecutorMockHeartbeatService) DeleteOlderThan(ctx context.Context, workspaceID workspace.ID, cutoff time.Time) (int64, error) {
+	args := m.Called(ctx, workspaceID, cutoff)
 	return args.Get(0).(int64), args.Error(1)
 }
 

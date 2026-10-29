@@ -39,7 +39,7 @@ func signWebhookPayload(timestamp string, payload []byte, secret string) string 
 }
 
 type WebhookConfig struct {
-	WebhookURL               string `json:"webhook_url" validate:"required,url" endpoint:"true"`
+	WebhookURL               string `json:"webhook_url" validate:"required,url" endpoint:"true" urlCredentials:"true" target:"url"`
 	WebhookContentType       string `json:"webhook_content_type" validate:"required,oneof=json form-data custom"`
 	WebhookCustomBody        string `json:"webhook_custom_body"`
 	WebhookAdditionalHeaders string `json:"webhook_additional_headers" secret:"true"`

@@ -2,6 +2,7 @@ package heartbeat_test
 
 import (
 	"context"
+	"peekaping/internal/modules/workspace/workspacetest"
 	"testing"
 	"time"
 
@@ -45,8 +46,15 @@ func onEverySQLBackend(t *testing.T, fn func(t *testing.T, db *bun.DB, svc heart
 func insertMonitor(t *testing.T, db *bun.DB) string {
 	t.Helper()
 	id := uuid.NewString()
-	_, err := db.Exec(`INSERT INTO monitors (id, type, name, interval, timeout, max_retries, retry_interval, resend_interval) VALUES (?, 'http', 'Monitor', 60, 10, 1, 10, 0)`, id)
-	require.NoError(t, err)
+	workspacetest.InsertMonitor(t, db, id)
+	return id
+}
+
+// insertOldMonitor stores a monitor in a schema from before monitors had a workspace
+func insertOldMonitor(t *testing.T, db *bun.DB) string {
+	t.Helper()
+	id := uuid.NewString()
+	workspacetest.InsertMonitorWithoutWorkspace(t, db, id)
 	return id
 }
 
@@ -99,7 +107,7 @@ func TestMigrationsBackfillExistingHeartbeatsWithTheLocalProbe(t *testing.T) {
 			require.NoError(t, old.Init(ctx))
 			_, err := old.Migrate(ctx)
 			require.NoError(t, err)
-			monitorID, heartbeatID := insertMonitor(t, db), uuid.NewString()
+			monitorID, heartbeatID := insertOldMonitor(t, db), uuid.NewString()
 			_, err = db.Exec(`INSERT INTO heartbeats (id, monitor_id, status, msg, ping, time) VALUES (?, ?, 1, 'before the upgrade', 7, ?)`,
 				heartbeatID, monitorID, time.Date(2026, 10, 20, 8, 0, 0, 0, time.UTC))
 			require.NoError(t, err)

@@ -5,6 +5,7 @@ import (
 	"net"
 	"net/http/httptest"
 	"path/filepath"
+	"peekaping/internal/modules/workspace/workspacetest"
 	"testing"
 	"time"
 
@@ -200,11 +201,11 @@ func TestRegisterClusterAPI_TheSilentWatchCountsTheActiveMonitorsThatNeedAnInsta
 		}
 		assert.Zero(t, count(), "no monitors")
 
-		_, err := monitors.Create(ctx, &monitor.CreateUpdateDto{Type: "http", Name: "Home", Active: true, Config: "{}"})
+		_, err := monitors.Create(ctx, workspacetest.ID, &monitor.CreateUpdateDto{Type: "http", Name: "Home", Active: true, Config: "{}"})
 		require.NoError(t, err)
-		_, err = monitors.Create(ctx, &monitor.CreateUpdateDto{Type: "push", Name: "Backup", Active: true, Config: "{}", PushToken: "backup-token"})
+		_, err = monitors.Create(ctx, workspacetest.ID, &monitor.CreateUpdateDto{Type: "push", Name: "Backup", Active: true, Config: "{}", PushToken: "backup-token"})
 		require.NoError(t, err)
-		_, err = monitors.Create(ctx, &monitor.CreateUpdateDto{Type: "http", Name: "Retired", Active: false, Config: "{}"})
+		_, err = monitors.Create(ctx, workspacetest.ID, &monitor.CreateUpdateDto{Type: "http", Name: "Retired", Active: false, Config: "{}"})
 		require.NoError(t, err)
 
 		assert.Equal(t, 1, count(), "the http monitor: a push monitor runs no checks, and a paused one is not running")
@@ -266,9 +267,9 @@ func assertWatchdogFollowsEveryProbesStatus(t *testing.T, probeOffline stale.Pro
 	ctx := context.Background()
 	remote, err := probes.Create(ctx, &probe.CreateRequest{Name: "Frankfurt"})
 	require.NoError(t, err)
-	onLocal, err := monitors.Create(ctx, &monitor.CreateUpdateDto{Type: "http", Name: "Home", Active: true, Config: "{}"})
+	onLocal, err := monitors.Create(ctx, workspacetest.ID, &monitor.CreateUpdateDto{Type: "http", Name: "Home", Active: true, Config: "{}"})
 	require.NoError(t, err)
-	onRemote, err := monitors.Create(ctx, &monitor.CreateUpdateDto{Type: "http", Name: "Checkout", Active: true, Config: "{}", ProbeIDs: []string{remote.ID}})
+	onRemote, err := monitors.Create(ctx, workspacetest.ID, &monitor.CreateUpdateDto{Type: "http", Name: "Checkout", Active: true, Config: "{}", ProbeIDs: []string{remote.ID}})
 	require.NoError(t, err)
 
 	for _, tc := range []struct {
@@ -309,9 +310,9 @@ func assertWatchdogSkipsOnlyOfflineRemote(t *testing.T, probeOffline stale.Probe
 	ctx := context.Background()
 	remote, err := probes.Create(ctx, &probe.CreateRequest{Name: "Frankfurt"})
 	require.NoError(t, err)
-	onLocal, err := monitors.Create(ctx, &monitor.CreateUpdateDto{Type: "http", Name: "Home", Active: true, Config: "{}"})
+	onLocal, err := monitors.Create(ctx, workspacetest.ID, &monitor.CreateUpdateDto{Type: "http", Name: "Home", Active: true, Config: "{}"})
 	require.NoError(t, err)
-	onRemote, err := monitors.Create(ctx, &monitor.CreateUpdateDto{Type: "http", Name: "Checkout", Active: true, Config: "{}", ProbeIDs: []string{remote.ID}})
+	onRemote, err := monitors.Create(ctx, workspacetest.ID, &monitor.CreateUpdateDto{Type: "http", Name: "Checkout", Active: true, Config: "{}", ProbeIDs: []string{remote.ID}})
 	require.NoError(t, err)
 
 	offline, err := probeOffline(ctx, onLocal)

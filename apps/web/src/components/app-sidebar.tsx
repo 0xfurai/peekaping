@@ -8,7 +8,7 @@ import {
   Vibrate,
   ListCheckIcon,
   Tag,
-  Radar,
+  ShieldIcon,
 } from "lucide-react";
 
 import {
@@ -23,13 +23,19 @@ import {
 import { NavUser } from "./nav-user";
 import { NavMain } from "./nav-main";
 import { NavSecondary } from "./nav-secondary";
+import { WorkspaceSwitcher } from "./workspace-switcher";
 import { useAuthStore } from "@/store/auth";
 import { VERSION } from "../version";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
+import { useWorkspacePath } from "@/hooks/useWorkspacePath";
+import { useCurrentAccess } from "@/hooks/useCurrentAccess";
+import { Link } from "react-router-dom";
 
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const user = useAuthStore((state) => state.user);
   const { t } = useLocalizedTranslation();
+  const workspacePath = useWorkspacePath();
+  const { instanceAdmin } = useCurrentAccess();
 
   const data = {
     user: {
@@ -64,15 +70,15 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         icon: Network,
       },
       {
-        title: t("navigation.probes"),
-        url: "/probes",
-        icon: Radar,
-      },
-      {
         title: t("navigation.notification_channels"),
         url: "/notification-channels",
         icon: Vibrate,
       },
+      // What belongs to the install (probes, users) lives in the admin area, outside the
+      // workspace: only an instance admin is offered it
+      ...(instanceAdmin
+        ? [{ title: t("navigation.admin"), url: "/admin", icon: ShieldIcon, absolute: true }]
+        : []),
     ],
     navSecondary: [
       {
@@ -93,13 +99,14 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
               asChild
               className="data-[slot=sidebar-menu-button]:!p-1.5"
             >
-              <a href="/">
+              <Link to={workspacePath("/")}>
                 <ArrowUpCircleIcon className="h-5 w-5" />
                 <span className="text-base font-semibold">Peekaping</span>
-              </a>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
+        <WorkspaceSwitcher />
       </SidebarHeader>
 
       <SidebarContent>

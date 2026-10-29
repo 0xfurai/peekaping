@@ -35,6 +35,8 @@ const (
 
 	// RetentionDays is the data retention period the install is set to.
 	RetentionDays = "30"
+	// CertExpiryNotifyDays is the certificate expiry notification days the install is set to
+	CertExpiryNotifyDays = "[3,30]"
 )
 
 // Install is a MongoDB database holding a Peekaping install, and what the test
@@ -180,7 +182,7 @@ func (in *Install) seedAccounts(t *testing.T) {
 		{"REFRESH_TOKEN_EXPIRED_IN", "720h", "string"},
 		{accessTokenSecretKey, randomHex(t, 32), "string"},
 		{refreshTokenSecretKey, randomHex(t, 32), "string"},
-		{"cert_expiry_notify_days", "[7,14,21]", "json"},
+		{"cert_expiry_notify_days", CertExpiryNotifyDays, "json"},
 		{retentionPeriodKey, RetentionDays, "int"},
 	} {
 		in.put(t, "setting", SettingDocument{ID: primitive.NewObjectID(), Key: s.key, Value: s.value, Type: s.kind, UpdatedAt: now})

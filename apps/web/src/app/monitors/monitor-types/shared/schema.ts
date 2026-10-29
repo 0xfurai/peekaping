@@ -14,6 +14,11 @@ export const generalSchema = z.object({
 // timeoutError, since it needs the interval beside the timeout.
 export const TIMEOUT_TOO_LONG = "monitors.form.shared.intervals.timeout_too_long";
 
+// The message for an interval or retry interval below the install's MIN_CHECK_INTERVAL. The schema
+// keeps 20, the smallest any install allows; the install's own minimum comes from /me, so
+// intervalMinimumErrors checks it, and FormMessage fills in the number ({{minimum}}).
+export const INTERVAL_TOO_SHORT = "monitors.form.shared.intervals.interval_too_short";
+
 export const intervalsSchema = z.object({
   interval: z.coerce.number().min(20),
   max_retries: z.coerce.number().min(0),

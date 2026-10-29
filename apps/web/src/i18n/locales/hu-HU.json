@@ -3,22 +3,292 @@
     "cancel": "Mégse",
     "saving": "Mentés..."
   },
+  "admin": {
+    "nav": {
+      "back_to_workspace": "Vissza ide: {{name}}",
+      "probes": "Szondák",
+      "title": "Adminisztráció",
+      "users": "Felhasználók",
+      "workspaces": "Munkaterületek",
+      "settings": "Beállítások"
+    },
+    "users": {
+      "actions": {
+        "delete": "Felhasználó törlése",
+        "disable": "Felhasználó letiltása",
+        "disableTwoFactor": "2FA kikapcsolása",
+        "enable": "Felhasználó engedélyezése",
+        "grantAdmin": "Legyen a példány adminisztrátora",
+        "resetLink": "Visszaállító hivatkozás készítése",
+        "revokeAdmin": "A példány adminisztrátori jogának elvétele"
+      },
+      "actions_aria": "Műveletek: {{email}}",
+      "columns": {
+        "created": "Létrehozva",
+        "email": "E-mail",
+        "email_verified": "E-mail ellenőrizve",
+        "instance_admin": "Példány adminisztrátora",
+        "last_sign_in": "Utolsó bejelentkezés",
+        "status": "Állapot",
+        "two_factor": "2FA",
+        "workspaces": "Munkaterületek"
+      },
+      "confirm": {
+        "cancel": "Mégse",
+        "delete": {
+          "confirm": "Felhasználó törlése",
+          "description": "Törlöd {{email}} fiókját? A fiókja és a munkaterületeken lévő helye is törlődik. Ez nem vonható vissza.",
+          "title": "Felhasználó törlése"
+        },
+        "disable": {
+          "confirm": "Letiltás",
+          "description": "{{email}} nem tud bejelentkezni, és most mindenhonnan ki lesz jelentkeztetve. A munkaterületei tovább működnek. Később újra engedélyezheted.",
+          "title": "Felhasználó letiltása"
+        },
+        "disableTwoFactor": {
+          "confirm": "2FA kikapcsolása",
+          "description": "{{email}} csak a jelszavával fog bejelentkezni, és újra beállíthatja a 2FA-t. Csak akkor tedd, ha biztos vagy benne, hogy ő kéri.",
+          "title": "2FA kikapcsolása"
+        }
+      },
+      "description": "Mindenki, akinek fiókja van ezen a telepítésen. A példány adminisztrátorai magát a telepítést kezelik, például a szondákat és a felhasználókat. A felhasználó szerepét egy munkaterületen a munkaterület tulajdonosai állítják be.",
+      "empty": "Nincs találat",
+      "errors": {
+        "last_instance_admin": "A telepítésnek legalább egy példányadminisztrátorra szüksége van.",
+        "last_owner": "A felhasználó a(z) {{workspaces}} utolsó tulajdonosa. Előbb jelölj ki másik tulajdonost, vagy töröld a munkaterületet.",
+        "self": "Ezt nem teheted meg a saját fiókoddal."
+      },
+      "load_failed": "A felhasználók betöltése nem sikerült.",
+      "messages": {
+        "admin_granted": "{{email}} mostantól a példány adminisztrátora",
+        "admin_revoked": "{{email}} már nem a példány adminisztrátora",
+        "deleted": "{{email}} törölve lett",
+        "disabled": "{{email}} le van tiltva és ki van jelentkeztetve",
+        "enabled": "{{email}} engedélyezve van",
+        "two_factor_off": "A 2FA ki van kapcsolva ennél: {{email}}",
+        "update_failed": "A felhasználó frissítése nem sikerült."
+      },
+      "never": "Soha",
+      "none": "Nincs",
+      "page_name": "Felhasználók",
+      "paging": {
+        "next": "Következő",
+        "page": "{{page}}. oldal / {{pages}}",
+        "previous": "Előző"
+      },
+      "reset_link": {
+        "close": "Bezárás",
+        "copied": "Hivatkozás kimásolva",
+        "copy": "Hivatkozás másolása",
+        "copy_failed": "A hivatkozás másolása nem sikerült. Jelöld ki, és másold ki kézzel.",
+        "description": "Hivatkozás, amellyel {{email}} új jelszót választhat. Másold ki és add át most: csak egyszer jelenik meg.",
+        "emailed": "Ez a telepítés fiókokkal kapcsolatos e-maileket küld, ezért a felhasználó e-mailben értesül arról, hogy hivatkozást készítettek neki.",
+        "expires": "A hivatkozás egyszer használható, és lejár: {{when}}.",
+        "failed": "A hivatkozás elkészítése nem sikerült.",
+        "label": "Hivatkozás",
+        "making": "Hivatkozás készítése...",
+        "signs_out": "A hivatkozás használata mindenhonnan kijelentkezteti a felhasználót.",
+        "title": "Jelszó-visszaállító hivatkozás"
+      },
+      "search_label": "Felhasználók keresése e-mail alapján",
+      "search_placeholder": "Keresés e-mail alapján",
+      "total": "{{total}} találat",
+      "values": {
+        "active": "Aktív",
+        "disabled": "Letiltva",
+        "no": "Nem",
+        "two_factor_off": "Ki",
+        "two_factor_on": "Be",
+        "yes": "Igen"
+      },
+      "you": "te"
+    },
+    "workspaces": {
+      "actions": {
+        "delete": "Munkaterület törlése",
+        "resume": "Munkaterület újraindítása",
+        "suspend": "Munkaterület felfüggesztése",
+        "limits": "Korlátok"
+      },
+      "actions_aria": "Műveletek: {{name}}",
+      "columns": {
+        "created": "Létrehozva",
+        "custom_domains": "Egyéni domainek",
+        "members": "Tagok",
+        "monitors": "Monitorok",
+        "name": "Név",
+        "owners": "Tulajdonosok",
+        "status": "Állapot",
+        "status_pages": "Állapotlapok",
+        "limits": "Korlátok"
+      },
+      "confirm": {
+        "cancel": "Mégse",
+        "delete": {
+          "confirm": "Munkaterület törlése",
+          "description": "Törlöd ezt: {{name}}? Minden törlődik, ami benne van: a monitorok és az előzményeik, az állapotlapok, az értesítési csatornák és a tagok hozzáférése. Ez nem vonható vissza.",
+          "name_label": "A megerősítéshez írd be a munkaterület nevét: {{name}}",
+          "title": "Munkaterület törlése"
+        },
+        "resume": {
+          "confirm": "Újraindítás",
+          "description": "A(z) {{name}} monitorai abban az állapotban futnak újra, amelyben voltak, és a tagjai ugyanúgy használhatják, mint korábban. Az a munkaterület, amely a tulajdonosa e-mail-címének ellenőrzésére vár, továbbra is várakozik.",
+          "title": "Munkaterület újraindítása"
+        },
+        "suspend": {
+          "confirm": "Felfüggesztés",
+          "description": "A(z) {{name}} monitorai leállnak, a nyilvános állapotlapjai jelzik, hogy nem érhetők el, a tagjai pedig látják, hogy fel van függesztve. Semmi sem törlődik, és később újraindíthatod.",
+          "title": "Munkaterület felfüggesztése"
+        }
+      },
+      "description": "A telepítés összes munkaterülete a tulajdonosaival, a tagjaival és azzal, hogy mennyi mindent tartalmaz. Csak darabszámok látszanak, a munkaterületek tartalma nem.",
+      "empty": "Nem található munkaterület",
+      "load_failed": "A munkaterületek betöltése nem sikerült.",
+      "messages": {
+        "deleted": "{{name}} törölve",
+        "failed": "A munkaterület módosítása nem sikerült.",
+        "resumed": "{{name}} újraindítva",
+        "suspended": "{{name}} felfüggesztve"
+      },
+      "monitors": "{{active}} aktív, {{paused}} szüneteltetve",
+      "none": "Nincs",
+      "page_name": "Munkaterületek",
+      "paging": {
+        "next": "Következő",
+        "page": "{{page}}. oldal / {{pages}}",
+        "previous": "Előző"
+      },
+      "search_label": "Munkaterületek keresése név vagy a tulajdonos e-mail-címe alapján",
+      "search_placeholder": "Keresés név vagy a tulajdonos e-mail-címe alapján",
+      "status": {
+        "running": "Fut",
+        "suspended_admin": "Egy adminisztrátor felfüggesztette",
+        "suspended_unverified": "Felfüggesztve, amíg a tulajdonos meg nem erősíti az e-mail-címét"
+      },
+      "total": "{{total}} találat",
+      "limits": {
+        "item": "{{name}}: {{value}}",
+        "more": "+{{number}} további",
+        "unlimited": "Nincsenek korlátok",
+        "source": {
+          "workspace": "Saját",
+          "install": "A telepítés alapértékei",
+          "none": "Nincs beállítva"
+        },
+        "dialog": {
+          "title": "{{name}} korlátai",
+          "description": "Mihez van kötve ez a munkaterület. A korlát csökkentése nem szüneteltet és nem töröl semmit: a korláton túli legújabb monitorok leállnak, amíg nem lesz újra hely.",
+          "own": "Saját korlátok",
+          "own_help": "Ezek felváltják a telepítés alapértékeit. Hagyjon egy korlátot üresen, ha nem kér korlátot.",
+          "unlimited": "Nincsenek korlátok",
+          "unlimited_help": "Egyáltalán nincs korlát, bármit mondanak is a telepítés alapértékei.",
+          "defaults": "A telepítés alapértékeinek használata",
+          "defaults_help": "Az Adminisztráció → Beállítások alapértelmezett korlátai, vagy semmi, ha a telepítés nem állít be egyet sem.",
+          "save": "Korlátok mentése",
+          "cancel": "Mégse",
+          "saved": "{{name}} korlátai mentve",
+          "failed": "A korlátokat nem sikerült menteni."
+        }
+      }
+    },
+    "settings": {
+      "page_name": "Beállítások",
+      "description": "A teljes telepítés beállításai. A szerver környezete által megadott érték itt zárolva van.",
+      "load_failed": "A beállításokat nem sikerült betölteni.",
+      "saved": "Beállítások mentve",
+      "save_failed": "A beállítások nem lettek mentve.",
+      "locked": "A szerver környezete adja meg",
+      "source": {
+        "environment": "A szerver környezetéből",
+        "saved": "Itt mentve",
+        "default": "Alapértelmezett"
+      },
+      "signup": {
+        "title": "Regisztráció",
+        "description": "Ki hozhat létre fiókot ezen a telepítésen.",
+        "label": "Regisztrációs mód",
+        "invite": "Csak meghívással",
+        "open": "Nyitott",
+        "invite_help": "Az első felhasználó regisztrál, utána mindenki meghívóval csatlakozik egy munkaterülethez.",
+        "open_help": "Bárki regisztrálhat, és saját munkaterületet kap. Az új fiókok megerősítik az e-mail-címüket, ezért e-mail-küldő szükséges."
+      },
+      "sender": {
+        "title": "E-mail-küldő",
+        "description": "Az SMTP-szerver, amely a fiók e-mailjeit küldi: jelszó-visszaállító hivatkozások, e-mail-megerősítés és meghívók.",
+        "on": "A fiók e-mailjei be vannak kapcsolva.",
+        "off": "A fiók e-mailjei ki vannak kapcsolva: nincs SMTP-kiszolgáló.",
+        "host": "SMTP szerver",
+        "port": "Port",
+        "tls": "Biztonság",
+        "tls_starttls": "STARTTLS",
+        "tls_tls": "TLS",
+        "tls_none": "Nincs",
+        "user": "Felhasználó",
+        "password": "Jelszó",
+        "password_set": "Jelszó be van állítva. Írjon be újat a cseréjéhez.",
+        "password_not_set": "Nincs jelszó beállítva",
+        "password_removed": "A jelszó mentéskor törlődik.",
+        "password_reenter": "A gazdagép, a port, a biztonság vagy a felhasználó módosítása törli a mentett jelszót. Adja meg újra.",
+        "remove_password": "Jelszó eltávolítása",
+        "keep_password": "Jelszó megtartása",
+        "from": "Feladó címe"
+      },
+      "public_url": {
+        "title": "Nyilvános URL",
+        "description": "A webalkalmazás címe, amelyet az e-mailek és értesítések hivatkozásai megnyitnak.",
+        "label": "Nyilvános URL"
+      },
+      "test_email": {
+        "title": "Teszt e-mail küldése",
+        "description": "Rövid e-mailt küld a mentett küldőn keresztül, hogy ellenőrizze, működik-e.",
+        "to": "Címzett",
+        "send": "Teszt e-mail küldése",
+        "sending": "Küldés…",
+        "sent": "Teszt e-mail elküldve ide: {{to}}.",
+        "failed": "A teszt e-mail nem lett elküldve.",
+        "unsaved": "A küldőn nem mentett módosítások vannak. A teszt a mentett küldőt használja, ezért előbb mentsen."
+      },
+      "validation": {
+        "port": "Adjon meg egy portot 1 és 65535 között, vagy hagyja üresen az alapértelmezéshez."
+      },
+      "errors": {
+        "locked": "{{field}} értékét a szerver környezete adja meg, itt nem módosítható.",
+        "open_needs_sender": "A nyitott regisztrációhoz e-mail-küldő kell, mert az új fiókok megerősítik az e-mail-címüket. Előbb állítsa be a küldőt, vagy ugyanabban a mentésben.",
+        "sender_needed": "A regisztráció nyitott, és az új fiókoknak szükségük van a küldőre az e-mail-címük megerősítéséhez. Előbb állítsa a regisztrációt csak meghívással módra.",
+        "no_sender": "Nincs e-mail-küldő. Előbb mentsen egy küldőt."
+      },
+      "limits": {
+        "title": "Alapértelmezett korlátok",
+        "description": "Minden olyan munkaterület korlátai, amelynek nincsenek sajátjai. Hagyjon egy korlátot üresen, ha nem kér korlátot. A munkaterületnek a Munkaterületek oldalon adott korlátok felváltják ezeket."
+      }
+    }
+  },
   "auth": {
     "login": {
       "description": "Bejelentkezz e-mail címeddel",
       "no_account": "Nincs fiókod?",
       "sign_up": "Regisztrálj",
       "submit": "Bejelentkezés",
-      "title": "Üdv újra"
+      "title": "Üdv újra",
+      "forgot_password": "Elfelejtette a jelszavát?",
+      "ask_admin": "Kérjen meghívót a telepítés egyik adminisztrátorától"
     },
     "register": {
       "description": "Hozd létre az adminisztrátori fiókodat",
+      "description_open": "Hozd létre a fiókodat",
       "have_account": "Már van fiókod?",
       "sign_in": "Bejelentkezés",
       "submit": "Létrehoz",
       "title": "Szia",
       "telemetry_note": "Névtelen: nincsenek benne figyelők nevei, URL-ek vagy gazdagépek. Később megváltoztathatja a „Beállítások” részben.",
-      "telemetry_whats_sent": "Mit küld"
+      "telemetry_whats_sent": "Mit küld",
+      "errors": {
+        "rate_limited": "Túl sok regisztráció a hálózatáról. Próbálja újra egy óra múlva.",
+        "email_taken": "Ezzel az e-mail-címmel már létezik fiók.",
+        "sign_in_instead": "Inkább jelentkezzen be.",
+        "check_failed": "Az ellenőrzés nem sikerült. Próbálja újra.",
+        "check_load_failed": "Az ellenőrzést nem sikerült betölteni. Ellenőrizze a kapcsolatot, és próbálja újra."
+      }
     },
     "twofa": {
       "code_label": "2FA kód",
@@ -27,6 +297,45 @@
       "title": "Kétfaktoros hitelesítés szükséges",
       "verify_button": "2FA ellenőrzése",
       "verifying": "Ellenőrzés..."
+    },
+    "forgot": {
+      "title": "Jelszó visszaállítása",
+      "description": "Adja meg fiókja e-mail-címét, és küldünk egy hivatkozást.",
+      "submit": "Hivatkozás küldése",
+      "sent": "Ha létezik fiók ezzel az e-mail-címmel, küldtünk egy hivatkozást. Egy óráig érvényes.",
+      "back_to_login": "Vissza a bejelentkezéshez"
+    },
+    "reset": {
+      "title": "Válasszon új jelszót",
+      "description": "Adjon meg új jelszót a fiókjához.",
+      "submit": "Jelszó beállítása",
+      "success": "A jelszava megváltozott, és mindenhol kijelentkeztettük. Jelentkezzen be az új jelszóval.",
+      "sign_in": "Bejelentkezés",
+      "invalid_link": "Ez a hivatkozás már fel lett használva, vagy lejárt.",
+      "request_new": "Új hivatkozás kérése"
+    },
+    "verify": {
+      "title": "Erősítse meg az e-mail-címét",
+      "verifying": "E-mail-cím megerősítése...",
+      "success": "Az e-mail-címe meg van erősítve.",
+      "open_app": "Peekaping megnyitása",
+      "invalid_link": "Ez a hivatkozás már fel lett használva, vagy lejárt."
+    },
+    "errors": {
+      "rate_limited": "Túl sok kérés. Próbálja újra később.",
+      "generic": "Valami hiba történt. Próbálja újra.",
+      "already_verified": "Az e-mail-címe már meg van erősítve."
+    },
+    "resend": {
+      "button": "Újraküldés",
+      "sent": "Új hivatkozást küldtünk. Nézze meg a postaládáját."
+    },
+    "verification_banner": {
+      "message": "Erősítse meg az e-mail-címét: hivatkozást küldtünk a következő címre: {{email}}."
+    },
+    "suspension_notice": {
+      "message": "A monitorai az e-mail-címe megerősítése után indulnak el.",
+      "member_message": "A munkaterület monitorai azután indulnak el, hogy a tulajdonosa megerősíti az e-mail-címét."
     }
   },
   "bars": {
@@ -73,6 +382,7 @@
     "no_tags_available": "Nincs elérhető címke",
     "please_refresh_page": "Kérjük, frissítse az oldalt.",
     "required": "Kötelező",
+    "retry": "Újrapróbálkozás",
     "save": "Mentés",
     "saving": "Mentés...",
     "search": "Keresés",
@@ -124,6 +434,33 @@
       "password_required": "A jelszó megadása kötelező",
       "password_min_length": "A jelszónak legalább 8 karakterből kell állnia",
       "passwords_mismatch": "A jelszavak nem egyeznek"
+    }
+  },
+  "invite": {
+    "accept": "Meghívó elfogadása",
+    "accepting": "Csatlakozás...",
+    "creating": "Létrehozás...",
+    "description": "Meghívták, hogy csatlakozzon a(z) {{workspace}} munkaterülethez {{role}} szerepkörrel.",
+    "enter_failed": "Csatlakozott a munkaterülethez, de a megnyitása nem sikerült. Próbálja újra.",
+    "errors": {
+      "other_email": "Ez a meghívó egy másik e-mail-címre szól."
+    },
+    "for_email": "Ez a meghívó a(z) {{email}} címre szól.",
+    "have_account": "Már van fiókja?",
+    "open_app": "Peekaping megnyitása",
+    "other_account": "Ön {{current}} fiókkal van bejelentkezve, de ez a meghívó a(z) {{invited}} címre szól. Jelentkezzen ki, majd jelentkezzen be vagy regisztráljon a(z) {{invited}} címmel az elfogadáshoz.",
+    "sign_in_instead": "Inkább bejelentkezem",
+    "sign_out": "Kijelentkezés",
+    "signup_description": "Válasszon jelszót a fiókja létrehozásához, és csatlakozzon a(z) {{workspace}} munkaterülethez {{role}} szerepkörrel.",
+    "signup_submit": "Fiók létrehozása és csatlakozás",
+    "title": "Csatlakozás: {{workspace}}",
+    "unavailable": {
+      "accepted": "Ezt a meghívót már felhasználták.",
+      "expired": "Ez a meghívó lejárt. Kérjen újat.",
+      "not_found": "Ez a meghívó hivatkozás nem létezik. Ellenőrizze, hogy teljesen kimásolta-e.",
+      "revoked": "Ez a meghívó vissza lett vonva. Kérjen újat.",
+      "title": "Ez a meghívó nem használható",
+      "unknown": "Ez a meghívó nem használható. Kérjen újat."
     }
   },
   "maintenance": {
@@ -231,6 +568,79 @@
       "wed": "Sze"
     }
   },
+  "members": {
+    "change_role_aria": "{{email}} szerepkörének módosítása",
+    "errors": {
+      "account_exists": "Ezzel az e-mail-címmel már létezik fiók. Jelentkezzen be, és fogadja el a meghívót.",
+      "already_member": "Ez a személy már tagja ennek a munkaterületnek.",
+      "forbidden": "A munkaterületen betöltött szerepköre ezt nem teszi lehetővé.",
+      "generic": "Valami hiba történt. Kérjük, próbálja újra.",
+      "last_owner": "Egy munkaterületnek legalább egy tulajdonosa kell legyen.",
+      "member_not_found": "Ez a tag már nincs a munkaterületen."
+    },
+    "invite": {
+      "copied": "Hivatkozás kimásolva",
+      "copy": "Másolás",
+      "creating": "Létrehozás...",
+      "description": "Hozzon létre egy hivatkozást egy e-mail-címhez és egy szerepkörhöz. E-mailt nem küldünk: másolja ki a hivatkozást, és küldje el saját maga.",
+      "done": "Kész",
+      "email_label": "E-mail",
+      "link_note": "Ez a hivatkozás egyszer használható, és 7 nap múlva lejár. Csak most látható, ezért az oldal elhagyása előtt másolja ki.",
+      "link_title": "Meghívó hivatkozás",
+      "role_label": "Szerepkör",
+      "submit": "Meghívó hivatkozás létrehozása",
+      "title": "Valaki meghívása"
+    },
+    "leave": {
+      "button": "Kilépés a munkaterületből",
+      "confirm": "Kilépés",
+      "description": "Azonnal elveszíti a hozzáférést ehhez a munkaterülethez és az adataihoz.",
+      "done": "Kilépett a munkaterületből",
+      "last_owner": "Ön az utolsó tulajdonos, ezért nem léphet ki. Előbb tegyen egy másik tagot tulajdonossá.",
+      "refresh_failed": "Elhagyta a munkaterületet, de a munkaterületei betöltése nem sikerült. Próbálja újra.",
+      "title": "Kilépés ebből a munkaterületből"
+    },
+    "list": {
+      "description": "Mindenki, aki ebben a munkaterületen dolgozik, és a szerepköre.",
+      "email": "E-mail",
+      "joined": "Csatlakozott",
+      "role": "Szerepkör",
+      "title": "Tagok",
+      "you": "Ön"
+    },
+    "page_name": "Tagok",
+    "pending": {
+      "description": "Még fel nem használt meghívók. A visszavont meghívó hivatkozása nem működik tovább.",
+      "email": "E-mail",
+      "empty": "Nincs függőben lévő meghívó.",
+      "expired": "Lejárt",
+      "expires": "Lejár",
+      "revoke": "Visszavonás",
+      "revoke_aria": "{{email}} meghívójának visszavonása",
+      "revoked": "Meghívó visszavonva",
+      "role": "Szerepkör",
+      "title": "Függőben lévő meghívók"
+    },
+    "remove": "Eltávolítás",
+    "remove_aria": "{{email}} eltávolítása",
+    "remove_dialog": {
+      "confirm": "Eltávolítás",
+      "description": "{{email}} azonnal elveszíti a hozzáférést ehhez a munkaterülethez.",
+      "title": "Tag eltávolítása"
+    },
+    "removed": "Tag eltávolítva",
+    "role_updated": "Szerepkör frissítve",
+    "roles": {
+      "admin": "Adminisztrátor",
+      "member": "Tag",
+      "owner": "Tulajdonos"
+    },
+    "settings_card": {
+      "description": "Nézze meg, ki dolgozik ebben a munkaterületen, és ha adminisztrátor vagy tulajdonos, hívjon meg embereket, és kezelje a szerepköreiket.",
+      "open": "Tagok megnyitása",
+      "title": "Tagok"
+    }
+  },
   "messages": {
     "login_error": "Hiba történt a bejelentkezés során",
     "login_no_tokens": "Bejelentkezés sikeres, de nem érkeztek tokenek",
@@ -258,6 +668,7 @@
     },
     "empty_state": {
       "action": "Hozd létre az első figyelődet",
+      "add_channel": "Értesítési csatorna hozzáadása",
       "description": "Kezdje el az első monitor létrehozásával, hogy nyomon kövesse a szolgáltatásainak egészségét.",
       "title": "Nem találhatók monitorok"
     },
@@ -500,6 +911,7 @@
       "shared": {
         "intervals": {
           "heartbeat_retry": "Szívverés újrapróbálkozási intervallum (újrapróbálkozás minden {{seconds}} másodpercben)",
+          "interval_too_short": "Nem lehet kevesebb {{minimum}} másodpercnél",
           "max_retries_description": "A szolgáltatás leállásáig és értesítés küldéséig maximális újrapróbálkozások száma",
           "request_timeout": "Kérés időtúllépés ({{seconds}} másodperc után)",
           "resend_notification": "Értesítés újraküldése, ha X alkalommal egymás után le van (újraküldés letiltva)",
@@ -542,6 +954,10 @@
           "select_proxy_placeholder": "Proxy kiválasztása",
           "selected_proxy": "Kiválasztott Proxy",
           "title": "Proxy"
+        },
+        "run_from": {
+          "default_locations": "Az alapértelmezett helyeken fut",
+          "label": "Futtatás innen"
         },
         "tags": {
           "label": "Címkék",
@@ -649,9 +1065,12 @@
     "toasts": {
       "deleted": "Figyelő törölve",
       "paused": "Megfigyelés szünetelve",
+      "push_token_already_used": "Egy másik monitor már használja ezt a push tokent. Hozzon létre egy újat.",
       "reset_success": "Monitor adatai sikeresen visszaállítva",
       "resumed": "Monitor folytatva"
     },
+    "type_disabled": "A(z) {{type}} típus ki van kapcsolva ezen a telepítésen",
+    "over_limit": "Nincs ellenőrizve: a munkaterületnek több aktív monitora van, mint amennyit a korlátja enged",
     "view": {
       "buttons": {
         "clone": "Klónozás",
@@ -712,6 +1131,7 @@
     }
   },
   "navigation": {
+    "admin": "Adminisztráció",
     "maintenance": "Karbantartás",
     "monitors": "Figyelők",
     "notification_channels": "Értesítési csatornák",
@@ -1124,6 +1544,12 @@
         "signing_secret_docs_link": "Az aláírás ellenőrzése",
         "signing_secret_label": "Aláírási titok",
         "signing_secret_placeholder": "Hagyja üresen, ha aláíratlan kéréseket szeretne küldeni"
+      },
+      "install_email": {
+        "description": "Ez a telepítés küldi, nincs szükség SMTP-kiszolgálóra.",
+        "to_description": "Ennek a munkaterületnek egy tagja. Az értesítések azután kerülnek elküldésre, hogy megerősítette a címét.",
+        "to_label": "Címzett",
+        "to_placeholder": "Válasszon tagot"
       }
     },
     "important": "Fontos értesítések",
@@ -1142,7 +1568,8 @@
       "updated_success": "Értesítő sikeresen frissítve"
     },
     "new": {
-      "title": "Új értesítési csatorna"
+      "title": "Új értesítési csatorna",
+      "default_hint": "Ez a csatorna be lesz jelölve az új monitoroknál."
     },
     "no_important": "Nem található fontos értesítés.",
     "placeholders": {
@@ -1152,11 +1579,21 @@
     "secret": {
       "reenter_error": "Adja meg újra ezt a titkot, vagy távolítsa el: megváltozott a küldés célja",
       "reenter_hint": "Adja meg újra ezt a titkot: megváltozott a küldés célja",
+      "reenter_url_error": "Adja meg újra az URL hitelesítő adatait: az URL megváltozott a mentés óta",
       "remove": "Eltávolítás",
       "saved_hint": "Mentve — írjon be újat a cseréhez"
     }
   },
   "probes": {
+    "default": {
+      "description": "A szondák kiválasztása nélkül létrehozott monitor az alapértelmezett szondákon fut, amelyek nincsenek letiltva és támogatják a típusát, ha pedig egyik sem, akkor a helyi szondán. A meglévő monitorok megtartják a szondáikat.",
+      "failed": "Nem sikerült módosítani, hogy a szonda alapértelmezett-e.",
+      "label": "Alapértelmezett szonda",
+      "off": "{{name}} már nem alapértelmezett szonda",
+      "on": "{{name}} mostantól alapértelmezett szonda",
+      "title": "Alapértelmezett az új monitorokhoz"
+    },
+    "default_badge": "Alapértelmezett",
     "page_name": "Szondák",
     "description": "A szondák a figyelők ellenőrzéseit azokról a helyekről futtatják, ahová telepítve vannak. A helyi szonda maga a Peekaping.",
     "local_name": "Helyi",
@@ -1438,7 +1875,9 @@
     "data_retention": {
       "days_label": "Napok",
       "description": "Állítsa be, hogy hány napig tartsuk a adatokat (KEEP_DATA_PERIOD_DAYS).",
-      "title": "Adattartási időszak"
+      "read_only": "Ezt csak a munkaterület adminisztrátora vagy tulajdonosa módosíthatja.",
+      "title": "Adattartási időszak",
+      "capped": "Legfeljebb {{max}} nap ezen a munkaterületen"
     },
     "error_reporting": {
       "cluster_note": "Fürt üzemmódban a módosítás egy percen belül eléri az összes folyamatot.",
@@ -1464,6 +1903,10 @@
     },
     "validation": {
       "min_days": "Legalább 1 napnak kell lennie"
+    },
+    "workspace_name": {
+      "description": "A munkaterület-váltóban és a tagoknak megjelenő név.",
+      "title": "A munkaterület neve"
     }
   },
   "status": {
@@ -1479,6 +1922,7 @@
       "refresh_in": "Frissítés:",
       "refresh_now": "Frissítés most",
       "status_page_not_found": "A státuszlap nem található, vagy még nem publikált.",
+      "status_page_unavailable": "Ez az állapotlap nem érhető el",
       "under_maintenance": "Karbantartás alatt",
       "unknown": "Ismeretlen"
     }
@@ -1522,6 +1966,7 @@
     "search_placeholder": "Keresés a státuszlapok címén...",
     "show_locations": "Minden helyszín megjelenítése",
     "show_locations_info": "A több helyszínről ellenőrzött monitorok esetén minden helyszín állapotát és előzményeit megjeleníti",
+    "slug_already_used": "Egy másik állapotoldal már használja ezt a címet",
     "update_status_page": "Állapotlap frissítése",
     "view_page": "Oldal megtekintése"
   },
@@ -1587,5 +2032,93 @@
   "ui": {
     "general": "Általános",
     "intervals_retries": "Intervallumok, Ismétlések, Időkorlátok"
+  },
+  "workspaces": {
+    "create": "Munkaterület létrehozása",
+    "create_error": "A munkaterület létrehozása sikertelen",
+    "create_first": "Munkaterület létrehozása",
+    "creating": "Létrehozás...",
+    "enter": "Munkaterület megnyitása",
+    "entering": "Megnyitás...",
+    "entry_failed": "A munkaterület létrejött, de a megnyitása nem sikerült. Próbálja újra.",
+    "name_label": "Név",
+    "name_placeholder": "Csapatom",
+    "name_required": "Adjon meg egy nevet",
+    "new": "Új munkaterület",
+    "new_description": "A munkaterületnek saját figyelői, értesítési csatornái, állapotlapjai és tagjai vannak. Ön lesz a tulajdonosa.",
+    "new_title": "Új munkaterület",
+    "none_description": "A fiókja egyetlen munkaterületnek sem tagja, ezért itt nincs mit megjeleníteni. Kérjen meg valakit, aki munkaterületet kezel, hogy adja hozzá.",
+    "none_title": "Még nem tartozik egyetlen munkaterülethez sem",
+    "refresh_failed": "A munkaterületeit nem sikerült betölteni. Ellenőrizze a kapcsolatot, és próbálja újra.",
+    "rename_error": "A munkaterület átnevezése nem sikerült",
+    "rename_success": "A munkaterület át lett nevezve",
+    "suspended_banner": {
+      "contact": "Kapcsolatfelvétel:",
+      "message": "Ezt a munkaterületet a telepítés adminisztrátora felfüggesztette. A monitorai nem futnak, és az állapotlapjai nem érhetők el.",
+      "no_contact": "Fordulj ahhoz, aki ezt a telepítést üzemelteti."
+    },
+    "switcher_label": "Munkaterület váltása"
+  },
+  "get_started": {
+    "page_name": "Első lépések",
+    "skip": "Beállítás kihagyása",
+    "step_of": "{{current}}. lépés / {{total}}",
+    "name": {
+      "description": "Itt találhatók a monitorai, értesítési csatornái és állapotoldalai. A nevet később átírhatja a Beállításokban.",
+      "title": "Nevezze el a munkaterületét"
+    },
+    "monitor": {
+      "create": "Figyelő létrehozása",
+      "create_failed": "A figyelő létrehozása nem sikerült",
+      "creating": "Létrehozás...",
+      "description": "Adja meg egy weboldal vagy API címét. A Peekaping ellenőrzi, és szól, ha nem válaszol többé.",
+      "full_form": "Vagy állítson be egy figyelőt az összes lehetőséggel",
+      "title": "Adja hozzá az első figyelőjét",
+      "url_invalid": "Adjon meg egy http:// vagy https:// kezdetű címet",
+      "url_label": "Figyelendő cím"
+    },
+    "channel": {
+      "continue_unlinked": "Folytatás összekapcsolás nélkül",
+      "description": "Válassza ki, hová küldjön a Peekaping riasztást, ha a figyelője leáll. Ez lesz az új figyelők alapértelmezettje.",
+      "link_failed": "A csatorna mentve lett, de a figyelőhöz kapcsolása nem sikerült. Adja hozzá a figyelő szerkesztőoldalán.",
+      "retry_link": "Összekapcsolás újra",
+      "title": "Kérjen értesítést"
+    },
+    "done": {
+      "description": "A Peekaping figyeli a szolgáltatását. Ezt teheti ezután.",
+      "title": "Minden kész",
+      "unverified": "A figyelője az e-mail-címe megerősítése után kezd futni. A megerősítő linket a postaládájában találja.",
+      "links": {
+        "members": "Hívja meg a csapatát",
+        "monitor": "A figyelő megnyitása",
+        "monitors": "Ugrás a figyelőkhöz",
+        "probes": "Szondák kezelése",
+        "status_pages": "Állapotoldal közzététele"
+      }
+    }
+  },
+  "limits": {
+    "reached": {
+      "monitors": "Ennek a munkaterületnek legfeljebb {{max}} futó monitora lehet",
+      "status_pages": "Ennek a munkaterületnek legfeljebb {{max}} állapotlapja lehet",
+      "custom_domains": "Ennek a munkaterületnek az állapotlapjain együtt legfeljebb {{max}} egyéni domain lehet",
+      "members": "Ennek a munkaterületnek legfeljebb {{max}} tagja lehet, a függőben lévő meghívókkal együtt",
+      "owned_workspaces": "Legfeljebb {{max}} munkaterület tulajdonosa lehet",
+      "probes": "Az ebben a munkaterületben lévő monitorok legfeljebb {{max}} szondán futhatnak",
+      "retention_days": "Ez a munkaterület legfeljebb {{max}} napig őrizheti meg az adatokat"
+    },
+    "names": {
+      "monitors": "Aktív monitorok",
+      "min_check_interval": "Legrövidebb ellenőrzési időköz (másodperc)",
+      "status_pages": "Állapotlapok",
+      "custom_domains": "Egyéni domainek",
+      "members": "Tagok",
+      "owned_workspaces": "Munkaterületek, amelyeknek egy felhasználó a tulajdonosa lehet",
+      "probes_per_monitor": "Szondák monitoronként",
+      "retention_days": "Adattartás (nap)"
+    },
+    "none": "Nincs korlát",
+    "invalid": "Adjon meg egy 1 vagy nagyobb egész számot, vagy hagyja üresen, ha nem kér korlátot.",
+    "retention_too_long": "Nem lehet több {{max}} napnál"
   }
 }

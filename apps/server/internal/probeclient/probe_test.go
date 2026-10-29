@@ -293,7 +293,12 @@ func TestProbe_ShutdownEndsWithinItsDeadlineWhenTheServerStopsAnswering(t *testi
 // cancels the checks, and the results are still sent and the bye said.
 func TestProbe_ShutdownWithoutADeadlineWaitsForTheChecksUntilCancelled(t *testing.T) {
 	release := make(chan struct{})
+	arrived := make(chan struct{}, 1)
 	stuck := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		select {
+		case arrived <- struct{}{}:
+		default:
+		}
 		select {
 		case <-release:
 		case <-r.Context().Done():
@@ -306,6 +311,13 @@ func TestProbe_ShutdownWithoutADeadlineWaitsForTheChecksUntilCancelled(t *testin
 	probe := newProbe(server)
 	runProbe(t, probe)
 	require.Eventually(t, func() bool { return checks.Load() == 1 }, 5*time.Second, time.Millisecond)
+	// The quick check ending says nothing of the stuck one: Shutdown called before its request
+	// arrives finds no check in flight and returns at once.
+	select {
+	case <-arrived:
+	case <-time.After(5 * time.Second):
+		require.Fail(t, "the stuck check never reached its target")
+	}
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -371,4 +383,118 @@ func TestProbe_ChecksAFailingMonitorAtItsRetryIntervalWhileItHasRetriesLeft(t *t
 	}
 	time.Sleep(1500 * time.Millisecond)
 	assert.Len(t, checked(), 3, "the third failure is Down, and then the monitor waits for its interval")
+}
+
+// A remote probe blocks private targets when its own BLOCK_PRIVATE_TARGETS is on, or when the server
+// it connects to blocks them, which hello states. Checking a monitor on this machine's loopback
+// address tells which.
+func TestProbe_BlocksPrivateTargetsWhenItsOwnSettingOrTheServersIsOn(t *testing.T) {
+	tests := []struct {
+		name         string
+		own, servers bool
+		wantBlocked  bool
+	}{
+		{"neither asks", false, false, false},
+		{"its own setting", true, false, true},
+		{"the server's setting", false, true, true},
+		{"both", true, true, true},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			url, checks := httpTarget(t)
+			server := newAssignmentServerWith(t,
+				func(h *probeproto.HelloResponse) { h.BlockPrivateTargets = tc.servers; h.FlushIntervalMs = 50 },
+				snapshot("v1", monitorOf("a", url)))
+			probe := probeclient.New(probeclient.Config{URL: server.URL, Token: probeToken, Version: "0.0.48", Logger: nopLogger(),
+				FlushTimeout: 2 * time.Second, BlockPrivateTargets: tc.own})
+			runProbe(t, probe)
+
+			require.Eventually(t, func() bool { return len(server.storedResults()) == 1 }, 10*time.Second, 10*time.Millisecond)
+
+			result := server.storedResults()[0]
+			assert.Equal(t, tc.wantBlocked, probe.BlocksPrivateTargets())
+			if tc.wantBlocked {
+				assert.Equal(t, probeproto.StatusDown, result.Status)
+				assert.Contains(t, result.Message, "target address is not allowed")
+				assert.Zero(t, checks.Load(), "the target saw no request")
+			} else {
+				assert.Equal(t, probeproto.StatusUp, result.Status, result.Message)
+				assert.Equal(t, int32(1), checks.Load())
+			}
+		})
+	}
+}
+
+// A probe says in its hello that it blocks private targets when told to, so that a server that
+// blocks them deals monitors to it and not to a probe from before, which ignores the setting
+func TestProbe_SaysInItsHelloThatItEnforcesThePrivateTargetBlock(t *testing.T) {
+	server := newAssignmentServer(t)
+	probe := newProbe(server)
+	runProbe(t, probe)
+
+	require.Eventually(t, func() bool { return len(server.helloBodies()) > 0 }, 5*time.Second, time.Millisecond)
+	assert.Equal(t, true, server.helloBodies()[0]["enforces_private_target_block"])
+}
+
+// The server's setting is read at each hello: a probe that reconnects to a server that no longer
+// blocks stops blocking, unless its own setting is on
+func TestProbe_FollowsTheServersSettingAtEachHello(t *testing.T) {
+	var blocks atomic.Bool
+	blocks.Store(true)
+	server := newAssignmentServerWith(t, func(h *probeproto.HelloResponse) { h.BlockPrivateTargets = blocks.Load() })
+	probe := newProbe(server)
+	runProbe(t, probe)
+	require.Eventually(t, probe.BlocksPrivateTargets, 5*time.Second, time.Millisecond, "the first hello turns it on")
+
+	blocks.Store(false)
+	require.NoError(t, probe.SayHelloAgain(context.Background()))
+
+	assert.False(t, probe.BlocksPrivateTargets())
+}
+
+// A probe spaces its checks to one host at its own CHECKS_PER_HOST_PER_MINUTE or the server's, which
+// hello states: the stricter one is the smaller that is not 0, and 0 on both is off
+func TestProbe_SpacesChecksAtTheStricterOfItsOwnCapAndTheServers(t *testing.T) {
+	tests := []struct {
+		name         string
+		own, servers int
+		want         int
+	}{
+		{"neither sets one", 0, 0, 0},
+		{"its own only", 120, 0, 120},
+		{"the server's only", 0, 90, 90},
+		{"the server's is stricter", 120, 90, 90},
+		{"its own is stricter", 60, 90, 60},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			server := newAssignmentServerWith(t, func(h *probeproto.HelloResponse) { h.ChecksPerHostPerMinute = tc.servers })
+			probe := probeclient.New(probeclient.Config{URL: server.URL, Token: probeToken, Version: "0.0.48", Logger: nopLogger(),
+				FlushTimeout: 2 * time.Second, ChecksPerHostPerMinute: tc.own})
+			assert.Equal(t, tc.own, probe.ChecksPerHostPerMinute(), "its own cap holds until the first hello")
+
+			runProbe(t, probe)
+
+			require.Eventually(t, func() bool { return probe.ChecksPerHostPerMinute() == tc.want }, 5*time.Second, time.Millisecond)
+		})
+	}
+}
+
+// The server's cap is read at each hello, as its private-target setting is
+func TestProbe_FollowsTheServersChecksPerHostPerMinuteAtEachHello(t *testing.T) {
+	var servers atomic.Int64
+	servers.Store(90)
+	server := newAssignmentServerWith(t, func(h *probeproto.HelloResponse) { h.ChecksPerHostPerMinute = int(servers.Load()) })
+	probe := probeclient.New(probeclient.Config{URL: server.URL, Token: probeToken, Version: "0.0.48", Logger: nopLogger(),
+		FlushTimeout: 2 * time.Second, ChecksPerHostPerMinute: 120})
+	runProbe(t, probe)
+	require.Eventually(t, func() bool { return probe.ChecksPerHostPerMinute() == 90 }, 5*time.Second, time.Millisecond)
+
+	servers.Store(30)
+	require.NoError(t, probe.SayHelloAgain(context.Background()))
+	assert.Equal(t, 30, probe.ChecksPerHostPerMinute(), "a stricter server")
+
+	servers.Store(0)
+	require.NoError(t, probe.SayHelloAgain(context.Background()))
+	assert.Equal(t, 120, probe.ChecksPerHostPerMinute(), "a server that stopped is back to the probe's own")
 }

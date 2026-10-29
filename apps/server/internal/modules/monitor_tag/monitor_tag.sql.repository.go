@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"peekaping/internal/dbtx"
+	"peekaping/internal/modules/workspace"
 
 	"github.com/google/uuid"
 	"github.com/uptrace/bun"
@@ -150,4 +151,16 @@ func (r *SQLRepositoryImpl) DeleteByTagID(ctx context.Context, tagID string) err
 func (r *SQLRepositoryImpl) DeleteByMonitorAndTag(ctx context.Context, monitorID string, tagID string) error {
 	_, err := dbtx.DB(ctx, r.db).NewDelete().Model((*sqlModel)(nil)).Where("monitor_id = ? AND tag_id = ?", monitorID, tagID).Exec(ctx)
 	return err
+}
+
+func (r *SQLRepositoryImpl) FindTagIDsInWorkspace(ctx context.Context, workspaceID workspace.ID, ids []string) ([]string, error) {
+	if len(ids) == 0 {
+		return nil, nil
+	}
+	var found []string
+	err := dbtx.DB(ctx, r.db).NewSelect().Table("tags").Column("id").
+		Where("workspace_id = ?", string(workspaceID)).
+		Where("id IN (?)", bun.In(ids)).
+		Scan(ctx, &found)
+	return found, err
 }

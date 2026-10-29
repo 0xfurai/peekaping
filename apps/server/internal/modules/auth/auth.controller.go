@@ -6,26 +6,63 @@ import (
 	"fmt"
 	"net/http"
 	"peekaping/internal/httpx"
+	"peekaping/internal/limits"
+	"peekaping/internal/modules/workspace"
+	"peekaping/internal/modules/workspace/workspacehttp"
+	"peekaping/internal/ratelimit"
 	"peekaping/internal/utils"
 	"peekaping/internal/validation"
 	"strings"
+	"time"
 
 	"github.com/go-playground/validator/v10"
 	"go.uber.org/zap"
 )
 
 type Controller struct {
-	service Service
-	logger  *zap.SugaredLogger
+	service  Service
+	accounts *AccountService
+	signup   *SignupGate
+	proxies  *httpx.TrustedProxies
+	logger   *zap.SugaredLogger
+
+	// The limits on the routes that send an email, per email address and per client address. They
+	// count in this process's memory (see package ratelimit).
+	forgotByEmail, forgotByIP, resendByEmail, resendByIP *ratelimit.Limiter
+
+	// The limits on the routes that spend a link, per client address. A request counts whether
+	// its token is good or not: the limit is on guessing.
+	resetByIP, verifyByIP *ratelimit.Limiter
 }
+
+// The most emails the account routes send per hour to one address, and per hour from one client
+const (
+	maxAccountEmailsPerAddress = 5
+	maxAccountEmailsPerClient  = 20
+	// maxLinkAttemptsPerClient is the most requests per hour from one client to spend a reset or verification link
+	maxLinkAttemptsPerClient = 20
+)
 
 func NewController(
 	service Service,
+	accounts *AccountService,
+	signup *SignupGate,
+	proxies *httpx.TrustedProxies,
 	logger *zap.SugaredLogger,
 ) *Controller {
 	return &Controller{
-		service: service,
-		logger:  logger,
+		service:  service,
+		accounts: accounts,
+		signup:   signup,
+		proxies:  proxies,
+		logger:   logger,
+
+		forgotByEmail: ratelimit.New(maxAccountEmailsPerAddress, time.Hour),
+		forgotByIP:    ratelimit.New(maxAccountEmailsPerClient, time.Hour),
+		resendByEmail: ratelimit.New(maxAccountEmailsPerAddress, time.Hour),
+		resendByIP:    ratelimit.New(maxAccountEmailsPerClient, time.Hour),
+		resetByIP:     ratelimit.New(maxLinkAttemptsPerClient, time.Hour),
+		verifyByIP:    ratelimit.New(maxLinkAttemptsPerClient, time.Hour),
 	}
 }
 
@@ -68,17 +105,76 @@ func (c *Controller) Register(ctx context.Context, input *RegisterInput) (*httpx
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 
+	// An open signup passes the gate: a limit per client and, when set up, Turnstile. An invite signup
+	// does not: the invite is the proof that the visitor is wanted.
+	if dto.InviteToken == "" && c.signup.Open(ctx) {
+		if retryAfter, err := c.signup.Admit(ctx, c.clientKey(input.Request), c.proxies.ClientIP(input.Request), dto.TurnstileToken); err != nil {
+			if errors.Is(err, ErrSignupRateLimited) {
+				return nil, tooManyRequests(retryAfter)
+			}
+			return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("We could not verify that you are not a robot. Reload the page and try again."))
+		}
+	}
+
 	response, err := c.service.Register(ctx, dto)
 	if err != nil {
-		c.logger.Errorw("Failed to register admin", "error", err)
+		// Signing up with an address that has an account is for the visitor to fix, with a way out
+		if errors.Is(err, ErrEmailTaken) && dto.InviteToken == "" {
+			c.logger.Infow("Registration refused: an account with this email exists")
+			return nil, httpx.Fail(http.StatusConflict, utils.NewFailResponse("An account with this email address exists already: sign in instead"))
+		}
 		if errors.Is(err, ErrAdminExists) {
+			c.logger.Infow("Registration refused: the install has its admin already")
 			return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 		}
+		// The inviting workspace has as many members as its limit
+		var reached *limits.ReachedError
+		if errors.As(err, &reached) {
+			c.logger.Infow("Invite refused: the workspace has reached its members limit")
+			return nil, limits.Fail(reached)
+		}
+		// An invite that doesn't exist, can't be used or names another email is the visitor's
+		// problem, not the server's: it is logged as the refusal it is, without the token
+		if reason := inviteRefusal(err); reason != "" {
+			c.logger.Infow("Invite refused: " + reason)
+			if errors.Is(err, ErrEmailTaken) {
+				return nil, httpx.Fail(http.StatusConflict, utils.NewFailResponse("An account with this email exists: sign in and accept the invite"))
+			}
+			if answer := workspacehttp.Fail(err); answer != nil {
+				return nil, answer
+			}
+		}
+		c.logger.Errorw("Failed to register", "error", err)
 		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse(err.Error()))
 	}
 
 	return httpx.Reply(http.StatusCreated, utils.NewSuccessResponse("User registered successfully", response))
 }
+
+// inviteRefusal says why a signup through an invite was refused, or returns "" for a failure
+// that is not a refusal
+func inviteRefusal(err error) string {
+	switch {
+	case errors.Is(err, workspace.ErrInviteUsed):
+		return "already used"
+	case errors.Is(err, workspace.ErrInviteExpired):
+		return "expired"
+	case errors.Is(err, workspace.ErrInviteRevoked):
+		return "revoked"
+	case errors.Is(err, workspace.ErrInviteUnavailable):
+		return "can't be used"
+	case errors.Is(err, workspace.ErrInviteNotFound):
+		return "not found"
+	case errors.Is(err, workspace.ErrInviteEmailMismatch):
+		return "for another email address"
+	case errors.Is(err, workspace.ErrAlreadyMember):
+		return "already a member of the workspace"
+	case errors.Is(err, ErrEmailTaken):
+		return "an account with this email exists"
+	}
+	return ""
+}
+
 func (c *Controller) Login(ctx context.Context, input *LoginInput) (*httpx.Output[utils.ApiResponse[*LoginResponse]], error) {
 	dto, decodeErr := input.Decode()
 	if err := decodeErr; err != nil {
@@ -140,6 +236,29 @@ func (c *Controller) UpdatePassword(ctx context.Context, input *UpdatePasswordIn
 	}
 
 	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse[any]("Password updated successfully", nil))
+}
+
+// Me answers with the signed-in user and their workspaces. It needs no workspace: a user in none
+// gets an empty list.
+func (c *Controller) Me(ctx context.Context, _ *MeInput) (*httpx.Output[utils.ApiResponse[*MeResponse]], error) {
+	userId, _ := httpx.Lookup(ctx, "userId")
+	id, _ := userId.(string)
+	me, err := c.service.Me(ctx, id)
+	if err != nil {
+		c.logger.Errorw("Failed to read the signed-in user", "error", err)
+		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+	}
+	if me == nil {
+		return nil, httpx.Fail(http.StatusUnauthorized, utils.NewFailResponse("Unauthorized"))
+	}
+	out, err := httpx.Reply(http.StatusOK, utils.NewSuccessResponse("Signed-in user retrieved successfully", me))
+	if err != nil {
+		return nil, err
+	}
+	// The answer names the user and their workspaces, so a browser must not keep it on disk
+	noStore := "no-store"
+	out.CacheControl = &noStore
+	return out, nil
 }
 func (c *Controller) SetupTwoFA(ctx context.Context, input *SetupTwoFAInput) (*httpx.Output[TwoFASetupResponseDto], error) {
 	userId, _ := httpx.Lookup(ctx, "userId")

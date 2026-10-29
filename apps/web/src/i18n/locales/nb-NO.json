@@ -3,22 +3,292 @@
     "cancel": "Avbryt",
     "saving": "Lagrer..."
   },
+  "admin": {
+    "nav": {
+      "back_to_workspace": "Tilbake til {{name}}",
+      "probes": "Prober",
+      "title": "Admin",
+      "users": "Brukere",
+      "workspaces": "Arbeidsområder",
+      "settings": "Innstillinger"
+    },
+    "users": {
+      "actions": {
+        "delete": "Slett bruker",
+        "disable": "Deaktiver bruker",
+        "disableTwoFactor": "Slå av 2FA",
+        "enable": "Aktiver bruker",
+        "grantAdmin": "Gjør til instansadministrator",
+        "resetLink": "Lag tilbakestillingslenke",
+        "revokeAdmin": "Fjern som instansadministrator"
+      },
+      "actions_aria": "Handlinger for {{email}}",
+      "columns": {
+        "created": "Opprettet",
+        "email": "E-post",
+        "email_verified": "E-post bekreftet",
+        "instance_admin": "Instansadministrator",
+        "last_sign_in": "Siste innlogging",
+        "status": "Status",
+        "two_factor": "2FA",
+        "workspaces": "Arbeidsområder"
+      },
+      "confirm": {
+        "cancel": "Avbryt",
+        "delete": {
+          "confirm": "Slett bruker",
+          "description": "Slette {{email}}? Kontoen fjernes, og det samme gjelder plassene i arbeidsområder. Dette kan ikke angres.",
+          "title": "Slett bruker"
+        },
+        "disable": {
+          "confirm": "Deaktiver",
+          "description": "{{email}} kan ikke logge inn og blir logget ut overalt nå. Arbeidsområdene deres fortsetter å kjøre. Du kan aktivere brukeren igjen senere.",
+          "title": "Deaktiver bruker"
+        },
+        "disableTwoFactor": {
+          "confirm": "Slå av 2FA",
+          "description": "{{email}} logger inn med passordet alene, og kan sette opp 2FA igjen. Gjør dette bare når du er sikker på at det er vedkommende som ber om det.",
+          "title": "Slå av 2FA"
+        }
+      },
+      "description": "Alle med en konto på denne installasjonen. Instansadministratorer styrer selve installasjonen, for eksempel prober og brukere. En brukers rolle i et arbeidsområde settes av eierne av arbeidsområdet.",
+      "empty": "Fant ingen brukere",
+      "errors": {
+        "last_instance_admin": "Installasjonen trenger minst én instansadministrator.",
+        "last_owner": "Brukeren er den siste eieren av {{workspaces}}. Gjør noen andre til eier, eller slett arbeidsområdet, først.",
+        "self": "Du kan ikke gjøre dette med din egen konto."
+      },
+      "load_failed": "Kunne ikke laste brukerne.",
+      "messages": {
+        "admin_granted": "{{email}} er nå instansadministrator",
+        "admin_revoked": "{{email}} er ikke lenger instansadministrator",
+        "deleted": "{{email}} er slettet",
+        "disabled": "{{email}} er deaktivert og logget ut",
+        "enabled": "{{email}} er aktivert",
+        "two_factor_off": "2FA er slått av for {{email}}",
+        "update_failed": "Kunne ikke oppdatere brukeren."
+      },
+      "never": "Aldri",
+      "none": "Ingen",
+      "page_name": "Brukere",
+      "paging": {
+        "next": "Neste",
+        "page": "Side {{page}} av {{pages}}",
+        "previous": "Forrige"
+      },
+      "reset_link": {
+        "close": "Lukk",
+        "copied": "Lenken er kopiert",
+        "copy": "Kopier lenke",
+        "copy_failed": "Kunne ikke kopiere lenken. Marker den og kopier den for hånd.",
+        "description": "En lenke der {{email}} kan velge et nytt passord. Kopier den og gi den videre nå: den vises bare én gang.",
+        "emailed": "Denne installasjonen sender e-post om kontoer, så brukeren får beskjed på e-post om at det er laget en lenke til dem.",
+        "expires": "Lenken fungerer én gang og utløper {{when}}.",
+        "failed": "Kunne ikke lage lenken.",
+        "label": "Lenke",
+        "making": "Lager lenken...",
+        "signs_out": "Når lenken brukes, logges brukeren ut overalt.",
+        "title": "Lenke for tilbakestilling av passord"
+      },
+      "search_label": "Søk etter brukere på e-post",
+      "search_placeholder": "Søk på e-post",
+      "total": "{{total}} funnet",
+      "values": {
+        "active": "Aktiv",
+        "disabled": "Deaktivert",
+        "no": "Nei",
+        "two_factor_off": "Av",
+        "two_factor_on": "På",
+        "yes": "Ja"
+      },
+      "you": "deg"
+    },
+    "workspaces": {
+      "actions": {
+        "delete": "Slett arbeidsområde",
+        "resume": "Gjenoppta arbeidsområde",
+        "suspend": "Suspender arbeidsområde",
+        "limits": "Grenser"
+      },
+      "actions_aria": "Handlinger for {{name}}",
+      "columns": {
+        "created": "Opprettet",
+        "custom_domains": "Egendefinerte domener",
+        "members": "Medlemmer",
+        "monitors": "Overvåkninger",
+        "name": "Navn",
+        "owners": "Eiere",
+        "status": "Status",
+        "status_pages": "Status-sider",
+        "limits": "Grenser"
+      },
+      "confirm": {
+        "cancel": "Avbryt",
+        "delete": {
+          "confirm": "Slett arbeidsområde",
+          "description": "Slette {{name}}? Alt i det forsvinner: overvåkningene og historikken deres, status-sider, varslingskanaler og medlemmenes tilgang. Dette kan ikke angres.",
+          "name_label": "Skriv inn navnet på arbeidsområdet for å bekrefte: {{name}}",
+          "title": "Slett arbeidsområde"
+        },
+        "resume": {
+          "confirm": "Gjenoppta",
+          "description": "Overvåkningene i {{name}} kjører igjen i tilstanden de hadde, og medlemmene kan bruke det som før. Et arbeidsområde som venter på at eieren bekrefter e-posten sin, fortsetter å vente.",
+          "title": "Gjenoppta arbeidsområde"
+        },
+        "suspend": {
+          "confirm": "Suspender",
+          "description": "Overvåkningene i {{name}} slutter å kjøre, de offentlige status-sidene viser at de er utilgjengelige, og medlemmene ser at det er suspendert. Ingenting slettes, og du kan gjenoppta det senere.",
+          "title": "Suspender arbeidsområde"
+        }
+      },
+      "description": "Alle arbeidsområder på denne installasjonen, med eiere, medlemmer og hvor mye de inneholder. Bare antall vises, ingenting fra innholdet i et arbeidsområde.",
+      "empty": "Fant ingen arbeidsområder",
+      "load_failed": "Kunne ikke laste arbeidsområdene.",
+      "messages": {
+        "deleted": "{{name}} er slettet",
+        "failed": "Kunne ikke endre arbeidsområdet.",
+        "resumed": "{{name}} er gjenopptatt",
+        "suspended": "{{name}} er suspendert"
+      },
+      "monitors": "{{active}} aktive, {{paused}} satt på pause",
+      "none": "Ingen",
+      "page_name": "Arbeidsområder",
+      "paging": {
+        "next": "Neste",
+        "page": "Side {{page}} av {{pages}}",
+        "previous": "Forrige"
+      },
+      "search_label": "Søk etter arbeidsområder på navn eller eierens e-post",
+      "search_placeholder": "Søk på navn eller eierens e-post",
+      "status": {
+        "running": "Kjører",
+        "suspended_admin": "Suspendert av en administrator",
+        "suspended_unverified": "Suspendert til eieren bekrefter e-posten sin"
+      },
+      "total": "{{total}} funnet",
+      "limits": {
+        "item": "{{name}}: {{value}}",
+        "more": "+{{number}} til",
+        "unlimited": "Ingen grenser",
+        "source": {
+          "workspace": "Egne",
+          "install": "Installasjonens standarder",
+          "none": "Ingen angitt"
+        },
+        "dialog": {
+          "title": "Grenser for {{name}}",
+          "description": "Hva dette arbeidsområdet er bundet av. Å senke en grense setter ingenting på pause og sletter ingenting: de nyeste overvåkingene over grensen slutter å kjøre til det igjen er plass.",
+          "own": "Egne grenser",
+          "own_help": "Disse erstatter installasjonens standarder. La en grense stå tom for ingen grense.",
+          "unlimited": "Ingen grenser",
+          "unlimited_help": "Ingen grense i det hele tatt, uansett hva installasjonens standarder sier.",
+          "defaults": "Bruk installasjonens standarder",
+          "defaults_help": "Standardgrensene under Admin → Innstillinger, eller ingen hvis installasjonen ikke setter noen.",
+          "save": "Lagre grenser",
+          "cancel": "Avbryt",
+          "saved": "Grensene for {{name}} er lagret",
+          "failed": "Kunne ikke lagre grensene."
+        }
+      }
+    },
+    "settings": {
+      "page_name": "Innstillinger",
+      "description": "Innstillinger for hele installasjonen. En verdi som serverens miljø setter, er låst her.",
+      "load_failed": "Innstillingene kunne ikke lastes inn.",
+      "saved": "Innstillinger lagret",
+      "save_failed": "Innstillingene ble ikke lagret.",
+      "locked": "Satt av serverens miljø",
+      "source": {
+        "environment": "Fra serverens miljø",
+        "saved": "Lagret her",
+        "default": "Standard"
+      },
+      "signup": {
+        "title": "Registrering",
+        "description": "Hvem som kan opprette en konto på denne installasjonen.",
+        "label": "Registreringsmodus",
+        "invite": "Kun med invitasjon",
+        "open": "Åpen",
+        "invite_help": "Den første brukeren registrerer seg, og alle etter blir med i et arbeidsområde via en invitasjon.",
+        "open_help": "Alle kan registrere seg og får sitt eget arbeidsområde. Nye kontoer bekrefter e-postadressen sin, så dette krever en e-postavsender."
+      },
+      "sender": {
+        "title": "E-postavsender",
+        "description": "SMTP-serveren som sender konto-e-poster: lenker for tilbakestilling av passord, bekreftelse av e-post og invitasjoner.",
+        "on": "Konto-e-poster er på.",
+        "off": "Konto-e-poster er av: det finnes ingen SMTP-vert.",
+        "host": "SMTP-vert",
+        "port": "Port",
+        "tls": "Sikkerhet",
+        "tls_starttls": "STARTTLS",
+        "tls_tls": "TLS",
+        "tls_none": "Ingen",
+        "user": "Bruker",
+        "password": "Passord",
+        "password_set": "Et passord er satt. Skriv for å erstatte det.",
+        "password_not_set": "Ingen passord satt",
+        "password_removed": "Passordet fjernes når du lagrer.",
+        "password_reenter": "Hvis du endrer vert, port, sikkerhet eller bruker, fjernes det lagrede passordet. Skriv det inn på nytt.",
+        "remove_password": "Fjern passord",
+        "keep_password": "Behold passord",
+        "from": "Avsenderadresse"
+      },
+      "public_url": {
+        "title": "Offentlig URL",
+        "description": "Adressen til nettappen, som lenkene i e-poster og varsler åpner.",
+        "label": "Offentlig URL"
+      },
+      "test_email": {
+        "title": "Send en test-e-post",
+        "description": "Sender en kort e-post via den lagrede avsenderen for å sjekke at den virker.",
+        "to": "Send til",
+        "send": "Send en test-e-post",
+        "sending": "Sender…",
+        "sent": "Test-e-post sendt til {{to}}.",
+        "failed": "Test-e-posten ble ikke sendt.",
+        "unsaved": "Avsenderen har endringer som ikke er lagret. Testen bruker den lagrede avsenderen, så lagre først."
+      },
+      "validation": {
+        "port": "Skriv inn en port fra 1 til 65535, eller la feltet stå tomt for standardverdien."
+      },
+      "errors": {
+        "locked": "{{field}} er satt av serverens miljø og kan ikke endres her.",
+        "open_needs_sender": "Åpen registrering krever en e-postavsender, fordi nye kontoer bekrefter e-postadressen sin. Sett opp avsenderen først, eller i samme lagring.",
+        "sender_needed": "Registreringen er åpen, og nye kontoer trenger avsenderen for å bekrefte e-postadressen sin. Bytt registreringen til kun med invitasjon først.",
+        "no_sender": "Det finnes ingen e-postavsender. Lagre en avsender først."
+      },
+      "limits": {
+        "title": "Standardgrenser",
+        "description": "Grensene for hvert arbeidsområde som ikke har egne. La en grense stå tom for ingen grense. Grenser et arbeidsområde får på siden Arbeidsområder, erstatter disse."
+      }
+    }
+  },
   "auth": {
     "login": {
       "description": "Logg inn med din e-post",
       "no_account": "Har du ikke konto?",
       "sign_up": "Registrer deg",
       "submit": "Logg inn",
-      "title": "Velkommen tilbake"
+      "title": "Velkommen tilbake",
+      "forgot_password": "Glemt passordet?",
+      "ask_admin": "Be en administrator av denne installasjonen om en invitasjon"
     },
     "register": {
       "description": "Opprett din admin-konto",
+      "description_open": "Opprett kontoen din",
       "have_account": "Har du allerede en konto?",
       "sign_in": "Logg inn",
       "submit": "Opprett",
       "title": "Hei",
       "telemetry_note": "Anonymt: ingen navn på overvåkninger, nettadresser eller verter. Du kan endre det senere under «Innstillinger».",
-      "telemetry_whats_sent": "Hva som sendes"
+      "telemetry_whats_sent": "Hva som sendes",
+      "errors": {
+        "rate_limited": "For mange registreringer fra nettverket ditt. Prøv igjen om en time.",
+        "email_taken": "Det finnes allerede en konto med denne e-postadressen.",
+        "sign_in_instead": "Logg inn i stedet.",
+        "check_failed": "Kontrollen ble ikke bestått. Prøv igjen.",
+        "check_load_failed": "Kontrollen kunne ikke lastes. Sjekk tilkoblingen din og prøv igjen."
+      }
     },
     "twofa": {
       "code_label": "2FA-kode",
@@ -27,6 +297,45 @@
       "title": "To-faktorautentisering påkrevd",
       "verify_button": "Verifiser 2FA",
       "verifying": "Verifiserer..."
+    },
+    "forgot": {
+      "title": "Tilbakestill passordet",
+      "description": "Skriv inn e-posten til kontoen din, så sender vi deg en lenke.",
+      "submit": "Send lenke",
+      "sent": "Hvis det finnes en konto med denne e-posten, har vi sendt en lenke. Den virker i én time.",
+      "back_to_login": "Tilbake til innlogging"
+    },
+    "reset": {
+      "title": "Velg et nytt passord",
+      "description": "Skriv inn et nytt passord for kontoen din.",
+      "submit": "Angi passord",
+      "success": "Passordet ditt er endret, og du er logget ut overalt. Logg inn med det nye passordet.",
+      "sign_in": "Logg inn",
+      "invalid_link": "Denne lenken er brukt eller utløpt.",
+      "request_new": "Be om en ny lenke"
+    },
+    "verify": {
+      "title": "Bekreft e-posten din",
+      "verifying": "Bekrefter e-posten din...",
+      "success": "E-posten din er bekreftet.",
+      "open_app": "Åpne Peekaping",
+      "invalid_link": "Denne lenken er brukt eller utløpt."
+    },
+    "errors": {
+      "rate_limited": "For mange forespørsler. Prøv igjen senere.",
+      "generic": "Noe gikk galt. Prøv igjen.",
+      "already_verified": "E-posten din er allerede bekreftet."
+    },
+    "resend": {
+      "button": "Send på nytt",
+      "sent": "Vi har sendt en ny lenke. Sjekk innboksen din."
+    },
+    "verification_banner": {
+      "message": "Bekreft e-posten din: vi har sendt en lenke til {{email}}."
+    },
+    "suspension_notice": {
+      "message": "Overvåkingene dine starter når du har bekreftet e-postadressen din.",
+      "member_message": "Overvåkingene i dette arbeidsområdet starter når eieren har bekreftet e-postadressen sin."
     }
   },
   "bars": {
@@ -73,6 +382,7 @@
     "no_tags_available": "Ingen tagger tilgjengelige",
     "please_refresh_page": "Vennligst oppdater siden.",
     "required": "Obligatorisk",
+    "retry": "Prøv igjen",
     "save": "Lagre",
     "saving": "Lagrer...",
     "search": "Søk",
@@ -124,6 +434,33 @@
       "password_required": "Passord er påkrevd",
       "password_min_length": "Passord må være minst 8 tegn",
       "passwords_mismatch": "Passordene stemmer ikke"
+    }
+  },
+  "invite": {
+    "accept": "Godta invitasjon",
+    "accepting": "Blir med...",
+    "creating": "Oppretter...",
+    "description": "Du er invitert til å bli med i {{workspace}} som {{role}}.",
+    "enter_failed": "Du har blitt med i arbeidsområdet, men det kunne ikke åpnes. Prøv igjen.",
+    "errors": {
+      "other_email": "Denne invitasjonen er til en annen e-postadresse."
+    },
+    "for_email": "Denne invitasjonen er til {{email}}.",
+    "have_account": "Har du allerede en konto?",
+    "open_app": "Åpne Peekaping",
+    "other_account": "Du er logget inn som {{current}}, men denne invitasjonen er til {{invited}}. Logg ut, og logg deretter inn eller registrer deg med {{invited}} for å godta den.",
+    "sign_in_instead": "Logg inn i stedet",
+    "sign_out": "Logg ut",
+    "signup_description": "Velg et passord for å opprette kontoen din og bli med i {{workspace}} som {{role}}.",
+    "signup_submit": "Opprett konto og bli med",
+    "title": "Bli med i {{workspace}}",
+    "unavailable": {
+      "accepted": "Denne invitasjonen er allerede brukt.",
+      "expired": "Denne invitasjonen er utløpt. Be om en ny.",
+      "not_found": "Denne invitasjonslenken finnes ikke. Sjekk at du har kopiert hele lenken.",
+      "revoked": "Denne invitasjonen ble trukket tilbake. Be om en ny.",
+      "title": "Denne invitasjonen kan ikke brukes",
+      "unknown": "Denne invitasjonen kan ikke brukes. Be om en ny."
     }
   },
   "maintenance": {
@@ -231,6 +568,79 @@
       "wed": "Ons"
     }
   },
+  "members": {
+    "change_role_aria": "Endre rollen til {{email}}",
+    "errors": {
+      "account_exists": "Det finnes allerede en konto med denne e-postadressen. Logg inn og godta invitasjonen.",
+      "already_member": "Denne personen er allerede medlem av dette arbeidsområdet.",
+      "forbidden": "Rollen din i dette arbeidsområdet tillater ikke dette.",
+      "generic": "Noe gikk galt. Prøv igjen.",
+      "last_owner": "Et arbeidsområde må ha minst én eier.",
+      "member_not_found": "Dette medlemmet er ikke lenger i arbeidsområdet."
+    },
+    "invite": {
+      "copied": "Lenken er kopiert",
+      "copy": "Kopier",
+      "creating": "Oppretter...",
+      "description": "Lag en lenke for en e-postadresse og en rolle. Det sendes ingen e-post: kopier lenken og send den selv.",
+      "done": "Ferdig",
+      "email_label": "E-post",
+      "link_note": "Denne lenken fungerer bare én gang og utløper om 7 dager. Den vises bare nå, så kopier den før du forlater siden.",
+      "link_title": "Invitasjonslenke",
+      "role_label": "Rolle",
+      "submit": "Opprett invitasjonslenke",
+      "title": "Inviter noen"
+    },
+    "leave": {
+      "button": "Forlat arbeidsområdet",
+      "confirm": "Forlat",
+      "description": "Du mister tilgangen til dette arbeidsområdet og dataene i det umiddelbart.",
+      "done": "Du forlot arbeidsområdet",
+      "last_owner": "Du er den siste eieren, så du kan ikke forlate det. Gjør først et annet medlem til eier.",
+      "refresh_failed": "Du har forlatt arbeidsområdet, men arbeidsområdene dine kunne ikke lastes inn. Prøv igjen.",
+      "title": "Forlat dette arbeidsområdet"
+    },
+    "list": {
+      "description": "Alle som jobber i dette arbeidsområdet, og rollene deres.",
+      "email": "E-post",
+      "joined": "Ble med",
+      "role": "Rolle",
+      "title": "Medlemmer",
+      "you": "deg"
+    },
+    "page_name": "Medlemmer",
+    "pending": {
+      "description": "Invitasjoner som ikke er brukt ennå. Lenken til en trukket invitasjon slutter å fungere.",
+      "email": "E-post",
+      "empty": "Ingen ventende invitasjoner.",
+      "expired": "Utløpt",
+      "expires": "Utløper",
+      "revoke": "Trekk tilbake",
+      "revoke_aria": "Trekk tilbake invitasjonen til {{email}}",
+      "revoked": "Invitasjonen er trukket tilbake",
+      "role": "Rolle",
+      "title": "Ventende invitasjoner"
+    },
+    "remove": "Fjern",
+    "remove_aria": "Fjern {{email}}",
+    "remove_dialog": {
+      "confirm": "Fjern",
+      "description": "{{email}} mister tilgangen til dette arbeidsområdet umiddelbart.",
+      "title": "Fjern medlem"
+    },
+    "removed": "Medlemmet er fjernet",
+    "role_updated": "Rollen er oppdatert",
+    "roles": {
+      "admin": "Administrator",
+      "member": "Medlem",
+      "owner": "Eier"
+    },
+    "settings_card": {
+      "description": "Se hvem som jobber i dette arbeidsområdet, og inviter folk og administrer rollene deres hvis du er administrator eller eier.",
+      "open": "Åpne medlemmer",
+      "title": "Medlemmer"
+    }
+  },
   "messages": {
     "login_error": "Det oppstod en feil under påloggingen.",
     "login_no_tokens": "Innlogging vellykket, men ingen token mottatt.",
@@ -258,6 +668,7 @@
     },
     "empty_state": {
       "action": "Opprett din første overvåking",
+      "add_channel": "Legg til en varslingskanal",
       "description": "Kom i gang ved å opprette din første overvåkning for å spore helsen til tjenestene dine.",
       "title": "Ingen overvåkningsmonitter funnet"
     },
@@ -500,6 +911,7 @@
       "shared": {
         "intervals": {
           "heartbeat_retry": "Heartbeat-retryintervall (forsøk hver {{seconds}} sekund)",
+          "interval_too_short": "Kan ikke være under {{minimum}} sekunder",
           "max_retries_description": "Maksimale forsøk før tjenesten markeres som ned og en varsling sendes.",
           "request_timeout": "Forespørsel timeout (Timeout etter {{seconds}} sekunder)",
           "resend_notification": "Send varsel på nytt hvis ned i X påfølgende ganger (Send på nytt deaktivert)",
@@ -542,6 +954,10 @@
           "select_proxy_placeholder": "Velg proxy",
           "selected_proxy": "Valgt proxy",
           "title": "Mellomtjener"
+        },
+        "run_from": {
+          "default_locations": "Kjører på standardplasseringene",
+          "label": "Kjør fra"
         },
         "tags": {
           "label": "Tagger",
@@ -649,9 +1065,12 @@
     "toasts": {
       "deleted": "Overvåking slettet",
       "paused": "Overvåkning satt på pause",
+      "push_token_already_used": "En annen monitor bruker allerede dette push-tokenet. Generer et nytt.",
       "reset_success": "Monitor data tilbakestilt vellykket",
       "resumed": "Overvåking gjenopptatt"
     },
+    "type_disabled": "Typen {{type}} er slått av på denne installasjonen",
+    "over_limit": "Sjekkes ikke: arbeidsområdet har flere aktive monitorer enn grensen tillater",
     "view": {
       "buttons": {
         "clone": "Klon",
@@ -712,6 +1131,7 @@
     }
   },
   "navigation": {
+    "admin": "Admin",
     "maintenance": "Vedlikehold",
     "monitors": "Overvåkninger",
     "notification_channels": "Varslingskanaler",
@@ -1124,6 +1544,12 @@
         "signing_secret_docs_link": "Slik verifiserer du signaturen",
         "signing_secret_label": "Signeringshemmelighet",
         "signing_secret_placeholder": "La feltet stå tomt for å sende usignerte forespørsler"
+      },
+      "install_email": {
+        "description": "Sendes av denne installasjonen, ingen SMTP-server er nødvendig.",
+        "to_description": "Et medlem av dette arbeidsområdet. Varsler sendes når medlemmet har bekreftet adressen.",
+        "to_label": "Mottaker",
+        "to_placeholder": "Velg et medlem"
       }
     },
     "important": "Viktige varsler",
@@ -1142,7 +1568,8 @@
       "updated_success": "Notifier oppdatert"
     },
     "new": {
-      "title": "Ny varslingkanal"
+      "title": "Ny varslingkanal",
+      "default_hint": "Denne kanalen blir krysset av på nye monitorer."
     },
     "no_important": "Ingen viktige varsler funnet.",
     "placeholders": {
@@ -1152,11 +1579,21 @@
     "secret": {
       "reenter_error": "Skriv inn denne hemmeligheten på nytt eller fjern den: stedet den sendes til, er endret",
       "reenter_hint": "Skriv inn denne hemmeligheten på nytt: stedet den sendes til, er endret",
+      "reenter_url_error": "Skriv inn legitimasjonen i denne URL-en på nytt: URL-en er endret siden den ble lagret",
       "remove": "Fjern",
       "saved_hint": "Lagret — skriv for å erstatte"
     }
   },
   "probes": {
+    "default": {
+      "description": "En monitor som opprettes uten å velge prober, kjører på standardprobene som ikke er deaktivert og kjører typen, og på den lokale proben når ingen gjør det. Eksisterende monitorer beholder probene sine.",
+      "failed": "Kunne ikke endre om proben er en standard.",
+      "label": "Standardprobe",
+      "off": "{{name}} er ikke lenger en standardprobe",
+      "on": "{{name}} er nå en standardprobe",
+      "title": "Standard for nye monitorer"
+    },
+    "default_badge": "Standard",
     "page_name": "Prober",
     "description": "Prober kjører kontroller av overvåkninger fra stedene der de er installert. Den lokale proben er Peekaping selv.",
     "local_name": "Lokal",
@@ -1438,7 +1875,9 @@
     "data_retention": {
       "days_label": "Dager",
       "description": "Angi hvor mange dager data skal beholdes (KEEP_DATA_PERIOD_DAYS).",
-      "title": "Databeholdelsesperiode"
+      "read_only": "Bare en administrator eller eier av arbeidsområdet kan endre dette.",
+      "title": "Databeholdelsesperiode",
+      "capped": "Opptil {{max}} dager i dette arbeidsområdet"
     },
     "error_reporting": {
       "cluster_note": "I klyngemodus når en endring alle prosesser innen ett minutt.",
@@ -1464,6 +1903,10 @@
     },
     "validation": {
       "min_days": "Må være minst 1 dag"
+    },
+    "workspace_name": {
+      "description": "Navnet som vises i arbeidsområdeveksleren og for medlemmene.",
+      "title": "Arbeidsområdets navn"
     }
   },
   "status": {
@@ -1479,6 +1922,7 @@
       "refresh_in": "Oppdaterer om",
       "refresh_now": "Oppdater nå",
       "status_page_not_found": "Status‑siden ble ikke funnet eller er ikke publisert.",
+      "status_page_unavailable": "Denne status-siden er utilgjengelig",
       "under_maintenance": "Under vedlikehold",
       "unknown": "Ukjent"
     }
@@ -1522,6 +1966,7 @@
     "search_placeholder": "Søk status­sider etter tittel…",
     "show_locations": "Vis hver plassering",
     "show_locations_info": "For overvåkinger som sjekkes fra flere plasseringer, vises status og historikk for hver plassering",
+    "slug_already_used": "En annen statusside bruker allerede denne adressen",
     "update_status_page": "Oppdater statusside",
     "view_page": "Se side"
   },
@@ -1587,5 +2032,93 @@
   "ui": {
     "general": "Generelt",
     "intervals_retries": "Intervaller, Gjenopprøvninger, Tidsavbrudd"
+  },
+  "workspaces": {
+    "create": "Opprett arbeidsområde",
+    "create_error": "Kunne ikke opprette arbeidsområdet",
+    "create_first": "Opprett et arbeidsområde",
+    "creating": "Oppretter...",
+    "enter": "Åpne arbeidsområde",
+    "entering": "Åpner...",
+    "entry_failed": "Arbeidsområdet ble opprettet, men det kunne ikke åpnes. Prøv igjen.",
+    "name_label": "Navn",
+    "name_placeholder": "Teamet mitt",
+    "name_required": "Skriv inn et navn",
+    "new": "Nytt arbeidsområde",
+    "new_description": "Et arbeidsområde har sine egne monitorer, varslingskanaler, statussider og medlemmer. Du blir eieren.",
+    "new_title": "Nytt arbeidsområde",
+    "none_description": "Kontoen din er ikke medlem av noe arbeidsområde, så det er ingenting å vise her. Be noen som styrer et arbeidsområde om å legge deg til.",
+    "none_title": "Du er ikke i et arbeidsområde ennå",
+    "refresh_failed": "Arbeidsområdene dine kunne ikke lastes inn. Sjekk tilkoblingen og prøv igjen.",
+    "rename_error": "Kunne ikke omdøpe arbeidsområdet",
+    "rename_success": "Arbeidsområdet er omdøpt",
+    "suspended_banner": {
+      "contact": "Kontakt:",
+      "message": "Dette arbeidsområdet er suspendert av administratoren for denne installasjonen. Overvåkningene kjører ikke, og status-sidene er utilgjengelige.",
+      "no_contact": "Kontakt personen som driver denne installasjonen."
+    },
+    "switcher_label": "Bytt arbeidsområde"
+  },
+  "get_started": {
+    "page_name": "Kom i gang",
+    "skip": "Hopp over oppsettet",
+    "step_of": "Trinn {{current}} av {{total}}",
+    "name": {
+      "description": "Her ligger overvåkingene, varslingskanalene og statussidene dine. Du kan endre navnet senere i Innstillinger.",
+      "title": "Gi arbeidsområdet ditt et navn"
+    },
+    "monitor": {
+      "create": "Opprett overvåking",
+      "create_failed": "Kunne ikke opprette overvåkingen",
+      "creating": "Oppretter...",
+      "description": "Skriv inn adressen til et nettsted eller en API. Peekaping sjekker den og varsler deg når den slutter å svare.",
+      "full_form": "Eller sett opp en overvåking med alle alternativene",
+      "title": "Legg til din første overvåking",
+      "url_invalid": "Skriv inn en adresse som starter med http:// eller https://",
+      "url_label": "Adresse som skal overvåkes"
+    },
+    "channel": {
+      "continue_unlinked": "Fortsett uten å koble til",
+      "description": "Velg hvor Peekaping sender en varsling når overvåkingen din går ned. Den blir standard for nye overvåkinger.",
+      "link_failed": "Kanalen ble lagret, men koblingen til overvåkingen mislyktes. Legg den til på overvåkingens redigeringsside.",
+      "retry_link": "Prøv å koble til igjen",
+      "title": "Få beskjed"
+    },
+    "done": {
+      "description": "Peekaping overvåker tjenesten din. Dette kan du gjøre videre.",
+      "title": "Alt er klart",
+      "unverified": "Overvåkingen din kjører når e-postadressen din er bekreftet. Sjekk innboksen for bekreftelseslenken.",
+      "links": {
+        "members": "Inviter teamet ditt",
+        "monitor": "Åpne overvåkingen",
+        "monitors": "Gå til overvåkinger",
+        "probes": "Administrer prober",
+        "status_pages": "Publiser en statusside"
+      }
+    }
+  },
+  "limits": {
+    "reached": {
+      "monitors": "Dette arbeidsområdet kan ha høyst {{max}} kjørende overvåkinger",
+      "status_pages": "Dette arbeidsområdet kan ha høyst {{max}} statussider",
+      "custom_domains": "Statussidene i dette arbeidsområdet kan ha høyst {{max}} egendefinerte domener til sammen",
+      "members": "Dette arbeidsområdet kan ha høyst {{max}} medlemmer, inkludert ventende invitasjoner",
+      "owned_workspaces": "Du kan eie høyst {{max}} arbeidsområder",
+      "probes": "En overvåking i dette arbeidsområdet kan kjøre på høyst {{max}} prober",
+      "retention_days": "Dette arbeidsområdet kan lagre data i høyst {{max}} dager"
+    },
+    "names": {
+      "monitors": "Aktive overvåkinger",
+      "min_check_interval": "Korteste kontrollintervall (sekunder)",
+      "status_pages": "Statussider",
+      "custom_domains": "Egendefinerte domener",
+      "members": "Medlemmer",
+      "owned_workspaces": "Arbeidsområder én bruker kan eie",
+      "probes_per_monitor": "Prober per overvåking",
+      "retention_days": "Databeholdelse (dager)"
+    },
+    "none": "Ingen grense",
+    "invalid": "Skriv inn et helt tall på 1 eller mer, eller la feltet stå tomt for ingen grense.",
+    "retention_too_long": "Kan ikke være over {{max}} dager"
   }
 }

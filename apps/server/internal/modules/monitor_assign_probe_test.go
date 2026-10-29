@@ -3,6 +3,7 @@ package modules_test
 import (
 	"context"
 	"errors"
+	"peekaping/internal/modules/workspace/workspacetest"
 	"sync"
 	"testing"
 
@@ -32,6 +33,10 @@ func (k knownProbes) FindProbe(_ context.Context, id string) (*monitor.ProbeInfo
 		return nil, nil
 	}
 	return &monitor.ProbeInfo{Name: id}, nil
+}
+
+func (k knownProbes) FindDefaultProbes(context.Context) ([]*monitor.DefaultProbe, error) {
+	return nil, nil
 }
 
 // assignFixture is a monitor service and probe repository over one database, with a probe that
@@ -68,9 +73,10 @@ func newAssignFixture(t *testing.T, ctx context.Context, db *bun.DB) *assignFixt
 func (f *assignFixture) insert(t *testing.T, ctx context.Context, monitorType string, active bool) string {
 	t.Helper()
 	id := uuid.NewString()
+	workspacetest.OldestOrAdd(t, f.db)
 	_, err := f.db.ExecContext(ctx,
-		`INSERT INTO monitors (id, type, name, interval, timeout, max_retries, retry_interval, resend_interval, active, config)
-		 VALUES (?, ?, ?, 60, 16, 0, 60, 0, ?, '{}')`, id, monitorType, monitorType, active)
+		`INSERT INTO monitors (id, workspace_id, type, name, interval, timeout, max_retries, retry_interval, resend_interval, active, config)
+		 VALUES (?, (SELECT id FROM workspaces ORDER BY created_at, id LIMIT 1), ?, ?, 60, 16, 0, 60, 0, ?, '{}')`, id, monitorType, monitorType, active)
 	require.NoError(t, err)
 	return id
 }
@@ -105,7 +111,7 @@ func TestMonitorService_AssignProbeToAllOnEverySQLBackend(t *testing.T) {
 		push := f.insert(t, ctx, "push", true)
 		wanted = append(wanted, paused)
 
-		added, err := f.service.AssignProbeToAll(ctx, f.probeID, []string{"http", "tcp"}, f.claimIt)
+		added, err := f.service.AssignProbeToAllAnyWorkspace(ctx, f.probeID, []string{"http", "tcp"}, f.claimIt)
 
 		require.NoError(t, err)
 		assert.Equal(t, many+1, added)
@@ -128,7 +134,7 @@ func TestMonitorService_AssignProbeToAllOnEverySQLBackend(t *testing.T) {
 		}
 		assert.ElementsMatch(t, wanted, ids)
 
-		again, err := f.service.AssignProbeToAll(ctx, f.probeID, nil, f.claimIt)
+		again, err := f.service.AssignProbeToAllAnyWorkspace(ctx, f.probeID, nil, f.claimIt)
 		require.NoError(t, err)
 		assert.Zero(t, again, "the claim is spent")
 		assert.Len(t, eventstest.Published(f.bus, events.MonitorUpdated), many+1)
@@ -142,13 +148,13 @@ func TestMonitorService_AssignProbeToAllWithoutAClaim(t *testing.T) {
 		f := newAssignFixture(t, ctx, db)
 		first, second := f.insert(t, ctx, "http", true), f.insert(t, ctx, "docker", true)
 
-		added, err := f.service.AssignProbeToAll(ctx, f.probeID, nil, nil)
+		added, err := f.service.AssignProbeToAllAnyWorkspace(ctx, f.probeID, nil, nil)
 		require.NoError(t, err)
 		assert.Equal(t, 2, added)
 		assert.True(t, f.pending(t, ctx), "no claim, so the flag is not touched")
 
 		later := f.insert(t, ctx, "tcp", true)
-		added, err = f.service.AssignProbeToAll(ctx, f.probeID, []string{}, nil)
+		added, err = f.service.AssignProbeToAllAnyWorkspace(ctx, f.probeID, []string{}, nil)
 		require.NoError(t, err)
 		assert.Equal(t, 1, added, "only the monitor that isn't on the probe yet")
 		assert.ElementsMatch(t, []string{"local", f.probeID}, f.probesOf(t, ctx, later))
@@ -163,7 +169,7 @@ func TestMonitorService_AssignProbeToAllRollsTheClaimBackOnFailure(t *testing.T)
 		f := newAssignFixture(t, ctx, db)
 		id := f.insert(t, ctx, "http", true)
 
-		added, err := f.service.AssignProbeToAll(ctx, uuid.NewString(), nil, func(ctx context.Context) (bool, error) {
+		added, err := f.service.AssignProbeToAllAnyWorkspace(ctx, uuid.NewString(), nil, func(ctx context.Context) (bool, error) {
 			return f.claimIt(ctx)
 		})
 		require.Error(t, err, "an unknown probe")
@@ -172,11 +178,11 @@ func TestMonitorService_AssignProbeToAllRollsTheClaimBackOnFailure(t *testing.T)
 		assert.Empty(t, f.probesOf(t, ctx, id))
 		assert.Empty(t, eventstest.Published(f.bus, events.MonitorUpdated))
 
-		_, err = f.service.AssignProbeToAll(ctx, f.probeID, nil, func(context.Context) (bool, error) { return false, errors.New("claim failed") })
+		_, err = f.service.AssignProbeToAllAnyWorkspace(ctx, f.probeID, nil, func(context.Context) (bool, error) { return false, errors.New("claim failed") })
 		require.Error(t, err)
 		assert.Empty(t, f.probesOf(t, ctx, id))
 
-		added, err = f.service.AssignProbeToAll(ctx, f.probeID, nil, f.claimIt)
+		added, err = f.service.AssignProbeToAllAnyWorkspace(ctx, f.probeID, nil, f.claimIt)
 		require.NoError(t, err)
 		assert.Equal(t, 1, added)
 	})
@@ -203,7 +209,7 @@ func TestMonitorService_OfTwoRacingAssignmentsOneAssigns(t *testing.T) {
 			wg.Add(1)
 			go func() {
 				defer wg.Done()
-				results[i], errs[i] = f.service.AssignProbeToAll(ctx, f.probeID, nil, f.claimIt)
+				results[i], errs[i] = f.service.AssignProbeToAllAnyWorkspace(ctx, f.probeID, nil, f.claimIt)
 			}()
 		}
 		wg.Wait()

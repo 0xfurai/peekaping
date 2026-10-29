@@ -67,8 +67,8 @@ func (a *app) insertMonitor(t *testing.T, monitorType, name string, active bool)
 	id := uuid.NewString()
 	require.NoError(t, a.container.Invoke(func(db *bun.DB) error {
 		_, err := db.ExecContext(context.Background(),
-			`INSERT INTO monitors (id, type, name, interval, timeout, max_retries, retry_interval, resend_interval, active, config)
-			 VALUES (?, ?, ?, 60, 16, 0, 60, 0, ?, '{}')`, id, monitorType, name, active)
+			`INSERT INTO monitors (id, workspace_id, type, name, interval, timeout, max_retries, retry_interval, resend_interval, active, config)
+			 VALUES (?, (SELECT id FROM workspaces ORDER BY created_at, id LIMIT 1), ?, ?, 60, 16, 0, 60, 0, ?, '{}')`, id, monitorType, name, active)
 		return err
 	}))
 	return id
@@ -314,7 +314,7 @@ func (a *app) assignAllMonitors(t *testing.T, probeID string) *httptest.Response
 // AC5: the action assigns a probe that has instances every monitor it can run now, and says how many
 // it added
 func TestProbeAssignAll_TheActionAssignsAProbeWithInstances(t *testing.T) {
-	a := newAppWithAdmin(t)
+	a := newAppWithAdmin(t, withAllMonitorTypes)
 	made := a.probeThatRuns(t, "Frankfurt", "http", "tcp")
 	site := a.createHTTPMonitor(t, "Site", "")
 	paused := a.createHTTPMonitor(t, "Paused", "")

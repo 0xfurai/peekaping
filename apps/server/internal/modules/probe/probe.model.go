@@ -57,7 +57,10 @@ type Model struct {
 	// TokenPrefix is the first characters of the token, which the API shows in place of it
 	TokenPrefix string
 	Disabled    bool
-	Status      Status
+	// IsDefault marks the probes that a monitor created without choosing probes runs on, set by an
+	// instance admin. The local probe is one until they say otherwise.
+	IsDefault bool
+	Status    Status
 	// SupportedTypes are the monitor types the probe can run: the union over its online
 	// instances, each of which reports its own when it says hello. An empty list means every
 	// type. The service works the union out when it adds the probe's details (FindByID and
@@ -88,7 +91,11 @@ type Instance struct {
 	// empty list means every type, as it does for a probe: an instance of an old probe reports
 	// none.
 	SupportedTypes []string
-	LastSeenAt     time.Time
+	// EnforcesPrivateTargetBlock is whether the instance's hello said it blocks private targets
+	// when the server does (BLOCK_PRIVATE_TARGETS). An instance of an older probe doesn't, and a
+	// server that blocks them deals it no monitors.
+	EnforcesPrivateTargetBlock bool
+	LastSeenAt                 time.Time
 }
 
 // StatusChange is one time a probe went online or offline: its status from At on, until the next
@@ -139,7 +146,8 @@ type CreateModel struct {
 
 // UpdateModel is what can change about a probe: nil fields stay as they are
 type UpdateModel struct {
-	Name     *string
-	Location *string
-	Disabled *bool
+	Name      *string
+	Location  *string
+	Disabled  *bool
+	IsDefault *bool
 }

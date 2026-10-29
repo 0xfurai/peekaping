@@ -61,7 +61,7 @@ func TestUpgradeRebuildsStatsFromHeartbeats(t *testing.T) {
 			ctx := context.Background()
 			db := backend.open(t)
 			migrateUp(t, db, migrationsBefore(firstPerPeriodMigration))
-			monitorID, otherID, tiedID := insertMonitor(t, db), insertMonitor(t, db), insertMonitor(t, db)
+			monitorID, otherID, tiedID := insertOldMonitor(t, db), insertOldMonitor(t, db), insertOldMonitor(t, db)
 
 			// 3,000 checks 30s apart from 23:00 on Oct 15 to 23:59:30 on Oct 16, more than
 			// one backfill batch. Every 10 checks (5 minutes): down with no response time,
@@ -135,7 +135,7 @@ func TestUpgradeBackfillRerunsAfterAFailedMigrate(t *testing.T) {
 			ctx := context.Background()
 			db := backend.open(t)
 			migrateUp(t, db, migrationsBefore(firstPerPeriodMigration))
-			monitorID := insertMonitor(t, db)
+			monitorID := insertOldMonitor(t, db)
 			hour := time.Date(2026, 10, 16, 5, 0, 0, 0, time.UTC)
 			ping30, ping50 := 30, 50
 			rows := []heartbeatRow{

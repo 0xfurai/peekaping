@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"peekaping/internal/config"
+	"peekaping/internal/installsettings"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/shared"
@@ -20,7 +21,7 @@ import (
 )
 
 func newTestSlackSender() *SlackSender {
-	return NewSlackSender(zap.NewNop().Sugar(), &config.Config{}, NewHTTPClient())
+	return NewSlackSender(zap.NewNop().Sugar(), installsettings.Static(&config.Config{}), NewHTTPClient())
 }
 
 func sendTestSlackMessage(sender *SlackSender, configJSON string) error {

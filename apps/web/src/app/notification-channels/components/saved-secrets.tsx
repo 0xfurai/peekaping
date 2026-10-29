@@ -8,7 +8,8 @@ import {
   REENTER_ERROR_TYPE,
   SECRET_PLACEHOLDER,
   configFieldKeys,
-  secretsToReenter,
+  askedToReenter,
+  reenterError,
 } from "../secrets";
 
 type SavedSecretsContextValue = {
@@ -49,7 +50,7 @@ export function SavedSecrets({
   shown: React.MutableRefObject<Set<string>>;
   children: React.ReactNode;
 }) {
-  const { watch, getValues, getFieldState, clearErrors } = useFormContext();
+  const { watch, getValues, getFieldState, setError, clearErrors } = useFormContext();
   const [reenter, setReenter] = React.useState<ReadonlySet<string>>(new Set());
   const [shownVersion, setShownVersion] = React.useState(0);
 
@@ -68,19 +69,28 @@ export function SavedSecrets({
   const reconcile = React.useCallback(
     (values: Record<string, unknown>) => {
       if (!saved) return;
-      const asked = secretsToReenter(values, saved).filter((key) => shown.current.has(key));
+      const asked = askedToReenter(values, saved, shown.current);
       setReenter((current) => (sameSet(current, asked) ? current : new Set(asked)));
 
-      // An error that asks for a secret goes once the secret is no longer asked for: it was
-      // typed or removed, or the endpoint is back as saved
+      // An error that asks for a secret or a URL goes once it is no longer asked for: it was
+      // typed or removed, or the endpoint or URL is back as saved
       const type = typeof values.type === "string" ? values.type : "";
-      for (const key of configFieldKeys[type]?.secrets ?? []) {
+      const fields = configFieldKeys[type];
+      for (const key of [...(fields?.secrets ?? []), ...(fields?.urls ?? [])]) {
         if (!asked.includes(key) && getFieldState(key).error?.type === REENTER_ERROR_TYPE) {
           clearErrors(key);
         }
       }
+
+      // A URL has no hint of its own to show: it gets the error as soon as it is asked for,
+      // rather than only when the form saves or tests
+      for (const key of fields?.urls ?? []) {
+        if (asked.includes(key) && getFieldState(key).error?.type !== REENTER_ERROR_TYPE) {
+          setError(key, reenterError(type, key));
+        }
+      }
     },
-    [saved, shown, getFieldState, clearErrors]
+    [saved, shown, getFieldState, setError, clearErrors]
   );
 
   React.useEffect(() => {

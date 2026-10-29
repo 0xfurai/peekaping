@@ -4,7 +4,9 @@ import axios from 'axios';
 import React from 'react';
 import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
-import { subscribeToRoom } from '@/lib/socket-rooms';
+import { useLocation } from 'react-router-dom';
+import { heartbeatEvent, subscribeToRoom, workspaceRoom } from '@/lib/socket-rooms';
+import { workspaceIdFromPathname } from '@/lib/workspace-path';
 
 export const WebSocketStatus = {
 	CONNECTING: 'connecting',
@@ -163,4 +165,18 @@ export const useSocketRoom = <A extends unknown[]>(
     if (!socket || !room) return;
     return subscribeToRoom(socket, room, event, (...args: A) => handlerRef.current(...args));
   }, [socket, room, event]);
+};
+
+/**
+ * Subscribes to the heartbeats of every monitor in the workspace the address names, through that
+ * workspace's room. The room is joined on connect and again after a reconnect, and left when the
+ * address moves to another workspace or the caller unmounts, so the socket is only ever in the room
+ * of the workspace on screen.
+ */
+export const useWorkspaceHeartbeats = <A extends unknown[]>(handler: (...args: A) => void) => {
+  const { pathname } = useLocation();
+  // The address may spell the ID in upper case, the room is named by the lower-case one
+  const workspaceId = workspaceIdFromPathname(pathname)?.toLowerCase();
+  const room = workspaceId ? workspaceRoom(workspaceId) : null;
+  useSocketRoom(room, room ? heartbeatEvent(room) : '', handler);
 };

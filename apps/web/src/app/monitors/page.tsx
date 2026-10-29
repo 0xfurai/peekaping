@@ -12,7 +12,7 @@ import {
   type UtilsApiResponseArrayHeartbeatModel,
   type TagModel,
 } from "@/api";
-import { useSocketRoom } from "@/context/websocket-context";
+import { useWorkspaceHeartbeats } from "@/context/websocket-context";
 import { useEffect, useState, useCallback } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useSearchParams } from "@/hooks/useSearchParams";
@@ -28,7 +28,7 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import EmptyList from "@/components/empty-list";
+import { MonitorsEmptyState } from "./components/monitors-empty-state";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 import { useQuery } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
@@ -43,9 +43,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { getContrastingTextColor } from "@/lib/utils";
 import { useDelayedLoading } from "@/hooks/useDelayedLoading";
 import { useProbes } from "@/hooks/useProbes";
+import { useWorkspacePath } from "@/hooks/useWorkspacePath";
 
 const MonitorsPage = () => {
   const navigate = useNavigate();
+  const workspacePath = useWorkspacePath();
   const queryClient = useQueryClient();
   const { t } = useLocalizedTranslation();
   const { hasRemoteProbe, monitorProbes, unsupportedProbeIds } = useProbes();
@@ -166,7 +168,7 @@ const MonitorsPage = () => {
     );
   };
 
-  useSocketRoom("monitor:all", "monitor:all:heartbeat", handleHeartbeat);
+  useWorkspaceHeartbeats(handleHeartbeat);
 
   // Infinite scroll logic using the reusable hook
   const handleObserver = useCallback(
@@ -217,7 +219,7 @@ const MonitorsPage = () => {
     <Layout
       pageName={t("monitors.title")}
       onCreate={() => {
-        navigate("/monitors/new");
+        navigate(workspacePath("/monitors/new"));
       }}
     >
       <div>
@@ -382,12 +384,7 @@ const MonitorsPage = () => {
 
         {/* No monitors state */}
         {monitors.length === 0 && !isLoading && (
-          <EmptyList
-            title={t("monitors.empty_state.title")}
-            text={t("monitors.empty_state.description")}
-            actionText={t("monitors.empty_state.action")}
-            onClick={() => navigate("/monitors/new")}
-          />
+          <MonitorsEmptyState />
         )}
 
         {/* Monitors list */}

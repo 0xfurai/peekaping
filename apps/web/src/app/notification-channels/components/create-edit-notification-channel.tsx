@@ -25,34 +25,41 @@ import { toast } from "sonner";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { commonMutationErrorHandler } from "@/lib/utils";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
+import { useMe } from "@/hooks/useMe";
 import {
-  REENTER_ERROR_MESSAGE,
-  REENTER_ERROR_TYPE,
-  secretsToReenter,
+  askedToReenter,
+  reenterError,
   withoutSavedSecrets,
   withoutUnaskedSecrets,
 } from "../secrets";
 import { SavedSecrets } from "./saved-secrets";
 import {
   channelFormSchema,
-  channelTypeOptions,
   channelTypes,
+  selectableChannelTypeOptions,
   getChannelType,
   isChannelType,
+  type ChannelType,
   type NotificationChannelFormValues,
 } from "../channel-types/registry";
 
 export default function CreateEditNotificationChannel({
   onSubmit,
+  types,
+  hideTitle = false,
   initialValues = {
     name: "",
-    ...channelTypes[0].defaultValues,
+    ...(getChannelType(types?.[0]) ?? channelTypes[0]).defaultValues,
   },
   isLoading = false,
   mode = "create",
   channelId,
 }: {
   onSubmit: (data: NotificationChannelFormValues) => void;
+  // Offers only these types, in this order, and starts on the first. Without it the form offers
+  // every type the install can use.
+  types?: readonly ChannelType[];
+  hideTitle?: boolean;
   initialValues?: NotificationChannelFormValues;
   isLoading?: boolean;
   mode?: "create" | "edit";
@@ -60,6 +67,7 @@ export default function CreateEditNotificationChannel({
   channelId?: string;
 }) {
   const { t } = useLocalizedTranslation();
+  const accountEmails = useMe().data?.data?.accountEmails === true;
   // A saved config lacks any field added to its type since it was stored
   const [openingValues] = useState(() => ({
     ...getChannelType(initialValues.type)?.defaultValues,
@@ -77,14 +85,12 @@ export default function CreateEditNotificationChannel({
     const validate = zodResolver(channelFormSchema);
     return async (values, context, options) => {
       const result = await validate(values, context, options);
-      const reenter = savedValues
-        ? secretsToReenter(values, savedValues).filter((key) => shownSecrets.current.has(key))
-        : [];
+      const reenter = savedValues ? askedToReenter(values, savedValues, shownSecrets.current) : [];
       if (reenter.length === 0) return result;
 
       const errors: Record<string, unknown> = { ...result.errors };
       for (const key of reenter) {
-        errors[key] = { type: REENTER_ERROR_TYPE, message: REENTER_ERROR_MESSAGE };
+        errors[key] = reenterError(values.type, key);
       }
       return { values: {}, errors: errors as FieldErrors<NotificationChannelFormValues> };
     };
@@ -95,6 +101,13 @@ export default function CreateEditNotificationChannel({
   });
 
   const type = baseForm.watch("type");
+  // A saved channel of a type the install no longer offers still opens and edits
+  const typeOptions = types
+    ? types.map((value) => ({ value, label: getChannelType(value)?.displayName ?? value }))
+    : selectableChannelTypeOptions({
+        accountEmails,
+        keep: mode === "edit" ? openingValues.type : undefined,
+      });
 
   const TypeFormComponent = getChannelType(type)?.Form ?? null;
 
@@ -127,14 +140,12 @@ export default function CreateEditNotificationChannel({
     const values = baseForm.getValues();
 
     // The same refusal as saving: a saved secret that can't be kept is not sent
-    const reenter = savedValues
-      ? secretsToReenter(values, savedValues).filter((key) => shownSecrets.current.has(key))
-      : [];
+    const reenter = savedValues ? askedToReenter(values, savedValues, shownSecrets.current) : [];
     if (reenter.length > 0) {
       reenter.forEach((key, index) =>
         baseForm.setError(
           key as Parameters<typeof baseForm.setError>[0],
-          { type: REENTER_ERROR_TYPE, message: REENTER_ERROR_MESSAGE },
+          reenterError(values.type, key),
           { shouldFocus: index === 0 }
         )
       );
@@ -161,9 +172,11 @@ export default function CreateEditNotificationChannel({
 
   return (
     <div className="flex flex-col gap-6 max-w-[600px]">
-      <CardTitle className="text-xl">
-        {mode === "edit" ? t("notifications.edit_title") : t("notifications.create_title")}
-      </CardTitle>
+      {!hideTitle && (
+        <CardTitle className="text-xl">
+          {mode === "edit" ? t("notifications.edit_title") : t("notifications.create_title")}
+        </CardTitle>
+      )}
 
       <Form {...baseForm}>
         <form
@@ -186,7 +199,7 @@ export default function CreateEditNotificationChannel({
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
-                {channelTypeOptions.map((item) => (
+                {typeOptions.map((item) => (
                   <SelectItem key={item.value} value={item.value}>
                     {item.label}
                   </SelectItem>

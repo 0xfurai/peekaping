@@ -3,22 +3,292 @@
     "cancel": "キャンセル",
     "saving": "保存中…"
   },
+  "admin": {
+    "nav": {
+      "back_to_workspace": "{{name}}に戻る",
+      "probes": "プローブ",
+      "title": "管理",
+      "users": "ユーザー",
+      "workspaces": "ワークスペース",
+      "settings": "設定"
+    },
+    "users": {
+      "actions": {
+        "delete": "ユーザーを削除",
+        "disable": "ユーザーを無効にする",
+        "disableTwoFactor": "2FAをオフにする",
+        "enable": "ユーザーを有効にする",
+        "grantAdmin": "インスタンス管理者にする",
+        "resetLink": "リセットリンクを作成",
+        "revokeAdmin": "インスタンス管理者を解除"
+      },
+      "actions_aria": "{{email}} の操作",
+      "columns": {
+        "created": "作成日",
+        "email": "メール",
+        "email_verified": "メール確認済み",
+        "instance_admin": "インスタンス管理者",
+        "last_sign_in": "最終サインイン",
+        "status": "ステータス",
+        "two_factor": "2FA",
+        "workspaces": "ワークスペース"
+      },
+      "confirm": {
+        "cancel": "キャンセル",
+        "delete": {
+          "confirm": "ユーザーを削除",
+          "description": "{{email}} を削除しますか？アカウントとワークスペース内の所属が削除されます。この操作は元に戻せません。",
+          "title": "ユーザーを削除"
+        },
+        "disable": {
+          "confirm": "無効にする",
+          "description": "{{email}} はサインインできなくなり、今すぐすべての場所からサインアウトされます。このユーザーのワークスペースは動き続けます。後でもう一度有効にできます。",
+          "title": "ユーザーを無効にする"
+        },
+        "disableTwoFactor": {
+          "confirm": "2FAをオフにする",
+          "description": "{{email}} はパスワードだけでサインインするようになり、2FAを再設定できます。本人からの依頼だと確信できる場合にだけ実行してください。",
+          "title": "2FAをオフにする"
+        }
+      },
+      "description": "このインストールにアカウントを持つ全員です。インスタンス管理者は、プローブやユーザーなど、インストール自体を管理します。ワークスペース内のユーザーのロールは、そのワークスペースのオーナーが設定します。",
+      "empty": "ユーザーが見つかりません",
+      "errors": {
+        "last_instance_admin": "インストールには少なくとも1人のインスタンス管理者が必要です。",
+        "last_owner": "このユーザーは{{workspaces}}の最後のオーナーです。先に別の人をオーナーにするか、ワークスペースを削除してください。",
+        "self": "自分のアカウントに対してこの操作はできません。"
+      },
+      "load_failed": "ユーザーを読み込めませんでした。",
+      "messages": {
+        "admin_granted": "{{email}} がインスタンス管理者になりました",
+        "admin_revoked": "{{email}} はインスタンス管理者ではなくなりました",
+        "deleted": "{{email}} を削除しました",
+        "disabled": "{{email}} を無効にし、サインアウトしました",
+        "enabled": "{{email}} を有効にしました",
+        "two_factor_off": "{{email}} の2FAをオフにしました",
+        "update_failed": "ユーザーを更新できませんでした。"
+      },
+      "never": "一度もなし",
+      "none": "なし",
+      "page_name": "ユーザー",
+      "paging": {
+        "next": "次へ",
+        "page": "{{page}} / {{pages}} ページ",
+        "previous": "前へ"
+      },
+      "reset_link": {
+        "close": "閉じる",
+        "copied": "リンクをコピーしました",
+        "copy": "リンクをコピー",
+        "copy_failed": "リンクをコピーできませんでした。選択して手動でコピーしてください。",
+        "description": "{{email}} が新しいパスワードを設定するためのリンクです。今すぐコピーして本人に渡してください。表示されるのは一度だけです。",
+        "emailed": "このインストールはアカウント関連のメールを送信するため、リンクが作成されたことがユーザーにメールで通知されます。",
+        "expires": "このリンクは一度だけ使え、{{when}}に期限切れになります。",
+        "failed": "リンクを作成できませんでした。",
+        "label": "リンク",
+        "making": "リンクを作成中...",
+        "signs_out": "リンクを使うと、ユーザーはすべての場所からサインアウトされます。",
+        "title": "パスワードリセットリンク"
+      },
+      "search_label": "メールアドレスでユーザーを検索",
+      "search_placeholder": "メールアドレスで検索",
+      "total": "{{total}}件見つかりました",
+      "values": {
+        "active": "有効",
+        "disabled": "無効",
+        "no": "いいえ",
+        "two_factor_off": "オフ",
+        "two_factor_on": "オン",
+        "yes": "はい"
+      },
+      "you": "あなた"
+    },
+    "workspaces": {
+      "actions": {
+        "delete": "ワークスペースを削除",
+        "resume": "ワークスペースの利用を再開",
+        "suspend": "ワークスペースを利用停止",
+        "limits": "上限"
+      },
+      "actions_aria": "{{name}} の操作",
+      "columns": {
+        "created": "作成日",
+        "custom_domains": "カスタムドメイン",
+        "members": "メンバー",
+        "monitors": "モニター",
+        "name": "名前",
+        "owners": "オーナー",
+        "status": "ステータス",
+        "status_pages": "ステータスページ",
+        "limits": "上限"
+      },
+      "confirm": {
+        "cancel": "キャンセル",
+        "delete": {
+          "confirm": "ワークスペースを削除",
+          "description": "{{name}} を削除しますか？中身はすべて削除されます：モニターとその履歴、ステータスページ、通知チャンネル、メンバーのアクセス権。この操作は元に戻せません。",
+          "name_label": "確認のため、ワークスペース名を入力してください：{{name}}",
+          "title": "ワークスペースを削除"
+        },
+        "resume": {
+          "confirm": "再開",
+          "description": "{{name}} のモニターは以前の状態のまま再び実行され、メンバーはこれまでどおり利用できます。オーナーのメール認証を待っているワークスペースは、引き続き待機します。",
+          "title": "ワークスペースの利用を再開"
+        },
+        "suspend": {
+          "confirm": "利用停止",
+          "description": "{{name}} のモニターは停止し、公開ステータスページには利用できない旨が表示され、メンバーには利用停止中であることが表示されます。何も削除されず、後で再開できます。",
+          "title": "ワークスペースを利用停止"
+        }
+      },
+      "description": "このインストール上のすべてのワークスペースと、そのオーナー、メンバー、保有データの量です。表示されるのは件数のみで、ワークスペースの中身は表示されません。",
+      "empty": "ワークスペースが見つかりません",
+      "load_failed": "ワークスペースを読み込めませんでした。",
+      "messages": {
+        "deleted": "{{name}} を削除しました",
+        "failed": "ワークスペースを変更できませんでした。",
+        "resumed": "{{name}} の利用を再開しました",
+        "suspended": "{{name}} を利用停止にしました"
+      },
+      "monitors": "稼働中 {{active}}、一時停止 {{paused}}",
+      "none": "なし",
+      "page_name": "ワークスペース",
+      "paging": {
+        "next": "次へ",
+        "page": "{{page}} / {{pages}} ページ",
+        "previous": "前へ"
+      },
+      "search_label": "名前またはオーナーのメールアドレスでワークスペースを検索",
+      "search_placeholder": "名前またはオーナーのメールアドレスで検索",
+      "status": {
+        "running": "稼働中",
+        "suspended_admin": "管理者により利用停止",
+        "suspended_unverified": "オーナーのメール認証まで利用停止"
+      },
+      "total": "{{total}}件見つかりました",
+      "limits": {
+        "item": "{{name}}: {{value}}",
+        "more": "ほか {{number}} 件",
+        "unlimited": "上限なし",
+        "source": {
+          "workspace": "個別設定",
+          "install": "インストールのデフォルト",
+          "none": "未設定"
+        },
+        "dialog": {
+          "title": "{{name}} の上限",
+          "description": "このワークスペースに適用される上限です。上限を下げても、一時停止や削除は行われません。上限を超えた分の新しいモニターは、空きができるまで実行されなくなります。",
+          "own": "個別の上限",
+          "own_help": "インストールのデフォルトの代わりに適用されます。上限を設けない項目は空欄にしてください。",
+          "unlimited": "上限なし",
+          "unlimited_help": "インストールのデフォルトに関係なく、上限を一切設けません。",
+          "defaults": "インストールのデフォルトを使う",
+          "defaults_help": "管理 → 設定 のデフォルトの上限です。インストールで設定されていない場合は上限なしになります。",
+          "save": "上限を保存",
+          "cancel": "キャンセル",
+          "saved": "{{name}} の上限を保存しました",
+          "failed": "上限を保存できませんでした。"
+        }
+      }
+    },
+    "settings": {
+      "page_name": "設定",
+      "description": "インストール全体の設定です。サーバーの環境で設定された値はここではロックされます。",
+      "load_failed": "設定を読み込めませんでした。",
+      "saved": "設定を保存しました",
+      "save_failed": "設定は保存されませんでした。",
+      "locked": "サーバーの環境で設定済み",
+      "source": {
+        "environment": "サーバーの環境から",
+        "saved": "ここで保存",
+        "default": "デフォルト"
+      },
+      "signup": {
+        "title": "サインアップ",
+        "description": "このインストールでアカウントを作成できるユーザー。",
+        "label": "サインアップモード",
+        "invite": "招待のみ",
+        "open": "オープン",
+        "invite_help": "最初のユーザーがサインアップし、それ以降のユーザーは招待を通じてワークスペースに参加します。",
+        "open_help": "誰でもサインアップでき、自分専用のワークスペースを得ます。新しいアカウントはメールアドレスを確認するため、メール送信元が必要です。"
+      },
+      "sender": {
+        "title": "メール送信元",
+        "description": "アカウントのメールを送信する SMTP サーバー：パスワードリセットのリンク、メールアドレスの確認、招待。",
+        "on": "アカウントのメールはオンです。",
+        "off": "アカウントのメールはオフです：SMTP ホストがありません。",
+        "host": "SMTP ホスト",
+        "port": "ポート",
+        "tls": "セキュリティ",
+        "tls_starttls": "STARTTLS",
+        "tls_tls": "TLS",
+        "tls_none": "なし",
+        "user": "ユーザー",
+        "password": "パスワード",
+        "password_set": "パスワードが設定されています。入力すると置き換わります。",
+        "password_not_set": "パスワード未設定",
+        "password_removed": "保存するとパスワードは削除されます。",
+        "password_reenter": "ホスト、ポート、セキュリティ、ユーザーを変更すると、保存済みのパスワードは削除されます。もう一度入力してください。",
+        "remove_password": "パスワードを削除",
+        "keep_password": "パスワードを残す",
+        "from": "送信元アドレス"
+      },
+      "public_url": {
+        "title": "公開 URL",
+        "description": "メールや通知のリンクが開く、Web アプリのアドレス。",
+        "label": "公開 URL"
+      },
+      "test_email": {
+        "title": "テストメールを送信",
+        "description": "保存済みの送信元から短いメールを送信し、動作を確認します。",
+        "to": "送信先",
+        "send": "テストメールを送信",
+        "sending": "送信中…",
+        "sent": "テストメールを {{to}} に送信しました。",
+        "failed": "テストメールは送信されませんでした。",
+        "unsaved": "送信元に未保存の変更があります。テストは保存済みの送信元を使うため、先に保存してください。"
+      },
+      "validation": {
+        "port": "1〜65535 のポートを入力するか、既定値にするには空のままにしてください。"
+      },
+      "errors": {
+        "locked": "{{field}} はサーバーの環境で設定されているため、ここでは変更できません。",
+        "open_needs_sender": "新しいアカウントはメールアドレスを確認するため、オープンなサインアップにはメール送信元が必要です。先に送信元を設定するか、同じ保存で設定してください。",
+        "sender_needed": "サインアップはオープンで、新しいアカウントがメールアドレスを確認するには送信元が必要です。先にサインアップを招待のみに切り替えてください。",
+        "no_sender": "メール送信元がありません。先に送信元を保存してください。"
+      },
+      "limits": {
+        "title": "デフォルトの上限",
+        "description": "個別の上限を持たないすべてのワークスペースに適用される上限です。上限を設けない項目は空欄にしてください。ワークスペースのページでワークスペースに設定した上限は、これより優先されます。"
+      }
+    }
+  },
   "auth": {
     "login": {
       "description": "メールでログイン",
       "no_account": "アカウントをお持ちではありませんか？",
       "sign_up": "サインアップ",
       "submit": "ログイン",
-      "title": "お帰りなさい"
+      "title": "お帰りなさい",
+      "forgot_password": "パスワードをお忘れですか?",
+      "ask_admin": "このインストールの管理者に招待を依頼してください"
     },
     "register": {
       "description": "管理者アカウントを作成",
+      "description_open": "アカウントを作成",
       "have_account": "既にアカウントをお持ちですか？",
       "sign_in": "ログイン",
       "submit": "登録",
       "title": "こんにちは",
       "telemetry_note": "匿名：モニター名、URL、ホストは含まれません。あとで「設定」から変更できます。",
-      "telemetry_whats_sent": "送信される内容"
+      "telemetry_whats_sent": "送信される内容",
+      "errors": {
+        "rate_limited": "お使いのネットワークからのサインアップが多すぎます。1時間後にもう一度お試しください。",
+        "email_taken": "このメールアドレスのアカウントはすでにあります。",
+        "sign_in_instead": "代わりにサインインしてください。",
+        "check_failed": "チェックに通りませんでした。もう一度お試しください。",
+        "check_load_failed": "チェックを読み込めませんでした。接続を確認して、もう一度お試しください。"
+      }
     },
     "twofa": {
       "code_label": "2FAコード",
@@ -27,6 +297,45 @@
       "title": "二要素認証が必要です",
       "verify_button": "2FAを確認",
       "verifying": "検証中…"
+    },
+    "forgot": {
+      "title": "パスワードをリセット",
+      "description": "アカウントのメールアドレスを入力してください。リンクをお送りします。",
+      "submit": "リンクを送信",
+      "sent": "このメールアドレスのアカウントがある場合は、リンクを送信しました。リンクは1時間有効です。",
+      "back_to_login": "ログインに戻る"
+    },
+    "reset": {
+      "title": "新しいパスワードを設定",
+      "description": "アカウントの新しいパスワードを入力してください。",
+      "submit": "パスワードを設定",
+      "success": "パスワードを変更し、すべての端末からログアウトしました。新しいパスワードでログインしてください。",
+      "sign_in": "ログイン",
+      "invalid_link": "このリンクは使用済みか、期限切れです。",
+      "request_new": "新しいリンクをリクエスト"
+    },
+    "verify": {
+      "title": "メールアドレスを確認",
+      "verifying": "メールアドレスを確認しています...",
+      "success": "メールアドレスを確認しました。",
+      "open_app": "Peekaping を開く",
+      "invalid_link": "このリンクは使用済みか、期限切れです。"
+    },
+    "errors": {
+      "rate_limited": "リクエストが多すぎます。しばらくしてからもう一度お試しください。",
+      "generic": "問題が発生しました。もう一度お試しください。",
+      "already_verified": "メールアドレスはすでに確認済みです。"
+    },
+    "resend": {
+      "button": "再送信",
+      "sent": "新しいリンクを送信しました。受信トレイを確認してください。"
+    },
+    "verification_banner": {
+      "message": "メールアドレスを確認してください。{{email}} にリンクを送信しました。"
+    },
+    "suspension_notice": {
+      "message": "メールアドレスを確認すると、モニターが開始されます。",
+      "member_message": "このワークスペースのモニターは、オーナーがメールアドレスを確認すると開始されます。"
     }
   },
   "bars": {
@@ -73,6 +382,7 @@
     "no_tags_available": "タグがありません",
     "please_refresh_page": "ページを更新してください。",
     "required": "必須",
+    "retry": "再試行",
     "save": "保存",
     "saving": "保存中…",
     "search": "検索",
@@ -124,6 +434,33 @@
       "password_required": "パスワードは必須です",
       "password_min_length": "パスワードは8文字以上にしてください",
       "passwords_mismatch": "パスワードが一致しません"
+    }
+  },
+  "invite": {
+    "accept": "招待を承諾",
+    "accepting": "参加中...",
+    "creating": "作成中...",
+    "description": "{{role}} として {{workspace}} に参加するよう招待されています。",
+    "enter_failed": "ワークスペースに参加しましたが、開けませんでした。もう一度お試しください。",
+    "errors": {
+      "other_email": "この招待は別のメールアドレス宛てです。"
+    },
+    "for_email": "この招待は {{email}} 宛てです。",
+    "have_account": "すでにアカウントをお持ちですか？",
+    "open_app": "Peekaping を開く",
+    "other_account": "{{current}} でログインしていますが、この招待は {{invited}} 宛てです。ログアウトしてから、{{invited}} でログインまたは新規登録して承諾してください。",
+    "sign_in_instead": "ログインする",
+    "sign_out": "ログアウト",
+    "signup_description": "パスワードを設定してアカウントを作成し、{{role}} として {{workspace}} に参加します。",
+    "signup_submit": "アカウントを作成して参加",
+    "title": "{{workspace}} に参加",
+    "unavailable": {
+      "accepted": "この招待はすでに使用されています。",
+      "expired": "この招待は期限切れです。新しい招待を依頼してください。",
+      "not_found": "この招待リンクは存在しません。リンク全体をコピーしたか確認してください。",
+      "revoked": "この招待は取り消されました。新しい招待を依頼してください。",
+      "title": "この招待は使用できません",
+      "unknown": "この招待は使用できません。新しい招待を依頼してください。"
     }
   },
   "maintenance": {
@@ -231,6 +568,79 @@
       "wed": "水"
     }
   },
+  "members": {
+    "change_role_aria": "{{email}} の役割を変更",
+    "errors": {
+      "account_exists": "このメールアドレスのアカウントはすでに存在します。ログインして招待を承諾してください。",
+      "already_member": "この人はすでにこのワークスペースのメンバーです。",
+      "forbidden": "このワークスペースでのあなたの役割では、この操作は許可されていません。",
+      "generic": "問題が発生しました。もう一度お試しください。",
+      "last_owner": "ワークスペースには少なくとも1人のオーナーが必要です。",
+      "member_not_found": "このメンバーはすでにワークスペースにいません。"
+    },
+    "invite": {
+      "copied": "リンクをコピーしました",
+      "copy": "コピー",
+      "creating": "作成中...",
+      "description": "メールアドレスと役割を指定して招待リンクを作成します。メールは送信されません。リンクをコピーして、ご自身で送ってください。",
+      "done": "完了",
+      "email_label": "メールアドレス",
+      "link_note": "このリンクは1回のみ有効で、7日後に期限切れになります。表示されるのは今回だけなので、このページを離れる前にコピーしてください。",
+      "link_title": "招待リンク",
+      "role_label": "役割",
+      "submit": "招待リンクを作成",
+      "title": "メンバーを招待"
+    },
+    "leave": {
+      "button": "ワークスペースから退出",
+      "confirm": "退出",
+      "description": "このワークスペースとそのデータにすぐにアクセスできなくなります。",
+      "done": "ワークスペースから退出しました",
+      "last_owner": "あなたは最後のオーナーのため、退出できません。先に別のメンバーをオーナーにしてください。",
+      "refresh_failed": "ワークスペースから退出しましたが、ワークスペースを読み込めませんでした。もう一度お試しください。",
+      "title": "このワークスペースから退出"
+    },
+    "list": {
+      "description": "このワークスペースのメンバー全員と、その役割です。",
+      "email": "メールアドレス",
+      "joined": "参加日",
+      "role": "役割",
+      "title": "メンバー",
+      "you": "あなた"
+    },
+    "page_name": "メンバー",
+    "pending": {
+      "description": "まだ使われていない招待です。取り消した招待のリンクは無効になります。",
+      "email": "メールアドレス",
+      "empty": "保留中の招待はありません。",
+      "expired": "期限切れ",
+      "expires": "有効期限",
+      "revoke": "取り消す",
+      "revoke_aria": "{{email}} への招待を取り消す",
+      "revoked": "招待を取り消しました",
+      "role": "役割",
+      "title": "保留中の招待"
+    },
+    "remove": "削除",
+    "remove_aria": "{{email}} を削除",
+    "remove_dialog": {
+      "confirm": "削除",
+      "description": "{{email}} はこのワークスペースにすぐにアクセスできなくなります。",
+      "title": "メンバーを削除"
+    },
+    "removed": "メンバーを削除しました",
+    "role_updated": "役割を更新しました",
+    "roles": {
+      "admin": "管理者",
+      "member": "メンバー",
+      "owner": "オーナー"
+    },
+    "settings_card": {
+      "description": "このワークスペースで活動しているメンバーを確認できます。管理者またはオーナーの場合は、メンバーの招待や役割の管理もできます。",
+      "open": "メンバーを開く",
+      "title": "メンバー"
+    }
+  },
   "messages": {
     "login_error": "ログイン中にエラーが発生しました",
     "login_no_tokens": "ログインは成功しましたが、トークンは受信されませんでした",
@@ -258,6 +668,7 @@
     },
     "empty_state": {
       "action": "最初のモニターを作成",
+      "add_channel": "通知チャンネルを追加",
       "description": "最初のモニターを作成して、サービスの健康状態を追跡し始めましょう。",
       "title": "モニターが見つかりません"
     },
@@ -500,6 +911,7 @@
       "shared": {
         "intervals": {
           "heartbeat_retry": "ハートビートリトライ間隔（{{seconds}} 秒ごとにリトライ）",
+          "interval_too_short": "{{minimum}}秒より短くすることはできません",
           "max_retries_description": "サービスが停止とみなされ、通知が送信されるまでの最大再試行回数",
           "request_timeout": "リクエストタイムアウト（{{seconds}} 秒後にタイムアウト）",
           "resend_notification": "ダウンがX回連続した場合に再送通知（再送無効）",
@@ -542,6 +954,10 @@
           "select_proxy_placeholder": "プロキシを選択",
           "selected_proxy": "選択済みプロキシ",
           "title": "プロキシ"
+        },
+        "run_from": {
+          "default_locations": "デフォルトのロケーションで実行されます",
+          "label": "実行元"
         },
         "tags": {
           "label": "タグ",
@@ -649,9 +1065,12 @@
     "toasts": {
       "deleted": "モニターを削除しました",
       "paused": "監視停止",
+      "push_token_already_used": "このプッシュトークンは別のモニターですでに使われています。新しいトークンを生成してください。",
       "reset_success": "モニターデータを正常にリセットしました",
       "resumed": "監視が再開されました"
     },
+    "type_disabled": "{{type}} タイプはこのインストールでは無効になっています",
+    "over_limit": "チェックされません: ワークスペースのアクティブなモニターが上限を超えています",
     "view": {
       "buttons": {
         "clone": "複製",
@@ -712,6 +1131,7 @@
     }
   },
   "navigation": {
+    "admin": "管理",
     "maintenance": "メンテナンス",
     "monitors": "モニター",
     "notification_channels": "通知チャネル",
@@ -1124,6 +1544,12 @@
         "signing_secret_docs_link": "署名の検証方法",
         "signing_secret_label": "署名シークレット",
         "signing_secret_placeholder": "空欄の場合、署名なしでリクエストを送信します"
+      },
+      "install_email": {
+        "description": "このインストールから送信されるため、SMTPサーバーは不要です。",
+        "to_description": "このワークスペースのメンバーです。アドレスを確認済みになると通知が送信されます。",
+        "to_label": "宛先",
+        "to_placeholder": "メンバーを選択"
       }
     },
     "important": "重要通知",
@@ -1142,7 +1568,8 @@
       "updated_success": "Notifierを正常に更新しました"
     },
     "new": {
-      "title": "新しい通知チャネル"
+      "title": "新しい通知チャネル",
+      "default_hint": "このチャンネルは新しいモニターでチェックされた状態になります。"
     },
     "no_important": "重要な通知はありません。",
     "placeholders": {
@@ -1152,11 +1579,21 @@
     "secret": {
       "reenter_error": "このシークレットを再入力するか削除してください：送信先が変更されました",
       "reenter_hint": "このシークレットを再入力してください：送信先が変更されました",
+      "reenter_url_error": "このURLの認証情報を再入力してください：保存後にURLが変更されました",
       "remove": "削除",
       "saved_hint": "保存済み — 入力すると置き換えます"
     }
   },
   "probes": {
+    "default": {
+      "description": "プローブを選ばずに作成したモニターは、無効でなく、そのタイプに対応しているデフォルトのプローブで実行されます。該当するものがない場合はローカルプローブで実行されます。既存のモニターのプローブは変わりません。",
+      "failed": "プローブのデフォルト設定を変更できませんでした。",
+      "label": "デフォルトプローブ",
+      "off": "{{name}} はデフォルトプローブではなくなりました",
+      "on": "{{name}} をデフォルトプローブにしました",
+      "title": "新しいモニターのデフォルト"
+    },
+    "default_badge": "デフォルト",
     "page_name": "プローブ",
     "description": "プローブは、インストールされた場所からモニターのチェックを実行します。ローカルプローブは Peekaping 自身です。",
     "local_name": "ローカル",
@@ -1438,7 +1875,9 @@
     "data_retention": {
       "days_label": "日",
       "description": "データ保持期間（KEEP_DATA_PERIOD_DAYS）を日数で設定してください。",
-      "title": "データ保存期間"
+      "read_only": "これを変更できるのは、ワークスペースの管理者または所有者のみです。",
+      "title": "データ保存期間",
+      "capped": "このワークスペースでは最大 {{max}} 日"
     },
     "error_reporting": {
       "cluster_note": "クラスターモードでは、変更は 1 分以内にすべてのプロセスに届きます。",
@@ -1464,6 +1903,10 @@
     },
     "validation": {
       "min_days": "最低1日必要です"
+    },
+    "workspace_name": {
+      "description": "ワークスペースの切り替えとメンバーに表示される名前です。",
+      "title": "ワークスペース名"
     }
   },
   "status": {
@@ -1479,6 +1922,7 @@
       "refresh_in": "リフレッシュまで",
       "refresh_now": "今すぐ更新",
       "status_page_not_found": "ステータスページが見つからないか、公開されていません。",
+      "status_page_unavailable": "このステータスページは利用できません",
       "under_maintenance": "メンテナンス中",
       "unknown": "不明"
     }
@@ -1522,6 +1966,7 @@
     "search_placeholder": "タイトルでステータスページを検索…",
     "show_locations": "各場所を表示",
     "show_locations_info": "複数の場所からチェックされるモニターについて、場所ごとのステータスと履歴を表示します",
+    "slug_already_used": "このアドレスは別のステータスページですでに使用されています",
     "update_status_page": "ステータスページを更新",
     "view_page": "ページを表示"
   },
@@ -1587,5 +2032,93 @@
   "ui": {
     "general": "一般",
     "intervals_retries": "インターバル、リトライ、タイムアウト"
+  },
+  "workspaces": {
+    "create": "ワークスペースを作成",
+    "create_error": "ワークスペースを作成できませんでした",
+    "create_first": "ワークスペースを作成",
+    "creating": "作成中...",
+    "enter": "ワークスペースを開く",
+    "entering": "開いています...",
+    "entry_failed": "ワークスペースは作成されましたが、開けませんでした。もう一度お試しください。",
+    "name_label": "名前",
+    "name_placeholder": "マイチーム",
+    "name_required": "名前を入力してください",
+    "new": "新しいワークスペース",
+    "new_description": "ワークスペースには、専用のモニター、通知チャネル、ステータスページ、メンバーがあります。あなたがオーナーになります。",
+    "new_title": "新しいワークスペース",
+    "none_description": "このアカウントはどのワークスペースのメンバーでもないため、ここに表示できる内容はありません。ワークスペースを運営している人に追加を依頼してください。",
+    "none_title": "まだどのワークスペースにも参加していません",
+    "refresh_failed": "ワークスペースを読み込めませんでした。接続を確認して、もう一度お試しください。",
+    "rename_error": "ワークスペース名を変更できませんでした",
+    "rename_success": "ワークスペース名を変更しました",
+    "suspended_banner": {
+      "contact": "連絡先：",
+      "message": "このワークスペースは、このインストールの管理者によって利用停止にされています。モニターは実行されず、ステータスページは利用できません。",
+      "no_contact": "このインストールの運営者にお問い合わせください。"
+    },
+    "switcher_label": "ワークスペースを切り替え"
+  },
+  "get_started": {
+    "page_name": "はじめに",
+    "skip": "セットアップをスキップ",
+    "step_of": "ステップ {{current}} / {{total}}",
+    "name": {
+      "description": "モニター、通知チャンネル、ステータスページはここにまとまります。名前は後から設定で変更できます。",
+      "title": "ワークスペースに名前を付ける"
+    },
+    "monitor": {
+      "create": "モニターを作成",
+      "create_failed": "モニターを作成できませんでした",
+      "creating": "作成中...",
+      "description": "ウェブサイトまたはAPIのアドレスを入力してください。Peekapingがチェックし、応答しなくなったらお知らせします。",
+      "full_form": "またはすべてのオプションでモニターを設定",
+      "title": "最初のモニターを追加",
+      "url_invalid": "http:// または https:// で始まるアドレスを入力してください",
+      "url_label": "監視するアドレス"
+    },
+    "channel": {
+      "continue_unlinked": "リンクせずに続ける",
+      "description": "モニターがダウンしたときにPeekapingがアラートを送る先を選んでください。新しいモニターのデフォルトになります。",
+      "link_failed": "チャンネルは保存されましたが、モニターへの関連付けに失敗しました。モニターの編集ページで追加してください。",
+      "retry_link": "もう一度リンクする",
+      "title": "通知を受け取る"
+    },
+    "done": {
+      "description": "Peekapingがサービスを監視しています。次にできることは次のとおりです。",
+      "title": "準備完了です",
+      "unverified": "メールアドレスが確認されると、モニターが動き始めます。確認用リンクは受信トレイをご確認ください。",
+      "links": {
+        "members": "チームを招待",
+        "monitor": "モニターを開く",
+        "monitors": "モニター一覧へ",
+        "probes": "プローブを管理",
+        "status_pages": "ステータスページを公開"
+      }
+    }
+  },
+  "limits": {
+    "reached": {
+      "monitors": "このワークスペースで実行できるモニターは最大 {{max}} 件です",
+      "status_pages": "このワークスペースのステータスページは最大 {{max}} 件までです",
+      "custom_domains": "このワークスペースのステータスページのカスタムドメインは、合計で最大 {{max}} 件までです",
+      "members": "このワークスペースのメンバーは、保留中の招待を含めて最大 {{max}} 人までです",
+      "owned_workspaces": "所有できるワークスペースは最大 {{max}} 件です",
+      "probes": "このワークスペースのモニターを実行できるプローブは最大 {{max}} 件です",
+      "retention_days": "このワークスペースでデータを保存できるのは最大 {{max}} 日です"
+    },
+    "names": {
+      "monitors": "アクティブなモニター",
+      "min_check_interval": "最短のチェック間隔（秒）",
+      "status_pages": "ステータスページ",
+      "custom_domains": "カスタムドメイン",
+      "members": "メンバー",
+      "owned_workspaces": "1 人のユーザーが所有できるワークスペース",
+      "probes_per_monitor": "モニターあたりのプローブ",
+      "retention_days": "データ保存期間（日）"
+    },
+    "none": "上限なし",
+    "invalid": "1 以上の整数を入力してください。上限を設けない場合は空欄にしてください。",
+    "retention_too_long": "{{max}}日より長くすることはできません"
   }
 }

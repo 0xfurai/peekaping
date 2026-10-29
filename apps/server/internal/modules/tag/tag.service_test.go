@@ -4,11 +4,13 @@ import (
 	"context"
 	"database/sql"
 	"path/filepath"
+	"peekaping/internal/modules/workspace/workspacetest"
 	"testing"
 
 	"peekaping/cmd/bun/migrations"
 	"peekaping/internal/modules/monitor_tag"
 	"peekaping/internal/modules/tag"
+	"peekaping/internal/modules/workspace"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -21,7 +23,9 @@ import (
 )
 
 type harness struct {
-	db          *bun.DB
+	db *bun.DB
+	// ws is the workspace the tests' requests run in: the install's oldest one
+	ws          workspace.ID
 	svc         tag.Service
 	monitorTags monitor_tag.Service
 }
@@ -42,12 +46,12 @@ func newHarness(t *testing.T) *harness {
 
 	logger := zap.NewNop().Sugar()
 	monitorTags := monitor_tag.NewService(monitor_tag.NewSQLRepository(db), logger)
-	return &harness{db, tag.NewService(tag.NewSQLRepository(db), monitorTags, logger), monitorTags}
+	return &harness{db, workspace.ID(workspacetest.OldestOrAdd(t, db)), tag.NewService(tag.NewSQLRepository(db), monitorTags, logger), monitorTags}
 }
 
 func (h *harness) create(t *testing.T, name string) *tag.Model {
 	t.Helper()
-	created, err := h.svc.Create(context.Background(), &tag.CreateUpdateDto{Name: name, Color: "#3B82F6"})
+	created, err := h.svc.Create(context.Background(), h.ws, &tag.CreateUpdateDto{Name: name, Color: "#3B82F6"})
 	require.NoError(t, err)
 	return created
 }
@@ -55,14 +59,15 @@ func (h *harness) create(t *testing.T, name string) *tag.Model {
 func (h *harness) monitor(t *testing.T) string {
 	t.Helper()
 	id := uuid.NewString()
-	_, err := h.db.Exec(`INSERT INTO monitors (id, type, name, interval, timeout, max_retries, retry_interval, resend_interval) VALUES (?, 'http', 'Monitor', 60, 10, 1, 10, 0)`, id)
+	workspacetest.OldestOrAdd(t, h.db)
+	_, err := h.db.Exec(`INSERT INTO monitors (id, workspace_id, type, name, interval, timeout, max_retries, retry_interval, resend_interval) VALUES (?, (SELECT id FROM workspaces ORDER BY created_at, id LIMIT 1), 'http', 'Monitor', 60, 10, 1, 10, 0)`, id)
 	require.NoError(t, err)
 	return id
 }
 
 func (h *harness) find(t *testing.T, id string) *tag.Model {
 	t.Helper()
-	found, err := h.svc.FindByID(context.Background(), id)
+	found, err := h.svc.FindByID(context.Background(), h.ws, id)
 	require.NoError(t, err)
 	return found
 }
@@ -73,10 +78,10 @@ func TestTagService_CreateRejectsADuplicateName(t *testing.T) {
 	h := newHarness(t)
 	h.create(t, "Production")
 
-	_, err := h.svc.Create(context.Background(), &tag.CreateUpdateDto{Name: "Production", Color: "#EF4444"})
+	_, err := h.svc.Create(context.Background(), h.ws, &tag.CreateUpdateDto{Name: "Production", Color: "#EF4444"})
 	assert.EqualError(t, err, "tag with this name already exists")
 
-	all, err := h.svc.FindAll(context.Background(), 0, 10, "")
+	all, err := h.svc.FindAll(context.Background(), h.ws, 0, 10, "")
 	require.NoError(t, err)
 	assert.Len(t, all, 1)
 }
@@ -87,11 +92,11 @@ func TestTagService_UpdateFullRejectsAnotherTagsName(t *testing.T) {
 	production := h.create(t, "Production")
 	staging := h.create(t, "Staging")
 
-	_, err := h.svc.UpdateFull(ctx, staging.ID, &tag.CreateUpdateDto{Name: "Production", Color: "#EF4444"})
+	_, err := h.svc.UpdateFull(ctx, h.ws, staging.ID, &tag.CreateUpdateDto{Name: "Production", Color: "#EF4444"})
 	assert.EqualError(t, err, "tag with this name already exists")
 	assert.Equal(t, "Staging", h.find(t, staging.ID).Name)
 
-	_, err = h.svc.UpdateFull(ctx, production.ID, &tag.CreateUpdateDto{Name: "Production", Color: "#EF4444", Description: ptr("Live")})
+	_, err = h.svc.UpdateFull(ctx, h.ws, production.ID, &tag.CreateUpdateDto{Name: "Production", Color: "#EF4444", Description: ptr("Live")})
 	require.NoError(t, err, "a tag can keep its own name")
 	saved := h.find(t, production.ID)
 	assert.Equal(t, "#EF4444", saved.Color)
@@ -104,15 +109,15 @@ func TestTagService_UpdatePartialRejectsAnotherTagsName(t *testing.T) {
 	production := h.create(t, "Production")
 	staging := h.create(t, "Staging")
 
-	_, err := h.svc.UpdatePartial(ctx, staging.ID, &tag.PartialUpdateDto{Name: ptr("Production")})
+	_, err := h.svc.UpdatePartial(ctx, h.ws, staging.ID, &tag.PartialUpdateDto{Name: ptr("Production")})
 	assert.EqualError(t, err, "tag with this name already exists")
 	assert.Equal(t, "Staging", h.find(t, staging.ID).Name)
 
-	updated, err := h.svc.UpdatePartial(ctx, production.ID, &tag.PartialUpdateDto{Name: ptr("Production"), Color: ptr("#10B981")})
+	updated, err := h.svc.UpdatePartial(ctx, h.ws, production.ID, &tag.PartialUpdateDto{Name: ptr("Production"), Color: ptr("#10B981")})
 	require.NoError(t, err, "a tag can keep its own name")
 	assert.Equal(t, "#10B981", updated.Color)
 
-	updated, err = h.svc.UpdatePartial(ctx, staging.ID, &tag.PartialUpdateDto{Name: ptr("QA")})
+	updated, err = h.svc.UpdatePartial(ctx, h.ws, staging.ID, &tag.PartialUpdateDto{Name: ptr("QA")})
 	require.NoError(t, err)
 	assert.Equal(t, "QA", updated.Name)
 }
@@ -128,7 +133,7 @@ func TestTagService_DeleteRemovesTheTagsMonitorLinks(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	require.NoError(t, h.svc.Delete(ctx, production.ID))
+	require.NoError(t, h.svc.Delete(ctx, h.ws, production.ID))
 
 	assert.Nil(t, h.find(t, production.ID))
 	links, err := h.monitorTags.FindByTagID(ctx, production.ID)
@@ -137,4 +142,83 @@ func TestTagService_DeleteRemovesTheTagsMonitorLinks(t *testing.T) {
 	links, err = h.monitorTags.FindByTagID(ctx, staging.ID)
 	require.NoError(t, err)
 	assert.Len(t, links, 1, "other tags keep their links")
+}
+
+// Tag names are unique within a workspace and not across the install (docs/adr/0005 section 6)
+func TestTagService_TwoWorkspacesCanEachHaveATagWithTheSameName(t *testing.T) {
+	h := newHarness(t)
+	ctx := context.Background()
+	workspacetest.Add(t, h.db, workspacetest.Other, "Other")
+	mine := h.create(t, "production")
+
+	theirs, err := h.svc.Create(ctx, workspacetest.Other, &tag.CreateUpdateDto{Name: "production", Color: "#EF4444"})
+	require.NoError(t, err)
+
+	assert.NotEqual(t, mine.ID, theirs.ID)
+	assert.Equal(t, workspacetest.Other, theirs.WorkspaceID)
+	_, err = h.svc.Create(ctx, workspacetest.Other, &tag.CreateUpdateDto{Name: "production", Color: "#EF4444"})
+	assert.ErrorIs(t, err, tag.ErrNameTaken, "a second one in the same workspace is refused")
+	_, err = h.svc.Create(ctx, h.ws, &tag.CreateUpdateDto{Name: "production", Color: "#EF4444"})
+	assert.ErrorIs(t, err, tag.ErrNameTaken)
+
+	// and a rename into a name that only the other workspace has is fine
+	renamed, err := h.svc.UpdatePartial(ctx, h.ws, mine.ID, &tag.PartialUpdateDto{Name: ptr("staging")})
+	require.NoError(t, err)
+	assert.Equal(t, "staging", renamed.Name)
+	_, err = h.svc.UpdateFull(ctx, h.ws, mine.ID, &tag.CreateUpdateDto{Name: "production", Color: "#EF4444"})
+	require.NoError(t, err, "the name is free in this workspace, though the other one has it")
+}
+
+func TestTagService_ATagOfAnotherWorkspaceIsNotFoundAndLeftAlone(t *testing.T) {
+	h := newHarness(t)
+	ctx := context.Background()
+	workspacetest.Add(t, h.db, workspacetest.Other, "Other")
+	mine := h.create(t, "production")
+	monitorID := h.monitor(t)
+	_, err := h.monitorTags.Create(ctx, monitorID, mine.ID)
+	require.NoError(t, err)
+
+	found, err := h.svc.FindByID(ctx, workspacetest.Other, mine.ID)
+	require.NoError(t, err)
+	assert.Nil(t, found)
+	byName, err := h.svc.FindByName(ctx, workspacetest.Other, "production")
+	require.NoError(t, err)
+	assert.Nil(t, byName)
+	all, err := h.svc.FindAll(ctx, workspacetest.Other, 0, 10, "")
+	require.NoError(t, err)
+	assert.Empty(t, all)
+	_, err = h.svc.UpdateFull(ctx, workspacetest.Other, mine.ID, &tag.CreateUpdateDto{Name: "hijacked", Color: "#000000"})
+	assert.ErrorIs(t, err, tag.ErrNotFound)
+	_, err = h.svc.UpdatePartial(ctx, workspacetest.Other, mine.ID, &tag.PartialUpdateDto{Name: ptr("hijacked")})
+	assert.ErrorIs(t, err, tag.ErrNotFound)
+	_, err = h.svc.UpdatePartial(ctx, workspacetest.Other, mine.ID, &tag.PartialUpdateDto{})
+	assert.ErrorIs(t, err, tag.ErrNotFound, "even an update that changes nothing")
+	assert.ErrorIs(t, h.svc.Delete(ctx, workspacetest.Other, mine.ID), tag.ErrNotFound)
+
+	assert.Equal(t, "production", h.find(t, mine.ID).Name, "the tag is as it was")
+	links, err := h.monitorTags.FindByTagID(ctx, mine.ID)
+	require.NoError(t, err)
+	assert.Len(t, links, 1, "with its links")
+}
+
+// A tag that isn't in the workspace is not found, whatever name the request carries: the answer
+// can't depend on the names the workspace has, or it would tell who holds a name elsewhere
+// (docs/adr/0005 section 8)
+func TestTagService_AnUpdateOfAnotherWorkspacesTagIsNotFoundEvenWithANameTheWorkspaceHas(t *testing.T) {
+	h := newHarness(t)
+	ctx := context.Background()
+	workspacetest.Add(t, h.db, workspacetest.Other, "Other")
+	mine := h.create(t, "production")
+	_, err := h.svc.Create(ctx, workspacetest.Other, &tag.CreateUpdateDto{Name: "staging", Color: "#EF4444"})
+	require.NoError(t, err)
+
+	_, err = h.svc.UpdateFull(ctx, workspacetest.Other, mine.ID, &tag.CreateUpdateDto{Name: "staging", Color: "#000000"})
+	assert.ErrorIs(t, err, tag.ErrNotFound)
+	_, err = h.svc.UpdatePartial(ctx, workspacetest.Other, mine.ID, &tag.PartialUpdateDto{Name: ptr("staging")})
+	assert.ErrorIs(t, err, tag.ErrNotFound)
+	_, err = h.svc.UpdateFull(ctx, workspacetest.Other, uuid.NewString(), &tag.CreateUpdateDto{Name: "staging", Color: "#000000"})
+	assert.ErrorIs(t, err, tag.ErrNotFound, "as a tag that doesn't exist at all")
+	_, err = h.svc.UpdatePartial(ctx, workspacetest.Other, uuid.NewString(), &tag.PartialUpdateDto{Name: ptr("staging")})
+	assert.ErrorIs(t, err, tag.ErrNotFound)
+	assert.Equal(t, "production", h.find(t, mine.ID).Name)
 }

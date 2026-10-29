@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
-	"strings"
 	"time"
 
 	"peekaping/internal/dbtx"
@@ -13,7 +12,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dialect"
-	"github.com/uptrace/bun/driver/pgdriver"
 )
 
 type sqlModel struct {
@@ -26,7 +24,9 @@ type sqlModel struct {
 	TokenHash   string `bun:"token_hash,nullzero"`
 	TokenPrefix string `bun:"token_prefix,notnull"`
 	Disabled    bool   `bun:"disabled,notnull"` // no Bun default: it would replace false with the column default
-	Status      string `bun:"status,notnull"`
+	// IsDefault marks a probe that new monitors without chosen probes run on
+	IsDefault bool   `bun:"is_default,notnull"` // no Bun default, as Disabled
+	Status    string `bun:"status,notnull"`
 	// SupportedTypes is a JSON array of monitor types, in a JSONB column
 	SupportedTypes string `bun:"supported_types,notnull"`
 	// AssignAllPending is true until the probe's first hello has assigned it every monitor
@@ -46,8 +46,9 @@ type sqlInstance struct {
 	Version         string `bun:"version,notnull"`
 	ProtocolVersion int    `bun:"protocol_version,notnull"`
 	// SupportedTypes is a JSON array of monitor types, in a JSONB column
-	SupportedTypes string    `bun:"supported_types,notnull"`
-	LastSeenAt     time.Time `bun:"last_seen_at,notnull"`
+	SupportedTypes             string    `bun:"supported_types,notnull"`
+	EnforcesPrivateTargetBlock bool      `bun:"enforces_private_target_block,notnull"`
+	LastSeenAt                 time.Time `bun:"last_seen_at,notnull"`
 }
 
 type sqlInstanceConnection struct {
@@ -90,6 +91,8 @@ func toDomainInstanceFromSQL(si *sqlInstance) *Instance {
 		ProtocolVersion: si.ProtocolVersion,
 		SupportedTypes:  decodeTypes(si.SupportedTypes),
 		LastSeenAt:      si.LastSeenAt,
+
+		EnforcesPrivateTargetBlock: si.EnforcesPrivateTargetBlock,
 	}
 }
 
@@ -101,6 +104,7 @@ func toDomainModelFromSQL(sm *sqlModel) *Model {
 		TokenHash:        sm.TokenHash,
 		TokenPrefix:      sm.TokenPrefix,
 		Disabled:         sm.Disabled,
+		IsDefault:        sm.IsDefault,
 		Status:           Status(sm.Status),
 		SupportedTypes:   decodeTypes(sm.SupportedTypes),
 		AssignAllPending: sm.AssignAllPending,
@@ -228,6 +232,9 @@ func (r *SQLRepositoryImpl) Update(ctx context.Context, id string, update *Updat
 	if update.Disabled != nil {
 		query = query.Set("disabled = ?", *update.Disabled)
 	}
+	if update.IsDefault != nil {
+		query = query.Set("is_default = ?", *update.IsDefault)
+	}
 	if _, err := query.Exec(ctx); err != nil {
 		return nil, err
 	}
@@ -249,24 +256,10 @@ func (r *SQLRepositoryImpl) UpdateToken(ctx context.Context, id string, tokenHas
 func (r *SQLRepositoryImpl) Delete(ctx context.Context, id string) error {
 	_, err := dbtx.DB(ctx, r.db).NewDelete().Model((*sqlModel)(nil)).Where("id = ?", id).Exec(ctx)
 	// monitor_probes is the one table that references a probe without cascading the delete
-	if isForeignKeyViolation(err) {
+	if dbtx.IsForeignKeyViolation(err) {
 		return ErrProbeHasMonitors
 	}
 	return err
-}
-
-// isForeignKeyViolation reports whether the database refused a statement because of a foreign key.
-// PostgreSQL says so with a code. SQLite's two drivers word it the same, and neither is a
-// dependency of ours.
-func isForeignKeyViolation(err error) bool {
-	if err == nil {
-		return false
-	}
-	var pgErr pgdriver.Error
-	if errors.As(err, &pgErr) {
-		return pgErr.Field('C') == "23503" // foreign_key_violation
-	}
-	return strings.Contains(err.Error(), "FOREIGN KEY constraint failed")
 }
 
 // MARK: CountMonitors
@@ -318,8 +311,8 @@ func (r *SQLRepositoryImpl) UpsertInstance(ctx context.Context, probeID string, 
 		// again. The WHERE keeps another probe's instance out of reach: no row changes then. The
 		// statement names the table in full and not by an alias, which PostgreSQL allows in this
 		// WHERE only for a table with no alias.
-		result, err := dbtx.DB(ctx, r.db).ExecContext(ctx, `INSERT INTO probe_instances (id, probe_id, hostname, os, arch, version, protocol_version, supported_types, last_seen_at)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+		result, err := dbtx.DB(ctx, r.db).ExecContext(ctx, `INSERT INTO probe_instances (id, probe_id, hostname, os, arch, version, protocol_version, supported_types, enforces_private_target_block, last_seen_at)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 ON CONFLICT (id) DO UPDATE SET
 	hostname = EXCLUDED.hostname,
 	os = EXCLUDED.os,
@@ -327,9 +320,10 @@ ON CONFLICT (id) DO UPDATE SET
 	version = EXCLUDED.version,
 	protocol_version = EXCLUDED.protocol_version,
 	supported_types = EXCLUDED.supported_types,
+	enforces_private_target_block = EXCLUDED.enforces_private_target_block,
 	last_seen_at = EXCLUDED.last_seen_at
 WHERE probe_instances.probe_id = EXCLUDED.probe_id`,
-			inst.ID, probeID, inst.Hostname, inst.OS, inst.Arch, inst.Version, inst.ProtocolVersion, supportedTypes, inst.LastSeenAt.UTC())
+			inst.ID, probeID, inst.Hostname, inst.OS, inst.Arch, inst.Version, inst.ProtocolVersion, supportedTypes, inst.EnforcesPrivateTargetBlock, inst.LastSeenAt.UTC())
 		if err != nil {
 			return err
 		}

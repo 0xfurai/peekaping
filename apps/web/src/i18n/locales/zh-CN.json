@@ -3,22 +3,292 @@
     "cancel": "取消",
     "saving": "保存中…"
   },
+  "admin": {
+    "nav": {
+      "back_to_workspace": "返回 {{name}}",
+      "probes": "探针",
+      "title": "管理",
+      "users": "用户",
+      "workspaces": "工作区",
+      "settings": "设置"
+    },
+    "users": {
+      "actions": {
+        "delete": "删除用户",
+        "disable": "禁用用户",
+        "disableTwoFactor": "关闭 2FA",
+        "enable": "启用用户",
+        "grantAdmin": "设为实例管理员",
+        "resetLink": "生成重置链接",
+        "revokeAdmin": "移除实例管理员"
+      },
+      "actions_aria": "{{email}} 的操作",
+      "columns": {
+        "created": "创建时间",
+        "email": "邮箱",
+        "email_verified": "邮箱已验证",
+        "instance_admin": "实例管理员",
+        "last_sign_in": "上次登录",
+        "status": "状态",
+        "two_factor": "2FA",
+        "workspaces": "工作区"
+      },
+      "confirm": {
+        "cancel": "取消",
+        "delete": {
+          "confirm": "删除用户",
+          "description": "删除 {{email}}？其账号会被移除，其在工作区中的位置也会一并移除。此操作无法撤销。",
+          "title": "删除用户"
+        },
+        "disable": {
+          "confirm": "禁用",
+          "description": "{{email}} 将无法登录，并会在所有设备上退出登录。其工作区会继续运行。你之后可以重新启用。",
+          "title": "禁用用户"
+        },
+        "disableTwoFactor": {
+          "confirm": "关闭 2FA",
+          "description": "{{email}} 将仅使用密码登录，并可重新设置 2FA。请在确认确实是本人提出请求后再执行。",
+          "title": "关闭 2FA"
+        }
+      },
+      "description": "此部署上所有拥有账号的人。实例管理员负责管理部署本身，例如探针和用户。用户在工作区中的角色由该工作区的所有者设置。",
+      "empty": "未找到用户",
+      "errors": {
+        "last_instance_admin": "部署至少需要一名实例管理员。",
+        "last_owner": "该用户是 {{workspaces}} 的最后一位所有者。请先指定其他所有者，或删除该工作区。",
+        "self": "你不能对自己的账号执行此操作。"
+      },
+      "load_failed": "无法加载用户。",
+      "messages": {
+        "admin_granted": "{{email}} 现在是实例管理员",
+        "admin_revoked": "{{email}} 不再是实例管理员",
+        "deleted": "{{email}} 已删除",
+        "disabled": "{{email}} 已被禁用并退出登录",
+        "enabled": "{{email}} 已启用",
+        "two_factor_off": "已关闭 {{email}} 的 2FA",
+        "update_failed": "无法更新用户。"
+      },
+      "never": "从未",
+      "none": "无",
+      "page_name": "用户",
+      "paging": {
+        "next": "下一页",
+        "page": "第 {{page}} 页，共 {{pages}} 页",
+        "previous": "上一页"
+      },
+      "reset_link": {
+        "close": "关闭",
+        "copied": "链接已复制",
+        "copy": "复制链接",
+        "copy_failed": "无法复制链接。请选中后手动复制。",
+        "description": "供 {{email}} 设置新密码的链接。请立即复制并转交：它只显示一次。",
+        "emailed": "此部署会发送账号邮件，因此用户会收到邮件，告知已为其生成链接。",
+        "expires": "该链接仅可使用一次，将于{{when}}过期。",
+        "failed": "无法生成链接。",
+        "label": "链接",
+        "making": "正在生成链接...",
+        "signs_out": "使用该链接会让用户在所有设备上退出登录。",
+        "title": "密码重置链接"
+      },
+      "search_label": "按邮箱搜索用户",
+      "search_placeholder": "按邮箱搜索",
+      "total": "找到 {{total}} 个",
+      "values": {
+        "active": "正常",
+        "disabled": "已禁用",
+        "no": "否",
+        "two_factor_off": "关",
+        "two_factor_on": "开",
+        "yes": "是"
+      },
+      "you": "你"
+    },
+    "workspaces": {
+      "actions": {
+        "delete": "删除工作区",
+        "resume": "恢复工作区",
+        "suspend": "暂停工作区",
+        "limits": "上限"
+      },
+      "actions_aria": "{{name}} 的操作",
+      "columns": {
+        "created": "创建时间",
+        "custom_domains": "自定义域名",
+        "members": "成员",
+        "monitors": "监控",
+        "name": "名称",
+        "owners": "所有者",
+        "status": "状态",
+        "status_pages": "状态页面",
+        "limits": "上限"
+      },
+      "confirm": {
+        "cancel": "取消",
+        "delete": {
+          "confirm": "删除工作区",
+          "description": "删除 {{name}}？其中的所有内容都会被移除：监控及其历史记录、状态页面、通知渠道，以及成员的访问权限。此操作无法撤销。",
+          "name_label": "输入工作区名称以确认：{{name}}",
+          "title": "删除工作区"
+        },
+        "resume": {
+          "confirm": "恢复",
+          "description": "{{name}} 的监控会以原来的状态重新运行，成员可以照常使用。正在等待所有者验证邮箱的工作区会继续等待。",
+          "title": "恢复工作区"
+        },
+        "suspend": {
+          "confirm": "暂停",
+          "description": "{{name}} 的监控会停止运行，其公开状态页面会显示不可用，成员会看到工作区已暂停。不会删除任何内容，你之后可以恢复。",
+          "title": "暂停工作区"
+        }
+      },
+      "description": "此部署上的所有工作区，以及其所有者、成员和内容数量。仅显示数量，不显示工作区内的任何内容。",
+      "empty": "未找到工作区",
+      "load_failed": "无法加载工作区。",
+      "messages": {
+        "deleted": "{{name}} 已删除",
+        "failed": "无法更改工作区。",
+        "resumed": "{{name}} 已恢复",
+        "suspended": "{{name}} 已暂停"
+      },
+      "monitors": "{{active}} 个运行中，{{paused}} 个已暂停",
+      "none": "无",
+      "page_name": "工作区",
+      "paging": {
+        "next": "下一页",
+        "page": "第 {{page}} 页，共 {{pages}} 页",
+        "previous": "上一页"
+      },
+      "search_label": "按名称或所有者邮箱搜索工作区",
+      "search_placeholder": "按名称或所有者邮箱搜索",
+      "status": {
+        "running": "运行中",
+        "suspended_admin": "已被管理员暂停",
+        "suspended_unverified": "已暂停，直到所有者验证邮箱"
+      },
+      "total": "找到 {{total}} 个",
+      "limits": {
+        "item": "{{name}}：{{value}}",
+        "more": "另有 {{number}} 项",
+        "unlimited": "无上限",
+        "source": {
+          "workspace": "自行设置",
+          "install": "安装的默认值",
+          "none": "未设置"
+        },
+        "dialog": {
+          "title": "{{name}} 的上限",
+          "description": "此工作区受到的限制。调低上限不会暂停或删除任何内容：超出上限的最新监控会停止运行，直到再次有空位。",
+          "own": "自有上限",
+          "own_help": "这些会取代安装的默认值。如不设某项上限，请将其留空。",
+          "unlimited": "无上限",
+          "unlimited_help": "完全没有上限，无论安装的默认值如何设置。",
+          "defaults": "使用安装的默认值",
+          "defaults_help": "管理 → 设置中的默认上限；如果安装未设置，则没有上限。",
+          "save": "保存上限",
+          "cancel": "取消",
+          "saved": "已保存 {{name}} 的上限",
+          "failed": "无法保存上限。"
+        }
+      }
+    },
+    "settings": {
+      "page_name": "设置",
+      "description": "整个安装的设置。由服务器环境设置的值在这里被锁定。",
+      "load_failed": "无法加载设置。",
+      "saved": "设置已保存",
+      "save_failed": "设置未保存。",
+      "locked": "由服务器环境设置",
+      "source": {
+        "environment": "来自服务器环境",
+        "saved": "保存在此处",
+        "default": "默认"
+      },
+      "signup": {
+        "title": "注册",
+        "description": "谁可以在此安装上创建账户。",
+        "label": "注册模式",
+        "invite": "仅限邀请",
+        "open": "开放",
+        "invite_help": "第一个用户注册，之后的所有人通过邀请加入工作区。",
+        "open_help": "任何人都可以注册，并获得自己的工作区。新账户需要验证邮箱地址，因此需要邮件发件人。"
+      },
+      "sender": {
+        "title": "邮件发件人",
+        "description": "发送账户邮件的 SMTP 服务器：密码重置链接、邮箱验证和邀请。",
+        "on": "账户邮件已开启。",
+        "off": "账户邮件已关闭：没有 SMTP 主机。",
+        "host": "SMTP 主机",
+        "port": "端口",
+        "tls": "安全",
+        "tls_starttls": "STARTTLS",
+        "tls_tls": "TLS",
+        "tls_none": "无",
+        "user": "用户",
+        "password": "密码",
+        "password_set": "已设置密码。输入新密码即可替换。",
+        "password_not_set": "未设置密码",
+        "password_removed": "保存时将移除密码。",
+        "password_reenter": "更改主机、端口、安全设置或用户会移除已保存的密码。请重新输入。",
+        "remove_password": "移除密码",
+        "keep_password": "保留密码",
+        "from": "发件地址"
+      },
+      "public_url": {
+        "title": "公开 URL",
+        "description": "Web 应用的地址，邮件和通知中的链接会打开它。",
+        "label": "公开 URL"
+      },
+      "test_email": {
+        "title": "发送测试邮件",
+        "description": "通过已保存的发件人发送一封简短邮件，以检查其是否正常工作。",
+        "to": "发送至",
+        "send": "发送测试邮件",
+        "sending": "正在发送…",
+        "sent": "测试邮件已发送至 {{to}}。",
+        "failed": "测试邮件未发送。",
+        "unsaved": "发件人有未保存的更改。测试使用已保存的发件人，请先保存。"
+      },
+      "validation": {
+        "port": "请输入 1 到 65535 之间的端口，或留空以使用默认值。"
+      },
+      "errors": {
+        "locked": "{{field}} 由服务器环境设置，无法在此更改。",
+        "open_needs_sender": "开放注册需要邮件发件人，因为新账户需要验证邮箱地址。请先设置发件人，或在同一次保存中设置。",
+        "sender_needed": "注册已开放，新账户需要发件人来验证邮箱地址。请先将注册切换为仅限邀请。",
+        "no_sender": "没有邮件发件人。请先保存发件人。"
+      },
+      "limits": {
+        "title": "默认上限",
+        "description": "所有没有自有上限的工作区的上限。如不设某项上限，请将其留空。在“工作区”页面为某个工作区设置的上限会取代这些默认值。"
+      }
+    }
+  },
   "auth": {
     "login": {
       "description": "使用您的电子邮件登录",
       "no_account": "还没有账号？",
       "sign_up": "注册",
       "submit": "登录",
-      "title": "欢迎回来"
+      "title": "欢迎回来",
+      "forgot_password": "忘记密码?",
+      "ask_admin": "请向此安装的管理员索取邀请"
     },
     "register": {
       "description": "创建您的管理员账户",
+      "description_open": "创建您的账户",
       "have_account": "已有账号？",
       "sign_in": "登录",
       "submit": "创建",
       "title": "你好",
       "telemetry_note": "匿名：不含监控名称、URL 或主机。你以后可以在“设置”中更改。",
-      "telemetry_whats_sent": "会发送什么"
+      "telemetry_whats_sent": "会发送什么",
+      "errors": {
+        "rate_limited": "你所在网络的注册次数过多。请一小时后再试。",
+        "email_taken": "使用此邮箱的账户已存在。",
+        "sign_in_instead": "请改为登录。",
+        "check_failed": "验证未通过。请重试。",
+        "check_load_failed": "无法加载验证。请检查网络连接后重试。"
+      }
     },
     "twofa": {
       "code_label": "两步验证码",
@@ -27,6 +297,45 @@
       "title": "需要双因素认证",
       "verify_button": "验证 2FA",
       "verifying": "正在验证…"
+    },
+    "forgot": {
+      "title": "重置密码",
+      "description": "输入你账户的邮箱,我们会给你发送一个链接。",
+      "submit": "发送链接",
+      "sent": "如果此邮箱对应的账户存在,我们已发送链接。链接一小时内有效。",
+      "back_to_login": "返回登录"
+    },
+    "reset": {
+      "title": "选择新密码",
+      "description": "为你的账户输入新密码。",
+      "submit": "设置密码",
+      "success": "你的密码已更改,并且已在所有设备上退出登录。请使用新密码登录。",
+      "sign_in": "登录",
+      "invalid_link": "此链接已被使用或已过期。",
+      "request_new": "请求新链接"
+    },
+    "verify": {
+      "title": "验证你的邮箱",
+      "verifying": "正在验证你的邮箱...",
+      "success": "你的邮箱已验证。",
+      "open_app": "打开 Peekaping",
+      "invalid_link": "此链接已被使用或已过期。"
+    },
+    "errors": {
+      "rate_limited": "请求过于频繁,请稍后再试。",
+      "generic": "出了点问题,请重试。",
+      "already_verified": "你的邮箱已经验证过了。"
+    },
+    "resend": {
+      "button": "重新发送",
+      "sent": "我们已发送新链接,请查看你的收件箱。"
+    },
+    "verification_banner": {
+      "message": "请验证你的邮箱:我们已向 {{email}} 发送了链接。"
+    },
+    "suspension_notice": {
+      "message": "验证邮箱后，你的监控项才会开始运行。",
+      "member_message": "此工作区的监控项会在其所有者验证邮箱后开始运行。"
     }
   },
   "bars": {
@@ -73,6 +382,7 @@
     "no_tags_available": "没有可用标签",
     "please_refresh_page": "请刷新页面。",
     "required": "必填",
+    "retry": "重试",
     "save": "保存",
     "saving": "保存中…",
     "search": "搜索",
@@ -124,6 +434,33 @@
       "password_required": "密码为必填项",
       "password_min_length": "密码必须至少包含8个字符",
       "passwords_mismatch": "密码不匹配"
+    }
+  },
+  "invite": {
+    "accept": "接受邀请",
+    "accepting": "加入中...",
+    "creating": "创建中...",
+    "description": "你被邀请以 {{role}} 身份加入 {{workspace}}。",
+    "enter_failed": "您已加入该工作区，但打开失败。请重试。",
+    "errors": {
+      "other_email": "此邀请是发给另一个邮箱地址的。"
+    },
+    "for_email": "此邀请发给 {{email}}。",
+    "have_account": "已有账号？",
+    "open_app": "打开 Peekaping",
+    "other_account": "你当前以 {{current}} 登录，但此邀请是发给 {{invited}} 的。请先退出登录，再用 {{invited}} 登录或注册以接受邀请。",
+    "sign_in_instead": "改为登录",
+    "sign_out": "退出登录",
+    "signup_description": "设置密码以创建账号，并以 {{role}} 身份加入 {{workspace}}。",
+    "signup_submit": "创建账号并加入",
+    "title": "加入 {{workspace}}",
+    "unavailable": {
+      "accepted": "此邀请已被使用。",
+      "expired": "此邀请已过期，请重新索取。",
+      "not_found": "此邀请链接不存在。请检查是否完整复制了链接。",
+      "revoked": "此邀请已被撤销，请重新索取。",
+      "title": "此邀请无法使用",
+      "unknown": "此邀请无法使用，请重新索取。"
     }
   },
   "maintenance": {
@@ -231,6 +568,79 @@
       "wed": "周三"
     }
   },
+  "members": {
+    "change_role_aria": "更改 {{email}} 的角色",
+    "errors": {
+      "account_exists": "使用此邮箱的账号已存在。请登录并接受邀请。",
+      "already_member": "此人已是该工作区的成员。",
+      "forbidden": "你在此工作区中的角色无权执行此操作。",
+      "generic": "出错了，请重试。",
+      "last_owner": "工作区至少需要一位所有者。",
+      "member_not_found": "此成员已不在该工作区中。"
+    },
+    "invite": {
+      "copied": "链接已复制",
+      "copy": "复制",
+      "creating": "创建中...",
+      "description": "为某个邮箱地址和角色生成链接。系统不会发送邮件：请复制链接并自行发送。",
+      "done": "完成",
+      "email_label": "邮箱",
+      "link_note": "此链接只能使用一次，7 天后过期。它只会在此刻显示，请在离开此页面前复制。",
+      "link_title": "邀请链接",
+      "role_label": "角色",
+      "submit": "创建邀请链接",
+      "title": "邀请他人"
+    },
+    "leave": {
+      "button": "退出工作区",
+      "confirm": "退出",
+      "description": "你将立即失去对此工作区及其数据的访问权限。",
+      "done": "你已退出工作区",
+      "last_owner": "你是最后一位所有者，因此无法退出。请先将另一位成员设为所有者。",
+      "refresh_failed": "您已退出该工作区，但加载您的工作区失败。请重试。",
+      "title": "退出此工作区"
+    },
+    "list": {
+      "description": "在此工作区中工作的所有人及其角色。",
+      "email": "邮箱",
+      "joined": "加入时间",
+      "role": "角色",
+      "title": "成员",
+      "you": "你"
+    },
+    "page_name": "成员",
+    "pending": {
+      "description": "尚未使用的邀请。已撤销邀请的链接将失效。",
+      "email": "邮箱",
+      "empty": "没有待处理的邀请。",
+      "expired": "已过期",
+      "expires": "过期时间",
+      "revoke": "撤销",
+      "revoke_aria": "撤销发给 {{email}} 的邀请",
+      "revoked": "邀请已撤销",
+      "role": "角色",
+      "title": "待处理的邀请"
+    },
+    "remove": "移除",
+    "remove_aria": "移除 {{email}}",
+    "remove_dialog": {
+      "confirm": "移除",
+      "description": "{{email}} 将立即失去对此工作区的访问权限。",
+      "title": "移除成员"
+    },
+    "removed": "成员已移除",
+    "role_updated": "角色已更新",
+    "roles": {
+      "admin": "管理员",
+      "member": "成员",
+      "owner": "所有者"
+    },
+    "settings_card": {
+      "description": "查看谁在此工作区中工作；如果你是管理员或所有者，还可以邀请他人并管理其角色。",
+      "open": "打开成员",
+      "title": "成员"
+    }
+  },
   "messages": {
     "login_error": "登录时发生错误",
     "login_no_tokens": "登录成功，但未收到令牌",
@@ -258,6 +668,7 @@
     },
     "empty_state": {
       "action": "创建第一个监控",
+      "add_channel": "添加通知渠道",
       "description": "通过创建第一个监控，开始跟踪您的服务健康状况。",
       "title": "未找到监控项"
     },
@@ -500,6 +911,7 @@
       "shared": {
         "intervals": {
           "heartbeat_retry": "心跳重试间隔 (每 {{seconds}} 秒重试)",
+          "interval_too_short": "不能少于 {{minimum}} 秒",
           "max_retries_description": "最大重试次数，超过后服务将被标记为宕机并发送通知",
           "request_timeout": "请求超时（{{seconds}} 秒后超时）",
           "resend_notification": "若连续宕机 X 次，重新发送通知（已禁用）",
@@ -542,6 +954,10 @@
           "select_proxy_placeholder": "选择代理",
           "selected_proxy": "已选代理",
           "title": "代理"
+        },
+        "run_from": {
+          "default_locations": "在默认位置运行",
+          "label": "运行位置"
         },
         "tags": {
           "label": "标签",
@@ -649,9 +1065,12 @@
     "toasts": {
       "deleted": "已删除监控",
       "paused": "监控已暂停",
+      "push_token_already_used": "另一个监控项已在使用此推送令牌。请生成一个新的。",
       "reset_success": "监控数据已成功重置",
       "resumed": "监控已恢复"
     },
+    "type_disabled": "此安装已关闭 {{type}} 类型",
+    "over_limit": "不会检查：此工作区的启用监控数超过其上限",
     "view": {
       "buttons": {
         "clone": "克隆",
@@ -712,6 +1131,7 @@
     }
   },
   "navigation": {
+    "admin": "管理",
     "maintenance": "维护",
     "monitors": "监控",
     "notification_channels": "通知渠道",
@@ -1124,6 +1544,12 @@
         "signing_secret_docs_link": "如何验证签名",
         "signing_secret_label": "签名密钥",
         "signing_secret_placeholder": "留空则发送未签名的请求"
+      },
+      "install_email": {
+        "description": "由此安装直接发送，无需 SMTP 服务器。",
+        "to_description": "此工作区的成员。其验证地址后才会发送通知。",
+        "to_label": "收件人",
+        "to_placeholder": "选择成员"
       }
     },
     "important": "重要通知",
@@ -1142,7 +1568,8 @@
       "updated_success": "通知器已成功更新"
     },
     "new": {
-      "title": "新建通知渠道"
+      "title": "新建通知渠道",
+      "default_hint": "新建监控时将默认勾选此渠道。"
     },
     "no_important": "未找到重要通知。",
     "placeholders": {
@@ -1152,11 +1579,21 @@
     "secret": {
       "reenter_error": "请重新输入此密钥或将其移除：发送目标已更改",
       "reenter_hint": "请重新输入此密钥：发送目标已更改",
+      "reenter_url_error": "请重新输入此 URL 的凭据：URL 自保存后已更改",
       "remove": "移除",
       "saved_hint": "已保存 — 输入即可替换"
     }
   },
   "probes": {
+    "default": {
+      "description": "创建时未选择探针的监控项，会在未被禁用且支持其类型的默认探针上运行；若没有，则在本地探针上运行。已有的监控项保留其探针。",
+      "failed": "无法更改该探针是否为默认。",
+      "label": "默认探针",
+      "off": "{{name}} 不再是默认探针",
+      "on": "{{name}} 现在是默认探针",
+      "title": "新监控项的默认设置"
+    },
+    "default_badge": "默认",
     "page_name": "探针",
     "description": "探针在其安装的位置运行监控的检查。本地探针就是 Peekaping 本身。",
     "local_name": "本地",
@@ -1438,7 +1875,9 @@
     "data_retention": {
       "days_label": "天",
       "description": "设置保留数据的天数（KEEP_DATA_PERIOD_DAYS）。",
-      "title": "数据保留期限"
+      "read_only": "只有工作区的管理员或所有者可以更改此项。",
+      "title": "数据保留期限",
+      "capped": "此工作区最多 {{max}} 天"
     },
     "error_reporting": {
       "cluster_note": "在集群模式下，更改会在一分钟内传达到每个进程。",
@@ -1464,6 +1903,10 @@
     },
     "validation": {
       "min_days": "至少1天"
+    },
+    "workspace_name": {
+      "description": "显示在工作区切换器中以及对成员显示的名称。",
+      "title": "工作区名称"
     }
   },
   "status": {
@@ -1479,6 +1922,7 @@
       "refresh_in": "刷新中",
       "refresh_now": "立即刷新",
       "status_page_not_found": "未找到状态页面或未发布。",
+      "status_page_unavailable": "此状态页面不可用",
       "under_maintenance": "维护中",
       "unknown": "未知"
     }
@@ -1522,6 +1966,7 @@
     "search_placeholder": "按标题搜索状态页面…",
     "show_locations": "显示每个位置",
     "show_locations_info": "对于从多个位置检查的监控项，显示每个位置的状态和历史记录",
+    "slug_already_used": "另一个状态页已在使用此地址",
     "update_status_page": "更新状态页面",
     "view_page": "查看页面"
   },
@@ -1587,5 +2032,93 @@
   "ui": {
     "general": "通用",
     "intervals_retries": "间隔、重试、超时"
+  },
+  "workspaces": {
+    "create": "创建工作区",
+    "create_error": "创建工作区失败",
+    "create_first": "创建工作区",
+    "creating": "创建中...",
+    "enter": "打开工作区",
+    "entering": "打开中...",
+    "entry_failed": "工作区已创建，但打开失败。请重试。",
+    "name_label": "名称",
+    "name_placeholder": "我的团队",
+    "name_required": "请输入名称",
+    "new": "新建工作区",
+    "new_description": "工作区拥有各自的监控项、通知渠道、状态页面和成员。你将成为它的所有者。",
+    "new_title": "新建工作区",
+    "none_description": "你的账号还不是任何工作区的成员，所以这里没有可显示的内容。请让管理工作区的人把你添加进去。",
+    "none_title": "你还不在任何工作区中",
+    "refresh_failed": "无法加载您的工作区。请检查网络连接后重试。",
+    "rename_error": "重命名工作区失败",
+    "rename_success": "工作区已重命名",
+    "suspended_banner": {
+      "contact": "联系方式：",
+      "message": "此工作区已被此部署的管理员暂停。其监控不会运行，状态页面也不可用。",
+      "no_contact": "请联系负责管理此部署的人。"
+    },
+    "switcher_label": "切换工作区"
+  },
+  "get_started": {
+    "page_name": "开始使用",
+    "skip": "跳过设置",
+    "step_of": "第 {{current}} 步，共 {{total}} 步",
+    "name": {
+      "description": "你的监控、通知渠道和状态页都在这里。之后可以在设置中重命名。",
+      "title": "为你的工作区命名"
+    },
+    "monitor": {
+      "create": "创建监控",
+      "create_failed": "创建监控失败",
+      "creating": "正在创建...",
+      "description": "输入网站或 API 的地址。Peekaping 会检查它，并在它停止响应时通知你。",
+      "full_form": "或者使用全部选项来设置监控",
+      "title": "添加你的第一个监控",
+      "url_invalid": "请输入以 http:// 或 https:// 开头的地址",
+      "url_label": "要监控的地址"
+    },
+    "channel": {
+      "continue_unlinked": "不关联并继续",
+      "description": "选择监控宕机时 Peekaping 把告警发送到哪里。它将成为新监控的默认渠道。",
+      "link_failed": "渠道已保存，但关联到监控失败。请在监控的编辑页面中添加。",
+      "retry_link": "重新尝试关联",
+      "title": "接收通知"
+    },
+    "done": {
+      "description": "Peekaping 正在监控你的服务。接下来你可以这样做。",
+      "title": "一切就绪",
+      "unverified": "邮箱地址验证后，你的监控才会运行。请在收件箱中查看验证链接。",
+      "links": {
+        "members": "邀请你的团队",
+        "monitor": "打开你的监控",
+        "monitors": "前往监控列表",
+        "probes": "管理探针",
+        "status_pages": "发布状态页面"
+      }
+    }
+  },
+  "limits": {
+    "reached": {
+      "monitors": "此工作区最多可以运行 {{max}} 个监控",
+      "status_pages": "此工作区最多可以有 {{max}} 个状态页面",
+      "custom_domains": "此工作区的状态页面加起来最多可以有 {{max}} 个自定义域名",
+      "members": "此工作区最多可以有 {{max}} 个成员（含待处理的邀请）",
+      "owned_workspaces": "你最多可以拥有 {{max}} 个工作区",
+      "probes": "此工作区中的一个监控最多可以在 {{max}} 个探针上运行",
+      "retention_days": "此工作区最多可以保留数据 {{max}} 天"
+    },
+    "names": {
+      "monitors": "启用的监控",
+      "min_check_interval": "最短检查间隔（秒）",
+      "status_pages": "状态页面",
+      "custom_domains": "自定义域名",
+      "members": "成员",
+      "owned_workspaces": "一个用户可以拥有的工作区",
+      "probes_per_monitor": "每个监控的探针数",
+      "retention_days": "数据保留期限（天）"
+    },
+    "none": "无上限",
+    "invalid": "请输入 1 或更大的整数；如不设上限，请留空。",
+    "retention_too_long": "不能多于 {{max}} 天"
   }
 }

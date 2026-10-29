@@ -1,9 +1,17 @@
 package shared
 
-import "time"
+import (
+	"time"
+
+	"peekaping/internal/modules/workspace/workspaceid"
+)
 
 type Proxy struct {
-	ID        string    `json:"id"`
+	ID string `json:"id"`
+	// WorkspaceID is the workspace the proxy belongs to. It is stored with the proxy and read back
+	// with it, never taken from a request body, and it is not part of the API's answer.
+	WorkspaceID workspaceid.ID `json:"-"`
+
 	Protocol  string    `json:"protocol"`
 	Host      string    `json:"host"`
 	Port      int       `json:"port"`

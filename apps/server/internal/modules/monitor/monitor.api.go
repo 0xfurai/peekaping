@@ -77,3 +77,27 @@ type GetTLSInfoParams struct {
 	Id string `path:"id" doc:"Monitor ID" required:"true"`
 }
 type GetTLSInfoInput = httpx.Input[httpx.NoBody, GetTLSInfoParams]
+
+// MonitorTypeDisabledResponse is the answer to a write that gives a monitor a type this install
+// turns off. It is a 400 with the usual message, which names the type, and the reason in a code.
+type MonitorTypeDisabledResponse struct {
+	Message string                    `json:"message" example:"docker monitors are turned off on this install"`
+	Data    httpx.Null                `json:"data"`
+	Error   *MonitorTypeDisabledError `json:"error"`
+}
+
+// IntervalTooShortResponse is the answer to a write whose interval or retry interval is below the
+// install's MIN_CHECK_INTERVAL. It is a 400 with the usual message, which names the field and the
+// minimum, and the reason in a code.
+type IntervalTooShortResponse struct {
+	Message string                 `json:"message" example:"interval of 30 s is below the minimum of 60 seconds"`
+	Data    httpx.Null             `json:"data"`
+	Error   *IntervalTooShortError `json:"error"`
+}
+
+// PushTokenErrorResponse is the answer to a write with a push token that another monitor holds.
+// It is a 400 like the other refusals of the write, with the reason in a code, as a status page
+// domain that another page holds is.
+type PushTokenErrorResponse struct {
+	Error *PushTokenAlreadyUsedError `json:"error"`
+}

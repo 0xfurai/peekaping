@@ -37,7 +37,8 @@ func TestRun_ChecksAMonitorCreatedThroughTheAPIAndIngestsPushesWithoutRedis(t *t
 	in := startPeekaping(t, cfg, logger, logs)
 	in.registerAdmin(t)
 	socket := in.dialSocket(t)
-	socket.join(t, "monitor:all")
+	room := in.workspaceRoom(t)
+	socket.join(t, room)
 
 	// The join is handled in its own goroutine, so a push can go before it. Push until one reaches
 	// the websocket.
@@ -58,7 +59,7 @@ func TestRun_ChecksAMonitorCreatedThroughTheAPIAndIngestsPushesWithoutRedis(t *t
 
 		pushed, ok := socket.until(t, wait, func(e socketEvent) bool { return e.hb.MonitorID == monitorID })
 		require.True(t, ok, "the check's heartbeat reached the websocket within %s", wait)
-		assert.Equal(t, "monitor:all:heartbeat", pushed.name)
+		assert.Equal(t, room+":heartbeat", pushed.name)
 		assert.Equal(t, shared.MonitorStatusUp, pushed.hb.Status)
 		assert.Equal(t, "200 - 200 OK", pushed.hb.Msg)
 
@@ -300,7 +301,13 @@ func (in *instance) createWaitingForTheDatabase(t *testing.T, cfg *Config) (unlo
 			_ = resp.Body.Close()
 		}
 	}()
-	t.Cleanup(func() { <-answered })
+	t.Cleanup(func() {
+		select {
+		case <-answered:
+		case <-time.After(shutdownTimeouts.Total() + wait):
+			t.Errorf("the request waiting for the database was never answered\n%s", goroutines())
+		}
+	})
 	time.Sleep(500 * time.Millisecond) // the handler gets to its write
 	return unlock
 }

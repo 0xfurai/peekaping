@@ -7,6 +7,8 @@ import type {
 import { client } from "./api/client.gen";
 import axios from "axios";
 import { getConfig } from "./lib/config";
+import { currentWorkspaceId } from "./lib/workspace-path";
+import { isWorkspaceNotFound, notifyWorkspaceNotFound } from "./lib/workspace-recovery";
 
 interface CustomAxiosRequestConfig extends InternalAxiosRequestConfig {
   _retry?: boolean;
@@ -30,6 +32,17 @@ const processQueue = (error: unknown = null, token: string | null = null) => {
 };
 
 export const setupInterceptors = () => {
+  // The workspace comes from the address at the moment a request goes out, not
+  // from a copy kept in a store, so a request can't carry a workspace other than
+  // the one the page shows. Account routes and /me go out without one.
+  client.instance.interceptors.request.use((config: InternalAxiosRequestConfig) => {
+    const workspaceId = currentWorkspaceId();
+    if (workspaceId) {
+      config.headers.set("X-Workspace-ID", workspaceId);
+    }
+    return config;
+  });
+
   client.instance.interceptors.response.use(
     (response: AxiosResponse) => response,
     async (error: AxiosError) => {
@@ -111,6 +124,14 @@ export const setupInterceptors = () => {
         } finally {
           isRefreshing = false;
         }
+      }
+
+      // The user isn't in the workspace the address names (removed meanwhile, say): the page
+      // moves to the one they are in, if the request was about the workspace the page is still
+      // on. The request still fails.
+      if (isWorkspaceNotFound(error)) {
+        const failedWorkspaceId = error.config?.headers?.get?.("X-Workspace-ID");
+        notifyWorkspaceNotFound(typeof failedWorkspaceId === "string" ? failedWorkspaceId : null);
       }
 
       return Promise.reject(error);

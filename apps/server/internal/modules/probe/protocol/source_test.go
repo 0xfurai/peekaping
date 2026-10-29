@@ -25,7 +25,7 @@ type stubMonitors struct {
 	pages []string
 }
 
-func (s *stubMonitors) FindActiveByProbe(_ context.Context, probeID string, page int, limit int) ([]*monitor.Model, error) {
+func (s *stubMonitors) FindActiveByProbeAnyWorkspace(_ context.Context, probeID string, page int, limit int) ([]*monitor.Model, error) {
 	s.pages = append(s.pages, fmt.Sprintf("%s/%d", probeID, page))
 	if s.err != nil {
 		return nil, s.err
@@ -43,11 +43,11 @@ func TestMonitorSource_ListsTheActiveMonitorsOfTheProbe(t *testing.T) {
 	}}
 	source := protocol.NewMonitorSource(monitors)
 
-	local, err := source.FindActiveByProbe(context.Background(), probe.LocalID)
+	local, err := source.FindActiveByProbeAnyWorkspace(context.Background(), probe.LocalID)
 	require.NoError(t, err)
-	remote, err := source.FindActiveByProbe(context.Background(), "frankfurt")
+	remote, err := source.FindActiveByProbeAnyWorkspace(context.Background(), "frankfurt")
 	require.NoError(t, err)
-	none, err := source.FindActiveByProbe(context.Background(), "paris")
+	none, err := source.FindActiveByProbeAnyWorkspace(context.Background(), "paris")
 	require.NoError(t, err)
 
 	assert.Equal(t, []string{"http-1", "push-1"}, idsOf(local), "it lists them all: telling which can be dealt is Dealable's job")
@@ -63,7 +63,7 @@ func TestMonitorSource_PagesThroughAllTheMonitors(t *testing.T) {
 	}
 	monitors := &stubMonitors{byProbe: map[string][]*monitor.Model{"frankfurt": all}}
 
-	got, err := protocol.NewMonitorSource(monitors).FindActiveByProbe(context.Background(), "frankfurt")
+	got, err := protocol.NewMonitorSource(monitors).FindActiveByProbeAnyWorkspace(context.Background(), "frankfurt")
 
 	require.NoError(t, err)
 	assert.Equal(t, idsOf(all), idsOf(got), "every monitor, once, in the order of the pages")
@@ -74,6 +74,6 @@ func TestMonitorSource_PassesOnAFailure(t *testing.T) {
 	failure := errors.New("database is down")
 	source := protocol.NewMonitorSource(&stubMonitors{err: failure})
 
-	_, err := source.FindActiveByProbe(context.Background(), probe.LocalID)
+	_, err := source.FindActiveByProbeAnyWorkspace(context.Background(), probe.LocalID)
 	assert.ErrorIs(t, err, failure)
 }

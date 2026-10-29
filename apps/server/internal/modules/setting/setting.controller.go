@@ -5,6 +5,9 @@ import (
 	"errors"
 	"net/http"
 	"peekaping/internal/httpx"
+	"peekaping/internal/limits"
+	"peekaping/internal/modules/workspace"
+	"peekaping/internal/modules/workspace/workspacehttp"
 	"peekaping/internal/utils"
 	"peekaping/internal/validation"
 
@@ -28,7 +31,11 @@ func NewController(
 func (ic *Controller) GetByKey(ctx context.Context, input *GetByKeyInput) (*httpx.Output[utils.ApiResponse[*Model]], error) {
 	r := input.Request
 	key := r.PathValue("key")
-	entity, err := ic.service.GetByKey(ctx, key)
+	workspaceID, err := workspacehttp.Scope(ctx)
+	if err != nil {
+		return nil, err
+	}
+	entity, err := ic.service.GetByKey(ctx, workspaceID, key)
 	if err != nil {
 		ic.logger.Errorw("Failed to fetch setting by key", "error", err)
 		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
@@ -46,6 +53,14 @@ func (ic *Controller) SetByKey(ctx context.Context, input *SetByKeyInput) (*http
 	if !ic.service.IsUserEditable(key) {
 		return nil, httpx.Fail(http.StatusNotFound, utils.NewFailResponse("Setting not found"))
 	}
+	// Members read the workspace's settings, admins and owners change them
+	if err := workspace.RequireRole(ctx, workspace.RoleAdmin); err != nil {
+		return nil, workspacehttp.Fail(err)
+	}
+	workspaceID, err := workspacehttp.Scope(ctx)
+	if err != nil {
+		return nil, err
+	}
 	entity, decodeErr := input.Decode()
 	if err := decodeErr; err != nil {
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Invalid request body"))
@@ -53,12 +68,16 @@ func (ic *Controller) SetByKey(ctx context.Context, input *SetByKeyInput) (*http
 	if err := validation.Validate.Struct(entity); err != nil {
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
-	updated, err := ic.service.SetByKey(ctx, key, &Model{Value: entity.Value, Type: entity.Type})
+	updated, err := ic.service.SetByKey(ctx, workspaceID, key, &Model{Value: entity.Value, Type: entity.Type})
 	if errors.Is(err, ErrSettingNotFound) {
 		return nil, httpx.Fail(http.StatusNotFound, utils.NewFailResponse("Setting not found"))
 	}
 	if errors.Is(err, ErrInvalidValue) {
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
+	}
+	var reached *limits.ReachedError
+	if errors.As(err, &reached) {
+		return nil, limits.Fail(reached)
 	}
 	if err != nil {
 		ic.logger.Errorw("Failed to set setting by key", "error", err)
@@ -69,7 +88,17 @@ func (ic *Controller) SetByKey(ctx context.Context, input *SetByKeyInput) (*http
 func (ic *Controller) DeleteByKey(ctx context.Context, input *DeleteByKeyInput) (*httpx.Output[utils.ApiResponse[any]], error) {
 	r := input.Request
 	key := r.PathValue("key")
-	err := ic.service.DeleteByKey(ctx, key)
+	if !ic.service.IsUserEditable(key) {
+		return nil, httpx.Fail(http.StatusNotFound, utils.NewFailResponse("Setting not found"))
+	}
+	if err := workspace.RequireRole(ctx, workspace.RoleAdmin); err != nil {
+		return nil, workspacehttp.Fail(err)
+	}
+	workspaceID, err := workspacehttp.Scope(ctx)
+	if err != nil {
+		return nil, err
+	}
+	err = ic.service.DeleteByKey(ctx, workspaceID, key)
 	if errors.Is(err, ErrSettingNotFound) {
 		return nil, httpx.Fail(http.StatusNotFound, utils.NewFailResponse("Setting not found"))
 	}

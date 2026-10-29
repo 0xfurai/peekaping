@@ -65,5 +65,8 @@ func newRuntime(cfg *Config, logger *zap.SugaredLogger) (runtime, error) {
 		Version:     version.Version,
 		Concurrency: cfg.Concurrency,
 		Logger:      logger,
+
+		BlockPrivateTargets:    cfg.BlockPrivateTargets,
+		ChecksPerHostPerMinute: cfg.ChecksPerHostPerMinute,
 	}), nil
 }

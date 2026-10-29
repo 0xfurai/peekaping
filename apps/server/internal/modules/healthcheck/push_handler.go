@@ -35,11 +35,11 @@ func RegisterPushEndpoint(
 	maintenanceService maintenance.Service,
 	logger *zap.SugaredLogger,
 ) {
-	httpx.Register(router, "GET", "/push/{token}", huma.Operation{Summary: "Send a heartbeat to a push monitor", Tags: []string{"Push"}, Errors: []int{400, 404, 500}}, func(ctx context.Context, input *PushInput) (*httpx.Output[PushResponse], error) {
+	httpx.Register(router, "GET", "/push/{token}", huma.Operation{Summary: "Send a heartbeat to a push monitor", Description: "Stores the push as the monitor's heartbeat. 404 when no monitor has the token, 400 when the monitor is paused, and 403 when the monitor's workspace is suspended (a new account's workspace is, until its owner verifies their email address, and an instance admin can suspend one), when its type is turned off on this install (DISABLED_MONITOR_TYPES), or when it is past its workspace's limit of active monitors: the push is not stored and sends no notification.", Tags: []string{"Push"}, Errors: []int{400, 403, 404, 500}}, func(ctx context.Context, input *PushInput) (*httpx.Output[PushResponse], error) {
 		r := input.Request
 		token := r.PathValue("token")
 
-		monitor, err := monitorService.FindOneByPushToken(ctx, token)
+		monitor, err := monitorService.FindOneByPushTokenAnyWorkspace(ctx, token)
 		if err != nil {
 			logger.Errorw("Failed to find monitor with push token", "error", err)
 			return nil, httpx.Fail(http.StatusNotFound, utils.NewFailResponse("Monitor not found for pushToken"))
@@ -47,6 +47,25 @@ func RegisterPushEndpoint(
 		if monitor == nil {
 			logger.Errorw("Monitor not found for push token")
 			return nil, httpx.Fail(http.StatusNotFound, utils.NewFailResponse("Monitor not found for pushToken"))
+		}
+		if monitor.WorkspaceSuspended {
+			// The token holder is told why their pushes are not counted, as for a paused monitor: the
+			// token is the secret that names the monitor. Nothing is stored and nothing is sent.
+			logger.Infow("Push refused: the monitor's workspace is suspended", "monitor_id", monitor.ID)
+			if monitor.WorkspaceSuspendedByAdmin {
+				return nil, httpx.Fail(http.StatusForbidden, utils.NewFailResponse("The workspace of this monitor is suspended by the install's administrator"))
+			}
+			return nil, httpx.Fail(http.StatusForbidden, utils.NewFailResponse("The workspace of this monitor is suspended until its owner verifies their email address"))
+		}
+		if monitor.TypeDisabled {
+			// Told the same way: the token holder should know why their pushes are not counted
+			logger.Infow("Push refused: the monitor's type is turned off on this install", "monitor_id", monitor.ID)
+			return nil, httpx.Fail(http.StatusForbidden, utils.NewFailResponse("This monitor's type is turned off on this install"))
+		}
+		if monitor.OverLimit {
+			// And when the monitor is past its workspace's limit of active monitors (PP-160)
+			logger.Infow("Push refused: the monitor is past its workspace's limit of active monitors", "monitor_id", monitor.ID)
+			return nil, httpx.Fail(http.StatusForbidden, utils.NewFailResponse("This monitor is past its workspace's limit of active monitors"))
 		}
 		if !monitor.Active {
 			// Only the ID: the monitor's config holds credentials
@@ -108,7 +127,7 @@ const maintenanceMessage = "Monitor under maintenance"
 // the monitor is active. A window that can't be read doesn't hide another
 // active window; the caller keeps the reported heartbeat rather than drop it.
 func MonitorUnderMaintenance(ctx context.Context, service maintenance.Service, monitorID string) (bool, error) {
-	maintenances, err := service.GetMaintenancesByMonitorID(ctx, monitorID)
+	maintenances, err := service.GetMaintenancesByMonitorIDAnyWorkspace(ctx, monitorID)
 	if err != nil {
 		return false, err
 	}

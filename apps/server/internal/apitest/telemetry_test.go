@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"peekaping/internal/config"
+	"peekaping/internal/installsettings"
 	"peekaping/internal/modules/notification_channel"
 	"peekaping/internal/modules/setting"
 	"peekaping/internal/modules/shared"
@@ -284,7 +285,7 @@ func TestTelemetryAPI_ReportsEveryNotificationChannelTypeTheWorkerAccepts(t *tes
 	// A channel type the Worker would reject is left out of the ping without a trace
 	newApp(t)
 	typeRule := regexp.MustCompile(`^[a-z0-9_-]{1,32}$`)
-	types := notification_channel.NewProviderRegistry(zap.NewNop().Sugar(), &config.Config{}).Types()
+	types := notification_channel.NewProviderRegistry(zap.NewNop().Sugar(), installsettings.Static(&config.Config{}), nil, nil, nil).Types()
 	require.NotEmpty(t, types)
 	for _, name := range types {
 		assert.Regexp(t, typeRule, name)
@@ -331,7 +332,7 @@ func TestTelemetryAPI_APIKeyCanReadButNotChangeTheChoice(t *testing.T) {
 
 	// The choice is the admin's, so an API key can't opt the install out
 	w := a.request(t, http.MethodPut, telemetryPath, map[string]any{"enabled": false}, a.withAPIKey)
-	assert.Equal(t, http.StatusUnauthorized, w.Code, w.Body.String())
+	assert.Equal(t, http.StatusForbidden, w.Code, w.Body.String())
 	assert.Equal(t, state, a.telemetry(t))
 	assert.Nil(t, a.storedSetting(t, "TELEMETRY_ENABLED"))
 	assert.Equal(t, state.Payload.InstanceID, a.storedSetting(t, "TELEMETRY_INSTANCE_ID").Value, "and delete the instance ID")
@@ -339,7 +340,7 @@ func TestTelemetryAPI_APIKeyCanReadButNotChangeTheChoice(t *testing.T) {
 	// Nor opt it back in after the admin opted out
 	a.setTelemetry(t, false)
 	w = a.request(t, http.MethodPut, telemetryPath, map[string]any{"enabled": true}, a.withAPIKey)
-	assert.Equal(t, http.StatusUnauthorized, w.Code, w.Body.String())
+	assert.Equal(t, http.StatusForbidden, w.Code, w.Body.String())
 	assert.False(t, a.telemetry(t).Enabled)
 	assert.Nil(t, a.storedSetting(t, "TELEMETRY_INSTANCE_ID"))
 }
@@ -452,7 +453,7 @@ func TestTelemetryAPI_TheNoticeCannotBeMarkedSeenWithoutTheAdminsJWT(t *testing.
 	a := newAppWithAdmin(t)
 
 	assert.Equal(t, http.StatusUnauthorized, a.request(t, http.MethodPost, telemetryNoticePath, nil).Code, "no credentials")
-	assert.Equal(t, http.StatusUnauthorized, a.request(t, http.MethodPost, telemetryNoticePath, nil, a.withAPIKey).Code, "an API key")
+	assert.Equal(t, http.StatusForbidden, a.request(t, http.MethodPost, telemetryNoticePath, nil, a.withAPIKey).Code, "an API key")
 
 	assert.True(t, a.telemetry(t).NoticePending)
 	assert.Nil(t, a.storedSetting(t, "TELEMETRY_NOTICE_SEEN"))

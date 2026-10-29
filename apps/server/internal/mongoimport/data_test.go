@@ -74,7 +74,7 @@ func TestImportKeepsEveryRowWhenCutValuesCollide(t *testing.T) {
 
 		monitors := monitor.NewSQLRepository(db)
 		// A name wider than the column is cut on PostgreSQL only
-		wide, err := monitors.FindByID(ctx, uuidOf(t, wideMonitor.Hex()))
+		wide, err := monitors.FindByID(ctx, importedWorkspace(t, db), uuidOf(t, wideMonitor.Hex()))
 		require.NoError(t, err)
 		assert.Equal(t, cut(db, mongoimporttest.LongName, 150), wide.Name)
 		if postgres {
@@ -93,7 +93,7 @@ func TestImportKeepsEveryRowWhenCutValuesCollide(t *testing.T) {
 					want = renamed(want, 100, i+1)
 				}
 			}
-			got, err := tags.FindByName(ctx, want)
+			got, err := tags.FindByName(ctx, importedWorkspace(t, db), want)
 			require.NoError(t, err)
 			assert.NotNil(t, got, "no tag named %q", want)
 		}
@@ -106,7 +106,7 @@ func TestImportKeepsEveryRowWhenCutValuesCollide(t *testing.T) {
 					want = renamed(want, 255, i+1)
 				}
 			}
-			got, err := pages.FindBySlug(ctx, want)
+			got, err := pages.FindBySlugAnyWorkspace(ctx, want)
 			require.NoError(t, err)
 			assert.NotNil(t, got, "no status page with the slug %q", want)
 		}

@@ -134,7 +134,12 @@ function FormDescription({ className, ...props }: React.ComponentProps<"p">) {
   )
 }
 
-function FormMessage({ className, ...props }: React.ComponentProps<"p">) {
+// `values` fills the placeholders of a message that carries a number, such as a minimum
+function FormMessage({
+  className,
+  values,
+  ...props
+}: React.ComponentProps<"p"> & { values?: Record<string, string | number> }) {
   const { error, formMessageId } = useFormField()
   const { t } = useTranslation()
   const body = error ? String(error?.message ?? "") : props.children
@@ -150,7 +155,7 @@ function FormMessage({ className, ...props }: React.ComponentProps<"p">) {
       className={cn("text-destructive text-sm", className)}
       {...props}
     >
-      {t(body as string)}
+      {t(body as string, values)}
     </p>
   )
 }

@@ -4,8 +4,11 @@ import (
 	"context"
 	"fmt"
 	"maps"
+	"net"
 	"peekaping/internal/modules/shared"
+	"peekaping/internal/netguard"
 	"slices"
+	"strings"
 	"time"
 
 	"go.uber.org/zap"
@@ -46,9 +49,71 @@ type Executor interface {
 	Unmarshal(configJSON string) (any, error)
 }
 
+// TargetLister is implemented by the executors whose config names hosts they dial. The API asks
+// for them when a monitor is saved, so that an address the install blocks (BLOCK_PRIVATE_TARGETS)
+// is refused then and not only reported Down at each check.
+type TargetLister interface {
+	// Targets returns the hosts the config makes the executor dial: the host of a URL, a host, a
+	// resolver. Hosts, not host:port. A config that can't be read has none.
+	Targets(configJSON string) ([]string, error)
+}
+
+// guarded is embedded by the executors that dial through a netguard.Guard. The registry hands the
+// guard to each of them once, when it builds them. The zero value has none, which lets everything
+// through, as a guard that is off does.
+type guarded struct {
+	guard *netguard.Guard
+}
+
+func (g *guarded) useGuard(guard *netguard.Guard) { g.guard = guard }
+
+// dialer makes d dial through the executor's guard
+func (g *guarded) dialer(d *net.Dialer) *net.Dialer { return g.guard.Dialer(d) }
+
+// on reports whether the guard refuses addresses now. An executor that has to change how it connects
+// to dial through the guard asks it at each check, so that a check with the option off connects as
+// it always did.
+func (g *guarded) on() bool { return g.guard.Enabled() }
+
+// hasGuard reports whether the executor was given a guard. An executor that connects as it always
+// did through the guard's dialer uses it whenever it has one, also while it is off: the guard is
+// asked at each dial, so one turned on while a check runs (a probe's, at a hello) refuses the
+// check's later dials, and off it lets them through.
+func (g *guarded) hasGuard() bool { return g.guard != nil }
+
+// hostOf returns the host of a host:port address, without the brackets of an IPv6 address. An
+// address without a port is returned as it is, without its brackets.
+func hostOf(address string) string {
+	address = strings.TrimSpace(address)
+	if host, _, err := net.SplitHostPort(address); err == nil {
+		return host
+	}
+	return strings.TrimSuffix(strings.TrimPrefix(address, "["), "]")
+}
+
+// guardUser is what the registry looks for in an executor to hand the guard to
+type guardUser interface {
+	useGuard(*netguard.Guard)
+}
+
+// Option changes how NewExecutorRegistry builds the executors
+type Option func(*registryOptions)
+
+type registryOptions struct {
+	guard *netguard.Guard
+}
+
+// WithGuard gives every executor that dials a guard to dial through: with BLOCK_PRIVATE_TARGETS on,
+// a check can't reach the addresses the guard blocks. The guard can be turned on after the
+// registry is built, which is how a probe follows the server's setting.
+func WithGuard(guard *netguard.Guard) Option {
+	return func(o *registryOptions) { o.guard = guard }
+}
+
 type ExecutorRegistry struct {
 	logger   *zap.SugaredLogger
 	registry map[string]Executor
+	guard    *netguard.Guard
 }
 
 // optional holds the constructors of the executors that a slim build (-tags slim) leaves out. The
@@ -65,7 +130,12 @@ func registerOptional[E Executor](monitorType string, newExecutor func(*zap.Suga
 
 func NewExecutorRegistry(
 	logger *zap.SugaredLogger,
+	opts ...Option,
 ) *ExecutorRegistry {
+	var options registryOptions
+	for _, opt := range opts {
+		opt(&options)
+	}
 	registry := make(map[string]Executor)
 
 	registry["http"] = NewHTTPExecutor(logger)
@@ -87,9 +157,16 @@ func NewExecutorRegistry(
 		registry[monitorType] = newExecutor(logger)
 	}
 
+	for _, e := range registry {
+		if user, ok := e.(guardUser); ok {
+			user.useGuard(options.guard)
+		}
+	}
+
 	return &ExecutorRegistry{
 		registry: registry,
 		logger:   logger,
+		guard:    options.guard,
 	}
 }
 
@@ -107,6 +184,12 @@ func (f *ExecutorRegistry) Types() []string {
 	return slices.Sorted(maps.Keys(f.registry))
 }
 
+// KnownTypes lists the monitor types this build has an executor for, sorted: the types the server
+// accepts, which a DISABLED_MONITOR_TYPES entry is checked against
+func KnownTypes() []string {
+	return NewExecutorRegistry(zap.NewNop().Sugar()).Types()
+}
+
 func (er *ExecutorRegistry) ValidateConfig(monitorType string, configJSON string) error {
 	executor, ok := er.GetExecutor(monitorType)
 	if !ok {
@@ -120,5 +203,48 @@ func (er *ExecutorRegistry) ValidateConfig(monitorType string, configJSON string
 		return err
 	}
 
+	return er.checkTargets(executor, configJSON)
+}
+
+// Targets lists the hosts a check of the monitor type with this config dials. It lists none for a
+// type that dials nothing (push), a type the registry doesn't know and a config that can't be read:
+// those are left to their own checks to report. It is what the per-host spacing (PP-159) counts a
+// check against.
+func (er *ExecutorRegistry) Targets(monitorType, configJSON string) []string {
+	if er == nil {
+		return nil
+	}
+	e, ok := er.GetExecutor(monitorType)
+	if !ok {
+		return nil
+	}
+	lister, ok := e.(TargetLister)
+	if !ok {
+		return nil
+	}
+	hosts, err := lister.Targets(configJSON)
+	if err != nil {
+		return nil
+	}
+	return slices.DeleteFunc(hosts, func(host string) bool { return strings.TrimSpace(host) == "" })
+}
+
+// checkTargets refuses a config that dials an IP address the guard blocks. It does nothing while
+// the guard is off, and for an executor that doesn't list its targets. A host that is a name
+// passes: what it resolves to is checked when the check dials.
+func (er *ExecutorRegistry) checkTargets(e Executor, configJSON string) error {
+	lister, ok := e.(TargetLister)
+	if !ok || !er.guard.Enabled() {
+		return nil
+	}
+	hosts, err := lister.Targets(configJSON)
+	if err != nil {
+		return err
+	}
+	for _, host := range hosts {
+		if err := er.guard.CheckLiteral(host); err != nil {
+			return err
+		}
+	}
 	return nil
 }

@@ -3,22 +3,292 @@
     "cancel": "Cealaigh",
     "saving": "Ag sábháil…"
   },
+  "admin": {
+    "nav": {
+      "back_to_workspace": "Ar ais go {{name}}",
+      "probes": "Tóireadóirí",
+      "title": "Riar",
+      "users": "Úsáideoirí",
+      "workspaces": "Spásanna oibre",
+      "settings": "Socruithe"
+    },
+    "users": {
+      "actions": {
+        "delete": "Scrios úsáideoir",
+        "disable": "Díchumasaigh úsáideoir",
+        "disableTwoFactor": "Cas 2FA as",
+        "enable": "Cumasaigh úsáideoir",
+        "grantAdmin": "Déan riarthóir cása de",
+        "resetLink": "Cruthaigh nasc athshocraithe",
+        "revokeAdmin": "Bain stádas riarthóra cása de"
+      },
+      "actions_aria": "Gníomhartha do {{email}}",
+      "columns": {
+        "created": "Cruthaithe",
+        "email": "Ríomhphost",
+        "email_verified": "Ríomhphost fíoraithe",
+        "instance_admin": "Riarthóir cása",
+        "last_sign_in": "Sínigh isteach is déanaí",
+        "status": "Stádas",
+        "two_factor": "2FA",
+        "workspaces": "Spásanna oibre"
+      },
+      "confirm": {
+        "cancel": "Cealaigh",
+        "delete": {
+          "confirm": "Scrios úsáideoir",
+          "description": "An scriosfar {{email}}? Baintear a chuntas, agus a áiteanna i spásanna oibre. Ní féidir é seo a chealú.",
+          "title": "Scrios úsáideoir"
+        },
+        "disable": {
+          "confirm": "Díchumasaigh",
+          "description": "Ní féidir le {{email}} sínigh isteach agus tá sé sínithe amach i ngach áit anois. Coinníonn a spásanna oibre ag rith. Is féidir leat é a chumasú arís ar ball.",
+          "title": "Díchumasaigh úsáideoir"
+        },
+        "disableTwoFactor": {
+          "confirm": "Cas 2FA as",
+          "description": "Sínfidh {{email}} isteach lena phasfhocal amháin, agus is féidir 2FA a shocrú arís. Ná déan é seo ach nuair atá tú cinnte gurb é an t-úsáideoir féin atá á iarraidh.",
+          "title": "Cas 2FA as"
+        }
+      },
+      "description": "An té ar bith a bhfuil cuntas aige ar an suiteáil seo. Bainistíonn riarthóirí an chása an suiteáil féin, amhail tóireadóirí agus úsáideoirí. Socraíonn úinéirí spáis oibre ról úsáideora sa spás oibre sin.",
+      "empty": "Níor aimsíodh aon úsáideoir",
+      "errors": {
+        "last_instance_admin": "Teastaíonn riarthóir cása amháin ar a laghad ón suiteáil.",
+        "last_owner": "Is é an t-úsáideoir an t-úinéir deireanach ar {{workspaces}}. Déan úinéir de dhuine eile, nó scrios an spás oibre, ar dtús.",
+        "self": "Ní féidir leat é seo a dhéanamh le do chuntas féin."
+      },
+      "load_failed": "Níorbh fhéidir na húsáideoirí a luchtú.",
+      "messages": {
+        "admin_granted": "Is riarthóir cása {{email}} anois",
+        "admin_revoked": "Níl {{email}} ina riarthóir cása a thuilleadh",
+        "deleted": "Scriosadh {{email}}",
+        "disabled": "Tá {{email}} díchumasaithe agus sínithe amach",
+        "enabled": "Tá {{email}} cumasaithe",
+        "two_factor_off": "Tá 2FA as do {{email}}",
+        "update_failed": "Níorbh fhéidir an t-úsáideoir a nuashonrú."
+      },
+      "never": "Riamh",
+      "none": "Ceann ar bith",
+      "page_name": "Úsáideoirí",
+      "paging": {
+        "next": "Ar aghaidh",
+        "page": "Leathanach {{page}} de {{pages}}",
+        "previous": "Roimhe seo"
+      },
+      "reset_link": {
+        "close": "Dún",
+        "copied": "Nasc cóipeáilte",
+        "copy": "Cóipeáil an nasc",
+        "copy_failed": "Níorbh fhéidir an nasc a chóipeáil. Roghnaigh é agus cóipeáil de láimh é.",
+        "description": "Nasc ionas go roghnóidh {{email}} pasfhocal nua. Cóipeáil é agus tabhair ar aghaidh anois é: ní thaispeántar é ach uair amháin.",
+        "emailed": "Seolann an suiteáil seo ríomhphoist chuntais, mar sin cuirtear in iúl don úsáideoir trí ríomhphost gur cruthaíodh nasc dó.",
+        "expires": "Oibríonn an nasc uair amháin agus rachaidh sé in éag {{when}}.",
+        "failed": "Níorbh fhéidir an nasc a chruthú.",
+        "label": "Nasc",
+        "making": "Nasc á chruthú...",
+        "signs_out": "Má úsáidtear an nasc, síníonn sé an t-úsáideoir amach i ngach áit.",
+        "title": "Nasc athshocraithe pasfhocail"
+      },
+      "search_label": "Cuardaigh úsáideoirí de réir ríomhphoist",
+      "search_placeholder": "Cuardaigh de réir ríomhphoist",
+      "total": "{{total}} aimsithe",
+      "values": {
+        "active": "Gníomhach",
+        "disabled": "Díchumasaithe",
+        "no": "Níl",
+        "two_factor_off": "As",
+        "two_factor_on": "Air",
+        "yes": "Tá"
+      },
+      "you": "tú"
+    },
+    "workspaces": {
+      "actions": {
+        "delete": "Scrios an spás oibre",
+        "resume": "Atosaigh an spás oibre",
+        "suspend": "Cuir an spás oibre ar fionraí",
+        "limits": "Teorainneacha"
+      },
+      "actions_aria": "Gníomhartha do {{name}}",
+      "columns": {
+        "created": "Cruthaithe",
+        "custom_domains": "Fearainn shaincheaptha",
+        "members": "Baill",
+        "monitors": "Monaitiseoirí",
+        "name": "Ainm",
+        "owners": "Úinéirí",
+        "status": "Stádas",
+        "status_pages": "Leathanaigh stádais",
+        "limits": "Teorainneacha"
+      },
+      "confirm": {
+        "cancel": "Cealaigh",
+        "delete": {
+          "confirm": "Scrios an spás oibre",
+          "description": "An scriosfar {{name}}? Imeoidh gach rud atá ann: a mhonaitiseoirí agus a stair, a leathanaigh stádais, a chainéil fógraí, agus rochtain a bhall. Ní féidir é seo a chealú.",
+          "name_label": "Clóscríobh ainm an spáis oibre le deimhniú: {{name}}",
+          "title": "Scrios an spás oibre"
+        },
+        "resume": {
+          "confirm": "Atosaigh",
+          "description": "Ritheann monaitiseoirí {{name}} arís sa staid a bhí acu, agus is féidir lena bhaill é a úsáid mar a bhí roimhe. Spás oibre atá ag fanacht go bhfíoróidh a úinéir a ríomhphost, leanann sé ag fanacht.",
+          "title": "Atosaigh an spás oibre"
+        },
+        "suspend": {
+          "confirm": "Cuir ar fionraí",
+          "description": "Stopann monaitiseoirí {{name}}, taispeánann a leathanaigh stádais phoiblí nach bhfuil siad ar fáil, agus feiceann a bhaill go bhfuil sé ar fionraí. Ní scriostar aon rud, agus is féidir leat é a atosú ar ball.",
+          "title": "Cuir an spás oibre ar fionraí"
+        }
+      },
+      "description": "Gach spás oibre ar an suiteáil seo, lena úinéirí, a bhaill agus an méid atá ann. Ní thaispeántar ach líon, agus ní thaispeántar aon rud ó thaobh istigh de spás oibre.",
+      "empty": "Níor aimsíodh aon spás oibre",
+      "load_failed": "Níorbh fhéidir na spásanna oibre a luchtú.",
+      "messages": {
+        "deleted": "Scriosadh {{name}}",
+        "failed": "Níorbh fhéidir an spás oibre a athrú.",
+        "resumed": "Atosaíodh {{name}}",
+        "suspended": "Cuireadh {{name}} ar fionraí"
+      },
+      "monitors": "{{active}} gníomhach, {{paused}} ar sos",
+      "none": "Ceann ar bith",
+      "page_name": "Spásanna oibre",
+      "paging": {
+        "next": "Ar aghaidh",
+        "page": "Leathanach {{page}} de {{pages}}",
+        "previous": "Roimhe seo"
+      },
+      "search_label": "Cuardaigh spásanna oibre de réir ainm nó ríomhphost an úinéara",
+      "search_placeholder": "Cuardaigh de réir ainm nó ríomhphost an úinéara",
+      "status": {
+        "running": "Ag rith",
+        "suspended_admin": "Curtha ar fionraí ag riarthóir",
+        "suspended_unverified": "Ar fionraí go dtí go bhfíoróidh an t-úinéir a ríomhphost"
+      },
+      "total": "{{total}} aimsithe",
+      "limits": {
+        "item": "{{name}}: {{value}}",
+        "more": "+{{number}} eile",
+        "unlimited": "Gan teorainneacha",
+        "source": {
+          "workspace": "A cuid féin",
+          "install": "Réamhshocruithe na suiteála",
+          "none": "Níl aon cheann socraithe"
+        },
+        "dialog": {
+          "title": "Teorainneacha {{name}}",
+          "description": "Na teorainneacha atá ag an spás oibre seo. Ní chuireann laghdú teorann aon rud ar sos agus ní scriosann sé aon rud: stopann na monatóirí is nuaí thar an teorainn de rith go dtí go mbíonn spás arís ann.",
+          "own": "A theorainneacha féin",
+          "own_help": "Cuireann siad seo ionad réamhshocruithe na suiteála. Fág teorainn folamh gan teorainn.",
+          "unlimited": "Gan teorainneacha",
+          "unlimited_help": "Gan teorainn ar bith, is cuma cad a deir réamhshocruithe na suiteála.",
+          "defaults": "Úsáid réamhshocruithe na suiteála",
+          "defaults_help": "Réamhtheorainneacha Riar → Socruithe, nó ceann ar bith nuair nach socraíonn an tsuiteáil aon cheann.",
+          "save": "Sábháil na teorainneacha",
+          "cancel": "Cealaigh",
+          "saved": "Sábháladh teorainneacha {{name}}",
+          "failed": "Níorbh fhéidir na teorainneacha a shábháil."
+        }
+      }
+    },
+    "settings": {
+      "page_name": "Socruithe",
+      "description": "Socruithe na suiteála ar fad. Tá luach a shocraíonn timpeallacht an fhreastalaí faoi ghlas anseo.",
+      "load_failed": "Níorbh fhéidir na socruithe a lódáil.",
+      "saved": "Socruithe sábháilte",
+      "save_failed": "Níor sábháladh na socruithe.",
+      "locked": "Socraithe ag timpeallacht an fhreastalaí",
+      "source": {
+        "environment": "Ó thimpeallacht an fhreastalaí",
+        "saved": "Sábháilte anseo",
+        "default": "Réamhshocraithe"
+      },
+      "signup": {
+        "title": "Clárú",
+        "description": "Cé a fhéadfaidh cuntas a chruthú ar an suiteáil seo.",
+        "label": "Mód clárúcháin",
+        "invite": "Le cuireadh amháin",
+        "open": "Oscailte",
+        "invite_help": "Cláraíonn an chéad úsáideoir, agus téann gach duine ina dhiaidh isteach i spás oibre trí chuireadh.",
+        "open_help": "Is féidir le duine ar bith clárú agus faigheann siad spás oibre dá gcuid féin. Deimhníonn cuntais nua a seoladh ríomhphoist, mar sin teastaíonn seoltóir ríomhphoist."
+      },
+      "sender": {
+        "title": "Seoltóir ríomhphoist",
+        "description": "An freastalaí SMTP a sheolann ríomhphoist an chuntais: naisc athshocraithe pasfhocail, deimhniú ríomhphoist agus cuirí.",
+        "on": "Tá ríomhphoist an chuntais ar siúl.",
+        "off": "Tá ríomhphoist an chuntais as: níl óstach SMTP ann.",
+        "host": "Óst SMTP",
+        "port": "Port",
+        "tls": "Slándáil",
+        "tls_starttls": "STARTTLS",
+        "tls_tls": "TLS",
+        "tls_none": "Dada",
+        "user": "Úsáideoir",
+        "password": "Focal Faire",
+        "password_set": "Tá pasfhocal socraithe. Clóscríobh chun é a athsholáthar.",
+        "password_not_set": "Níl pasfhocal socraithe",
+        "password_removed": "Bainfear an pasfhocal nuair a shábhálann tú.",
+        "password_reenter": "Má athraítear an t-óstach, an port, an tslándáil nó an t-úsáideoir, bainfear an pasfhocal sábháilte. Cuir isteach arís é.",
+        "remove_password": "Bain an pasfhocal",
+        "keep_password": "Coinnigh an pasfhocal",
+        "from": "Seoladh an tseoltóra"
+      },
+      "public_url": {
+        "title": "URL poiblí",
+        "description": "Seoladh an aip ghréasáin, a osclaíonn na naisc i ríomhphoist agus i bhfógraí.",
+        "label": "URL poiblí"
+      },
+      "test_email": {
+        "title": "Seol ríomhphost tástála",
+        "description": "Seolann sé ríomhphost gearr tríd an seoltóir sábháilte, chun a sheiceáil go n-oibríonn sé.",
+        "to": "Seol chuig",
+        "send": "Seol ríomhphost tástála",
+        "sending": "Á sheoladh…",
+        "sent": "Seoladh ríomhphost tástála chuig {{to}}.",
+        "failed": "Níor seoladh an ríomhphost tástála.",
+        "unsaved": "Tá athruithe nár sábháladh ag an seoltóir. Úsáideann an tástáil an seoltóir sábháilte, mar sin sábháil ar dtús."
+      },
+      "validation": {
+        "port": "Cuir isteach port ó 1 go 65535, nó fág folamh é don réamhshocrú."
+      },
+      "errors": {
+        "locked": "Tá {{field}} socraithe ag timpeallacht an fhreastalaí agus ní féidir é a athrú anseo.",
+        "open_needs_sender": "Teastaíonn seoltóir ríomhphoist ó chlárú oscailte, mar go ndeimhníonn cuntais nua a seoladh ríomhphoist. Socraigh an seoltóir ar dtús, nó sa sábháil chéanna.",
+        "sender_needed": "Tá an clárú oscailte, agus teastaíonn an seoltóir ó chuntais nua chun a seoladh ríomhphoist a dheimhniú. Athraigh an clárú go le cuireadh amháin ar dtús.",
+        "no_sender": "Níl seoltóir ríomhphoist ann. Sábháil seoltóir ar dtús."
+      },
+      "limits": {
+        "title": "Réamhtheorainneacha",
+        "description": "Teorainneacha gach spáis oibre nach bhfuil aon cheann dá chuid féin aige. Fág teorainn folamh gan teorainn. Cuireann na teorainneacha a thugtar do spás oibre ar an leathanach Spásanna oibre ionad na gcinn seo."
+      }
+    }
+  },
   "auth": {
     "login": {
       "description": "Logáil isteach le do ríomhphost",
       "no_account": "Níl cuntas agat?",
       "sign_up": "Cláraigh",
       "submit": "Logáil isteach",
-      "title": "Fáilte ar ais"
+      "title": "Fáilte ar ais",
+      "forgot_password": "Dearmad ar do phasfhocal?",
+      "ask_admin": "Iarr cuireadh ar riarthóir an suiteála seo"
     },
     "register": {
       "description": "Cruthaigh do chuntas riarthóra",
+      "description_open": "Cruthaigh do chuntas",
       "have_account": "An bhfuil cuntas agat cheana féin?",
       "sign_in": "Logáil isteach",
       "submit": "Cruthaigh",
       "title": "Dia dhuit",
       "telemetry_note": "Gan ainm: gan ainmneacha móntóirí, URLanna ná óstaigh. Is féidir leat é a athrú ar ball faoi “Socruithe”.",
-      "telemetry_whats_sent": "Cad a sheoltar"
+      "telemetry_whats_sent": "Cad a sheoltar",
+      "errors": {
+        "rate_limited": "An iomarca clárúchán ó do líonra. Bain triail eile as faoi uair an chloig.",
+        "email_taken": "Tá cuntas leis an ríomhphost seo ann cheana.",
+        "sign_in_instead": "Sínigh isteach ina ionad.",
+        "check_failed": "Níor éirigh leis an seiceáil. Bain triail eile as.",
+        "check_load_failed": "Níorbh fhéidir an tseiceáil a luchtú. Seiceáil do cheangal agus bain triail eile as."
+      }
     },
     "twofa": {
       "code_label": "Cód 2FA",
@@ -27,6 +297,45 @@
       "title": "Fíordheimhniú dhá fhéad riachtanach",
       "verify_button": "Deimhnigh 2FA",
       "verifying": "Ag fíorú..."
+    },
+    "forgot": {
+      "title": "Athshocraigh do phasfhocal",
+      "description": "Cuir isteach ríomhphost do chuntais agus seolfaimid nasc chugat.",
+      "submit": "Seol an nasc",
+      "sent": "Má tá cuntas ann leis an ríomhphost seo, sheolamar nasc. Oibríonn sé ar feadh uair an chloig.",
+      "back_to_login": "Ar ais chuig an logáil isteach"
+    },
+    "reset": {
+      "title": "Roghnaigh pasfhocal nua",
+      "description": "Cuir isteach pasfhocal nua do do chuntas.",
+      "submit": "Socraigh an pasfhocal",
+      "success": "Athraíodh do phasfhocal agus logáladh amach thú i ngach áit. Logáil isteach leis an bpasfhocal nua.",
+      "sign_in": "Logáil isteach",
+      "invalid_link": "Úsáideadh an nasc seo cheana nó tá sé imithe in éag.",
+      "request_new": "Iarr nasc nua"
+    },
+    "verify": {
+      "title": "Fíoraigh do ríomhphost",
+      "verifying": "Do ríomhphost á fhíorú...",
+      "success": "Tá do ríomhphost fíoraithe.",
+      "open_app": "Oscail Peekaping",
+      "invalid_link": "Úsáideadh an nasc seo cheana nó tá sé imithe in éag."
+    },
+    "errors": {
+      "rate_limited": "An iomarca iarratas. Bain triail eile as níos déanaí.",
+      "generic": "Chuaigh rud éigin ar strae. Bain triail eile as.",
+      "already_verified": "Tá do ríomhphost fíoraithe cheana."
+    },
+    "resend": {
+      "button": "Athsheol",
+      "sent": "Sheolamar nasc nua. Seiceáil do bhosca isteach."
+    },
+    "verification_banner": {
+      "message": "Fíoraigh do ríomhphost: sheolamar nasc chuig {{email}}."
+    },
+    "suspension_notice": {
+      "message": "Tosóidh do mhonatóirí nuair a dhearbhóidh tú do ríomhphost.",
+      "member_message": "Tosóidh monatóirí an spáis oibre seo nuair a dhearbhóidh a úinéir a ríomhphost."
     }
   },
   "bars": {
@@ -73,6 +382,7 @@
     "no_tags_available": "Níl aon clibeanna ar fáil",
     "please_refresh_page": "Athnuaigh an leathanach le do thoil.",
     "required": "Riachtanach",
+    "retry": "Bain triail eile as",
     "save": "Sábháil",
     "saving": "Ag sábáil...",
     "search": "Cuardaigh",
@@ -124,6 +434,33 @@
       "password_required": "Tá an focal faire riachtanach",
       "password_min_length": "Caithfidh an focal faire a bheith ar a laghad 8 carachtar.",
       "passwords_mismatch": "Ní ionann na pasfhocail"
+    }
+  },
+  "invite": {
+    "accept": "Glac leis an gcuireadh",
+    "accepting": "Ag dul isteach...",
+    "creating": "Ag cruthú...",
+    "description": "Tugadh cuireadh duit dul isteach i {{workspace}} mar {{role}}.",
+    "enter_failed": "Chuaigh tú isteach sa spás oibre, ach theip ar a oscailt. Bain triail eile as.",
+    "errors": {
+      "other_email": "Tá an cuireadh seo do sheoladh ríomhphoist eile."
+    },
+    "for_email": "Tá an cuireadh seo do {{email}}.",
+    "have_account": "An bhfuil cuntas agat cheana féin?",
+    "open_app": "Oscail Peekaping",
+    "other_account": "Tá tú sínithe isteach mar {{current}}, ach tá an cuireadh seo do {{invited}}. Sínigh amach, ansin sínigh isteach nó cláraigh le {{invited}} chun glacadh leis.",
+    "sign_in_instead": "Sínigh isteach ina ionad",
+    "sign_out": "Sínigh amach",
+    "signup_description": "Roghnaigh focal faire chun do chuntas a chruthú agus dul isteach i {{workspace}} mar {{role}}.",
+    "signup_submit": "Cruthaigh cuntas agus téigh isteach",
+    "title": "Téigh isteach i {{workspace}}",
+    "unavailable": {
+      "accepted": "Úsáideadh an cuireadh seo cheana.",
+      "expired": "Chuaigh an cuireadh seo in éag. Iarr ceann nua.",
+      "not_found": "Níl an nasc cuiridh seo ann. Seiceáil gur chóipeáil tú é ar fad.",
+      "revoked": "Cúlghairadh an cuireadh seo. Iarr ceann nua.",
+      "title": "Ní féidir an cuireadh seo a úsáid",
+      "unknown": "Ní féidir an cuireadh seo a úsáid. Iarr ceann nua."
     }
   },
   "maintenance": {
@@ -231,6 +568,79 @@
       "wed": "Cé"
     }
   },
+  "members": {
+    "change_role_aria": "Athraigh ról {{email}}",
+    "errors": {
+      "account_exists": "Tá cuntas leis an ríomhphost seo ann cheana féin. Sínigh isteach agus glac leis an gcuireadh.",
+      "already_member": "Is ball den spás oibre seo an duine seo cheana féin.",
+      "forbidden": "Ní cheadaíonn do ról sa spás oibre seo é seo.",
+      "generic": "Chuaigh rud éigin mícheart. Bain triail eile as.",
+      "last_owner": "Teastaíonn úinéir amháin ar a laghad ó spás oibre.",
+      "member_not_found": "Níl an ball seo sa spás oibre a thuilleadh."
+    },
+    "invite": {
+      "copied": "Nasc cóipeáilte",
+      "copy": "Cóipeáil",
+      "creating": "Ag cruthú...",
+      "description": "Cruthaigh nasc le haghaidh seoladh ríomhphoist agus róil. Ní sheoltar aon ríomhphost: cóipeáil an nasc agus seol tú féin é.",
+      "done": "Déanta",
+      "email_label": "Ríomhphost",
+      "link_note": "Oibríonn an nasc seo uair amháin agus rachaidh sé in éag i gceann 7 lá. Ní thaispeántar é ach anois, mar sin cóipeáil é sula bhfágann tú an leathanach seo.",
+      "link_title": "Nasc cuiridh",
+      "role_label": "Ról",
+      "submit": "Cruthaigh nasc cuiridh",
+      "title": "Tabhair cuireadh do dhuine"
+    },
+    "leave": {
+      "button": "Fág an spás oibre",
+      "confirm": "Fág",
+      "description": "Cailleann tú rochtain ar an spás oibre seo agus ar a shonraí láithreach.",
+      "done": "D'fhág tú an spás oibre",
+      "last_owner": "Is tusa an t-úinéir deireanach, mar sin ní féidir leat imeacht. Déan úinéir de bhall eile ar dtús.",
+      "refresh_failed": "D'fhág tú an spás oibre, ach theip ar do spásanna oibre a luchtú. Bain triail eile as.",
+      "title": "Fág an spás oibre seo"
+    },
+    "list": {
+      "description": "Gach duine a oibríonn sa spás oibre seo, agus a ról.",
+      "email": "Ríomhphost",
+      "joined": "Chuaigh isteach",
+      "role": "Ról",
+      "title": "Baill",
+      "you": "tú"
+    },
+    "page_name": "Baill",
+    "pending": {
+      "description": "Cuirí nár úsáideadh go fóill. Stopann nasc cuiridh a cúlghairmeadh ag obair.",
+      "email": "Ríomhphost",
+      "empty": "Níl aon chuireadh ar feitheamh.",
+      "expired": "Imithe in éag",
+      "expires": "Éagann",
+      "revoke": "Cúlghair",
+      "revoke_aria": "Cúlghair an cuireadh do {{email}}",
+      "revoked": "Cuireadh cúlghairthe",
+      "role": "Ról",
+      "title": "Cuirí ar feitheamh"
+    },
+    "remove": "Bain",
+    "remove_aria": "Bain {{email}}",
+    "remove_dialog": {
+      "confirm": "Bain",
+      "description": "Cailleann {{email}} rochtain ar an spás oibre seo láithreach.",
+      "title": "Bain ball"
+    },
+    "removed": "Ball bainte",
+    "role_updated": "Ról nuashonraithe",
+    "roles": {
+      "admin": "Riarthóir",
+      "member": "Ball",
+      "owner": "Úinéir"
+    },
+    "settings_card": {
+      "description": "Féach cé a oibríonn sa spás oibre seo agus, más riarthóir nó úinéir thú, tabhair cuireadh do dhaoine agus bainistigh a róil.",
+      "open": "Oscail baill",
+      "title": "Baill"
+    }
+  },
   "messages": {
     "login_error": "Tharla earráid le linn logáil a‑isteach",
     "login_no_tokens": "Logáil isteach reatha, ach ní bhfuair tokens",
@@ -258,6 +668,7 @@
     },
     "empty_state": {
       "action": "Cruthaigh do mhórbhainisteoir a thús",
+      "add_channel": "Cuir cainéal fógra leis",
       "description": "Tósaigh trí do monitor a chruthú chun sláinte do na seirbhísí a rianú.",
       "title": "Níor aimsíodh aon mhonáiteoirí"
     },
@@ -500,6 +911,7 @@
       "shared": {
         "intervals": {
           "heartbeat_retry": "Titim Athsheachadán Lorglanna (Athsheachadú gach {{seconds}} soicind)",
+          "interval_too_short": "Ní féidir leis a bheith níos lú ná {{minimum}} soicind",
           "max_retries_description": "Iarrtais uasta roimh a bheith marcáilte mar thíos agus fógra a sheoladh",
           "request_timeout": "Teip Iarratais (tar éis {{seconds}} nóiméad)",
           "resend_notification": "Athsheol Fógra má tá sé i dorchadas X uaire le chéile (Neamhcheadaithe)",
@@ -542,6 +954,10 @@
           "select_proxy_placeholder": "Roghnaigh Próiseálaí",
           "selected_proxy": "Próiseálaí roghnaithe",
           "title": "Próiseas"
+        },
+        "run_from": {
+          "default_locations": "Ritheann sé ar na suíomhanna réamhshocraithe",
+          "label": "Rith ó"
         },
         "tags": {
           "label": "Clibeanna",
@@ -649,9 +1065,12 @@
     "toasts": {
       "deleted": "Monatóir scriosta",
       "paused": "Monaitéir coise",
+      "push_token_already_used": "Tá an comhartha brú seo in úsáid ag monatóir eile cheana. Gin ceann nua.",
       "reset_success": "Baineadh sonraí an mhionadaithe go rathúil",
       "resumed": "Monatóireacht seasmhaíodh arís"
     },
+    "type_disabled": "Tá an cineál {{type}} múchta ar an suiteáil seo",
+    "over_limit": "Ní sheiceáiltear é: tá níos mó monatóirí gníomhacha ag an spás oibre ná mar a cheadaíonn a theorainn",
     "view": {
       "buttons": {
         "clone": "Clónáil",
@@ -712,6 +1131,7 @@
     }
   },
   "navigation": {
+    "admin": "Riar",
     "maintenance": "Cothromaíocht",
     "monitors": "Móntóirí",
     "notification_channels": "Canálacha Fógairtí",
@@ -1123,6 +1543,12 @@
         "signing_secret_docs_link": "Conas an síniú a fhíorú",
         "signing_secret_label": "Rún sínithe",
         "signing_secret_placeholder": "Fág folamh chun iarratais gan síniú a sheoladh"
+      },
+      "install_email": {
+        "description": "Seoltar leis an suiteáil seo é, níl freastalaí SMTP ag teastáil.",
+        "to_description": "Ball den spás oibre seo. Seoltar fógraí nuair a bheidh an seoladh fíoraithe aige.",
+        "to_label": "Faighteoir",
+        "to_placeholder": "Roghnaigh ball"
       }
     },
     "important": "Fógraí tábhachtacha",
@@ -1141,7 +1567,8 @@
       "updated_success": "Nuashonraíodh an Notifier go rathúil"
     },
     "new": {
-      "title": "Cán Fógra Nua"
+      "title": "Cán Fógra Nua",
+      "default_hint": "Beidh tic ar an gcainéal seo ar mhonatóirí nua."
     },
     "no_important": "Ní bhfaightear fógraí tábhachtacha.",
     "placeholders": {
@@ -1151,11 +1578,21 @@
     "secret": {
       "reenter_error": "Cuir isteach an rún seo arís nó bain é: tá an áit a seoltar é athraithe",
       "reenter_hint": "Cuir isteach an rún seo arís: tá an áit a seoltar é athraithe",
+      "reenter_url_error": "Clóscríobh dintiúir an URL seo arís: tá an URL athraithe ó sábháladh é",
       "remove": "Bain",
       "saved_hint": "Sábháilte — clóscríobh chun a chur ina ionad"
     }
   },
   "probes": {
+    "default": {
+      "description": "Ritheann monatóir a cruthaíodh gan tóireadóirí a roghnú ar na tóireadóirí réamhshocraithe nach bhfuil díchumasaithe agus a ritheann a chineál, agus ar an tóireadóir áitiúil mura ritheann aon cheann. Coinníonn monatóirí atá ann cheana a dtóireadóirí.",
+      "failed": "Níorbh fhéidir an socrú réamhshocraithe den tóireadóir a athrú.",
+      "label": "Tóireadóir réamhshocraithe",
+      "off": "Níl {{name}} ina thóireadóir réamhshocraithe a thuilleadh",
+      "on": "Is tóireadóir réamhshocraithe {{name}} anois",
+      "title": "Réamhshocrú do mhonatóirí nua"
+    },
+    "default_badge": "Réamhshocrú",
     "page_name": "Tóireadóirí",
     "description": "Ritheann tóireadóirí seiceálacha móntóirí ó na háiteanna ina bhfuil siad suiteáilte. Is é Peekaping féin an tóireadóir áitiúil.",
     "local_name": "Áitiúil",
@@ -1437,7 +1874,9 @@
     "data_retention": {
       "days_label": "Laethanta",
       "description": "Socraigh líon na lá a choinneálfar sonraí (KEEP_DATA_PERIOD_DAYS).",
-      "title": "Am Cothromaíochta na Sonraí"
+      "read_only": "Ní féidir ach le riarthóir nó úinéir an spáis oibre é seo a athrú.",
+      "title": "Am Cothromaíochta na Sonraí",
+      "capped": "Suas le {{max}} lá sa spás oibre seo"
     },
     "error_reporting": {
       "cluster_note": "I mód braisle, sroicheann athrú gach próiseas laistigh de nóiméad.",
@@ -1463,6 +1902,10 @@
     },
     "validation": {
       "min_days": "Caithfidh sé a bheith ar a laghad 1 lá."
+    },
+    "workspace_name": {
+      "description": "An t-ainm a thaispeántar san athraitheoir spás oibre agus dá bhaill.",
+      "title": "Ainm an spáis oibre"
     }
   },
   "status": {
@@ -1478,6 +1921,7 @@
       "refresh_in": "Athraigh i",
       "refresh_now": "Athbhreithnigh Anois",
       "status_page_not_found": "Níor aimsíodh an leathanach stádas nó níl foilsithe.",
+      "status_page_unavailable": "Níl an leathanach stádais seo ar fáil",
       "under_maintenance": "Faoi mhian",
       "unknown": "Anaithnid"
     }
@@ -1521,6 +1965,7 @@
     "search_placeholder": "Cuardaigh leathanacha stádas de réir teideal…",
     "show_locations": "Taispeáin gach suíomh",
     "show_locations_info": "Maidir le monatóirí a sheiceáiltear ó roinnt suíomhanna, taispeántar stádas agus stair gach suímh",
+    "slug_already_used": "Tá an seoladh seo in úsáid ag leathanach stádais eile cheana féin",
     "update_status_page": "Nuashonraigh Leathanach Stádas",
     "view_page": "Féach an leathanach"
   },
@@ -1586,5 +2031,93 @@
   "ui": {
     "general": "Ginearálta",
     "intervals_retries": "Interlaicí, Athbhreithnithe, Téimshocraí"
+  },
+  "workspaces": {
+    "create": "Cruthaigh spás oibre",
+    "create_error": "Theip ar an spás oibre a chruthú",
+    "create_first": "Cruthaigh spás oibre",
+    "creating": "Ag cruthú...",
+    "enter": "Oscail spás oibre",
+    "entering": "Ag oscailt...",
+    "entry_failed": "Cruthaíodh an spás oibre, ach theip ar a oscailt. Bain triail eile as.",
+    "name_label": "Ainm",
+    "name_placeholder": "An fhoireann s'agam",
+    "name_required": "Cuir isteach ainm",
+    "new": "Spás oibre nua",
+    "new_description": "Tá a móntóirí, canálacha fógairtí, leathanaigh stádais agus baill féin ag spás oibre. Beidh tú i d'úinéir air.",
+    "new_title": "Spás oibre nua",
+    "none_description": "Níl do chuntas ina bhall d'aon spás oibre, mar sin níl aon rud le taispeáint anseo. Iarr ar dhuine a reáchtálann spás oibre tú a chur leis.",
+    "none_title": "Níl tú i spás oibre fós",
+    "refresh_failed": "Níorbh fhéidir do spásanna oibre a luchtú. Seiceáil do cheangal agus bain triail eile as.",
+    "rename_error": "Theip ar athainmniú an spáis oibre",
+    "rename_success": "Athainmníodh an spás oibre",
+    "suspended_banner": {
+      "contact": "Le teagmháil a dhéanamh:",
+      "message": "Tá an spás oibre seo curtha ar fionraí ag riarthóir na suiteála seo. Ní ritheann a mhonaitiseoirí, agus níl a leathanaigh stádais ar fáil.",
+      "no_contact": "Déan teagmháil leis an duine a ritheann an tsuiteáil seo."
+    },
+    "switcher_label": "Athraigh spás oibre"
+  },
+  "get_started": {
+    "page_name": "Tús a chur leis",
+    "skip": "Léim thar an socrú",
+    "step_of": "Céim {{current}} de {{total}}",
+    "name": {
+      "description": "Tá do mhonatóirí, do chainéil fógra agus do leathanaigh stádais anseo. Is féidir leat é a athainmniú níos déanaí sna Socruithe.",
+      "title": "Tabhair ainm do spás oibre"
+    },
+    "monitor": {
+      "create": "Cruthaigh monatóir",
+      "create_failed": "Theip ar chruthú an mhonatóra",
+      "creating": "Á chruthú...",
+      "description": "Cuir isteach seoladh suímh gréasáin nó API. Seiceálann Peekaping é agus cuireann sé in iúl duit nuair a stopann sé de fhreagairt.",
+      "full_form": "Nó socraigh monatóir leis na roghanna go léir",
+      "title": "Cuir do chéad mhonatóir leis",
+      "url_invalid": "Cuir isteach seoladh a thosaíonn le http:// nó https://",
+      "url_label": "Seoladh le monatóiriú"
+    },
+    "channel": {
+      "continue_unlinked": "Lean ar aghaidh gan nascadh",
+      "description": "Roghnaigh cá seolann Peekaping foláireamh nuair a thagann do mhonatóir anuas. Beidh sé mar réamhshocrú do mhonatóirí nua.",
+      "link_failed": "Sábháladh an cainéal, ach theip ar a nascadh le do mhonatóir. Cuir leis é ar leathanach eagarthóireachta an mhonatóra.",
+      "retry_link": "Bain triail eile as an nascadh",
+      "title": "Faigh fógraí"
+    },
+    "done": {
+      "description": "Tá Peekaping ag faire ar do sheirbhís. Seo a bhféadfá a dhéanamh ar ball.",
+      "title": "Tá gach rud réidh",
+      "unverified": "Rithfidh do mhonatóir nuair a bheidh do sheoladh ríomhphoist fíoraithe. Seiceáil do bhosca isteach don nasc fíoraithe.",
+      "links": {
+        "members": "Tabhair cuireadh do d'fhoireann",
+        "monitor": "Oscail do mhonatóir",
+        "monitors": "Téigh chuig na monatóirí",
+        "probes": "Bainistigh tóireadóirí",
+        "status_pages": "Foilsigh leathanach stádais"
+      }
+    }
+  },
+  "limits": {
+    "reached": {
+      "monitors": "Is féidir suas le {{max}} monatóir a bheith ag rith sa spás oibre seo",
+      "status_pages": "Is féidir suas le {{max}} leathanach stádais a bheith sa spás oibre seo",
+      "custom_domains": "Is féidir suas le {{max}} fearann saincheaptha a bheith ag leathanaigh stádais an spáis oibre seo le chéile",
+      "members": "Is féidir suas le {{max}} ball a bheith sa spás oibre seo, cuirí ar feitheamh san áireamh",
+      "owned_workspaces": "Is féidir leat a bheith i d'úinéir ar suas le {{max}} spás oibre",
+      "probes": "Is féidir le monatóir sa spás oibre seo rith ar suas le {{max}} tóireadóir",
+      "retention_days": "Is féidir leis an spás oibre seo sonraí a choinneáil ar feadh {{max}} lá ar a mhéad"
+    },
+    "names": {
+      "monitors": "Monatóirí gníomhacha",
+      "min_check_interval": "An t-eatramh seiceála is giorra (soicindí)",
+      "status_pages": "Leathanaigh stádais",
+      "custom_domains": "Fearainn shaincheaptha",
+      "members": "Baill",
+      "owned_workspaces": "Spásanna oibre a fhéadfaidh úsáideoir amháin a bheith ina úinéir orthu",
+      "probes_per_monitor": "Tóireadóirí in aghaidh an mhonatóra",
+      "retention_days": "Coinneáil sonraí (laethanta)"
+    },
+    "none": "Gan teorainn",
+    "invalid": "Cuir isteach slánuimhir 1 nó níos mó, nó fág folamh é gan teorainn.",
+    "retention_too_long": "Ní féidir leis a bheith níos mó ná {{max}} lá"
   }
 }

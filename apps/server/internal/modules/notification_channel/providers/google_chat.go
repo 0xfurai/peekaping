@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"peekaping/internal/config"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/shared"
@@ -16,21 +15,21 @@ import (
 )
 
 type GoogleChatConfig struct {
-	WebhookURL string `json:"webhook_url" validate:"required,url" secret:"true" endpoint:"true"`
+	WebhookURL string `json:"webhook_url" validate:"required,url" secret:"true" endpoint:"true" target:"url"`
 }
 
 type GoogleChatSender struct {
-	logger *zap.SugaredLogger
-	client *http.Client
-	config *config.Config
+	logger    *zap.SugaredLogger
+	client    *http.Client
+	publicURL PublicURLSource
 }
 
 // NewGoogleChatSender creates a GoogleChatSender
-func NewGoogleChatSender(logger *zap.SugaredLogger, config *config.Config, client *http.Client) *GoogleChatSender {
+func NewGoogleChatSender(logger *zap.SugaredLogger, publicURL PublicURLSource, client *http.Client) *GoogleChatSender {
 	return &GoogleChatSender{
-		logger: logger,
-		config: config,
-		client: client,
+		logger:    logger,
+		publicURL: publicURL,
+		client:    client,
 	}
 }
 
@@ -95,7 +94,7 @@ func (g *GoogleChatSender) Send(
 	}
 
 	// Add button for the monitor's page, or the Probes page for a probe, if available
-	if buttonURL := peekapingLink(g.config.ClientURL, m); buttonURL != "" {
+	if buttonURL := peekapingLink(publicURL(ctx, g.publicURL), m); buttonURL != "" {
 		sectionWidgets = append(sectionWidgets, map[string]any{
 			"buttonList": map[string][]map[string]any{
 				"buttons": {

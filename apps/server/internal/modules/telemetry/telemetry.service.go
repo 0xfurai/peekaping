@@ -24,16 +24,20 @@ import (
 // part of the module's service the telemetry needs, so no repository interface changes.
 type (
 	MonitorLister interface {
-		FindAll(ctx context.Context, page int, limit int, q string, active *bool, status *int, tagIds []string) ([]*monitor.Model, error)
+		// FindAllAnyWorkspace counts the monitors of every workspace: the usage ping describes the install
+		FindAllAnyWorkspace(ctx context.Context, page int, limit int) ([]*monitor.Model, error)
 	}
 	ChannelLister interface {
-		FindAll(ctx context.Context, page int, limit int, q string) ([]*notification_channel.Model, error)
+		// FindAllAnyWorkspace counts the channels of every workspace: the usage ping describes the install
+		FindAllAnyWorkspace(ctx context.Context, page int, limit int) ([]*notification_channel.Model, error)
 	}
 	StatusPageLister interface {
-		FindAll(ctx context.Context, page int, limit int, q string) ([]*status_page.Model, error)
+		// FindAllAnyWorkspace asks whether any workspace has a page: the usage ping describes the install
+		FindAllAnyWorkspace(ctx context.Context, page int, limit int) ([]*status_page.Model, error)
 	}
 	MaintenanceLister interface {
-		FindAll(ctx context.Context, page int, limit int, q string, strategy string) ([]*maintenance.Model, error)
+		// FindAllAnyWorkspace asks whether any workspace has a window: the usage ping describes the install
+		FindAllAnyWorkspace(ctx context.Context, page int, limit int) ([]*maintenance.Model, error)
 	}
 )
 
@@ -293,7 +297,7 @@ func (s *ServiceImpl) build(ctx context.Context, on bool) (Payload, error) {
 	monitorCount := 0
 	monitorTypes := map[string]struct{}{}
 	err := walkPages(ctx, func(ctx context.Context, page, limit int) ([]*monitor.Model, error) {
-		return s.monitors.FindAll(ctx, page, limit, "", nil, nil, nil)
+		return s.monitors.FindAllAnyWorkspace(ctx, page, limit)
 	}, func(m *monitor.Model) {
 		monitorCount++
 		addType(monitorTypes, m.Type)
@@ -304,7 +308,7 @@ func (s *ServiceImpl) build(ctx context.Context, on bool) (Payload, error) {
 
 	channelTypes := map[string]struct{}{}
 	err = walkPages(ctx, func(ctx context.Context, page, limit int) ([]*notification_channel.Model, error) {
-		return s.channels.FindAll(ctx, page, limit, "")
+		return s.channels.FindAllAnyWorkspace(ctx, page, limit)
 	}, func(c *notification_channel.Model) {
 		addType(channelTypes, c.Type)
 	})
@@ -312,11 +316,11 @@ func (s *ServiceImpl) build(ctx context.Context, on bool) (Payload, error) {
 		return Payload{}, fmt.Errorf("list notification channels: %w", err)
 	}
 
-	statusPages, err := s.statusPages.FindAll(ctx, 0, 1, "")
+	statusPages, err := s.statusPages.FindAllAnyWorkspace(ctx, 0, 1)
 	if err != nil {
 		return Payload{}, fmt.Errorf("list status pages: %w", err)
 	}
-	maintenances, err := s.maintenances.FindAll(ctx, 0, 1, "", "")
+	maintenances, err := s.maintenances.FindAllAnyWorkspace(ctx, 0, 1)
 	if err != nil {
 		return Payload{}, fmt.Errorf("list maintenance windows: %w", err)
 	}

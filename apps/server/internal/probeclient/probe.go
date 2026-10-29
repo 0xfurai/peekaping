@@ -12,6 +12,8 @@ import (
 	"peekaping/internal/modules/healthcheck/executor"
 	"peekaping/internal/modules/healthcheck/supervisor"
 	"peekaping/internal/modules/scheduler"
+	"peekaping/internal/netguard"
+	"peekaping/internal/probeproto"
 )
 
 const (
@@ -39,6 +41,14 @@ type Config struct {
 	// DefaultFlushTimeout when zero
 	FlushTimeout time.Duration
 	Logger       *zap.SugaredLogger
+	// BlockPrivateTargets is the probe's own BLOCK_PRIVATE_TARGETS: its checks can't reach loopback,
+	// private and link-local addresses. They can't either while the server it connects to blocks
+	// them, which its hello states.
+	BlockPrivateTargets bool
+	// ChecksPerHostPerMinute is the probe's own CHECKS_PER_HOST_PER_MINUTE: the most checks to one
+	// target host it runs per minute, 0 for no cap. It spaces them to the server's too when that is
+	// stricter, which hello states.
+	ChecksPerHostPerMinute int
 
 	// Sleep and Now stand in for the probe's waits and clock in tests; see SessionConfig
 	Sleep func(ctx context.Context, d time.Duration) error
@@ -54,6 +64,8 @@ type Config struct {
 // stop.
 type Probe struct {
 	session   *Session
+	guard     *netguard.Guard
+	checks    *supervisor.HealthCheckSupervisor
 	source    *Source
 	sink      *Sink
 	scheduler *scheduler.Scheduler
@@ -76,8 +88,11 @@ func New(cfg Config) *Probe {
 	if cfg.Logger == nil {
 		cfg.Logger = zap.NewNop().Sugar()
 	}
-	registry := executor.NewExecutorRegistry(cfg.Logger)
+	guard := netguard.New(cfg.BlockPrivateTargets)
+	registry := executor.NewExecutorRegistry(cfg.Logger, executor.WithGuard(guard))
 	executors := NewExecutors(registry)
+	checks := supervisor.NewHealthCheck(nil, registry, cfg.Logger) // it needs no event bus to run a tick
+	checks.SetChecksPerHostPerMinute(cfg.ChecksPerHostPerMinute)
 
 	session := NewSession(SessionConfig{
 		URL:            cfg.URL,
@@ -88,6 +103,14 @@ func New(cfg Config) *Probe {
 		Logger:         cfg.Logger,
 		Sleep:          cfg.Sleep,
 		Now:            cfg.Now,
+		// Said at every hello, before the probe gets an assignment: the setting is the probe's own or
+		// the server's, so a server that stops blocking releases a probe that didn't ask to. Hello
+		// says so, as a server that blocks deals monitors only to a probe that follows it.
+		EnforcesPrivateTargetBlock: true,
+		OnWelcome: func(welcome *probeproto.HelloResponse) {
+			guard.Set(cfg.BlockPrivateTargets || welcome.BlockPrivateTargets)
+			checks.SetChecksPerHostPerMinute(stricterCap(cfg.ChecksPerHostPerMinute, welcome.ChecksPerHostPerMinute))
+		},
 	})
 	source := NewSource(session)
 	sink := NewSink(session)
@@ -97,18 +120,41 @@ func New(cfg Config) *Probe {
 	}
 	return &Probe{
 		session: session,
+		guard:   guard,
+		checks:  checks,
 		source:  source,
 		sink:    sink,
 		scheduler: scheduler.New(scheduler.Config{
 			Source:      source,
 			Executors:   executors,
-			Supervisor:  supervisor.NewHealthCheck(nil, registry, cfg.Logger), // it needs neither the event bus nor the registry to run a tick
+			Supervisor:  checks,
 			Ingester:    sink,
 			Concurrency: cfg.Concurrency,
 			Logger:      cfg.Logger,
 		}),
 		logger:       cfg.Logger.With("component", "probe"),
 		flushTimeout: flushTimeout,
+	}
+}
+
+// BlocksPrivateTargets reports whether the probe's checks are barred from private and internal
+// addresses now: its own setting is on, or the server's was at the last hello
+func (p *Probe) BlocksPrivateTargets() bool { return p.guard.Enabled() }
+
+// ChecksPerHostPerMinute is the cap on the checks to one target host the probe spaces its checks to
+// now: the stricter of its own setting and the server's at the last hello, 0 for none
+func (p *Probe) ChecksPerHostPerMinute() int { return p.checks.ChecksPerHostPerMinute() }
+
+// stricterCap is the stricter of two caps on checks per host per minute: the smaller one that is
+// set, or whichever is set when only one is. 0 is no cap.
+func stricterCap(own, servers int) int {
+	switch {
+	case own <= 0:
+		return max(servers, 0)
+	case servers <= 0:
+		return own
+	default:
+		return min(own, servers)
 	}
 }
 

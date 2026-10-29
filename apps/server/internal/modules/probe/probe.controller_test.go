@@ -34,7 +34,7 @@ func newControllerFixture(t *testing.T, liveness shared.LocalProbeLiveness) cont
 	require.NoError(t, err)
 	availability := probe.NewAvailabilityService(f.svc, liveness, func() time.Time { return at(12, 0, 0) })
 	return controllerFixture{
-		controller:    probe.NewController(f.svc, availability, nil, liveness, zap.NewNop().Sugar()),
+		controller:    probe.NewController(f.svc, instanceAdmin(true), availability, nil, liveness, nil, zap.NewNop().Sugar()),
 		remoteOffline: offline.ID,
 		remoteOnline:  online.ID,
 		markLocalOnline: func() {
@@ -43,6 +43,11 @@ func newControllerFixture(t *testing.T, liveness shared.LocalProbeLiveness) cont
 		},
 	}
 }
+
+// instanceAdmin is who a controller test is: an instance admin or not
+type instanceAdmin bool
+
+func (a instanceAdmin) IsInstanceAdmin(context.Context) (bool, error) { return bool(a), nil }
 
 func probeRequest(method, id, body string) *http.Request {
 	request := httptest.NewRequest(method, "/api/v1/probes/"+id, strings.NewReader(body))
@@ -142,7 +147,7 @@ func (a *recordingAssigner) AssignProbeToAll(_ context.Context, _ string, suppor
 func TestController_TheActionAssignsAnInstanceThatRegisteredWhileItSetTheFlag(t *testing.T) {
 	probes := &racingProbes{}
 	assigner := &recordingAssigner{}
-	controller := probe.NewController(probes, nil, assigner, shared.LocalProbeIsTheProcess, zap.NewNop().Sugar())
+	controller := probe.NewController(probes, instanceAdmin(true), nil, assigner, shared.LocalProbeIsTheProcess, nil, zap.NewNop().Sugar())
 
 	out, err := controller.AssignAllMonitors(context.Background(), &probe.AssignAllMonitorsInput{Request: probeRequest(http.MethodPost, "remote-1", "")})
 

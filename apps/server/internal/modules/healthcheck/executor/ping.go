@@ -6,9 +6,11 @@ import (
 	"fmt"
 	"math/rand/v2"
 	"net"
+	"net/netip"
 	"os"
 	"os/exec"
 	"peekaping/internal/modules/shared"
+	"peekaping/internal/netguard"
 	"runtime"
 	"strconv"
 	"strings"
@@ -48,6 +50,7 @@ type PingConfig struct {
 }
 
 type PingExecutor struct {
+	guarded
 	logger *zap.SugaredLogger
 }
 
@@ -69,6 +72,43 @@ func (s *PingExecutor) Validate(configJSON string) error {
 	return GenericValidator(cfg.(*PingConfig))
 }
 
+// Targets lists the host a ping check sends to
+func (s *PingExecutor) Targets(configJSON string) ([]string, error) {
+	cfg, err := GenericUnmarshal[PingConfig](configJSON)
+	if err != nil {
+		return nil, err
+	}
+	return []string{cfg.Host}, nil
+}
+
+// guardedHost checks the address a ping would send to, when the guard is on, and returns the host
+// to use. An echo request is not a dial the guard can see, so the name is resolved here and the
+// checks go to the address that was checked, as a literal: resolving it again could give another.
+// With the guard off the host is returned as it is.
+func (p *PingExecutor) guardedHost(ctx context.Context, host string) (string, error) {
+	if !p.guard.Enabled() {
+		return host, nil
+	}
+	addrs, err := p.guard.ResolveAndCheck(ctx, host)
+	if errors.Is(err, netguard.ErrBlocked) {
+		return "", err
+	}
+	if err != nil {
+		return "", fmt.Errorf("failed to resolve host: %v", err)
+	}
+	return preferIPv4(addrs).String(), nil
+}
+
+// preferIPv4 picks the address to ping from a resolved list that is not empty
+func preferIPv4(addrs []netip.Addr) netip.Addr {
+	for _, addr := range addrs {
+		if addr.Unmap().Is4() {
+			return addr.Unmap()
+		}
+	}
+	return addrs[0]
+}
+
 func (p *PingExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Proxy) *Result {
 	cfgAny, err := p.Unmarshal(m.Config)
 	if err != nil {
@@ -86,14 +126,25 @@ func (p *PingExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 	pingCtx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
+	host, err := p.guardedHost(pingCtx, cfg.Host)
+	if err != nil {
+		p.logger.Infof("Ping failed: %s, %s", m.Name, err.Error())
+		return &Result{
+			Status:    shared.MonitorStatusDown,
+			Message:   fmt.Sprintf("Ping failed: %v", err),
+			StartTime: startTime,
+			EndTime:   time.Now().UTC(),
+		}
+	}
+
 	// The system ping command is only a fallback for hosts where no ICMP socket
 	// can be opened. A timeout from the native ping is a real result.
-	success, rtt, err := p.tryNativePing(pingCtx, cfg.Host, cfg.PacketSize, timeout)
+	success, rtt, err := p.tryNativePing(pingCtx, host, cfg.PacketSize, timeout)
 	if errors.Is(err, errNoICMPSocket) {
 		p.logger.Debugf("Ping failed: %s, %s, %s", m.Name, err.Error(), "trying system ping")
 		nativeErr := err
 		startTime = time.Now().UTC() // reset start time
-		success, rtt, err = p.trySystemPing(pingCtx, cfg.Host, cfg.PacketSize, timeout)
+		success, rtt, err = p.trySystemPing(pingCtx, host, cfg.PacketSize, timeout)
 		switch {
 		case errors.Is(err, exec.ErrNotFound):
 			err = nativeErr

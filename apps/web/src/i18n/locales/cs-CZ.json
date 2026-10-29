@@ -3,22 +3,292 @@
     "cancel": "Zrušit",
     "saving": "Ukládám..."
   },
+  "admin": {
+    "nav": {
+      "back_to_workspace": "Zpět na {{name}}",
+      "probes": "Sondy",
+      "title": "Správa",
+      "users": "Uživatelé",
+      "workspaces": "Pracovní prostory",
+      "settings": "Nastavení"
+    },
+    "users": {
+      "actions": {
+        "delete": "Smazat uživatele",
+        "disable": "Zakázat uživatele",
+        "disableTwoFactor": "Vypnout 2FA",
+        "enable": "Povolit uživatele",
+        "grantAdmin": "Udělit práva správce instalace",
+        "resetLink": "Vytvořit odkaz pro obnovení",
+        "revokeAdmin": "Odebrat práva správce instalace"
+      },
+      "actions_aria": "Akce pro {{email}}",
+      "columns": {
+        "created": "Vytvořen",
+        "email": "E-mail",
+        "email_verified": "E-mail ověřen",
+        "instance_admin": "Správce instalace",
+        "last_sign_in": "Poslední přihlášení",
+        "status": "Stav",
+        "two_factor": "2FA",
+        "workspaces": "Pracovní prostory"
+      },
+      "confirm": {
+        "cancel": "Zrušit",
+        "delete": {
+          "confirm": "Smazat uživatele",
+          "description": "Smazat {{email}}? Jeho účet bude odstraněn, stejně jako jeho místa v pracovních prostorech. Tuto akci nelze vrátit zpět.",
+          "title": "Smazat uživatele"
+        },
+        "disable": {
+          "confirm": "Zakázat",
+          "description": "{{email}} se nemůže přihlásit a je nyní všude odhlášen. Jeho pracovní prostory dál běží. Později ho můžete znovu povolit.",
+          "title": "Zakázat uživatele"
+        },
+        "disableTwoFactor": {
+          "confirm": "Vypnout 2FA",
+          "description": "{{email}} se bude přihlašovat jen heslem a může si 2FA nastavit znovu. Udělejte to, jen když jste si jisti, že o to žádá opravdu on.",
+          "title": "Vypnout 2FA"
+        }
+      },
+      "description": "Všichni, kdo mají účet v této instalaci. Správci instalace spravují samotnou instalaci, například sondy a uživatele. Roli uživatele v pracovním prostoru nastavují vlastníci tohoto prostoru.",
+      "empty": "Nebyli nalezeni žádní uživatelé",
+      "errors": {
+        "last_instance_admin": "Instalace potřebuje alespoň jednoho správce instalace.",
+        "last_owner": "Uživatel je posledním vlastníkem těchto pracovních prostorů: {{workspaces}}. Nejdřív udělejte vlastníkem někoho jiného nebo pracovní prostor smažte.",
+        "self": "Tohle nemůžete provést se svým vlastním účtem."
+      },
+      "load_failed": "Uživatele se nepodařilo načíst.",
+      "messages": {
+        "admin_granted": "{{email}} je nyní správce instalace",
+        "admin_revoked": "{{email}} už není správce instalace",
+        "deleted": "{{email}} je smazán",
+        "disabled": "{{email}} je zakázán a odhlášen",
+        "enabled": "{{email}} je povolen",
+        "two_factor_off": "2FA je pro {{email}} vypnuta",
+        "update_failed": "Uživatele se nepodařilo aktualizovat."
+      },
+      "never": "Nikdy",
+      "none": "Žádné",
+      "page_name": "Uživatelé",
+      "paging": {
+        "next": "Další",
+        "page": "Strana {{page}} z {{pages}}",
+        "previous": "Předchozí"
+      },
+      "reset_link": {
+        "close": "Zavřít",
+        "copied": "Odkaz zkopírován",
+        "copy": "Kopírovat odkaz",
+        "copy_failed": "Odkaz se nepodařilo zkopírovat. Označte ho a zkopírujte ručně.",
+        "description": "Odkaz, kterým {{email}} zvolí nové heslo. Zkopírujte ho a předejte hned: zobrazí se pouze jednou.",
+        "emailed": "Tato instalace odesílá e-maily k účtu, proto uživatel dostane e-mail, že pro něj byl odkaz vytvořen.",
+        "expires": "Odkaz funguje jen jednou a platí do {{when}}.",
+        "failed": "Odkaz se nepodařilo vytvořit.",
+        "label": "Odkaz",
+        "making": "Vytvářím odkaz...",
+        "signs_out": "Použitím odkazu se uživatel všude odhlásí.",
+        "title": "Odkaz pro obnovení hesla"
+      },
+      "search_label": "Hledat uživatele podle e-mailu",
+      "search_placeholder": "Hledat podle e-mailu",
+      "total": "Nalezeno: {{total}}",
+      "values": {
+        "active": "Aktivní",
+        "disabled": "Zakázán",
+        "no": "Ne",
+        "two_factor_off": "Vypnuto",
+        "two_factor_on": "Zapnuto",
+        "yes": "Ano"
+      },
+      "you": "vy"
+    },
+    "workspaces": {
+      "actions": {
+        "delete": "Smazat pracovní prostor",
+        "resume": "Obnovit pracovní prostor",
+        "suspend": "Pozastavit pracovní prostor",
+        "limits": "Limity"
+      },
+      "actions_aria": "Akce pro {{name}}",
+      "columns": {
+        "created": "Vytvořen",
+        "custom_domains": "Vlastní domény",
+        "members": "Členové",
+        "monitors": "Monitory",
+        "name": "Název",
+        "owners": "Vlastníci",
+        "status": "Stav",
+        "status_pages": "Stránky stavu",
+        "limits": "Limity"
+      },
+      "confirm": {
+        "cancel": "Zrušit",
+        "delete": {
+          "confirm": "Smazat pracovní prostor",
+          "description": "Smazat {{name}}? Zmizí vše, co obsahuje: jeho monitory a jejich historie, stránky stavu, kanály oznámení a přístup jeho členů. Tuto akci nelze vrátit zpět.",
+          "name_label": "Pro potvrzení zadejte název pracovního prostoru: {{name}}",
+          "title": "Smazat pracovní prostor"
+        },
+        "resume": {
+          "confirm": "Obnovit",
+          "description": "Monitory pracovního prostoru {{name}} znovu poběží ve stavu, ve kterém byly, a jeho členové ho mohou používat jako dřív. Pracovní prostor, který čeká, až vlastník ověří svůj e-mail, čeká dál.",
+          "title": "Obnovit pracovní prostor"
+        },
+        "suspend": {
+          "confirm": "Pozastavit",
+          "description": "Monitory pracovního prostoru {{name}} přestanou běžet, jeho veřejné stránky stavu budou hlásit, že nejsou dostupné, a jeho členové uvidí, že je pozastaven. Nic se nesmaže a později ho můžete obnovit.",
+          "title": "Pozastavit pracovní prostor"
+        }
+      },
+      "description": "Všechny pracovní prostory v této instalaci s jejich vlastníky, členy a tím, kolik obsahují. Zobrazují se jen počty, nic z obsahu pracovního prostoru.",
+      "empty": "Nebyly nalezeny žádné pracovní prostory",
+      "load_failed": "Pracovní prostory se nepodařilo načíst.",
+      "messages": {
+        "deleted": "{{name}} je smazán",
+        "failed": "Pracovní prostor se nepodařilo změnit.",
+        "resumed": "{{name}} je obnoven",
+        "suspended": "{{name}} je pozastaven"
+      },
+      "monitors": "Aktivní: {{active}}, pozastavené: {{paused}}",
+      "none": "Žádné",
+      "page_name": "Pracovní prostory",
+      "paging": {
+        "next": "Další",
+        "page": "Strana {{page}} z {{pages}}",
+        "previous": "Předchozí"
+      },
+      "search_label": "Hledat pracovní prostory podle názvu nebo e-mailu vlastníka",
+      "search_placeholder": "Hledat podle názvu nebo e-mailu vlastníka",
+      "status": {
+        "running": "Běží",
+        "suspended_admin": "Pozastaveno správcem",
+        "suspended_unverified": "Pozastaveno, dokud vlastník neověří svůj e-mail"
+      },
+      "total": "Nalezeno: {{total}}",
+      "limits": {
+        "item": "{{name}}: {{value}}",
+        "more": "+{{number}} dalších",
+        "unlimited": "Bez limitů",
+        "source": {
+          "workspace": "Vlastní",
+          "install": "Výchozí z instalace",
+          "none": "Nenastaveno"
+        },
+        "dialog": {
+          "title": "Limity: {{name}}",
+          "description": "Čím je tento pracovní prostor omezen. Snížení limitu nic nepozastaví ani nesmaže: nejnovější monitory nad limitem přestanou běžet, dokud nebude zase místo.",
+          "own": "Vlastní limity",
+          "own_help": "Nahrazují výchozí limity instalace. Nechte limit prázdný, aby nebyl.",
+          "unlimited": "Bez limitů",
+          "unlimited_help": "Žádný limit, ať říkají výchozí limity instalace cokoli.",
+          "defaults": "Použít výchozí limity instalace",
+          "defaults_help": "Výchozí limity ze sekce Správa → Nastavení, nebo žádné, pokud je instalace nenastavuje.",
+          "save": "Uložit limity",
+          "cancel": "Zrušit",
+          "saved": "Limity pracovního prostoru {{name}} jsou uloženy",
+          "failed": "Limity se nepodařilo uložit."
+        }
+      }
+    },
+    "settings": {
+      "page_name": "Nastavení",
+      "description": "Nastavení celé instalace. Hodnota, kterou nastavuje prostředí serveru, je zde uzamčena.",
+      "load_failed": "Nastavení se nepodařilo načíst.",
+      "saved": "Nastavení uloženo",
+      "save_failed": "Nastavení nebylo uloženo.",
+      "locked": "Nastaveno prostředím serveru",
+      "source": {
+        "environment": "Z prostředí serveru",
+        "saved": "Uloženo zde",
+        "default": "Výchozí"
+      },
+      "signup": {
+        "title": "Registrace",
+        "description": "Kdo si může v této instalaci vytvořit účet.",
+        "label": "Režim registrace",
+        "invite": "Pouze na pozvánku",
+        "open": "Otevřená",
+        "invite_help": "První uživatel se zaregistruje a všichni další se připojí k pracovnímu prostoru přes pozvánku.",
+        "open_help": "Zaregistrovat se může kdokoli a získá vlastní pracovní prostor. Nové účty ověřují svou e-mailovou adresu, proto je potřeba odesílatel e-mailů."
+      },
+      "sender": {
+        "title": "Odesílatel e-mailů",
+        "description": "SMTP server, který odesílá e-maily k účtu: odkazy pro obnovení hesla, ověření e-mailu a pozvánky.",
+        "on": "E-maily k účtu jsou zapnuté.",
+        "off": "E-maily k účtu jsou vypnuté: není nastaven SMTP hostitel.",
+        "host": "SMTP server",
+        "port": "Port",
+        "tls": "Zabezpečení",
+        "tls_starttls": "STARTTLS",
+        "tls_tls": "TLS",
+        "tls_none": "Žádné",
+        "user": "Uživatel",
+        "password": "Heslo",
+        "password_set": "Heslo je nastaveno. Napište nové, chcete-li ho nahradit.",
+        "password_not_set": "Heslo není nastaveno",
+        "password_removed": "Heslo bude při uložení odstraněno.",
+        "password_reenter": "Změnou hostitele, portu, zabezpečení nebo uživatele se uložené heslo odstraní. Zadejte ho znovu.",
+        "remove_password": "Odstranit heslo",
+        "keep_password": "Ponechat heslo",
+        "from": "Adresa odesílatele"
+      },
+      "public_url": {
+        "title": "Veřejná URL",
+        "description": "Adresa webové aplikace, kterou otevírají odkazy v e-mailech a oznámeních.",
+        "label": "Veřejná URL"
+      },
+      "test_email": {
+        "title": "Odeslat testovací e-mail",
+        "description": "Odešle krátký e-mail přes uloženého odesílatele, aby ověřil, že funguje.",
+        "to": "Odeslat na",
+        "send": "Odeslat testovací e-mail",
+        "sending": "Odesílání…",
+        "sent": "Testovací e-mail odeslán na {{to}}.",
+        "failed": "Testovací e-mail nebyl odeslán.",
+        "unsaved": "Odesílatel má neuložené změny. Test používá uloženého odesílatele, proto nejdřív uložte."
+      },
+      "validation": {
+        "port": "Zadejte port od 1 do 65535, nebo pole nechte prázdné pro výchozí hodnotu."
+      },
+      "errors": {
+        "locked": "{{field}} nastavuje prostředí serveru a zde to nelze změnit.",
+        "open_needs_sender": "Otevřená registrace potřebuje odesílatele e-mailů, protože nové účty ověřují svou e-mailovou adresu. Nejdřív nastavte odesílatele, nebo to udělejte ve stejném uložení.",
+        "sender_needed": "Registrace je otevřená a nové účty potřebují odesílatele k ověření své e-mailové adresy. Nejdřív přepněte registraci na pouze na pozvánku.",
+        "no_sender": "Není nastaven žádný odesílatel e-mailů. Nejdřív uložte odesílatele."
+      },
+      "limits": {
+        "title": "Výchozí limity",
+        "description": "Limity každého pracovního prostoru, který nemá vlastní. Nechte limit prázdný, aby nebyl. Limity přidělené pracovnímu prostoru na stránce Pracovní prostory je nahrazují."
+      }
+    }
+  },
   "auth": {
     "login": {
       "description": "Přihlaste se pomocí e-mailu",
       "no_account": "Nemáte účet?",
       "sign_up": "Zaregistrujte se",
       "submit": "Přihlásit se",
-      "title": "Vítejte zpět"
+      "title": "Vítejte zpět",
+      "forgot_password": "Zapomněli jste heslo?",
+      "ask_admin": "Požádejte o pozvánku správce této instalace"
     },
     "register": {
       "description": "Vytvořte si svůj administrátorský účet",
+      "description_open": "Vytvořte si svůj účet",
       "have_account": "Už máte účet?",
       "sign_in": "Přihlásit se",
       "submit": "Vytvořit",
       "title": "Vítejte",
       "telemetry_note": "Anonymně: žádné názvy monitorů, adresy URL ani hostitelé. Později to můžete změnit v části „Nastavení“.",
-      "telemetry_whats_sent": "Co se odesílá"
+      "telemetry_whats_sent": "Co se odesílá",
+      "errors": {
+        "rate_limited": "Příliš mnoho registrací z vaší sítě. Zkuste to znovu za hodinu.",
+        "email_taken": "Účet s tímto e-mailem už existuje.",
+        "sign_in_instead": "Raději se přihlaste.",
+        "check_failed": "Kontrola neprošla. Zkuste to znovu.",
+        "check_load_failed": "Kontrolu se nepodařilo načíst. Zkontrolujte připojení a zkuste to znovu."
+      }
     },
     "twofa": {
       "code_label": "Kód dvoufaktorové autentizace",
@@ -27,6 +297,45 @@
       "title": "Dvoufázové ověření vyžadováno",
       "verify_button": "Ověřit 2FA",
       "verifying": "Ověřování..."
+    },
+    "forgot": {
+      "title": "Obnovení hesla",
+      "description": "Zadejte e-mail svého účtu a pošleme vám odkaz.",
+      "submit": "Odeslat odkaz",
+      "sent": "Pokud účet s tímto e-mailem existuje, poslali jsme odkaz. Platí hodinu.",
+      "back_to_login": "Zpět na přihlášení"
+    },
+    "reset": {
+      "title": "Zvolte nové heslo",
+      "description": "Zadejte nové heslo ke svému účtu.",
+      "submit": "Nastavit heslo",
+      "success": "Vaše heslo bylo změněno a byli jste odhlášeni všude. Přihlaste se novým heslem.",
+      "sign_in": "Přihlásit se",
+      "invalid_link": "Tento odkaz už byl použit nebo vypršel.",
+      "request_new": "Požádat o nový odkaz"
+    },
+    "verify": {
+      "title": "Ověřte svůj e-mail",
+      "verifying": "Ověřujeme váš e-mail...",
+      "success": "Váš e-mail je ověřen.",
+      "open_app": "Otevřít Peekaping",
+      "invalid_link": "Tento odkaz už byl použit nebo vypršel."
+    },
+    "errors": {
+      "rate_limited": "Příliš mnoho požadavků. Zkuste to později.",
+      "generic": "Něco se pokazilo. Zkuste to znovu.",
+      "already_verified": "Váš e-mail je už ověřen."
+    },
+    "resend": {
+      "button": "Poslat znovu",
+      "sent": "Poslali jsme nový odkaz. Zkontrolujte schránku."
+    },
+    "verification_banner": {
+      "message": "Ověřte svůj e-mail: poslali jsme odkaz na {{email}}."
+    },
+    "suspension_notice": {
+      "message": "Vaše monitory se spustí, jakmile ověříte svůj e-mail.",
+      "member_message": "Monitory tohoto pracovního prostoru se spustí, jakmile jeho vlastník ověří svůj e-mail."
     }
   },
   "bars": {
@@ -73,6 +382,7 @@
     "no_tags_available": "Žádné tagy nejsou k dispozici",
     "please_refresh_page": "Prosím, obnovte stránku.",
     "required": "Povinné",
+    "retry": "Zkusit znovu",
     "save": "Uložit",
     "saving": "Ukládám...",
     "search": "Hledat",
@@ -124,6 +434,33 @@
       "password_required": "Heslo je povinné",
       "password_min_length": "Heslo musí mít alespoň 8 znaků.",
       "passwords_mismatch": "Hesla se neshodují"
+    }
+  },
+  "invite": {
+    "accept": "Přijmout pozvánku",
+    "accepting": "Připojuji se...",
+    "creating": "Vytvářím...",
+    "description": "Byli jste pozváni do {{workspace}}, role: {{role}}.",
+    "enter_failed": "Připojili jste se k pracovnímu prostoru, ale jeho otevření selhalo. Zkuste to znovu.",
+    "errors": {
+      "other_email": "Tato pozvánka je pro jinou e-mailovou adresu."
+    },
+    "for_email": "Tato pozvánka je pro {{email}}.",
+    "have_account": "Už máte účet?",
+    "open_app": "Otevřít Peekaping",
+    "other_account": "Jste přihlášeni jako {{current}}, ale pozvánka je pro {{invited}}. Odhlaste se a poté se přihlaste nebo zaregistrujte pomocí {{invited}}, abyste ji mohli přijmout.",
+    "sign_in_instead": "Místo toho se přihlásit",
+    "sign_out": "Odhlásit se",
+    "signup_description": "Zvolte heslo, vytvořte si účet a připojte se k {{workspace}}, role: {{role}}.",
+    "signup_submit": "Vytvořit účet a připojit se",
+    "title": "Připojit se k {{workspace}}",
+    "unavailable": {
+      "accepted": "Tato pozvánka už byla použita.",
+      "expired": "Platnost této pozvánky vypršela. Požádejte o novou.",
+      "not_found": "Tento odkaz na pozvánku neexistuje. Zkontrolujte, zda jste ho zkopírovali celý.",
+      "revoked": "Tato pozvánka byla zrušena. Požádejte o novou.",
+      "title": "Tuto pozvánku nelze použít",
+      "unknown": "Tuto pozvánku nelze použít. Požádejte o novou."
     }
   },
   "maintenance": {
@@ -231,6 +568,79 @@
       "wed": "Stř"
     }
   },
+  "members": {
+    "change_role_aria": "Změnit roli uživatele {{email}}",
+    "errors": {
+      "account_exists": "Účet s tímto e-mailem již existuje. Přihlaste se a pozvánku přijměte.",
+      "already_member": "Tato osoba už je členem tohoto pracovního prostoru.",
+      "forbidden": "Vaše role v tomto pracovním prostoru to nedovoluje.",
+      "generic": "Něco se pokazilo. Zkuste to prosím znovu.",
+      "last_owner": "Pracovní prostor potřebuje alespoň jednoho vlastníka.",
+      "member_not_found": "Tento člen už v pracovním prostoru není."
+    },
+    "invite": {
+      "copied": "Odkaz zkopírován",
+      "copy": "Kopírovat",
+      "creating": "Vytvářím...",
+      "description": "Vytvořte odkaz pro e-mailovou adresu a roli. Žádný e-mail se neodesílá: zkopírujte odkaz a pošlete ho sami.",
+      "done": "Hotovo",
+      "email_label": "E-mail",
+      "link_note": "Odkaz lze použít jen jednou a platí 7 dní. Zobrazí se pouze teď, proto ho zkopírujte, než tuto stránku opustíte.",
+      "link_title": "Odkaz na pozvánku",
+      "role_label": "Role",
+      "submit": "Vytvořit odkaz na pozvánku",
+      "title": "Pozvat někoho"
+    },
+    "leave": {
+      "button": "Opustit pracovní prostor",
+      "confirm": "Opustit",
+      "description": "Okamžitě ztratíte přístup k tomuto pracovnímu prostoru a jeho datům.",
+      "done": "Opustili jste pracovní prostor",
+      "last_owner": "Jste poslední vlastník, proto nemůžete odejít. Nejdřív udělejte vlastníkem jiného člena.",
+      "refresh_failed": "Opustili jste pracovní prostor, ale načtení vašich pracovních prostorů selhalo. Zkuste to znovu.",
+      "title": "Opustit tento pracovní prostor"
+    },
+    "list": {
+      "description": "Všichni, kdo v tomto pracovním prostoru pracují, a jejich role.",
+      "email": "E-mail",
+      "joined": "Připojil(a) se",
+      "role": "Role",
+      "title": "Členové",
+      "you": "vy"
+    },
+    "page_name": "Členové",
+    "pending": {
+      "description": "Pozvánky, které ještě nebyly použity. Odkaz zrušené pozvánky přestane fungovat.",
+      "email": "E-mail",
+      "empty": "Žádné čekající pozvánky.",
+      "expired": "Vypršela",
+      "expires": "Vyprší",
+      "revoke": "Zrušit",
+      "revoke_aria": "Zrušit pozvánku pro {{email}}",
+      "revoked": "Pozvánka byla zrušena",
+      "role": "Role",
+      "title": "Čekající pozvánky"
+    },
+    "remove": "Odebrat",
+    "remove_aria": "Odebrat {{email}}",
+    "remove_dialog": {
+      "confirm": "Odebrat",
+      "description": "{{email}} okamžitě ztratí přístup k tomuto pracovnímu prostoru.",
+      "title": "Odebrat člena"
+    },
+    "removed": "Člen byl odebrán",
+    "role_updated": "Role byla aktualizována",
+    "roles": {
+      "admin": "Správce",
+      "member": "Člen",
+      "owner": "Vlastník"
+    },
+    "settings_card": {
+      "description": "Podívejte se, kdo v tomto pracovním prostoru pracuje, a pokud jste správce nebo vlastník, zvěte další lidi a spravujte jejich role.",
+      "open": "Otevřít členy",
+      "title": "Členové"
+    }
+  },
   "messages": {
     "login_error": "Chyba při přihlašování",
     "login_no_tokens": "Přihlášení proběhlo úspěšně, ale nebyly obdrženy tokeny.",
@@ -258,6 +668,7 @@
     },
     "empty_state": {
       "action": "Vytvořte svůj první monitor",
+      "add_channel": "Přidat notifikační kanál",
       "description": "Začněte vytvořením svého prvního monitoru, který bude sledovat stav vašich služeb.",
       "title": "Žádné monitory nebyly nalezeny."
     },
@@ -500,6 +911,7 @@
       "shared": {
         "intervals": {
           "heartbeat_retry": "Interval opětovného heartbeat (Opakovat každých {{seconds}} sekund)",
+          "interval_too_short": "Nesmí být menší než {{minimum}} s",
           "max_retries_description": "Maximální počet pokusů, po nichž bude služba označena jako nedostupná a bude odesláno upozornění.",
           "request_timeout": "Čas vypršení požadavku (po {{seconds}} sekundách vyprší)",
           "resend_notification": "Znovu odeslat upozornění, pokud dojde k výpadku X krát po sobě (Znovu odesílání je vypnuto)",
@@ -542,6 +954,10 @@
           "select_proxy_placeholder": "Vyberte proxy",
           "selected_proxy": "Vybraný proxy server",
           "title": "Proxy"
+        },
+        "run_from": {
+          "default_locations": "Běží na výchozích místech",
+          "label": "Spouštět z"
         },
         "tags": {
           "label": "Tagy",
@@ -649,9 +1065,12 @@
     "toasts": {
       "deleted": "Monitor byl smazán",
       "paused": "Monitor pozastaven",
+      "push_token_already_used": "Tento push token už používá jiný monitor. Vygenerujte nový.",
       "reset_success": "Data monitoru byla úspěšně resetována.",
       "resumed": "Monitor byl obnoven."
     },
+    "type_disabled": "Typ {{type}} je na této instalaci vypnutý",
+    "over_limit": "Nekontroluje se: pracovní prostor má více aktivních monitorů, než povoluje jeho limit",
     "view": {
       "buttons": {
         "clone": "Duplikovat",
@@ -712,6 +1131,7 @@
     }
   },
   "navigation": {
+    "admin": "Správa",
     "maintenance": "Údržba",
     "monitors": "Monitory",
     "notification_channels": "Notifikační kanály",
@@ -1124,6 +1544,12 @@
         "signing_secret_docs_link": "Jak ověřit podpis",
         "signing_secret_label": "Tajný klíč pro podpis",
         "signing_secret_placeholder": "Ponechte prázdné pro odesílání nepodepsaných požadavků"
+      },
+      "install_email": {
+        "description": "Odesílá tato instalace, SMTP server není potřeba.",
+        "to_description": "Člen tohoto pracovního prostoru. Oznámení se odesílají, jakmile adresu ověří.",
+        "to_label": "Příjemce",
+        "to_placeholder": "Vyberte člena"
       }
     },
     "important": "Důležité notifikace",
@@ -1142,7 +1568,8 @@
       "updated_success": "Notifikátor byl úspěšně aktualizován"
     },
     "new": {
-      "title": "Nový notifikační kanál"
+      "title": "Nový notifikační kanál",
+      "default_hint": "Tento kanál bude u nových monitorů zaškrtnutý."
     },
     "no_important": "Nebyly nalezeny žádné důležité notifikace.",
     "placeholders": {
@@ -1152,11 +1579,21 @@
     "secret": {
       "reenter_error": "Zadejte tento tajný údaj znovu, nebo ho odeberte: změnilo se místo, kam se odesílá",
       "reenter_hint": "Zadejte tento tajný údaj znovu: změnilo se místo, kam se odesílá",
+      "reenter_url_error": "Zadejte přihlašovací údaje v této adrese URL znovu: adresa URL se od uložení změnila",
       "remove": "Odebrat",
       "saved_hint": "Uloženo — pro nahrazení začněte psát"
     }
   },
   "probes": {
+    "default": {
+      "description": "Monitor vytvořený bez výběru sond běží na výchozích sondách, které nejsou zakázané a podporují jeho typ, a pokud žádná taková není, na místní sondě. Stávající monitory si své sondy ponechají.",
+      "failed": "Nepodařilo se změnit, zda je sonda výchozí.",
+      "label": "Výchozí sonda",
+      "off": "{{name}} už není výchozí sonda",
+      "on": "{{name}} je nyní výchozí sonda",
+      "title": "Výchozí pro nové monitory"
+    },
+    "default_badge": "Výchozí",
     "page_name": "Sondy",
     "description": "Sondy provádějí kontroly monitorů z míst, kde jsou nainstalovány. Lokální sonda je samotný Peekaping.",
     "local_name": "Lokální",
@@ -1438,7 +1875,9 @@
     "data_retention": {
       "days_label": "Dny",
       "description": "Nastavte, na kolik dní se budou data uchovávat (KEEP_DATA_PERIOD_DAYS).",
-      "title": "Doba uchovávání dat"
+      "read_only": "Změnit to může jen správce nebo vlastník pracovního prostoru.",
+      "title": "Doba uchovávání dat",
+      "capped": "Nejvýše {{max}} dní v tomto pracovním prostoru"
     },
     "error_reporting": {
       "cluster_note": "V clusterovém režimu se změna projeví ve všech procesech do jedné minuty.",
@@ -1464,6 +1903,10 @@
     },
     "validation": {
       "min_days": "Musí být alespoň 1 den"
+    },
+    "workspace_name": {
+      "description": "Název zobrazený v přepínači pracovních prostorů a jeho členům.",
+      "title": "Název pracovního prostoru"
     }
   },
   "status": {
@@ -1479,6 +1922,7 @@
       "refresh_in": "Obnovit za",
       "refresh_now": "Obnovit nyní",
       "status_page_not_found": "Stránka stavu nebyla nalezena nebo nebyla zveřejněna.",
+      "status_page_unavailable": "Tato stránka stavu není dostupná",
       "under_maintenance": "Probíhá údržba",
       "unknown": "Neznámý"
     }
@@ -1522,6 +1966,7 @@
     "search_placeholder": "Hledat stránky stavu podle názvu...",
     "show_locations": "Zobrazit každé umístění",
     "show_locations_info": "U monitorů kontrolovaných z více umístění zobrazí stav a historii každého z nich",
+    "slug_already_used": "Tuto adresu už používá jiná stavová stránka",
     "update_status_page": "Aktualizovat stránku stavu",
     "view_page": "Zobrazit stránku"
   },
@@ -1587,5 +2032,93 @@
   "ui": {
     "general": "Obecné",
     "intervals_retries": "Intervaly, Opakování, Časové limity"
+  },
+  "workspaces": {
+    "create": "Vytvořit pracovní prostor",
+    "create_error": "Pracovní prostor se nepodařilo vytvořit",
+    "create_first": "Vytvořit pracovní prostor",
+    "creating": "Vytvářím...",
+    "enter": "Otevřít pracovní prostor",
+    "entering": "Otevírám...",
+    "entry_failed": "Pracovní prostor byl vytvořen, ale nepodařilo se ho otevřít. Zkuste to znovu.",
+    "name_label": "Název",
+    "name_placeholder": "Můj tým",
+    "name_required": "Zadejte název",
+    "new": "Nový pracovní prostor",
+    "new_description": "Pracovní prostor má vlastní monitory, kanály oznámení, stránky stavu a členy. Budete jeho vlastníkem.",
+    "new_title": "Nový pracovní prostor",
+    "none_description": "Váš účet není členem žádného pracovního prostoru, takže tu není co zobrazit. Požádejte někoho, kdo pracovní prostor spravuje, aby vás přidal.",
+    "none_title": "Zatím nejste v žádném pracovním prostoru",
+    "refresh_failed": "Vaše pracovní prostory se nepodařilo načíst. Zkontrolujte připojení a zkuste to znovu.",
+    "rename_error": "Pracovní prostor se nepodařilo přejmenovat",
+    "rename_success": "Pracovní prostor byl přejmenován",
+    "suspended_banner": {
+      "contact": "Kontakt:",
+      "message": "Tento pracovní prostor pozastavil správce této instalace. Jeho monitory neběží a jeho stránky stavu nejsou dostupné.",
+      "no_contact": "Obraťte se na osobu, která tuto instalaci spravuje."
+    },
+    "switcher_label": "Přepnout pracovní prostor"
+  },
+  "get_started": {
+    "page_name": "Začínáme",
+    "skip": "Přeskočit nastavení",
+    "step_of": "Krok {{current}} z {{total}}",
+    "name": {
+      "description": "Tady jsou vaše monitory, kanály oznámení a stavové stránky. Název můžete později změnit v Nastavení.",
+      "title": "Pojmenujte svůj pracovní prostor"
+    },
+    "monitor": {
+      "create": "Vytvořit monitor",
+      "create_failed": "Monitor se nepodařilo vytvořit",
+      "creating": "Vytváří se...",
+      "description": "Zadejte adresu webu nebo API. Peekaping ji kontroluje a upozorní vás, když přestane odpovídat.",
+      "full_form": "Nebo nastavte monitor se všemi možnostmi",
+      "title": "Přidejte svůj první monitor",
+      "url_invalid": "Zadejte adresu, která začíná na http:// nebo https://",
+      "url_label": "Adresa ke sledování"
+    },
+    "channel": {
+      "continue_unlinked": "Pokračovat bez propojení",
+      "description": "Vyberte, kam Peekaping pošle upozornění, když váš monitor přestane fungovat. Stane se výchozím kanálem pro nové monitory.",
+      "link_failed": "Kanál byl uložen, ale propojit ho s monitorem se nepodařilo. Přidejte ho na stránce úprav monitoru.",
+      "retry_link": "Zkusit propojit znovu",
+      "title": "Nechte si posílat oznámení"
+    },
+    "done": {
+      "description": "Peekaping hlídá vaši službu. Co můžete udělat dál.",
+      "title": "Hotovo",
+      "unverified": "Váš monitor poběží, jakmile bude ověřena vaše e-mailová adresa. Odkaz pro ověření najdete ve schránce.",
+      "links": {
+        "members": "Pozvat svůj tým",
+        "monitor": "Otevřít monitor",
+        "monitors": "Přejít na monitory",
+        "probes": "Spravovat sondy",
+        "status_pages": "Zveřejnit stavovou stránku"
+      }
+    }
+  },
+  "limits": {
+    "reached": {
+      "monitors": "Tento pracovní prostor může mít spuštěno nejvýše {{max}} monitorů",
+      "status_pages": "Tento pracovní prostor může mít nejvýše {{max}} stránek stavu",
+      "custom_domains": "Stránky stavu tohoto pracovního prostoru mohou mít dohromady nejvýše {{max}} vlastních domén",
+      "members": "Tento pracovní prostor může mít nejvýše {{max}} členů včetně čekajících pozvánek",
+      "owned_workspaces": "Můžete vlastnit nejvýše {{max}} pracovních prostorů",
+      "probes": "Monitor v tomto pracovním prostoru může běžet nejvýše na {{max}} sondách",
+      "retention_days": "Tento pracovní prostor může uchovávat data nejvýše {{max}} dní"
+    },
+    "names": {
+      "monitors": "Aktivní monitory",
+      "min_check_interval": "Nejkratší interval kontroly (sekundy)",
+      "status_pages": "Stránky stavu",
+      "custom_domains": "Vlastní domény",
+      "members": "Členové",
+      "owned_workspaces": "Pracovní prostory, které smí vlastnit jeden uživatel",
+      "probes_per_monitor": "Sondy na monitor",
+      "retention_days": "Uchovávání dat (dny)"
+    },
+    "none": "Bez limitu",
+    "invalid": "Zadejte celé číslo 1 nebo větší, nebo pole nechte prázdné, aby limit nebyl.",
+    "retention_too_long": "Nesmí být víc než {{max}} dní"
   }
 }

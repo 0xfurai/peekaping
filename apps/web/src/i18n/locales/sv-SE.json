@@ -3,22 +3,292 @@
     "cancel": "Avbryt",
     "saving": "Sparar..."
   },
+  "admin": {
+    "nav": {
+      "back_to_workspace": "Tillbaka till {{name}}",
+      "probes": "Sonder",
+      "title": "Admin",
+      "users": "Användare",
+      "workspaces": "Arbetsytor",
+      "settings": "Inställningar"
+    },
+    "users": {
+      "actions": {
+        "delete": "Ta bort användare",
+        "disable": "Inaktivera användare",
+        "disableTwoFactor": "Stäng av 2FA",
+        "enable": "Aktivera användare",
+        "grantAdmin": "Gör till instansadministratör",
+        "resetLink": "Skapa återställningslänk",
+        "revokeAdmin": "Ta bort instansadministratör"
+      },
+      "actions_aria": "Åtgärder för {{email}}",
+      "columns": {
+        "created": "Skapad",
+        "email": "E-post",
+        "email_verified": "E-post verifierad",
+        "instance_admin": "Instansadministratör",
+        "last_sign_in": "Senaste inloggning",
+        "status": "Status",
+        "two_factor": "2FA",
+        "workspaces": "Arbetsytor"
+      },
+      "confirm": {
+        "cancel": "Avbryt",
+        "delete": {
+          "confirm": "Ta bort användare",
+          "description": "Ta bort {{email}}? Kontot tas bort, och likaså användarens platser i arbetsytor. Det går inte att ångra.",
+          "title": "Ta bort användare"
+        },
+        "disable": {
+          "confirm": "Inaktivera",
+          "description": "{{email}} kan inte logga in och loggas nu ut överallt. Användarens arbetsytor fortsätter att köras. Du kan aktivera användaren igen senare.",
+          "title": "Inaktivera användare"
+        },
+        "disableTwoFactor": {
+          "confirm": "Stäng av 2FA",
+          "description": "{{email}} loggar in med bara sitt lösenord och kan ställa in 2FA igen. Gör detta först när du är säker på att det är personen själv som frågar.",
+          "title": "Stäng av 2FA"
+        }
+      },
+      "description": "Alla som har ett konto på den här installationen. Instansadministratörer hanterar själva installationen, till exempel sonder och användare. En användares roll i en arbetsyta bestäms av arbetsytans ägare.",
+      "empty": "Inga användare hittades",
+      "errors": {
+        "last_instance_admin": "Installationen behöver minst en instansadministratör.",
+        "last_owner": "Användaren är den sista ägaren av {{workspaces}}. Gör någon annan till ägare, eller ta bort arbetsytan, först.",
+        "self": "Du kan inte göra det här med ditt eget konto."
+      },
+      "load_failed": "Det gick inte att läsa in användarna.",
+      "messages": {
+        "admin_granted": "{{email}} är nu instansadministratör",
+        "admin_revoked": "{{email}} är inte längre instansadministratör",
+        "deleted": "{{email}} har tagits bort",
+        "disabled": "{{email}} är inaktiverad och utloggad",
+        "enabled": "{{email}} är aktiverad",
+        "two_factor_off": "2FA är avstängt för {{email}}",
+        "update_failed": "Det gick inte att uppdatera användaren."
+      },
+      "never": "Aldrig",
+      "none": "Inga",
+      "page_name": "Användare",
+      "paging": {
+        "next": "Nästa",
+        "page": "Sida {{page}} av {{pages}}",
+        "previous": "Föregående"
+      },
+      "reset_link": {
+        "close": "Stäng",
+        "copied": "Länken har kopierats",
+        "copy": "Kopiera länk",
+        "copy_failed": "Det gick inte att kopiera länken. Markera den och kopiera den för hand.",
+        "description": "En länk där {{email}} kan välja ett nytt lösenord. Kopiera den och skicka vidare den nu: den visas bara en gång.",
+        "emailed": "Den här installationen skickar kontomejl, så användaren får ett mejl om att en länk har skapats åt dem.",
+        "expires": "Länken fungerar en gång och går ut {{when}}.",
+        "failed": "Det gick inte att skapa länken.",
+        "label": "Länk",
+        "making": "Skapar länken...",
+        "signs_out": "Användaren loggas ut överallt när länken används.",
+        "title": "Länk för återställning av lösenord"
+      },
+      "search_label": "Sök användare efter e-post",
+      "search_placeholder": "Sök efter e-post",
+      "total": "{{total}} hittades",
+      "values": {
+        "active": "Aktiv",
+        "disabled": "Inaktiverad",
+        "no": "Nej",
+        "two_factor_off": "Av",
+        "two_factor_on": "På",
+        "yes": "Ja"
+      },
+      "you": "du"
+    },
+    "workspaces": {
+      "actions": {
+        "delete": "Ta bort arbetsyta",
+        "resume": "Återuppta arbetsyta",
+        "suspend": "Spärra arbetsyta",
+        "limits": "Gränser"
+      },
+      "actions_aria": "Åtgärder för {{name}}",
+      "columns": {
+        "created": "Skapad",
+        "custom_domains": "Anpassade domäner",
+        "members": "Medlemmar",
+        "monitors": "Övervakningar",
+        "name": "Namn",
+        "owners": "Ägare",
+        "status": "Status",
+        "status_pages": "Status-sidor",
+        "limits": "Gränser"
+      },
+      "confirm": {
+        "cancel": "Avbryt",
+        "delete": {
+          "confirm": "Ta bort arbetsyta",
+          "description": "Ta bort {{name}}? Allt i den försvinner: dess övervakningar och deras historik, status-sidor, aviseringskanaler och medlemmarnas åtkomst. Det går inte att ångra.",
+          "name_label": "Skriv arbetsytans namn för att bekräfta: {{name}}",
+          "title": "Ta bort arbetsyta"
+        },
+        "resume": {
+          "confirm": "Återuppta",
+          "description": "Övervakningarna i {{name}} körs igen i det läge de hade, och medlemmarna kan använda den som tidigare. En arbetsyta som väntar på att ägaren verifierar sin e-post fortsätter att vänta.",
+          "title": "Återuppta arbetsyta"
+        },
+        "suspend": {
+          "confirm": "Spärra",
+          "description": "Övervakningarna i {{name}} slutar köras, dess offentliga status-sidor visar att de inte är tillgängliga, och medlemmarna ser att den är spärrad. Inget tas bort, och du kan återuppta den senare.",
+          "title": "Spärra arbetsyta"
+        }
+      },
+      "description": "Alla arbetsytor på den här installationen, med ägare, medlemmar och hur mycket de innehåller. Bara antal visas, inget av innehållet i en arbetsyta.",
+      "empty": "Inga arbetsytor hittades",
+      "load_failed": "Det gick inte att läsa in arbetsytorna.",
+      "messages": {
+        "deleted": "{{name}} har tagits bort",
+        "failed": "Det gick inte att ändra arbetsytan.",
+        "resumed": "{{name}} har återupptagits",
+        "suspended": "{{name}} är spärrad"
+      },
+      "monitors": "{{active}} aktiva, {{paused}} pausade",
+      "none": "Inga",
+      "page_name": "Arbetsytor",
+      "paging": {
+        "next": "Nästa",
+        "page": "Sida {{page}} av {{pages}}",
+        "previous": "Föregående"
+      },
+      "search_label": "Sök arbetsytor efter namn eller ägarens e-post",
+      "search_placeholder": "Sök efter namn eller ägarens e-post",
+      "status": {
+        "running": "Körs",
+        "suspended_admin": "Spärrad av en administratör",
+        "suspended_unverified": "Spärrad tills ägaren verifierar sin e-post"
+      },
+      "total": "{{total}} hittades",
+      "limits": {
+        "item": "{{name}}: {{value}}",
+        "more": "+{{number}} till",
+        "unlimited": "Inga gränser",
+        "source": {
+          "workspace": "Egna",
+          "install": "Installationens standardvärden",
+          "none": "Inga angivna"
+        },
+        "dialog": {
+          "title": "Gränser för {{name}}",
+          "description": "Vad den här arbetsytan är bunden av. Att sänka en gräns pausar och raderar ingenting: de nyaste övervakningarna över gränsen slutar köras tills det finns plats igen.",
+          "own": "Egna gränser",
+          "own_help": "De ersätter installationens standardvärden. Lämna en gräns tom för ingen gräns.",
+          "unlimited": "Inga gränser",
+          "unlimited_help": "Ingen gräns alls, vad installationens standardvärden än säger.",
+          "defaults": "Använd installationens standardvärden",
+          "defaults_help": "Standardgränserna under Admin → Inställningar, eller inga om installationen inte anger några.",
+          "save": "Spara gränser",
+          "cancel": "Avbryt",
+          "saved": "Gränserna för {{name}} är sparade",
+          "failed": "Det gick inte att spara gränserna."
+        }
+      }
+    },
+    "settings": {
+      "page_name": "Inställningar",
+      "description": "Inställningar för hela installationen. Ett värde som serverns miljö sätter är låst här.",
+      "load_failed": "Inställningarna kunde inte läsas in.",
+      "saved": "Inställningar sparade",
+      "save_failed": "Inställningarna sparades inte.",
+      "locked": "Satt av serverns miljö",
+      "source": {
+        "environment": "Från serverns miljö",
+        "saved": "Sparat här",
+        "default": "Standard"
+      },
+      "signup": {
+        "title": "Registrering",
+        "description": "Vem som får skapa ett konto på den här installationen.",
+        "label": "Registreringsläge",
+        "invite": "Endast med inbjudan",
+        "open": "Öppen",
+        "invite_help": "Den första användaren registrerar sig, och alla efter går med i en arbetsyta via en inbjudan.",
+        "open_help": "Vem som helst kan registrera sig och får en egen arbetsyta. Nya konton bekräftar sin e-postadress, så det krävs en e-postavsändare."
+      },
+      "sender": {
+        "title": "E-postavsändare",
+        "description": "SMTP-servern som skickar kontots e-post: länkar för att återställa lösenord, bekräftelse av e-post och inbjudningar.",
+        "on": "Kontots e-post är på.",
+        "off": "Kontots e-post är av: det finns ingen SMTP-värd.",
+        "host": "SMTP‑värd",
+        "port": "Port",
+        "tls": "Säkerhet",
+        "tls_starttls": "STARTTLS",
+        "tls_tls": "TLS",
+        "tls_none": "Ingen",
+        "user": "Användare",
+        "password": "Lösenord",
+        "password_set": "Ett lösenord är angivet. Skriv för att ersätta det.",
+        "password_not_set": "Inget lösenord angivet",
+        "password_removed": "Lösenordet tas bort när du sparar.",
+        "password_reenter": "Om du ändrar värd, port, säkerhet eller användare tas det sparade lösenordet bort. Ange det igen.",
+        "remove_password": "Ta bort lösenord",
+        "keep_password": "Behåll lösenord",
+        "from": "Avsändaradress"
+      },
+      "public_url": {
+        "title": "Offentlig URL",
+        "description": "Webbappens adress, som länkarna i e-post och aviseringar öppnar.",
+        "label": "Offentlig URL"
+      },
+      "test_email": {
+        "title": "Skicka ett testmejl",
+        "description": "Skickar ett kort mejl via den sparade avsändaren för att kontrollera att den fungerar.",
+        "to": "Skicka till",
+        "send": "Skicka ett testmejl",
+        "sending": "Skickar…",
+        "sent": "Testmejl skickat till {{to}}.",
+        "failed": "Testmejlet skickades inte.",
+        "unsaved": "Avsändaren har osparade ändringar. Testet använder den sparade avsändaren, så spara först."
+      },
+      "validation": {
+        "port": "Ange en port från 1 till 65535, eller lämna tomt för standardvärdet."
+      },
+      "errors": {
+        "locked": "{{field}} sätts av serverns miljö och kan inte ändras här.",
+        "open_needs_sender": "Öppen registrering kräver en e-postavsändare, eftersom nya konton bekräftar sin e-postadress. Ställ in avsändaren först, eller i samma sparning.",
+        "sender_needed": "Registreringen är öppen, och nya konton behöver avsändaren för att bekräfta sin e-postadress. Byt registreringen till endast med inbjudan först.",
+        "no_sender": "Det finns ingen e-postavsändare. Spara en avsändare först."
+      },
+      "limits": {
+        "title": "Standardgränser",
+        "description": "Gränserna för varje arbetsyta som inte har egna. Lämna en gräns tom för ingen gräns. Gränser som en arbetsyta får på sidan Arbetsytor ersätter dessa."
+      }
+    }
+  },
   "auth": {
     "login": {
       "description": "Logga in med din e-post",
       "no_account": "Har du inget konto?",
       "sign_up": "Registrera dig",
       "submit": "Logga in",
-      "title": "Välkommen tillbaka"
+      "title": "Välkommen tillbaka",
+      "forgot_password": "Glömt lösenordet?",
+      "ask_admin": "Be en administratör för den här installationen om en inbjudan"
     },
     "register": {
       "description": "Skapa ditt administratörskonto",
+      "description_open": "Skapa ditt konto",
       "have_account": "Har du redan ett konto?",
       "sign_in": "Logga in",
       "submit": "Skapa",
       "title": "Hej",
       "telemetry_note": "Anonymt: inga namn på övervakningar, webbadresser eller värdar. Du kan ändra det senare under ”Inställningar”.",
-      "telemetry_whats_sent": "Vad som skickas"
+      "telemetry_whats_sent": "Vad som skickas",
+      "errors": {
+        "rate_limited": "För många registreringar från ditt nätverk. Försök igen om en timme.",
+        "email_taken": "Det finns redan ett konto med den här e-postadressen.",
+        "sign_in_instead": "Logga in i stället.",
+        "check_failed": "Kontrollen godkändes inte. Försök igen.",
+        "check_load_failed": "Kontrollen kunde inte laddas. Kontrollera din anslutning och försök igen."
+      }
     },
     "twofa": {
       "code_label": "2FA-kod",
@@ -27,6 +297,45 @@
       "title": "Tvåfaktorsautentisering krävs",
       "verify_button": "Verifiera 2FA",
       "verifying": "Verifierar..."
+    },
+    "forgot": {
+      "title": "Återställ lösenordet",
+      "description": "Ange e-postadressen till ditt konto så skickar vi en länk.",
+      "submit": "Skicka länk",
+      "sent": "Om det finns ett konto med den här e-postadressen har vi skickat en länk. Den gäller i en timme.",
+      "back_to_login": "Tillbaka till inloggningen"
+    },
+    "reset": {
+      "title": "Välj ett nytt lösenord",
+      "description": "Ange ett nytt lösenord för ditt konto.",
+      "submit": "Ange lösenord",
+      "success": "Ditt lösenord är ändrat och du har loggats ut överallt. Logga in med det nya lösenordet.",
+      "sign_in": "Logga in",
+      "invalid_link": "Den här länken är använd eller har gått ut.",
+      "request_new": "Be om en ny länk"
+    },
+    "verify": {
+      "title": "Verifiera din e-postadress",
+      "verifying": "Verifierar din e-postadress...",
+      "success": "Din e-postadress är verifierad.",
+      "open_app": "Öppna Peekaping",
+      "invalid_link": "Den här länken är använd eller har gått ut."
+    },
+    "errors": {
+      "rate_limited": "För många förfrågningar. Försök igen senare.",
+      "generic": "Något gick fel. Försök igen.",
+      "already_verified": "Din e-postadress är redan verifierad."
+    },
+    "resend": {
+      "button": "Skicka igen",
+      "sent": "Vi har skickat en ny länk. Kolla din inkorg."
+    },
+    "verification_banner": {
+      "message": "Verifiera din e-postadress: vi har skickat en länk till {{email}}."
+    },
+    "suspension_notice": {
+      "message": "Dina övervakningar startar när du har verifierat din e-postadress.",
+      "member_message": "Den här arbetsytans övervakningar startar när ägaren har verifierat sin e-postadress."
     }
   },
   "bars": {
@@ -73,6 +382,7 @@
     "no_tags_available": "Inga taggar tillgängliga",
     "please_refresh_page": "Uppdatera sidan, tack.",
     "required": "Obligatorisk",
+    "retry": "Försök igen",
     "save": "Spara",
     "saving": "Sparar...",
     "search": "Sök",
@@ -124,6 +434,33 @@
       "password_required": "Lösenord krävs",
       "password_min_length": "Lösenord måste vara minst 8 tecken",
       "passwords_mismatch": "Lösenorden matchar inte"
+    }
+  },
+  "invite": {
+    "accept": "Acceptera inbjudan",
+    "accepting": "Ansluter...",
+    "creating": "Skapar...",
+    "description": "Du har blivit inbjuden att gå med i {{workspace}} som {{role}}.",
+    "enter_failed": "Du har gått med i arbetsytan, men den kunde inte öppnas. Försök igen.",
+    "errors": {
+      "other_email": "Den här inbjudan gäller en annan e-postadress."
+    },
+    "for_email": "Den här inbjudan gäller {{email}}.",
+    "have_account": "Har du redan ett konto?",
+    "open_app": "Öppna Peekaping",
+    "other_account": "Du är inloggad som {{current}}, men den här inbjudan gäller {{invited}}. Logga ut och logga sedan in eller registrera dig med {{invited}} för att acceptera den.",
+    "sign_in_instead": "Logga in i stället",
+    "sign_out": "Logga ut",
+    "signup_description": "Välj ett lösenord för att skapa ditt konto och gå med i {{workspace}} som {{role}}.",
+    "signup_submit": "Skapa konto och gå med",
+    "title": "Gå med i {{workspace}}",
+    "unavailable": {
+      "accepted": "Den här inbjudan har redan använts.",
+      "expired": "Den här inbjudan har upphört att gälla. Be om en ny.",
+      "not_found": "Den här inbjudningslänken finns inte. Kontrollera att du har kopierat hela länken.",
+      "revoked": "Den här inbjudan har återkallats. Be om en ny.",
+      "title": "Den här inbjudan kan inte användas",
+      "unknown": "Den här inbjudan kan inte användas. Be om en ny."
     }
   },
   "maintenance": {
@@ -231,6 +568,79 @@
       "wed": "Ons"
     }
   },
+  "members": {
+    "change_role_aria": "Ändra roll för {{email}}",
+    "errors": {
+      "account_exists": "Det finns redan ett konto med den här e-postadressen. Logga in och acceptera inbjudan.",
+      "already_member": "Den här personen är redan medlem i arbetsytan.",
+      "forbidden": "Din roll i den här arbetsytan tillåter inte detta.",
+      "generic": "Något gick fel. Försök igen.",
+      "last_owner": "En arbetsyta behöver minst en ägare.",
+      "member_not_found": "Den här medlemmen finns inte längre i arbetsytan."
+    },
+    "invite": {
+      "copied": "Länken har kopierats",
+      "copy": "Kopiera",
+      "creating": "Skapar...",
+      "description": "Skapa en länk för en e-postadress och en roll. Inget skickas via e-post: kopiera länken och skicka den själv.",
+      "done": "Klar",
+      "email_label": "E-post",
+      "link_note": "Länken fungerar en gång och upphör att gälla efter 7 dagar. Den visas bara nu, så kopiera den innan du lämnar sidan.",
+      "link_title": "Inbjudningslänk",
+      "role_label": "Roll",
+      "submit": "Skapa inbjudningslänk",
+      "title": "Bjud in någon"
+    },
+    "leave": {
+      "button": "Lämna arbetsytan",
+      "confirm": "Lämna",
+      "description": "Du förlorar åtkomsten till den här arbetsytan och dess data direkt.",
+      "done": "Du har lämnat arbetsytan",
+      "last_owner": "Du är den sista ägaren, så du kan inte lämna. Gör först en annan medlem till ägare.",
+      "refresh_failed": "Du har lämnat arbetsytan, men dina arbetsytor kunde inte läsas in. Försök igen.",
+      "title": "Lämna den här arbetsytan"
+    },
+    "list": {
+      "description": "Alla som arbetar i den här arbetsytan och deras roller.",
+      "email": "E-post",
+      "joined": "Gick med",
+      "role": "Roll",
+      "title": "Medlemmar",
+      "you": "du"
+    },
+    "page_name": "Medlemmar",
+    "pending": {
+      "description": "Inbjudningar som ännu inte har använts. Länken till en återkallad inbjudan slutar fungera.",
+      "email": "E-post",
+      "empty": "Inga väntande inbjudningar.",
+      "expired": "Utgången",
+      "expires": "Förfaller",
+      "revoke": "Återkalla",
+      "revoke_aria": "Återkalla inbjudan till {{email}}",
+      "revoked": "Inbjudan har återkallats",
+      "role": "Roll",
+      "title": "Väntande inbjudningar"
+    },
+    "remove": "Ta bort",
+    "remove_aria": "Ta bort {{email}}",
+    "remove_dialog": {
+      "confirm": "Ta bort",
+      "description": "{{email}} förlorar åtkomsten till den här arbetsytan direkt.",
+      "title": "Ta bort medlem"
+    },
+    "removed": "Medlemmen har tagits bort",
+    "role_updated": "Rollen har uppdaterats",
+    "roles": {
+      "admin": "Administratör",
+      "member": "Medlem",
+      "owner": "Ägare"
+    },
+    "settings_card": {
+      "description": "Se vem som arbetar i den här arbetsytan och, om du är administratör eller ägare, bjud in personer och hantera deras roller.",
+      "open": "Öppna medlemmar",
+      "title": "Medlemmar"
+    }
+  },
   "messages": {
     "login_error": "Ett fel uppstod vid inloggning",
     "login_no_tokens": "Inloggning lyckades men inga token mottogs.",
@@ -258,6 +668,7 @@
     },
     "empty_state": {
       "action": "Skapa din första övervakning",
+      "add_channel": "Lägg till en aviseringskanal",
       "description": "Börja med att skapa din första monitor för att spåra hälsan hos dina tjänster.",
       "title": "Inga övervakningar hittade"
     },
@@ -500,6 +911,7 @@
       "shared": {
         "intervals": {
           "heartbeat_retry": "Livssignalåterkopplingsintervall (Upprepa var {{seconds}} sekund)",
+          "interval_too_short": "Får inte vara mindre än {{minimum}} sekunder",
           "max_retries_description": "Maximalt antal försök innan tjänsten anses nere och en notifikation skickas",
           "request_timeout": "Begäran timeout (Timeout efter {{seconds}} sekunder)",
           "resend_notification": "Skicka om varning vid nedgång X gånger i rad (Skicka om inaktiverat)",
@@ -542,6 +954,10 @@
           "select_proxy_placeholder": "Välj proxy",
           "selected_proxy": "Vald proxy",
           "title": "Proxy"
+        },
+        "run_from": {
+          "default_locations": "Körs på standardplatserna",
+          "label": "Kör från"
         },
         "tags": {
           "label": "Taggar",
@@ -649,9 +1065,12 @@
     "toasts": {
       "deleted": "Övervakning borttagen",
       "paused": "Övervakning pausad",
+      "push_token_already_used": "En annan monitor använder redan den här push-token. Generera en ny.",
       "reset_success": "Monitordata återställdes framgångsrikt",
       "resumed": "Övervakning återupptagen"
     },
+    "type_disabled": "Typen {{type}} är avstängd på den här installationen",
+    "over_limit": "Kontrolleras inte: arbetsytan har fler aktiva övervakningar än dess gräns tillåter",
     "view": {
       "buttons": {
         "clone": "Klonera",
@@ -712,6 +1131,7 @@
     }
   },
   "navigation": {
+    "admin": "Admin",
     "maintenance": "Underhåll",
     "monitors": "Övervakningar",
     "notification_channels": "Aviseringskanaler",
@@ -1124,6 +1544,12 @@
         "signing_secret_docs_link": "Så verifierar du signaturen",
         "signing_secret_label": "Signeringshemlighet",
         "signing_secret_placeholder": "Lämna tomt för att skicka osignerade förfrågningar"
+      },
+      "install_email": {
+        "description": "Skickas av den här installationen, ingen SMTP-server behövs.",
+        "to_description": "En medlem i den här arbetsytan. Aviseringar skickas när medlemmen har verifierat adressen.",
+        "to_label": "Mottagare",
+        "to_placeholder": "Välj en medlem"
       }
     },
     "important": "Viktiga notiser",
@@ -1142,7 +1568,8 @@
       "updated_success": "Notifier uppdaterad framgångsrikt"
     },
     "new": {
-      "title": "Ny notifikationskanal"
+      "title": "Ny notifikationskanal",
+      "default_hint": "Den här kanalen kryssas i på nya monitorer."
     },
     "no_important": "Inga viktiga aviseringar hittades.",
     "placeholders": {
@@ -1152,11 +1579,21 @@
     "secret": {
       "reenter_error": "Ange den här hemligheten igen eller ta bort den: platsen den skickas till har ändrats",
       "reenter_hint": "Ange den här hemligheten igen: platsen den skickas till har ändrats",
+      "reenter_url_error": "Ange inloggningsuppgifterna i den här webbadressen igen: webbadressen har ändrats sedan den sparades",
       "remove": "Ta bort",
       "saved_hint": "Sparad — skriv för att ersätta"
     }
   },
   "probes": {
+    "default": {
+      "description": "En övervakare som skapas utan att sonder väljs körs på de standardsonder som inte är inaktiverade och som kör dess typ, och på den lokala sonden om ingen gör det. Befintliga övervakare behåller sina sonder.",
+      "failed": "Det gick inte att ändra om sonden är en standardsond.",
+      "label": "Standardsond",
+      "off": "{{name}} är inte längre en standardsond",
+      "on": "{{name}} är nu en standardsond",
+      "title": "Standard för nya övervakare"
+    },
+    "default_badge": "Standard",
     "page_name": "Sonder",
     "description": "Sonder kör kontroller av övervakningar från de platser där de är installerade. Den lokala sonden är Peekaping självt.",
     "local_name": "Lokal",
@@ -1438,7 +1875,9 @@
     "data_retention": {
       "days_label": "Dagar",
       "description": "Ange hur många dagar data ska sparas (KEEP_DATA_PERIOD_DAYS).",
-      "title": "Lagringstid för data"
+      "read_only": "Bara en administratör eller ägare av arbetsytan kan ändra detta.",
+      "title": "Lagringstid för data",
+      "capped": "Upp till {{max}} dagar i den här arbetsytan"
     },
     "error_reporting": {
       "cluster_note": "I klusterläge når en ändring alla processer inom en minut.",
@@ -1464,6 +1903,10 @@
     },
     "validation": {
       "min_days": "Måste vara minst 1 dag"
+    },
+    "workspace_name": {
+      "description": "Namnet som visas i arbetsytebytaren och för medlemmarna.",
+      "title": "Arbetsytans namn"
     }
   },
   "status": {
@@ -1479,6 +1922,7 @@
       "refresh_in": "Uppdatera om",
       "refresh_now": "Uppdatera nu",
       "status_page_not_found": "Status-sidan hittades inte eller är inte publicerad.",
+      "status_page_unavailable": "Den här status-sidan är inte tillgänglig",
       "under_maintenance": "Underhåll",
       "unknown": "Okänd"
     }
@@ -1522,6 +1966,7 @@
     "search_placeholder": "Sök status-sidor efter titel...",
     "show_locations": "Visa varje plats",
     "show_locations_info": "För övervakningar som kontrolleras från flera platser visas status och historik för varje plats",
+    "slug_already_used": "En annan statussida använder redan den här adressen",
     "update_status_page": "Uppdatera status­sida",
     "view_page": "Visa sida"
   },
@@ -1587,5 +2032,93 @@
   "ui": {
     "general": "Allmänt",
     "intervals_retries": "Intervaller, Upprepningar, Timeout"
+  },
+  "workspaces": {
+    "create": "Skapa arbetsyta",
+    "create_error": "Det gick inte att skapa arbetsytan",
+    "create_first": "Skapa en arbetsyta",
+    "creating": "Skapar...",
+    "enter": "Öppna arbetsyta",
+    "entering": "Öppnar...",
+    "entry_failed": "Arbetsytan skapades, men det gick inte att öppna den. Försök igen.",
+    "name_label": "Namn",
+    "name_placeholder": "Mitt team",
+    "name_required": "Ange ett namn",
+    "new": "Ny arbetsyta",
+    "new_description": "En arbetsyta har egna övervakningar, aviseringskanaler, statussidor och medlemmar. Du blir dess ägare.",
+    "new_title": "Ny arbetsyta",
+    "none_description": "Ditt konto är inte medlem i någon arbetsyta, så det finns inget att visa här. Be någon som hanterar en arbetsyta att lägga till dig.",
+    "none_title": "Du är inte med i någon arbetsyta ännu",
+    "refresh_failed": "Dina arbetsytor kunde inte läsas in. Kontrollera anslutningen och försök igen.",
+    "rename_error": "Det gick inte att byta namn på arbetsytan",
+    "rename_success": "Arbetsytan har bytt namn",
+    "suspended_banner": {
+      "contact": "Kontakt:",
+      "message": "Den här arbetsytan är spärrad av administratören för den här installationen. Dess övervakningar körs inte, och dess status-sidor är inte tillgängliga.",
+      "no_contact": "Kontakta den som driver den här installationen."
+    },
+    "switcher_label": "Byt arbetsyta"
+  },
+  "get_started": {
+    "page_name": "Kom igång",
+    "skip": "Hoppa över konfigurationen",
+    "step_of": "Steg {{current}} av {{total}}",
+    "name": {
+      "description": "Här finns dina övervakningar, aviseringskanaler och statussidor. Du kan byta namn senare i Inställningar.",
+      "title": "Namnge din arbetsyta"
+    },
+    "monitor": {
+      "create": "Skapa övervakning",
+      "create_failed": "Det gick inte att skapa övervakningen",
+      "creating": "Skapar...",
+      "description": "Ange adressen till en webbplats eller ett API. Peekaping kontrollerar den och berättar när den slutar svara.",
+      "full_form": "Eller ställ in en övervakning med alla alternativ",
+      "title": "Lägg till din första övervakning",
+      "url_invalid": "Ange en adress som börjar med http:// eller https://",
+      "url_label": "Adress att övervaka"
+    },
+    "channel": {
+      "continue_unlinked": "Fortsätt utan att koppla",
+      "description": "Välj vart Peekaping skickar ett larm när din övervakning går ner. Den blir standard för nya övervakningar.",
+      "link_failed": "Kanalen sparades, men det gick inte att koppla den till din övervakning. Lägg till den på övervakningens redigeringssida.",
+      "retry_link": "Försök koppla igen",
+      "title": "Få aviseringar"
+    },
+    "done": {
+      "description": "Peekaping övervakar din tjänst. Det här kan du göra härnäst.",
+      "title": "Allt är klart",
+      "unverified": "Din övervakning körs när din e-postadress är verifierad. Leta efter verifieringslänken i inkorgen.",
+      "links": {
+        "members": "Bjud in ditt team",
+        "monitor": "Öppna din övervakning",
+        "monitors": "Gå till övervakningar",
+        "probes": "Hantera sonder",
+        "status_pages": "Publicera en statussida"
+      }
+    }
+  },
+  "limits": {
+    "reached": {
+      "monitors": "Den här arbetsytan kan ha högst {{max}} övervakningar igång",
+      "status_pages": "Den här arbetsytan kan ha högst {{max}} statussidor",
+      "custom_domains": "Statussidorna i den här arbetsytan kan ha högst {{max}} anpassade domäner tillsammans",
+      "members": "Den här arbetsytan kan ha högst {{max}} medlemmar, väntande inbjudningar inräknade",
+      "owned_workspaces": "Du kan äga högst {{max}} arbetsytor",
+      "probes": "En övervakning i den här arbetsytan kan köras på högst {{max}} sonder",
+      "retention_days": "Den här arbetsytan kan spara data i högst {{max}} dagar"
+    },
+    "names": {
+      "monitors": "Aktiva övervakningar",
+      "min_check_interval": "Kortaste kontrollintervall (sekunder)",
+      "status_pages": "Statussidor",
+      "custom_domains": "Anpassade domäner",
+      "members": "Medlemmar",
+      "owned_workspaces": "Arbetsytor som en användare får äga",
+      "probes_per_monitor": "Sonder per övervakning",
+      "retention_days": "Lagringstid för data (dagar)"
+    },
+    "none": "Ingen gräns",
+    "invalid": "Ange ett heltal på 1 eller mer, eller lämna fältet tomt för ingen gräns.",
+    "retention_too_long": "Får inte vara mer än {{max}} dagar"
   }
 }

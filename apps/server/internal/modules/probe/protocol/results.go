@@ -249,7 +249,7 @@ func (c *Controller) retryLater(probeID, message string) error {
 // only those it is dealt now: a monitor moves to another instance when one joins or leaves, and the
 // results of a check the first had under way are still its to send.
 func (c *Controller) dealtMonitors(ctx context.Context, owner *probe.Model, instance *probe.Instance) (map[string]*monitor.Model, error) {
-	monitors, err := c.source.FindActiveByProbe(ctx, owner.ID)
+	monitors, err := c.source.FindActiveByProbeAnyWorkspace(ctx, owner.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -262,10 +262,11 @@ func (c *Controller) dealtMonitors(ctx context.Context, owner *probe.Model, inst
 }
 
 // dealtTo reports whether the instance may send results for the monitor, by the rule that
-// dealtMonitors lists by: the monitor is active, runs on the instance's probe, and is of a type the
-// instance supports. m is nil when there is no such monitor.
+// dealtMonitors lists by: the monitor is active, its workspace is not suspended, its type is not
+// turned off, it is within its workspace's limit of active monitors, it runs on the instance's
+// probe, and it is of a type the instance supports. m is nil when there is no such monitor.
 func dealtTo(m *monitor.Model, owner *probe.Model, instance *probe.Instance) bool {
-	return m != nil && m.RunsOn(owner.ID) && len(Dealable([]*monitor.Model{m}, instance.SupportedTypes)) == 1
+	return m != nil && !m.WorkspaceSuspended && !m.TypeDisabled && !m.OverLimit && m.RunsOn(owner.ID) && len(Dealable([]*monitor.Model{m}, instance.SupportedTypes)) == 1
 }
 
 // otherMonitor reads a monitor that the listing did not deal the probe, to tell one that does not
@@ -281,7 +282,7 @@ func (c *Controller) otherMonitor(ctx context.Context, others map[string]*monito
 	if _, err := uuid.Parse(id); err != nil {
 		return nil, nil
 	}
-	m, err := c.monitors.FindByID(ctx, id)
+	m, err := c.monitors.FindByIDAnyWorkspace(ctx, id)
 	if err != nil {
 		return nil, err
 	}

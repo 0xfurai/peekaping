@@ -198,4 +198,4 @@ install: ## Install all dependencies (bun install + go mod tidy)
 # PEEKAPING_URL and PROBE_TOKEN, which .env.dev.example sets.
 .PHONY: dev
 dev: ## Start development environment
-	bun run dev dev:api dev:probe docs:watch
+	bun run dev

@@ -63,6 +63,8 @@ func helloFrom(instanceID string) probeproto.HelloRequest {
 		Hostname:        "edge-1.example.com",
 		OS:              "linux",
 		Arch:            "arm64",
+
+		EnforcesPrivateTargetBlock: true,
 	}
 }
 
@@ -300,6 +302,7 @@ func TestProbeProtocol_HelloRecordsTheInstance(t *testing.T) {
 	assert.Equal(t, probeInstanceResponse{
 		ID: instanceID, Hostname: "edge-1.example.com", OS: "linux", Arch: "arm64", Version: "0.1.0",
 		ProtocolVersion: 1, SupportedTypes: []string{"http", "tcp", "dns"}, LastSeenAt: got.Instances[0].LastSeenAt,
+		EnforcesPrivateTargetBlock: true,
 	}, got.Instances[0])
 	assert.WithinDuration(t, before, got.Instances[0].LastSeenAt, time.Minute)
 	assert.Equal(t, []string{"http", "tcp", "dns"}, got.SupportedTypes)
@@ -824,9 +827,9 @@ func shortPoll(c *dig.Container) error {
 }
 
 // localProbeApp is an app whose local probe has a token
-func localProbeApp(t *testing.T, decorate func(*dig.Container) error) *app {
+func localProbeApp(t *testing.T, decorate func(*dig.Container) error, options ...func(*config.Config)) *app {
 	t.Helper()
-	a := newAppDecorated(t, decorate, func(cfg *config.Config) { cfg.ProbeBootstrapToken = localToken })
+	a := newAppDecorated(t, decorate, append([]func(*config.Config){func(cfg *config.Config) { cfg.ProbeBootstrapToken = localToken }}, options...)...)
 	a.registerAdmin(t)
 	return a
 }
@@ -1758,5 +1761,35 @@ func TestProbeProtocol_ResultsAreDocumented(t *testing.T) {
 	assert.Contains(t, op.Responses["200"].Content, "application/json")
 	for _, status := range []string{"400", "401", "409", "413", "429", "500"} {
 		assert.Contains(t, op.Responses, status)
+	}
+}
+
+// The server states its CHECKS_PER_HOST_PER_MINUTE in hello, so that a probe spaces its checks to
+// one host at least that closely too. Off (0) leaves the field out, as every older server does.
+func TestProbeProtocol_HelloStatesTheChecksPerHostPerMinuteCap(t *testing.T) {
+	tests := []struct {
+		name string
+		cap  int
+		want int
+	}{
+		{"off by default", 0, 0},
+		{"set", 90, 90},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			a := newAppWithAdmin(t, func(cfg *config.Config) { cfg.ChecksPerHostPerMinute = tc.cap })
+			made := a.createProbe(t, map[string]any{"name": "Frankfurt", "location": "eu-central"})
+
+			instanceID := uuid.NewString()
+			w := a.request(t, http.MethodPost, helloPath, helloFrom(instanceID), asProbe(made.Token, instanceID))
+			require.Equal(t, http.StatusOK, w.Code, w.Body.String())
+
+			var welcome probeproto.HelloResponse
+			require.NoError(t, json.Unmarshal(w.Body.Bytes(), &welcome))
+			assert.Equal(t, tc.want, welcome.ChecksPerHostPerMinute)
+			if tc.cap == 0 {
+				assert.NotContains(t, w.Body.String(), "checks_per_host_per_minute", "an absent field is off")
+			}
+		})
 	}
 }

@@ -3,22 +3,292 @@
     "cancel": "Hủy",
     "saving": "Đang lưu..."
   },
+  "admin": {
+    "nav": {
+      "back_to_workspace": "Quay lại {{name}}",
+      "probes": "Đầu dò",
+      "title": "Quản trị",
+      "users": "Người dùng",
+      "workspaces": "Không gian làm việc",
+      "settings": "Cài đặt"
+    },
+    "users": {
+      "actions": {
+        "delete": "Xóa người dùng",
+        "disable": "Vô hiệu hóa người dùng",
+        "disableTwoFactor": "Tắt 2FA",
+        "enable": "Bật người dùng",
+        "grantAdmin": "Đặt làm quản trị viên phiên bản",
+        "resetLink": "Tạo liên kết đặt lại",
+        "revokeAdmin": "Gỡ quyền quản trị viên phiên bản"
+      },
+      "actions_aria": "Thao tác cho {{email}}",
+      "columns": {
+        "created": "Ngày tạo",
+        "email": "Email",
+        "email_verified": "Email đã xác minh",
+        "instance_admin": "Quản trị viên phiên bản",
+        "last_sign_in": "Đăng nhập gần nhất",
+        "status": "Trạng thái",
+        "two_factor": "2FA",
+        "workspaces": "Không gian làm việc"
+      },
+      "confirm": {
+        "cancel": "Hủy",
+        "delete": {
+          "confirm": "Xóa người dùng",
+          "description": "Xóa {{email}}? Tài khoản của họ sẽ bị xóa, cùng với chỗ của họ trong các không gian làm việc. Không thể hoàn tác.",
+          "title": "Xóa người dùng"
+        },
+        "disable": {
+          "confirm": "Vô hiệu hóa",
+          "description": "{{email}} sẽ không đăng nhập được và bị đăng xuất khỏi mọi nơi ngay bây giờ. Các không gian làm việc của họ vẫn hoạt động. Bạn có thể bật lại sau.",
+          "title": "Vô hiệu hóa người dùng"
+        },
+        "disableTwoFactor": {
+          "confirm": "Tắt 2FA",
+          "description": "{{email}} sẽ đăng nhập chỉ bằng mật khẩu và có thể thiết lập lại 2FA. Chỉ làm vậy khi bạn chắc chắn chính họ là người yêu cầu.",
+          "title": "Tắt 2FA"
+        }
+      },
+      "description": "Tất cả những ai có tài khoản trên bản cài đặt này. Quản trị viên phiên bản quản lý chính bản cài đặt, chẳng hạn đầu dò và người dùng. Vai trò của người dùng trong một không gian làm việc do chủ sở hữu của không gian đó đặt.",
+      "empty": "Không tìm thấy người dùng",
+      "errors": {
+        "last_instance_admin": "Bản cài đặt cần ít nhất một quản trị viên phiên bản.",
+        "last_owner": "Người dùng là chủ sở hữu cuối cùng của {{workspaces}}. Hãy đặt người khác làm chủ sở hữu, hoặc xóa không gian làm việc, trước.",
+        "self": "Bạn không thể làm điều này với chính tài khoản của mình."
+      },
+      "load_failed": "Không thể tải danh sách người dùng.",
+      "messages": {
+        "admin_granted": "{{email}} giờ là quản trị viên phiên bản",
+        "admin_revoked": "{{email}} không còn là quản trị viên phiên bản",
+        "deleted": "{{email}} đã bị xóa",
+        "disabled": "{{email}} đã bị vô hiệu hóa và bị đăng xuất",
+        "enabled": "{{email}} đã được bật",
+        "two_factor_off": "2FA của {{email}} đã tắt",
+        "update_failed": "Không thể cập nhật người dùng."
+      },
+      "never": "Chưa bao giờ",
+      "none": "Không có",
+      "page_name": "Người dùng",
+      "paging": {
+        "next": "Sau",
+        "page": "Trang {{page}} / {{pages}}",
+        "previous": "Trước"
+      },
+      "reset_link": {
+        "close": "Đóng",
+        "copied": "Đã sao chép liên kết",
+        "copy": "Sao chép liên kết",
+        "copy_failed": "Không thể sao chép liên kết. Hãy chọn và sao chép thủ công.",
+        "description": "Liên kết để {{email}} chọn mật khẩu mới. Hãy sao chép và chuyển cho họ ngay: liên kết chỉ hiển thị một lần.",
+        "emailed": "Bản cài đặt này có gửi email tài khoản, nên người dùng được báo qua email rằng một liên kết đã được tạo cho họ.",
+        "expires": "Liên kết chỉ dùng được một lần và hết hạn {{when}}.",
+        "failed": "Không thể tạo liên kết.",
+        "label": "Liên kết",
+        "making": "Đang tạo liên kết...",
+        "signs_out": "Dùng liên kết sẽ đăng xuất người dùng khỏi mọi nơi.",
+        "title": "Liên kết đặt lại mật khẩu"
+      },
+      "search_label": "Tìm người dùng theo email",
+      "search_placeholder": "Tìm theo email",
+      "total": "Tìm thấy {{total}}",
+      "values": {
+        "active": "Hoạt động",
+        "disabled": "Đã vô hiệu hóa",
+        "no": "Không",
+        "two_factor_off": "Tắt",
+        "two_factor_on": "Bật",
+        "yes": "Có"
+      },
+      "you": "bạn"
+    },
+    "workspaces": {
+      "actions": {
+        "delete": "Xóa không gian làm việc",
+        "resume": "Khôi phục không gian làm việc",
+        "suspend": "Tạm ngưng không gian làm việc",
+        "limits": "Giới hạn"
+      },
+      "actions_aria": "Thao tác cho {{name}}",
+      "columns": {
+        "created": "Ngày tạo",
+        "custom_domains": "Tên miền tùy chỉnh",
+        "members": "Thành viên",
+        "monitors": "Giám sát",
+        "name": "Tên",
+        "owners": "Chủ sở hữu",
+        "status": "Trạng thái",
+        "status_pages": "Trang trạng thái",
+        "limits": "Giới hạn"
+      },
+      "confirm": {
+        "cancel": "Hủy",
+        "delete": {
+          "confirm": "Xóa không gian làm việc",
+          "description": "Xóa {{name}}? Mọi thứ trong đó sẽ mất: các giám sát và lịch sử của chúng, trang trạng thái, kênh thông báo và quyền truy cập của thành viên. Không thể hoàn tác.",
+          "name_label": "Nhập tên không gian làm việc để xác nhận: {{name}}",
+          "title": "Xóa không gian làm việc"
+        },
+        "resume": {
+          "confirm": "Khôi phục",
+          "description": "Các giám sát của {{name}} chạy lại với trạng thái như trước, và thành viên có thể sử dụng như trước. Không gian làm việc đang chờ chủ sở hữu xác minh email sẽ tiếp tục chờ.",
+          "title": "Khôi phục không gian làm việc"
+        },
+        "suspend": {
+          "confirm": "Tạm ngưng",
+          "description": "Các giám sát của {{name}} ngừng chạy, các trang trạng thái công khai của nó báo không khả dụng, và thành viên sẽ thấy nó đã bị tạm ngưng. Không có gì bị xóa, và bạn có thể khôi phục sau.",
+          "title": "Tạm ngưng không gian làm việc"
+        }
+      },
+      "description": "Mọi không gian làm việc trên bản cài đặt này, cùng chủ sở hữu, thành viên và lượng nội dung của nó. Chỉ hiển thị số lượng, không hiển thị gì bên trong không gian làm việc.",
+      "empty": "Không tìm thấy không gian làm việc",
+      "load_failed": "Không thể tải danh sách không gian làm việc.",
+      "messages": {
+        "deleted": "{{name}} đã bị xóa",
+        "failed": "Không thể thay đổi không gian làm việc.",
+        "resumed": "{{name}} đã được khôi phục",
+        "suspended": "{{name}} đã bị tạm ngưng"
+      },
+      "monitors": "{{active}} hoạt động, {{paused}} tạm dừng",
+      "none": "Không có",
+      "page_name": "Không gian làm việc",
+      "paging": {
+        "next": "Sau",
+        "page": "Trang {{page}} / {{pages}}",
+        "previous": "Trước"
+      },
+      "search_label": "Tìm không gian làm việc theo tên hoặc email chủ sở hữu",
+      "search_placeholder": "Tìm theo tên hoặc email chủ sở hữu",
+      "status": {
+        "running": "Đang chạy",
+        "suspended_admin": "Bị quản trị viên tạm ngưng",
+        "suspended_unverified": "Tạm ngưng cho đến khi chủ sở hữu xác minh email"
+      },
+      "total": "Tìm thấy {{total}}",
+      "limits": {
+        "item": "{{name}}: {{value}}",
+        "more": "+{{number}} nữa",
+        "unlimited": "Không có giới hạn",
+        "source": {
+          "workspace": "Riêng",
+          "install": "Mặc định của bản cài đặt",
+          "none": "Chưa đặt"
+        },
+        "dialog": {
+          "title": "Giới hạn của {{name}}",
+          "description": "Những giới hạn mà không gian làm việc này phải tuân theo. Hạ một giới hạn không tạm dừng hay xóa gì cả: các giám sát mới nhất vượt giới hạn sẽ ngừng chạy cho đến khi lại có chỗ.",
+          "own": "Giới hạn riêng",
+          "own_help": "Các giới hạn này thay thế mặc định của bản cài đặt. Để trống một giới hạn nếu không muốn giới hạn đó.",
+          "unlimited": "Không có giới hạn",
+          "unlimited_help": "Hoàn toàn không giới hạn, bất kể mặc định của bản cài đặt nói gì.",
+          "defaults": "Dùng mặc định của bản cài đặt",
+          "defaults_help": "Các giới hạn mặc định trong Quản trị → Cài đặt, hoặc không có nếu bản cài đặt không đặt giới hạn nào.",
+          "save": "Lưu giới hạn",
+          "cancel": "Hủy",
+          "saved": "Đã lưu giới hạn của {{name}}",
+          "failed": "Không thể lưu các giới hạn."
+        }
+      }
+    },
+    "settings": {
+      "page_name": "Cài đặt",
+      "description": "Cài đặt của toàn bộ bản cài đặt. Giá trị do môi trường của máy chủ đặt sẽ bị khóa ở đây.",
+      "load_failed": "Không thể tải cài đặt.",
+      "saved": "Đã lưu cài đặt",
+      "save_failed": "Cài đặt chưa được lưu.",
+      "locked": "Do môi trường của máy chủ đặt",
+      "source": {
+        "environment": "Từ môi trường của máy chủ",
+        "saved": "Đã lưu ở đây",
+        "default": "Mặc định"
+      },
+      "signup": {
+        "title": "Đăng ký",
+        "description": "Ai được tạo tài khoản trên bản cài đặt này.",
+        "label": "Chế độ đăng ký",
+        "invite": "Chỉ qua lời mời",
+        "open": "Mở",
+        "invite_help": "Người dùng đầu tiên đăng ký, và mọi người sau đó tham gia một không gian làm việc qua lời mời.",
+        "open_help": "Bất kỳ ai cũng có thể đăng ký và nhận một không gian làm việc riêng. Tài khoản mới xác minh địa chỉ email, nên cần một người gửi email."
+      },
+      "sender": {
+        "title": "Người gửi email",
+        "description": "Máy chủ SMTP gửi email tài khoản: liên kết đặt lại mật khẩu, xác minh email và lời mời.",
+        "on": "Email tài khoản đang bật.",
+        "off": "Email tài khoản đang tắt: không có máy chủ SMTP.",
+        "host": "Máy chủ SMTP",
+        "port": "Cổng",
+        "tls": "Bảo mật",
+        "tls_starttls": "STARTTLS",
+        "tls_tls": "TLS",
+        "tls_none": "Không có",
+        "user": "Người dùng",
+        "password": "Mật khẩu",
+        "password_set": "Đã đặt mật khẩu. Nhập để thay thế.",
+        "password_not_set": "Chưa đặt mật khẩu",
+        "password_removed": "Mật khẩu sẽ bị xóa khi bạn lưu.",
+        "password_reenter": "Thay đổi máy chủ, cổng, bảo mật hoặc người dùng sẽ xóa mật khẩu đã lưu. Hãy nhập lại.",
+        "remove_password": "Xóa mật khẩu",
+        "keep_password": "Giữ mật khẩu",
+        "from": "Địa chỉ người gửi"
+      },
+      "public_url": {
+        "title": "URL công khai",
+        "description": "Địa chỉ của ứng dụng web, nơi các liên kết trong email và thông báo mở tới.",
+        "label": "URL công khai"
+      },
+      "test_email": {
+        "title": "Gửi email thử",
+        "description": "Gửi một email ngắn qua người gửi đã lưu để kiểm tra rằng nó hoạt động.",
+        "to": "Gửi tới",
+        "send": "Gửi email thử",
+        "sending": "Đang gửi…",
+        "sent": "Đã gửi email thử tới {{to}}.",
+        "failed": "Email thử chưa được gửi.",
+        "unsaved": "Người gửi có thay đổi chưa lưu. Bài thử dùng người gửi đã lưu, nên hãy lưu trước."
+      },
+      "validation": {
+        "port": "Nhập cổng từ 1 đến 65535, hoặc để trống để dùng mặc định."
+      },
+      "errors": {
+        "locked": "{{field}} do môi trường của máy chủ đặt và không thể thay đổi ở đây.",
+        "open_needs_sender": "Đăng ký mở cần một người gửi email, vì tài khoản mới xác minh địa chỉ email. Hãy thiết lập người gửi trước, hoặc trong cùng lần lưu.",
+        "sender_needed": "Đăng ký đang mở, và tài khoản mới cần người gửi để xác minh địa chỉ email. Hãy chuyển đăng ký sang chỉ qua lời mời trước.",
+        "no_sender": "Không có người gửi email. Hãy lưu một người gửi trước."
+      },
+      "limits": {
+        "title": "Giới hạn mặc định",
+        "description": "Giới hạn của mọi không gian làm việc không có giới hạn riêng. Để trống một giới hạn nếu không muốn giới hạn đó. Các giới hạn được đặt cho một không gian làm việc ở trang Không gian làm việc sẽ thay thế các giới hạn này."
+      }
+    }
+  },
   "auth": {
     "login": {
       "description": "Đăng nhập bằng email của bạn",
       "no_account": "Bạn chưa có tài khoản?",
       "sign_up": "Đăng ký",
       "submit": "Đăng nhập",
-      "title": "Chào mừng trở lại"
+      "title": "Chào mừng trở lại",
+      "forgot_password": "Quên mật khẩu?",
+      "ask_admin": "Hãy nhờ quản trị viên của bản cài đặt này gửi lời mời"
     },
     "register": {
       "description": "Tạo tài khoản quản trị của bạn",
+      "description_open": "Tạo tài khoản của bạn",
       "have_account": "Bạn đã có tài khoản?",
       "sign_in": "Đăng nhập",
       "submit": "Tạo",
       "title": "Xin chào",
       "telemetry_note": "Ẩn danh: không có tên giám sát, URL hay máy chủ. Bạn có thể đổi lại sau trong “Cài đặt”.",
-      "telemetry_whats_sent": "Những gì được gửi"
+      "telemetry_whats_sent": "Những gì được gửi",
+      "errors": {
+        "rate_limited": "Có quá nhiều lượt đăng ký từ mạng của bạn. Hãy thử lại sau một giờ.",
+        "email_taken": "Đã có tài khoản dùng email này.",
+        "sign_in_instead": "Hãy đăng nhập.",
+        "check_failed": "Kiểm tra không thành công. Hãy thử lại.",
+        "check_load_failed": "Không tải được bước kiểm tra. Hãy kiểm tra kết nối và thử lại."
+      }
     },
     "twofa": {
       "code_label": "Mã 2FA",
@@ -27,6 +297,45 @@
       "title": "Xác thực hai yếu tố cần thiết",
       "verify_button": "Xác thực 2FA",
       "verifying": "Đang xác thực..."
+    },
+    "forgot": {
+      "title": "Đặt lại mật khẩu",
+      "description": "Nhập email của tài khoản, chúng tôi sẽ gửi cho bạn một liên kết.",
+      "submit": "Gửi liên kết",
+      "sent": "Nếu có tài khoản dùng email này, chúng tôi đã gửi một liên kết. Liên kết có hiệu lực trong một giờ.",
+      "back_to_login": "Quay lại đăng nhập"
+    },
+    "reset": {
+      "title": "Chọn mật khẩu mới",
+      "description": "Nhập mật khẩu mới cho tài khoản của bạn.",
+      "submit": "Đặt mật khẩu",
+      "success": "Mật khẩu của bạn đã được đổi và bạn đã bị đăng xuất khỏi mọi nơi. Hãy đăng nhập bằng mật khẩu mới.",
+      "sign_in": "Đăng nhập",
+      "invalid_link": "Liên kết này đã được dùng hoặc đã hết hạn.",
+      "request_new": "Yêu cầu liên kết mới"
+    },
+    "verify": {
+      "title": "Xác minh email của bạn",
+      "verifying": "Đang xác minh email của bạn...",
+      "success": "Email của bạn đã được xác minh.",
+      "open_app": "Mở Peekaping",
+      "invalid_link": "Liên kết này đã được dùng hoặc đã hết hạn."
+    },
+    "errors": {
+      "rate_limited": "Quá nhiều yêu cầu. Hãy thử lại sau.",
+      "generic": "Đã xảy ra lỗi. Hãy thử lại.",
+      "already_verified": "Email của bạn đã được xác minh."
+    },
+    "resend": {
+      "button": "Gửi lại",
+      "sent": "Chúng tôi đã gửi một liên kết mới. Hãy kiểm tra hộp thư đến."
+    },
+    "verification_banner": {
+      "message": "Xác minh email của bạn: chúng tôi đã gửi một liên kết đến {{email}}."
+    },
+    "suspension_notice": {
+      "message": "Các monitor của bạn sẽ bắt đầu chạy khi bạn xác minh email.",
+      "member_message": "Các monitor của không gian làm việc này sẽ bắt đầu chạy khi chủ sở hữu xác minh email."
     }
   },
   "bars": {
@@ -73,6 +382,7 @@
     "no_tags_available": "Không có thẻ nào",
     "please_refresh_page": "Vui lòng làm mới trang.",
     "required": "Bắt buộc",
+    "retry": "Thử lại",
     "save": "Lưu",
     "saving": "Đang lưu...",
     "search": "Tìm kiếm",
@@ -124,6 +434,33 @@
       "password_required": "Mật khẩu là bắt buộc",
       "password_min_length": "Mật khẩu phải có ít nhất 8 ký tự",
       "passwords_mismatch": "Mật khẩu không khớp"
+    }
+  },
+  "invite": {
+    "accept": "Chấp nhận lời mời",
+    "accepting": "Đang tham gia...",
+    "creating": "Đang tạo...",
+    "description": "Bạn được mời tham gia {{workspace}} với vai trò {{role}}.",
+    "enter_failed": "Bạn đã tham gia không gian làm việc, nhưng mở không gian đó không thành công. Hãy thử lại.",
+    "errors": {
+      "other_email": "Lời mời này dành cho một địa chỉ email khác."
+    },
+    "for_email": "Lời mời này dành cho {{email}}.",
+    "have_account": "Bạn đã có tài khoản?",
+    "open_app": "Mở Peekaping",
+    "other_account": "Bạn đang đăng nhập với {{current}}, nhưng lời mời này dành cho {{invited}}. Hãy đăng xuất, sau đó đăng nhập hoặc đăng ký bằng {{invited}} để chấp nhận.",
+    "sign_in_instead": "Đăng nhập",
+    "sign_out": "Đăng xuất",
+    "signup_description": "Chọn mật khẩu để tạo tài khoản và tham gia {{workspace}} với vai trò {{role}}.",
+    "signup_submit": "Tạo tài khoản và tham gia",
+    "title": "Tham gia {{workspace}}",
+    "unavailable": {
+      "accepted": "Lời mời này đã được sử dụng.",
+      "expired": "Lời mời này đã hết hạn. Hãy yêu cầu lời mời mới.",
+      "not_found": "Liên kết mời này không tồn tại. Hãy kiểm tra xem bạn đã sao chép đủ toàn bộ liên kết chưa.",
+      "revoked": "Lời mời này đã bị thu hồi. Hãy yêu cầu lời mời mới.",
+      "title": "Không thể dùng lời mời này",
+      "unknown": "Không thể dùng lời mời này. Hãy yêu cầu lời mời mới."
     }
   },
   "maintenance": {
@@ -231,6 +568,79 @@
       "wed": "Thu Tư"
     }
   },
+  "members": {
+    "change_role_aria": "Đổi vai trò của {{email}}",
+    "errors": {
+      "account_exists": "Đã có tài khoản với email này. Hãy đăng nhập và chấp nhận lời mời.",
+      "already_member": "Người này đã là thành viên của không gian làm việc này.",
+      "forbidden": "Vai trò của bạn trong không gian làm việc này không cho phép thực hiện việc này.",
+      "generic": "Đã xảy ra lỗi. Vui lòng thử lại.",
+      "last_owner": "Một không gian làm việc cần có ít nhất một chủ sở hữu.",
+      "member_not_found": "Thành viên này không còn trong không gian làm việc."
+    },
+    "invite": {
+      "copied": "Đã sao chép liên kết",
+      "copy": "Sao chép",
+      "creating": "Đang tạo...",
+      "description": "Tạo một liên kết cho một địa chỉ email và một vai trò. Hệ thống không gửi email: hãy sao chép liên kết và tự gửi.",
+      "done": "Xong",
+      "email_label": "Email",
+      "link_note": "Liên kết này chỉ dùng được một lần và hết hạn sau 7 ngày. Liên kết chỉ hiển thị lúc này, vì vậy hãy sao chép trước khi rời khỏi trang.",
+      "link_title": "Liên kết mời",
+      "role_label": "Vai trò",
+      "submit": "Tạo liên kết mời",
+      "title": "Mời người khác"
+    },
+    "leave": {
+      "button": "Rời không gian làm việc",
+      "confirm": "Rời đi",
+      "description": "Bạn sẽ mất quyền truy cập vào không gian làm việc này và dữ liệu của nó ngay lập tức.",
+      "done": "Bạn đã rời khỏi không gian làm việc",
+      "last_owner": "Bạn là chủ sở hữu cuối cùng nên không thể rời đi. Hãy chọn một thành viên khác làm chủ sở hữu trước.",
+      "refresh_failed": "Bạn đã rời không gian làm việc, nhưng tải các không gian làm việc của bạn không thành công. Hãy thử lại.",
+      "title": "Rời khỏi không gian làm việc này"
+    },
+    "list": {
+      "description": "Tất cả những người làm việc trong không gian làm việc này và vai trò của họ.",
+      "email": "Email",
+      "joined": "Ngày tham gia",
+      "role": "Vai trò",
+      "title": "Thành viên",
+      "you": "bạn"
+    },
+    "page_name": "Thành viên",
+    "pending": {
+      "description": "Các lời mời chưa được sử dụng. Liên kết của lời mời đã thu hồi sẽ ngừng hoạt động.",
+      "email": "Email",
+      "empty": "Không có lời mời nào đang chờ.",
+      "expired": "Đã hết hạn",
+      "expires": "Hết hạn",
+      "revoke": "Thu hồi",
+      "revoke_aria": "Thu hồi lời mời dành cho {{email}}",
+      "revoked": "Đã thu hồi lời mời",
+      "role": "Vai trò",
+      "title": "Lời mời đang chờ"
+    },
+    "remove": "Xóa",
+    "remove_aria": "Xóa {{email}}",
+    "remove_dialog": {
+      "confirm": "Xóa",
+      "description": "{{email}} sẽ mất quyền truy cập vào không gian làm việc này ngay lập tức.",
+      "title": "Xóa thành viên"
+    },
+    "removed": "Đã xóa thành viên",
+    "role_updated": "Đã cập nhật vai trò",
+    "roles": {
+      "admin": "Quản trị viên",
+      "member": "Thành viên",
+      "owner": "Chủ sở hữu"
+    },
+    "settings_card": {
+      "description": "Xem ai đang làm việc trong không gian làm việc này và, nếu bạn là quản trị viên hoặc chủ sở hữu, mời mọi người và quản lý vai trò của họ.",
+      "open": "Mở danh sách thành viên",
+      "title": "Thành viên"
+    }
+  },
   "messages": {
     "login_error": "Đã xảy ra lỗi khi đăng nhập",
     "login_no_tokens": "Đăng nhập thành công nhưng không nhận được token",
@@ -258,6 +668,7 @@
     },
     "empty_state": {
       "action": "Tạo bộ giám sát đầu tiên",
+      "add_channel": "Thêm kênh thông báo",
       "description": "Bắt đầu bằng cách tạo bộ giám sát đầu tiên để theo dõi tình trạng sức khỏe của các dịch vụ của bạn.",
       "title": "Không có bộ giám sát"
     },
@@ -500,6 +911,7 @@
       "shared": {
         "intervals": {
           "heartbeat_retry": "Khoảng thời gian thử lại nhịp tim (Thử lại mỗi {{seconds}} giây)",
+          "interval_too_short": "Không được nhỏ hơn {{minimum}} giây",
           "max_retries_description": "Số lần thử tối đa trước khi dịch vụ được đánh dấu là không khả dụng và gửi thông báo",
           "request_timeout": "Yêu cầu hết thời gian (Hết thời gian sau {{seconds}} giây)",
           "resend_notification": "Gửi lại thông báo nếu bị ngừng X lần liên tiếp (Gửi lại đã vô hiệu)",
@@ -542,6 +954,10 @@
           "select_proxy_placeholder": "Chọn Proxy",
           "selected_proxy": "Proxy đã chọn",
           "title": "Ủy quyền"
+        },
+        "run_from": {
+          "default_locations": "Chạy tại các vị trí mặc định",
+          "label": "Chạy từ"
         },
         "tags": {
           "label": "Thẻ",
@@ -649,9 +1065,12 @@
     "toasts": {
       "deleted": "Giám sát đã bị xóa",
       "paused": "Giám sát tạm dừng",
+      "push_token_already_used": "Một monitor khác đã dùng token push này. Hãy tạo token mới.",
       "reset_success": "Dữ liệu giám sát đã được đặt lại thành công",
       "resumed": "Giám sát đã tiếp tục"
     },
+    "type_disabled": "Loại {{type}} đã bị tắt trên bản cài đặt này",
+    "over_limit": "Không được kiểm tra: không gian làm việc có nhiều trình giám sát đang hoạt động hơn giới hạn cho phép",
     "view": {
       "buttons": {
         "clone": "Nhân bản",
@@ -712,6 +1131,7 @@
     }
   },
   "navigation": {
+    "admin": "Quản trị",
     "maintenance": "Bảo trì",
     "monitors": "Giám sát",
     "notification_channels": "Kênh thông báo",
@@ -1124,6 +1544,12 @@
         "signing_secret_docs_link": "Cách xác minh chữ ký",
         "signing_secret_label": "Khóa bí mật ký",
         "signing_secret_placeholder": "Để trống để gửi yêu cầu không ký"
+      },
+      "install_email": {
+        "description": "Do bản cài đặt này gửi, không cần máy chủ SMTP.",
+        "to_description": "Một thành viên của không gian làm việc này. Thông báo được gửi sau khi họ xác minh địa chỉ.",
+        "to_label": "Người nhận",
+        "to_placeholder": "Chọn một thành viên"
       }
     },
     "important": "Thông báo quan trọng",
@@ -1142,7 +1568,8 @@
       "updated_success": "Cập nhật thông báo thành công"
     },
     "new": {
-      "title": "Kênh thông báo mới"
+      "title": "Kênh thông báo mới",
+      "default_hint": "Kênh này sẽ được chọn sẵn ở các monitor mới."
     },
     "no_important": "Không tìm thấy thông báo quan trọng.",
     "placeholders": {
@@ -1152,11 +1579,21 @@
     "secret": {
       "reenter_error": "Hãy nhập lại khóa bí mật này hoặc xóa nó: nơi gửi đã thay đổi",
       "reenter_hint": "Hãy nhập lại khóa bí mật này: nơi gửi đã thay đổi",
+      "reenter_url_error": "Hãy nhập lại thông tin xác thực của URL này: URL đã thay đổi kể từ khi được lưu",
       "remove": "Xóa",
       "saved_hint": "Đã lưu — nhập để thay thế"
     }
   },
   "probes": {
+    "default": {
+      "description": "Monitor được tạo mà không chọn đầu dò sẽ chạy trên các đầu dò mặc định không bị vô hiệu hóa và chạy loại của nó, và trên đầu dò cục bộ nếu không có đầu dò nào chạy. Các monitor hiện có giữ nguyên đầu dò của chúng.",
+      "failed": "Không thể đổi việc đầu dò có là mặc định hay không.",
+      "label": "Đầu dò mặc định",
+      "off": "{{name}} không còn là đầu dò mặc định",
+      "on": "{{name}} giờ là đầu dò mặc định",
+      "title": "Mặc định cho monitor mới"
+    },
+    "default_badge": "Mặc định",
     "page_name": "Đầu dò",
     "description": "Đầu dò chạy các lần kiểm tra của giám sát từ những nơi chúng được cài đặt. Đầu dò cục bộ chính là Peekaping.",
     "local_name": "Cục bộ",
@@ -1438,7 +1875,9 @@
     "data_retention": {
       "days_label": "Ngày",
       "description": "Đặt số ngày lưu dữ liệu (KEEP_DATA_PERIOD_DAYS).",
-      "title": "Thời gian lưu trữ dữ liệu"
+      "read_only": "Chỉ quản trị viên hoặc chủ sở hữu của không gian làm việc mới có thể thay đổi mục này.",
+      "title": "Thời gian lưu trữ dữ liệu",
+      "capped": "Tối đa {{max}} ngày trong không gian làm việc này"
     },
     "error_reporting": {
       "cluster_note": "Ở chế độ cụm, thay đổi đến mọi tiến trình trong vòng một phút.",
@@ -1464,6 +1903,10 @@
     },
     "validation": {
       "min_days": "Phải ít nhất 1 ngày"
+    },
+    "workspace_name": {
+      "description": "Tên hiển thị trong bộ chuyển không gian làm việc và cho các thành viên.",
+      "title": "Tên không gian làm việc"
     }
   },
   "status": {
@@ -1479,6 +1922,7 @@
       "refresh_in": "Cập nhật trong",
       "refresh_now": "Làm mới ngay",
       "status_page_not_found": "Trang trạng thái không tìm thấy hoặc chưa được xuất bản.",
+      "status_page_unavailable": "Trang trạng thái này không khả dụng",
       "under_maintenance": "Đang bảo trì",
       "unknown": "Không xác định"
     }
@@ -1522,6 +1966,7 @@
     "search_placeholder": "Tìm trang trạng thái theo tiêu đề...",
     "show_locations": "Hiển thị từng vị trí",
     "show_locations_info": "Với các monitor được kiểm tra từ nhiều vị trí, hiển thị trạng thái và lịch sử của từng vị trí",
+    "slug_already_used": "Một trang trạng thái khác đã sử dụng địa chỉ này",
     "update_status_page": "Cập nhật trang trạng thái",
     "view_page": "Xem trang"
   },
@@ -1587,5 +2032,93 @@
   "ui": {
     "general": "Chung",
     "intervals_retries": "Khoảng thời gian, Lần thử lại, Thời gian chờ"
+  },
+  "workspaces": {
+    "create": "Tạo không gian làm việc",
+    "create_error": "Không thể tạo không gian làm việc",
+    "create_first": "Tạo không gian làm việc",
+    "creating": "Đang tạo...",
+    "enter": "Mở không gian làm việc",
+    "entering": "Đang mở...",
+    "entry_failed": "Không gian làm việc đã được tạo nhưng không mở được. Hãy thử lại.",
+    "name_label": "Tên",
+    "name_placeholder": "Nhóm của tôi",
+    "name_required": "Nhập tên",
+    "new": "Không gian làm việc mới",
+    "new_description": "Mỗi không gian làm việc có monitor, kênh thông báo, trang trạng thái và thành viên riêng. Bạn sẽ là chủ sở hữu của nó.",
+    "new_title": "Không gian làm việc mới",
+    "none_description": "Tài khoản của bạn chưa là thành viên của không gian làm việc nào nên ở đây không có gì để hiển thị. Hãy nhờ người quản lý một không gian làm việc thêm bạn vào.",
+    "none_title": "Bạn chưa thuộc không gian làm việc nào",
+    "refresh_failed": "Không thể tải các không gian làm việc của bạn. Hãy kiểm tra kết nối và thử lại.",
+    "rename_error": "Không đổi được tên không gian làm việc",
+    "rename_success": "Đã đổi tên không gian làm việc",
+    "suspended_banner": {
+      "contact": "Liên hệ:",
+      "message": "Không gian làm việc này đã bị quản trị viên của bản cài đặt này tạm ngưng. Các giám sát không chạy và các trang trạng thái không khả dụng.",
+      "no_contact": "Hãy liên hệ người quản lý bản cài đặt này."
+    },
+    "switcher_label": "Chuyển không gian làm việc"
+  },
+  "get_started": {
+    "page_name": "Bắt đầu",
+    "skip": "Bỏ qua thiết lập",
+    "step_of": "Bước {{current}} trên {{total}}",
+    "name": {
+      "description": "Các giám sát, kênh thông báo và trang trạng thái của bạn nằm ở đây. Bạn có thể đổi tên sau trong Cài đặt.",
+      "title": "Đặt tên cho không gian làm việc của bạn"
+    },
+    "monitor": {
+      "create": "Tạo bộ giám sát",
+      "create_failed": "Không tạo được bộ giám sát",
+      "creating": "Đang tạo...",
+      "description": "Nhập địa chỉ của một trang web hoặc API. Peekaping kiểm tra và báo cho bạn khi nó ngừng phản hồi.",
+      "full_form": "Hoặc thiết lập bộ giám sát với đầy đủ tùy chọn",
+      "title": "Thêm bộ giám sát đầu tiên của bạn",
+      "url_invalid": "Nhập địa chỉ bắt đầu bằng http:// hoặc https://",
+      "url_label": "Địa chỉ cần giám sát"
+    },
+    "channel": {
+      "continue_unlinked": "Tiếp tục mà không liên kết",
+      "description": "Chọn nơi Peekaping gửi cảnh báo khi bộ giám sát của bạn ngừng hoạt động. Kênh này sẽ là mặc định cho các bộ giám sát mới.",
+      "link_failed": "Kênh đã được lưu nhưng không liên kết được với bộ giám sát của bạn. Hãy thêm nó ở trang chỉnh sửa bộ giám sát.",
+      "retry_link": "Thử liên kết lại",
+      "title": "Nhận thông báo"
+    },
+    "done": {
+      "description": "Peekaping đang theo dõi dịch vụ của bạn. Sau đây là những việc bạn có thể làm tiếp.",
+      "title": "Mọi thứ đã sẵn sàng",
+      "unverified": "Bộ giám sát của bạn sẽ chạy sau khi địa chỉ email được xác minh. Hãy kiểm tra hộp thư để lấy liên kết xác minh.",
+      "links": {
+        "members": "Mời nhóm của bạn",
+        "monitor": "Mở bộ giám sát của bạn",
+        "monitors": "Đến danh sách giám sát",
+        "probes": "Quản lý đầu dò",
+        "status_pages": "Xuất bản trang trạng thái"
+      }
+    }
+  },
+  "limits": {
+    "reached": {
+      "monitors": "Không gian làm việc này có thể có tối đa {{max}} giám sát đang chạy",
+      "status_pages": "Không gian làm việc này có thể có tối đa {{max}} trang trạng thái",
+      "custom_domains": "Các trang trạng thái của không gian làm việc này có thể có tổng cộng tối đa {{max}} tên miền tùy chỉnh",
+      "members": "Không gian làm việc này có thể có tối đa {{max}} thành viên, tính cả lời mời đang chờ",
+      "owned_workspaces": "Bạn có thể sở hữu tối đa {{max}} không gian làm việc",
+      "probes": "Một giám sát trong không gian làm việc này có thể chạy trên tối đa {{max}} đầu dò",
+      "retention_days": "Không gian làm việc này có thể lưu dữ liệu tối đa {{max}} ngày"
+    },
+    "names": {
+      "monitors": "Giám sát đang hoạt động",
+      "min_check_interval": "Khoảng thời gian kiểm tra ngắn nhất (giây)",
+      "status_pages": "Trang trạng thái",
+      "custom_domains": "Tên miền tùy chỉnh",
+      "members": "Thành viên",
+      "owned_workspaces": "Không gian làm việc một người dùng có thể sở hữu",
+      "probes_per_monitor": "Đầu dò cho mỗi giám sát",
+      "retention_days": "Lưu trữ dữ liệu (ngày)"
+    },
+    "none": "Không giới hạn",
+    "invalid": "Nhập một số nguyên từ 1 trở lên, hoặc để trống nếu không muốn giới hạn.",
+    "retention_too_long": "Không được lớn hơn {{max}} ngày"
   }
 }

@@ -37,7 +37,7 @@ concurrency:
 
 jobs:
   test:
-    runs-on: nexus-runner
+    runs-on: ubuntu-latest
 
     # The repository tests run their PostgreSQL subtests only when PEE_TEST_POSTGRES_DSN is set.
     # Each test creates a schema or database of its own, so they share this one server
@@ -126,11 +126,12 @@ jobs:
           # pipeline would be tee's
           set -o pipefail
           # -coverpkg credits code that tests in other packages reach, such as
-          # the controllers internal/apitest drives through the router. The timeout
+          # the controllers internal/apitest drives through the router, and the Go
+          # migrations in cmd/bun/migrations that tests in other packages run. The timeout
           # is per package: internal/apitest runs its tests one at a time, and with
           # coverage it takes about two minutes on its own. -count=1 so that a cached
           # result never stands in for a run against the PostgreSQL service
-          go test -timeout 300s -count=1 -v -coverprofile=coverage.txt -coverpkg=./internal/... ./internal/... ./cmd/... | tee server-test.log
+          go test -timeout 300s -count=1 -v -coverprofile=coverage.txt -coverpkg=./internal/...,./cmd/bun/migrations ./internal/... ./cmd/... | tee server-test.log
           # Every PostgreSQL subtest skips with this message when the variable is unset, which
           # would leave this job green without running them
           if grep -q 'set PEE_TEST_POSTGRES_DSN' server-test.log; then
@@ -154,8 +155,8 @@ jobs:
   # The race detector slows the tests down several times over, so it runs beside the
   # main job without coverage instead of making that job slower
   race:
-    runs-on: nexus-runner
-    timeout-minutes: 40
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
 
     # The same PostgreSQL as the test job, so its subtests run under the race detector too
     services:
@@ -189,8 +190,51 @@ jobs:
 
       - name: Run server tests with the race detector
         working-directory: apps/server
-        # internal/apitest takes 800 to 880 seconds on its own under -race, so the per-package
-        # timeout leaves room for a slower runner. -count=1 as in the test job
-        run: go test -race -timeout 1800s -count=1 ./internal/... ./cmd/...
+        # On the GitHub-hosted runners internal/apitest alone takes 1395 to 1491 seconds under
+        # -race, and it hit a 1800 second timeout once with nothing hung, so the per-package
+        # timeout leaves room for a slower run. -count=1 as in the test job
+        run: go test -race -timeout 3000s -count=1 ./internal/... ./cmd/...
 
 
+
+  # The API tests again with the settings of Peekaping Cloud (PEE_TEST_CLOUD=1, cloudConfig in
+  # internal/apitest/cloud_test.go), which the guards of the cloud add to as they land. The test job
+  # runs the same tests with the self-host defaults. PostgreSQL is there for the isolation suite's
+  # PostgreSQL run. No coverage: the test job has it
+  api-cloud:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: pg
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+
+    env:
+      PEE_TEST_POSTGRES_DSN: postgres://postgres:pg@127.0.0.1:5432/postgres?sslmode=disable
+      PEE_TEST_CLOUD: '1'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.26.4'
+          cache-dependency-path: apps/server/go.sum
+
+      - name: Install dependencies
+        working-directory: apps/server
+        run: go mod download
+
+      - name: Run API tests with the cloud's settings
+        working-directory: apps/server
+        run: go test -timeout 300s -count=1 ./internal/apitest/...

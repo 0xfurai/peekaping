@@ -11,6 +11,7 @@ import (
 	"peekaping/internal/modules/middleware"
 	"peekaping/internal/modules/setting"
 	"peekaping/internal/modules/shared"
+	"peekaping/internal/modules/workspace"
 	"peekaping/internal/utils"
 	"strings"
 	"testing"
@@ -26,7 +27,23 @@ type acceptingAPIKeys struct {
 }
 
 func (acceptingAPIKeys) ValidateKey(context.Context, string) (*api_key.Model, error) {
-	return &api_key.Model{ID: "api-key-1"}, nil
+	return &api_key.Model{ID: "api-key-1", WorkspaceID: testWorkspace}, nil
+}
+
+// testWorkspace is the workspace of the test user and of the API key
+const testWorkspace = workspace.ID("5b7f2a64-0c1d-4e3a-9a52-1f6d8c3b7e01")
+
+// otherWorkspace is a second workspace the test user is in
+const otherWorkspace = workspace.ID("8c2e4d19-7a3b-4f60-b1d5-9e0a2c6f4d02")
+
+// memberOf puts every user in testWorkspace with the role, and in otherWorkspace as an owner
+type memberOf struct{ role workspace.Role }
+
+func (m memberOf) ListMemberships(context.Context, string) ([]workspace.Membership, error) {
+	return []workspace.Membership{
+		{Workspace: workspace.Workspace{ID: testWorkspace}, Role: m.role},
+		{Workspace: workspace.Workspace{ID: otherWorkspace}, Role: workspace.RoleOwner},
+	}, nil
 }
 
 // settingsAPI serves the settings routes of an upgraded install behind the
@@ -34,10 +51,17 @@ func (acceptingAPIKeys) ValidateKey(context.Context, string) (*api_key.Model, er
 type settingsAPI struct {
 	engine      *httpx.Router
 	settings    setting.Service
+	workspace   setting.WorkspaceService
 	accessToken string
 }
 
 func newSettingsAPI(t *testing.T) *settingsAPI {
+	t.Helper()
+	return newSettingsAPIAs(t, workspace.RoleOwner)
+}
+
+// newSettingsAPIAs serves the settings routes to a user who holds the role in testWorkspace
+func newSettingsAPIAs(t *testing.T, role workspace.Role) *settingsAPI {
 	t.Helper()
 
 	ctx := context.Background()
@@ -53,14 +77,17 @@ func newSettingsAPI(t *testing.T) *settingsAPI {
 	authChain := middleware.NewAuthChain(
 		auth.NewMiddlewareProvider(tokenMaker),
 		api_key.NewMiddlewareProvider(acceptingAPIKeys{}),
+		memberOf{role},
+		nil,
 		nil,
 		logger,
 	)
-	controller := setting.NewController(setting.NewAPIService(settings), logger)
+	workspaceSettings := setting.NewWorkspaceService(newMemoryWorkspaceRepository())
+	controller := setting.NewController(setting.NewAPIService(workspaceSettings), logger)
 	engine := httpx.NewRouter()
 	setting.NewRoute(controller, authChain).ConnectRoute(engine.Group("/api/v1"), controller)
 
-	return &settingsAPI{engine: engine, settings: settings, accessToken: accessToken}
+	return &settingsAPI{engine: engine, settings: settings, workspace: workspaceSettings, accessToken: accessToken}
 }
 
 var authMethods = []struct {
@@ -130,6 +157,14 @@ func TestSettingsAPI_HidesInternalSettings(t *testing.T) {
 	}
 }
 
+// requestIn is request in a workspace the user chose with the X-Workspace-ID header
+func (api *settingsAPI) requestIn(id workspace.ID, method, key, body string, authorize func(*http.Request, *settingsAPI)) *httptest.ResponseRecorder {
+	return api.request(method, key, body, func(req *http.Request, api *settingsAPI) {
+		authorize(req, api)
+		req.Header.Set("X-Workspace-ID", string(id))
+	})
+}
+
 func TestSettingsAPI_ServesDataRetentionPeriod(t *testing.T) {
 	for _, as := range authMethods {
 		t.Run(as.name, func(t *testing.T) {
@@ -153,5 +188,70 @@ func TestSettingsAPI_ServesDataRetentionPeriod(t *testing.T) {
 			w = api.request(http.MethodGet, "KEEP_DATA_PERIOD_DAYS", "", as.authorize)
 			assert.Equal(t, http.StatusNotFound, w.Code)
 		})
+	}
+}
+
+func TestSettingsAPI_AMemberReadsTheDataRetentionPeriodAndCannotChangeIt(t *testing.T) {
+	api := newSettingsAPIAs(t, workspace.RoleMember)
+	_, err := api.workspace.SetByKey(context.Background(), testWorkspace, "KEEP_DATA_PERIOD_DAYS", &setting.Model{Value: "30", Type: "int"})
+	require.NoError(t, err)
+
+	w := api.request(http.MethodGet, "KEEP_DATA_PERIOD_DAYS", "", authMethods[0].authorize)
+	require.Equal(t, http.StatusOK, w.Code, w.Body.String())
+	var got utils.ApiResponse[setting.Model]
+	require.NoError(t, json.Unmarshal(w.Body.Bytes(), &got))
+	assert.Equal(t, "30", got.Data.Value)
+
+	w = api.request(http.MethodPut, "KEEP_DATA_PERIOD_DAYS", `{"value":"1","type":"int"}`, authMethods[0].authorize)
+	assert.Equal(t, http.StatusForbidden, w.Code, w.Body.String())
+	w = api.request(http.MethodDelete, "KEEP_DATA_PERIOD_DAYS", "", authMethods[0].authorize)
+	assert.Equal(t, http.StatusForbidden, w.Code, w.Body.String())
+
+	stored, err := api.workspace.GetByKey(context.Background(), testWorkspace, "KEEP_DATA_PERIOD_DAYS")
+	require.NoError(t, err)
+	require.NotNil(t, stored)
+	assert.Equal(t, "30", stored.Value, "the member's change did nothing")
+}
+
+func TestSettingsAPI_AnAdminAnOwnerAndAnAPIKeyChangeTheDataRetentionPeriod(t *testing.T) {
+	for _, tc := range []struct {
+		name      string
+		role      workspace.Role
+		authorize func(req *http.Request, api *settingsAPI)
+	}{
+		{"admin", workspace.RoleAdmin, authMethods[0].authorize},
+		{"owner", workspace.RoleOwner, authMethods[0].authorize},
+		{"api key", workspace.RoleMember, authMethods[1].authorize}, // a key acts as an admin whatever the user's role
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			api := newSettingsAPIAs(t, tc.role)
+
+			w := api.request(http.MethodPut, "KEEP_DATA_PERIOD_DAYS", `{"value":"12","type":"int"}`, tc.authorize)
+			require.Equal(t, http.StatusOK, w.Code, w.Body.String())
+
+			stored, err := api.workspace.GetByKey(context.Background(), testWorkspace, "KEEP_DATA_PERIOD_DAYS")
+			require.NoError(t, err)
+			require.NotNil(t, stored)
+			assert.Equal(t, "12", stored.Value)
+			install, err := api.settings.GetByKey(context.Background(), "KEEP_DATA_PERIOD_DAYS")
+			require.NoError(t, err)
+			assert.Nil(t, install, "and the install's own settings do not hold it")
+		})
+	}
+}
+
+func TestSettingsAPI_EachWorkspaceHoldsItsOwnDataRetentionPeriod(t *testing.T) {
+	api := newSettingsAPI(t)
+	auth := authMethods[0].authorize
+
+	require.Equal(t, http.StatusOK, api.requestIn(testWorkspace, http.MethodPut, "KEEP_DATA_PERIOD_DAYS", `{"value":"1","type":"int"}`, auth).Code)
+	require.Equal(t, http.StatusOK, api.requestIn(otherWorkspace, http.MethodPut, "KEEP_DATA_PERIOD_DAYS", `{"value":"10","type":"int"}`, auth).Code)
+
+	for id, want := range map[workspace.ID]string{testWorkspace: "1", otherWorkspace: "10"} {
+		w := api.requestIn(id, http.MethodGet, "KEEP_DATA_PERIOD_DAYS", "", auth)
+		require.Equal(t, http.StatusOK, w.Code, w.Body.String())
+		var got utils.ApiResponse[setting.Model]
+		require.NoError(t, json.Unmarshal(w.Body.Bytes(), &got))
+		assert.Equal(t, want, got.Data.Value, string(id))
 	}
 }

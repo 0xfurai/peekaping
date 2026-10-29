@@ -19,3 +19,10 @@ func TestExecutorRegistry_Types(t *testing.T) {
 		"mysql", "ping", "postgres", "push", "rabbitmq", "redis", "smtp", "snmp", "sqlserver", "tcp",
 	}, registry.Types())
 }
+
+// KnownTypes is what DISABLED_MONITOR_TYPES is checked against, so it is the registry's types
+func TestKnownTypes_AreTheRegistrysTypes(t *testing.T) {
+	assert.Equal(t, NewExecutorRegistry(zap.NewNop().Sugar()).Types(), KnownTypes())
+	assert.Contains(t, KnownTypes(), "docker")
+	assert.Contains(t, KnownTypes(), "push")
+}

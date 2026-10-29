@@ -2,6 +2,7 @@ package mongoimport_test
 
 import (
 	"context"
+	"peekaping/internal/modules/workspace"
 	"testing"
 	"time"
 
@@ -37,6 +38,14 @@ func rawDocument(t *testing.T, in *mongoimporttest.Install, collection, objectID
 	return raw
 }
 
+// importedWorkspace is the workspace the import made for the imported records
+func importedWorkspace(t *testing.T, db *bun.DB) workspace.ID {
+	t.Helper()
+	var id string
+	require.NoError(t, db.NewSelect().Table("workspaces").Column("id").Order("created_at", "id").Limit(1).Scan(context.Background(), &id))
+	return workspace.ID(id)
+}
+
 // uuids maps ObjectIDs to the UUIDs they become.
 func uuids(t *testing.T, objectIDs ...string) []string {
 	t.Helper()
@@ -50,11 +59,22 @@ func uuids(t *testing.T, objectIDs ...string) []string {
 func checkConfiguration(t *testing.T, in *mongoimporttest.Install, db *bun.DB, report *mongoimport.Report) {
 	ctx := context.Background()
 
+	t.Run("every channel, proxy, tag, maintenance window and status page is in the workspace the import made", func(t *testing.T) {
+		imported := string(importedWorkspace(t, db))
+		for table, collection := range map[string]string{"notification_channels": "notification_channel", "proxies": "proxies", "tags": "tags", "maintenances": "maintenance", "status_pages": "status_pages"} {
+			var inImported, outside int
+			require.NoError(t, db.NewSelect().Table(table).ColumnExpr("COUNT(*)").Where("workspace_id = ?", imported).Scan(ctx, &inImported), table)
+			require.NoError(t, db.NewSelect().Table(table).ColumnExpr("COUNT(*)").Where("workspace_id <> ?", imported).Scan(ctx, &outside), table)
+			assert.Equal(t, collectionReport(t, report, collection).Copied, inImported, table)
+			assert.Zero(t, outside, table)
+		}
+	})
+
 	t.Run("proxies", func(t *testing.T) {
 		sqlProxies := proxy.NewSQLRepository(db)
 		for _, name := range []string{"auth", "open"} {
 			want := mongoimporttest.GetByID[mongoimporttest.ProxyDocument](t, in, "proxies", in.ID("proxy", name))
-			got, err := sqlProxies.FindByID(ctx, uuidOf(t, want.ID.Hex()))
+			got, err := sqlProxies.FindByID(ctx, importedWorkspace(t, db), uuidOf(t, want.ID.Hex()))
 			require.NoError(t, err)
 			require.NotNil(t, got, name)
 			assert.Equal(t, want.Protocol, got.Protocol)
@@ -73,9 +93,10 @@ func checkConfiguration(t *testing.T, in *mongoimporttest.Install, db *bun.DB, r
 
 	t.Run("monitors", func(t *testing.T) {
 		sqlMonitors := monitor.NewSQLRepository(db)
+		imported := importedWorkspace(t, db)
 		for _, name := range []string{"checkout", "nightly", "paused", "broken", "wide"} {
 			want := mongoimporttest.GetByID[mongoimporttest.MonitorDocument](t, in, "monitor", in.ID("monitor", name))
-			got, err := sqlMonitors.FindByID(ctx, uuidOf(t, want.ID.Hex()))
+			got, err := sqlMonitors.FindByID(ctx, imported, uuidOf(t, want.ID.Hex()))
 			require.NoError(t, err)
 			require.NotNil(t, got, name)
 
@@ -105,13 +126,24 @@ func checkConfiguration(t *testing.T, in *mongoimporttest.Install, db *bun.DB, r
 			assertSameTime(t, want.CreatedAt, got.CreatedAt, name)
 			assertSameTime(t, want.UpdatedAt, got.UpdatedAt, name)
 		}
-		checkout, err := sqlMonitors.FindByID(ctx, uuidOf(t, in.ID("monitor", "checkout")))
+		checkout, err := sqlMonitors.FindByID(ctx, imported, uuidOf(t, in.ID("monitor", "checkout")))
 		require.NoError(t, err)
 		assert.Equal(t, uuidOf(t, in.ID("proxy", "auth")), checkout.ProxyId)
-		nightly, err := sqlMonitors.FindOneByPushToken(ctx, "nightly-token")
+		nightly, err := sqlMonitors.FindOneByPushTokenAnyWorkspace(ctx, "nightly-token")
 		require.NoError(t, err)
 		require.NotNil(t, nightly)
 		assert.Equal(t, uuidOf(t, in.ID("monitor", "nightly")), nightly.ID)
+
+		// Every imported monitor is in the one workspace the import made
+		var workspaces int
+		require.NoError(t, db.NewSelect().Table("workspaces").ColumnExpr("COUNT(*)").Scan(ctx, &workspaces))
+		assert.Equal(t, 1, workspaces)
+		var inImported, total int
+		require.NoError(t, db.NewSelect().Table("monitors").ColumnExpr("COUNT(*)").Where("workspace_id = ?", string(imported)).Scan(ctx, &inImported))
+		require.NoError(t, db.NewSelect().Table("monitors").ColumnExpr("COUNT(*)").Scan(ctx, &total))
+		assert.Equal(t, 5, total)
+		assert.Equal(t, total, inImported, "in the workspace of the import")
+		assert.Equal(t, imported, checkout.WorkspaceID)
 
 		r := collectionReport(t, report, "monitor")
 		assert.Equal(t, "monitors", r.Table)
@@ -135,7 +167,7 @@ func checkConfiguration(t *testing.T, in *mongoimporttest.Install, db *bun.DB, r
 		// The teams channel was saved in full and then changed in part, so the app showed the later change
 		for _, name := range []string{"webhook", "email", "teams"} {
 			want := mongoimporttest.GetByID[mongoimporttest.NotificationChannelDocument](t, in, "notification_channel", in.ID("channel", name))
-			got, err := sqlChannels.FindByID(ctx, uuidOf(t, want.ID.Hex()))
+			got, err := sqlChannels.FindByID(ctx, importedWorkspace(t, db), uuidOf(t, want.ID.Hex()))
 			require.NoError(t, err)
 			require.NotNil(t, got, name)
 			assert.Equal(t, want.Name, got.Name)
@@ -150,7 +182,7 @@ func checkConfiguration(t *testing.T, in *mongoimporttest.Install, db *bun.DB, r
 
 		// A full update wrote the new is_default and updated_at under keys of their own, and the
 		// channel in the app showed the old ones. The update is the real state.
-		slack, err := sqlChannels.FindByID(ctx, uuidOf(t, in.ID("channel", "slack")))
+		slack, err := sqlChannels.FindByID(ctx, importedWorkspace(t, db), uuidOf(t, in.ID("channel", "slack")))
 		require.NoError(t, err)
 		require.NotNil(t, slack)
 		raw := rawDocument(t, in, "notification_channel", in.ID("channel", "slack"))
@@ -163,7 +195,7 @@ func checkConfiguration(t *testing.T, in *mongoimporttest.Install, db *bun.DB, r
 		assert.True(t, slack.UpdatedAt.After(slack.CreatedAt))
 
 		// A channel without a config gets an empty one
-		bare, err := sqlChannels.FindByID(ctx, uuidOf(t, in.ID("channel", "bare")))
+		bare, err := sqlChannels.FindByID(ctx, importedWorkspace(t, db), uuidOf(t, in.ID("channel", "bare")))
 		require.NoError(t, err)
 		require.NotNil(t, bare.Config)
 		assert.JSONEq(t, `{}`, *bare.Config)
@@ -182,7 +214,7 @@ func checkConfiguration(t *testing.T, in *mongoimporttest.Install, db *bun.DB, r
 		sqlTags := tag.NewSQLRepository(db)
 		for _, name := range []string{"production", "staging"} {
 			want := mongoimporttest.GetByID[mongoimporttest.TagDocument](t, in, "tags", in.ID("tag", name))
-			got, err := sqlTags.FindByID(ctx, uuidOf(t, want.ID.Hex()))
+			got, err := sqlTags.FindByID(ctx, importedWorkspace(t, db), uuidOf(t, want.ID.Hex()))
 			require.NoError(t, err)
 			require.NotNil(t, got, name)
 			assert.Equal(t, want.Name, got.Name)
@@ -190,7 +222,7 @@ func checkConfiguration(t *testing.T, in *mongoimporttest.Install, db *bun.DB, r
 			assert.Equal(t, want.Description, got.Description)
 			assertSameTime(t, want.CreatedAt, got.CreatedAt)
 		}
-		alpha, err := sqlTags.FindByName(ctx, "alpha")
+		alpha, err := sqlTags.FindByName(ctx, importedWorkspace(t, db), "alpha")
 		require.NoError(t, err)
 		require.NotNil(t, alpha)
 		assert.Equal(t, cut(db, "#3B82F6FF", 7), alpha.Color)
@@ -209,7 +241,7 @@ func checkConfiguration(t *testing.T, in *mongoimporttest.Install, db *bun.DB, r
 		sqlWindows := maintenance.NewSQLRepository(db)
 		get := func(name string) *maintenance.Model {
 			t.Helper()
-			got, err := sqlWindows.FindByID(ctx, uuidOf(t, in.ID("maintenance", name)))
+			got, err := sqlWindows.FindByID(ctx, importedWorkspace(t, db), uuidOf(t, in.ID("maintenance", name)))
 			require.NoError(t, err)
 			require.NotNil(t, got, name)
 			return got
@@ -265,11 +297,12 @@ func checkConfiguration(t *testing.T, in *mongoimporttest.Install, db *bun.DB, r
 
 	t.Run("status pages", func(t *testing.T) {
 		pages, domains, links := status_page.NewSQLRepository(db), domain_status_page.NewSQLRepository(db), monitor_status_page.NewSQLRepository(db)
-		shop, err := pages.FindBySlug(ctx, "shop")
+		shop, err := pages.FindBySlugAnyWorkspace(ctx, "shop")
 		require.NoError(t, err)
 		require.NotNil(t, shop)
 		raw := rawDocument(t, in, "status_pages", in.ID("status_page", "shop"))
 		assert.Equal(t, uuidOf(t, in.ID("status_page", "shop")), shop.ID)
+		assert.Equal(t, importedWorkspace(t, db), shop.WorkspaceID, "in the workspace the import made")
 		assert.Equal(t, "Shop status", shop.Title)
 		assert.Equal(t, "Is the shop up?", shop.Description)
 		assert.Equal(t, "https://example.com/icon.png", shop.Icon)
@@ -278,7 +311,7 @@ func checkConfiguration(t *testing.T, in *mongoimporttest.Install, db *bun.DB, r
 		assert.Equal(t, "Thanks", shop.FooterText)
 		assert.Equal(t, 60, shop.AutoRefreshInterval)
 		assertSameTime(t, raw["created_at"].(primitive.DateTime).Time(), shop.CreatedAt)
-		internal, err := pages.FindBySlug(ctx, "internal")
+		internal, err := pages.FindBySlugAnyWorkspace(ctx, "internal")
 		require.NoError(t, err)
 		require.NotNil(t, internal)
 		assert.False(t, internal.Published)

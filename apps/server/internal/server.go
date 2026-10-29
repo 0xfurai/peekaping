@@ -7,6 +7,7 @@ import (
 
 	"peekaping/internal/config"
 	"peekaping/internal/httpx"
+	"peekaping/internal/modules/admin"
 	"peekaping/internal/modules/api_key"
 	"peekaping/internal/modules/auth"
 	"peekaping/internal/modules/badge"
@@ -27,6 +28,7 @@ import (
 	"peekaping/internal/modules/tag"
 	"peekaping/internal/modules/telemetry"
 	"peekaping/internal/modules/websocket"
+	"peekaping/internal/modules/workspace/workspacehttp"
 	"peekaping/internal/probeproto"
 	"peekaping/internal/version"
 
@@ -132,6 +134,10 @@ func ProvideServer(
 	probeController *probe.Controller,
 	probeProtocolRoute *protocol.Route,
 	probeProtocolController *protocol.Controller,
+	workspaceRoute *workspacehttp.Route,
+	workspaceController *workspacehttp.Controller,
+	adminRoute *admin.Route,
+	adminController *admin.Controller,
 	staleStore stale.Store,
 	metricsCollector *metrics.Collector,
 ) *Server {
@@ -162,6 +168,8 @@ func ProvideServer(
 	errorReportingRoute.ConnectRoute(router, errorReportingController)
 	badgeRoute.ConnectRoute(router, badgeController)
 	apiKeyRoute.ConnectRoute(router, apiKeyController)
+	workspaceRoute.ConnectRoute(router, workspaceController)
+	adminRoute.ConnectRoute(router, adminController)
 	probeRoute.ConnectRoute(router, probeController)
 
 	// The probe protocol is a sibling of the API, not under /api/v1: the probes speak it with their

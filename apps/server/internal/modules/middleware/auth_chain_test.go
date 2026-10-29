@@ -34,7 +34,7 @@ type caller struct {
 // serve sends a request with the given headers through the auth chain to a
 // handler, and returns the response and what the handler saw.
 func serve(headers map[string]string) (*httptest.ResponseRecorder, caller) {
-	chain := middleware.NewAuthChain(authenticator("jwt"), authenticator("api_key"), nil, zap.NewNop().Sugar())
+	chain := middleware.NewAuthChain(authenticator("jwt"), authenticator("api_key"), nil, nil, nil, zap.NewNop().Sugar())
 	var seen caller
 	router := httpx.NewRouter()
 	router.Handle("GET", "/protected", func(w http.ResponseWriter, r *http.Request) {

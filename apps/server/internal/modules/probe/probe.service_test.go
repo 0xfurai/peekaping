@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"peekaping/internal/modules/workspace/workspacetest"
 	"sync"
 	"testing"
 	"time"
@@ -11,6 +12,7 @@ import (
 	"peekaping/internal/dbtx"
 	"peekaping/internal/modules/probe"
 	"peekaping/internal/modules/probe_notification"
+	"peekaping/internal/modules/workspace"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -109,9 +111,16 @@ func (f fixture) probeCount(t *testing.T, name string) int {
 func (f fixture) channel(t *testing.T) string {
 	t.Helper()
 	id := uuid.NewString()
-	_, err := f.db.Exec("INSERT INTO notification_channels (id, name, type) VALUES (?, 'Ops', 'webhook')", id)
+	_, err := f.db.Exec("INSERT INTO notification_channels (id, workspace_id, name, type) VALUES (?, ?, 'Ops', 'webhook')", id, workspacetest.OldestOrAdd(t, f.db))
 	require.NoError(t, err)
 	return id
+}
+
+// members are the workspaces the caller of the service is a member of: the one the channels of
+// channel are in
+func (f fixture) members(t *testing.T) []workspace.ID {
+	t.Helper()
+	return []workspace.ID{workspace.ID(workspacetest.OldestOrAdd(t, f.db))}
 }
 
 // storedHash reads the token hash stored for the probe, which is empty when it has none
@@ -292,7 +301,7 @@ func TestService_LocalProbeCanBeRenamedButNotDeletedRotatedOrDisabled(t *testing
 	slack := f.channel(t)
 
 	name, location := "Headquarters", "rack 4"
-	updated, err := f.svc.Update(ctx, probe.LocalID, &probe.UpdateRequest{Name: &name, Location: &location, NotificationIDs: []string{slack}})
+	updated, err := f.svc.Update(ctx, probe.LocalID, &probe.UpdateRequest{Name: &name, Location: &location, ChannelWorkspaces: f.members(t), NotificationIDs: []string{slack}})
 	require.NoError(t, err)
 	assert.Equal(t, "Headquarters", updated.Name)
 	assert.Equal(t, "rack 4", updated.Location)
@@ -319,7 +328,7 @@ func TestService_UpdateChangesOnlyWhatItIsGiven(t *testing.T) {
 	ctx := context.Background()
 	f := newFixture(t)
 	slack, email := f.channel(t), f.channel(t)
-	created, err := f.svc.Create(ctx, &probe.CreateRequest{Name: "Frankfurt", Location: "eu-central", NotificationIDs: []string{slack}})
+	created, err := f.svc.Create(ctx, &probe.CreateRequest{Name: "Frankfurt", Location: "eu-central", ChannelWorkspaces: f.members(t), NotificationIDs: []string{slack}})
 	require.NoError(t, err)
 	assert.Equal(t, []string{slack}, created.NotificationIDs)
 
@@ -330,11 +339,11 @@ func TestService_UpdateChangesOnlyWhatItIsGiven(t *testing.T) {
 	assert.Equal(t, "eu-central", renamed.Location)
 	assert.Equal(t, []string{slack}, renamed.NotificationIDs, "channels not named stay")
 
-	replaced, err := f.svc.Update(ctx, created.ID, &probe.UpdateRequest{NotificationIDs: []string{email}})
+	replaced, err := f.svc.Update(ctx, created.ID, &probe.UpdateRequest{ChannelWorkspaces: f.members(t), NotificationIDs: []string{email}})
 	require.NoError(t, err)
 	assert.Equal(t, []string{email}, replaced.NotificationIDs)
 
-	cleared, err := f.svc.Update(ctx, created.ID, &probe.UpdateRequest{NotificationIDs: []string{}})
+	cleared, err := f.svc.Update(ctx, created.ID, &probe.UpdateRequest{ChannelWorkspaces: f.members(t), NotificationIDs: []string{}})
 	require.NoError(t, err)
 	assert.Equal(t, []string{}, cleared.NotificationIDs)
 
@@ -351,7 +360,7 @@ func TestService_CreateWithUnknownChannelLeavesNothing(t *testing.T) {
 	})
 	slack := f.channel(t)
 
-	_, err := f.svc.Create(ctx, &probe.CreateRequest{Name: "Frankfurt", NotificationIDs: []string{slack, uuid.NewString()}})
+	_, err := f.svc.Create(ctx, &probe.CreateRequest{Name: "Frankfurt", ChannelWorkspaces: f.members(t), NotificationIDs: []string{slack, uuid.NewString()}})
 
 	require.ErrorIs(t, err, probe_notification.ErrUnknownChannel)
 	assert.Equal(t, 0, f.probeCount(t, "Frankfurt"), "no probe is left behind by a create that failed")
@@ -365,11 +374,11 @@ func TestService_UpdateWithUnknownChannelChangesNothing(t *testing.T) {
 	ctx := context.Background()
 	f := newFixture(t)
 	slack := f.channel(t)
-	created, err := f.svc.Create(ctx, &probe.CreateRequest{Name: "Frankfurt", Location: "eu-central", NotificationIDs: []string{slack}})
+	created, err := f.svc.Create(ctx, &probe.CreateRequest{Name: "Frankfurt", Location: "eu-central", ChannelWorkspaces: f.members(t), NotificationIDs: []string{slack}})
 	require.NoError(t, err)
 
 	name, location := "Renamed", "us-east"
-	_, err = f.svc.Update(ctx, created.ID, &probe.UpdateRequest{Name: &name, Location: &location, NotificationIDs: []string{uuid.NewString()}})
+	_, err = f.svc.Update(ctx, created.ID, &probe.UpdateRequest{Name: &name, Location: &location, ChannelWorkspaces: f.members(t), NotificationIDs: []string{uuid.NewString()}})
 
 	require.ErrorIs(t, err, probe_notification.ErrUnknownChannel)
 	unchanged, err := f.svc.FindByID(ctx, created.ID)
@@ -385,11 +394,11 @@ func TestService_UpdateKeepsTheChannelsWhenTheProbeUpdateFails(t *testing.T) {
 		return failingRepo{Repository: repo, updateErr: errors.New("the probe can't be updated")}
 	})
 	slack, email := f.channel(t), f.channel(t)
-	created, err := f.svc.Create(ctx, &probe.CreateRequest{Name: "Frankfurt", NotificationIDs: []string{slack}})
+	created, err := f.svc.Create(ctx, &probe.CreateRequest{Name: "Frankfurt", ChannelWorkspaces: f.members(t), NotificationIDs: []string{slack}})
 	require.NoError(t, err)
 
 	name := "Renamed"
-	_, err = f.svc.Update(ctx, created.ID, &probe.UpdateRequest{Name: &name, NotificationIDs: []string{email}})
+	_, err = f.svc.Update(ctx, created.ID, &probe.UpdateRequest{Name: &name, ChannelWorkspaces: f.members(t), NotificationIDs: []string{email}})
 
 	require.Error(t, err)
 	unchanged, err := f.svc.FindByID(ctx, created.ID)
@@ -402,7 +411,7 @@ func TestService_FindAllListsLocalFirstWithInstancesAndChannels(t *testing.T) {
 	ctx := context.Background()
 	f := newFixture(t)
 	slack := f.channel(t)
-	created, err := f.svc.Create(ctx, &probe.CreateRequest{Name: "Frankfurt", NotificationIDs: []string{slack}})
+	created, err := f.svc.Create(ctx, &probe.CreateRequest{Name: "Frankfurt", ChannelWorkspaces: f.members(t), NotificationIDs: []string{slack}})
 	require.NoError(t, err)
 	seen := time.Date(2026, 10, 22, 8, 30, 0, 0, time.UTC)
 	_, err = f.db.Exec(`INSERT INTO probe_instances (id, probe_id, hostname, os, arch, version, protocol_version, last_seen_at) VALUES (?, ?, 'host-1', 'linux', 'arm64', '1.2.3', 1, ?)`, "instance-1", created.ID, seen)
@@ -447,7 +456,8 @@ func TestService_DeleteRefusesAProbeWithMonitors(t *testing.T) {
 	created := f.create(t, "Frankfurt")
 	for _, active := range []bool{true, false, true} {
 		id := uuid.NewString()
-		_, err := f.db.Exec(`INSERT INTO monitors (id, type, name, interval, timeout, max_retries, retry_interval, resend_interval, active) VALUES (?, 'http', 'Monitor', 60, 10, 1, 10, 0, ?)`, id, active)
+		workspacetest.OldestOrAdd(t, f.db)
+		_, err := f.db.Exec(`INSERT INTO monitors (id, workspace_id, type, name, interval, timeout, max_retries, retry_interval, resend_interval, active) VALUES (?, (SELECT id FROM workspaces ORDER BY created_at, id LIMIT 1), 'http', 'Monitor', 60, 10, 1, 10, 0, ?)`, id, active)
 		require.NoError(t, err)
 		_, err = f.db.Exec("INSERT INTO monitor_probes (monitor_id, probe_id) VALUES (?, ?)", id, created.ID)
 		require.NoError(t, err)

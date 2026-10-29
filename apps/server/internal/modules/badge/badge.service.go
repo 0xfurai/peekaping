@@ -26,6 +26,8 @@ type Service interface {
 	// ResolveMonitorID returns the ID of the monitor that a badge URL names
 	ResolveMonitorID(ctx context.Context, id string) string
 	GetMonitorBadgeData(ctx context.Context, monitorID string) (*MonitorBadgeData, error)
+	// IsMonitorPublic is whether the monitor is active and on a published status page. It is
+	// status_page.ErrUnavailable for one whose workspace is suspended.
 	IsMonitorPublic(ctx context.Context, monitorID string) (bool, error)
 }
 
@@ -78,10 +80,10 @@ func (s *ServiceImpl) ResolveMonitorID(ctx context.Context, id string) string {
 	}
 	// The lookup of the ObjectID may fail instead of finding nothing: PostgreSQL
 	// rejects it as a UUID.
-	if found, err := s.monitorService.FindByID(ctx, id); err == nil && found != nil {
+	if found, err := s.monitorService.FindByIDAnyWorkspace(ctx, id); err == nil && found != nil {
 		return id
 	}
-	if found, err := s.monitorService.FindByID(ctx, mapped); err == nil && found != nil {
+	if found, err := s.monitorService.FindByIDAnyWorkspace(ctx, mapped); err == nil && found != nil {
 		return mapped
 	}
 	return id
@@ -89,7 +91,7 @@ func (s *ServiceImpl) ResolveMonitorID(ctx context.Context, id string) string {
 
 func (s *ServiceImpl) IsMonitorPublic(ctx context.Context, monitorID string) (bool, error) {
 	// Check if monitor exists and is active
-	monitor, err := s.monitorService.FindByID(ctx, monitorID)
+	monitor, err := s.monitorService.FindByIDAnyWorkspace(ctx, monitorID)
 	if err != nil {
 		return false, err
 	}
@@ -98,12 +100,20 @@ func (s *ServiceImpl) IsMonitorPublic(ctx context.Context, monitorID string) (bo
 	}
 
 	// Monitor is public if it's on at least one published status page
-	return s.statusPageService.IsMonitorPublished(ctx, monitorID)
+	published, err := s.statusPageService.IsMonitorPublishedAnyWorkspace(ctx, monitorID)
+	if err != nil || !published {
+		return false, err
+	}
+	// A badge says no more than its status page does: unavailable while the workspace is suspended
+	if monitor.WorkspaceSuspended {
+		return false, status_page.ErrUnavailable
+	}
+	return true, nil
 }
 
 func (s *ServiceImpl) GetMonitorBadgeData(ctx context.Context, monitorID string) (*MonitorBadgeData, error) {
 	// Get monitor basic info
-	monitorModel, err := s.monitorService.FindByID(ctx, monitorID)
+	monitorModel, err := s.monitorService.FindByIDAnyWorkspace(ctx, monitorID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get monitor: %w", err)
 	}
@@ -184,7 +194,7 @@ func (s *ServiceImpl) GetMonitorBadgeData(ctx context.Context, monitorID string)
 
 // getMonitorBasicInfo gets only basic monitor information (for status badges)
 func (s *ServiceImpl) getMonitorBasicInfo(ctx context.Context, monitorID string) (*MonitorBadgeData, error) {
-	monitorModel, err := s.monitorService.FindByID(ctx, monitorID)
+	monitorModel, err := s.monitorService.FindByIDAnyWorkspace(ctx, monitorID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get monitor: %w", err)
 	}

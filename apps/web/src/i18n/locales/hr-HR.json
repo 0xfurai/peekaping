@@ -3,22 +3,292 @@
     "cancel": "Otkaži",
     "saving": "Spremanje..."
   },
+  "admin": {
+    "nav": {
+      "back_to_workspace": "Natrag na {{name}}",
+      "probes": "Sonde",
+      "title": "Administracija",
+      "users": "Korisnici",
+      "workspaces": "Radni prostori",
+      "settings": "Postavke"
+    },
+    "users": {
+      "actions": {
+        "delete": "Obriši korisnika",
+        "disable": "Onemogući korisnika",
+        "disableTwoFactor": "Isključi 2FA",
+        "enable": "Omogući korisnika",
+        "grantAdmin": "Postavi za administratora instance",
+        "resetLink": "Izradi poveznicu za poništavanje",
+        "revokeAdmin": "Ukloni administratora instance"
+      },
+      "actions_aria": "Radnje za {{email}}",
+      "columns": {
+        "created": "Izrađen",
+        "email": "E-pošta",
+        "email_verified": "E-pošta potvrđena",
+        "instance_admin": "Administrator instance",
+        "last_sign_in": "Posljednja prijava",
+        "status": "Status",
+        "two_factor": "2FA",
+        "workspaces": "Radni prostori"
+      },
+      "confirm": {
+        "cancel": "Otkaži",
+        "delete": {
+          "confirm": "Obriši korisnika",
+          "description": "Obrisati {{email}}? Njegov račun se uklanja, a time i njegova mjesta u radnim prostorima. Ovo se ne može poništiti.",
+          "title": "Obriši korisnika"
+        },
+        "disable": {
+          "confirm": "Onemogući",
+          "description": "{{email}} se ne može prijaviti i odmah je odjavljen svugdje. Njegovi radni prostori nastavljaju raditi. Kasnije ga možete ponovno omogućiti.",
+          "title": "Onemogući korisnika"
+        },
+        "disableTwoFactor": {
+          "confirm": "Isključi 2FA",
+          "description": "{{email}} će se prijavljivati samo lozinkom i može ponovno postaviti 2FA. Učinite to tek kad ste sigurni da to doista traži ta osoba.",
+          "title": "Isključi 2FA"
+        }
+      },
+      "description": "Svi koji imaju račun na ovoj instalaciji. Administratori instance upravljaju samom instalacijom, primjerice sondama i korisnicima. Ulogu korisnika u radnom prostoru određuju vlasnici tog radnog prostora.",
+      "empty": "Nema pronađenih korisnika",
+      "errors": {
+        "last_instance_admin": "Instalacija treba barem jednog administratora instance.",
+        "last_owner": "Korisnik je posljednji vlasnik: {{workspaces}}. Prvo postavite nekog drugog za vlasnika ili obrišite radni prostor.",
+        "self": "Ovo ne možete učiniti sa svojim računom."
+      },
+      "load_failed": "Korisnike nije moguće učitati.",
+      "messages": {
+        "admin_granted": "{{email}} je sada administrator instance",
+        "admin_revoked": "{{email}} više nije administrator instance",
+        "deleted": "{{email}} je obrisan",
+        "disabled": "{{email}} je onemogućen i odjavljen",
+        "enabled": "{{email}} je omogućen",
+        "two_factor_off": "2FA je isključen za {{email}}",
+        "update_failed": "Korisnika nije moguće ažurirati."
+      },
+      "never": "Nikad",
+      "none": "Nema",
+      "page_name": "Korisnici",
+      "paging": {
+        "next": "Sljedeća",
+        "page": "Stranica {{page}} od {{pages}}",
+        "previous": "Prethodna"
+      },
+      "reset_link": {
+        "close": "Zatvori",
+        "copied": "Poveznica kopirana",
+        "copy": "Kopiraj poveznicu",
+        "copy_failed": "Poveznicu nije moguće kopirati. Označite je i kopirajte ručno.",
+        "description": "Poveznica kojom {{email}} bira novu lozinku. Kopirajte je i proslijedite sada: prikazuje se samo jednom.",
+        "emailed": "Ova instalacija šalje e-poštu o računu, pa se korisnika e-poštom obavještava da je za njega izrađena poveznica.",
+        "expires": "Poveznica vrijedi jednom i istječe {{when}}.",
+        "failed": "Poveznicu nije moguće izraditi.",
+        "label": "Poveznica",
+        "making": "Izrada poveznice...",
+        "signs_out": "Korištenjem poveznice korisnik se odjavljuje svugdje.",
+        "title": "Poveznica za poništavanje lozinke"
+      },
+      "search_label": "Pretraži korisnike po e-pošti",
+      "search_placeholder": "Pretraži po e-pošti",
+      "total": "Pronađeno: {{total}}",
+      "values": {
+        "active": "Aktivan",
+        "disabled": "Onemogućen",
+        "no": "Ne",
+        "two_factor_off": "Isključeno",
+        "two_factor_on": "Uključeno",
+        "yes": "Da"
+      },
+      "you": "vi"
+    },
+    "workspaces": {
+      "actions": {
+        "delete": "Obriši radni prostor",
+        "resume": "Ponovno aktiviraj radni prostor",
+        "suspend": "Suspendiraj radni prostor",
+        "limits": "Ograničenja"
+      },
+      "actions_aria": "Radnje za {{name}}",
+      "columns": {
+        "created": "Izrađen",
+        "custom_domains": "Prilagođene domene",
+        "members": "Članovi",
+        "monitors": "Nadzori",
+        "name": "Naziv",
+        "owners": "Vlasnici",
+        "status": "Status",
+        "status_pages": "Statusne stranice",
+        "limits": "Ograničenja"
+      },
+      "confirm": {
+        "cancel": "Otkaži",
+        "delete": {
+          "confirm": "Obriši radni prostor",
+          "description": "Obrisati {{name}}? Sve u njemu nestaje: njegovi nadzori i njihova povijest, statusne stranice, kanali obavijesti i pristup njegovih članova. Ovo se ne može poništiti.",
+          "name_label": "Upišite naziv radnog prostora za potvrdu: {{name}}",
+          "title": "Obriši radni prostor"
+        },
+        "resume": {
+          "confirm": "Ponovno aktiviraj",
+          "description": "Nadzori radnog prostora {{name}} ponovno rade u stanju u kojem su bili, a njegovi ga članovi mogu koristiti kao i prije. Radni prostor koji čeka da vlasnik potvrdi e-poštu i dalje čeka.",
+          "title": "Ponovno aktiviraj radni prostor"
+        },
+        "suspend": {
+          "confirm": "Suspendiraj",
+          "description": "Nadzori radnog prostora {{name}} prestaju raditi, njegove javne statusne stranice prikazuju da nisu dostupne, a njegovi članovi vide da je suspendiran. Ništa se ne briše i kasnije ga možete ponovno aktivirati.",
+          "title": "Suspendiraj radni prostor"
+        }
+      },
+      "description": "Svi radni prostori na ovoj instalaciji, s vlasnicima, članovima i količinom sadržaja. Prikazuju se samo brojevi, ništa iz samog radnog prostora.",
+      "empty": "Nema pronađenih radnih prostora",
+      "load_failed": "Radne prostore nije moguće učitati.",
+      "messages": {
+        "deleted": "{{name}} je obrisan",
+        "failed": "Radni prostor nije moguće promijeniti.",
+        "resumed": "{{name}} je ponovno aktiviran",
+        "suspended": "{{name}} je suspendiran"
+      },
+      "monitors": "Aktivno: {{active}}, pauzirano: {{paused}}",
+      "none": "Nema",
+      "page_name": "Radni prostori",
+      "paging": {
+        "next": "Sljedeća",
+        "page": "Stranica {{page}} od {{pages}}",
+        "previous": "Prethodna"
+      },
+      "search_label": "Pretraži radne prostore po nazivu ili e-pošti vlasnika",
+      "search_placeholder": "Pretraži po nazivu ili e-pošti vlasnika",
+      "status": {
+        "running": "Radi",
+        "suspended_admin": "Suspendirao administrator",
+        "suspended_unverified": "Suspendiran dok vlasnik ne potvrdi e-poštu"
+      },
+      "total": "Pronađeno: {{total}}",
+      "limits": {
+        "item": "{{name}}: {{value}}",
+        "more": "+{{number}} više",
+        "unlimited": "Bez ograničenja",
+        "source": {
+          "workspace": "Vlastita",
+          "install": "Zadane vrijednosti instalacije",
+          "none": "Nije postavljeno"
+        },
+        "dialog": {
+          "title": "Ograničenja za {{name}}",
+          "description": "Čime je ovaj radni prostor ograničen. Snižavanje ograničenja ništa ne pauzira niti briše: najnoviji nadzori iznad ograničenja prestaju raditi dok opet ne bude mjesta.",
+          "own": "Vlastita ograničenja",
+          "own_help": "Ona zamjenjuju zadane vrijednosti instalacije. Ostavite ograničenje prazno ako ga ne želite.",
+          "unlimited": "Bez ograničenja",
+          "unlimited_help": "Nikakvo ograničenje, što god govorile zadane vrijednosti instalacije.",
+          "defaults": "Koristi zadane vrijednosti instalacije",
+          "defaults_help": "Zadana ograničenja iz Administracija → Postavke ili nikakva ako ih instalacija ne postavlja.",
+          "save": "Spremi ograničenja",
+          "cancel": "Otkaži",
+          "saved": "Ograničenja za {{name}} su spremljena",
+          "failed": "Ograničenja nije moguće spremiti."
+        }
+      }
+    },
+    "settings": {
+      "page_name": "Postavke",
+      "description": "Postavke cijele instalacije. Vrijednost koju postavlja okruženje poslužitelja ovdje je zaključana.",
+      "load_failed": "Postavke se nisu mogle učitati.",
+      "saved": "Postavke su spremljene",
+      "save_failed": "Postavke nisu spremljene.",
+      "locked": "Postavlja okruženje poslužitelja",
+      "source": {
+        "environment": "Iz okruženja poslužitelja",
+        "saved": "Spremljeno ovdje",
+        "default": "Zadano"
+      },
+      "signup": {
+        "title": "Registracija",
+        "description": "Tko smije stvoriti račun na ovoj instalaciji.",
+        "label": "Način registracije",
+        "invite": "Samo uz pozivnicu",
+        "open": "Otvorena",
+        "invite_help": "Prvi se korisnik registrira, a svi nakon njega pridružuju se radnom prostoru putem pozivnice.",
+        "open_help": "Svatko se može registrirati i dobiva vlastiti radni prostor. Novi računi potvrđuju svoju adresu e-pošte, pa je potreban pošiljatelj e-pošte."
+      },
+      "sender": {
+        "title": "Pošiljatelj e-pošte",
+        "description": "SMTP poslužitelj koji šalje e-poštu računa: poveznice za ponovno postavljanje lozinke, potvrdu e-pošte i pozivnice.",
+        "on": "E-pošta računa je uključena.",
+        "off": "E-pošta računa je isključena: nema SMTP hosta.",
+        "host": "SMTP poslužitelj",
+        "port": "Port",
+        "tls": "Sigurnost",
+        "tls_starttls": "STARTTLS",
+        "tls_tls": "TLS",
+        "tls_none": "Bez",
+        "user": "Korisnik",
+        "password": "Lozinka",
+        "password_set": "Lozinka je postavljena. Upišite novu da biste je zamijenili.",
+        "password_not_set": "Lozinka nije postavljena",
+        "password_removed": "Lozinka će se ukloniti kad spremite.",
+        "password_reenter": "Promjenom hosta, porta, sigurnosti ili korisnika uklanja se spremljena lozinka. Unesite je ponovno.",
+        "remove_password": "Ukloni lozinku",
+        "keep_password": "Zadrži lozinku",
+        "from": "Adresa pošiljatelja"
+      },
+      "public_url": {
+        "title": "Javni URL",
+        "description": "Adresa web-aplikacije koju otvaraju poveznice u e-pošti i obavijestima.",
+        "label": "Javni URL"
+      },
+      "test_email": {
+        "title": "Pošalji testnu e-poštu",
+        "description": "Šalje kratku poruku putem spremljenog pošiljatelja kako bi provjerio da radi.",
+        "to": "Pošalji na",
+        "send": "Pošalji testnu e-poštu",
+        "sending": "Slanje…",
+        "sent": "Testna e-pošta poslana je na {{to}}.",
+        "failed": "Testna e-pošta nije poslana.",
+        "unsaved": "Pošiljatelj ima nespremljene promjene. Test koristi spremljenog pošiljatelja, pa najprije spremite."
+      },
+      "validation": {
+        "port": "Unesite port od 1 do 65535 ili ostavite prazno za zadanu vrijednost."
+      },
+      "errors": {
+        "locked": "{{field}} postavlja okruženje poslužitelja i ne može se ovdje promijeniti.",
+        "open_needs_sender": "Otvorena registracija treba pošiljatelja e-pošte jer novi računi potvrđuju svoju adresu e-pošte. Najprije postavite pošiljatelja ili to učinite u istom spremanju.",
+        "sender_needed": "Registracija je otvorena, a novi računi trebaju pošiljatelja da potvrde svoju adresu e-pošte. Najprije prebacite registraciju na samo uz pozivnicu.",
+        "no_sender": "Nema pošiljatelja e-pošte. Najprije spremite pošiljatelja."
+      },
+      "limits": {
+        "title": "Zadana ograničenja",
+        "description": "Ograničenja svakog radnog prostora koji nema vlastita. Ostavite ograničenje prazno ako ga ne želite. Ograničenja koja radni prostor dobije na stranici Radni prostori zamjenjuju ova."
+      }
+    }
+  },
   "auth": {
     "login": {
       "description": "Prijavite se s vašom e‑mail adresom",
       "no_account": "Nemate račun?",
       "sign_up": "Registriraj se",
       "submit": "Prijava",
-      "title": "Dobrodošli natrag"
+      "title": "Dobrodošli natrag",
+      "forgot_password": "Zaboravili ste lozinku?",
+      "ask_admin": "Zatražite pozivnicu od administratora ove instalacije"
     },
     "register": {
       "description": "Kreiraj svoj administratorski račun",
+      "description_open": "Kreiraj svoj račun",
       "have_account": "Imate već račun?",
       "sign_in": "Prijavi se",
       "submit": "Kreiraj",
       "title": "Pozdrav",
       "telemetry_note": "Anonimno: bez naziva nadzora, URL-ova i hostova. To možete promijeniti kasnije u „Postavke“.",
-      "telemetry_whats_sent": "Što se šalje"
+      "telemetry_whats_sent": "Što se šalje",
+      "errors": {
+        "rate_limited": "Previše registracija s vaše mreže. Pokušajte ponovno za sat vremena.",
+        "email_taken": "Račun s ovom e-adresom već postoji.",
+        "sign_in_instead": "Umjesto toga prijavite se.",
+        "check_failed": "Provjera nije uspjela. Pokušajte ponovno.",
+        "check_load_failed": "Provjera se nije mogla učitati. Provjerite vezu i pokušajte ponovno."
+      }
     },
     "twofa": {
       "code_label": "Kod 2FA",
@@ -27,6 +297,45 @@
       "title": "Potrebna dvofaktorska autentikacija",
       "verify_button": "Potvrdi 2FA",
       "verifying": "Provjeravanje..."
+    },
+    "forgot": {
+      "title": "Ponovno postavljanje lozinke",
+      "description": "Unesite e-adresu svojeg računa i poslat ćemo vam poveznicu.",
+      "submit": "Pošalji poveznicu",
+      "sent": "Ako račun s ovom e-adresom postoji, poslali smo poveznicu. Vrijedi sat vremena.",
+      "back_to_login": "Natrag na prijavu"
+    },
+    "reset": {
+      "title": "Odaberite novu lozinku",
+      "description": "Unesite novu lozinku za svoj račun.",
+      "submit": "Postavi lozinku",
+      "success": "Vaša je lozinka promijenjena i odjavljeni ste posvuda. Prijavite se novom lozinkom.",
+      "sign_in": "Prijava",
+      "invalid_link": "Ova je poveznica iskorištena ili je istekla.",
+      "request_new": "Zatraži novu poveznicu"
+    },
+    "verify": {
+      "title": "Potvrdite svoju e-adresu",
+      "verifying": "Potvrđujemo vašu e-adresu...",
+      "success": "Vaša je e-adresa potvrđena.",
+      "open_app": "Otvori Peekaping",
+      "invalid_link": "Ova je poveznica iskorištena ili je istekla."
+    },
+    "errors": {
+      "rate_limited": "Previše zahtjeva. Pokušajte ponovno kasnije.",
+      "generic": "Nešto je pošlo po zlu. Pokušajte ponovno.",
+      "already_verified": "Vaša je e-adresa već potvrđena."
+    },
+    "resend": {
+      "button": "Pošalji ponovno",
+      "sent": "Poslali smo novu poveznicu. Provjerite pristiglu poštu."
+    },
+    "verification_banner": {
+      "message": "Potvrdite svoju e-adresu: poslali smo poveznicu na {{email}}."
+    },
+    "suspension_notice": {
+      "message": "Vaši će monitori početi raditi kada potvrdite svoju e-adresu.",
+      "member_message": "Monitori ovog radnog prostora počet će raditi kada njegov vlasnik potvrdi svoju e-adresu."
     }
   },
   "bars": {
@@ -73,6 +382,7 @@
     "no_tags_available": "Nema dostupnih oznaka",
     "please_refresh_page": "Osvježite stranicu.",
     "required": "Obavezno",
+    "retry": "Pokušaj ponovno",
     "save": "Spremi",
     "saving": "Spremanje...",
     "search": "Pretraži",
@@ -124,6 +434,33 @@
       "password_required": "Lozinka je obavezna",
       "password_min_length": "Lozinka mora sadržavati barem 8 znakova",
       "passwords_mismatch": "Lozinke se ne podudaraju"
+    }
+  },
+  "invite": {
+    "accept": "Prihvati pozivnicu",
+    "accepting": "Pridruživanje...",
+    "creating": "Izrada...",
+    "description": "Pozvani ste da se pridružite radnom prostoru {{workspace}} kao {{role}}.",
+    "enter_failed": "Pridružili ste se radnom prostoru, ali njegovo otvaranje nije uspjelo. Pokušajte ponovno.",
+    "errors": {
+      "other_email": "Ova je pozivnica za drugu adresu e-pošte."
+    },
+    "for_email": "Ova je pozivnica za {{email}}.",
+    "have_account": "Već imate račun?",
+    "open_app": "Otvori Peekaping",
+    "other_account": "Prijavljeni ste kao {{current}}, ali ova je pozivnica za {{invited}}. Odjavite se, zatim se prijavite ili registrirajte s {{invited}} da je prihvatite.",
+    "sign_in_instead": "Umjesto toga se prijavite",
+    "sign_out": "Odjava",
+    "signup_description": "Odaberite lozinku da izradite račun i pridružite se radnom prostoru {{workspace}} kao {{role}}.",
+    "signup_submit": "Izradi račun i pridruži se",
+    "title": "Pridružite se: {{workspace}}",
+    "unavailable": {
+      "accepted": "Ova je pozivnica već iskorištena.",
+      "expired": "Ova je pozivnica istekla. Zatražite novu.",
+      "not_found": "Ova poveznica pozivnice ne postoji. Provjerite jeste li je kopirali cijelu.",
+      "revoked": "Ova je pozivnica opozvana. Zatražite novu.",
+      "title": "Ova se pozivnica ne može upotrijebiti",
+      "unknown": "Ova se pozivnica ne može upotrijebiti. Zatražite novu."
     }
   },
   "maintenance": {
@@ -231,6 +568,79 @@
       "wed": "sri"
     }
   },
+  "members": {
+    "change_role_aria": "Promijeni ulogu za {{email}}",
+    "errors": {
+      "account_exists": "Račun s ovom adresom e-pošte već postoji. Prijavite se i prihvatite pozivnicu.",
+      "already_member": "Ova osoba već je član ovog radnog prostora.",
+      "forbidden": "Vaša uloga u ovom radnom prostoru ne dopušta ovo.",
+      "generic": "Nešto je pošlo po zlu. Pokušajte ponovno.",
+      "last_owner": "Radni prostor mora imati barem jednog vlasnika.",
+      "member_not_found": "Ovaj član više nije u radnom prostoru."
+    },
+    "invite": {
+      "copied": "Poveznica je kopirana",
+      "copy": "Kopiraj",
+      "creating": "Izrada...",
+      "description": "Izradite poveznicu za adresu e-pošte i ulogu. E-pošta se ne šalje: kopirajte poveznicu i pošaljite je sami.",
+      "done": "Gotovo",
+      "email_label": "E-pošta",
+      "link_note": "Ova poveznica vrijedi samo jednom i istječe za 7 dana. Prikazuje se samo sada, zato je kopirajte prije nego napustite ovu stranicu.",
+      "link_title": "Poveznica pozivnice",
+      "role_label": "Uloga",
+      "submit": "Izradi poveznicu pozivnice",
+      "title": "Pozovi nekoga"
+    },
+    "leave": {
+      "button": "Napusti radni prostor",
+      "confirm": "Napusti",
+      "description": "Odmah gubite pristup ovom radnom prostoru i njegovim podacima.",
+      "done": "Napustili ste radni prostor",
+      "last_owner": "Vi ste posljednji vlasnik pa ne možete otići. Prvo nekog drugog člana učinite vlasnikom.",
+      "refresh_failed": "Napustili ste radni prostor, ali učitavanje vaših radnih prostora nije uspjelo. Pokušajte ponovno.",
+      "title": "Napusti ovaj radni prostor"
+    },
+    "list": {
+      "description": "Svi koji rade u ovom radnom prostoru i njihove uloge.",
+      "email": "E-pošta",
+      "joined": "Pridruženo",
+      "role": "Uloga",
+      "title": "Članovi",
+      "you": "vi"
+    },
+    "page_name": "Članovi",
+    "pending": {
+      "description": "Pozivnice koje još nisu iskorištene. Poveznica opozvane pozivnice prestaje raditi.",
+      "email": "E-pošta",
+      "empty": "Nema pozivnica na čekanju.",
+      "expired": "Isteklo",
+      "expires": "Istječe",
+      "revoke": "Opozovi",
+      "revoke_aria": "Opozovi pozivnicu za {{email}}",
+      "revoked": "Pozivnica je opozvana",
+      "role": "Uloga",
+      "title": "Pozivnice na čekanju"
+    },
+    "remove": "Ukloni",
+    "remove_aria": "Ukloni {{email}}",
+    "remove_dialog": {
+      "confirm": "Ukloni",
+      "description": "{{email}} odmah gubi pristup ovom radnom prostoru.",
+      "title": "Ukloni člana"
+    },
+    "removed": "Član je uklonjen",
+    "role_updated": "Uloga je ažurirana",
+    "roles": {
+      "admin": "Administrator",
+      "member": "Član",
+      "owner": "Vlasnik"
+    },
+    "settings_card": {
+      "description": "Pogledajte tko radi u ovom radnom prostoru i, ako ste administrator ili vlasnik, pozovite ljude i upravljajte njihovim ulogama.",
+      "open": "Otvori članove",
+      "title": "Članovi"
+    }
+  },
   "messages": {
     "login_error": "Došlo je do greške prilikom prijave",
     "login_no_tokens": "Prijava uspješna, ali tokeni nisu primljeni.",
@@ -258,6 +668,7 @@
     },
     "empty_state": {
       "action": "Kreiraj prvi nadzor",
+      "add_channel": "Dodaj kanal obavijesti",
       "description": "Započnite kreiranjem vašeg prvog nadzora kako biste pratili zdravlje vaših usluga.",
       "title": "Nema monitora"
     },
@@ -500,6 +911,7 @@
       "shared": {
         "intervals": {
           "heartbeat_retry": "Interval ponovnog pokušaja sržega (ponovite svake {{seconds}} sekunde)",
+          "interval_too_short": "Ne smije biti manje od {{minimum}} sekundi",
           "max_retries_description": "Maksimalni broj ponovnih pokušaja prije nego što se usluga označi kao neispravna i pošalje se obavijest.",
           "request_timeout": "Zastoj zahtjeva (Timeout nakon {{seconds}} sekundi)",
           "resend_notification": "Ponovi obavijest ako je X puta uzastopno ne radi (ponovno slanje onemogućeno)",
@@ -542,6 +954,10 @@
           "select_proxy_placeholder": "Odaberi proksi",
           "selected_proxy": "Odabrani proxy",
           "title": "Proxy"
+        },
+        "run_from": {
+          "default_locations": "Izvodi se na zadanim lokacijama",
+          "label": "Pokreni s"
         },
         "tags": {
           "label": "Oznake",
@@ -649,9 +1065,12 @@
     "toasts": {
       "deleted": "Nadzor izbrisan",
       "paused": "Monitor zaustavljen",
+      "push_token_already_used": "Drugi monitor već koristi ovaj push token. Generirajte novi.",
       "reset_success": "Podaci monitora uspješno resetirani",
       "resumed": "Nadzor nastavio"
     },
+    "type_disabled": "Vrsta {{type}} isključena je na ovoj instalaciji",
+    "over_limit": "Ne provjerava se: radni prostor ima više aktivnih monitora nego što njegovo ograničenje dopušta",
     "view": {
       "buttons": {
         "clone": "Kloniraj",
@@ -712,6 +1131,7 @@
     }
   },
   "navigation": {
+    "admin": "Administracija",
     "maintenance": "Održavanje",
     "monitors": "Nadzori",
     "notification_channels": "Kanali obavijesti",
@@ -1124,6 +1544,12 @@
         "signing_secret_docs_link": "Kako provjeriti potpis",
         "signing_secret_label": "Tajni ključ za potpis",
         "signing_secret_placeholder": "Ostavite prazno za slanje nepotpisanih zahtjeva"
+      },
+      "install_email": {
+        "description": "Šalje ga ova instalacija, SMTP poslužitelj nije potreban.",
+        "to_description": "Član ovog radnog prostora. Obavijesti se šalju nakon što potvrdi adresu.",
+        "to_label": "Primatelj",
+        "to_placeholder": "Odaberite člana"
       }
     },
     "important": "Važne obavijesti",
@@ -1142,7 +1568,8 @@
       "updated_success": "Notifikator je uspješno ažuriran"
     },
     "new": {
-      "title": "Novi kanal obavijesti"
+      "title": "Novi kanal obavijesti",
+      "default_hint": "Ovaj kanal bit će označen na novim monitorima."
     },
     "no_important": "Nema važnih obavijesti.",
     "placeholders": {
@@ -1152,11 +1579,21 @@
     "secret": {
       "reenter_error": "Ponovno unesite ovaj tajni ključ ili ga uklonite: promijenilo se mjesto na koje se šalje",
       "reenter_hint": "Ponovno unesite ovaj tajni ključ: promijenilo se mjesto na koje se šalje",
+      "reenter_url_error": "Ponovno unesite vjerodajnice u ovom URL-u: URL se promijenio otkad je spremljen",
       "remove": "Ukloni",
       "saved_hint": "Spremljeno — upišite za zamjenu"
     }
   },
   "probes": {
+    "default": {
+      "description": "Monitor izrađen bez odabira sondi izvodi se na zadanim sondama koje nisu onemogućene i podržavaju njegovu vrstu, a na lokalnoj sondi ako nijedna ne podržava. Postojeći monitori zadržavaju svoje sonde.",
+      "failed": "Nije moguće promijeniti je li sonda zadana.",
+      "label": "Zadana sonda",
+      "off": "{{name}} više nije zadana sonda",
+      "on": "{{name}} je sada zadana sonda",
+      "title": "Zadano za nove monitore"
+    },
+    "default_badge": "Zadano",
     "page_name": "Sonde",
     "description": "Sonde izvršavaju provjere nadzora s mjesta na kojima su instalirane. Lokalna sonda je sam Peekaping.",
     "local_name": "Lokalna",
@@ -1438,7 +1875,9 @@
     "data_retention": {
       "days_label": "Dana",
       "description": "Postavite koliko dana podaci ostaju pohranjeni (KEEP_DATA_PERIOD_DAYS).",
-      "title": "Rok zadržavanja podataka"
+      "read_only": "Ovo može promijeniti samo administrator ili vlasnik radnog prostora.",
+      "title": "Rok zadržavanja podataka",
+      "capped": "Do {{max}} dana u ovom radnom prostoru"
     },
     "error_reporting": {
       "cluster_note": "U klasterskom načinu rada promjena stiže do svakog procesa unutar jedne minute.",
@@ -1464,6 +1903,10 @@
     },
     "validation": {
       "min_days": "Mora biti najmanje 1 dan"
+    },
+    "workspace_name": {
+      "description": "Naziv koji se prikazuje u izborniku radnih prostora i njegovim članovima.",
+      "title": "Naziv radnog prostora"
     }
   },
   "status": {
@@ -1479,6 +1922,7 @@
       "refresh_in": "Osveži u",
       "refresh_now": "Osvježi sada",
       "status_page_not_found": "Statusna stranica nije pronađena ili nije objavljena.",
+      "status_page_unavailable": "Ova statusna stranica nije dostupna",
       "under_maintenance": "U održavanju",
       "unknown": "Nepoznato"
     }
@@ -1522,6 +1966,7 @@
     "search_placeholder": "Pretraži statusne stranice po nazivu...",
     "show_locations": "Prikaži svaku lokaciju",
     "show_locations_info": "Za monitore koji se provjeravaju s više lokacija prikazuje status i povijest svake lokacije",
+    "slug_already_used": "Druga statusna stranica već koristi ovu adresu",
     "update_status_page": "Ažuriraj statusnu stranicu",
     "view_page": "Pogledaj stranicu"
   },
@@ -1587,5 +2032,93 @@
   "ui": {
     "general": "Općenito",
     "intervals_retries": "Intervali, Pokušaji, Timeouti"
+  },
+  "workspaces": {
+    "create": "Izradi radni prostor",
+    "create_error": "Izrada radnog prostora nije uspjela",
+    "create_first": "Stvori radni prostor",
+    "creating": "Izrada...",
+    "enter": "Otvori radni prostor",
+    "entering": "Otvaranje...",
+    "entry_failed": "Radni prostor je izrađen, ali otvaranje nije uspjelo. Pokušajte ponovno.",
+    "name_label": "Naziv",
+    "name_placeholder": "Moj tim",
+    "name_required": "Unesite naziv",
+    "new": "Novi radni prostor",
+    "new_description": "Radni prostor ima vlastite nadzore, kanale obavijesti, statusne stranice i članove. Vi ćete biti njegov vlasnik.",
+    "new_title": "Novi radni prostor",
+    "none_description": "Vaš račun nije član nijednog radnog prostora, pa ovdje nema ničega za prikazati. Zamolite nekoga tko upravlja radnim prostorom da vas doda.",
+    "none_title": "Još niste ni u jednom radnom prostoru",
+    "refresh_failed": "Vaše radne prostore nije bilo moguće učitati. Provjerite vezu i pokušajte ponovno.",
+    "rename_error": "Preimenovanje radnog prostora nije uspjelo",
+    "rename_success": "Radni prostor je preimenovan",
+    "suspended_banner": {
+      "contact": "Za kontakt:",
+      "message": "Ovaj radni prostor suspendirao je administrator ove instalacije. Njegovi nadzori ne rade, a njegove statusne stranice nisu dostupne.",
+      "no_contact": "Obratite se osobi koja upravlja ovom instalacijom."
+    },
+    "switcher_label": "Promijeni radni prostor"
+  },
+  "get_started": {
+    "page_name": "Prvi koraci",
+    "skip": "Preskoči postavljanje",
+    "step_of": "Korak {{current}} od {{total}}",
+    "name": {
+      "description": "Ovdje su vaši nadzori, kanali obavijesti i statusne stranice. Naziv možete kasnije promijeniti u Postavkama.",
+      "title": "Imenujte svoj radni prostor"
+    },
+    "monitor": {
+      "create": "Izradi nadzor",
+      "create_failed": "Izrada nadzora nije uspjela",
+      "creating": "Izrada...",
+      "description": "Unesite adresu web-mjesta ili API-ja. Peekaping je provjerava i javlja vam kada prestane odgovarati.",
+      "full_form": "Ili postavite nadzor sa svim opcijama",
+      "title": "Dodajte svoj prvi nadzor",
+      "url_invalid": "Unesite adresu koja počinje s http:// ili https://",
+      "url_label": "Adresa za nadzor"
+    },
+    "channel": {
+      "continue_unlinked": "Nastavi bez povezivanja",
+      "description": "Odaberite kamo Peekaping šalje upozorenje kada vaš nadzor padne. Postat će zadani kanal za nove nadzore.",
+      "link_failed": "Kanal je spremljen, ali povezivanje s nadzorom nije uspjelo. Dodajte ga na stranici za uređivanje nadzora.",
+      "retry_link": "Pokušaj ponovno povezati",
+      "title": "Primajte obavijesti"
+    },
+    "done": {
+      "description": "Peekaping nadzire vašu uslugu. Evo što možete učiniti dalje.",
+      "title": "Sve je spremno",
+      "unverified": "Vaš će nadzor raditi nakon što se potvrdi vaša adresa e-pošte. Poveznicu za potvrdu potražite u pristigloj pošti.",
+      "links": {
+        "members": "Pozovite svoj tim",
+        "monitor": "Otvorite svoj nadzor",
+        "monitors": "Idi na nadzore",
+        "probes": "Upravljajte sondama",
+        "status_pages": "Objavite statusnu stranicu"
+      }
+    }
+  },
+  "limits": {
+    "reached": {
+      "monitors": "Ovaj radni prostor može imati pokrenuto najviše {{max}} nadzora",
+      "status_pages": "Ovaj radni prostor može imati najviše {{max}} statusnih stranica",
+      "custom_domains": "Statusne stranice ovog radnog prostora zajedno mogu imati najviše {{max}} prilagođenih domena",
+      "members": "Ovaj radni prostor može imati najviše {{max}} članova, uključujući pozivnice na čekanju",
+      "owned_workspaces": "Možete biti vlasnik najviše {{max}} radnih prostora",
+      "probes": "Nadzor u ovom radnom prostoru može raditi na najviše {{max}} sondi",
+      "retention_days": "Ovaj radni prostor može čuvati podatke najviše {{max}} dana"
+    },
+    "names": {
+      "monitors": "Aktivni nadzori",
+      "min_check_interval": "Najkraći interval provjere (sekunde)",
+      "status_pages": "Statusne stranice",
+      "custom_domains": "Prilagođene domene",
+      "members": "Članovi",
+      "owned_workspaces": "Radni prostori koje jedan korisnik smije posjedovati",
+      "probes_per_monitor": "Sonde po nadzoru",
+      "retention_days": "Zadržavanje podataka (dani)"
+    },
+    "none": "Bez ograničenja",
+    "invalid": "Unesite cijeli broj od 1 naviše ili ostavite prazno ako ne želite ograničenje.",
+    "retention_too_long": "Ne smije biti više od {{max}} dana"
   }
 }

@@ -16,7 +16,7 @@ import (
 )
 
 type SignalConfig struct {
-	SignalURL        string `json:"signal_url" validate:"required,url"`
+	SignalURL        string `json:"signal_url" validate:"required,url" urlCredentials:"true" target:"url"`
 	SignalNumber     string `json:"signal_number" validate:"required"`
 	SignalRecipients string `json:"signal_recipients" validate:"required"`
 	CustomMessage    string `json:"custom_message"`

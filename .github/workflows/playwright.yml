@@ -61,7 +61,7 @@ jobs:
   # main always run them, so an app change that breaks a bundle fails there.
   changes:
     name: Detect single-mode changes
-    runs-on: nexus-runner
+    runs-on: ubuntu-24.04
     outputs:
       single: ${{ github.event_name != 'pull_request' || steps.diff.outputs.single }}
       # The e2e configs to run. A job's `if` can't read `matrix`, so the single config is left out
@@ -85,7 +85,7 @@ jobs:
   # The dev images don't depend on the database, so both dev jobs reuse them.
   build-images:
     name: Build ${{ matrix.name }}
-    runs-on: nexus-runner
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
@@ -125,7 +125,7 @@ jobs:
     name: Build single
     needs: changes
     if: ${{ needs.changes.outputs.single == 'true' }}
-    runs-on: nexus-runner
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
     - uses: docker/setup-buildx-action@v3
@@ -154,7 +154,7 @@ jobs:
     needs: [changes, build-single-images]
     if: ${{ !cancelled() && needs.changes.outputs.single == 'true' }}
     timeout-minutes: 30
-    runs-on: nexus-runner
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
     - name: Download image
@@ -168,21 +168,32 @@ jobs:
       run: scripts/test-single-user.sh peekaping-peekaping
 
   playwright-tests:
-    name: E2E ${{ matrix.config }} ${{ matrix.database }}
+    name: E2E ${{ matrix.config }} ${{ matrix.database }}${{ matrix.suite == 'cloud' && ' cloud' || '' }}
     needs: [changes, build-images, build-single-images]
     # Run every combination whose images built, even if another image failed or the single images
     # were skipped.
     if: ${{ !cancelled() }}
     timeout-minutes: 60
-    runs-on: nexus-runner
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
         database: [postgres, sqlite]
         config: ${{ fromJSON(needs.changes.outputs.configs) }}
+        # `suite` is a dimension of its own, with one value for the combinations above, so that the
+        # include below adds a combination instead of adding a key to the dev SQLite one.
+        suite: [default]
+        include:
+          # The open-signup install (e2e/onboarding.spec.ts): the dev SQLite stack with SIGNUP_MODE=open
+          # and Mailpit as its mail server in the environment, running only the @cloud specs.
+          - { database: sqlite, config: dev, suite: cloud }
     env:
-      # Every docker compose command below runs the stack plus the e2e target.
+      # Every docker compose command below runs the stack plus the e2e target and Mailpit. The
+      # default suites set no sender in the environment, so Admin → Settings can save one that
+      # sends to Mailpit (e2e/admin-settings.spec.ts).
       COMPOSE_FILE: docker-compose.${{ matrix.config }}.${{ matrix.database }}.yml:docker-compose.e2e.yml
+      # Where the specs read the mail the install sent
+      E2E_MAILPIT_URL: http://localhost:8025
     steps:
     # Prepare environment and dependencies
     - uses: actions/checkout@v4
@@ -265,6 +276,23 @@ jobs:
         ERROR_REPORTING_DSN=http://public@127.0.0.1:9/1
         EOF
 
+    # The cloud suite's install lets anyone sign up and sends its account emails to Mailpit, which
+    # catches them (the emails don't leave the network, and no real address gets one). The other
+    # suites leave the sender out of the environment: a variable that is set locks its setting in
+    # Admin → Settings, which e2e/admin-settings.spec.ts changes.
+    - name: Add the cloud suite's settings to .env
+      if: ${{ matrix.suite == 'cloud' }}
+      run: |
+        cat >> .env << EOF
+
+        # Open signup, with Mailpit as the sender of account emails
+        SIGNUP_MODE=open
+        ACCOUNT_SMTP_HOST=mailpit
+        ACCOUNT_SMTP_PORT=1025
+        ACCOUNT_SMTP_FROM=peekaping@e2e.test
+        ACCOUNT_SMTP_TLS=none
+        EOF
+
     # Create and prepare data directories with proper permissions
     - name: Prepare data directories
       run: |
@@ -297,14 +325,24 @@ jobs:
         fi
         echo "The stack is healthy"
 
+    - name: Wait for the mail catcher
+      run: |
+        if ! timeout 60 bash -c "until curl -sf $E2E_MAILPIT_URL/readyz; do sleep 2; done" >/dev/null; then
+          echo "::error::Mailpit wasn't ready after 60 seconds"
+          docker compose ps
+          docker compose logs mailpit
+          exit 1
+        fi
+        echo "Mailpit is ready"
+
     - name: Run Playwright tests
-      run: bunx playwright test
+      run: bunx playwright test ${{ matrix.suite == 'cloud' && '--grep @cloud' || '' }}
 
     # The suite must also pass on the database the first run left behind. It
     # doubles the run time, so PRs skip it and main checks it after the merge.
     - name: Run Playwright tests again on the same database
       if: ${{ github.event_name == 'push' }}
-      run: bunx playwright test
+      run: bunx playwright test ${{ matrix.suite == 'cloud' && '--grep @cloud' || '' }}
       env:
         PLAYWRIGHT_HTML_OUTPUT_DIR: playwright-report-rerun
 
@@ -321,7 +359,7 @@ jobs:
     - uses: actions/upload-artifact@v4
       if: ${{ !cancelled() }}
       with:
-        name: playwright-report-${{ matrix.config }}-${{ matrix.database }}
+        name: playwright-report-${{ matrix.config }}-${{ matrix.database }}${{ matrix.suite == 'cloud' && '-cloud' || '' }}
         path: |
           playwright-report/
           playwright-report-rerun/

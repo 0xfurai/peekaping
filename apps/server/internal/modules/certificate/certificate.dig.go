@@ -13,7 +13,7 @@ import (
 
 func RegisterDependencies(container *dig.Container) error {
 	return utils.Provide(container, func(
-		settingService shared.SettingService,
+		settingService shared.WorkspaceSettingService,
 		eventBus events.EventBus,
 		notificationHistoryService notification_sent_history.Service,
 		tlsInfoService monitor_tls_info.Service,

@@ -23,6 +23,9 @@ type DBConfig struct {
 }
 
 type Config struct {
+	// Environment remembers which variables the environment set, for the install settings
+	Environment
+
 	Port      string `env:"SERVER_PORT" validate:"required,port" default:"8034"`
 	ClientURL string `env:"CLIENT_URL" validate:"url" default:"http://localhost:3000"`
 
@@ -144,6 +147,106 @@ type Config struct {
 	// sweep sets the probe offline. A Go duration such as "3m" or "90s". The api and peekaping,
 	// which run the sweep, check that it is from MinProbeOfflineAfter to MaxProbeOfflineAfter.
 	ProbeOfflineAfter time.Duration `env:"PROBE_OFFLINE_AFTER" default:"3m"`
+
+	// Account emails: password reset, email verification and invites are sent by one sender for
+	// the whole install. With ACCOUNT_SMTP_HOST unset (the default) they are off: the app shows
+	// no "Forgot password" link and no verification banner, and invites are copied, not emailed.
+	// ACCOUNT_SMTP_FROM is required when the host is set, which ValidateAccountSMTP checks. These are
+	// install settings: read them through installsettings.Resolver, which also takes the sender an
+	// instance admin saved when the variables are unset.
+	AccountSMTPHost     string `env:"ACCOUNT_SMTP_HOST"`
+	AccountSMTPPort     int    `env:"ACCOUNT_SMTP_PORT" validate:"min=1,max=65535" default:"587"`
+	AccountSMTPUser     string `env:"ACCOUNT_SMTP_USER"`
+	AccountSMTPPassword string `env:"ACCOUNT_SMTP_PASSWORD"`
+	AccountSMTPFrom     string `env:"ACCOUNT_SMTP_FROM"`
+	// AccountSMTPTLS is how the connection is secured: starttls (the default, and it fails when
+	// the server doesn't offer it), tls (TLS from the first byte, usually port 465) or none
+	AccountSMTPTLS string `env:"ACCOUNT_SMTP_TLS" validate:"oneof=starttls tls none" default:"starttls"`
+
+	// Who may create an account (PP-155, docs/adr/0005 section 11): "invite" (the default) lets the
+	// first user sign up and everyone after join through an invite, "open" lets anyone sign up and
+	// gives each a workspace of their own. Checked by ValidateSignup, which also requires a sender
+	// for account emails in open mode. Empty counts as invite. An install setting: read it through
+	// installsettings.Resolver.
+	SignupMode string `env:"SIGNUP_MODE" default:"invite"`
+	// SignupTurnstileSiteKey and SignupTurnstileSecret turn on Cloudflare Turnstile for open signup:
+	// both or neither. The site key is public (the web app shows the widget with it); the secret
+	// stays on the server, which checks every answer.
+	SignupTurnstileSiteKey string `env:"SIGNUP_TURNSTILE_SITE_KEY"`
+	SignupTurnstileSecret  string `env:"SIGNUP_TURNSTILE_SECRET"`
+	// SignupTurnstileVerifyURL replaces Cloudflare's siteverify address. It has no environment
+	// variable: tests point it at a fake server, and the binaries never set it.
+	SignupTurnstileVerifyURL string
+
+	// DisabledMonitorTypes is a comma-separated list of monitor types this install refuses and does
+	// not run (PP-157), empty by default. The Docker monitor, for one, reads the Docker socket of
+	// the machine the server runs on, which a shared install can't offer. DisabledMonitorTypeList
+	// splits it, and ValidateDisabledMonitorTypes checks the entries at startup.
+	DisabledMonitorTypes string `env:"DISABLED_MONITOR_TYPES"`
+
+	// BlockPrivateTargets keeps the checks from reaching the internal network (PP-156): loopback,
+	// private and link-local addresses, and cloud metadata. Off by default, since a self-hosted
+	// install monitors its own network; the cloud turns it on. A remote probe blocks when its own
+	// setting is on or the server's is, which the server states in hello.
+	BlockPrivateTargets bool `env:"BLOCK_PRIVATE_TARGETS" default:"false"`
+
+	// APIRateLimitPerWorkspace and APIRateLimitPerAPIKey cap the requests a workspace, and one of
+	// its API keys, may make per minute (PP-159). 0, the default, is off. A request over either
+	// answers 429 with Retry-After. Each api replica counts for itself (see package ratelimit).
+	APIRateLimitPerWorkspace int `env:"API_RATE_LIMIT_PER_WORKSPACE" validate:"min=0" default:"0"`
+	APIRateLimitPerAPIKey    int `env:"API_RATE_LIMIT_PER_API_KEY" validate:"min=0" default:"0"`
+	// APIRateLimitWindow is the time the two limits count over. It has no environment variable: it
+	// is a minute unless a test shortens it.
+	APIRateLimitWindow time.Duration
+
+	// ChecksPerHostPerMinute caps how many checks to one target host a checking process runs per
+	// minute, across all workspaces (PP-159). 0, the default, is off. A check whose turn is a few
+	// seconds away waits for it; a check further out skips its tick. The cap is per process: the
+	// server's scheduler and each remote probe count for themselves. A probe uses the server's value
+	// from hello when that is stricter than its own.
+	ChecksPerHostPerMinute int `env:"CHECKS_PER_HOST_PER_MINUTE" validate:"min=0" default:"0"`
+
+	// MinCheckInterval is the smallest check interval and retry interval, in seconds, a monitor can
+	// be saved with (PP-159). 20, the default, is the smallest a monitor ever had; a value below it
+	// stops startup. A monitor stored with less is checked at the minimum. MinCheckIntervalSeconds
+	// is the value to read: a Config built without the variable counts as 20.
+	MinCheckInterval int `env:"MIN_CHECK_INTERVAL" validate:"min=20" default:"20"`
+
+	// WorkspaceLimit* are the install's default limits (PP-160, package limits): what a workspace
+	// that has no limits of its own is held to. Each is unset, or 0, by default, which is no limit,
+	// so an install that sets none has no limits. WorkspaceLimitMonitors counts active monitors,
+	// WorkspaceLimitMinCheckInterval is in seconds and applies beside MIN_CHECK_INTERVAL (the
+	// stricter wins), and WorkspaceLimitProbesPerMonitor is how many probes one monitor runs on.
+	// These are install settings: read them through installsettings.Resolver, which also takes the
+	// default an instance admin saved when a variable is unset.
+	WorkspaceLimitMonitors         int `env:"WORKSPACE_LIMIT_MONITORS" validate:"min=0" default:"0"`
+	WorkspaceLimitMinCheckInterval int `env:"WORKSPACE_LIMIT_MIN_CHECK_INTERVAL" validate:"min=0" default:"0"`
+	WorkspaceLimitStatusPages      int `env:"WORKSPACE_LIMIT_STATUS_PAGES" validate:"min=0" default:"0"`
+	WorkspaceLimitCustomDomains    int `env:"WORKSPACE_LIMIT_CUSTOM_DOMAINS" validate:"min=0" default:"0"`
+	WorkspaceLimitMembers          int `env:"WORKSPACE_LIMIT_MEMBERS" validate:"min=0" default:"0"`
+	WorkspaceLimitOwnedWorkspaces  int `env:"WORKSPACE_LIMIT_OWNED_WORKSPACES" validate:"min=0" default:"0"`
+	WorkspaceLimitProbesPerMonitor int `env:"WORKSPACE_LIMIT_PROBES_PER_MONITOR" validate:"min=0" default:"0"`
+	WorkspaceLimitRetentionDays    int `env:"WORKSPACE_LIMIT_RETENTION_DAYS" validate:"min=0" default:"0"`
+
+	// SupportContact is how a member of a suspended workspace gets in touch with whoever runs the
+	// install (PP-372): free text, an email address or a URL, shown in the suspension banner and
+	// returned by GET /me. Unset, the banner says nothing about how.
+	SupportContact string `env:"SUPPORT_CONTACT"`
+
+	// InstallSettingsCacheLifetime is how long a process keeps the install settings it read from the
+	// database (package installsettings), so a change saved on another api replica takes effect
+	// within it. It has no environment variable: it is installsettings.DefaultCacheLifetime unless a
+	// test shortens it.
+	InstallSettingsCacheLifetime time.Duration
+}
+
+// AbsoluteMinCheckInterval is the shortest check interval, in seconds, that any install allows:
+// the monitor DTOs' minimum. It is also the floor of MIN_CHECK_INTERVAL.
+const AbsoluteMinCheckInterval = 20
+
+// MinCheckIntervalSeconds is MIN_CHECK_INTERVAL, and never less than AbsoluteMinCheckInterval
+func (c *Config) MinCheckIntervalSeconds() int {
+	return max(c.MinCheckInterval, AbsoluteMinCheckInterval)
 }
 
 // MinProbeOfflineAfter is the shortest PROBE_OFFLINE_AFTER. A probe instance that says bye is left
@@ -226,6 +329,8 @@ func LoadConfig[T any](path string) (config T, err error) {
 
 	// Override with environment variables (takes precedence)
 	envVarsFromEnv := loadFromEnv(&config)
+	// The install settings tell a value the environment set from a default (see Environment)
+	recordEnvironment(&config, envVarsFromFile, envVarsFromEnv)
 
 	// Apply default values for fields that weren't set
 	defaultsApplied := applyDefaults(&config)

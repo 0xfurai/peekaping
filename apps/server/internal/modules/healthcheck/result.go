@@ -49,6 +49,7 @@ func ResultFromMonitor(
 	return &ingester.Result{
 		ProbeID:           shared.LocalProbeID,
 		MonitorID:         m.ID,
+		WorkspaceID:       m.WorkspaceID,
 		MonitorName:       m.Name,
 		MonitorType:       m.Type,
 		MonitorInterval:   m.Interval,

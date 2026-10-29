@@ -35,6 +35,8 @@ import (
 	"peekaping/internal/modules/stats"
 	"peekaping/internal/modules/telemetry"
 	"peekaping/internal/modules/websocket"
+	"peekaping/internal/modules/workspace"
+	"peekaping/internal/modules/workspace/workspacetest"
 
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/hibiken/asynq"
@@ -73,6 +75,7 @@ func TestRegisterSingle_ResolvesWhatCmdPeekapingRuns(t *testing.T) {
 	require.NoError(t, container.Invoke(func(
 		_ heartbeat.Service,
 		_ auth.Repository,
+		_ auth.Service,
 		_ setting.Service,
 		_ stats.Service,
 		_ notification_sent_history.Service,
@@ -259,6 +262,7 @@ func TestRegisterSingle_TestsAChannelWithoutTheNotificationListenerBuilt(t *test
 
 		req := httptest.NewRequest(http.MethodPost, "/test", strings.NewReader(string(body)))
 		req.Header.Set("Content-Type", "application/json")
+		req = req.WithContext(workspace.WithContext(req.Context(), workspacetest.ID, workspace.RoleAdmin)) // a workspace's request
 		rec := httptest.NewRecorder()
 		router.ServeHTTP(rec, req)
 

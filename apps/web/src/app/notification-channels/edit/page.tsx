@@ -13,10 +13,13 @@ import { toast } from "sonner";
 import { commonMutationErrorHandler } from "@/lib/utils";
 import type { NotificationChannelCreateUpdateDto } from "@/api";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
+import { useWorkspacePath } from "@/hooks/useWorkspacePath";
+import { invalidateChannelLists } from "../channel-queries";
 
 const EditNotificationChannel = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const workspacePath = useWorkspacePath();
   const { t } = useLocalizedTranslation();
   const queryClient = useQueryClient();
 
@@ -32,7 +35,8 @@ const EditNotificationChannel = () => {
       queryClient.removeQueries({
         queryKey: getNotificationChannelsByIdQueryKey({ path: { id: id! } }),
       });
-      navigate("/notification-channels");
+      invalidateChannelLists(queryClient);
+      navigate(workspacePath("/notification-channels"));
     },
     onError: commonMutationErrorHandler(t("notifications.messages.update_failed")),
   });

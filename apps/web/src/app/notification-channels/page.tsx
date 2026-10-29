@@ -3,7 +3,6 @@ import type { NotificationChannelModel } from "@/api";
 import {
   getNotificationChannelsInfiniteOptions,
   deleteNotificationChannelsByIdMutation,
-  getNotificationChannelsInfiniteQueryKey,
 } from "@/api/@tanstack/react-query.gen";
 import Layout from "@/layout";
 import {
@@ -27,6 +26,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import NotificationChannelCard from "./components/notification-channel-card";
+import { invalidateChannelLists } from "./channel-queries";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useSearchParams } from "@/hooks/useSearchParams";
 import { toast } from "sonner";
@@ -36,9 +36,11 @@ import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
 import EmptyList from "@/components/empty-list";
 import { Button } from "@/components/ui/button";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
+import { useWorkspacePath } from "@/hooks/useWorkspacePath";
 
 const NotifiersPage = () => {
   const navigate = useNavigate();
+  const workspacePath = useWorkspacePath();
   const queryClient = useQueryClient();
   const { t } = useLocalizedTranslation();
   const { getParam, updateSearchParams, clearAllParams, hasParams } =
@@ -82,9 +84,7 @@ const NotifiersPage = () => {
     ...deleteNotificationChannelsByIdMutation(),
     onSuccess: () => {
       toast.success(t("messages.notifier_delete_success"));
-      queryClient.invalidateQueries({
-        queryKey: getNotificationChannelsInfiniteQueryKey(),
-      });
+      invalidateChannelLists(queryClient);
       setShowConfirmDelete(false);
       setNotifierToDelete(null);
     },
@@ -128,7 +128,7 @@ const NotifiersPage = () => {
   return (
     <Layout
       pageName={t("navigation.notification_channels")}
-      onCreate={() => navigate("/notification-channels/new")}
+      onCreate={() => navigate(workspacePath("/notification-channels/new"))}
     >
       <div>
         <div className="mb-4 space-y-4">
@@ -171,7 +171,7 @@ const NotifiersPage = () => {
             key={notifier.id}
             notifier={notifier}
             onClick={() =>
-              navigate(`/notification-channels/${notifier.id}/edit`)
+              navigate(workspacePath(`/notification-channels/${notifier.id}/edit`))
             }
             onDelete={() => handleDeleteClick(notifier)}
           />
@@ -191,7 +191,7 @@ const NotifiersPage = () => {
             title={t("notifications.empty_state.title")}
             text={t("notifications.empty_state.description")}
             actionText={t("notifications.empty_state.action")}
-            onClick={() => navigate("/notification-channels/new")}
+            onClick={() => navigate(workspacePath("/notification-channels/new"))}
           />
         )}
       </div>

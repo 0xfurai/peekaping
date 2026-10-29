@@ -2,8 +2,11 @@ package notification_channel
 
 import (
 	"maps"
-	"peekaping/internal/config"
+	"peekaping/internal/installsettings"
+	"peekaping/internal/mailer"
 	"peekaping/internal/modules/notification_channel/providers"
+	"peekaping/internal/modules/workspace"
+	"peekaping/internal/netguard"
 	"slices"
 
 	"go.uber.org/zap"
@@ -13,21 +16,29 @@ import (
 // so the controller and the listener use the same providers.
 type ProviderRegistry struct {
 	byType map[string]NotificationChannelProvider
+	guard  *netguard.Guard
 }
 
 // NewProviderRegistry builds the provider for every notification channel type. The providers
-// share one HTTP client, so they reuse connections.
-func NewProviderRegistry(logger *zap.SugaredLogger, cfg *config.Config) *ProviderRegistry {
-	client := providers.NewHTTPClient()
-	return &ProviderRegistry{byType: map[string]NotificationChannelProvider{
-		"smtp":           providers.NewEmailSender(logger),
+// share one HTTP client, so they reuse connections. The install email provider sends through the
+// install's account-email sender, to a member of the channel's workspace.
+//
+// The guard (BLOCK_PRIVATE_TARGETS, PP-158) is the one the checks dial through. The HTTP client and
+// the SMTP channel's sender connect through it, and CheckTargets uses it on a save. The install email
+// channel is not guarded: it sends through the install's own account-email sender. A nil guard
+// blocks nothing.
+func NewProviderRegistry(logger *zap.SugaredLogger, settings *installsettings.Resolver, accountMailer *mailer.Mailer, members workspace.MemberRepository, guard *netguard.Guard) *ProviderRegistry {
+	client := providers.NewGuardedHTTPClient(guard)
+	return &ProviderRegistry{guard: guard, byType: map[string]NotificationChannelProvider{
+		"smtp":           providers.NewGuardedEmailSender(logger, guard),
+		"install_email":  providers.NewInstallEmailSender(logger, settings, accountMailer, members),
 		"telegram":       providers.NewTelegramSender(logger, client),
 		"webhook":        providers.NewWebhookSender(logger, client),
-		"slack":          providers.NewSlackSender(logger, cfg, client),
+		"slack":          providers.NewSlackSender(logger, settings, client),
 		"ntfy":           providers.NewNTFYSender(logger, client),
-		"pagerduty":      providers.NewPagerDutySender(logger, cfg, client),
+		"pagerduty":      providers.NewPagerDutySender(logger, settings, client),
 		"opsgenie":       providers.NewOpsgenieSender(logger, client),
-		"google_chat":    providers.NewGoogleChatSender(logger, cfg, client),
+		"google_chat":    providers.NewGoogleChatSender(logger, settings, client),
 		"grafana_oncall": providers.NewGrafanaOncallSender(logger, client),
 		"signal":         providers.NewSignalSender(logger, client),
 		"gotify":         providers.NewGotifySender(logger, client),
@@ -42,7 +53,7 @@ func NewProviderRegistry(logger *zap.SugaredLogger, cfg *config.Config) *Provide
 		"pushbullet":     providers.NewPushbulletSender(logger, client),
 		"pagertree":      providers.NewPagerTreeSender(logger, client),
 		"line":           providers.NewLineSender(logger, client),
-		"teams":          providers.NewTeamsSender(logger, cfg, client),
+		"teams":          providers.NewTeamsSender(logger, settings, client),
 	}}
 }
 

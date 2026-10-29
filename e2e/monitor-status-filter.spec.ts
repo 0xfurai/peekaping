@@ -1,7 +1,7 @@
 import { test, expect, type APIRequestContext } from '@playwright/test';
 import { adminAPI, createHTTPMonitor, deleteCreated, randomID, updateHTTPMonitor } from './support/api';
 import { setTargetStatus, targetURL } from './support/fake-target';
-import { cardStatusOf, listFor, openLive } from './support/monitor-list';
+import { WORKSPACE_ROOM, cardStatusOf, listFor, openLive } from './support/monitor-list';
 
 // A new monitor is checked at once and then every 20 seconds, the minimum
 // check interval. If whatever runs the checks misses the create event, its next
@@ -34,7 +34,7 @@ test('a Down monitor edited through the API is listed under Down and not under U
     const monitor = await createHTTPMonitor(api, name, targetURL(id));
     created.push(`monitors/${monitor.id}`);
 
-    await openLive(page, listFor(id), 'monitor:all');
+    await openLive(page, listFor(id), WORKSPACE_ROOM);
     await expect(cardStatusOf(page, name)).toHaveText('Down', nextCheck);
 
     // The card turns Down when the heartbeat reaches the page, which can be before

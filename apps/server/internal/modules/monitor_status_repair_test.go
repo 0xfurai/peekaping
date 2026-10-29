@@ -2,6 +2,7 @@ package modules_test
 
 import (
 	"context"
+	"peekaping/internal/modules/workspace/workspacetest"
 	"testing"
 	"time"
 
@@ -25,7 +26,7 @@ func TestRepairStoredStatusesFollowsTheLatestHeartbeat(t *testing.T) {
 		service := monitor.NewMonitorService(monitors, nil, heartbeat.NewService(heartbeats, bus, logger), bus, nil, nil, nil, nil, nil, logger)
 
 		create := func(name string, stored shared.MonitorStatus) string {
-			created, err := monitors.Create(ctx, &monitor.Model{Type: "http", Name: name, Interval: 60, Timeout: 10, Active: true, Config: "{}", Status: stored})
+			created, err := monitors.Create(ctx, workspacetest.ID, &monitor.Model{Type: "http", Name: name, Interval: 60, Timeout: 10, Active: true, Config: "{}", Status: stored})
 			require.NoError(t, err)
 			return created.ID
 		}
@@ -42,14 +43,14 @@ func TestRepairStoredStatusesFollowsTheLatestHeartbeat(t *testing.T) {
 		recordHeartbeat(matching, shared.MonitorStatusUp, time.Minute)
 		silent := create("Silent", shared.MonitorStatusDown)
 		saved := func(id string) *monitor.Model {
-			m, err := monitors.FindByID(ctx, id)
+			m, err := monitors.FindByID(ctx, workspacetest.ID, id)
 			require.NoError(t, err)
 			require.NotNil(t, m)
 			return m
 		}
 		matchingBefore, silentBefore := saved(matching), saved(silent)
 
-		repaired, err := service.RepairStoredStatuses(ctx)
+		repaired, err := service.RepairStoredStatusesAnyWorkspace(ctx)
 
 		require.NoError(t, err)
 		assert.Equal(t, 1, repaired)

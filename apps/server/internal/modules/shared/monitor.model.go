@@ -1,8 +1,23 @@
 package shared
 
 import (
+	"errors"
 	"time"
+
+	"peekaping/internal/modules/workspace/workspaceid"
 )
+
+// ErrWorkspaceSuspended is what recording a result for a monitor of a suspended workspace returns:
+// nothing is stored for it and nothing is judged (PP-155)
+var ErrWorkspaceSuspended = errors.New("monitor's workspace is suspended")
+
+// ErrMonitorTypeDisabled is what loading or recording a result for a monitor of a type that
+// DISABLED_MONITOR_TYPES turns off returns: nothing is checked, stored or judged for it (PP-157)
+var ErrMonitorTypeDisabled = errors.New("monitor's type is disabled on this install")
+
+// ErrMonitorOverLimit is what loading a monitor that is past its workspace's limit of active
+// monitors returns (PP-160): it is kept, listed and editable, but nothing checks it
+var ErrMonitorOverLimit = errors.New("monitor is past its workspace's limit of active monitors")
 
 // LocationRule is how many of a monitor's locations must be Down for the monitor to be Down
 type LocationRule string
@@ -18,6 +33,39 @@ const (
 
 type Monitor struct {
 	ID string `json:"id"`
+
+	// WorkspaceID is the workspace the monitor belongs to. It is stored with the monitor and read
+	// back with it, never taken from a request body, and it is not part of the API's answer.
+	WorkspaceID workspaceid.ID `json:"-"`
+
+	// WorkspaceSuspended is whether the monitor's workspace is suspended (PP-155): the monitor is
+	// kept and shown, but it does not run. A read of one monitor by its ID or push token fills it
+	// in, so that the paths that run or judge a monitor can skip it; the lists that pick monitors
+	// to run leave suspended workspaces out in the query itself. It is not stored with the monitor
+	// and not part of the API's answer.
+	WorkspaceSuspended bool `json:"-"`
+
+	// WorkspaceSuspendedByAdmin is whether an instance admin holds the monitor's workspace (PP-372),
+	// which a push says in its refusal. It is filled in with WorkspaceSuspended, and can be true
+	// beside the verification hold.
+	WorkspaceSuspendedByAdmin bool `json:"-"`
+
+	// TypeDisabled is whether the monitor's type is one of DISABLED_MONITOR_TYPES (PP-157): the
+	// monitor is kept and shown, but it does not run, as in a suspended workspace, and its stored
+	// state is left alone so that it runs again once the type is turned back on. The repository
+	// fills it in on every read; the lists that pick monitors to run leave these monitors out in the
+	// query itself. It is not stored with the monitor, and the API answers it as type_disabled on
+	// the monitor response.
+	TypeDisabled bool `json:"-"`
+
+	// OverLimit is whether the monitor is active but past its workspace's limit of active monitors
+	// (PP-160): the newest active monitors past the limit, by created_at and then id, don't run.
+	// Lowering a limit pauses nothing, so the monitor keeps its active setting and runs again once
+	// it is within the limit: when the limit is raised or an older monitor is paused or deleted.
+	// The repository fills it in on every read, as it does TypeDisabled, and the lists that pick
+	// monitors to run leave these monitors out in the query itself. The API answers it as
+	// over_limit on the monitor response.
+	OverLimit bool `json:"-"`
 
 	// connection type: http, tcp, ping, etc
 	Type string `json:"type" validate:"required" example:"http"`

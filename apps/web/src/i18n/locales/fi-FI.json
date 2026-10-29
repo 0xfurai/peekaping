@@ -3,22 +3,292 @@
     "cancel": "Peruuta",
     "saving": "Tallennetaan..."
   },
+  "admin": {
+    "nav": {
+      "back_to_workspace": "Takaisin kohteeseen {{name}}",
+      "probes": "Luotaimet",
+      "title": "Ylläpito",
+      "users": "Käyttäjät",
+      "workspaces": "Työtilat",
+      "settings": "Asetukset"
+    },
+    "users": {
+      "actions": {
+        "delete": "Poista käyttäjä",
+        "disable": "Poista käyttäjä käytöstä",
+        "disableTwoFactor": "Poista 2FA käytöstä",
+        "enable": "Ota käyttäjä käyttöön",
+        "grantAdmin": "Tee instanssin ylläpitäjäksi",
+        "resetLink": "Luo palautuslinkki",
+        "revokeAdmin": "Poista instanssin ylläpitäjän oikeus"
+      },
+      "actions_aria": "Toiminnot: {{email}}",
+      "columns": {
+        "created": "Luotu",
+        "email": "Sähköposti",
+        "email_verified": "Sähköposti vahvistettu",
+        "instance_admin": "Instanssin ylläpitäjä",
+        "last_sign_in": "Viimeisin kirjautuminen",
+        "status": "Tila",
+        "two_factor": "2FA",
+        "workspaces": "Työtilat"
+      },
+      "confirm": {
+        "cancel": "Peru",
+        "delete": {
+          "confirm": "Poista käyttäjä",
+          "description": "Poistetaanko {{email}}? Hänen tilinsä ja paikkansa työtiloissa poistetaan. Tätä ei voi perua.",
+          "title": "Poista käyttäjä"
+        },
+        "disable": {
+          "confirm": "Poista käytöstä",
+          "description": "{{email}} ei voi kirjautua sisään ja hänet kirjataan ulos kaikkialta heti. Hänen työtilansa jatkavat toimintaansa. Voit ottaa hänet takaisin käyttöön myöhemmin.",
+          "title": "Poista käyttäjä käytöstä"
+        },
+        "disableTwoFactor": {
+          "confirm": "Poista 2FA käytöstä",
+          "description": "{{email}} kirjautuu jatkossa pelkällä salasanalla ja voi ottaa 2FA:n uudelleen käyttöön. Tee tämä vasta, kun olet varma, että pyyntö tulee häneltä itseltään.",
+          "title": "Poista 2FA käytöstä"
+        }
+      },
+      "description": "Kaikki, joilla on tili tässä asennuksessa. Instanssin ylläpitäjät hallitsevat itse asennusta, kuten luotaimia ja käyttäjiä. Käyttäjän roolin työtilassa määräävät kyseisen työtilan omistajat.",
+      "empty": "Käyttäjiä ei löytynyt",
+      "errors": {
+        "last_instance_admin": "Asennuksessa on oltava vähintään yksi instanssin ylläpitäjä.",
+        "last_owner": "Käyttäjä on viimeinen omistaja kohteessa {{workspaces}}. Tee ensin joku muu omistajaksi tai poista työtila.",
+        "self": "Et voi tehdä tätä omalle tilillesi."
+      },
+      "load_failed": "Käyttäjien lataaminen epäonnistui.",
+      "messages": {
+        "admin_granted": "{{email}} on nyt instanssin ylläpitäjä",
+        "admin_revoked": "{{email}} ei ole enää instanssin ylläpitäjä",
+        "deleted": "{{email}} on poistettu",
+        "disabled": "{{email}} on poistettu käytöstä ja kirjattu ulos",
+        "enabled": "{{email}} on otettu käyttöön",
+        "two_factor_off": "2FA on pois päältä käyttäjältä {{email}}",
+        "update_failed": "Käyttäjän päivittäminen epäonnistui."
+      },
+      "never": "Ei koskaan",
+      "none": "Ei mitään",
+      "page_name": "Käyttäjät",
+      "paging": {
+        "next": "Seuraava",
+        "page": "Sivu {{page}} / {{pages}}",
+        "previous": "Edellinen"
+      },
+      "reset_link": {
+        "close": "Sulje",
+        "copied": "Linkki kopioitu",
+        "copy": "Kopioi linkki",
+        "copy_failed": "Linkin kopioiminen epäonnistui. Valitse se ja kopioi käsin.",
+        "description": "Linkki, jolla {{email}} valitsee uuden salasanan. Kopioi se ja välitä se nyt: se näytetään vain kerran.",
+        "emailed": "Tämä asennus lähettää tilisähköposteja, joten käyttäjälle ilmoitetaan sähköpostilla, että hänelle on luotu linkki.",
+        "expires": "Linkki toimii kerran ja vanhenee {{when}}.",
+        "failed": "Linkin luominen epäonnistui.",
+        "label": "Linkki",
+        "making": "Luodaan linkkiä...",
+        "signs_out": "Linkin käyttö kirjaa käyttäjän ulos kaikkialta.",
+        "title": "Salasanan palautuslinkki"
+      },
+      "search_label": "Hae käyttäjiä sähköpostin mukaan",
+      "search_placeholder": "Hae sähköpostilla",
+      "total": "{{total}} löytyi",
+      "values": {
+        "active": "Aktiivinen",
+        "disabled": "Poistettu käytöstä",
+        "no": "Ei",
+        "two_factor_off": "Pois",
+        "two_factor_on": "Päällä",
+        "yes": "Kyllä"
+      },
+      "you": "sinä"
+    },
+    "workspaces": {
+      "actions": {
+        "delete": "Poista työtila",
+        "resume": "Jatka työtilaa",
+        "suspend": "Keskeytä työtila",
+        "limits": "Rajat"
+      },
+      "actions_aria": "Toiminnot: {{name}}",
+      "columns": {
+        "created": "Luotu",
+        "custom_domains": "Mukautetut verkkotunnukset",
+        "members": "Jäsenet",
+        "monitors": "Valvonnat",
+        "name": "Nimi",
+        "owners": "Omistajat",
+        "status": "Tila",
+        "status_pages": "Tilasivut",
+        "limits": "Rajat"
+      },
+      "confirm": {
+        "cancel": "Peru",
+        "delete": {
+          "confirm": "Poista työtila",
+          "description": "Poistetaanko {{name}}? Kaikki sen sisältö poistetaan: valvonnat ja niiden historia, tilasivut, ilmoituskanavat ja jäsenten käyttöoikeudet. Tätä ei voi perua.",
+          "name_label": "Vahvista kirjoittamalla työtilan nimi: {{name}}",
+          "title": "Poista työtila"
+        },
+        "resume": {
+          "confirm": "Jatka",
+          "description": "Työtilan {{name}} valvonnat käynnistyvät uudelleen siinä tilassa, jossa ne olivat, ja sen jäsenet voivat käyttää sitä kuten ennenkin. Työtila, joka odottaa omistajansa sähköpostin vahvistusta, jää edelleen odottamaan.",
+          "title": "Jatka työtilaa"
+        },
+        "suspend": {
+          "confirm": "Keskeytä",
+          "description": "Työtilan {{name}} valvonnat pysähtyvät, sen julkiset tilasivut ilmoittavat olevansa poissa käytöstä ja sen jäsenet näkevät, että se on keskeytetty. Mitään ei poisteta, ja voit jatkaa sitä myöhemmin.",
+          "title": "Keskeytä työtila"
+        }
+      },
+      "description": "Kaikki tämän asennuksen työtilat omistajineen ja jäsenineen sekä tieto siitä, kuinka paljon niissä on sisältöä. Vain määrät näytetään, ei mitään työtilan sisältä.",
+      "empty": "Työtiloja ei löytynyt",
+      "load_failed": "Työtilojen lataaminen epäonnistui.",
+      "messages": {
+        "deleted": "{{name}} on poistettu",
+        "failed": "Työtilan muuttaminen epäonnistui.",
+        "resumed": "{{name}} on taas käytössä",
+        "suspended": "{{name}} on keskeytetty"
+      },
+      "monitors": "Aktiivisia: {{active}}, keskeytettyjä: {{paused}}",
+      "none": "Ei mitään",
+      "page_name": "Työtilat",
+      "paging": {
+        "next": "Seuraava",
+        "page": "Sivu {{page}} / {{pages}}",
+        "previous": "Edellinen"
+      },
+      "search_label": "Hae työtiloja nimen tai omistajan sähköpostin mukaan",
+      "search_placeholder": "Hae nimellä tai omistajan sähköpostilla",
+      "status": {
+        "running": "Käynnissä",
+        "suspended_admin": "Ylläpitäjän keskeyttämä",
+        "suspended_unverified": "Keskeytetty, kunnes omistaja vahvistaa sähköpostinsa"
+      },
+      "total": "{{total}} löytyi",
+      "limits": {
+        "item": "{{name}}: {{value}}",
+        "more": "+{{number}} lisää",
+        "unlimited": "Ei rajoja",
+        "source": {
+          "workspace": "Omat",
+          "install": "Asennuksen oletukset",
+          "none": "Ei asetettu"
+        },
+        "dialog": {
+          "title": "Työtilan {{name}} rajat",
+          "description": "Mihin tämä työtila on sidottu. Rajan laskeminen ei keskeytä eikä poista mitään: uusimmat rajan ylittävät valvonnat lakkaavat toimimasta, kunnes tilaa on taas.",
+          "own": "Omat rajat",
+          "own_help": "Nämä korvaavat asennuksen oletukset. Jätä raja tyhjäksi, jos rajaa ei ole.",
+          "unlimited": "Ei rajoja",
+          "unlimited_help": "Ei mitään rajaa, mitä asennuksen oletukset sanovatkin.",
+          "defaults": "Käytä asennuksen oletuksia",
+          "defaults_help": "Oletusrajat kohdassa Ylläpito → Asetukset tai ei mitään, jos asennus ei aseta niitä.",
+          "save": "Tallenna rajat",
+          "cancel": "Peru",
+          "saved": "Työtilan {{name}} rajat on tallennettu",
+          "failed": "Rajojen tallentaminen epäonnistui."
+        }
+      }
+    },
+    "settings": {
+      "page_name": "Asetukset",
+      "description": "Koko asennuksen asetukset. Palvelimen ympäristön asettama arvo on tässä lukittu.",
+      "load_failed": "Asetuksia ei voitu ladata.",
+      "saved": "Asetukset tallennettu",
+      "save_failed": "Asetuksia ei tallennettu.",
+      "locked": "Palvelimen ympäristön asettama",
+      "source": {
+        "environment": "Palvelimen ympäristöstä",
+        "saved": "Tallennettu tähän",
+        "default": "Oletus"
+      },
+      "signup": {
+        "title": "Rekisteröityminen",
+        "description": "Kuka saa luoda tilin tähän asennukseen.",
+        "label": "Rekisteröitymistila",
+        "invite": "Vain kutsulla",
+        "open": "Avoin",
+        "invite_help": "Ensimmäinen käyttäjä rekisteröityy, ja kaikki sen jälkeen liittyvät työtilaan kutsun kautta.",
+        "open_help": "Kuka tahansa voi rekisteröityä ja saa oman työtilan. Uudet tilit vahvistavat sähköpostiosoitteensa, joten tarvitaan sähköpostin lähettäjä."
+      },
+      "sender": {
+        "title": "Sähköpostin lähettäjä",
+        "description": "SMTP-palvelin, joka lähettää tilin sähköpostit: salasanan palautuslinkit, sähköpostin vahvistuksen ja kutsut.",
+        "on": "Tilin sähköpostit ovat käytössä.",
+        "off": "Tilin sähköpostit ovat pois käytöstä: SMTP-palvelinta ei ole.",
+        "host": "SMTP-palvelin",
+        "port": "Portti",
+        "tls": "Turvallisuus",
+        "tls_starttls": "STARTTLS",
+        "tls_tls": "TLS",
+        "tls_none": "Ei mitään",
+        "user": "Käyttäjä",
+        "password": "Salasana",
+        "password_set": "Salasana on asetettu. Kirjoita uusi korvataksesi sen.",
+        "password_not_set": "Salasanaa ei ole asetettu",
+        "password_removed": "Salasana poistetaan, kun tallennat.",
+        "password_reenter": "Isännän, portin, suojauksen tai käyttäjän vaihtaminen poistaa tallennetun salasanan. Anna se uudelleen.",
+        "remove_password": "Poista salasana",
+        "keep_password": "Säilytä salasana",
+        "from": "Lähettäjän osoite"
+      },
+      "public_url": {
+        "title": "Julkinen URL",
+        "description": "Verkkosovelluksen osoite, jonka sähköpostien ja ilmoitusten linkit avaavat.",
+        "label": "Julkinen URL"
+      },
+      "test_email": {
+        "title": "Lähetä testiviesti",
+        "description": "Lähettää lyhyen viestin tallennetun lähettäjän kautta tarkistaakseen, että se toimii.",
+        "to": "Lähetä osoitteeseen",
+        "send": "Lähetä testiviesti",
+        "sending": "Lähetetään…",
+        "sent": "Testiviesti lähetetty osoitteeseen {{to}}.",
+        "failed": "Testiviestiä ei lähetetty.",
+        "unsaved": "Lähettäjässä on tallentamattomia muutoksia. Testi käyttää tallennettua lähettäjää, joten tallenna ensin."
+      },
+      "validation": {
+        "port": "Anna portti väliltä 1–65535 tai jätä tyhjäksi oletusarvoa varten."
+      },
+      "errors": {
+        "locked": "{{field}} on palvelimen ympäristön asettama, eikä sitä voi muuttaa tässä.",
+        "open_needs_sender": "Avoin rekisteröityminen tarvitsee sähköpostin lähettäjän, koska uudet tilit vahvistavat sähköpostiosoitteensa. Määritä lähettäjä ensin tai samassa tallennuksessa.",
+        "sender_needed": "Rekisteröityminen on avoin, ja uudet tilit tarvitsevat lähettäjän vahvistaakseen sähköpostiosoitteensa. Vaihda rekisteröityminen ensin tilaan vain kutsulla.",
+        "no_sender": "Sähköpostin lähettäjää ei ole. Tallenna lähettäjä ensin."
+      },
+      "limits": {
+        "title": "Oletusrajat",
+        "description": "Jokaisen työtilan rajat, jolla ei ole omia. Jätä raja tyhjäksi, jos rajaa ei ole. Työtilalle Työtilat-sivulla annetut rajat korvaavat nämä."
+      }
+    }
+  },
   "auth": {
     "login": {
       "description": "Kirjaudu sähköpostilla",
       "no_account": "Ei sinulla ole tiliä?",
       "sign_up": "Rekisteröidy",
       "submit": "Kirjaudu sisään",
-      "title": "Tervetuloa takaisin"
+      "title": "Tervetuloa takaisin",
+      "forgot_password": "Unohtuiko salasana?",
+      "ask_admin": "Pyydä kutsu tämän asennuksen ylläpitäjältä"
     },
     "register": {
       "description": "Luo ylläpitokäyttäjätilisi",
+      "description_open": "Luo tilisi",
       "have_account": "Onko sinulla jo tili?",
       "sign_in": "Kirjaudu sisään",
       "submit": "Luo",
       "title": "Hei",
       "telemetry_note": "Anonyymi: ei valvontojen nimiä, URL-osoitteita eikä isäntiä. Voit muuttaa tätä myöhemmin kohdassa ”Asetukset”.",
-      "telemetry_whats_sent": "Mitä lähetetään"
+      "telemetry_whats_sent": "Mitä lähetetään",
+      "errors": {
+        "rate_limited": "Verkostasi tuli liian monta rekisteröitymistä. Yritä uudelleen tunnin kuluttua.",
+        "email_taken": "Tällä sähköpostiosoitteella on jo tili.",
+        "sign_in_instead": "Kirjaudu sen sijaan sisään.",
+        "check_failed": "Tarkistus ei mennyt läpi. Yritä uudelleen.",
+        "check_load_failed": "Tarkistusta ei voitu ladata. Tarkista yhteytesi ja yritä uudelleen."
+      }
     },
     "twofa": {
       "code_label": "2FA-koodi",
@@ -27,6 +297,45 @@
       "title": "Kaksivaiheinen tunnistautuminen vaaditaan",
       "verify_button": "Vahvista 2FA",
       "verifying": "Tarkistetaan..."
+    },
+    "forgot": {
+      "title": "Nollaa salasanasi",
+      "description": "Kirjoita tilisi sähköpostiosoite, niin lähetämme sinulle linkin.",
+      "submit": "Lähetä linkki",
+      "sent": "Jos tällä sähköpostiosoitteella on tili, lähetimme linkin. Se toimii tunnin.",
+      "back_to_login": "Takaisin kirjautumiseen"
+    },
+    "reset": {
+      "title": "Valitse uusi salasana",
+      "description": "Kirjoita tilillesi uusi salasana.",
+      "submit": "Aseta salasana",
+      "success": "Salasanasi on vaihdettu ja sinut kirjattiin ulos kaikkialta. Kirjaudu sisään uudella salasanalla.",
+      "sign_in": "Kirjaudu sisään",
+      "invalid_link": "Tämä linkki on käytetty tai vanhentunut.",
+      "request_new": "Pyydä uusi linkki"
+    },
+    "verify": {
+      "title": "Vahvista sähköpostiosoitteesi",
+      "verifying": "Vahvistetaan sähköpostiosoitettasi...",
+      "success": "Sähköpostiosoitteesi on vahvistettu.",
+      "open_app": "Avaa Peekaping",
+      "invalid_link": "Tämä linkki on käytetty tai vanhentunut."
+    },
+    "errors": {
+      "rate_limited": "Liian monta pyyntöä. Yritä myöhemmin uudelleen.",
+      "generic": "Jokin meni pieleen. Yritä uudelleen.",
+      "already_verified": "Sähköpostiosoitteesi on jo vahvistettu."
+    },
+    "resend": {
+      "button": "Lähetä uudelleen",
+      "sent": "Lähetimme uuden linkin. Tarkista saapuneet."
+    },
+    "verification_banner": {
+      "message": "Vahvista sähköpostiosoitteesi: lähetimme linkin osoitteeseen {{email}}."
+    },
+    "suspension_notice": {
+      "message": "Valvontasi alkavat, kun olet vahvistanut sähköpostiosoitteesi.",
+      "member_message": "Tämän työtilan valvonnat alkavat, kun sen omistaja on vahvistanut sähköpostiosoitteensa."
     }
   },
   "bars": {
@@ -73,6 +382,7 @@
     "no_tags_available": "Ei tageja saatavilla",
     "please_refresh_page": "Päivitä sivu.",
     "required": "Pakollinen",
+    "retry": "Yritä uudelleen",
     "save": "Tallenna",
     "saving": "Tallennetaan...",
     "search": "Etsi",
@@ -124,6 +434,33 @@
       "password_required": "Salasana on pakollinen",
       "password_min_length": "Salasanan tulee olla vähintään 8 merkkiä",
       "passwords_mismatch": "Salasanat eivät täsmää"
+    }
+  },
+  "invite": {
+    "accept": "Hyväksy kutsu",
+    "accepting": "Liitytään...",
+    "creating": "Luodaan...",
+    "description": "Sinut on kutsuttu liittymään työtilaan {{workspace}} roolilla {{role}}.",
+    "enter_failed": "Liityit työtilaan, mutta sen avaaminen epäonnistui. Yritä uudelleen.",
+    "errors": {
+      "other_email": "Tämä kutsu on toiselle sähköpostiosoitteelle."
+    },
+    "for_email": "Tämä kutsu on osoitteelle {{email}}.",
+    "have_account": "Onko sinulla jo tili?",
+    "open_app": "Avaa Peekaping",
+    "other_account": "Olet kirjautunut tunnuksella {{current}}, mutta tämä kutsu on osoitteelle {{invited}}. Kirjaudu ulos ja kirjaudu sitten sisään tai rekisteröidy osoitteella {{invited}} hyväksyäksesi sen.",
+    "sign_in_instead": "Kirjaudu sisään",
+    "sign_out": "Kirjaudu ulos",
+    "signup_description": "Valitse salasana luodaksesi tilisi ja liittyäksesi työtilaan {{workspace}} roolilla {{role}}.",
+    "signup_submit": "Luo tili ja liity",
+    "title": "Liity työtilaan {{workspace}}",
+    "unavailable": {
+      "accepted": "Tämä kutsu on jo käytetty.",
+      "expired": "Tämä kutsu on vanhentunut. Pyydä uusi.",
+      "not_found": "Tätä kutsulinkkiä ei ole olemassa. Tarkista, että kopioit sen kokonaan.",
+      "revoked": "Tämä kutsu on peruutettu. Pyydä uusi.",
+      "title": "Tätä kutsua ei voi käyttää",
+      "unknown": "Tätä kutsua ei voi käyttää. Pyydä uusi."
     }
   },
   "maintenance": {
@@ -231,6 +568,79 @@
       "wed": "ke"
     }
   },
+  "members": {
+    "change_role_aria": "Vaihda käyttäjän {{email}} roolia",
+    "errors": {
+      "account_exists": "Tällä sähköpostiosoitteella on jo tili. Kirjaudu sisään ja hyväksy kutsu.",
+      "already_member": "Tämä henkilö on jo tämän työtilan jäsen.",
+      "forbidden": "Roolisi tässä työtilassa ei salli tätä.",
+      "generic": "Jokin meni pieleen. Yritä uudelleen.",
+      "last_owner": "Työtilassa täytyy olla vähintään yksi omistaja.",
+      "member_not_found": "Tämä jäsen ei ole enää työtilassa."
+    },
+    "invite": {
+      "copied": "Linkki kopioitu",
+      "copy": "Kopioi",
+      "creating": "Luodaan...",
+      "description": "Luo linkki sähköpostiosoitteelle ja roolille. Sähköpostia ei lähetetä: kopioi linkki ja lähetä se itse.",
+      "done": "Valmis",
+      "email_label": "Sähköposti",
+      "link_note": "Linkki toimii vain kerran ja vanhenee 7 päivässä. Se näytetään vain nyt, joten kopioi se ennen kuin poistut sivulta.",
+      "link_title": "Kutsulinkki",
+      "role_label": "Rooli",
+      "submit": "Luo kutsulinkki",
+      "title": "Kutsu joku"
+    },
+    "leave": {
+      "button": "Poistu työtilasta",
+      "confirm": "Poistu",
+      "description": "Menetät pääsyn tähän työtilaan ja sen tietoihin heti.",
+      "done": "Poistuit työtilasta",
+      "last_owner": "Olet viimeinen omistaja, joten et voi poistua. Tee ensin toisesta jäsenestä omistaja.",
+      "refresh_failed": "Poistuit työtilasta, mutta työtilojesi lataaminen epäonnistui. Yritä uudelleen.",
+      "title": "Poistu tästä työtilasta"
+    },
+    "list": {
+      "description": "Kaikki tämän työtilan jäsenet ja heidän roolinsa.",
+      "email": "Sähköposti",
+      "joined": "Liittynyt",
+      "role": "Rooli",
+      "title": "Jäsenet",
+      "you": "sinä"
+    },
+    "page_name": "Jäsenet",
+    "pending": {
+      "description": "Kutsut, joita ei ole vielä käytetty. Peruutetun kutsun linkki lakkaa toimimasta.",
+      "email": "Sähköposti",
+      "empty": "Ei odottavia kutsuja.",
+      "expired": "Vanhentunut",
+      "expires": "Vanhenee",
+      "revoke": "Peruuta",
+      "revoke_aria": "Peruuta käyttäjän {{email}} kutsu",
+      "revoked": "Kutsu peruutettu",
+      "role": "Rooli",
+      "title": "Odottavat kutsut"
+    },
+    "remove": "Poista",
+    "remove_aria": "Poista {{email}}",
+    "remove_dialog": {
+      "confirm": "Poista",
+      "description": "{{email}} menettää pääsyn tähän työtilaan heti.",
+      "title": "Poista jäsen"
+    },
+    "removed": "Jäsen poistettu",
+    "role_updated": "Rooli päivitetty",
+    "roles": {
+      "admin": "Ylläpitäjä",
+      "member": "Jäsen",
+      "owner": "Omistaja"
+    },
+    "settings_card": {
+      "description": "Katso, ketkä työskentelevät tässä työtilassa, ja kutsu ihmisiä ja hallitse heidän rooliaan, jos olet ylläpitäjä tai omistaja.",
+      "open": "Avaa jäsenet",
+      "title": "Jäsenet"
+    }
+  },
   "messages": {
     "login_error": "Kirjautumisessa tapahtui virhe.",
     "login_no_tokens": "Kirjautuminen onnistui, mutta tokenit eivät saapuneet.",
@@ -258,6 +668,7 @@
     },
     "empty_state": {
       "action": "Luo ensimmäinen valvonta",
+      "add_channel": "Lisää ilmoituskanava",
       "description": "Aloita luomalla ensimmäinen seuranta, jolla seuraat palveluidesi kuntoa.",
       "title": "Valvonta ei löytynyt"
     },
@@ -500,6 +911,7 @@
       "shared": {
         "intervals": {
           "heartbeat_retry": "Sydämen tarkistuksen uudelleenyritysaika (Uudelleenyrittää joka {{seconds}} sekuntia)",
+          "interval_too_short": "Ei voi olla alle {{minimum}} sekuntia",
           "max_retries_description": "Enimmäismäärä yrityksiä ennen kuin palvelu merkitään alas ja ilmoitus lähetetään",
           "request_timeout": "Pyyntö aikakatkaisu (Aika {{seconds}} sekunnin kuluttua)",
           "resend_notification": "Lähetä ilmoitus uudelleen, jos Down X kertaa peräkkäin (Uudelleenlähetys poistettu käytöstä)",
@@ -542,6 +954,10 @@
           "select_proxy_placeholder": "Valitse välityspalvelin",
           "selected_proxy": "Valittu välityspalvelin",
           "title": "Välityspalvelin"
+        },
+        "run_from": {
+          "default_locations": "Suoritetaan oletussijainneissa",
+          "label": "Suorita sijainneista"
         },
         "tags": {
           "label": "Tunnisteet",
@@ -649,9 +1065,12 @@
     "toasts": {
       "deleted": "Seuranta poistettu",
       "paused": "Seuranta keskeytetty",
+      "push_token_already_used": "Toinen monitori käyttää jo tätä push-tunnistetta. Luo uusi.",
       "reset_success": "Seurantatiedot nollattiin onnistuneesti",
       "resumed": "Valvonta jatkettu"
     },
+    "type_disabled": "Tyyppi {{type}} on poistettu käytöstä tässä asennuksessa",
+    "over_limit": "Ei tarkisteta: työtilassa on enemmän aktiivisia valvontoja kuin sen raja sallii",
     "view": {
       "buttons": {
         "clone": "Kloonaa",
@@ -712,6 +1131,7 @@
     }
   },
   "navigation": {
+    "admin": "Ylläpito",
     "maintenance": "Huolto",
     "monitors": "Valvonta",
     "notification_channels": "Ilmoituskanavat",
@@ -1124,6 +1544,12 @@
         "signing_secret_docs_link": "Allekirjoituksen tarkistaminen",
         "signing_secret_label": "Allekirjoitussalaisuus",
         "signing_secret_placeholder": "Jätä tyhjäksi, jos haluat lähettää allekirjoittamattomia pyyntöjä"
+      },
+      "install_email": {
+        "description": "Tämä asennus lähettää sen, SMTP-palvelinta ei tarvita.",
+        "to_description": "Tämän työtilan jäsen. Ilmoitukset lähetetään, kun hän on vahvistanut osoitteen.",
+        "to_label": "Vastaanottaja",
+        "to_placeholder": "Valitse jäsen"
       }
     },
     "important": "Tärkeät ilmoitukset",
@@ -1142,7 +1568,8 @@
       "updated_success": "Ilmoittaja päivitetty onnistuneesti"
     },
     "new": {
-      "title": "Uusi ilmoituskanava"
+      "title": "Uusi ilmoituskanava",
+      "default_hint": "Tämä kanava valitaan uusissa monitoreissa."
     },
     "no_important": "Ei tärkeitä ilmoituksia löytynyt.",
     "placeholders": {
@@ -1152,11 +1579,21 @@
     "secret": {
       "reenter_error": "Syötä tämä salaisuus uudelleen tai poista se: lähetyksen kohde on muuttunut",
       "reenter_hint": "Syötä tämä salaisuus uudelleen: lähetyksen kohde on muuttunut",
+      "reenter_url_error": "Kirjoita tämän URL-osoitteen tunnistetiedot uudelleen: URL-osoite on muuttunut tallennuksen jälkeen",
       "remove": "Poista",
       "saved_hint": "Tallennettu — kirjoita korvataksesi"
     }
   },
   "probes": {
+    "default": {
+      "description": "Ilman luotainvalintaa luotu monitori suoritetaan oletusluotaimilla, jotka eivät ole pois käytöstä ja tukevat sen tyyppiä, ja paikallisella luotaimella, jos mikään ei tue. Olemassa olevat monitorit pitävät luotaimensa.",
+      "failed": "Luotaimen oletusasetuksen muuttaminen epäonnistui.",
+      "label": "Oletusluotain",
+      "off": "{{name}} ei ole enää oletusluotain",
+      "on": "{{name}} on nyt oletusluotain",
+      "title": "Oletus uusille monitoreille"
+    },
+    "default_badge": "Oletus",
     "page_name": "Luotaimet",
     "description": "Luotaimet suorittavat valvontojen tarkistukset paikoista, joihin ne on asennettu. Paikallinen luotain on Peekaping itse.",
     "local_name": "Paikallinen",
@@ -1438,7 +1875,9 @@
     "data_retention": {
       "days_label": "Päiviä",
       "description": "Aseta kuinka monta päivää tietoa säilytetään (KEEP_DATA_PERIOD_DAYS).",
-      "title": "Tietojen säilytysaika"
+      "read_only": "Vain työtilan ylläpitäjä tai omistaja voi muuttaa tätä.",
+      "title": "Tietojen säilytysaika",
+      "capped": "Enintään {{max}} päivää tässä työtilassa"
     },
     "error_reporting": {
       "cluster_note": "Klusteritilassa muutos tavoittaa jokaisen prosessin minuutissa.",
@@ -1464,6 +1903,10 @@
     },
     "validation": {
       "min_days": "Täytyy olla vähintään 1 päivä"
+    },
+    "workspace_name": {
+      "description": "Nimi, joka näkyy työtilan vaihtajassa ja sen jäsenille.",
+      "title": "Työtilan nimi"
     }
   },
   "status": {
@@ -1479,6 +1922,7 @@
       "refresh_in": "Päivitä",
       "refresh_now": "Päivitä nyt",
       "status_page_not_found": "Tilasivu ei löytynyt tai ei ole julkaistu.",
+      "status_page_unavailable": "Tämä tilasivu ei ole käytettävissä",
       "under_maintenance": "Huoltotilassa",
       "unknown": "Tuntematon"
     }
@@ -1522,6 +1966,7 @@
     "search_placeholder": "Etsi tilanne-sivut otsikon perusteella...",
     "show_locations": "Näytä jokainen sijainti",
     "show_locations_info": "Useasta sijainnista tarkistettaville valvonnoille näytetään kunkin sijainnin tila ja historia",
+    "slug_already_used": "Toinen tilasivu käyttää jo tätä osoitetta",
     "update_status_page": "Päivitä tilasivu",
     "view_page": "Näytä sivu"
   },
@@ -1587,5 +2032,93 @@
   "ui": {
     "general": "Yleiset",
     "intervals_retries": "Väli, Uudelleenkokeilut, Aikakatkaisut"
+  },
+  "workspaces": {
+    "create": "Luo työtila",
+    "create_error": "Työtilan luominen epäonnistui",
+    "create_first": "Luo työtila",
+    "creating": "Luodaan...",
+    "enter": "Avaa työtila",
+    "entering": "Avataan...",
+    "entry_failed": "Työtila luotiin, mutta sen avaaminen epäonnistui. Yritä uudelleen.",
+    "name_label": "Nimi",
+    "name_placeholder": "Tiimini",
+    "name_required": "Anna nimi",
+    "new": "Uusi työtila",
+    "new_description": "Työtilalla on omat valvontansa, ilmoituskanavansa, tilasivunsa ja jäsenensä. Sinusta tulee sen omistaja.",
+    "new_title": "Uusi työtila",
+    "none_description": "Tilisi ei ole minkään työtilan jäsen, joten tässä ei ole mitään näytettävää. Pyydä työtilaa ylläpitävää lisäämään sinut.",
+    "none_title": "Et ole vielä missään työtilassa",
+    "refresh_failed": "Työtilojasi ei voitu ladata. Tarkista yhteytesi ja yritä uudelleen.",
+    "rename_error": "Työtilan uudelleennimeäminen epäonnistui",
+    "rename_success": "Työtila nimettiin uudelleen",
+    "suspended_banner": {
+      "contact": "Yhteystiedot:",
+      "message": "Tämän asennuksen ylläpitäjä on keskeyttänyt tämän työtilan. Sen valvonnat eivät ole käynnissä, eivätkä sen tilasivut ole käytettävissä.",
+      "no_contact": "Ota yhteyttä henkilöön, joka ylläpitää tätä asennusta."
+    },
+    "switcher_label": "Vaihda työtilaa"
+  },
+  "get_started": {
+    "page_name": "Aloitus",
+    "skip": "Ohita käyttöönotto",
+    "step_of": "Vaihe {{current}} / {{total}}",
+    "name": {
+      "description": "Täällä ovat valvontasi, ilmoituskanavasi ja tilasivusi. Voit nimetä sen myöhemmin uudelleen Asetuksissa.",
+      "title": "Nimeä työtilasi"
+    },
+    "monitor": {
+      "create": "Luo valvonta",
+      "create_failed": "Valvonnan luominen epäonnistui",
+      "creating": "Luodaan...",
+      "description": "Anna verkkosivuston tai API:n osoite. Peekaping tarkistaa sen ja kertoo, kun se lakkaa vastaamasta.",
+      "full_form": "Tai määritä valvonta kaikilla asetuksilla",
+      "title": "Lisää ensimmäinen valvontasi",
+      "url_invalid": "Anna osoite, joka alkaa merkinnällä http:// tai https://",
+      "url_label": "Valvottava osoite"
+    },
+    "channel": {
+      "continue_unlinked": "Jatka liittämättä",
+      "description": "Valitse, minne Peekaping lähettää hälytyksen, kun valvontasi kaatuu. Siitä tulee uusien valvontojen oletus.",
+      "link_failed": "Kanava tallennettiin, mutta sen liittäminen valvontaan epäonnistui. Lisää se valvonnan muokkaussivulla.",
+      "retry_link": "Yritä liittää uudelleen",
+      "title": "Saa ilmoituksia"
+    },
+    "done": {
+      "description": "Peekaping valvoo palveluasi. Tässä, mitä voit tehdä seuraavaksi.",
+      "title": "Kaikki valmista",
+      "unverified": "Valvontasi alkaa toimia, kun sähköpostiosoitteesi on vahvistettu. Vahvistuslinkki on postilaatikossasi.",
+      "links": {
+        "members": "Kutsu tiimisi",
+        "monitor": "Avaa valvontasi",
+        "monitors": "Siirry valvontoihin",
+        "probes": "Hallitse luotaimia",
+        "status_pages": "Julkaise tilasivu"
+      }
+    }
+  },
+  "limits": {
+    "reached": {
+      "monitors": "Tässä työtilassa voi olla enintään {{max}} käynnissä olevaa valvontaa",
+      "status_pages": "Tässä työtilassa voi olla enintään {{max}} tilasivua",
+      "custom_domains": "Tämän työtilan tilasivuilla voi olla yhteensä enintään {{max}} mukautettua verkkotunnusta",
+      "members": "Tässä työtilassa voi olla enintään {{max}} jäsentä, odottavat kutsut mukaan lukien",
+      "owned_workspaces": "Voit omistaa enintään {{max}} työtilaa",
+      "probes": "Tämän työtilan valvonta voi toimia enintään {{max}} luotaimella",
+      "retention_days": "Tämä työtila voi säilyttää tietoja enintään {{max}} päivää"
+    },
+    "names": {
+      "monitors": "Aktiiviset valvonnat",
+      "min_check_interval": "Lyhin tarkistusväli (sekuntia)",
+      "status_pages": "Tilasivut",
+      "custom_domains": "Mukautetut verkkotunnukset",
+      "members": "Jäsenet",
+      "owned_workspaces": "Työtilat, joita yksi käyttäjä voi omistaa",
+      "probes_per_monitor": "Luotaimet valvontaa kohti",
+      "retention_days": "Tietojen säilytys (päivää)"
+    },
+    "none": "Ei rajaa",
+    "invalid": "Syötä kokonaisluku 1 tai suurempi tai jätä kenttä tyhjäksi, jos rajaa ei ole.",
+    "retention_too_long": "Ei voi olla yli {{max}} päivää"
   }
 }

@@ -3,7 +3,7 @@ import { withSavedSecret } from "../../secrets";
 
 export const ntfySchema = z.object({
   type: z.literal("ntfy"),
-  server_url: z.string().url({ message: "Valid NTFY server URL is required" }),
+  server_url: withSavedSecret(z.string().url({ message: "Valid NTFY server URL is required" })),
   topic: z.string().min(1, { message: "Topic is required" }),
   authentication_type: z.enum(["none", "basic", "token"]),
   username: z.string().optional(),

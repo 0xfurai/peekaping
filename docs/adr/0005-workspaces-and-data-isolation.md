@@ -36,7 +36,7 @@ A **workspace** owns monitors and everything around them. A user belongs to a wo
 | Invite members, change a role, remove a member (owners excepted) | | yes | yes |
 | API keys | | yes | yes |
 | Workspace settings (section 5) and the workspace's name | | yes | yes |
-| See the plan and usage | | yes | yes |
+| See the plan and usage | yes | yes | yes |
 | Change the plan and billing, delete the workspace, make or remove owners | | | yes |
 
 - Every workspace has at least one owner. The last owner can't leave, be removed or be made something else.
@@ -44,6 +44,7 @@ A **workspace** owns monitors and everything around them. A user belongs to a wo
 - A **viewer** role (sees everything, changes nothing) comes later, not in v1.
 - An **API key** belongs to one workspace and acts as an admin of it, never as an owner. Scripts and the Terraform provider keep what they reach in a workspace today. They lose two things: billing and deleting the workspace, which are new, and managing probes, which a key can do today but which move to the install (section 10).
 - The **plan** belongs to the workspace. A user who owns two workspaces pays for each. A workspace without a plan has no limits, which is every workspace on a self-hosted install.
+- Every member sees the workspace's limits and what it uses of each (`GET /workspace/limits`), so that the app can say why a write is refused. Only an instance admin (section 10) sets them: a workspace's own limits, and the install's defaults (section 5). A role in the workspace sets none (PP-160).
 
 ### 2. Where the workspace ID lives
 
@@ -91,9 +92,10 @@ Some paths have to read across workspaces. They use separate methods whose names
 - notification sending, from a monitor to its own channels;
 - the usage ping's counts;
 - `/metrics`, which lists every monitor of the install with no auth, for the people who run it. The cloud must keep it off the public internet;
-- startup jobs such as status repair.
+- startup jobs such as status repair;
+- an API key's authentication, finding the key by the ID in its token, which then says its workspace.
 
-A new caller needs a reason in review. PP-153 proves that no handler serving a workspace's request reaches another workspace.
+A new caller needs a reason in review. PP-153 proves that no handler serving a workspace's request reaches another workspace: `apps/server/internal/apitest/isolation_test.go` walks every route, and `apps/server/internal/isolation_test.go` lists the functions that may call an `AnyWorkspace` method, so a new caller needs a reviewed change to that list.
 
 We rejected a query hook that adds the filter by itself. It hides the filter, so a missing one fails silently. Background work would also need a way to switch the hook off, and that switch becomes the hole. PP-91 isn't a prerequisite: if it lands first, its helpers take the workspace ID as an argument too.
 
@@ -103,7 +105,7 @@ The api's ingest, the watchdog, the cleanup job, the certificate expiry checks a
 
 - The cleanup job goes workspace by workspace and deletes each one's heartbeats older than its own data retention period (PP-161). Stats keep their fixed retention for the whole install.
 - A notification goes only to the channels linked to the monitor, which are in its workspace by section 2.
-- Limits come from the plan, through the interface PP-143 defines, keyed by the workspace ID (PP-160). The public build has no plans, so it has no limits.
+- Limits come from one interface keyed by the workspace ID, `limits.Source` (PP-160): the workspace's own limits, which an instance admin sets ("no limits" is a value), else the install's defaults, which are install settings (section 5), else none. An install that sets nothing has no limits. A paid plan can be one more source in front of them (PP-162).
 - A short in-process cache of workspace settings is allowed. With several api replicas, a changed setting then takes effect within the cache's lifetime.
 
 ### 5. Install and workspace settings
@@ -115,13 +117,16 @@ The api's ingest, the watchdog, the cleanup job, the certificate expiry checks a
 | Usage ping (`TELEMETRY_ENABLED`, `TELEMETRY_INSTANCE_ID`, `TELEMETRY_LAST_SENT`) | install | `settings` |
 | Error reports (`ERROR_REPORTING_ENABLED`) and the one-time notice (`TELEMETRY_NOTICE_SEEN`) | install | `settings` |
 | Notification history and TLS info retention (`NOTIFICATION_HISTORY_RETENTION_DAYS`, `TLS_INFO_RETENTION_DAYS`) | install | environment |
-| Signup mode (`SIGNUP_MODE`, section 11) and every other environment variable | install | environment |
+| Signup mode (`SIGNUP_MODE`, section 11), the sender of account emails (`ACCOUNT_SMTP_*`) and the public URL (`CLIENT_URL`) (PP-373) | install | `settings` (`install.*`), with the environment winning |
+| Default limits of a workspace (`WORKSPACE_LIMIT_*`, PP-160) | install | `settings` (`install.workspace_limits.*`), with the environment winning |
+| Every other environment variable | install | environment |
 | Data retention period (`KEEP_DATA_PERIOD_DAYS`) | workspace | workspace settings |
 | Certificate expiry notification days (`cert_expiry_notify_days`) | workspace | workspace settings |
-| Plan | workspace | its own record (PP-160, PP-162) |
+| Plan | workspace | its own limits in workspace settings (`limits`, PP-160), else the install's default limits (the row above); a paid plan's record later (PP-162) |
 
 - `/settings/key/KEEP_DATA_PERIOD_DAYS` keeps its path and works on the request's workspace. Members read it, admins change it. A plan can cap it (PP-161).
-- Only an instance admin (section 10) can change install settings: today that's the usage ping and error reports.
+- Only an instance admin (section 10) can change install settings: the usage ping and error reports, the signup mode, the sender of account emails and the public URL (PP-373), and the default limits of a workspace (PP-160).
+- The signup mode, the sender, the public URL and the default limits resolve as the environment first, then the value saved in `settings`, then the default, through one resolver (`internal/installsettings`) that every reader asks at the moment it needs the value. A setting whose variable is set is locked: the admin area shows it as set by the server's environment and the API refuses to change it. So a home user changes them in the web app with no restart, and the cloud pins them in its config. Each process keeps the saved values for 5 seconds, so a change reaches the other api replicas within that, as a workspace setting does. Startup still checks the variables that are set, and a save checks the values it would leave the same way: open signup needs a sender either way. The sender is one setting for locking: any `ACCOUNT_SMTP_*` variable that is set locks all of it, so a password from the environment is never sent to a saved host. The SMTP password is write-only, and it is kept only while the host, port, TLS mode and user stay as they are: a change of one that sends no password clears it, as a notification channel's saved secrets go when an endpoint field changes. The `CORS_ORIGINS` default stays the environment's `CLIENT_URL`, so that saving a public URL can't lock the admin out of the API.
 - A new workspace starts with today's defaults for a new install: a data retention period of 180 days and certificate expiry notifications at 7, 14 and 21 days.
 - On upgrade, the install's current values move to the upgrade's workspace (section 12). An install that never stored a data retention period keeps 365 days, the value it uses today when the setting is unset.
 
@@ -171,7 +176,10 @@ Workspaces come to SQLite and PostgreSQL only. MongoDB storage is deprecated (AD
 Some things belong to the install, not to a workspace: probes, token lifetimes, the usage ping and error reports. An **instance admin** manages them. It's a flag on the user, not a role, and it gives no access to any workspace's data. On the cloud, the instance admins are the people who run it.
 
 - The first user to sign up gets the flag. On upgrade, every existing user gets it. Today that's the one user, who also owns the upgrade's workspace, so a self-hoster sees no change.
-- v1 has no screen to give the flag to anyone else.
+- An instance admin gives and takes the flag from the admin area (PP-371). The last instance admin who can sign in can't lose the flag, be disabled or be deleted, and an admin can't disable or delete their own account.
+- Two actions of the admin area, making a password reset link for a user and turning off their 2FA, exist for installs without an email sender (PP-371), and they let an instance admin sign in as that user, so the flag's "no access to workspace data" holds only while neither is used. Every use is logged with who did it to whom, and when the install has an email sender it is emailed to the user.
+- An instance admin lists every workspace, with counts and metadata only, and suspends or resumes one without joining it (PP-372). The suspension is its own hold, `workspaces.admin_suspended_at`, beside the email verification's (`suspended_at` with the reason `unverified`): a workspace is suspended while either is set, `/me` tells `admin` before `unverified`, and resuming or verifying lifts only its own hold, so a workspace that waits for verification keeps waiting after the admin resumes it. A suspended workspace's public status pages and badges answer 503 `STATUS_PAGE_UNAVAILABLE`, whichever hold it is under and without saying why. Suspend and resume are logged with who did it.
+- An instance admin deletes a workspace (PP-372). `workspace.Service.DeleteAnyWorkspace` deletes the `workspaces` row and the foreign keys cascade through everything that belongs to it, as section 2 says, so no row is left behind; the monitor service's own deletion of a monitor's heartbeats and stats by hand dates from MongoDB storage, which had no foreign keys, and the cascade makes it redundant. After the commit it publishes `MonitorDeleted` for each of the workspace's monitors, which stops them at once, and `MemberLeft` for each member, which takes their open sockets out of its rooms. The members keep their accounts. The owner's delete of their own workspace (PP-170) reuses the method. It is logged with who did it.
 - ADR 0003 says an admin opts out of the usage ping and error reports. That admin is the instance admin.
 - **Probes** stay the install's. Only an instance admin creates, changes, deletes or rotates the token of one. An API key can't, since it belongs to a workspace; today it can.
 - Every member can see a probe's name, location, status and the monitor types it runs, so they can choose probes for their monitors. A probe instance's hostname, OS and version are shown to instance admins only.
@@ -182,10 +190,12 @@ Probes a workspace runs for itself are a later ticket, PP-286. They would give `
 
 ### 11. Signup
 
-Signup modes are two, set with `SIGNUP_MODE` (PP-155):
+Signup modes are two, set with `SIGNUP_MODE` (PP-155) or by an instance admin in the admin area when the variable is unset (section 5, PP-373):
 
 - **`invite`**, the default. The first user signs up as today and gets the first workspace, as its owner, with the instance admin flag. After that, people join only through an invite to a workspace.
 - **`open`**, for the cloud. Anyone may sign up, and each new user gets a workspace of their own, as its owner. Their monitors run only once their email is verified (PP-152).
+
+In `open` mode the workspace of a new account is suspended (`workspaces.suspended_at`, with `suspended_reason` `unverified`) until its owner verifies their email address, or resets the password with the emailed link. Every query that picks monitors to run or to check for missed beats skips a suspended workspace's monitors, and a read of one monitor says whether its workspace is suspended, so the scheduler, the check loader, probe dealing and results, the watchdog and the push handler (403) all hold them back. A workspace that an unverified user makes later is suspended the same way. Signups without an invite are limited to 5 an hour per client address and, with `SIGNUP_TURNSTILE_*` set, need a Turnstile answer that fails closed; a signup through an invite needs neither.
 
 In both modes an invite adds the invited user to an existing workspace with the role the invite names (PP-154). Someone who signs up through an invite joins that workspace and gets no workspace of their own, in `open` mode too. Invites are their own records, added by PP-154. Without an email sender, the inviter copies the invite link.
 

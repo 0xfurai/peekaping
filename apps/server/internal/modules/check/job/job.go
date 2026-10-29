@@ -17,6 +17,15 @@ var (
 	ErrMonitorNotFound = errors.New("monitor not found")
 	// ErrMonitorPaused means the monitor is paused, so it gets no checks until it's resumed
 	ErrMonitorPaused = errors.New("monitor is paused")
+	// ErrWorkspaceSuspended means the monitor's workspace is suspended, so it gets no checks until
+	// the suspension is lifted (PP-155)
+	ErrWorkspaceSuspended = shared.ErrWorkspaceSuspended
+	// ErrMonitorTypeDisabled means the install turns the monitor's type off (DISABLED_MONITOR_TYPES),
+	// so it gets no checks until the type is turned back on (PP-157)
+	ErrMonitorTypeDisabled = shared.ErrMonitorTypeDisabled
+	// ErrMonitorOverLimit means the monitor is past its workspace's limit of active monitors, so it
+	// gets no checks until it is within it (PP-160)
+	ErrMonitorOverLimit = shared.ErrMonitorOverLimit
 )
 
 // Job is everything one check of a monitor needs, as the monitor stands when it is loaded

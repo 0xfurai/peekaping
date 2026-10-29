@@ -339,3 +339,233 @@ func TestSQLiteStartupCheckRefusesAnUnknownValue(t *testing.T) {
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "SQLiteStartupCheck must be one of: quick full off")
 }
+
+func TestLoadAndValidate_AccountSMTPIsLoadedFromTheEnvironment(t *testing.T) {
+	unsetRedis(t)
+	t.Setenv("DB_TYPE", "sqlite")
+	t.Setenv("DB_NAME", "peekaping.db")
+	t.Setenv("ACCOUNT_SMTP_HOST", "smtp.example.com")
+	t.Setenv("ACCOUNT_SMTP_FROM", "no-reply@example.com")
+
+	cfg, err := LoadAndValidate(t.TempDir())
+	require.NoError(t, err)
+
+	internal := cfg.ToInternalConfig()
+	assert.True(t, internal.AccountEmailsEnabled())
+	assert.Equal(t, 587, internal.AccountSMTPPort)
+	assert.Equal(t, "starttls", internal.AccountSMTPTLS)
+	assert.Equal(t, "no-reply@example.com", internal.AccountSMTPFrom)
+}
+
+func TestLoadAndValidate_AccountSMTPHostWithoutFromStopsStartup(t *testing.T) {
+	unsetRedis(t)
+	t.Setenv("DB_TYPE", "sqlite")
+	t.Setenv("DB_NAME", "peekaping.db")
+	t.Setenv("ACCOUNT_SMTP_HOST", "smtp.example.com")
+
+	_, err := LoadAndValidate(t.TempDir())
+
+	assert.ErrorContains(t, err, "ACCOUNT_SMTP_FROM is required when ACCOUNT_SMTP_HOST is set")
+}
+
+func TestLoadAndValidate_SignupModeDefaultsToInviteAndOpenIsLoadedFromTheEnvironment(t *testing.T) {
+	unsetRedis(t)
+	t.Setenv("DB_TYPE", "sqlite")
+	t.Setenv("DB_NAME", "peekaping.db")
+
+	cfg, err := LoadAndValidate(t.TempDir())
+	require.NoError(t, err)
+	assert.False(t, cfg.ToInternalConfig().SignupOpen())
+
+	t.Setenv("SIGNUP_MODE", "open")
+	t.Setenv("ACCOUNT_SMTP_HOST", "smtp.example.com")
+	t.Setenv("ACCOUNT_SMTP_FROM", "no-reply@example.com")
+	t.Setenv("SIGNUP_TURNSTILE_SITE_KEY", "site")
+	t.Setenv("SIGNUP_TURNSTILE_SECRET", "secret")
+	cfg, err = LoadAndValidate(t.TempDir())
+	require.NoError(t, err)
+	internal := cfg.ToInternalConfig()
+	assert.True(t, internal.SignupOpen())
+	assert.True(t, internal.SignupTurnstileEnabled())
+}
+
+func TestLoadAndValidate_SignupSettingsThatCanNotWorkStopStartup(t *testing.T) {
+	tests := []struct {
+		name string
+		env  map[string]string
+		want string
+	}{
+		{"an unknown mode", map[string]string{"SIGNUP_MODE": "closed"}, `SIGNUP_MODE must be invite or open, got "closed"`},
+		{"open without a sender", map[string]string{"SIGNUP_MODE": "open"}, "SIGNUP_MODE=open needs a sender for account emails"},
+		{"one Turnstile key", map[string]string{"SIGNUP_TURNSTILE_SECRET": "secret"}, "SIGNUP_TURNSTILE_SITE_KEY and SIGNUP_TURNSTILE_SECRET must be set together"},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			unsetRedis(t)
+			t.Setenv("DB_TYPE", "sqlite")
+			t.Setenv("DB_NAME", "peekaping.db")
+			for k, v := range tc.env {
+				t.Setenv(k, v)
+			}
+
+			_, err := LoadAndValidate(t.TempDir())
+
+			assert.ErrorContains(t, err, tc.want)
+		})
+	}
+}
+
+func TestDisabledMonitorTypesAreEmptyByDefaultAndLoadedFromTheEnvironment(t *testing.T) {
+	t.Setenv("DB_TYPE", "sqlite")
+	t.Setenv("DB_NAME", "peekaping.db")
+
+	cfg, err := LoadAndValidate(t.TempDir())
+	require.NoError(t, err)
+	assert.Empty(t, cfg.ToInternalConfig().DisabledMonitorTypeList())
+
+	t.Setenv("DISABLED_MONITOR_TYPES", " docker , snmp ")
+	cfg, err = LoadAndValidate(t.TempDir())
+	require.NoError(t, err)
+	assert.Equal(t, []string{"docker", "snmp"}, cfg.ToInternalConfig().DisabledMonitorTypeList())
+}
+
+func TestAnUnknownDisabledMonitorTypeStopsStartupAndListsTheKnownTypes(t *testing.T) {
+	t.Setenv("DB_TYPE", "sqlite")
+	t.Setenv("DB_NAME", "peekaping.db")
+	t.Setenv("DISABLED_MONITOR_TYPES", "docker,dockr")
+
+	_, err := LoadAndValidate(t.TempDir())
+
+	assert.ErrorContains(t, err, `DISABLED_MONITOR_TYPES has an unknown monitor type "dockr": the known types are`)
+	assert.ErrorContains(t, err, "docker")
+	assert.ErrorContains(t, err, "http")
+}
+
+func TestBlockPrivateTargetsIsOffByDefaultAndLoadedFromTheEnvironment(t *testing.T) {
+	t.Setenv("DB_TYPE", "sqlite")
+	t.Setenv("DB_NAME", "peekaping.db")
+	t.Setenv("BLOCK_PRIVATE_TARGETS", "")
+
+	cfg, err := LoadAndValidate(t.TempDir())
+	require.NoError(t, err)
+	assert.False(t, cfg.ToInternalConfig().BlockPrivateTargets)
+
+	t.Setenv("BLOCK_PRIVATE_TARGETS", "true")
+	cfg, err = LoadAndValidate(t.TempDir())
+	require.NoError(t, err)
+	assert.True(t, cfg.ToInternalConfig().BlockPrivateTargets)
+}
+
+func TestAPIRateLimitsAreOffByDefaultAndLoadedFromTheEnvironment(t *testing.T) {
+	t.Setenv("DB_TYPE", "sqlite")
+	t.Setenv("DB_NAME", "peekaping.db")
+	t.Setenv("API_RATE_LIMIT_PER_WORKSPACE", "")
+	t.Setenv("API_RATE_LIMIT_PER_API_KEY", "")
+
+	cfg, err := LoadAndValidate(t.TempDir())
+	require.NoError(t, err)
+	assert.Zero(t, cfg.ToInternalConfig().APIRateLimitPerWorkspace)
+	assert.Zero(t, cfg.ToInternalConfig().APIRateLimitPerAPIKey)
+
+	t.Setenv("API_RATE_LIMIT_PER_WORKSPACE", "600")
+	t.Setenv("API_RATE_LIMIT_PER_API_KEY", "120")
+	cfg, err = LoadAndValidate(t.TempDir())
+	require.NoError(t, err)
+	assert.Equal(t, 600, cfg.ToInternalConfig().APIRateLimitPerWorkspace)
+	assert.Equal(t, 120, cfg.ToInternalConfig().APIRateLimitPerAPIKey)
+}
+
+func TestANegativeAPIRateLimitStopsStartup(t *testing.T) {
+	for _, name := range []string{"API_RATE_LIMIT_PER_WORKSPACE", "API_RATE_LIMIT_PER_API_KEY"} {
+		t.Run(name, func(t *testing.T) {
+			t.Setenv("DB_TYPE", "sqlite")
+			t.Setenv("DB_NAME", "peekaping.db")
+			t.Setenv(name, "-1")
+
+			_, err := LoadAndValidate(t.TempDir())
+
+			assert.ErrorContains(t, err, "must be at least 0")
+		})
+	}
+}
+
+func TestChecksPerHostPerMinuteIsOffByDefaultAndLoadedFromTheEnvironment(t *testing.T) {
+	t.Setenv("DB_TYPE", "sqlite")
+	t.Setenv("DB_NAME", "peekaping.db")
+	t.Setenv("CHECKS_PER_HOST_PER_MINUTE", "")
+
+	cfg, err := LoadAndValidate(t.TempDir())
+	require.NoError(t, err)
+	assert.Zero(t, cfg.ToInternalConfig().ChecksPerHostPerMinute)
+
+	t.Setenv("CHECKS_PER_HOST_PER_MINUTE", "120")
+	cfg, err = LoadAndValidate(t.TempDir())
+	require.NoError(t, err)
+	assert.Equal(t, 120, cfg.ToInternalConfig().ChecksPerHostPerMinute)
+}
+
+func TestANegativeChecksPerHostPerMinuteStopsStartup(t *testing.T) {
+	t.Setenv("DB_TYPE", "sqlite")
+	t.Setenv("DB_NAME", "peekaping.db")
+	t.Setenv("CHECKS_PER_HOST_PER_MINUTE", "-1")
+
+	_, err := LoadAndValidate(t.TempDir())
+
+	assert.ErrorContains(t, err, "must be at least 0")
+}
+
+func TestMinCheckIntervalIsTwentyByDefaultAndLoadedFromTheEnvironment(t *testing.T) {
+	t.Setenv("DB_TYPE", "sqlite")
+	t.Setenv("DB_NAME", "peekaping.db")
+	t.Setenv("MIN_CHECK_INTERVAL", "")
+
+	cfg, err := LoadAndValidate(t.TempDir())
+	require.NoError(t, err)
+	assert.Equal(t, 20, cfg.ToInternalConfig().MinCheckInterval)
+
+	t.Setenv("MIN_CHECK_INTERVAL", "60")
+	cfg, err = LoadAndValidate(t.TempDir())
+	require.NoError(t, err)
+	assert.Equal(t, 60, cfg.ToInternalConfig().MinCheckInterval)
+}
+
+func TestAMinCheckIntervalBelowTwentyStopsStartup(t *testing.T) {
+	for _, value := range []string{"19", "1", "-1"} {
+		t.Run(value, func(t *testing.T) {
+			t.Setenv("DB_TYPE", "sqlite")
+			t.Setenv("DB_NAME", "peekaping.db")
+			t.Setenv("MIN_CHECK_INTERVAL", value)
+
+			_, err := LoadAndValidate(t.TempDir())
+
+			assert.ErrorContains(t, err, "must be at least 20")
+		})
+	}
+}
+
+func TestSupportContactIsEmptyByDefaultAndLoadedFromTheEnvironment(t *testing.T) {
+	t.Setenv("DB_TYPE", "sqlite")
+	t.Setenv("DB_NAME", "peekaping.db")
+	t.Setenv("SUPPORT_CONTACT", "")
+
+	cfg, err := LoadAndValidate(t.TempDir())
+	require.NoError(t, err)
+	assert.Empty(t, cfg.ToInternalConfig().SupportContact)
+
+	t.Setenv("SUPPORT_CONTACT", "support@example.com")
+	cfg, err = LoadAndValidate(t.TempDir())
+	require.NoError(t, err)
+	assert.Equal(t, "support@example.com", cfg.ToInternalConfig().SupportContact)
+}
+
+func TestLoadAndValidate_TheInternalConfigKnowsWhichVariablesTheEnvironmentSet(t *testing.T) {
+	t.Setenv("DB_TYPE", "sqlite")
+	t.Setenv("DB_NAME", "peekaping.db")
+	t.Setenv("CLIENT_URL", "https://peek.example")
+
+	cfg, err := LoadAndValidate(t.TempDir())
+	require.NoError(t, err)
+	internal := cfg.ToInternalConfig()
+	assert.True(t, internal.FromEnvironment("CLIENT_URL"))
+	assert.False(t, internal.FromEnvironment("SIGNUP_MODE"))
+}

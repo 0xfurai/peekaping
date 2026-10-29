@@ -7,6 +7,7 @@ import (
 	"net"
 	"net/http"
 	"net/http/httptest"
+	"slices"
 	"sort"
 	"sync"
 	"testing"
@@ -55,11 +56,13 @@ func blockExternalHTTP(t *testing.T) {
 }
 
 // newSecretsApp builds the API with an admin, as newAppWithAdmin does, and blocks the test from
-// sending anything outside this machine
+// sending anything outside this machine. The private address block is off (PP-158): its channels
+// send to receivers on this machine, and the transport the test replaces is the default one, which a
+// guarded client doesn't use.
 func newSecretsApp(t *testing.T) *app {
 	t.Helper()
 	blockExternalHTTP(t)
-	return newAppWithAdmin(t)
+	return newAppWithAdmin(t, withBlockPrivateTargets(false))
 }
 
 // secretChannel is a valid channel of one type with every one of its secrets set
@@ -218,7 +221,11 @@ func TestNotificationChannelsAPI_SecretChannelsCoverEveryProvider(t *testing.T) 
 		}
 	}
 	sort.Strings(fixtureTypes)
-	assert.Equal(t, a.registeredChannelTypes(t), fixtureTypes, "every notification channel type needs a case in secretChannels")
+	// The install email channel has no secret to hide, which TestSecretKeysPerProvider pins, and it
+	// can't be saved without a sender and a member to send to: install_email_channel_test.go
+	// covers it
+	registered := slices.DeleteFunc(a.registeredChannelTypes(t), func(channelType string) bool { return channelType == "install_email" })
+	assert.Equal(t, registered, fixtureTypes, "every notification channel type needs a case in secretChannels")
 }
 
 // A channel can outlive its type: the row stays when the provider is removed. Nothing knows which
@@ -226,8 +233,9 @@ func TestNotificationChannelsAPI_SecretChannelsCoverEveryProvider(t *testing.T) 
 func TestNotificationChannelsAPI_AChannelOfAnUnknownTypeShowsNoConfig(t *testing.T) {
 	a := newSecretsApp(t)
 	var id string
+	first := a.firstWorkspace(t)
 	require.NoError(t, a.container.Invoke(func(channels notification_channel.Service) error {
-		created, err := channels.Create(context.Background(), &notification_channel.CreateUpdateDto{
+		created, err := channels.Create(context.Background(), first, &notification_channel.CreateUpdateDto{
 			Name: "Retired", Type: "retired-type", Active: true, Config: `{"api_token":"retired-SECRET-token"}`,
 		})
 		if err != nil {
@@ -289,4 +297,88 @@ func TestNotificationChannelsAPI_ResponsesHideSecrets(t *testing.T) {
 	w := a.request(t, http.MethodGet, "/api/v1/notification-channels?limit=1000", nil, a.asAdmin)
 	assert.Len(t, decode[[]channelWithConfig](t, w, http.StatusOK), len(secretChannels))
 	assert.NotContains(t, w.Body.String(), secretMarker, "the list shows a secret")
+}
+
+// urlCredentialCase is a channel whose URL field holds credentials: the URL it is saved with, and
+// the URL the API shows. The password and the tokens are hunter2 and tok123 wherever they are.
+type urlCredentialCase struct {
+	channelType string
+	// key is the config field that holds the URL
+	key    string
+	stored string
+	shown  string
+}
+
+var urlCredentialCases = []urlCredentialCase{
+	{"webhook", "webhook_url", "http://user:hunter2@127.0.0.1:1/hook?token=hunter2&channel=ops", "http://user:********@127.0.0.1:1/hook?token=********&channel=********"},
+	{"ntfy", "server_url", "http://tok123@127.0.0.1:1", "http://********@127.0.0.1:1"},
+	{"signal", "signal_url", "http://signal:hunter2@127.0.0.1:1/?apikey=hunter2", "http://signal:********@127.0.0.1:1/?apikey=********"},
+	{"gotify", "server_url", "http://user:hunter2@127.0.0.1:1/gotify?token=hunter2", "http://user:********@127.0.0.1:1/gotify?token=********"},
+	{"matrix", "homeserver_url", "http://tok123@127.0.0.1:1/?access_token=hunter2", "http://********@127.0.0.1:1/?access_token=********"},
+	{"pagerduty", "pagerduty_integration_url", "http://user:hunter2@127.0.0.1:1/v2/enqueue", "http://user:********@127.0.0.1:1/v2/enqueue"},
+	{"telegram", "server_url", "http://user:hunter2@127.0.0.1:1", "http://user:********@127.0.0.1:1"},
+	{"whatsapp", "server_url", "http://127.0.0.1:1/wa?session=hunter2", "http://127.0.0.1:1/wa?session=********"},
+}
+
+// storedChannel returns the channel with the URL it is saved with
+func (u urlCredentialCase) storedChannel(t *testing.T) secretChannel {
+	t.Helper()
+	return secretChannelOfType(t, u.channelType).withVisible(map[string]any{u.key: u.stored})
+}
+
+// shownChannel returns the channel with the URL the API shows
+func (u urlCredentialCase) shownChannel(t *testing.T) secretChannel {
+	t.Helper()
+	return secretChannelOfType(t, u.channelType).withVisible(map[string]any{u.key: u.shown})
+}
+
+// requireURLHidden checks that a response shows the channel with its secrets and the credentials
+// of its URL masked, and nothing else changed
+func (u urlCredentialCase) requireURLHidden(t *testing.T, w *httptest.ResponseRecorder, got channelWithConfig) {
+	t.Helper()
+	assert.NotContains(t, w.Body.String(), "hunter2", "the response shows a password or a query value")
+	assert.NotContains(t, w.Body.String(), "tok123", "the response shows a user name that is a token")
+	assert.NotContains(t, w.Body.String(), secretMarker, "the response shows a secret")
+	assert.JSONEq(t, u.shownChannel(t).redactedConfig(), got.Config)
+}
+
+func TestNotificationChannelsAPI_ResponsesMaskURLCredentials(t *testing.T) {
+	a := newSecretsApp(t)
+
+	for _, u := range urlCredentialCases {
+		t.Run(u.channelType, func(t *testing.T) {
+			c := u.storedChannel(t)
+
+			w := a.request(t, http.MethodPost, "/api/v1/notification-channels", c.body("Channel"), a.asAdmin)
+			createdChannel := decode[channelWithConfig](t, w, http.StatusCreated)
+			u.requireURLHidden(t, w, createdChannel)
+			path := "/api/v1/notification-channels/" + createdChannel.ID
+
+			w = a.request(t, http.MethodGet, path, nil, a.asAdmin)
+			u.requireURLHidden(t, w, decode[channelWithConfig](t, w, http.StatusOK))
+
+			w = a.request(t, http.MethodGet, "/api/v1/notification-channels?limit=1000", nil, a.asAdmin)
+			found := false
+			for _, listed := range decode[[]channelWithConfig](t, w, http.StatusOK) {
+				if listed.ID == createdChannel.ID {
+					found = true
+					assert.JSONEq(t, u.shownChannel(t).redactedConfig(), listed.Config)
+				}
+			}
+			assert.True(t, found, "the list doesn't have the channel")
+			assert.NotContains(t, w.Body.String(), "hunter2", "the list shows a password or a query value")
+			assert.NotContains(t, w.Body.String(), "tok123", "the list shows a token")
+
+			w = a.request(t, http.MethodPut, path, c.body("Renamed"), a.asAdmin)
+			u.requireURLHidden(t, w, decode[channelWithConfig](t, w, http.StatusOK))
+
+			w = a.request(t, http.MethodPatch, path, map[string]any{"name": "Renamed again", "config": c.config(nil)}, a.asAdmin)
+			u.requireURLHidden(t, w, decode[channelWithConfig](t, w, http.StatusOK))
+
+			w = a.request(t, http.MethodPatch, path, map[string]any{"name": "Renamed last"}, a.asAdmin)
+			u.requireURLHidden(t, w, decode[channelWithConfig](t, w, http.StatusOK))
+
+			assert.JSONEq(t, c.config(nil), a.storedChannelConfig(t, createdChannel.ID), "the stored config keeps the URL as it was saved")
+		})
+	}
 }

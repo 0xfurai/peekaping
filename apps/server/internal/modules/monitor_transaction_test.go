@@ -3,6 +3,7 @@ package modules_test
 import (
 	"context"
 	"errors"
+	"peekaping/internal/modules/workspace/workspacetest"
 	"testing"
 
 	"peekaping/internal/dbtx"
@@ -63,21 +64,21 @@ func TestMonitorService_WritesInOneTransactionOnEverySQLBackend(t *testing.T) {
 		}
 
 		// Create
-		_, err := service.Create(ctx, dto("Doomed", []string{insertTxChannel(t, db)}, []string{insertTxTag(t, db), unknown}))
+		_, err := service.Create(ctx, workspacetest.ID, dto("Doomed", []string{insertTxChannel(t, db)}, []string{insertTxTag(t, db), unknown}))
 		require.Error(t, err)
-		all, err := monitor.NewSQLRepository(db).FindAll(ctx, 0, 10, "", nil, nil, nil)
+		all, err := monitor.NewSQLRepository(db).FindAll(ctx, workspacetest.ID, 0, 10, "", nil, nil, nil)
 		require.NoError(t, err)
 		assert.Empty(t, all, "a link that fails leaves no monitor behind")
 		assert.Empty(t, bus.Topics(), "and no MonitorCreated")
 
 		// Update
 		channelA, tagA := insertTxChannel(t, db), insertTxTag(t, db)
-		original, err := service.Create(ctx, dto("Original", []string{channelA}, []string{tagA}))
+		original, err := service.Create(ctx, workspacetest.ID, dto("Original", []string{channelA}, []string{tagA}))
 		require.NoError(t, err)
 		bus.TakeTopics()
 		unchanged := func(step string) {
 			t.Helper()
-			found, err := service.FindByID(ctx, original.ID)
+			found, err := service.FindByID(ctx, workspacetest.ID, original.ID)
 			require.NoError(t, err)
 			require.NotNil(t, found)
 			assert.Equal(t, "Original", found.Name, step)
@@ -86,12 +87,12 @@ func TestMonitorService_WritesInOneTransactionOnEverySQLBackend(t *testing.T) {
 			assert.Empty(t, bus.Topics(), step)
 		}
 
-		_, err = service.UpdateFull(ctx, original.ID, dto("Changed", []string{insertTxChannel(t, db)}, []string{insertTxTag(t, db), unknown}))
+		_, err = service.UpdateFull(ctx, workspacetest.ID, original.ID, dto("Changed", []string{insertTxChannel(t, db)}, []string{insertTxTag(t, db), unknown}))
 		require.Error(t, err)
 		unchanged("a full update with a link that fails")
 
 		name := "Changed"
-		_, err = service.UpdatePartial(ctx, original.ID, &monitor.PartialUpdateDto{Name: &name, TagIds: []string{insertTxTag(t, db), unknown}}, false)
+		_, err = service.UpdatePartial(ctx, workspacetest.ID, original.ID, &monitor.PartialUpdateDto{Name: &name, TagIds: []string{insertTxTag(t, db), unknown}}, false)
 		require.Error(t, err)
 		unchanged("a partial update with a link that fails")
 
@@ -99,20 +100,20 @@ func TestMonitorService_WritesInOneTransactionOnEverySQLBackend(t *testing.T) {
 		_, err = heartbeats.Create(ctx, &heartbeat.CreateUpdateDto{MonitorID: original.ID, Status: shared.MonitorStatusUp})
 		require.NoError(t, err)
 		bus.TakeTopics() // the heartbeat's own event
-		require.Error(t, newService(failingStats{statService}).Delete(ctx, original.ID))
+		require.Error(t, newService(failingStats{statService}).Delete(ctx, workspacetest.ID, original.ID))
 		unchanged("a delete whose stats fail")
 		assert.Equal(t, 1, count("monitors", original.ID))
 		assert.Equal(t, 1, count("heartbeats", original.ID), "the heartbeats, deleted before the stats failed, are back")
 
-		require.NoError(t, service.Delete(ctx, original.ID))
+		require.NoError(t, service.Delete(ctx, workspacetest.ID, original.ID))
 		assert.Equal(t, []string{events.MonitorDeleted.Name()}, bus.Topics())
 		assert.Zero(t, count("monitors", original.ID)+count("heartbeats", original.ID)+count("monitor_notifications", original.ID)+count("monitor_tags", original.ID))
 
 		// A monitor that is gone is not found, rather than failing the transaction
 		bus.TakeTopics() // the delete's own event
-		_, err = service.UpdatePartial(ctx, original.ID, &monitor.PartialUpdateDto{Name: &name}, false)
+		_, err = service.UpdatePartial(ctx, workspacetest.ID, original.ID, &monitor.PartialUpdateDto{Name: &name}, false)
 		assert.ErrorIs(t, err, monitor.ErrMonitorNotFound)
-		assert.ErrorIs(t, service.Delete(ctx, original.ID), monitor.ErrMonitorNotFound)
+		assert.ErrorIs(t, service.Delete(ctx, workspacetest.ID, original.ID), monitor.ErrMonitorNotFound)
 		assert.Empty(t, bus.Topics(), "and nothing is published")
 	})
 }

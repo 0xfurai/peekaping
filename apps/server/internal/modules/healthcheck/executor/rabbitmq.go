@@ -21,6 +21,7 @@ type RabbitMQConfig struct {
 }
 
 type RabbitMQExecutor struct {
+	guarded
 	logger *zap.SugaredLogger
 	client *http.Client
 }
@@ -54,6 +55,21 @@ func (r *RabbitMQExecutor) Validate(configJSON string) error {
 	return GenericValidator(rabbitCfg)
 }
 
+// Targets lists the hosts of the nodes a RabbitMQ check calls
+func (r *RabbitMQExecutor) Targets(configJSON string) ([]string, error) {
+	cfg, err := GenericUnmarshal[RabbitMQConfig](configJSON)
+	if err != nil {
+		return nil, err
+	}
+	var hosts []string
+	for _, node := range cfg.Nodes {
+		if u, err := url.Parse(node); err == nil && u.Hostname() != "" {
+			hosts = append(hosts, u.Hostname())
+		}
+	}
+	return hosts, nil
+}
+
 func (r *RabbitMQExecutor) Execute(ctx context.Context, monitor *Monitor, proxyModel *Proxy) *Result {
 	cfgAny, err := r.Unmarshal(monitor.Config)
 	if err != nil {
@@ -66,6 +82,16 @@ func (r *RabbitMQExecutor) Execute(ctx context.Context, monitor *Monitor, proxyM
 	// Create a context with timeout for the entire operation
 	timeoutCtx, cancel := context.WithTimeout(ctx, time.Duration(monitor.Timeout)*time.Second)
 	defer cancel()
+
+	// With a guard, the management API is called through a transport of this check's that dials
+	// through it, so a node that redirects to a blocked address is refused too, also when the guard
+	// was turned on after the check started
+	client := r.client
+	if r.hasGuard() {
+		var closeIdle func()
+		client, closeIdle = guardedClient(r.guard)
+		defer closeIdle()
+	}
 
 	// Try each node until one succeeds or all fail
 	var lastError error
@@ -100,6 +126,7 @@ func (r *RabbitMQExecutor) Execute(ctx context.Context, monitor *Monitor, proxyM
 
 		success, message, err := r.checkNode(
 			timeoutCtx, // Use the timeout context instead of original context
+			client,
 			healthURL,
 			cfg.Username,
 			cfg.Password,
@@ -138,7 +165,7 @@ func (r *RabbitMQExecutor) Execute(ctx context.Context, monitor *Monitor, proxyM
 	}
 }
 
-func (r *RabbitMQExecutor) checkNode(ctx context.Context, healthURL, username, password string) (bool, string, error) {
+func (r *RabbitMQExecutor) checkNode(ctx context.Context, client *http.Client, healthURL, username, password string) (bool, string, error) {
 	req, err := http.NewRequestWithContext(ctx, "GET", healthURL, nil)
 	if err != nil {
 		return false, "", fmt.Errorf("failed to create request: %w", err)
@@ -149,7 +176,7 @@ func (r *RabbitMQExecutor) checkNode(ctx context.Context, healthURL, username, p
 	req.Header.Set("Accept", "application/json")
 
 	// Perform the request
-	resp, err := r.client.Do(req)
+	resp, err := client.Do(req)
 	if err != nil {
 		return false, "", fmt.Errorf("request failed: %w", err)
 	}

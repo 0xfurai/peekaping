@@ -15,7 +15,7 @@ import (
 )
 
 type NTFYConfig struct {
-	ServerUrl          string `json:"server_url" validate:"required" endpoint:"true"`
+	ServerUrl          string `json:"server_url" validate:"required" endpoint:"true" urlCredentials:"true" target:"url"`
 	Topic              string `json:"topic" validate:"required"`
 	AuthenticationType string `json:"authentication_type" validate:"required,oneof=none basic token"`
 	Username           string `json:"username"`

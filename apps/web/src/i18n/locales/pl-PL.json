@@ -3,22 +3,292 @@
     "cancel": "Anuluj",
     "saving": "Zapisywanie..."
   },
+  "admin": {
+    "nav": {
+      "back_to_workspace": "Wróć do: {{name}}",
+      "probes": "Sondy",
+      "title": "Administracja",
+      "users": "Użytkownicy",
+      "workspaces": "Obszary robocze",
+      "settings": "Ustawienia"
+    },
+    "users": {
+      "actions": {
+        "delete": "Usuń użytkownika",
+        "disable": "Wyłącz użytkownika",
+        "disableTwoFactor": "Wyłącz 2FA",
+        "enable": "Włącz użytkownika",
+        "grantAdmin": "Nadaj uprawnienia administratora instancji",
+        "resetLink": "Utwórz link resetujący",
+        "revokeAdmin": "Odbierz uprawnienia administratora instancji"
+      },
+      "actions_aria": "Akcje dla {{email}}",
+      "columns": {
+        "created": "Utworzono",
+        "email": "E-mail",
+        "email_verified": "E-mail zweryfikowany",
+        "instance_admin": "Administrator instancji",
+        "last_sign_in": "Ostatnie logowanie",
+        "status": "Status",
+        "two_factor": "2FA",
+        "workspaces": "Obszary robocze"
+      },
+      "confirm": {
+        "cancel": "Anuluj",
+        "delete": {
+          "confirm": "Usuń użytkownika",
+          "description": "Usunąć {{email}}? Konto zostanie usunięte, a także miejsca użytkownika w obszarach roboczych. Tej operacji nie można cofnąć.",
+          "title": "Usuń użytkownika"
+        },
+        "disable": {
+          "confirm": "Wyłącz",
+          "description": "{{email}} nie może się logować i zostaje teraz wylogowany wszędzie. Jego obszary robocze nadal działają. Możesz go później włączyć ponownie.",
+          "title": "Wyłącz użytkownika"
+        },
+        "disableTwoFactor": {
+          "confirm": "Wyłącz 2FA",
+          "description": "{{email}} będzie logować się samym hasłem i może ponownie skonfigurować 2FA. Zrób to tylko wtedy, gdy masz pewność, że prosi o to ta osoba.",
+          "title": "Wyłącz 2FA"
+        }
+      },
+      "description": "Wszyscy, którzy mają konto w tej instalacji. Administratorzy instancji zarządzają samą instalacją, na przykład sondami i użytkownikami. Rolę użytkownika w obszarze roboczym ustalają właściciele tego obszaru.",
+      "empty": "Nie znaleziono użytkowników",
+      "errors": {
+        "last_instance_admin": "Instalacja wymaga co najmniej jednego administratora instancji.",
+        "last_owner": "Użytkownik jest ostatnim właścicielem: {{workspaces}}. Najpierw ustanów właścicielem kogoś innego lub usuń obszar roboczy.",
+        "self": "Nie możesz tego zrobić na własnym koncie."
+      },
+      "load_failed": "Nie udało się wczytać użytkowników.",
+      "messages": {
+        "admin_granted": "{{email}} jest teraz administratorem instancji",
+        "admin_revoked": "{{email}} nie jest już administratorem instancji",
+        "deleted": "{{email}} został usunięty",
+        "disabled": "{{email}} został wyłączony i wylogowany",
+        "enabled": "{{email}} został włączony",
+        "two_factor_off": "2FA jest wyłączone dla {{email}}",
+        "update_failed": "Nie udało się zaktualizować użytkownika."
+      },
+      "never": "Nigdy",
+      "none": "Brak",
+      "page_name": "Użytkownicy",
+      "paging": {
+        "next": "Następna",
+        "page": "Strona {{page}} z {{pages}}",
+        "previous": "Poprzednia"
+      },
+      "reset_link": {
+        "close": "Zamknij",
+        "copied": "Skopiowano link",
+        "copy": "Kopiuj link",
+        "copy_failed": "Nie udało się skopiować linku. Zaznacz go i skopiuj ręcznie.",
+        "description": "Link, dzięki któremu {{email}} ustawi nowe hasło. Skopiuj go i przekaż teraz: jest wyświetlany tylko raz.",
+        "emailed": "Ta instalacja wysyła e-maile dotyczące kont, więc użytkownik dostaje e-mailem informację, że utworzono dla niego link.",
+        "expires": "Link działa jednorazowo i wygasa {{when}}.",
+        "failed": "Nie udało się utworzyć linku.",
+        "label": "Link",
+        "making": "Tworzenie linku...",
+        "signs_out": "Użycie linku wylogowuje użytkownika wszędzie.",
+        "title": "Link do resetowania hasła"
+      },
+      "search_label": "Szukaj użytkowników po adresie e-mail",
+      "search_placeholder": "Szukaj po adresie e-mail",
+      "total": "Znaleziono: {{total}}",
+      "values": {
+        "active": "Aktywny",
+        "disabled": "Wyłączony",
+        "no": "Nie",
+        "two_factor_off": "Wyłączone",
+        "two_factor_on": "Włączone",
+        "yes": "Tak"
+      },
+      "you": "ty"
+    },
+    "workspaces": {
+      "actions": {
+        "delete": "Usuń obszar roboczy",
+        "resume": "Wznów obszar roboczy",
+        "suspend": "Zawieś obszar roboczy",
+        "limits": "Limity"
+      },
+      "actions_aria": "Akcje dla {{name}}",
+      "columns": {
+        "created": "Utworzono",
+        "custom_domains": "Własne domeny",
+        "members": "Członkowie",
+        "monitors": "Monitory",
+        "name": "Nazwa",
+        "owners": "Właściciele",
+        "status": "Status",
+        "status_pages": "Strony statusu",
+        "limits": "Limity"
+      },
+      "confirm": {
+        "cancel": "Anuluj",
+        "delete": {
+          "confirm": "Usuń obszar roboczy",
+          "description": "Usunąć {{name}}? Zniknie wszystko, co się w nim znajduje: monitory i ich historia, strony statusu, kanały powiadomień oraz dostęp członków. Tej operacji nie można cofnąć.",
+          "name_label": "Aby potwierdzić, wpisz nazwę obszaru roboczego: {{name}}",
+          "title": "Usuń obszar roboczy"
+        },
+        "resume": {
+          "confirm": "Wznów",
+          "description": "Monitory obszaru {{name}} znów działają w stanie, w jakim były, a jego członkowie mogą z niego korzystać jak wcześniej. Obszar roboczy, który czeka na weryfikację adresu e-mail właściciela, nadal czeka.",
+          "title": "Wznów obszar roboczy"
+        },
+        "suspend": {
+          "confirm": "Zawieś",
+          "description": "Monitory obszaru {{name}} przestają działać, jego publiczne strony statusu informują, że są niedostępne, a członkowie widzą, że obszar jest zawieszony. Nic nie zostaje usunięte i później możesz go wznowić.",
+          "title": "Zawieś obszar roboczy"
+        }
+      },
+      "description": "Wszystkie obszary robocze w tej instalacji wraz z ich właścicielami, członkami i tym, ile zawierają. Widoczne są tylko liczby, nic z zawartości obszaru roboczego.",
+      "empty": "Nie znaleziono obszarów roboczych",
+      "load_failed": "Nie udało się wczytać obszarów roboczych.",
+      "messages": {
+        "deleted": "Obszar roboczy {{name}} został usunięty",
+        "failed": "Nie udało się zmienić obszaru roboczego.",
+        "resumed": "Obszar roboczy {{name}} został wznowiony",
+        "suspended": "Obszar roboczy {{name}} został zawieszony"
+      },
+      "monitors": "Aktywne: {{active}}, wstrzymane: {{paused}}",
+      "none": "Brak",
+      "page_name": "Obszary robocze",
+      "paging": {
+        "next": "Następna",
+        "page": "Strona {{page}} z {{pages}}",
+        "previous": "Poprzednia"
+      },
+      "search_label": "Szukaj obszarów roboczych po nazwie lub adresie e-mail właściciela",
+      "search_placeholder": "Szukaj po nazwie lub adresie e-mail właściciela",
+      "status": {
+        "running": "Działa",
+        "suspended_admin": "Zawieszony przez administratora",
+        "suspended_unverified": "Zawieszony do czasu weryfikacji adresu e-mail przez właściciela"
+      },
+      "total": "Znaleziono: {{total}}",
+      "limits": {
+        "item": "{{name}}: {{value}}",
+        "more": "+{{number}} więcej",
+        "unlimited": "Bez limitów",
+        "source": {
+          "workspace": "Własne",
+          "install": "Domyślne ustawienia instalacji",
+          "none": "Nie ustawiono"
+        },
+        "dialog": {
+          "title": "Limity: {{name}}",
+          "description": "Czym ten obszar roboczy jest ograniczony. Obniżenie limitu niczego nie wstrzymuje ani nie usuwa: najnowsze monitory ponad limit przestają działać, dopóki znów nie będzie miejsca.",
+          "own": "Własne limity",
+          "own_help": "Zastępują one domyślne ustawienia instalacji. Zostaw limit pusty, aby go nie było.",
+          "unlimited": "Bez limitów",
+          "unlimited_help": "Żadnego limitu, cokolwiek mówią domyślne ustawienia instalacji.",
+          "defaults": "Użyj domyślnych ustawień instalacji",
+          "defaults_help": "Domyślne limity z sekcji Administracja → Ustawienia lub żadne, gdy instalacja ich nie ustawia.",
+          "save": "Zapisz limity",
+          "cancel": "Anuluj",
+          "saved": "Limity: {{name}} zostały zapisane",
+          "failed": "Nie udało się zapisać limitów."
+        }
+      }
+    },
+    "settings": {
+      "page_name": "Ustawienia",
+      "description": "Ustawienia całej instalacji. Wartość ustawiona przez środowisko serwera jest tu zablokowana.",
+      "load_failed": "Nie udało się wczytać ustawień.",
+      "saved": "Ustawienia zapisane",
+      "save_failed": "Ustawienia nie zostały zapisane.",
+      "locked": "Ustawione przez środowisko serwera",
+      "source": {
+        "environment": "Ze środowiska serwera",
+        "saved": "Zapisane tutaj",
+        "default": "Domyślny"
+      },
+      "signup": {
+        "title": "Rejestracja",
+        "description": "Kto może założyć konto w tej instalacji.",
+        "label": "Tryb rejestracji",
+        "invite": "Tylko z zaproszeniem",
+        "open": "Otwarta",
+        "invite_help": "Pierwszy użytkownik się rejestruje, a wszyscy kolejni dołączają do obszaru roboczego przez zaproszenie.",
+        "open_help": "Każdy może się zarejestrować i dostaje własny obszar roboczy. Nowe konta potwierdzają swój adres e-mail, więc potrzebny jest nadawca e-maili."
+      },
+      "sender": {
+        "title": "Nadawca e-maili",
+        "description": "Serwer SMTP, który wysyła e-maile konta: linki do resetowania hasła, potwierdzenie adresu e-mail i zaproszenia.",
+        "on": "E-maile konta są włączone.",
+        "off": "E-maile konta są wyłączone: brak hosta SMTP.",
+        "host": "Serwer SMTP",
+        "port": "Port",
+        "tls": "Bezpieczeństwo",
+        "tls_starttls": "STARTTLS",
+        "tls_tls": "TLS",
+        "tls_none": "Brak",
+        "user": "Użytkownik",
+        "password": "Hasło",
+        "password_set": "Hasło jest ustawione. Wpisz nowe, aby je zastąpić.",
+        "password_not_set": "Nie ustawiono hasła",
+        "password_removed": "Hasło zostanie usunięte po zapisaniu.",
+        "password_reenter": "Zmiana hosta, portu, zabezpieczeń lub użytkownika usuwa zapisane hasło. Wpisz je ponownie.",
+        "remove_password": "Usuń hasło",
+        "keep_password": "Zachowaj hasło",
+        "from": "Adres nadawcy"
+      },
+      "public_url": {
+        "title": "Publiczny URL",
+        "description": "Adres aplikacji internetowej, który otwierają linki w e-mailach i powiadomieniach.",
+        "label": "Publiczny URL"
+      },
+      "test_email": {
+        "title": "Wyślij testowy e-mail",
+        "description": "Wysyła krótki e-mail przez zapisanego nadawcę, aby sprawdzić, czy działa.",
+        "to": "Wyślij do",
+        "send": "Wyślij testowy e-mail",
+        "sending": "Wysyłanie…",
+        "sent": "Testowy e-mail wysłano do {{to}}.",
+        "failed": "Testowy e-mail nie został wysłany.",
+        "unsaved": "Nadawca ma niezapisane zmiany. Test używa zapisanego nadawcy, więc najpierw zapisz."
+      },
+      "validation": {
+        "port": "Wpisz port od 1 do 65535 lub zostaw puste dla wartości domyślnej."
+      },
+      "errors": {
+        "locked": "{{field}} ustawia środowisko serwera i nie można tego tu zmienić.",
+        "open_needs_sender": "Otwarta rejestracja wymaga nadawcy e-maili, ponieważ nowe konta potwierdzają swój adres e-mail. Najpierw skonfiguruj nadawcę albo zrób to w tym samym zapisie.",
+        "sender_needed": "Rejestracja jest otwarta, a nowe konta potrzebują nadawcy, aby potwierdzić swój adres e-mail. Najpierw przełącz rejestrację na tylko z zaproszeniem.",
+        "no_sender": "Brak nadawcy e-maili. Najpierw zapisz nadawcę."
+      },
+      "limits": {
+        "title": "Domyślne limity",
+        "description": "Limity każdego obszaru roboczego, który nie ma własnych. Zostaw limit pusty, aby go nie było. Limity nadane obszarowi roboczemu na stronie Obszary robocze zastępują te."
+      }
+    }
+  },
   "auth": {
     "login": {
       "description": "Zaloguj się swoim e‑mailem",
       "no_account": "Nie masz konta?",
       "sign_up": "Zarejestruj się",
       "submit": "Zaloguj",
-      "title": "Witaj ponownie"
+      "title": "Witaj ponownie",
+      "forgot_password": "Nie pamiętasz hasła?",
+      "ask_admin": "Poproś o zaproszenie administratora tej instalacji"
     },
     "register": {
       "description": "Utwórz swoje konto administratora",
+      "description_open": "Utwórz swoje konto",
       "have_account": "Masz już konto?",
       "sign_in": "Zaloguj się",
       "submit": "Utwórz",
       "title": "Cześć",
       "telemetry_note": "Anonimowo: bez nazw monitorów, adresów URL i hostów. Możesz to później zmienić w sekcji „Ustawienia”.",
-      "telemetry_whats_sent": "Co jest wysyłane"
+      "telemetry_whats_sent": "Co jest wysyłane",
+      "errors": {
+        "rate_limited": "Zbyt wiele rejestracji z Twojej sieci. Spróbuj ponownie za godzinę.",
+        "email_taken": "Konto z tym adresem e-mail już istnieje.",
+        "sign_in_instead": "Zaloguj się zamiast tego.",
+        "check_failed": "Weryfikacja nie powiodła się. Spróbuj ponownie.",
+        "check_load_failed": "Nie udało się załadować weryfikacji. Sprawdź połączenie i spróbuj ponownie."
+      }
     },
     "twofa": {
       "code_label": "Kod 2FA",
@@ -27,6 +297,45 @@
       "title": "Wymagane uwierzytelnienie dwuskładnikowe",
       "verify_button": "Zweryfikuj 2FA",
       "verifying": "Weryfikowanie…"
+    },
+    "forgot": {
+      "title": "Zresetuj hasło",
+      "description": "Podaj e-mail swojego konta, a wyślemy ci link.",
+      "submit": "Wyślij link",
+      "sent": "Jeśli istnieje konto z tym e-mailem, wysłaliśmy link. Działa przez godzinę.",
+      "back_to_login": "Wróć do logowania"
+    },
+    "reset": {
+      "title": "Wybierz nowe hasło",
+      "description": "Podaj nowe hasło do swojego konta.",
+      "submit": "Ustaw hasło",
+      "success": "Twoje hasło zostało zmienione i wylogowano cię wszędzie. Zaloguj się nowym hasłem.",
+      "sign_in": "Zaloguj się",
+      "invalid_link": "Ten link został już użyty lub wygasł.",
+      "request_new": "Poproś o nowy link"
+    },
+    "verify": {
+      "title": "Zweryfikuj swój e-mail",
+      "verifying": "Weryfikowanie twojego e-maila...",
+      "success": "Twój e-mail został zweryfikowany.",
+      "open_app": "Otwórz Peekaping",
+      "invalid_link": "Ten link został już użyty lub wygasł."
+    },
+    "errors": {
+      "rate_limited": "Zbyt wiele żądań. Spróbuj ponownie później.",
+      "generic": "Coś poszło nie tak. Spróbuj ponownie.",
+      "already_verified": "Twój e-mail jest już zweryfikowany."
+    },
+    "resend": {
+      "button": "Wyślij ponownie",
+      "sent": "Wysłaliśmy nowy link. Sprawdź skrzynkę odbiorczą."
+    },
+    "verification_banner": {
+      "message": "Zweryfikuj swój e-mail: wysłaliśmy link na adres {{email}}."
+    },
+    "suspension_notice": {
+      "message": "Twoje monitory ruszą po zweryfikowaniu adresu e-mail.",
+      "member_message": "Monitory tej przestrzeni roboczej ruszą po zweryfikowaniu adresu e-mail przez jej właściciela."
     }
   },
   "bars": {
@@ -73,6 +382,7 @@
     "no_tags_available": "Brak dostępnych tagów",
     "please_refresh_page": "Proszę odświeżyć stronę.",
     "required": "Wymagane",
+    "retry": "Spróbuj ponownie",
     "save": "Zapisz",
     "saving": "Zapisywanie...",
     "search": "Szukaj",
@@ -124,6 +434,33 @@
       "password_required": "Hasło jest wymagane",
       "password_min_length": "Hasło musi składać się z co najmniej 8 znaków",
       "passwords_mismatch": "Hasła się nie zgadzają"
+    }
+  },
+  "invite": {
+    "accept": "Zaakceptuj zaproszenie",
+    "accepting": "Dołączanie...",
+    "creating": "Tworzenie...",
+    "description": "Zaproszono Cię do dołączenia do {{workspace}} jako {{role}}.",
+    "enter_failed": "Dołączono do przestrzeni roboczej, ale nie udało się jej otworzyć. Spróbuj ponownie.",
+    "errors": {
+      "other_email": "To zaproszenie jest dla innego adresu e-mail."
+    },
+    "for_email": "To zaproszenie jest dla adresu {{email}}.",
+    "have_account": "Masz już konto?",
+    "open_app": "Otwórz Peekaping",
+    "other_account": "Zalogowano jako {{current}}, ale to zaproszenie jest dla adresu {{invited}}. Wyloguj się, a następnie zaloguj się lub zarejestruj z użyciem {{invited}}, aby je zaakceptować.",
+    "sign_in_instead": "Zaloguj się",
+    "sign_out": "Wyloguj się",
+    "signup_description": "Wybierz hasło, aby utworzyć konto i dołączyć do {{workspace}} jako {{role}}.",
+    "signup_submit": "Utwórz konto i dołącz",
+    "title": "Dołącz do {{workspace}}",
+    "unavailable": {
+      "accepted": "To zaproszenie zostało już wykorzystane.",
+      "expired": "To zaproszenie wygasło. Poproś o nowe.",
+      "not_found": "Ten link z zaproszeniem nie istnieje. Sprawdź, czy skopiowano go w całości.",
+      "revoked": "To zaproszenie zostało cofnięte. Poproś o nowe.",
+      "title": "Tego zaproszenia nie można użyć",
+      "unknown": "Tego zaproszenia nie można użyć. Poproś o nowe."
     }
   },
   "maintenance": {
@@ -231,6 +568,79 @@
       "wed": "śro"
     }
   },
+  "members": {
+    "change_role_aria": "Zmień rolę użytkownika {{email}}",
+    "errors": {
+      "account_exists": "Konto z tym adresem e-mail już istnieje. Zaloguj się i zaakceptuj zaproszenie.",
+      "already_member": "Ta osoba jest już członkiem tego obszaru roboczego.",
+      "forbidden": "Twoja rola w tym obszarze roboczym nie pozwala na tę czynność.",
+      "generic": "Coś poszło nie tak. Spróbuj ponownie.",
+      "last_owner": "Obszar roboczy musi mieć co najmniej jednego właściciela.",
+      "member_not_found": "Ten członek nie należy już do tego obszaru roboczego."
+    },
+    "invite": {
+      "copied": "Skopiowano link",
+      "copy": "Kopiuj",
+      "creating": "Tworzenie...",
+      "description": "Utwórz link dla adresu e-mail i roli. Żadna wiadomość nie jest wysyłana: skopiuj link i wyślij go samodzielnie.",
+      "done": "Gotowe",
+      "email_label": "E-mail",
+      "link_note": "Ten link działa tylko raz i wygasa po 7 dniach. Jest wyświetlany tylko teraz, więc skopiuj go, zanim opuścisz tę stronę.",
+      "link_title": "Link z zaproszeniem",
+      "role_label": "Rola",
+      "submit": "Utwórz link z zaproszeniem",
+      "title": "Zaproś kogoś"
+    },
+    "leave": {
+      "button": "Opuść obszar roboczy",
+      "confirm": "Opuść",
+      "description": "Natychmiast tracisz dostęp do tego obszaru roboczego i jego danych.",
+      "done": "Opuszczono obszar roboczy",
+      "last_owner": "Jesteś ostatnim właścicielem, więc nie możesz wyjść. Najpierw ustaw innego członka jako właściciela.",
+      "refresh_failed": "Opuszczono przestrzeń roboczą, ale nie udało się wczytać Twoich przestrzeni roboczych. Spróbuj ponownie.",
+      "title": "Opuść ten obszar roboczy"
+    },
+    "list": {
+      "description": "Wszyscy, którzy pracują w tym obszarze roboczym, i ich role.",
+      "email": "E-mail",
+      "joined": "Data dołączenia",
+      "role": "Rola",
+      "title": "Członkowie",
+      "you": "ty"
+    },
+    "page_name": "Członkowie",
+    "pending": {
+      "description": "Zaproszenia, które nie zostały jeszcze wykorzystane. Link do cofniętego zaproszenia przestaje działać.",
+      "email": "E-mail",
+      "empty": "Brak oczekujących zaproszeń.",
+      "expired": "Wygasło",
+      "expires": "Wygasa",
+      "revoke": "Cofnij",
+      "revoke_aria": "Cofnij zaproszenie dla {{email}}",
+      "revoked": "Zaproszenie zostało cofnięte",
+      "role": "Rola",
+      "title": "Oczekujące zaproszenia"
+    },
+    "remove": "Usuń",
+    "remove_aria": "Usuń użytkownika {{email}}",
+    "remove_dialog": {
+      "confirm": "Usuń",
+      "description": "{{email}} natychmiast traci dostęp do tego obszaru roboczego.",
+      "title": "Usuń członka"
+    },
+    "removed": "Członek został usunięty",
+    "role_updated": "Rola została zaktualizowana",
+    "roles": {
+      "admin": "Administrator",
+      "member": "Członek",
+      "owner": "Właściciel"
+    },
+    "settings_card": {
+      "description": "Zobacz, kto pracuje w tym obszarze roboczym, a jeśli jesteś administratorem lub właścicielem, zapraszaj osoby i zarządzaj ich rolami.",
+      "open": "Otwórz członków",
+      "title": "Członkowie"
+    }
+  },
   "messages": {
     "login_error": "Wystąpił błąd podczas logowania",
     "login_no_tokens": "Logowanie zakończone sukcesem, ale nie otrzymano tokenów",
@@ -258,6 +668,7 @@
     },
     "empty_state": {
       "action": "Utwórz swój pierwszy monitor",
+      "add_channel": "Dodaj kanał powiadomień",
       "description": "Rozpocznij od utworzenia pierwszego monitora, aby śledzić stan Twoich usług.",
       "title": "Nie znaleziono monitorów"
     },
@@ -500,6 +911,7 @@
       "shared": {
         "intervals": {
           "heartbeat_retry": "Interwał ponownego próby (ponawiaj co {{seconds}} sekund)",
+          "interval_too_short": "Nie może być mniejszy niż {{minimum}} s",
           "max_retries_description": "Maksymalna liczba ponownych prób przed oznaczeniem usługi jako niedostępnej i wysłaniem powiadomienia.",
           "request_timeout": "Timeout żądania (po {{seconds}} sekundach)",
           "resend_notification": "Ponowne wysłanie powiadomienia, jeśli usługa będzie niedostępna X razy z rzędu (Ponowne wysłanie wyłączone)",
@@ -542,6 +954,10 @@
           "select_proxy_placeholder": "Wybierz proxy",
           "selected_proxy": "Wybrany Proxy",
           "title": "Proxy"
+        },
+        "run_from": {
+          "default_locations": "Działa w domyślnych lokalizacjach",
+          "label": "Uruchamiaj z"
         },
         "tags": {
           "label": "Tagi",
@@ -649,9 +1065,12 @@
     "toasts": {
       "deleted": "Monitor usunięty",
       "paused": "Monitor wstrzymany",
+      "push_token_already_used": "Inny monitor już używa tego tokenu push. Wygeneruj nowy.",
       "reset_success": "Dane monitora zostały pomyślnie zresetowane",
       "resumed": "Monitor wznowiony"
     },
+    "type_disabled": "Typ {{type}} jest wyłączony w tej instalacji",
+    "over_limit": "Nie jest sprawdzany: obszar roboczy ma więcej aktywnych monitorów, niż pozwala jego limit",
     "view": {
       "buttons": {
         "clone": "Klonuj",
@@ -712,6 +1131,7 @@
     }
   },
   "navigation": {
+    "admin": "Administracja",
     "maintenance": "Utrzymanie",
     "monitors": "Monitory",
     "notification_channels": "Kanały powiadomień",
@@ -1124,6 +1544,12 @@
         "signing_secret_docs_link": "Jak zweryfikować podpis",
         "signing_secret_label": "Sekret podpisu",
         "signing_secret_placeholder": "Pozostaw puste, aby wysyłać niepodpisane żądania"
+      },
+      "install_email": {
+        "description": "Wysyła ją ta instalacja, serwer SMTP nie jest potrzebny.",
+        "to_description": "Członek tego obszaru roboczego. Powiadomienia są wysyłane, gdy zweryfikuje adres.",
+        "to_label": "Odbiorca",
+        "to_placeholder": "Wybierz członka"
       }
     },
     "important": "Ważne powiadomienia",
@@ -1142,7 +1568,8 @@
       "updated_success": "Notifier został pomyślnie zaktualizowany"
     },
     "new": {
-      "title": "Nowy kanał powiadomień"
+      "title": "Nowy kanał powiadomień",
+      "default_hint": "Ten kanał będzie zaznaczony w nowych monitorach."
     },
     "no_important": "Nie znaleziono ważnych powiadomień.",
     "placeholders": {
@@ -1152,11 +1579,21 @@
     "secret": {
       "reenter_error": "Wpisz ten sekret ponownie lub go usuń: zmieniło się miejsce, do którego jest wysyłany",
       "reenter_hint": "Wpisz ten sekret ponownie: zmieniło się miejsce, do którego jest wysyłany",
+      "reenter_url_error": "Wpisz ponownie dane uwierzytelniające w tym adresie URL: adres URL zmienił się od zapisania",
       "remove": "Usuń",
       "saved_hint": "Zapisano — wpisz, aby zastąpić"
     }
   },
   "probes": {
+    "default": {
+      "description": "Monitor utworzony bez wyboru sond działa na domyślnych sondach, które nie są wyłączone i obsługują jego typ, a gdy żadna tego nie robi, na sondzie lokalnej. Istniejące monitory zachowują swoje sondy.",
+      "failed": "Nie udało się zmienić, czy sonda jest domyślna.",
+      "label": "Sonda domyślna",
+      "off": "{{name}} nie jest już sondą domyślną",
+      "on": "{{name}} jest teraz sondą domyślną",
+      "title": "Domyślne dla nowych monitorów"
+    },
+    "default_badge": "Domyślna",
     "page_name": "Sondy",
     "description": "Sondy wykonują sprawdzenia monitorów z miejsc, w których są zainstalowane. Sondą lokalną jest sam Peekaping.",
     "local_name": "Lokalna",
@@ -1438,7 +1875,9 @@
     "data_retention": {
       "days_label": "Dni",
       "description": "Ustaw, ile dni mają być przechowywane dane (KEEP_DATA_PERIOD_DAYS).",
-      "title": "Okres przechowywania danych"
+      "read_only": "Tylko administrator lub właściciel przestrzeni roboczej może to zmienić.",
+      "title": "Okres przechowywania danych",
+      "capped": "Maksymalnie {{max}} dni w tym obszarze roboczym"
     },
     "error_reporting": {
       "cluster_note": "W trybie klastrowym zmiana dociera do każdego procesu w ciągu minuty.",
@@ -1464,6 +1903,10 @@
     },
     "validation": {
       "min_days": "Musi być co najmniej 1 dzień"
+    },
+    "workspace_name": {
+      "description": "Nazwa wyświetlana w przełączniku obszarów roboczych i członkom.",
+      "title": "Nazwa obszaru roboczego"
     }
   },
   "status": {
@@ -1479,6 +1922,7 @@
       "refresh_in": "Odśwież w",
       "refresh_now": "Odśwież teraz",
       "status_page_not_found": "Strona statusu nie została znaleziona lub nie jest opublikowana.",
+      "status_page_unavailable": "Ta strona statusu jest niedostępna",
       "under_maintenance": "W trakcie konserwacji",
       "unknown": "Nieznany"
     }
@@ -1522,6 +1966,7 @@
     "search_placeholder": "Wyszukaj strony statusu według tytułu...",
     "show_locations": "Pokaż każdą lokalizację",
     "show_locations_info": "W przypadku monitorów sprawdzanych z wielu lokalizacji pokazuje status i historię każdej z nich",
+    "slug_already_used": "Ten adres jest już używany przez inną stronę statusu",
     "update_status_page": "Zaktualizuj stronę statusu",
     "view_page": "Zobacz stronę"
   },
@@ -1587,5 +2032,93 @@
   "ui": {
     "general": "Ogólne",
     "intervals_retries": "Interwały, ponawiania, limity czasu"
+  },
+  "workspaces": {
+    "create": "Utwórz obszar roboczy",
+    "create_error": "Nie udało się utworzyć obszaru roboczego",
+    "create_first": "Utwórz przestrzeń roboczą",
+    "creating": "Tworzenie...",
+    "enter": "Otwórz obszar roboczy",
+    "entering": "Otwieranie...",
+    "entry_failed": "Obszar roboczy został utworzony, ale nie udało się go otworzyć. Spróbuj ponownie.",
+    "name_label": "Nazwa",
+    "name_placeholder": "Mój zespół",
+    "name_required": "Wpisz nazwę",
+    "new": "Nowy obszar roboczy",
+    "new_description": "Obszar roboczy ma własne monitory, kanały powiadomień, strony statusu i członków. Zostaniesz jego właścicielem.",
+    "new_title": "Nowy obszar roboczy",
+    "none_description": "Twoje konto nie jest członkiem żadnego obszaru roboczego, więc nie ma tu nic do pokazania. Poproś osobę zarządzającą obszarem roboczym, aby Cię dodała.",
+    "none_title": "Nie należysz jeszcze do żadnego obszaru roboczego",
+    "refresh_failed": "Nie udało się wczytać Twoich przestrzeni roboczych. Sprawdź połączenie i spróbuj ponownie.",
+    "rename_error": "Nie udało się zmienić nazwy obszaru roboczego",
+    "rename_success": "Zmieniono nazwę obszaru roboczego",
+    "suspended_banner": {
+      "contact": "Kontakt:",
+      "message": "Ten obszar roboczy został zawieszony przez administratora tej instalacji. Jego monitory nie działają, a strony statusu są niedostępne.",
+      "no_contact": "Skontaktuj się z osobą, która zarządza tą instalacją."
+    },
+    "switcher_label": "Przełącz obszar roboczy"
+  },
+  "get_started": {
+    "page_name": "Pierwsze kroki",
+    "skip": "Pomiń konfigurację",
+    "step_of": "Krok {{current}} z {{total}}",
+    "name": {
+      "description": "Tutaj znajdują się Twoje monitory, kanały powiadomień i strony statusu. Nazwę możesz później zmienić w Ustawieniach.",
+      "title": "Nazwij swój obszar roboczy"
+    },
+    "monitor": {
+      "create": "Utwórz monitor",
+      "create_failed": "Nie udało się utworzyć monitora",
+      "creating": "Tworzenie...",
+      "description": "Wpisz adres strony internetowej lub API. Peekaping sprawdza go i powiadamia Cię, gdy przestanie odpowiadać.",
+      "full_form": "Albo skonfiguruj monitor ze wszystkimi opcjami",
+      "title": "Dodaj swój pierwszy monitor",
+      "url_invalid": "Wpisz adres zaczynający się od http:// lub https://",
+      "url_label": "Adres do monitorowania"
+    },
+    "channel": {
+      "continue_unlinked": "Kontynuuj bez połączenia",
+      "description": "Wybierz, dokąd Peekaping ma wysłać alert, gdy Twój monitor przestanie działać. Będzie to domyślny kanał dla nowych monitorów.",
+      "link_failed": "Kanał został zapisany, ale nie udało się go powiązać z monitorem. Dodaj go na stronie edycji monitora.",
+      "retry_link": "Spróbuj połączyć ponownie",
+      "title": "Otrzymuj powiadomienia"
+    },
+    "done": {
+      "description": "Peekaping obserwuje Twoją usługę. Oto, co możesz zrobić dalej.",
+      "title": "Wszystko gotowe",
+      "unverified": "Twój monitor ruszy po zweryfikowaniu adresu e-mail. Link weryfikacyjny znajdziesz w skrzynce odbiorczej.",
+      "links": {
+        "members": "Zaproś swój zespół",
+        "monitor": "Otwórz monitor",
+        "monitors": "Przejdź do monitorów",
+        "probes": "Zarządzaj sondami",
+        "status_pages": "Opublikuj stronę statusu"
+      }
+    }
+  },
+  "limits": {
+    "reached": {
+      "monitors": "Maksymalna liczba działających monitorów w tym obszarze roboczym: {{max}}",
+      "status_pages": "Maksymalna liczba stron statusu w tym obszarze roboczym: {{max}}",
+      "custom_domains": "Maksymalna łączna liczba własnych domen na stronach statusu tego obszaru roboczego: {{max}}",
+      "members": "Maksymalna liczba członków tego obszaru roboczego, razem z oczekującymi zaproszeniami: {{max}}",
+      "owned_workspaces": "Maksymalna liczba obszarów roboczych, których możesz być właścicielem: {{max}}",
+      "probes": "Maksymalna liczba sond, na których może działać monitor w tym obszarze roboczym: {{max}}",
+      "retention_days": "Najdłuższy okres przechowywania danych w tym obszarze roboczym (w dniach): {{max}}"
+    },
+    "names": {
+      "monitors": "Aktywne monitory",
+      "min_check_interval": "Najkrótszy interwał sprawdzania (sekundy)",
+      "status_pages": "Strony statusu",
+      "custom_domains": "Własne domeny",
+      "members": "Członkowie",
+      "owned_workspaces": "Obszary robocze, które może posiadać jeden użytkownik",
+      "probes_per_monitor": "Sondy na monitor",
+      "retention_days": "Przechowywanie danych (dni)"
+    },
+    "none": "Bez limitu",
+    "invalid": "Wpisz liczbę całkowitą równą 1 lub większą albo zostaw puste, aby nie było limitu.",
+    "retention_too_long": "Nie może być więcej niż {{max}} dni"
   }
 }

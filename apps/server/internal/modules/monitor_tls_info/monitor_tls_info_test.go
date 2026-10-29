@@ -3,6 +3,7 @@ package monitor_tls_info_test
 import (
 	"context"
 	"path/filepath"
+	"peekaping/internal/modules/workspace/workspacetest"
 	"testing"
 	"time"
 
@@ -32,7 +33,8 @@ func newService(t *testing.T) (monitor_tls_info.Service, string) {
 	_, err = migrator.Migrate(ctx)
 	require.NoError(t, err)
 	monitorID := uuid.NewString()
-	_, err = db.Exec(`INSERT INTO monitors (id, type, name, interval, timeout, max_retries, retry_interval, resend_interval) VALUES (?, 'http', 'Monitor', 60, 10, 1, 10, 0)`, monitorID)
+	workspacetest.OldestOrAdd(t, db)
+	_, err = db.Exec(`INSERT INTO monitors (id, workspace_id, type, name, interval, timeout, max_retries, retry_interval, resend_interval) VALUES (?, (SELECT id FROM workspaces ORDER BY created_at, id LIMIT 1), 'http', 'Monitor', 60, 10, 1, 10, 0)`, monitorID)
 	require.NoError(t, err)
 	return monitor_tls_info.NewService(monitor_tls_info.NewSQLRepository(db), zap.NewNop().Sugar()), monitorID
 }
@@ -107,4 +109,18 @@ func TestService_FindsNothingForAMonitorWithoutTLSInfo(t *testing.T) {
 			assert.Equal(t, shared.TLSInfo{Valid: true}, read, "the target is left as it was")
 		})
 	}
+}
+
+// A monitor can be deleted while a check of it is still being handled. The TLS info has nothing to
+// belong to then, and is dropped without a failure.
+func TestService_StoringTLSInfoForADeletedMonitorIsSkipped(t *testing.T) {
+	svc, _ := newService(t)
+	ctx := context.Background()
+	deleted := uuid.NewString()
+
+	require.NoError(t, svc.StoreTLSInfoObject(ctx, deleted, tlsInfo("example.com", 30)))
+
+	read, err := svc.GetTLSInfo(ctx, deleted)
+	require.NoError(t, err)
+	assert.Nil(t, read)
 }

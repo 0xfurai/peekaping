@@ -2,7 +2,12 @@ package auth
 
 import (
 	"context"
+	"database/sql"
+	"errors"
+	"strings"
 	"time"
+
+	"peekaping/internal/dbtx"
 
 	"github.com/google/uuid"
 	"github.com/uptrace/bun"
@@ -12,15 +17,21 @@ import (
 type sqlModel struct {
 	bun.BaseModel `bun:"table:users,alias:u"`
 
-	ID             string    `bun:"id,pk"`
-	Email          string    `bun:"email,unique,notnull"`
-	Password       string    `bun:"password,notnull"`
-	Active         bool      `bun:"active,notnull,default:true"`
-	TwoFASecret    string    `bun:"twofa_secret"`
-	TwoFAStatus    bool      `bun:"twofa_status,notnull,default:false"`
-	TwoFALastToken string    `bun:"twofa_last_token"`
-	CreatedAt      time.Time `bun:"created_at,nullzero,notnull,default:current_timestamp"`
-	UpdatedAt      time.Time `bun:"updated_at,nullzero,notnull,default:current_timestamp"`
+	ID             string `bun:"id,pk"`
+	Email          string `bun:"email,unique,notnull"`
+	Password       string `bun:"password,notnull"`
+	Active         bool   `bun:"active,notnull,default:true"`
+	TwoFASecret    string `bun:"twofa_secret"`
+	TwoFAStatus    bool   `bun:"twofa_status,notnull,default:false"`
+	TwoFALastToken string `bun:"twofa_last_token"`
+	InstanceAdmin  bool   `bun:"instance_admin,notnull,default:false"`
+
+	EmailVerifiedAt  *time.Time `bun:"email_verified_at"`
+	TokensValidAfter *time.Time `bun:"tokens_valid_after"`
+	LastLoginAt      *time.Time `bun:"last_login_at"`
+
+	CreatedAt time.Time `bun:"created_at,nullzero,notnull,default:current_timestamp"`
+	UpdatedAt time.Time `bun:"updated_at,nullzero,notnull,default:current_timestamp"`
 }
 
 func toDomainModelFromSQL(sm *sqlModel) *Model {
@@ -32,8 +43,14 @@ func toDomainModelFromSQL(sm *sqlModel) *Model {
 		TwoFASecret:    sm.TwoFASecret,
 		TwoFAStatus:    sm.TwoFAStatus,
 		TwoFALastToken: sm.TwoFALastToken,
-		CreatedAt:      sm.CreatedAt,
-		UpdatedAt:      sm.UpdatedAt,
+		InstanceAdmin:  sm.InstanceAdmin,
+
+		EmailVerifiedAt:  sm.EmailVerifiedAt,
+		TokensValidAfter: sm.TokensValidAfter,
+		LastLoginAt:      sm.LastLoginAt,
+
+		CreatedAt: sm.CreatedAt,
+		UpdatedAt: sm.UpdatedAt,
 	}
 }
 
@@ -46,8 +63,14 @@ func toSQLModel(m *Model) *sqlModel {
 		TwoFASecret:    m.TwoFASecret,
 		TwoFAStatus:    m.TwoFAStatus,
 		TwoFALastToken: m.TwoFALastToken,
-		CreatedAt:      m.CreatedAt,
-		UpdatedAt:      m.UpdatedAt,
+		InstanceAdmin:  m.InstanceAdmin,
+
+		EmailVerifiedAt:  m.EmailVerifiedAt,
+		TokensValidAfter: m.TokensValidAfter,
+		LastLoginAt:      m.LastLoginAt,
+
+		CreatedAt: m.CreatedAt,
+		UpdatedAt: m.UpdatedAt,
 	}
 }
 
@@ -68,12 +91,14 @@ func (r *SQLRepositoryImpl) Create(ctx context.Context, user *Model) (*Model, er
 		TwoFASecret:    user.TwoFASecret,
 		TwoFAStatus:    user.TwoFAStatus,
 		TwoFALastToken: user.TwoFALastToken,
+		InstanceAdmin:  user.InstanceAdmin,
 		CreatedAt:      time.Now(),
 		UpdatedAt:      time.Now(),
 	}
 
-	// Let Bun handle ID generation based on the database type
-	_, err := r.db.NewInsert().Model(sm).Returning("*").Exec(ctx)
+	// Let Bun handle ID generation based on the database type. The insert joins the transaction the
+	// context carries, so that signup through an invite creates the user and the membership together.
+	_, err := dbtx.DB(ctx, r.db).NewInsert().Model(sm).Returning("*").Exec(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -94,6 +119,7 @@ func (r *SQLRepositoryImpl) CreateFirst(ctx context.Context, user *Model) (*Mode
 		TwoFASecret:    user.TwoFASecret,
 		TwoFAStatus:    user.TwoFAStatus,
 		TwoFALastToken: user.TwoFALastToken,
+		InstanceAdmin:  true, // the first user manages the install
 		CreatedAt:      time.Now(),
 		UpdatedAt:      time.Now(),
 	}
@@ -101,9 +127,9 @@ func (r *SQLRepositoryImpl) CreateFirst(ctx context.Context, user *Model) (*Mode
 	// One statement inserts the user only while the table is empty. SQLite
 	// serialises its writes, so that statement alone is atomic there.
 	insert := func(db bun.IDB) error {
-		res, err := db.ExecContext(ctx, `INSERT INTO users (id, email, password, active, twofa_secret, twofa_status, twofa_last_token, created_at, updated_at)
-			SELECT ?, ?, ?, ?, ?, ?, ?, ?, ? WHERE NOT EXISTS (SELECT 1 FROM users)`,
-			sm.ID, sm.Email, sm.Password, sm.Active, sm.TwoFASecret, sm.TwoFAStatus, sm.TwoFALastToken, sm.CreatedAt, sm.UpdatedAt)
+		res, err := db.ExecContext(ctx, `INSERT INTO users (id, email, password, active, twofa_secret, twofa_status, twofa_last_token, instance_admin, created_at, updated_at)
+			SELECT ?, ?, ?, ?, ?, ?, ?, ?, ?, ? WHERE NOT EXISTS (SELECT 1 FROM users)`,
+			sm.ID, sm.Email, sm.Password, sm.Active, sm.TwoFASecret, sm.TwoFAStatus, sm.TwoFALastToken, sm.InstanceAdmin, sm.CreatedAt, sm.UpdatedAt)
 		if err != nil {
 			return err
 		}
@@ -118,18 +144,19 @@ func (r *SQLRepositoryImpl) CreateFirst(ctx context.Context, user *Model) (*Mode
 	}
 
 	var err error
-	if r.db.Dialect().Name() == dialect.PG {
-		// Two PostgreSQL transactions can both see an empty table, so they take
-		// turns: the lock is held until the transaction ends, and the call that
-		// gets it next sees the user the one before it created.
-		err = r.db.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
-			if _, err := tx.ExecContext(ctx, "SELECT pg_advisory_xact_lock(?)", firstAdminLockKey); err != nil {
-				return err
-			}
-			return insert(tx)
-		})
-	} else {
-		err = insert(r.db)
+	switch handle := dbtx.DB(ctx, r.db).(type) {
+	case bun.Tx:
+		// The caller's transaction ends the lock, so what the caller writes after the user, such
+		// as the user's workspace, is committed before the next call gets the lock
+		err = r.createFirstIn(ctx, handle, insert)
+	default:
+		if r.db.Dialect().Name() == dialect.PG {
+			err = r.db.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
+				return r.createFirstIn(ctx, tx, insert)
+			})
+		} else {
+			err = insert(r.db)
+		}
 	}
 	if err != nil {
 		return nil, err
@@ -138,11 +165,40 @@ func (r *SQLRepositoryImpl) CreateFirst(ctx context.Context, user *Model) (*Mode
 	return toDomainModelFromSQL(sm), nil
 }
 
+// createFirstIn inserts the user in tx. Two PostgreSQL transactions can both see an empty table,
+// so they take turns: the lock is held until the transaction ends, and the call that gets it
+// next sees the user the one before it created.
+func (r *SQLRepositoryImpl) createFirstIn(ctx context.Context, tx bun.Tx, insert func(bun.IDB) error) error {
+	if r.db.Dialect().Name() == dialect.PG {
+		if _, err := tx.ExecContext(ctx, "SELECT pg_advisory_xact_lock(?)", firstAdminLockKey); err != nil {
+			return err
+		}
+	}
+	return insert(tx)
+}
+
 func (r *SQLRepositoryImpl) FindByEmail(ctx context.Context, email string) (*Model, error) {
 	sm := new(sqlModel)
 	err := r.db.NewSelect().Model(sm).Where("email = ?", email).Scan(ctx)
 	if err != nil {
 		if err.Error() == "sql: no rows in result set" {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return toDomainModelFromSQL(sm), nil
+}
+
+func (r *SQLRepositoryImpl) FindByEmailIgnoringCase(ctx context.Context, email string) (*Model, error) {
+	trimmed := strings.TrimSpace(email)
+	sm := new(sqlModel)
+	// The exact match covers what SQL's lower() leaves alone (it differs from Go's for non-ASCII
+	// letters on SQLite)
+	err := r.db.NewSelect().Model(sm).
+		Where("email = ? OR lower(trim(email)) = ?", trimmed, strings.ToLower(trimmed)).
+		Order("created_at", "id").Limit(1).Scan(ctx)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		}
 		return nil, err
@@ -165,6 +221,20 @@ func (r *SQLRepositoryImpl) FindByID(ctx context.Context, id string) (*Model, er
 func (r *SQLRepositoryImpl) FindAllCount(ctx context.Context) (int64, error) {
 	count, err := r.db.NewSelect().Model((*sqlModel)(nil)).Count(ctx)
 	return int64(count), err
+}
+
+func (r *SQLRepositoryImpl) AnyUser(ctx context.Context) (bool, error) {
+	return r.db.NewSelect().Model((*sqlModel)(nil)).Exists(ctx)
+}
+
+func (r *SQLRepositoryImpl) RecordLogin(ctx context.Context, id string, at time.Time) error {
+	// updated_at stays: signing in doesn't change the account. Two sign-ins can overlap and the
+	// earlier one commit last, so the time only moves forward.
+	at = at.UTC()
+	_, err := dbtx.DB(ctx, r.db).NewUpdate().Model((*sqlModel)(nil)).
+		Set("last_login_at = ?", at).Where("id = ?", id).
+		Where("last_login_at IS NULL OR last_login_at < ?", at).Exec(ctx)
+	return err
 }
 
 func (r *SQLRepositoryImpl) Update(ctx context.Context, id string, entity *UpdateModel) error {

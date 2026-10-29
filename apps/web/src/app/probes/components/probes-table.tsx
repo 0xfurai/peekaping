@@ -101,12 +101,17 @@ const ProbesTable = ({
           <TableRow key={probe.id} data-testid={`probe-row-${probe.id}`}>
             <TableCell className="font-medium">
               <Link
-                to={`/probes/${probe.id}`}
+                to={`/admin/probes/${probe.id}`}
                 className="hover:underline"
                 data-testid="probe-link"
               >
                 {probe.name}
               </Link>
+              {probe.is_default && (
+                <Badge variant="secondary" className="ml-2" data-testid="probe-default-badge">
+                  {t("probes.default_badge")}
+                </Badge>
+              )}
             </TableCell>
             <TableCell className="text-muted-foreground">
               {probe.location || NO_VALUE}

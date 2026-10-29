@@ -3,22 +3,292 @@
     "cancel": "Annuleren",
     "saving": "Bezig met opslaan..."
   },
+  "admin": {
+    "nav": {
+      "back_to_workspace": "Terug naar {{name}}",
+      "probes": "Probes",
+      "title": "Beheer",
+      "users": "Gebruikers",
+      "workspaces": "Werkruimtes",
+      "settings": "Instellingen"
+    },
+    "users": {
+      "actions": {
+        "delete": "Gebruiker verwijderen",
+        "disable": "Gebruiker uitschakelen",
+        "disableTwoFactor": "2FA uitschakelen",
+        "enable": "Gebruiker inschakelen",
+        "grantAdmin": "Instantiebeheerder maken",
+        "resetLink": "Resetlink maken",
+        "revokeAdmin": "Instantiebeheerder verwijderen"
+      },
+      "actions_aria": "Acties voor {{email}}",
+      "columns": {
+        "created": "Aangemaakt",
+        "email": "E-mailadres",
+        "email_verified": "E-mailadres geverifieerd",
+        "instance_admin": "Instantiebeheerder",
+        "last_sign_in": "Laatste aanmelding",
+        "status": "Status",
+        "two_factor": "2FA",
+        "workspaces": "Werkruimtes"
+      },
+      "confirm": {
+        "cancel": "Annuleren",
+        "delete": {
+          "confirm": "Gebruiker verwijderen",
+          "description": "{{email}} verwijderen? Het account wordt verwijderd, en ook de plekken in werkruimtes. Dit kan niet ongedaan worden gemaakt.",
+          "title": "Gebruiker verwijderen"
+        },
+        "disable": {
+          "confirm": "Uitschakelen",
+          "description": "{{email}} kan niet meer aanmelden en wordt nu overal afgemeld. De werkruimtes van deze gebruiker blijven draaien. Je kunt de gebruiker later weer inschakelen.",
+          "title": "Gebruiker uitschakelen"
+        },
+        "disableTwoFactor": {
+          "confirm": "2FA uitschakelen",
+          "description": "{{email}} meldt zich aan met alleen het wachtwoord en kan 2FA opnieuw instellen. Doe dit alleen als je zeker weet dat de gebruiker het zelf vraagt.",
+          "title": "2FA uitschakelen"
+        }
+      },
+      "description": "Iedereen met een account op deze installatie. Instantiebeheerders beheren de installatie zelf, zoals probes en gebruikers. De rol van een gebruiker in een werkruimte wordt bepaald door de eigenaren van die werkruimte.",
+      "empty": "Geen gebruikers gevonden",
+      "errors": {
+        "last_instance_admin": "De installatie heeft minimaal één instantiebeheerder nodig.",
+        "last_owner": "De gebruiker is de laatste eigenaar van {{workspaces}}. Maak eerst iemand anders eigenaar, of verwijder de werkruimte.",
+        "self": "Je kunt dit niet doen met je eigen account."
+      },
+      "load_failed": "De gebruikers konden niet worden geladen.",
+      "messages": {
+        "admin_granted": "{{email}} is nu instantiebeheerder",
+        "admin_revoked": "{{email}} is geen instantiebeheerder meer",
+        "deleted": "{{email}} is verwijderd",
+        "disabled": "{{email}} is uitgeschakeld en afgemeld",
+        "enabled": "{{email}} is ingeschakeld",
+        "two_factor_off": "2FA is uitgeschakeld voor {{email}}",
+        "update_failed": "De gebruiker kon niet worden bijgewerkt."
+      },
+      "never": "Nooit",
+      "none": "Geen",
+      "page_name": "Gebruikers",
+      "paging": {
+        "next": "Volgende",
+        "page": "Pagina {{page}} van {{pages}}",
+        "previous": "Vorige"
+      },
+      "reset_link": {
+        "close": "Sluiten",
+        "copied": "Link gekopieerd",
+        "copy": "Link kopiëren",
+        "copy_failed": "De link kon niet worden gekopieerd. Selecteer hem en kopieer hem handmatig.",
+        "description": "Een link waarmee {{email}} een nieuw wachtwoord kan kiezen. Kopieer de link en geef hem nu door: hij wordt maar één keer getoond.",
+        "emailed": "Deze installatie verstuurt account-e-mails, dus de gebruiker krijgt een e-mail dat er een link voor hem of haar is gemaakt.",
+        "expires": "De link werkt één keer en verloopt {{when}}.",
+        "failed": "De link kon niet worden gemaakt.",
+        "label": "Link",
+        "making": "Link maken...",
+        "signs_out": "Door de link te gebruiken wordt de gebruiker overal afgemeld.",
+        "title": "Link voor wachtwoordreset"
+      },
+      "search_label": "Gebruikers zoeken op e-mailadres",
+      "search_placeholder": "Zoeken op e-mailadres",
+      "total": "{{total}} gevonden",
+      "values": {
+        "active": "Actief",
+        "disabled": "Uitgeschakeld",
+        "no": "Nee",
+        "two_factor_off": "Uit",
+        "two_factor_on": "Aan",
+        "yes": "Ja"
+      },
+      "you": "jij"
+    },
+    "workspaces": {
+      "actions": {
+        "delete": "Werkruimte verwijderen",
+        "resume": "Werkruimte hervatten",
+        "suspend": "Werkruimte opschorten",
+        "limits": "Limieten"
+      },
+      "actions_aria": "Acties voor {{name}}",
+      "columns": {
+        "created": "Aangemaakt",
+        "custom_domains": "Aangepaste domeinen",
+        "members": "Leden",
+        "monitors": "Monitoren",
+        "name": "Naam",
+        "owners": "Eigenaren",
+        "status": "Status",
+        "status_pages": "Statuspagina's",
+        "limits": "Limieten"
+      },
+      "confirm": {
+        "cancel": "Annuleren",
+        "delete": {
+          "confirm": "Werkruimte verwijderen",
+          "description": "{{name}} verwijderen? Alles erin verdwijnt: de monitoren en hun geschiedenis, statuspagina's, notificatiekanalen en de toegang van de leden. Dit kan niet ongedaan worden gemaakt.",
+          "name_label": "Typ de naam van de werkruimte om te bevestigen: {{name}}",
+          "title": "Werkruimte verwijderen"
+        },
+        "resume": {
+          "confirm": "Hervatten",
+          "description": "De monitoren van {{name}} draaien weer in de staat die ze hadden, en de leden kunnen de werkruimte gebruiken zoals voorheen. Een werkruimte die wacht tot de eigenaar het e-mailadres bevestigt, blijft wachten.",
+          "title": "Werkruimte hervatten"
+        },
+        "suspend": {
+          "confirm": "Opschorten",
+          "description": "De monitoren van {{name}} stoppen, de openbare statuspagina's melden dat ze niet beschikbaar zijn, en de leden zien dat de werkruimte is opgeschort. Er wordt niets verwijderd en de werkruimte kan later worden hervat.",
+          "title": "Werkruimte opschorten"
+        }
+      },
+      "description": "Alle werkruimtes op deze installatie, met hun eigenaren, hun leden en hoeveel ze bevatten. Alleen aantallen worden getoond, niets van de inhoud van een werkruimte.",
+      "empty": "Geen werkruimtes gevonden",
+      "load_failed": "De werkruimtes konden niet worden geladen.",
+      "messages": {
+        "deleted": "{{name}} is verwijderd",
+        "failed": "De werkruimte kon niet worden gewijzigd.",
+        "resumed": "{{name}} is hervat",
+        "suspended": "{{name}} is opgeschort"
+      },
+      "monitors": "{{active}} actief, {{paused}} gepauzeerd",
+      "none": "Geen",
+      "page_name": "Werkruimtes",
+      "paging": {
+        "next": "Volgende",
+        "page": "Pagina {{page}} van {{pages}}",
+        "previous": "Vorige"
+      },
+      "search_label": "Werkruimtes zoeken op naam of e-mailadres van de eigenaar",
+      "search_placeholder": "Zoeken op naam of e-mailadres van de eigenaar",
+      "status": {
+        "running": "Actief",
+        "suspended_admin": "Opgeschort door een beheerder",
+        "suspended_unverified": "Opgeschort totdat de eigenaar het e-mailadres bevestigt"
+      },
+      "total": "{{total}} gevonden",
+      "limits": {
+        "item": "{{name}}: {{value}}",
+        "more": "+{{number}} meer",
+        "unlimited": "Geen limieten",
+        "source": {
+          "workspace": "Eigen",
+          "install": "Standaardwaarden van de installatie",
+          "none": "Niets ingesteld"
+        },
+        "dialog": {
+          "title": "Limieten van {{name}}",
+          "description": "Waaraan deze werkruimte is gebonden. Een limiet verlagen pauzeert en verwijdert niets: de nieuwste monitors boven de limiet draaien niet meer totdat er weer ruimte is.",
+          "own": "Eigen limieten",
+          "own_help": "Deze vervangen de standaardwaarden van de installatie. Laat een limiet leeg voor geen limiet.",
+          "unlimited": "Geen limieten",
+          "unlimited_help": "Helemaal geen limiet, wat de standaardwaarden van de installatie ook zeggen.",
+          "defaults": "Standaardwaarden van de installatie gebruiken",
+          "defaults_help": "De standaardlimieten van Beheer → Instellingen, of geen als de installatie er geen instelt.",
+          "save": "Limieten opslaan",
+          "cancel": "Annuleren",
+          "saved": "De limieten van {{name}} zijn opgeslagen",
+          "failed": "De limieten konden niet worden opgeslagen."
+        }
+      }
+    },
+    "settings": {
+      "page_name": "Instellingen",
+      "description": "Instellingen van de hele installatie. Een waarde die de omgeving van de server instelt, is hier vergrendeld.",
+      "load_failed": "De instellingen konden niet worden geladen.",
+      "saved": "Instellingen opgeslagen",
+      "save_failed": "De instellingen zijn niet opgeslagen.",
+      "locked": "Ingesteld door de omgeving van de server",
+      "source": {
+        "environment": "Uit de omgeving van de server",
+        "saved": "Hier opgeslagen",
+        "default": "Standaard"
+      },
+      "signup": {
+        "title": "Registratie",
+        "description": "Wie een account mag aanmaken op deze installatie.",
+        "label": "Registratiemodus",
+        "invite": "Alleen op uitnodiging",
+        "open": "Open",
+        "invite_help": "De eerste gebruiker registreert zich, en iedereen daarna sluit zich aan bij een werkruimte via een uitnodiging.",
+        "open_help": "Iedereen kan zich registreren en krijgt een eigen werkruimte. Nieuwe accounts bevestigen hun e-mailadres, dus hiervoor is een e-mailafzender nodig."
+      },
+      "sender": {
+        "title": "E-mailafzender",
+        "description": "De SMTP-server die de account-e-mails verstuurt: links om het wachtwoord opnieuw in te stellen, e-mailverificatie en uitnodigingen.",
+        "on": "Account-e-mails staan aan.",
+        "off": "Account-e-mails staan uit: er is geen SMTP-host.",
+        "host": "SMTP-hostnaam",
+        "port": "Poort",
+        "tls": "Beveiliging",
+        "tls_starttls": "STARTTLS",
+        "tls_tls": "TLS",
+        "tls_none": "Geen",
+        "user": "Gebruikersnaam",
+        "password": "Wachtwoord",
+        "password_set": "Er is een wachtwoord ingesteld. Typ om het te vervangen.",
+        "password_not_set": "Geen wachtwoord ingesteld",
+        "password_removed": "Het wachtwoord wordt verwijderd wanneer je opslaat.",
+        "password_reenter": "Als je de host, poort, beveiliging of gebruiker wijzigt, wordt het opgeslagen wachtwoord verwijderd. Voer het opnieuw in.",
+        "remove_password": "Wachtwoord verwijderen",
+        "keep_password": "Wachtwoord behouden",
+        "from": "Afzenderadres"
+      },
+      "public_url": {
+        "title": "Openbare URL",
+        "description": "Het adres van de webapp, dat de links in e-mails en meldingen openen.",
+        "label": "Openbare URL"
+      },
+      "test_email": {
+        "title": "Testmail versturen",
+        "description": "Verstuurt een korte e-mail via de opgeslagen afzender, om te controleren of die werkt.",
+        "to": "Versturen naar",
+        "send": "Testmail versturen",
+        "sending": "Versturen…",
+        "sent": "Testmail verstuurd naar {{to}}.",
+        "failed": "De testmail is niet verstuurd.",
+        "unsaved": "De afzender heeft niet-opgeslagen wijzigingen. De test gebruikt de opgeslagen afzender, dus sla eerst op."
+      },
+      "validation": {
+        "port": "Voer een poort in van 1 tot 65535, of laat het leeg voor de standaardwaarde."
+      },
+      "errors": {
+        "locked": "{{field}} wordt ingesteld door de omgeving van de server en kan hier niet worden gewijzigd.",
+        "open_needs_sender": "Open registratie heeft een e-mailafzender nodig, omdat nieuwe accounts hun e-mailadres bevestigen. Stel eerst de afzender in, of in dezelfde opslag.",
+        "sender_needed": "De registratie is open, en nieuwe accounts hebben de afzender nodig om hun e-mailadres te bevestigen. Zet de registratie eerst op alleen op uitnodiging.",
+        "no_sender": "Er is geen e-mailafzender. Sla eerst een afzender op."
+      },
+      "limits": {
+        "title": "Standaardlimieten",
+        "description": "De limieten van elke werkruimte die geen eigen limieten heeft. Laat een limiet leeg voor geen limiet. Limieten die een werkruimte op de pagina Werkruimtes krijgt, vervangen deze."
+      }
+    }
+  },
   "auth": {
     "login": {
       "description": "Inloggen met uw e-mailadres",
       "no_account": "Nog geen account?",
       "sign_up": "Registreren",
       "submit": "Inloggen",
-      "title": "Welkom terug"
+      "title": "Welkom terug",
+      "forgot_password": "Wachtwoord vergeten?",
+      "ask_admin": "Vraag een beheerder van deze installatie om een uitnodiging"
     },
     "register": {
       "description": "Maak uw beheerdersaccount aan.",
+      "description_open": "Maak uw account aan.",
       "have_account": "Heeft u al een account?",
       "sign_in": "Inloggen",
       "submit": "Registreren",
       "title": "Hallo",
       "telemetry_note": "Anoniem: geen namen van monitoren, URL's of hosts. Je kunt het later wijzigen onder ‘Instellingen’.",
-      "telemetry_whats_sent": "Wat er wordt verstuurd"
+      "telemetry_whats_sent": "Wat er wordt verstuurd",
+      "errors": {
+        "rate_limited": "Te veel aanmeldingen vanaf je netwerk. Probeer het over een uur opnieuw.",
+        "email_taken": "Er bestaat al een account met dit e-mailadres.",
+        "sign_in_instead": "Log in plaats daarvan in.",
+        "check_failed": "De controle is niet geslaagd. Probeer het opnieuw.",
+        "check_load_failed": "De controle kon niet worden geladen. Controleer je verbinding en probeer het opnieuw."
+      }
     },
     "twofa": {
       "code_label": "2FA-code",
@@ -27,6 +297,45 @@
       "title": "Tweestapsverificatie vereist",
       "verify_button": "Verifieer 2FA",
       "verifying": "Verifiëren..."
+    },
+    "forgot": {
+      "title": "Wachtwoord opnieuw instellen",
+      "description": "Vul het e-mailadres van je account in, dan sturen we je een link.",
+      "submit": "Link versturen",
+      "sent": "Als er een account bestaat voor dit e-mailadres, hebben we een link gestuurd. Hij werkt een uur.",
+      "back_to_login": "Terug naar inloggen"
+    },
+    "reset": {
+      "title": "Kies een nieuw wachtwoord",
+      "description": "Vul een nieuw wachtwoord in voor je account.",
+      "submit": "Wachtwoord instellen",
+      "success": "Je wachtwoord is gewijzigd en je bent overal uitgelogd. Log in met het nieuwe wachtwoord.",
+      "sign_in": "Inloggen",
+      "invalid_link": "Deze link is al gebruikt of verlopen.",
+      "request_new": "Nieuwe link aanvragen"
+    },
+    "verify": {
+      "title": "Bevestig je e-mailadres",
+      "verifying": "Je e-mailadres wordt bevestigd...",
+      "success": "Je e-mailadres is bevestigd.",
+      "open_app": "Peekaping openen",
+      "invalid_link": "Deze link is al gebruikt of verlopen."
+    },
+    "errors": {
+      "rate_limited": "Te veel verzoeken. Probeer het later opnieuw.",
+      "generic": "Er ging iets mis. Probeer het opnieuw.",
+      "already_verified": "Je e-mailadres is al bevestigd."
+    },
+    "resend": {
+      "button": "Opnieuw versturen",
+      "sent": "We hebben een nieuwe link gestuurd. Kijk in je inbox."
+    },
+    "verification_banner": {
+      "message": "Bevestig je e-mailadres: we hebben een link gestuurd naar {{email}}."
+    },
+    "suspension_notice": {
+      "message": "Je monitoren starten zodra je je e-mailadres hebt geverifieerd.",
+      "member_message": "De monitoren van deze werkruimte starten zodra de eigenaar zijn e-mailadres heeft geverifieerd."
     }
   },
   "bars": {
@@ -73,6 +382,7 @@
     "no_tags_available": "Geen tags beschikbaar",
     "please_refresh_page": "Vernieuw de pagina.",
     "required": "Verplicht",
+    "retry": "Opnieuw proberen",
     "save": "Opslaan",
     "saving": "Bezig met opslaan...",
     "search": "Zoek",
@@ -124,6 +434,33 @@
       "password_required": "Wachtwoord is verplicht",
       "password_min_length": "Wachtwoord moet minimaal 8 tekens bevatten.",
       "passwords_mismatch": "Wachtwoorden komen niet overeen"
+    }
+  },
+  "invite": {
+    "accept": "Uitnodiging accepteren",
+    "accepting": "Lid worden...",
+    "creating": "Aanmaken...",
+    "description": "Je bent uitgenodigd om als {{role}} lid te worden van {{workspace}}.",
+    "enter_failed": "Je bent lid geworden van de werkruimte, maar openen is mislukt. Probeer het opnieuw.",
+    "errors": {
+      "other_email": "Deze uitnodiging is voor een ander e-mailadres."
+    },
+    "for_email": "Deze uitnodiging is voor {{email}}.",
+    "have_account": "Heb je al een account?",
+    "open_app": "Peekaping openen",
+    "other_account": "Je bent ingelogd als {{current}}, maar deze uitnodiging is voor {{invited}}. Log uit en log daarna in of registreer je met {{invited}} om hem te accepteren.",
+    "sign_in_instead": "Log in",
+    "sign_out": "Uitloggen",
+    "signup_description": "Kies een wachtwoord om je account aan te maken en als {{role}} lid te worden van {{workspace}}.",
+    "signup_submit": "Account aanmaken en lid worden",
+    "title": "Lid worden van {{workspace}}",
+    "unavailable": {
+      "accepted": "Deze uitnodiging is al gebruikt.",
+      "expired": "Deze uitnodiging is verlopen. Vraag een nieuwe aan.",
+      "not_found": "Deze uitnodigingslink bestaat niet. Controleer of je de hele link hebt gekopieerd.",
+      "revoked": "Deze uitnodiging is ingetrokken. Vraag een nieuwe aan.",
+      "title": "Deze uitnodiging kan niet worden gebruikt",
+      "unknown": "Deze uitnodiging kan niet worden gebruikt. Vraag een nieuwe aan."
     }
   },
   "maintenance": {
@@ -231,6 +568,79 @@
       "wed": "Wo"
     }
   },
+  "members": {
+    "change_role_aria": "Rol van {{email}} wijzigen",
+    "errors": {
+      "account_exists": "Er bestaat al een account met dit e-mailadres. Log in en accepteer de uitnodiging.",
+      "already_member": "Deze persoon is al lid van deze werkruimte.",
+      "forbidden": "Je rol in deze werkruimte staat dit niet toe.",
+      "generic": "Er ging iets mis. Probeer het opnieuw.",
+      "last_owner": "Een werkruimte heeft minstens één eigenaar nodig.",
+      "member_not_found": "Dit lid zit niet meer in de werkruimte."
+    },
+    "invite": {
+      "copied": "Link gekopieerd",
+      "copy": "Kopiëren",
+      "creating": "Maken...",
+      "description": "Maak een link voor een e-mailadres en een rol. Er wordt geen e-mail verstuurd: kopieer de link en stuur hem zelf.",
+      "done": "Klaar",
+      "email_label": "E-mailadres",
+      "link_note": "Deze link werkt één keer en verloopt na 7 dagen. Hij wordt alleen nu getoond, dus kopieer hem voordat je deze pagina verlaat.",
+      "link_title": "Uitnodigingslink",
+      "role_label": "Rol",
+      "submit": "Uitnodigingslink maken",
+      "title": "Iemand uitnodigen"
+    },
+    "leave": {
+      "button": "Werkruimte verlaten",
+      "confirm": "Verlaten",
+      "description": "Je verliest meteen de toegang tot deze werkruimte en de gegevens erin.",
+      "done": "Je hebt de werkruimte verlaten",
+      "last_owner": "Je bent de laatste eigenaar, dus je kunt niet weg. Maak eerst een ander lid eigenaar.",
+      "refresh_failed": "Je hebt de werkruimte verlaten, maar het laden van je werkruimtes is mislukt. Probeer het opnieuw.",
+      "title": "Deze werkruimte verlaten"
+    },
+    "list": {
+      "description": "Iedereen die in deze werkruimte werkt, en hun rol.",
+      "email": "E-mailadres",
+      "joined": "Lid sinds",
+      "role": "Rol",
+      "title": "Leden",
+      "you": "jij"
+    },
+    "page_name": "Leden",
+    "pending": {
+      "description": "Uitnodigingen die nog niet zijn gebruikt. De link van een ingetrokken uitnodiging werkt niet meer.",
+      "email": "E-mailadres",
+      "empty": "Geen openstaande uitnodigingen.",
+      "expired": "Verlopen",
+      "expires": "Verloopt",
+      "revoke": "Intrekken",
+      "revoke_aria": "Uitnodiging voor {{email}} intrekken",
+      "revoked": "Uitnodiging ingetrokken",
+      "role": "Rol",
+      "title": "Openstaande uitnodigingen"
+    },
+    "remove": "Verwijderen",
+    "remove_aria": "{{email}} verwijderen",
+    "remove_dialog": {
+      "confirm": "Verwijderen",
+      "description": "{{email}} verliest meteen de toegang tot deze werkruimte.",
+      "title": "Lid verwijderen"
+    },
+    "removed": "Lid verwijderd",
+    "role_updated": "Rol bijgewerkt",
+    "roles": {
+      "admin": "Beheerder",
+      "member": "Lid",
+      "owner": "Eigenaar"
+    },
+    "settings_card": {
+      "description": "Zie wie in deze werkruimte werkt en nodig, als je beheerder of eigenaar bent, mensen uit en beheer hun rollen.",
+      "open": "Leden openen",
+      "title": "Leden"
+    }
+  },
   "messages": {
     "login_error": "Er is een fout opgetreden tijdens het inloggen",
     "login_no_tokens": "Inloggen is gelukt, maar er zijn geen tokens ontvangen.",
@@ -258,6 +668,7 @@
     },
     "empty_state": {
       "action": "Maak je eerste monitor aan",
+      "add_channel": "Notificatiekanaal toevoegen",
       "description": "Begin met het aanmaken van je eerste monitor om de gezondheid van je diensten te volgen.",
       "title": "Geen monitors gevonden"
     },
@@ -500,6 +911,7 @@
       "shared": {
         "intervals": {
           "heartbeat_retry": "Heartbeat-herhaalinterval (Herhaal elke {{seconds}} seconden)",
+          "interval_too_short": "Mag niet minder zijn dan {{minimum}} seconden",
           "max_retries_description": "Maximale pogingen voordat de service als Down wordt gemarkeerd en er een melding wordt verzonden.",
           "request_timeout": "Verzoek time-out (Time-out na {{seconds}} seconden)",
           "resend_notification": "Notificatie opnieuw verzenden bij X opeenvolgende keren uitgevallen (Verzenden uitgeschakeld)",
@@ -542,6 +954,10 @@
           "select_proxy_placeholder": "Kies een proxy",
           "selected_proxy": "Geselecteerde proxy",
           "title": "Proxy"
+        },
+        "run_from": {
+          "default_locations": "Draait op de standaardlocaties",
+          "label": "Uitvoeren vanaf"
         },
         "tags": {
           "label": "Tags",
@@ -649,9 +1065,12 @@
     "toasts": {
       "deleted": "Monitor verwijderd",
       "paused": "Monitor gepauzeerd",
+      "push_token_already_used": "Een andere monitor gebruikt dit pushtoken al. Genereer een nieuw token.",
       "reset_success": "Monitorgegevens succesvol gereset",
       "resumed": "Monitor hervat"
     },
+    "type_disabled": "Het type {{type}} is uitgeschakeld op deze installatie",
+    "over_limit": "Wordt niet gecontroleerd: de werkruimte heeft meer actieve monitors dan de limiet toestaat",
     "view": {
       "buttons": {
         "clone": "Kloon",
@@ -712,6 +1131,7 @@
     }
   },
   "navigation": {
+    "admin": "Beheer",
     "maintenance": "Onderhoud",
     "monitors": "Monitoren",
     "notification_channels": "Notificatiekanalen",
@@ -1124,6 +1544,12 @@
         "signing_secret_docs_link": "De handtekening verifiëren",
         "signing_secret_label": "Ondertekeningsgeheim",
         "signing_secret_placeholder": "Laat leeg om niet-ondertekende verzoeken te verzenden"
+      },
+      "install_email": {
+        "description": "Verstuurd door deze installatie, een SMTP-server is niet nodig.",
+        "to_description": "Een lid van deze werkruimte. Meldingen worden verstuurd zodra het lid het adres heeft geverifieerd.",
+        "to_label": "Ontvanger",
+        "to_placeholder": "Kies een lid"
       }
     },
     "important": "Belangrijke meldingen",
@@ -1142,7 +1568,8 @@
       "updated_success": "Notifier succesvol bijgewerkt"
     },
     "new": {
-      "title": "Nieuw notificatiekanaal"
+      "title": "Nieuw notificatiekanaal",
+      "default_hint": "Dit kanaal wordt aangevinkt bij nieuwe monitors."
     },
     "no_important": "Geen belangrijke meldingen gevonden.",
     "placeholders": {
@@ -1152,11 +1579,21 @@
     "secret": {
       "reenter_error": "Voer dit geheim opnieuw in of verwijder het: de bestemming waar het naartoe wordt verstuurd, is gewijzigd",
       "reenter_hint": "Voer dit geheim opnieuw in: de bestemming waar het naartoe wordt verstuurd, is gewijzigd",
+      "reenter_url_error": "Voer de inloggegevens in deze URL opnieuw in: de URL is gewijzigd sinds hij is opgeslagen",
       "remove": "Verwijderen",
       "saved_hint": "Opgeslagen — typ om te vervangen"
     }
   },
   "probes": {
+    "default": {
+      "description": "Een monitor die wordt gemaakt zonder probes te kiezen, draait op de standaardprobes die niet zijn uitgeschakeld en het type uitvoeren, en op de lokale probe als geen enkele dat doet. Bestaande monitors houden hun probes.",
+      "failed": "De standaardstatus van de probe kon niet worden gewijzigd.",
+      "label": "Standaardprobe",
+      "off": "{{name}} is geen standaardprobe meer",
+      "on": "{{name}} is nu een standaardprobe",
+      "title": "Standaard voor nieuwe monitors"
+    },
+    "default_badge": "Standaard",
     "page_name": "Probes",
     "description": "Probes voeren de controles van monitoren uit vanaf de plekken waar ze zijn geïnstalleerd. De lokale probe is Peekaping zelf.",
     "local_name": "Lokaal",
@@ -1438,7 +1875,9 @@
     "data_retention": {
       "days_label": "Dagen",
       "description": "Bepaal hoelang gegevens bewaard blijven (KEEP_DATA_PERIOD_DAYS).",
-      "title": "Gegevensbewaartermijn"
+      "read_only": "Alleen een beheerder of eigenaar van de werkruimte kan dit wijzigen.",
+      "title": "Gegevensbewaartermijn",
+      "capped": "Tot {{max}} dagen in deze werkruimte"
     },
     "error_reporting": {
       "cluster_note": "In clustermodus bereikt een wijziging elk proces binnen een minuut.",
@@ -1464,6 +1903,10 @@
     },
     "validation": {
       "min_days": "Moet minimaal 1 dag zijn"
+    },
+    "workspace_name": {
+      "description": "De naam die wordt getoond in de werkruimteschakelaar en aan de leden.",
+      "title": "Naam van de werkruimte"
     }
   },
   "status": {
@@ -1479,6 +1922,7 @@
       "refresh_in": "Vernieuwen in",
       "refresh_now": "Vernieuwen",
       "status_page_not_found": "Statuspagina niet gevonden of niet gepubliceerd.",
+      "status_page_unavailable": "Deze statuspagina is niet beschikbaar",
       "under_maintenance": "In onderhoud",
       "unknown": "Onbekend"
     }
@@ -1522,6 +1966,7 @@
     "search_placeholder": "Zoek statuspagina's op titel...",
     "show_locations": "Elke locatie tonen",
     "show_locations_info": "Toont bij monitors die vanaf meerdere locaties worden gecontroleerd de status en geschiedenis van elke locatie",
+    "slug_already_used": "Een andere statuspagina gebruikt dit adres al",
     "update_status_page": "Statuspagina bijwerken",
     "view_page": "Pagina bekijken"
   },
@@ -1587,5 +2032,93 @@
   "ui": {
     "general": "Algemeen",
     "intervals_retries": "Intervallen, Pogingen, Time-outs"
+  },
+  "workspaces": {
+    "create": "Werkruimte aanmaken",
+    "create_error": "Werkruimte aanmaken mislukt",
+    "create_first": "Een werkruimte maken",
+    "creating": "Aanmaken...",
+    "enter": "Werkruimte openen",
+    "entering": "Openen...",
+    "entry_failed": "De werkruimte is aangemaakt, maar openen is mislukt. Probeer het opnieuw.",
+    "name_label": "Naam",
+    "name_placeholder": "Mijn team",
+    "name_required": "Voer een naam in",
+    "new": "Nieuwe werkruimte",
+    "new_description": "Een werkruimte heeft eigen monitors, meldingskanalen, statuspagina's en leden. Jij wordt de eigenaar.",
+    "new_title": "Nieuwe werkruimte",
+    "none_description": "Je account is geen lid van een werkruimte, dus er is hier niets om te tonen. Vraag iemand die een werkruimte beheert om je toe te voegen.",
+    "none_title": "Je zit nog in geen enkele werkruimte",
+    "refresh_failed": "Je werkruimtes konden niet worden geladen. Controleer je verbinding en probeer het opnieuw.",
+    "rename_error": "Werkruimte hernoemen mislukt",
+    "rename_success": "Werkruimte hernoemd",
+    "suspended_banner": {
+      "contact": "Contact opnemen:",
+      "message": "Deze werkruimte is opgeschort door de beheerder van deze installatie. De monitoren draaien niet en de statuspagina's zijn niet beschikbaar.",
+      "no_contact": "Neem contact op met degene die deze installatie beheert."
+    },
+    "switcher_label": "Van werkruimte wisselen"
+  },
+  "get_started": {
+    "page_name": "Aan de slag",
+    "skip": "Installatie overslaan",
+    "step_of": "Stap {{current}} van {{total}}",
+    "name": {
+      "description": "Hier staan je monitoren, meldingskanalen en statuspagina's. Je kunt de naam later wijzigen in Instellingen.",
+      "title": "Geef je werkruimte een naam"
+    },
+    "monitor": {
+      "create": "Monitor aanmaken",
+      "create_failed": "Monitor aanmaken mislukt",
+      "creating": "Aanmaken...",
+      "description": "Voer het adres van een website of API in. Peekaping controleert het en laat je weten wanneer het niet meer reageert.",
+      "full_form": "Of stel een monitor in met alle opties",
+      "title": "Voeg je eerste monitor toe",
+      "url_invalid": "Voer een adres in dat begint met http:// of https://",
+      "url_label": "Te monitoren adres"
+    },
+    "channel": {
+      "continue_unlinked": "Doorgaan zonder koppelen",
+      "description": "Kies waar Peekaping een melding naartoe stuurt als je monitor uitvalt. Het wordt de standaard voor nieuwe monitoren.",
+      "link_failed": "Het kanaal is opgeslagen, maar het koppelen aan je monitor is mislukt. Voeg het toe op de bewerkpagina van de monitor.",
+      "retry_link": "Opnieuw proberen te koppelen",
+      "title": "Ontvang meldingen"
+    },
+    "done": {
+      "description": "Peekaping houdt je dienst in de gaten. Dit kun je hierna doen.",
+      "title": "Alles staat klaar",
+      "unverified": "Je monitor draait zodra je e-mailadres is geverifieerd. Zoek de verificatielink in je inbox.",
+      "links": {
+        "members": "Nodig je team uit",
+        "monitor": "Open je monitor",
+        "monitors": "Naar de monitoren",
+        "probes": "Probes beheren",
+        "status_pages": "Publiceer een statuspagina"
+      }
+    }
+  },
+  "limits": {
+    "reached": {
+      "monitors": "Deze werkruimte mag maximaal {{max}} draaiende monitors hebben",
+      "status_pages": "Deze werkruimte mag maximaal {{max}} statuspagina's hebben",
+      "custom_domains": "De statuspagina's van deze werkruimte mogen samen maximaal {{max}} aangepaste domeinen hebben",
+      "members": "Deze werkruimte mag maximaal {{max}} leden hebben, openstaande uitnodigingen meegeteld",
+      "owned_workspaces": "Je mag maximaal {{max}} werkruimtes bezitten",
+      "probes": "Een monitor in deze werkruimte mag op maximaal {{max}} probes draaien",
+      "retention_days": "Deze werkruimte mag gegevens maximaal {{max}} dagen bewaren"
+    },
+    "names": {
+      "monitors": "Actieve monitors",
+      "min_check_interval": "Kortste controle-interval (seconden)",
+      "status_pages": "Statuspagina's",
+      "custom_domains": "Aangepaste domeinen",
+      "members": "Leden",
+      "owned_workspaces": "Werkruimtes die één gebruiker mag bezitten",
+      "probes_per_monitor": "Probes per monitor",
+      "retention_days": "Gegevensbewaring (dagen)"
+    },
+    "none": "Geen limiet",
+    "invalid": "Voer een geheel getal van 1 of meer in, of laat het leeg voor geen limiet.",
+    "retention_too_long": "Mag niet meer zijn dan {{max}} dagen"
   }
 }

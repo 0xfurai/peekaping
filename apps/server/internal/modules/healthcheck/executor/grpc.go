@@ -6,8 +6,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net"
+	"net/url"
 	"peekaping/internal/modules/shared"
+	"peekaping/internal/netguard"
 	"regexp"
+	"slices"
 	"strings"
 	"time"
 
@@ -36,6 +40,7 @@ type GRPCConfig struct {
 }
 
 type GRPCExecutor struct {
+	guarded
 	logger *zap.SugaredLogger
 }
 
@@ -59,6 +64,71 @@ func (g *GRPCExecutor) Validate(configJSON string) error {
 	return GenericValidator(cfg.(*GRPCConfig))
 }
 
+// Targets lists the hosts a gRPC check connects to: the server's, and the DNS server the target
+// names when it names one
+func (g *GRPCExecutor) Targets(configJSON string) ([]string, error) {
+	cfg, err := GenericUnmarshal[GRPCConfig](configJSON)
+	if err != nil {
+		return nil, err
+	}
+	target := parseGRPCTarget(cfg.GrpcUrl)
+	return append(slices.Clone(target.hosts), target.dnsServer...), nil
+}
+
+// grpcTarget is what a gRPC target string says about where the client connects
+type grpcTarget struct {
+	hosts     []string // the servers
+	dnsServer []string // the DNS server of a dns://server/host:port target
+	unix      bool     // a unix: or unix-abstract: target
+}
+
+// parseGRPCTarget reads a target like grpc.NewClient does: with a scheme it knows, or else as the
+// name of a server for the dns resolver
+func parseGRPCTarget(target string) grpcTarget {
+	u, err := url.Parse(target)
+	if err != nil {
+		return grpcTarget{hosts: []string{hostOf(target)}}
+	}
+	switch u.Scheme {
+	case "unix", "unix-abstract":
+		return grpcTarget{unix: true}
+	case "dns", "passthrough":
+		endpoint := strings.TrimPrefix(u.Path, "/")
+		if endpoint == "" {
+			endpoint = u.Opaque // dns:host:port
+		}
+		t := grpcTarget{hosts: []string{hostOf(endpoint)}}
+		if u.Scheme == "dns" && u.Host != "" {
+			t.dnsServer = []string{hostOf(u.Host)}
+		}
+		return t
+	case "ipv4", "ipv6":
+		// ipv4:addr[:port][,addr[:port]...]
+		var t grpcTarget
+		for _, address := range strings.Split(strings.TrimPrefix(u.Opaque+u.Path, "//"), ",") {
+			t.hosts = append(t.hosts, hostOf(address))
+		}
+		return t
+	}
+	return grpcTarget{hosts: []string{hostOf(target)}}
+}
+
+// guardedOptions makes the client dial through the guard. The dialer is given the address, with
+// "unix:" in front of a Unix socket (grpc keeps the network of the target out of it). The DNS
+// resolver that a dns://server/host target names would query that server on its own, with no dialer
+// of ours, so such a target is refused: a name is resolved with the system's resolver otherwise.
+func (g *GRPCExecutor) guardedOptions(target string) ([]grpc.DialOption, error) {
+	if parsed := parseGRPCTarget(target); len(parsed.dnsServer) > 0 {
+		return nil, fmt.Errorf("%w: a DNS server in the target", netguard.ErrBlocked)
+	}
+	return []grpc.DialOption{grpc.WithContextDialer(func(ctx context.Context, address string) (net.Conn, error) {
+		if path, ok := strings.CutPrefix(address, "unix:"); ok {
+			return g.guard.DialContext(ctx, "unix", strings.TrimPrefix(path, "//"))
+		}
+		return g.guard.DialContext(ctx, "tcp", address)
+	})}, nil
+}
+
 func (g *GRPCExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Proxy) *Result {
 	startTime := time.Now().UTC()
 
@@ -74,6 +144,15 @@ func (g *GRPCExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 		opts = append(opts, grpc.WithTransportCredentials(credentials.NewTLS(nil)))
 	} else {
 		opts = append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	}
+
+	// Dial through the guard while it is on
+	if g.on() {
+		guardOpts, err := g.guardedOptions(cfg.GrpcUrl)
+		if err != nil {
+			return DownResult(err, startTime, time.Now().UTC())
+		}
+		opts = append(opts, guardOpts...)
 	}
 
 	// Connect to gRPC server using modern API

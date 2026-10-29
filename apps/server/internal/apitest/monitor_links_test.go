@@ -95,7 +95,7 @@ func TestMonitorsAPI_CreateFailsWholeWhenALinkFails(t *testing.T) {
 			body := with(pushMonitorBody("Doomed", "doomed-token"), tc.link, []string{unknownID})
 			w := a.request(t, http.MethodPost, "/api/v1/monitors", body, a.asAdmin)
 
-			assert.Equal(t, http.StatusInternalServerError, w.Code, w.Body.String())
+			assert.Equal(t, http.StatusBadRequest, w.Code, w.Body.String())
 			assert.Empty(t, a.listMonitors(t), "no monitor is stored")
 
 			// Delivery is asynchronous: a create that works proves events flow, and once its event
@@ -491,7 +491,7 @@ func TestMonitorsAPI_UpdateFailsWholeWhenALinkFails(t *testing.T) {
 
 			w := a.request(t, tc.method, "/api/v1/monitors/"+id, tc.body(channelB, tagB), a.asAdmin)
 
-			assert.Equal(t, http.StatusInternalServerError, w.Code, w.Body.String())
+			assert.Equal(t, http.StatusBadRequest, w.Code, w.Body.String())
 			assert.Equal(t, monitorWithLinks{ID: id, Name: "Original", Interval: 60, NotificationIDs: []string{channelA}, TagIDs: []string{tagA}}, a.getMonitorWithLinks(t, id),
 				"the monitor and its links are as they were")
 

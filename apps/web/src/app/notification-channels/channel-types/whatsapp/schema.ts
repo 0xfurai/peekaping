@@ -3,7 +3,7 @@ import { withSavedSecret } from "../../secrets";
 
 export const whatsAppSchema = z.object({
   type: z.literal("whatsapp"),
-  server_url: z.string().url({ message: "Server URL must be a valid URL" }),
+  server_url: withSavedSecret(z.string().url({ message: "Server URL must be a valid URL" })),
   api_key: withSavedSecret(z.string()).optional(),
   phone_number: z.string().min(1, { message: "Phone number is required" }),
   session: z.string().min(1, { message: "Session is required" }),

@@ -21,6 +21,7 @@ type DNSConfig struct {
 }
 
 type DNSExecutor struct {
+	guarded
 	logger *zap.SugaredLogger
 }
 
@@ -42,6 +43,16 @@ func (s *DNSExecutor) Validate(configJSON string) error {
 	return GenericValidator(cfg.(*DNSConfig))
 }
 
+// Targets lists the resolver a DNS check queries: the name being looked up is the resolver's to
+// resolve, and not something the check connects to
+func (s *DNSExecutor) Targets(configJSON string) ([]string, error) {
+	cfg, err := GenericUnmarshal[DNSConfig](configJSON)
+	if err != nil {
+		return nil, err
+	}
+	return []string{cfg.ResolverServer}, nil
+}
+
 func (d *DNSExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Proxy) *Result {
 	cfgAny, err := d.Unmarshal(m.Config)
 	if err != nil {
@@ -58,9 +69,9 @@ func (d *DNSExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Proxy
 	r := &net.Resolver{
 		PreferGo: true,
 		Dial: func(ctx context.Context, network, address string) (net.Conn, error) {
-			dialer := &net.Dialer{
+			dialer := d.dialer(&net.Dialer{
 				Timeout: time.Duration(m.Timeout) * time.Second,
-			}
+			})
 			return dialer.DialContext(ctx, network, net.JoinHostPort(cfg.ResolverServer, strconv.Itoa(cfg.Port)))
 		},
 	}
@@ -158,6 +169,7 @@ func (d *DNSExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Proxy
 
 		client := new(dns.Client)
 		client.Timeout = time.Duration(m.Timeout) * time.Second
+		client.Dialer = d.dialer(&net.Dialer{Timeout: client.Timeout})
 
 		var resp *dns.Msg
 		resp, _, err = client.Exchange(msg, net.JoinHostPort(cfg.ResolverServer, strconv.Itoa(cfg.Port)))
@@ -181,6 +193,7 @@ func (d *DNSExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Proxy
 
 		client := new(dns.Client)
 		client.Timeout = time.Duration(m.Timeout) * time.Second
+		client.Dialer = d.dialer(&net.Dialer{Timeout: client.Timeout})
 
 		var resp *dns.Msg
 		resp, _, err = client.Exchange(msg, net.JoinHostPort(cfg.ResolverServer, strconv.Itoa(cfg.Port)))

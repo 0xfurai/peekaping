@@ -19,6 +19,9 @@ type UpdateProbeDto struct {
 	Name     *string `json:"name,omitempty" validate:"omitempty,min=1,max=255"`
 	Location *string `json:"location,omitempty" validate:"omitempty,max=255"`
 	Disabled *bool   `json:"disabled,omitempty" validate:"omitempty"`
+	// IsDefault marks the probe as one that a monitor created without choosing probes runs on
+	// (true), or not (false)
+	IsDefault *bool `json:"is_default,omitempty" validate:"omitempty" doc:"Whether a monitor created without probe_ids runs on this probe. Disabled probes, and probes that don't run the monitor's type, are skipped."`
 	// NotificationIDs replaces the probe's notification channels when present. An empty list
 	// clears them.
 	NotificationIDs []string `json:"notification_ids,omitempty" validate:"omitempty"`
@@ -36,6 +39,10 @@ type ProbeInstanceResponse struct {
 	// an instance that runs every type
 	SupportedTypes []string  `json:"supported_types" validate:"required" nullable:"false"`
 	LastSeenAt     time.Time `json:"last_seen_at" validate:"required"`
+	// EnforcesPrivateTargetBlock is false for an instance of a probe from before the setting, which
+	// ignores the server's BLOCK_PRIVATE_TARGETS: while it is on, such an instance is dealt no
+	// monitors
+	EnforcesPrivateTargetBlock bool `json:"enforces_private_target_block" validate:"required" doc:"Whether the instance's hello said it blocks private targets when the server does. While BLOCK_PRIVATE_TARGETS is on, an instance that didn't (a probe from before the setting) is dealt no monitors: upgrade it."`
 }
 
 // ProbeResponse represents the response for probe operations. It never holds the token or its
@@ -46,6 +53,9 @@ type ProbeResponse struct {
 	Location    string `json:"location" validate:"required"`
 	TokenPrefix string `json:"token_prefix" validate:"required"`
 	Disabled    bool   `json:"disabled" validate:"required"`
+	// IsDefault is whether a monitor created without probe_ids runs on this probe. An instance admin
+	// sets it; the local probe is a default probe on an install that upgraded.
+	IsDefault bool `json:"is_default" validate:"required"`
 	// Status is online while one of the probe's instances is connected. The local probe in single
 	// mode is always online: the peekaping process checks its monitors.
 	Status string `json:"status" validate:"required" enum:"online,offline"`
@@ -101,6 +111,8 @@ func ToProbeResponse(m *Model) *ProbeResponse {
 			ProtocolVersion: instance.ProtocolVersion,
 			SupportedTypes:  instanceTypes,
 			LastSeenAt:      instance.LastSeenAt,
+
+			EnforcesPrivateTargetBlock: instance.EnforcesPrivateTargetBlock,
 		}
 	}
 	return &ProbeResponse{
@@ -109,6 +121,7 @@ func ToProbeResponse(m *Model) *ProbeResponse {
 		Location:         m.Location,
 		TokenPrefix:      m.TokenPrefix,
 		Disabled:         m.Disabled,
+		IsDefault:        m.IsDefault,
 		Status:           string(m.Status),
 		SupportedTypes:   supportedTypes,
 		NotificationIDs:  notificationIDs,
@@ -116,6 +129,27 @@ func ToProbeResponse(m *Model) *ProbeResponse {
 		AssignAllPending: m.AssignAllPending,
 		CreatedAt:        m.CreatedAt,
 		UpdatedAt:        m.UpdatedAt,
+	}
+}
+
+// WithoutAdminDetails leaves out what only an instance admin sees (docs/adr/0005 section 10): each
+// instance's hostname, OS, architecture, version and protocol version, which become empty or 0, and
+// the probe's notification channels, which become an empty list. The instances stay, so the count is
+// still shown, and so does everything else.
+func (r *ProbeResponse) WithoutAdminDetails() {
+	r.NotificationIDs = []string{}
+	for _, instance := range r.Instances {
+		instance.Hostname, instance.OS, instance.Arch, instance.Version, instance.ProtocolVersion = "", "", "", "", 0
+	}
+}
+
+// WithoutAdminDetails leaves out each instance's hostname and version, which become empty
+func (r *ProbeAvailabilityResponse) WithoutAdminDetails() {
+	if r.Instances == nil {
+		return
+	}
+	for _, instance := range *r.Instances {
+		instance.Hostname, instance.Version = "", ""
 	}
 }
 

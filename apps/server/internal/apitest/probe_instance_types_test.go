@@ -44,12 +44,12 @@ func (a *app) sayHelloWith(t *testing.T, token, instanceID string, types []strin
 func TestProbeInstanceTypes_InstancesOnDifferentBuildsOfOneProbe(t *testing.T) {
 	for name, setup := range map[string]func(*testing.T) (a *app, probeID, token string){
 		"a remote probe": func(t *testing.T) (*app, string, string) {
-			a := newAppWithAdmin(t)
+			a := newAppWithAdmin(t, withAllMonitorTypes)
 			made := a.createProbe(t, map[string]any{"name": "Frankfurt"})
 			return a, made.ID, made.Token
 		},
 		"the local probe of a cluster": func(t *testing.T) (*app, string, string) {
-			return localProbeApp(t, nil), "local", localToken
+			return localProbeApp(t, nil, withAllMonitorTypes), "local", localToken
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
@@ -109,7 +109,7 @@ func TestProbeInstanceTypes_InstancesOnDifferentBuildsOfOneProbe(t *testing.T) {
 // this instance's own types ends its siblings' polls, though the types the probe runs between
 // its instances are the same as before
 func TestProbeInstanceTypes_HelloWakesTheSiblingsWhenOnlyThisInstancesTypesChange(t *testing.T) {
-	a := localProbeApp(t, nil)
+	a := localProbeApp(t, nil, withAllMonitorTypes)
 	a.sayHelloWith(t, localToken, fullInstance, fullBuildTypes)
 	a.sayHelloWith(t, localToken, slimInstance, slimBuildTypes)
 	const count = 12

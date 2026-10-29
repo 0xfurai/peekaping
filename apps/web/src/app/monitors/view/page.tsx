@@ -31,6 +31,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useSocketRoom } from "@/context/websocket-context";
+import { heartbeatEvent, monitorRoom } from "@/lib/socket-rooms";
 import Layout from "@/layout";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -48,6 +49,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { cn, commonMutationErrorHandler } from "@/lib/utils";
+import { showLimitReached } from "@/lib/limit-errors";
 import ImportantNotificationsList from "../components/important-notifications-list";
 import { BackButton } from "@/components/back-button";
 import dayjs from "dayjs";
@@ -55,12 +57,14 @@ import { useLocalizedTranslation } from "@/hooks/useTranslation";
 import { useProbes } from "@/hooks/useProbes";
 import clsx from "clsx";
 import { formatMonitorTarget } from "../monitor-types/registry";
+import { monitorTypeDisabledReason } from "../monitor-types/disabled";
 import { parseMonitorConfig } from "../monitor-types/monitor-target";
 import StaleMarker from "../components/stale-marker";
 import { getMonitorStatusView } from "../components/monitor-status";
 import { currentStatus, hasLocations, heartbeatsOfProbe, instanceToLookUp, monitorStatusOf, sortLocations } from "../locations";
 import LocationsSection from "./locations-section";
 import { NoData } from "@/components/no-data";
+import { useWorkspacePath } from "@/hooks/useWorkspacePath";
 
 function formatDuration(ms: number, t: (key: string) => string): string {
   // Handle negative durations (clock skew) by returning empty string
@@ -109,6 +113,7 @@ interface TLSInfo {
 const MonitorPageContent = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const workspacePath = useWorkspacePath();
   const { t } = useLocalizedTranslation();
   const queryClient = useQueryClient();
   const { probeNames, unsupportedProbeIds, instanceHostnames, isPending: probesPending } = useProbes();
@@ -141,6 +146,15 @@ const MonitorPageContent = () => {
   });
 
   const monitor = data?.data;
+  // The install turned the monitor's type off: nothing checks it, whatever its own setting is, so
+  // it reads as paused and can be neither paused nor resumed until the type is back on
+  const typeDisabled = monitor?.type_disabled === true;
+  // A monitor past its workspace's limit of active monitors isn't checked either, so it reads as
+  // paused; it can still be paused, which is how the owner chooses the monitors that stay
+  const overLimit = monitor?.over_limit === true;
+  const running = !!monitor?.active && !typeDisabled && !overLimit;
+  const pausable = !!monitor?.active && !typeDisabled;
+  const typeDisabledReason = typeDisabled ? monitorTypeDisabledReason(t, monitor?.type ?? "") : undefined;
   const locations = useMemo(() => sortLocations(monitor?.locations ?? []), [monitor?.locations]);
   const showLocations = hasLocations(locations);
   // Parsed once here, since the page re-renders on every heartbeat
@@ -204,7 +218,7 @@ const MonitorPageContent = () => {
       queryClient.invalidateQueries({
         queryKey: getMonitorsInfiniteQueryKey(),
       });
-      navigate("/monitors");
+      navigate(workspacePath("/monitors"));
     },
     onError: commonMutationErrorHandler("Failed to delete monitor"),
   });
@@ -233,7 +247,8 @@ const MonitorPageContent = () => {
         }
       );
     },
-    onError: commonMutationErrorHandler("Failed to pause monitor"),
+    // Resuming one in a workspace with as many active monitors as its limit is refused
+    onError: showLimitReached(t, commonMutationErrorHandler("Failed to pause monitor")),
   });
 
   const { data: heartbeatsResponse } = useQuery({
@@ -364,8 +379,8 @@ const MonitorPageContent = () => {
   };
 
   useSocketRoom(
-    heartbeatsResponse && id ? `monitor:${id}` : null,
-    `monitor:${id}:heartbeat`,
+    heartbeatsResponse && id ? monitorRoom(id) : null,
+    heartbeatEvent(monitorRoom(id ?? "")),
     handleHeartbeat,
   );
 
@@ -488,7 +503,9 @@ const MonitorPageContent = () => {
             <Button
               variant="ghost"
               className="rounded-none border-r"
-              disabled={pauseMutation.isPending}
+              disabled={pauseMutation.isPending || typeDisabled}
+              title={typeDisabledReason}
+              data-testid="monitor-pause-toggle"
               onClick={() => {
                 if (monitor?.active) {
                   setShowConfirmPause(true);
@@ -504,7 +521,7 @@ const MonitorPageContent = () => {
                 }
               }}
             >
-              {monitor?.active ? (
+              {pausable ? (
                 <>
                   {pauseMutation.isPending ? (
                     <Loader2 className="animate-spin" />
@@ -527,7 +544,7 @@ const MonitorPageContent = () => {
             <Button
               variant="ghost"
               className="rounded-none border-r"
-              onClick={() => navigate("/monitors/" + id + "/edit")}
+              onClick={() => navigate(workspacePath(`/monitors/${id}/edit`))}
             >
               <Edit />
               {t("monitors.view.buttons.edit")}
@@ -535,8 +552,10 @@ const MonitorPageContent = () => {
             <Button
               variant="ghost"
               className="rounded-none border-r"
+              disabled={typeDisabled}
+              title={typeDisabledReason}
               onClick={() => {
-                navigate("/monitors/new", {
+                navigate(workspacePath("/monitors/new"), {
                   state: {
                     cloneData: monitor,
                   },
@@ -570,6 +589,17 @@ const MonitorPageContent = () => {
           </div>
         </div>
 
+        {typeDisabledReason && (
+          <p className="mb-4 text-sm text-amber-500" data-testid="monitor-type-disabled">
+            {typeDisabledReason}
+          </p>
+        )}
+        {overLimit && (
+          <p className="mb-4 text-sm text-amber-500" data-testid="monitor-over-limit">
+            {t("monitors.over_limit")}
+          </p>
+        )}
+
         <div className="text-white space-y-6 mt-4">
           <div className="grid grid-cols-4 gap-4 mb-4">
             <Card
@@ -579,7 +609,7 @@ const MonitorPageContent = () => {
               )}
             >
               <div className="font-semibold">{t("monitors.view.current_status")}</div>
-              {monitor?.active ? (
+              {running ? (
                 <div
                   className={cn(
                     "font-semibold text-2xl",
@@ -592,16 +622,16 @@ const MonitorPageContent = () => {
                 <div className="font-semibold text-2xl">{t("monitors.view.status.paused")}</div>
               )}
 
-              {monitor?.active && lastImportantHeartbeatDuration > 0 && (
+              {running && lastImportantHeartbeatDuration > 0 && (
                 <div className="text-sm text-gray-400">{lihText}</div>
               )}
-              {monitor?.active && (
+              {running && (
                 <StaleMarker
                   staleSince={monitor?.stale_since}
                   lastHeartbeatTime={lastHeartbeat?.time}
                 />
               )}
-              {!monitor?.active && lastHeartbeat?.time && (
+              {!running && lastHeartbeat?.time && (
                 <div className="text-sm text-gray-400">
                   {formatDuration(
                     dayjs().diff(dayjs(lastHeartbeat?.time), "milliseconds"),

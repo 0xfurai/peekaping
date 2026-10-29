@@ -34,6 +34,9 @@ import { Link } from "react-router-dom";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 import { PasswordInput } from "@/components/ui/password-input";
+import { useAccountEmails } from "@/hooks/useAccountEmails";
+import { useAuthConfig } from "@/hooks/useAuthConfig";
+import { loginSignupOffer } from "@/lib/signup";
 
 const loginSchema = z.object({
   email: z.string().email("forms.validation.email_invalid"),
@@ -47,6 +50,8 @@ export function LoginForm({
   ...props
 }: React.ComponentPropsWithoutRef<"div">) {
   const { t } = useLocalizedTranslation();
+  const accountEmails = useAccountEmails();
+  const signupOffer = loginSignupOffer(useAuthConfig().config);
   const [serverError, setServerError] = React.useState<string | null>(null);
 
   const setTokens = useAuthStore(
@@ -165,6 +170,16 @@ export function LoginForm({
                       <FormControl>
                         <PasswordInput {...field} placeholder="********" />
                       </FormControl>
+                      {accountEmails && (
+                        <div className="text-right text-sm">
+                          <Link
+                            to="/forgot-password"
+                            className="text-muted-foreground hover:text-primary hover:underline"
+                          >
+                            {t("auth.login.forgot_password")}
+                          </Link>
+                        </div>
+                      )}
                       <FormMessage />
                     </FormItem>
                   )}
@@ -186,15 +201,22 @@ export function LoginForm({
                   {t("auth.login.submit")}
                 </Button>
 
-                <div className="text-center text-sm text-muted-foreground">
-                  {t("auth.login.no_account")}{" "}
-                  <Link
-                    to="/register"
-                    className="font-medium text-primary hover:underline"
-                  >
-                    {t("auth.login.sign_up")}
-                  </Link>
-                </div>
+                {signupOffer === "register" && (
+                  <div className="text-center text-sm text-muted-foreground">
+                    {t("auth.login.no_account")}{" "}
+                    <Link
+                      to="/register"
+                      className="font-medium text-primary hover:underline"
+                    >
+                      {t("auth.login.sign_up")}
+                    </Link>
+                  </div>
+                )}
+                {signupOffer === "ask_admin" && (
+                  <div className="text-center text-sm text-muted-foreground">
+                    {t("auth.login.ask_admin")}
+                  </div>
+                )}
               </form>
             </Form>
           </CardContent>

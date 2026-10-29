@@ -189,7 +189,7 @@ func (c *Collector) sync(ctx context.Context) {
 	tracked := slices.Collect(maps.Keys(c.monitors))
 	c.mu.RUnlock()
 
-	active, err := c.monitorService.FindActive(ctx)
+	active, err := c.monitorService.FindActiveAnyWorkspace(ctx)
 	if err != nil {
 		c.logger.Errorw("Failed to find the active monitors", "error", err)
 		return
@@ -267,7 +267,7 @@ func (c *Collector) handleHeartbeat(ctx context.Context, hb heartbeat.Model) {
 	// The first Heartbeat of a Monitor has to name it
 	ctx, cancel := context.WithTimeout(ctx, c.lookupTimeout)
 	defer cancel()
-	mon, err := c.monitorService.FindByID(ctx, hb.MonitorID)
+	mon, err := c.monitorService.FindByIDAnyWorkspace(ctx, hb.MonitorID)
 	if err != nil {
 		c.logger.Errorw("Failed to find the monitor of a heartbeat", "monitor_id", hb.MonitorID, "error", err)
 		return

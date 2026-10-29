@@ -27,6 +27,8 @@ type probeInstanceResponse struct {
 	ProtocolVersion int       `json:"protocol_version"`
 	SupportedTypes  []string  `json:"supported_types"`
 	LastSeenAt      time.Time `json:"last_seen_at"`
+	// EnforcesPrivateTargetBlock is what the instance's hello said
+	EnforcesPrivateTargetBlock bool `json:"enforces_private_target_block"`
 }
 
 type probeResponse struct {
@@ -35,6 +37,7 @@ type probeResponse struct {
 	Location        string                  `json:"location"`
 	TokenPrefix     string                  `json:"token_prefix"`
 	Disabled        bool                    `json:"disabled"`
+	IsDefault       bool                    `json:"is_default"`
 	Status          string                  `json:"status"`
 	SupportedTypes  []string                `json:"supported_types"`
 	NotificationIDs []string                `json:"notification_ids"`

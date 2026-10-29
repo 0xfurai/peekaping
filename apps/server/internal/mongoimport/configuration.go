@@ -5,20 +5,22 @@ import (
 	"encoding/json"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type proxyRow struct {
-	ID        string    `bun:"id"`
-	Protocol  string    `bun:"protocol" max:"10"`
-	Host      string    `bun:"host" max:"255"`
-	Port      int       `bun:"port"`
-	Auth      bool      `bun:"auth"`
-	Username  string    `bun:"username" max:"255"`
-	Password  string    `bun:"password" max:"255"`
-	CreatedAt time.Time `bun:"created_at"`
-	UpdatedAt time.Time `bun:"updated_at"`
+	ID          string    `bun:"id"`
+	WorkspaceID string    `bun:"workspace_id"`
+	Protocol    string    `bun:"protocol" max:"10"`
+	Host        string    `bun:"host" max:"255"`
+	Port        int       `bun:"port"`
+	Auth        bool      `bun:"auth"`
+	Username    string    `bun:"username" max:"255"`
+	Password    string    `bun:"password" max:"255"`
+	CreatedAt   time.Time `bun:"created_at"`
+	UpdatedAt   time.Time `bun:"updated_at"`
 }
 
 func (c *copier) copyProxies(ctx context.Context) error {
@@ -34,7 +36,7 @@ func (c *copier) copyProxies(ctx context.Context) error {
 		created, updated := stamps(report, d, id, "created_at", "updated_at")
 		c.proxies.add(id)
 		return out.add(ctx, proxyRow{
-			ID: uuidOf(id), Protocol: d.str("protocol"), Host: d.str("host"), Port: int(d.integer("port")), Auth: d.boolean("auth"),
+			ID: uuidOf(id), WorkspaceID: string(c.workspaceID), Protocol: d.str("protocol"), Host: d.str("host"), Port: int(d.integer("port")), Auth: d.boolean("auth"),
 			Username: d.str("username"), Password: d.str("password"), CreatedAt: created, UpdatedAt: updated,
 		})
 	})
@@ -46,6 +48,7 @@ func (c *copier) copyProxies(ctx context.Context) error {
 
 type monitorRow struct {
 	ID             string    `bun:"id"`
+	WorkspaceID    string    `bun:"workspace_id"`
 	Type           string    `bun:"type" max:"20"`
 	Name           string    `bun:"name" max:"150"`
 	Interval       int       `bun:"interval"`
@@ -59,7 +62,7 @@ type monitorRow struct {
 	UpdatedAt      time.Time `bun:"updated_at"`
 	Config         string    `bun:"config"`
 	ProxyID        *string   `bun:"proxy_id"`
-	PushToken      string    `bun:"push_token" max:"255"`
+	PushToken      *string   `bun:"push_token" max:"255"` // NULL for a monitor without one: the column is unique
 }
 
 // jsonConfig returns a config that PostgreSQL's JSONB column accepts. An empty
@@ -109,6 +112,48 @@ func removeNULEscapes(text string) (string, bool) {
 	return without.String(), changed
 }
 
+// pushToken is the token to store for a monitor, NULL for none. SQL keeps push tokens unique, and
+// MongoDB did not: a monitor without one has an empty string, and two monitors may hold the same
+// token. The first monitor keeps a token, and a later one with the same token goes without, which
+// the report counts. A push to a shared token reached just one of them anyway.
+//
+// A push monitor made through the API once held its token in its config only, with an empty
+// push_token. The upgrade fills push_token from config.pushToken for such a monitor (migration
+// 20261101120300), and so does the import: pushToken is the document's push_token, or else, for a
+// push monitor, the one in its config.
+func (c *copier) pushToken(report *CollectionReport, typ, token, config string) *string {
+	if token == "" && typ == "push" {
+		var parsed struct {
+			PushToken string `json:"pushToken"`
+		}
+		// A config that isn't an object of this shape has no token
+		if json.Unmarshal([]byte(config), &parsed) == nil && parsed.PushToken != "" {
+			token = parsed.PushToken
+			report.fix("push_token is empty: used the one in the config")
+		}
+	}
+	if token == "" {
+		return nil
+	}
+	// PostgreSQL cuts the token to the width of its column, so two tokens that differ only after it
+	// are one token there: the duplicate check is on the cut token, which is also the one stored
+	const width = 255 // the max tag of monitorRow.PushToken
+	cut := false
+	if c.cutsText && utf8.RuneCountInString(token) > width {
+		token = string([]rune(token)[:width])
+		cut = true
+	}
+	if c.pushTokens[token] {
+		report.fix("push_token is held by an earlier monitor: cleared")
+		return nil
+	}
+	c.pushTokens[token] = true
+	if cut {
+		report.fix("push_token cut to 255 characters")
+	}
+	return &token
+}
+
 func (c *copier) copyMonitors(ctx context.Context) error {
 	report := c.report.collection("monitor", "monitors")
 	out := newBatcher[monitorRow](c.tx, "monitors", report)
@@ -132,12 +177,13 @@ func (c *copier) copyMonitors(ctx context.Context) error {
 			}
 		}
 		c.monitors.add(id)
+		config := jsonConfig(report, d.strPtr("config"))
 		return out.add(ctx, monitorRow{
-			ID: uuidOf(id), Type: d.str("type"), Name: d.str("name"),
+			ID: uuidOf(id), WorkspaceID: string(c.workspaceID), Type: d.str("type"), Name: d.str("name"),
 			Interval: int(d.integer("interval")), Timeout: int(d.integer("timeout")), MaxRetries: int(d.integer("max_retries")),
 			RetryInterval: int(d.integer("retry_interval")), ResendInterval: int(d.integer("resend_interval")),
 			Active: d.boolean("active"), Status: int(d.integer("status")), CreatedAt: created, UpdatedAt: updated,
-			Config: jsonConfig(report, d.strPtr("config")), ProxyID: proxyID, PushToken: d.str("push_token"),
+			Config: config, ProxyID: proxyID, PushToken: c.pushToken(report, d.str("type"), d.str("push_token"), config),
 		})
 	})
 	if err != nil {
@@ -147,14 +193,15 @@ func (c *copier) copyMonitors(ctx context.Context) error {
 }
 
 type channelRow struct {
-	ID        string    `bun:"id"`
-	Name      string    `bun:"name" max:"255"`
-	Type      string    `bun:"type" max:"50"`
-	Active    bool      `bun:"active"`
-	IsDefault bool      `bun:"is_default"`
-	Config    string    `bun:"config"`
-	CreatedAt time.Time `bun:"created_at"`
-	UpdatedAt time.Time `bun:"updated_at"`
+	WorkspaceID string    `bun:"workspace_id"`
+	ID          string    `bun:"id"`
+	Name        string    `bun:"name" max:"255"`
+	Type        string    `bun:"type" max:"50"`
+	Active      bool      `bun:"active"`
+	IsDefault   bool      `bun:"is_default"`
+	Config      string    `bun:"config"`
+	CreatedAt   time.Time `bun:"created_at"`
+	UpdatedAt   time.Time `bun:"updated_at"`
 }
 
 // copyChannels copies the notification channels. A full update of a channel in
@@ -182,7 +229,7 @@ func (c *copier) copyChannels(ctx context.Context) error {
 		}
 		c.channels.add(id)
 		return out.add(ctx, channelRow{
-			ID: uuidOf(id), Name: d.str("name"), Type: d.str("type"), Active: d.boolean("active"), IsDefault: isDefault,
+			ID: uuidOf(id), WorkspaceID: string(c.workspaceID), Name: d.str("name"), Type: d.str("type"), Active: d.boolean("active"), IsDefault: isDefault,
 			Config: jsonConfig(report, d.strPtr("config")), CreatedAt: created, UpdatedAt: updated,
 		})
 	})
@@ -194,6 +241,7 @@ func (c *copier) copyChannels(ctx context.Context) error {
 
 type tagRow struct {
 	ID          string    `bun:"id"`
+	WorkspaceID string    `bun:"workspace_id"`
 	Name        string    `bun:"name" max:"100"`
 	Color       string    `bun:"color" max:"7"`
 	Description *string   `bun:"description"`
@@ -220,7 +268,7 @@ func (c *copier) copyTags(ctx context.Context) error {
 		names[name] = true
 		created, updated := stamps(report, d, id, "created_at", "updated_at")
 		c.tags.add(id)
-		return out.add(ctx, tagRow{ID: uuidOf(id), Name: c.uniqueText(report, "name", stored, name, 100), Color: d.str("color"), Description: d.strPtr("description"), CreatedAt: created, UpdatedAt: updated})
+		return out.add(ctx, tagRow{ID: uuidOf(id), WorkspaceID: string(c.workspaceID), Name: c.uniqueText(report, "name", stored, name, 100), Color: d.str("color"), Description: d.strPtr("description"), CreatedAt: created, UpdatedAt: updated})
 	})
 	if err != nil {
 		return err
@@ -230,6 +278,7 @@ func (c *copier) copyTags(ctx context.Context) error {
 
 type maintenanceRow struct {
 	ID            string    `bun:"id"`
+	WorkspaceID   string    `bun:"workspace_id"`
 	Title         string    `bun:"title" max:"255"`
 	Description   string    `bun:"description"`
 	Active        bool      `bun:"active"`
@@ -271,7 +320,7 @@ func (c *copier) copyMaintenance(ctx context.Context) error {
 		created, updated := stamps(report, d, id, "created_at", "updated_at")
 		c.maintenances.add(id)
 		return out.add(ctx, maintenanceRow{
-			ID: uuidOf(id), Title: d.str("title"), Description: d.str("description"), Active: d.boolean("active"), Strategy: d.str("strategy"),
+			ID: uuidOf(id), WorkspaceID: string(c.workspaceID), Title: d.str("title"), Description: d.str("description"), Active: d.boolean("active"), Strategy: d.str("strategy"),
 			StartDateTime: d.strPtr("start_date_time"), EndDateTime: d.strPtr("end_date_time"),
 			StartTime: d.strPtr("start_time"), EndTime: d.strPtr("end_time"),
 			Weekdays: intsJSON(d.ints("weekdays")), DaysOfMonth: intsJSON(d.ints("days_of_month")),
@@ -287,6 +336,7 @@ func (c *copier) copyMaintenance(ctx context.Context) error {
 
 type statusPageRow struct {
 	ID                  string    `bun:"id"`
+	WorkspaceID         string    `bun:"workspace_id"`
 	Slug                string    `bun:"slug" max:"255"`
 	Title               string    `bun:"title" max:"255"`
 	Description         string    `bun:"description"`
@@ -343,7 +393,7 @@ func (c *copier) copyStatusPages(ctx context.Context) error {
 		c.statusPages[id] = page
 		c.statusPageOrder = append(c.statusPageOrder, page)
 		return out.add(ctx, statusPageRow{
-			ID: uuidOf(id), Slug: slug, Title: d.str("title"), Description: d.str("description"), Icon: d.str("icon"), Theme: d.str("theme"),
+			ID: uuidOf(id), WorkspaceID: string(c.workspaceID), Slug: slug, Title: d.str("title"), Description: d.str("description"), Icon: d.str("icon"), Theme: d.str("theme"),
 			Published: d.boolean("published"), CreatedAt: created, UpdatedAt: updated, FooterText: d.str("footer_text"),
 			AutoRefreshInterval: int(d.integer("auto_refresh_interval")),
 		})

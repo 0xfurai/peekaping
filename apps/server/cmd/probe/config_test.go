@@ -3,8 +3,11 @@ package main
 import (
 	"testing"
 
+	"peekaping/internal/probeclient"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
 )
 
 // loadConfig loads the probe's configuration from env alone: the variables the probe reads that
@@ -12,7 +15,7 @@ import (
 func loadConfig(t *testing.T, env map[string]string) (*Config, error) {
 	t.Helper()
 	for _, name := range []string{
-		"PEEKAPING_URL", "PROBE_TOKEN", "PROBE_ALLOW_INSECURE", "PROBE_CONCURRENCY", "PROBE_READY_ADDR", "MODE", "LOG_LEVEL",
+		"PEEKAPING_URL", "PROBE_TOKEN", "PROBE_ALLOW_INSECURE", "PROBE_CONCURRENCY", "PROBE_READY_ADDR", "BLOCK_PRIVATE_TARGETS", "MODE", "LOG_LEVEL",
 	} {
 		t.Setenv(name, "")
 	}
@@ -220,4 +223,50 @@ func TestConfig_LogLevelTakesWhatTheOtherBinariesTake(t *testing.T) {
 			assert.Equal(t, level, cfg.LogLevel)
 		})
 	}
+}
+
+func TestConfig_BlockPrivateTargetsIsOffByDefaultAndReadFromTheEnvironment(t *testing.T) {
+	cfg, err := loadConfig(t, minimal())
+	require.NoError(t, err)
+	assert.False(t, cfg.BlockPrivateTargets)
+
+	cfg, err = loadConfig(t, with(minimal(), "BLOCK_PRIVATE_TARGETS", "true"))
+	require.NoError(t, err)
+	assert.True(t, cfg.BlockPrivateTargets)
+}
+
+func TestNewRuntime_PassesBlockPrivateTargetsToTheProbe(t *testing.T) {
+	for _, on := range []bool{true, false} {
+		cfg := &Config{URL: "https://peekaping.example.com", Token: "secret-token", Concurrency: 1, BlockPrivateTargets: on}
+
+		built, err := newRuntime(cfg, zap.NewNop().Sugar())
+
+		require.NoError(t, err)
+		assert.Equal(t, on, built.(*probeclient.Probe).BlocksPrivateTargets())
+	}
+}
+
+func TestConfig_ChecksPerHostPerMinuteIsOffByDefaultAndReadFromTheEnvironment(t *testing.T) {
+	cfg, err := loadConfig(t, minimal())
+	require.NoError(t, err)
+	assert.Zero(t, cfg.ChecksPerHostPerMinute)
+
+	cfg, err = loadConfig(t, with(minimal(), "CHECKS_PER_HOST_PER_MINUTE", "120"))
+	require.NoError(t, err)
+	assert.Equal(t, 120, cfg.ChecksPerHostPerMinute)
+}
+
+func TestConfig_ANegativeChecksPerHostPerMinuteStopsStartup(t *testing.T) {
+	_, err := loadConfig(t, with(minimal(), "CHECKS_PER_HOST_PER_MINUTE", "-1"))
+
+	assert.ErrorContains(t, err, "CHECKS_PER_HOST_PER_MINUTE must be at least 0")
+}
+
+func TestNewRuntime_PassesChecksPerHostPerMinuteToTheProbe(t *testing.T) {
+	cfg := &Config{URL: "https://peekaping.example.com", Token: "secret-token", Concurrency: 1, ChecksPerHostPerMinute: 90}
+
+	built, err := newRuntime(cfg, zap.NewNop().Sugar())
+
+	require.NoError(t, err)
+	assert.Equal(t, 90, built.(*probeclient.Probe).ChecksPerHostPerMinute())
 }

@@ -26,6 +26,7 @@ type RedisConfig struct {
 }
 
 type RedisExecutor struct {
+	guarded
 	logger *zap.SugaredLogger
 }
 
@@ -364,6 +365,15 @@ func (r *RedisExecutor) Validate(configJSON string) error {
 	return nil
 }
 
+// Targets lists the host a Redis check connects to
+func (r *RedisExecutor) Targets(configJSON string) ([]string, error) {
+	cfg, err := GenericUnmarshal[RedisConfig](configJSON)
+	if err != nil {
+		return nil, err
+	}
+	return connectionStringHosts(cfg.DatabaseConnectionString), nil
+}
+
 func (r *RedisExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Proxy) *Result {
 	cfgAny, err := r.Unmarshal(m.Config)
 	if err != nil {
@@ -396,6 +406,19 @@ func (r *RedisExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Pro
 	opts.DialTimeout = time.Duration(m.Timeout) * time.Second
 	opts.ReadTimeout = time.Duration(m.Timeout) * time.Second
 	opts.WriteTimeout = time.Duration(m.Timeout) * time.Second
+
+	// Dial through the guard (see hasGuard). A dialer of ours replaces the one that go-redis makes,
+	// which also negotiates TLS, so that is done here, as go-redis does it.
+	if r.hasGuard() {
+		dialer := r.dialer(&net.Dialer{Timeout: opts.DialTimeout, KeepAlive: 5 * time.Minute})
+		tlsConfig := opts.TLSConfig
+		opts.Dialer = func(ctx context.Context, network, addr string) (net.Conn, error) {
+			if tlsConfig == nil {
+				return dialer.DialContext(ctx, network, addr)
+			}
+			return (&tls.Dialer{NetDialer: dialer, Config: tlsConfig}).DialContext(ctx, network, addr)
+		}
+	}
 
 	// Create Redis client
 	client := redis.NewClient(opts)

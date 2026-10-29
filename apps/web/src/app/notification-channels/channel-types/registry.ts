@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { smtpChannelType } from "./smtp";
+import { installEmailChannelType } from "./install-email";
 import { telegramChannelType } from "./telegram";
 import { webhookChannelType } from "./webhook";
 import { slackChannelType } from "./slack";
@@ -32,6 +33,7 @@ import { teamsChannelType } from "./teams";
  */
 export const channelTypes = [
   smtpChannelType,
+  installEmailChannelType,
   telegramChannelType,
   webhookChannelType,
   slackChannelType,
@@ -67,6 +69,25 @@ export const channelTypeOptions = channelTypes
     value: definition.type,
   }))
   .sort((a, b) => a.label.localeCompare(b.label, undefined, { sensitivity: "base" }));
+
+// The type that is only offered on an install with a sender for account emails
+const INSTALL_EMAIL = installEmailChannelType.type;
+
+/**
+ * The options of the Type select for a form. An install without a sender for account emails
+ * doesn't offer the install email type, since it can't create or test one; `keep` is the type a
+ * saved channel opened with, which stays so that the channel still opens and edits.
+ */
+export const selectableChannelTypeOptions = ({
+  accountEmails,
+  keep,
+}: {
+  accountEmails: boolean;
+  keep?: string;
+}) =>
+  channelTypeOptions.filter(
+    (option) => option.value !== INSTALL_EMAIL || accountEmails || option.value === keep
+  );
 
 type SchemasOf<Definitions extends readonly { schema: unknown }[]> = {
   -readonly [K in keyof Definitions]: Definitions[K] extends { schema: infer S } ? S : never;

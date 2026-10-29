@@ -2,6 +2,7 @@ package mongoimport
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"math"
 	"strings"
@@ -47,6 +48,20 @@ func (s *source) each(ctx context.Context, collection string, sort bson.D, fn fu
 		return fmt.Errorf("read %s: %w", collection, err)
 	}
 	return nil
+}
+
+// hasAny is whether any of the collections has a document. A collection that doesn't exist has none.
+func (s *source) hasAny(ctx context.Context, collections ...string) (bool, error) {
+	for _, collection := range collections {
+		err := s.db.Collection(collection).FindOne(ctx, bson.D{}).Err()
+		if err == nil {
+			return true, nil
+		}
+		if !errors.Is(err, mongo.ErrNoDocuments) {
+			return false, fmt.Errorf("read %s: %w", collection, err)
+		}
+	}
+	return false, nil
 }
 
 // doc is one MongoDB document. Its accessors are as forgiving as the MongoDB

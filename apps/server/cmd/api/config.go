@@ -6,6 +6,7 @@ import (
 
 	"peekaping/internal/config"
 	"peekaping/internal/httpx"
+	"peekaping/internal/modules/healthcheck/executor"
 	"peekaping/internal/modules/probe"
 
 	"github.com/go-playground/validator/v10"
@@ -13,6 +14,9 @@ import (
 
 // Config defines the configuration schema for the API service
 type Config struct {
+	// Which variables the environment set: an install setting whose variable is set is locked to it
+	config.Environment
+
 	// Server configuration
 	Port      string `env:"SERVER_PORT" validate:"required,port" default:"8034"`
 	ClientURL string `env:"CLIENT_URL" validate:"url" default:"http://localhost:3000"`
@@ -97,6 +101,61 @@ type Config struct {
 	// sets the probe offline runs on the api replica that holds the leader lock. Validated in
 	// Validate().
 	ProbeOfflineAfter time.Duration `env:"PROBE_OFFLINE_AFTER" default:"3m"`
+
+	// Account emails: password reset, email verification and invites are sent by one sender for
+	// the whole install. With ACCOUNT_SMTP_HOST unset (the default) they are off: the app shows
+	// no "Forgot password" link and no verification banner, and invites are copied, not emailed.
+	// ACCOUNT_SMTP_FROM is required when the host is set, which ValidateAccountSMTP checks.
+	AccountSMTPHost     string `env:"ACCOUNT_SMTP_HOST"`
+	AccountSMTPPort     int    `env:"ACCOUNT_SMTP_PORT" validate:"min=1,max=65535" default:"587"`
+	AccountSMTPUser     string `env:"ACCOUNT_SMTP_USER"`
+	AccountSMTPPassword string `env:"ACCOUNT_SMTP_PASSWORD"`
+	AccountSMTPFrom     string `env:"ACCOUNT_SMTP_FROM"`
+	// AccountSMTPTLS is how the connection is secured: starttls (the default, and it fails when
+	// the server doesn't offer it), tls (TLS from the first byte, usually port 465) or none
+	AccountSMTPTLS string `env:"ACCOUNT_SMTP_TLS" validate:"oneof=starttls tls none" default:"starttls"`
+
+	// Who may create an account: invite (the default) or open. Open signup needs a sender for
+	// account emails; Turnstile (both keys or neither) guards open signups against bots. Validated
+	// in Validate() by config.ValidateSignup.
+	SignupMode             string `env:"SIGNUP_MODE" default:"invite"`
+	SignupTurnstileSiteKey string `env:"SIGNUP_TURNSTILE_SITE_KEY"`
+	SignupTurnstileSecret  string `env:"SIGNUP_TURNSTILE_SECRET"`
+
+	// Monitor types this install refuses and does not run, comma-separated and empty by default.
+	// Validated in Validate() against the types the server has an executor for.
+	DisabledMonitorTypes string `env:"DISABLED_MONITOR_TYPES"`
+
+	// BlockPrivateTargets keeps monitors from reaching loopback, private and link-local addresses
+	// and cloud metadata. Off by default: a self-hosted install monitors its own network.
+	BlockPrivateTargets bool `env:"BLOCK_PRIVATE_TARGETS" default:"false"`
+
+	// Requests per minute a workspace, and one of its API keys, may make. 0, the default, is off.
+	APIRateLimitPerWorkspace int `env:"API_RATE_LIMIT_PER_WORKSPACE" validate:"min=0" default:"0"`
+	APIRateLimitPerAPIKey    int `env:"API_RATE_LIMIT_PER_API_KEY" validate:"min=0" default:"0"`
+
+	// Checks per minute to one target host that one checking process runs, all workspaces together.
+	// 0, the default, is off.
+	ChecksPerHostPerMinute int `env:"CHECKS_PER_HOST_PER_MINUTE" validate:"min=0" default:"0"`
+
+	// The smallest check interval and retry interval, in seconds, that a monitor can be saved with.
+	// Never below 20: the timeout minimum (16) and the 0.8 rule rely on it.
+	MinCheckInterval int `env:"MIN_CHECK_INTERVAL" validate:"min=20" default:"20"`
+
+	// The install's default limits of a workspace that has none of its own (PP-160). Unset or 0,
+	// the default, is no limit.
+	WorkspaceLimitMonitors         int `env:"WORKSPACE_LIMIT_MONITORS" validate:"min=0" default:"0"`
+	WorkspaceLimitMinCheckInterval int `env:"WORKSPACE_LIMIT_MIN_CHECK_INTERVAL" validate:"min=0" default:"0"`
+	WorkspaceLimitStatusPages      int `env:"WORKSPACE_LIMIT_STATUS_PAGES" validate:"min=0" default:"0"`
+	WorkspaceLimitCustomDomains    int `env:"WORKSPACE_LIMIT_CUSTOM_DOMAINS" validate:"min=0" default:"0"`
+	WorkspaceLimitMembers          int `env:"WORKSPACE_LIMIT_MEMBERS" validate:"min=0" default:"0"`
+	WorkspaceLimitOwnedWorkspaces  int `env:"WORKSPACE_LIMIT_OWNED_WORKSPACES" validate:"min=0" default:"0"`
+	WorkspaceLimitProbesPerMonitor int `env:"WORKSPACE_LIMIT_PROBES_PER_MONITOR" validate:"min=0" default:"0"`
+	WorkspaceLimitRetentionDays    int `env:"WORKSPACE_LIMIT_RETENTION_DAYS" validate:"min=0" default:"0"`
+
+	// How a member of a suspended workspace gets in touch with whoever runs the install: free text,
+	// an email address or a URL. Unset by default.
+	SupportContact string `env:"SUPPORT_CONTACT"`
 }
 
 // LoadAndValidate loads and validates the API service configuration
@@ -191,6 +250,21 @@ func Validate(cfg *Config) error {
 		return fmt.Errorf("PROBE_OFFLINE_AFTER must be at most %s", config.MaxProbeOfflineAfter)
 	}
 
+	// A sender host without a sender address stops startup, not the first password reset
+	if err := config.ValidateAccountSMTP(cfg.AccountSMTPHost, cfg.AccountSMTPFrom, cfg.AccountSMTPTLS); err != nil {
+		return err
+	}
+
+	// A mistyped mode, open signup without a sender and half a Turnstile setting stop startup
+	if err := config.ValidateSignup(cfg.SignupMode, cfg.SignupTurnstileSiteKey, cfg.SignupTurnstileSecret, cfg.AccountSMTPHost); err != nil {
+		return err
+	}
+
+	// A mistyped monitor type stops startup, with the types that exist
+	if err := config.ValidateDisabledMonitorTypes(cfg.DisabledMonitorTypes, executor.KnownTypes()); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -198,40 +272,65 @@ func Validate(cfg *Config) error {
 // This is needed for backward compatibility with existing code
 func (c *Config) ToInternalConfig() *config.Config {
 	return &config.Config{
-		Port:                         c.Port,
-		ClientURL:                    c.ClientURL,
-		DBHost:                       c.DBHost,
-		DBPort:                       c.DBPort,
-		DBName:                       c.DBName,
-		DBUser:                       c.DBUser,
-		DBPass:                       c.DBPass,
-		DBType:                       c.DBType,
-		SQLiteStartupCheck:           c.SQLiteStartupCheck,
-		Mode:                         c.Mode,
-		LogLevel:                     c.LogLevel,
-		Timezone:                     c.Timezone,
-		RedisHost:                    c.RedisHost,
-		RedisPort:                    c.RedisPort,
-		RedisUsername:                c.RedisUsername,
-		RedisPassword:                c.RedisPassword,
-		RedisDB:                      c.RedisDB,
-		QueueConcurrency:             c.QueueConcurrency,
-		BruteforceMaxAttempts:        c.BruteforceMaxAttempts,
-		BruteforceWindow:             c.BruteforceWindow,
-		BruteforceLockout:            c.BruteforceLockout,
-		BruteforceAccountMaxAttempts: c.BruteforceAccountMaxAttempts,
-		BruteforceAccountWindow:      c.BruteforceAccountWindow,
-		BruteforceAccountLockout:     c.BruteforceAccountLockout,
-		TrustedProxies:               c.TrustedProxies,
-		CORSOrigins:                  c.CORSOrigins,
-		ServiceName:                  c.ServiceName,
-		MetricsEnabled:               c.MetricsEnabled,
-		Telemetry:                    c.Telemetry,
-		TelemetryURL:                 c.TelemetryURL,
-		ErrorReporting:               c.ErrorReporting,
-		ErrorReportingDSN:            c.ErrorReportingDSN,
-		ProbeBootstrapToken:          c.ProbeBootstrapToken,
-		ProbeOfflineAfter:            c.ProbeOfflineAfter,
+		Environment:                    c.Environment,
+		Port:                           c.Port,
+		ClientURL:                      c.ClientURL,
+		DBHost:                         c.DBHost,
+		DBPort:                         c.DBPort,
+		DBName:                         c.DBName,
+		DBUser:                         c.DBUser,
+		DBPass:                         c.DBPass,
+		DBType:                         c.DBType,
+		SQLiteStartupCheck:             c.SQLiteStartupCheck,
+		Mode:                           c.Mode,
+		LogLevel:                       c.LogLevel,
+		Timezone:                       c.Timezone,
+		RedisHost:                      c.RedisHost,
+		RedisPort:                      c.RedisPort,
+		RedisUsername:                  c.RedisUsername,
+		RedisPassword:                  c.RedisPassword,
+		RedisDB:                        c.RedisDB,
+		QueueConcurrency:               c.QueueConcurrency,
+		BruteforceMaxAttempts:          c.BruteforceMaxAttempts,
+		BruteforceWindow:               c.BruteforceWindow,
+		BruteforceLockout:              c.BruteforceLockout,
+		BruteforceAccountMaxAttempts:   c.BruteforceAccountMaxAttempts,
+		BruteforceAccountWindow:        c.BruteforceAccountWindow,
+		BruteforceAccountLockout:       c.BruteforceAccountLockout,
+		TrustedProxies:                 c.TrustedProxies,
+		CORSOrigins:                    c.CORSOrigins,
+		ServiceName:                    c.ServiceName,
+		MetricsEnabled:                 c.MetricsEnabled,
+		Telemetry:                      c.Telemetry,
+		TelemetryURL:                   c.TelemetryURL,
+		ErrorReporting:                 c.ErrorReporting,
+		ErrorReportingDSN:              c.ErrorReportingDSN,
+		ProbeBootstrapToken:            c.ProbeBootstrapToken,
+		ProbeOfflineAfter:              c.ProbeOfflineAfter,
+		AccountSMTPHost:                c.AccountSMTPHost,
+		AccountSMTPPort:                c.AccountSMTPPort,
+		AccountSMTPUser:                c.AccountSMTPUser,
+		AccountSMTPPassword:            c.AccountSMTPPassword,
+		AccountSMTPFrom:                c.AccountSMTPFrom,
+		AccountSMTPTLS:                 c.AccountSMTPTLS,
+		SignupMode:                     c.SignupMode,
+		SignupTurnstileSiteKey:         c.SignupTurnstileSiteKey,
+		SignupTurnstileSecret:          c.SignupTurnstileSecret,
+		DisabledMonitorTypes:           c.DisabledMonitorTypes,
+		BlockPrivateTargets:            c.BlockPrivateTargets,
+		APIRateLimitPerWorkspace:       c.APIRateLimitPerWorkspace,
+		APIRateLimitPerAPIKey:          c.APIRateLimitPerAPIKey,
+		ChecksPerHostPerMinute:         c.ChecksPerHostPerMinute,
+		MinCheckInterval:               c.MinCheckInterval,
+		SupportContact:                 c.SupportContact,
+		WorkspaceLimitMonitors:         c.WorkspaceLimitMonitors,
+		WorkspaceLimitMinCheckInterval: c.WorkspaceLimitMinCheckInterval,
+		WorkspaceLimitStatusPages:      c.WorkspaceLimitStatusPages,
+		WorkspaceLimitCustomDomains:    c.WorkspaceLimitCustomDomains,
+		WorkspaceLimitMembers:          c.WorkspaceLimitMembers,
+		WorkspaceLimitOwnedWorkspaces:  c.WorkspaceLimitOwnedWorkspaces,
+		WorkspaceLimitProbesPerMonitor: c.WorkspaceLimitProbesPerMonitor,
+		WorkspaceLimitRetentionDays:    c.WorkspaceLimitRetentionDays,
 
 		NotificationHistoryRetentionDays: c.NotificationHistoryRetentionDays,
 		TLSInfoRetentionDays:             c.TLSInfoRetentionDays,

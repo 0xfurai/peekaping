@@ -2,9 +2,11 @@ package badge
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"peekaping/internal/httpx"
+	"peekaping/internal/modules/status_page"
 	"peekaping/internal/utils"
 	"strconv"
 
@@ -21,6 +23,24 @@ func NewController(service Service, logger *zap.SugaredLogger) *Controller {
 		service: service,
 		logger:  logger.Named("[badge-controller]"),
 	}
+}
+
+// requirePublic is nil for a monitor on a published status page, 404 for any other, and the 503 of
+// an unavailable status page when the monitor's workspace is suspended: a badge says no more than
+// its page does (PP-372)
+func (c *Controller) requirePublic(ctx context.Context, monitorID string) error {
+	isPublic, err := c.service.IsMonitorPublic(ctx, monitorID)
+	if errors.Is(err, status_page.ErrUnavailable) {
+		return status_page.Unavailable()
+	}
+	if err != nil {
+		c.logger.Errorw("Failed to check if monitor is public", "error", err, "monitorID", monitorID)
+		return httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+	}
+	if !isPublic {
+		return httpx.Fail(http.StatusNotFound, utils.NewFailResponse("Monitor not found or not public"))
+	}
+	return nil
 }
 
 // parseQueryOptions parses badge options from query parameters
@@ -97,13 +117,8 @@ func (c *Controller) GetStatusBadge(ctx context.Context, input *GetStatusBadgeIn
 	monitorID = c.service.ResolveMonitorID(ctx, monitorID)
 
 	// Check if monitor is public (published on a status page)
-	isPublic, err := c.service.IsMonitorPublic(ctx, monitorID)
-	if err != nil {
-		c.logger.Errorw("Failed to check if monitor is public", "error", err, "monitorID", monitorID)
-		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-	}
-	if !isPublic {
-		return nil, httpx.Fail(http.StatusNotFound, utils.NewFailResponse("Monitor not found or not public"))
+	if err := c.requirePublic(ctx, monitorID); err != nil {
+		return nil, err
 	}
 
 	options := c.parseQueryOptions(r)
@@ -131,13 +146,8 @@ func (c *Controller) GetUptimeBadge(ctx context.Context, input *GetUptimeBadgeIn
 	}
 
 	// Check if monitor is public
-	isPublic, err := c.service.IsMonitorPublic(ctx, monitorID)
-	if err != nil {
-		c.logger.Errorw("Failed to check if monitor is public", "error", err, "monitorID", monitorID)
-		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-	}
-	if !isPublic {
-		return nil, httpx.Fail(http.StatusNotFound, utils.NewFailResponse("Monitor not found or not public"))
+	if err := c.requirePublic(ctx, monitorID); err != nil {
+		return nil, err
 	}
 
 	options := c.parseQueryOptions(r)
@@ -164,13 +174,8 @@ func (c *Controller) GetPingBadge(ctx context.Context, input *GetPingBadgeInput)
 	}
 
 	// Check if monitor is public
-	isPublic, err := c.service.IsMonitorPublic(ctx, monitorID)
-	if err != nil {
-		c.logger.Errorw("Failed to check if monitor is public", "error", err, "monitorID", monitorID)
-		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-	}
-	if !isPublic {
-		return nil, httpx.Fail(http.StatusNotFound, utils.NewFailResponse("Monitor not found or not public"))
+	if err := c.requirePublic(ctx, monitorID); err != nil {
+		return nil, err
 	}
 
 	options := c.parseQueryOptions(r)
@@ -191,13 +196,8 @@ func (c *Controller) GetCertExpBadge(ctx context.Context, input *GetCertExpBadge
 	monitorID = c.service.ResolveMonitorID(ctx, monitorID)
 
 	// Check if monitor is public
-	isPublic, err := c.service.IsMonitorPublic(ctx, monitorID)
-	if err != nil {
-		c.logger.Errorw("Failed to check if monitor is public", "error", err, "monitorID", monitorID)
-		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-	}
-	if !isPublic {
-		return nil, httpx.Fail(http.StatusNotFound, utils.NewFailResponse("Monitor not found or not public"))
+	if err := c.requirePublic(ctx, monitorID); err != nil {
+		return nil, err
 	}
 
 	options := c.parseQueryOptions(r)
@@ -218,13 +218,8 @@ func (c *Controller) GetResponseBadge(ctx context.Context, input *GetResponseBad
 	monitorID = c.service.ResolveMonitorID(ctx, monitorID)
 
 	// Check if monitor is public
-	isPublic, err := c.service.IsMonitorPublic(ctx, monitorID)
-	if err != nil {
-		c.logger.Errorw("Failed to check if monitor is public", "error", err, "monitorID", monitorID)
-		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-	}
-	if !isPublic {
-		return nil, httpx.Fail(http.StatusNotFound, utils.NewFailResponse("Monitor not found or not public"))
+	if err := c.requirePublic(ctx, monitorID); err != nil {
+		return nil, err
 	}
 
 	options := c.parseQueryOptions(r)

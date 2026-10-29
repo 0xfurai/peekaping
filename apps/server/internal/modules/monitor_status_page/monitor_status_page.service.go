@@ -2,7 +2,12 @@ package monitor_status_page
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
+	"peekaping/internal/modules/workspace"
+
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
@@ -23,6 +28,11 @@ type Service interface {
 	UpdateMonitorOrder(ctx context.Context, statusPageID, monitorID string, order int) (*Model, error)
 	UpdateMonitorActiveStatus(ctx context.Context, statusPageID, monitorID string, active bool) (*Model, error)
 	DeleteAllMonitorsForStatusPage(ctx context.Context, statusPageID string) error
+	// RequireMonitors is nil when every monitor is in the workspace, and otherwise an error that
+	// wraps ErrUnknownMonitor and names the first that isn't. A status page shows only monitors of
+	// its own workspace (docs/adr/0005 section 2), and a caller checks them all before it writes a
+	// link.
+	RequireMonitors(ctx context.Context, workspaceID workspace.ID, ids []string) error
 }
 
 type ServiceImpl struct {
@@ -95,4 +105,32 @@ func (mr *ServiceImpl) UpdateMonitorActiveStatus(ctx context.Context, statusPage
 
 func (mr *ServiceImpl) DeleteAllMonitorsForStatusPage(ctx context.Context, statusPageID string) error {
 	return mr.repository.DeleteAllMonitorsForStatusPage(ctx, statusPageID)
+}
+
+func (mr *ServiceImpl) RequireMonitors(ctx context.Context, workspaceID workspace.ID, ids []string) error {
+	// An ID that isn't a UUID can't be one a database has, and PostgreSQL fails the query on it
+	// instead of finding nothing. The query takes the lower case form, so that a copy in another
+	// case finds the same record on SQLite, which compares text, as it does on PostgreSQL.
+	canonical := make([]string, len(ids))
+	for i, id := range ids {
+		parsed, err := uuid.Parse(id)
+		if err != nil {
+			return fmt.Errorf("%w: %s", ErrUnknownMonitor, id)
+		}
+		canonical[i] = parsed.String()
+	}
+	found, err := mr.repository.FindMonitorIDsInWorkspace(ctx, workspaceID, canonical)
+	if err != nil {
+		return err
+	}
+	exists := make(map[string]bool, len(found))
+	for _, id := range found {
+		exists[strings.ToLower(id)] = true
+	}
+	for i, id := range canonical {
+		if !exists[id] {
+			return fmt.Errorf("%w: %s", ErrUnknownMonitor, ids[i])
+		}
+	}
+	return nil
 }

@@ -3,10 +3,12 @@ import { Input } from "@/components/ui/input";
 import { TypographyH4 } from "@/components/ui/typography";
 import { useFormContext } from "react-hook-form";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
+import { useMinCheckInterval } from "@/hooks/useMinCheckInterval";
 
 const Intervals = () => {
   const { t } = useLocalizedTranslation();
   const form = useFormContext();
+  const minimum = useMinCheckInterval();
   const { errors, isSubmitted } = form.formState;
   // The timeout's limit moves with the interval, but the form only rechecks the field that
   // changed: check the timeout too once it shows an error, or after a first submit, so that its
@@ -36,7 +38,7 @@ const Intervals = () => {
                 type="number"
               />
             </FormControl>
-            <FormMessage />
+            <FormMessage values={{ minimum }} />
           </FormItem>
         )}
       />
@@ -70,7 +72,7 @@ const Intervals = () => {
             <FormControl>
               <Input placeholder="60" {...field} type="number" />
             </FormControl>
-            <FormMessage />
+            <FormMessage values={{ minimum }} />
           </FormItem>
         )}
       />

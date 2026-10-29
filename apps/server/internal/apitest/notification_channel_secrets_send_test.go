@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"strings"
 	"sync"
 	"testing"
 
@@ -312,6 +313,63 @@ func TestNotificationChannelsAPI_TestRefusesAPlaceholderWithNothingToResolveIt(t
 			for _, key := range c.secretKeys() {
 				requireRefusedAsPlaceholder(t, a.testChannel(t, "", c.channelType, c.config(map[string]string{key: secretPlaceholder})), "no id, only "+key)
 			}
+		})
+	}
+}
+
+// A URL sent back as the API showed it is the stored URL: the test sends with its user info, which
+// the receiver sees as the Authorization header, and to its path
+func TestNotificationChannelsAPI_TestSendsToTheStoredURL(t *testing.T) {
+	a := newSecretsApp(t)
+	hook := startRequestReceiver(t)
+	host := strings.TrimPrefix(hook.url, "http://")
+	u := urlCredentialCase{"webhook", "webhook_url", "http://user:hunter2@" + host + "/hook?token=hunter2", "http://user:********@" + host + "/hook?token=********"}
+	id := a.createSecretChannel(t, u.storedChannel(t))
+	stored := a.storedChannelConfig(t, id)
+
+	decode[any](t, a.testChannel(t, id, "webhook", u.shownChannel(t).withPlaceholders(nil)), http.StatusOK)
+
+	got := hook.requireOne(t)
+	assert.Equal(t, "/hook", got.path)
+	user, password, ok := (&http.Request{Header: got.header}).BasicAuth()
+	assert.True(t, ok)
+	assert.Equal(t, "user", user)
+	assert.Equal(t, "hunter2", password, "the stored password is sent")
+	assert.True(t, signatureIsValid(got, "whsec-SECRET-signing"), "the other saved secrets are resolved too")
+
+	t.Run("a masked URL that was moved is refused, and nothing is sent", func(t *testing.T) {
+		moved := u.shownChannel(t).withVisible(map[string]any{"webhook_url": strings.Replace(u.shown, "/hook", "/other", 1)})
+		w := a.testChannel(t, id, "webhook", moved.withPlaceholders(nil))
+		requireRefusedAsPlaceholder(t, w, "moved")
+		assert.Contains(t, w.Body.String(), "webhook_url")
+		assert.Empty(t, hook.received(), "nothing is sent")
+	})
+
+	t.Run("without an id a masked URL is refused", func(t *testing.T) {
+		w := a.testChannel(t, "", "webhook", u.shownChannel(t).withPlaceholders(nil))
+		requireRefusedAsPlaceholder(t, w, "no id")
+		assert.Empty(t, hook.received(), "nothing is sent")
+	})
+
+	assert.Equal(t, stored, a.storedChannelConfig(t, id), "testing a channel doesn't change it")
+}
+
+// A failed send prints the URL it went to. The test endpoint answers with that error, so it must
+// not repeat the password or a query value of the stored URL.
+func TestNotificationChannelsAPI_TestFailureDoesNotEchoTheCredentialsOfAStoredURL(t *testing.T) {
+	a := newSecretsApp(t)
+
+	for _, u := range urlCredentialCases {
+		t.Run(u.channelType, func(t *testing.T) {
+			id := a.createSecretChannel(t, u.storedChannel(t))
+
+			w := a.testChannel(t, id, u.channelType, u.shownChannel(t).withPlaceholders(nil))
+
+			require.Equal(t, http.StatusInternalServerError, w.Code, w.Body.String())
+			assert.Contains(t, w.Body.String(), "Failed to send test notification")
+			assert.NotContains(t, w.Body.String(), "hunter2")
+			assert.NotContains(t, w.Body.String(), "tok123")
+			assert.NotContains(t, w.Body.String(), secretMarker)
 		})
 	}
 }

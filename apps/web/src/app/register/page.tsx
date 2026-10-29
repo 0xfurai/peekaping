@@ -1,7 +1,15 @@
 import { GalleryVerticalEnd } from "lucide-react";
+import { Navigate } from "react-router-dom";
 import { RegisterForm } from "./components/register-form";
+import { useAuthConfig } from "@/hooks/useAuthConfig";
+import { registerPageView } from "@/lib/signup";
 
 const SHRegisterPage = () => {
+  const { config, failed } = useAuthConfig();
+  const view = registerPageView(config, failed);
+  // Signup is closed: invite links still work through /invite/:token
+  if (view === "login") return <Navigate to="/login" replace />;
+
   return (
     <div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-muted p-6 md:p-10">
       <div className="flex w-full max-w-sm flex-col gap-6">
@@ -12,7 +20,13 @@ const SHRegisterPage = () => {
           Peekaping
         </a>
 
-        <RegisterForm />
+        {view === "form" && (
+          <RegisterForm
+            turnstileSiteKey={config?.turnstileSiteKey}
+            signupMode={config?.signupMode}
+            firstSignup={config?.firstSignup}
+          />
+        )}
       </div>
     </div>
   );

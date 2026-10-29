@@ -2,6 +2,7 @@ package ingester
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"peekaping/internal/modules/certificate"
 	"peekaping/internal/modules/events"
@@ -25,13 +26,13 @@ type (
 // LocationStore keeps a monitor's state on each probe it runs on, which the ingester reads and
 // writes to judge the monitor as a whole. The monitor repository is one.
 type LocationStore interface {
-	// RecordLocation stores what the result left on the monitor's row for the probe, calls judge
+	// RecordLocationAnyWorkspace stores what the result left on the monitor's row for the probe, calls judge
 	// with the monitor's last recorded status and its rows from just before and just after, and
 	// records the status judge returns (nil clears it). All of it happens with the monitor held,
 	// so two results of one monitor, recorded at once, see one another in turn. A monitor without
 	// a row for the probe has nothing stored on a row, and a monitor without rows (one from before
 	// probes) is judged on none.
-	RecordLocation(ctx context.Context, monitorID string, state shared.LocationState, judge func(shared.LocationJudgement) *shared.MonitorStatus) error
+	RecordLocationAnyWorkspace(ctx context.Context, monitorID string, state shared.LocationState, judge func(shared.LocationJudgement) *shared.MonitorStatus) error
 }
 
 type ServiceImpl struct {
@@ -330,7 +331,7 @@ func (s *ServiceImpl) Ingest(ctx context.Context, r *Result) error {
 		locationsAfter  []shared.MonitorLocation
 		locationsBefore []shared.MonitorLocation
 	)
-	err = s.locations.RecordLocation(ctx, r.MonitorID, state, func(j shared.LocationJudgement) *shared.MonitorStatus {
+	err = s.locations.RecordLocationAnyWorkspace(ctx, r.MonitorID, state, func(j shared.LocationJudgement) *shared.MonitorStatus {
 		rowsBefore, recordedBefore = j.Before, j.Recorded
 		// A location with no status yet but a heartbeat on the probe has that heartbeat's status: the
 		// row of a monitor from before it kept one
@@ -358,6 +359,18 @@ func (s *ServiceImpl) Ingest(ctx context.Context, r *Result) error {
 		}
 		return &currentStatus
 	})
+	if errors.Is(err, shared.ErrMonitorTypeDisabled) {
+		// The type was turned off after the check was dealt or while its result was on the way:
+		// the result is dropped like one of a suspended workspace (PP-157)
+		s.logger.Debugw("Dropping a result for a monitor of a type this install turns off", "monitor_id", r.MonitorID, "probe_id", probeID)
+		return nil
+	}
+	if errors.Is(err, shared.ErrWorkspaceSuspended) {
+		// The workspace was suspended after the check was dealt or while its result was on the way:
+		// the result is dropped, with no heartbeat and no status change (PP-155)
+		s.logger.Debugw("Dropping a result for a monitor of a suspended workspace", "monitor_id", r.MonitorID, "probe_id", probeID)
+		return nil
+	}
 	if err != nil {
 		s.logger.Errorw("Failed to record the location of monitor", "monitor_id", r.MonitorID, "probe_id", probeID, "error", err)
 		return fmt.Errorf("failed to record the location: %w", err)
@@ -439,7 +452,7 @@ func (s *ServiceImpl) Ingest(ctx context.Context, r *Result) error {
 
 		// Check certificate expiry and send notifications only if enabled (the flag comes from the result)
 		if r.CheckCertExpiry {
-			if err := s.certificateService.CheckCertificateExpiry(ctx, r.TLSInfo, r.MonitorID, r.MonitorName); err != nil {
+			if err := s.certificateService.CheckCertificateExpiry(ctx, r.WorkspaceID, r.TLSInfo, r.MonitorID, r.MonitorName); err != nil {
 				s.logger.Errorw("Failed to check certificate expiry for monitor",
 					"monitor_name", r.MonitorName,
 					"error", err,
@@ -498,7 +511,7 @@ func (s *ServiceImpl) restoreLocation(ctx context.Context, monitorID, probeID st
 	// The failure may be the context's own
 	ctx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 10*time.Second)
 	defer cancel()
-	err := s.locations.RecordLocation(ctx, monitorID, old, func(shared.LocationJudgement) *shared.MonitorStatus { return recorded })
+	err := s.locations.RecordLocationAnyWorkspace(ctx, monitorID, old, func(shared.LocationJudgement) *shared.MonitorStatus { return recorded })
 	if err != nil {
 		s.logger.Errorw("Failed to put the location of monitor back after a failed heartbeat", "monitor_id", monitorID, "probe_id", probeID, "error", err)
 	}

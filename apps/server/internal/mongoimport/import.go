@@ -21,6 +21,7 @@ import (
 	"strings"
 
 	"peekaping/internal/legacyid"
+	"peekaping/internal/modules/workspace"
 
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dialect"
@@ -214,15 +215,20 @@ type copier struct {
 	cutsText bool
 
 	proxies, monitors, channels, tags, maintenances idSet
-	statusPages                                     map[primitive.ObjectID]*statusPage
-	statusPageOrder                                 []*statusPage
+	// workspaceID is the workspace that the copied records belong to, or empty for an install
+	// that has none
+	workspaceID workspace.ID
+	// pushTokens are the push tokens the monitors copied so far hold
+	pushTokens      map[string]bool
+	statusPages     map[primitive.ObjectID]*statusPage
+	statusPageOrder []*statusPage
 }
 
 func newCopier(tx bun.Tx, src *source, report *Report, progress io.Writer) *copier {
 	return &copier{
 		tx: tx, src: src, report: report, progress: progress, cutsText: cutsText(tx),
 		proxies: idSet{}, monitors: idSet{}, channels: idSet{}, tags: idSet{}, maintenances: idSet{},
-		statusPages: map[primitive.ObjectID]*statusPage{},
+		statusPages: map[primitive.ObjectID]*statusPage{}, pushTokens: map[string]bool{},
 	}
 }
 
@@ -232,11 +238,46 @@ func uuidOf(id primitive.ObjectID) string {
 	return mapped
 }
 
+// workspaceCollections are the collections whose documents a workspace will own, or the users who
+// will be its members. An install that has a document in any of them gets a workspace.
+var workspaceCollections = []string{"users", "api_keys", "proxies", "monitor", "notification_channel", "tags", "maintenance", "status_pages"}
+
+// makeWorkspace gives the copied install its workspace, as the upgrade to workspaces gives one to
+// an install it finds. It comes first, since an API key belongs to a workspace and the key's
+// foreign key needs it to exist. The migrations ran on an empty database, so they made none. An
+// install with nothing to import gets none, as a new install does until its first signup.
+func (c *copier) makeWorkspace(ctx context.Context) error {
+	anything, err := c.src.hasAny(ctx, workspaceCollections...)
+	if err != nil || !anything {
+		return err
+	}
+	created, err := workspace.CreateFirst(ctx, c.tx)
+	if err != nil {
+		return fmt.Errorf("make the workspace: %w", err)
+	}
+	c.workspaceID = created.ID
+	c.report.Workspace = &WorkspaceReport{Name: created.Name}
+	return nil
+}
+
+// adoptUsers makes every imported user an owner of the workspace and an instance admin
+func (c *copier) adoptUsers(ctx context.Context) error {
+	if c.workspaceID == "" {
+		return nil
+	}
+	owners, err := workspace.AdoptUsers(ctx, c.tx, c.workspaceID)
+	if err != nil {
+		return fmt.Errorf("add the users to the workspace: %w", err)
+	}
+	c.report.Workspace.Owners = owners
+	return nil
+}
+
 // copyAll copies the collections in the order the foreign keys allow, each after
 // the collections it refers to.
 func (c *copier) copyAll(ctx context.Context) error {
 	for _, step := range []func(context.Context) error{
-		c.copyUsers, c.copySettings, c.copyAPIKeys,
+		c.makeWorkspace, c.copyUsers, c.adoptUsers, c.copySettings, c.copyAPIKeys,
 		c.copyProxies, c.copyMonitors, c.copyChannels, c.copyTags, c.copyMaintenance, c.copyStatusPages,
 		c.copyMonitorNotifications, c.copyMonitorTags, c.copyMonitorMaintenances, c.copyMonitorStatusPages, c.copyDomains,
 		c.copyTLSInfo, c.copySentHistory, c.copyHeartbeats,

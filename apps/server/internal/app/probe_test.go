@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"fmt"
+	"peekaping/internal/modules/workspace/workspacetest"
 	"strings"
 	"testing"
 
@@ -53,7 +54,11 @@ func migrateDB(db *bun.DB) error {
 	if err := migrator.Init(ctx); err != nil {
 		return err
 	}
-	_, err := migrator.Migrate(ctx)
+	if _, err := migrator.Migrate(ctx); err != nil {
+		return err
+	}
+	// The monitors the tests make belong to a workspace
+	_, err := db.ExecContext(ctx, "INSERT INTO workspaces (id, name) VALUES (?, 'Test')", string(workspacetest.ID))
 	return err
 }
 

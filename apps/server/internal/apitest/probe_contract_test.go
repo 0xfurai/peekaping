@@ -192,7 +192,7 @@ func TestProbeContract_Assignments(t *testing.T) {
 	instanceID := uuid.NewString()
 	client, rt := a.probeClient(localToken, instanceID)
 	ctx := context.Background()
-	_, err := client.Hello(ctx, &probeproto.HelloRequest{InstanceID: instanceID, ProtocolVersion: probeproto.ProtocolVersion, SupportedTypes: []string{"http"}})
+	_, err := client.Hello(ctx, &probeproto.HelloRequest{InstanceID: instanceID, ProtocolVersion: probeproto.ProtocolVersion, SupportedTypes: []string{"http"}, EnforcesPrivateTargetBlock: true})
 	require.NoError(t, err)
 
 	held, err := client.Assignments(ctx, "")
@@ -233,7 +233,7 @@ func TestProbeContract_Results(t *testing.T) {
 	instanceID := uuid.NewString()
 	client, rt := a.probeClient(localToken, instanceID)
 	ctx := context.Background()
-	welcome, err := client.Hello(ctx, &probeproto.HelloRequest{InstanceID: instanceID, ProtocolVersion: probeproto.ProtocolVersion, SupportedTypes: []string{"http"}})
+	welcome, err := client.Hello(ctx, &probeproto.HelloRequest{InstanceID: instanceID, ProtocolVersion: probeproto.ProtocolVersion, SupportedTypes: []string{"http"}, EnforcesPrivateTargetBlock: true})
 	require.NoError(t, err)
 	up := checkResult("up", monitorID, checkedAt(0))
 	up.TLSInfo = json.RawMessage(`{"valid":true,"certInfo":{"subject":"CN=example.com","issuer":"CN=Example CA","daysRemaining":42}}`)

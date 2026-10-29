@@ -1,8 +1,12 @@
 package middleware
 
 import (
+	"context"
 	"net/http"
 	"peekaping/internal/httpx"
+	"peekaping/internal/modules/auth"
+	"peekaping/internal/modules/workspace"
+	"peekaping/internal/ratelimit"
 	"peekaping/internal/utils"
 
 	"go.uber.org/zap"
@@ -16,24 +20,43 @@ type authenticator interface {
 	Auth() httpx.Middleware
 }
 
+// memberships lists the workspaces a user is in. workspace.Repository is one.
+type memberships interface {
+	ListMemberships(ctx context.Context, userID string) ([]workspace.Membership, error)
+}
+
+// users finds a user by ID. auth.Repository is one.
+type users interface {
+	FindByID(ctx context.Context, id string) (*auth.Model, error)
+}
+
 // AuthChain provides a chained authentication middleware
 type AuthChain struct {
 	jwtMiddleware    authenticator
 	apiKeyMiddleware authenticator
+	workspaces       memberships
+	users            users
 	trustedProxies   *httpx.TrustedProxies
 	logger           *zap.SugaredLogger
+
+	// The API rate limits (PP-159), nil when off. See WithAPIRateLimits.
+	workspaceLimit, apiKeyLimit *ratelimit.Limiter
 }
 
 // NewAuthChain creates a new authentication chain
 func NewAuthChain(
 	jwtMiddleware authenticator,
 	apiKeyMiddleware authenticator,
+	workspaces memberships,
+	users users,
 	trustedProxies *httpx.TrustedProxies,
 	logger *zap.SugaredLogger,
 ) *AuthChain {
 	return &AuthChain{
 		jwtMiddleware:    jwtMiddleware,
 		apiKeyMiddleware: apiKeyMiddleware,
+		workspaces:       workspaces,
+		users:            users,
 		trustedProxies:   trustedProxies,
 		logger:           logger.Named("[auth_chain]"),
 	}

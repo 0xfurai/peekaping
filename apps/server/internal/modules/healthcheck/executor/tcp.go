@@ -18,6 +18,7 @@ type TCPConfig struct {
 }
 
 type TCPExecutor struct {
+	guarded
 	logger *zap.SugaredLogger
 }
 
@@ -39,6 +40,15 @@ func (s *TCPExecutor) Validate(configJSON string) error {
 	return GenericValidator(cfg.(*TCPConfig))
 }
 
+// Targets lists the host a TCP check dials
+func (s *TCPExecutor) Targets(configJSON string) ([]string, error) {
+	cfg, err := GenericUnmarshal[TCPConfig](configJSON)
+	if err != nil {
+		return nil, err
+	}
+	return []string{cfg.Host}, nil
+}
+
 func (t *TCPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Proxy) *Result {
 	cfgAny, err := t.Unmarshal(m.Config)
 	if err != nil {
@@ -55,9 +65,9 @@ func (t *TCPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Proxy
 	startTime := time.Now().UTC()
 
 	// Create a custom dialer with timeout
-	dialer := &net.Dialer{
+	dialer := t.dialer(&net.Dialer{
 		Timeout: time.Duration(m.Timeout) * time.Second,
-	}
+	})
 
 	conn, err := dialer.DialContext(ctx, "tcp", address)
 	endTime := time.Now().UTC()

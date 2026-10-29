@@ -51,6 +51,9 @@ type SessionConfig struct {
 	ProbeVersion string
 	// SupportedTypes are the monitor types the probe runs, which hello states
 	SupportedTypes []string
+	// EnforcesPrivateTargetBlock is whether the probe blocks private targets when the hello
+	// answer's BlockPrivateTargets asks it to (OnWelcome does it), which hello states
+	EnforcesPrivateTargetBlock bool
 	// HTTPClient makes the requests; http.DefaultClient when nil. The session bounds each call
 	// itself, so the client needs no timeout, and one it has must outlast the long poll. The
 	// session uses a copy of it that refuses a redirect from https to http; the client itself is
@@ -63,6 +66,9 @@ type SessionConfig struct {
 	Sleep func(ctx context.Context, d time.Duration) error
 	// Now is the probe's clock; time.Now when nil
 	Now func() time.Time
+	// OnWelcome, if set, is called with each answer to hello before the session counts as greeted,
+	// so that what the answer states is in force before the probe gets an assignment
+	OnWelcome func(*probeproto.HelloResponse)
 }
 
 // Tunables are the limits the server's hello states, or their defaults before there is one
@@ -87,6 +93,8 @@ type Session struct {
 	logger *zap.SugaredLogger
 	sleep  func(ctx context.Context, d time.Duration) error
 	now    func() time.Time
+	// onWelcome is SessionConfig.OnWelcome
+	onWelcome func(*probeproto.HelloResponse)
 
 	// gate lets one caller say hello at a time. It is a channel so that a caller waiting for
 	// its turn can give up when its context ends.
@@ -115,12 +123,16 @@ func NewSession(cfg SessionConfig) *Session {
 			Hostname:        hostname,
 			OS:              runtime.GOOS,
 			Arch:            runtime.GOARCH,
+
+			EnforcesPrivateTargetBlock: cfg.EnforcesPrivateTargetBlock,
 		},
 		base:   cfg.Logger,
 		logger: cfg.Logger.With("component", "probe_session"),
 		sleep:  cfg.Sleep,
 		now:    cfg.Now,
-		gate:   make(chan struct{}, 1),
+
+		onWelcome: cfg.OnWelcome,
+		gate:      make(chan struct{}, 1),
 	}
 	if s.sleep == nil {
 		s.sleep = sleepFor
@@ -248,6 +260,9 @@ func (s *Session) lose() {
 // greet takes the server's answer to hello, logs who the probe is connected as, and warns when the
 // server's clock is not the probe's
 func (s *Session) greet(welcome *probeproto.HelloResponse) {
+	if s.onWelcome != nil {
+		s.onWelcome(welcome)
+	}
 	s.mu.Lock()
 	s.welcome = welcome
 	s.greeted = true

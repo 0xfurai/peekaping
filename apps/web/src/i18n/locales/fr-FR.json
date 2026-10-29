@@ -3,22 +3,292 @@
     "cancel": "Annuler",
     "saving": "Sauvegarde…"
   },
+  "admin": {
+    "nav": {
+      "back_to_workspace": "Retour à {{name}}",
+      "probes": "Sondes",
+      "title": "Administration",
+      "users": "Utilisateurs",
+      "workspaces": "Espaces de travail",
+      "settings": "Paramètres"
+    },
+    "users": {
+      "actions": {
+        "delete": "Supprimer l'utilisateur",
+        "disable": "Désactiver l'utilisateur",
+        "disableTwoFactor": "Désactiver la 2FA",
+        "enable": "Activer l'utilisateur",
+        "grantAdmin": "Nommer administrateur de l'instance",
+        "resetLink": "Créer un lien de réinitialisation",
+        "revokeAdmin": "Retirer l'administrateur de l'instance"
+      },
+      "actions_aria": "Actions pour {{email}}",
+      "columns": {
+        "created": "Créé le",
+        "email": "E-mail",
+        "email_verified": "E-mail vérifié",
+        "instance_admin": "Administrateur de l'instance",
+        "last_sign_in": "Dernière connexion",
+        "status": "Statut",
+        "two_factor": "2FA",
+        "workspaces": "Espaces de travail"
+      },
+      "confirm": {
+        "cancel": "Annuler",
+        "delete": {
+          "confirm": "Supprimer l'utilisateur",
+          "description": "Supprimer {{email}} ? Son compte est supprimé, ainsi que ses places dans les espaces de travail. Cette action est irréversible.",
+          "title": "Supprimer l'utilisateur"
+        },
+        "disable": {
+          "confirm": "Désactiver",
+          "description": "{{email}} ne peut plus se connecter et est déconnecté partout dès maintenant. Ses espaces de travail continuent de fonctionner. Vous pourrez le réactiver plus tard.",
+          "title": "Désactiver l'utilisateur"
+        },
+        "disableTwoFactor": {
+          "confirm": "Désactiver la 2FA",
+          "description": "{{email}} se connectera avec son mot de passe seul et pourra reconfigurer la 2FA. Ne le faites que si vous êtes sûr que c'est bien cette personne qui le demande.",
+          "title": "Désactiver la 2FA"
+        }
+      },
+      "description": "Toutes les personnes ayant un compte sur cette installation. Les administrateurs de l'instance gèrent l'installation elle-même, comme les sondes et les utilisateurs. Le rôle d'un utilisateur dans un espace de travail est défini par les propriétaires de cet espace.",
+      "empty": "Aucun utilisateur trouvé",
+      "errors": {
+        "last_instance_admin": "L'installation a besoin d'au moins un administrateur de l'instance.",
+        "last_owner": "L'utilisateur est le dernier propriétaire de {{workspaces}}. Nommez d'abord un autre propriétaire, ou supprimez l'espace de travail.",
+        "self": "Vous ne pouvez pas faire cela sur votre propre compte."
+      },
+      "load_failed": "Impossible de charger les utilisateurs.",
+      "messages": {
+        "admin_granted": "{{email}} est maintenant administrateur de l'instance",
+        "admin_revoked": "{{email}} n'est plus administrateur de l'instance",
+        "deleted": "{{email}} est supprimé",
+        "disabled": "{{email}} est désactivé et déconnecté",
+        "enabled": "{{email}} est activé",
+        "two_factor_off": "La 2FA est désactivée pour {{email}}",
+        "update_failed": "Impossible de mettre à jour l'utilisateur."
+      },
+      "never": "Jamais",
+      "none": "Aucun",
+      "page_name": "Utilisateurs",
+      "paging": {
+        "next": "Suivant",
+        "page": "Page {{page}} sur {{pages}}",
+        "previous": "Précédent"
+      },
+      "reset_link": {
+        "close": "Fermer",
+        "copied": "Lien copié",
+        "copy": "Copier le lien",
+        "copy_failed": "Impossible de copier le lien. Sélectionnez-le et copiez-le à la main.",
+        "description": "Un lien permettant à {{email}} de choisir un nouveau mot de passe. Copiez-le et transmettez-le maintenant : il n'est affiché qu'une seule fois.",
+        "emailed": "Cette installation envoie des e-mails de compte : l'utilisateur est donc prévenu par e-mail qu'un lien a été créé pour lui.",
+        "expires": "Le lien ne fonctionne qu'une fois et expire {{when}}.",
+        "failed": "Impossible de créer le lien.",
+        "label": "Lien",
+        "making": "Création du lien...",
+        "signs_out": "Utiliser le lien déconnecte l'utilisateur partout.",
+        "title": "Lien de réinitialisation du mot de passe"
+      },
+      "search_label": "Rechercher des utilisateurs par e-mail",
+      "search_placeholder": "Rechercher par e-mail",
+      "total": "{{total}} trouvé(s)",
+      "values": {
+        "active": "Actif",
+        "disabled": "Désactivé",
+        "no": "Non",
+        "two_factor_off": "Désactivée",
+        "two_factor_on": "Activée",
+        "yes": "Oui"
+      },
+      "you": "vous"
+    },
+    "workspaces": {
+      "actions": {
+        "delete": "Supprimer l'espace de travail",
+        "resume": "Réactiver l'espace de travail",
+        "suspend": "Suspendre l'espace de travail",
+        "limits": "Limites"
+      },
+      "actions_aria": "Actions pour {{name}}",
+      "columns": {
+        "created": "Créé le",
+        "custom_domains": "Domaines personnalisés",
+        "members": "Membres",
+        "monitors": "Moniteurs",
+        "name": "Nom",
+        "owners": "Propriétaires",
+        "status": "Statut",
+        "status_pages": "Pages d'état",
+        "limits": "Limites"
+      },
+      "confirm": {
+        "cancel": "Annuler",
+        "delete": {
+          "confirm": "Supprimer l'espace de travail",
+          "description": "Supprimer {{name}} ? Tout son contenu disparaît : ses moniteurs et leur historique, ses pages d'état, ses canaux de notification et l'accès de ses membres. Cette action est irréversible.",
+          "name_label": "Saisissez le nom de l'espace de travail pour confirmer : {{name}}",
+          "title": "Supprimer l'espace de travail"
+        },
+        "resume": {
+          "confirm": "Réactiver",
+          "description": "Les moniteurs de {{name}} reprennent dans l'état où ils étaient, et ses membres peuvent l'utiliser comme avant. Un espace de travail en attente de la vérification de l'e-mail de son propriétaire reste en attente.",
+          "title": "Réactiver l'espace de travail"
+        },
+        "suspend": {
+          "confirm": "Suspendre",
+          "description": "Les moniteurs de {{name}} s'arrêtent, ses pages d'état publiques indiquent qu'elles sont indisponibles et ses membres voient qu'il est suspendu. Rien n'est supprimé, et vous pourrez le réactiver plus tard.",
+          "title": "Suspendre l'espace de travail"
+        }
+      },
+      "description": "Tous les espaces de travail de cette installation, avec leurs propriétaires, leurs membres et ce qu'ils contiennent. Seuls des totaux sont affichés, rien de l'intérieur d'un espace de travail.",
+      "empty": "Aucun espace de travail trouvé",
+      "load_failed": "Impossible de charger les espaces de travail.",
+      "messages": {
+        "deleted": "{{name}} est supprimé",
+        "failed": "Impossible de modifier l'espace de travail.",
+        "resumed": "{{name}} est réactivé",
+        "suspended": "{{name}} est suspendu"
+      },
+      "monitors": "{{active}} actif(s), {{paused}} en pause",
+      "none": "Aucun",
+      "page_name": "Espaces de travail",
+      "paging": {
+        "next": "Suivant",
+        "page": "Page {{page}} sur {{pages}}",
+        "previous": "Précédent"
+      },
+      "search_label": "Rechercher des espaces de travail par nom ou par e-mail du propriétaire",
+      "search_placeholder": "Rechercher par nom ou par e-mail du propriétaire",
+      "status": {
+        "running": "En service",
+        "suspended_admin": "Suspendu par un administrateur",
+        "suspended_unverified": "Suspendu jusqu'à ce que le propriétaire vérifie son e-mail"
+      },
+      "total": "{{total}} trouvé(s)",
+      "limits": {
+        "item": "{{name}}: {{value}}",
+        "more": "+{{number}} de plus",
+        "unlimited": "Aucune limite",
+        "source": {
+          "workspace": "Les siennes",
+          "install": "Valeurs par défaut de l'installation",
+          "none": "Aucune définie"
+        },
+        "dialog": {
+          "title": "Limites de {{name}}",
+          "description": "Ce à quoi cet espace de travail est soumis. Abaisser une limite ne met rien en pause et ne supprime rien : les moniteurs les plus récents au-delà de la limite cessent de s'exécuter jusqu'à ce qu'il y ait de nouveau de la place.",
+          "own": "Ses propres limites",
+          "own_help": "Elles remplacent les valeurs par défaut de l'installation. Laissez une limite vide pour ne pas en avoir.",
+          "unlimited": "Aucune limite",
+          "unlimited_help": "Aucune limite du tout, quoi que disent les valeurs par défaut de l'installation.",
+          "defaults": "Utiliser les valeurs par défaut de l'installation",
+          "defaults_help": "Les limites par défaut d'Administration → Paramètres, ou aucune si l'installation n'en définit pas.",
+          "save": "Enregistrer les limites",
+          "cancel": "Annuler",
+          "saved": "Les limites de {{name}} sont enregistrées",
+          "failed": "Impossible d'enregistrer les limites."
+        }
+      }
+    },
+    "settings": {
+      "page_name": "Paramètres",
+      "description": "Paramètres de toute l'installation. Une valeur fixée par l'environnement du serveur est verrouillée ici.",
+      "load_failed": "Les paramètres n'ont pas pu être chargés.",
+      "saved": "Paramètres enregistrés",
+      "save_failed": "Les paramètres n'ont pas été enregistrés.",
+      "locked": "Fixé par l'environnement du serveur",
+      "source": {
+        "environment": "De l'environnement du serveur",
+        "saved": "Enregistré ici",
+        "default": "Par défaut"
+      },
+      "signup": {
+        "title": "Inscription",
+        "description": "Qui peut créer un compte sur cette installation.",
+        "label": "Mode d'inscription",
+        "invite": "Sur invitation uniquement",
+        "open": "Ouverte",
+        "invite_help": "Le premier utilisateur s'inscrit, et tous les suivants rejoignent un espace de travail par une invitation.",
+        "open_help": "Tout le monde peut s'inscrire et obtient son propre espace de travail. Les nouveaux comptes vérifient leur adresse e-mail, il faut donc un expéditeur d'e-mails."
+      },
+      "sender": {
+        "title": "Expéditeur d'e-mails",
+        "description": "Le serveur SMTP qui envoie les e-mails du compte : liens de réinitialisation du mot de passe, vérification de l'e-mail et invitations.",
+        "on": "Les e-mails du compte sont activés.",
+        "off": "Les e-mails du compte sont désactivés : il n'y a pas d'hôte SMTP.",
+        "host": "Hôte SMTP",
+        "port": "Port",
+        "tls": "Sécurité",
+        "tls_starttls": "STARTTLS",
+        "tls_tls": "TLS",
+        "tls_none": "Aucune",
+        "user": "Utilisateur",
+        "password": "Mot de passe",
+        "password_set": "Un mot de passe est défini. Saisissez-en un pour le remplacer.",
+        "password_not_set": "Aucun mot de passe défini",
+        "password_removed": "Le mot de passe sera supprimé à l'enregistrement.",
+        "password_reenter": "Modifier l'hôte, le port, la sécurité ou l'utilisateur supprime le mot de passe enregistré. Saisissez-le à nouveau.",
+        "remove_password": "Supprimer le mot de passe",
+        "keep_password": "Garder le mot de passe",
+        "from": "Adresse de l'expéditeur"
+      },
+      "public_url": {
+        "title": "URL publique",
+        "description": "L'adresse de l'application web, qu'ouvrent les liens des e-mails et des notifications.",
+        "label": "URL publique"
+      },
+      "test_email": {
+        "title": "Envoyer un e-mail de test",
+        "description": "Envoie un court e-mail par l'expéditeur enregistré, pour vérifier qu'il fonctionne.",
+        "to": "Envoyer à",
+        "send": "Envoyer un e-mail de test",
+        "sending": "Envoi…",
+        "sent": "E-mail de test envoyé à {{to}}.",
+        "failed": "L'e-mail de test n'a pas été envoyé.",
+        "unsaved": "L'expéditeur a des modifications non enregistrées. Le test utilise l'expéditeur enregistré, enregistrez donc d'abord."
+      },
+      "validation": {
+        "port": "Saisissez un port de 1 à 65535, ou laissez vide pour la valeur par défaut."
+      },
+      "errors": {
+        "locked": "{{field}} est fixé par l'environnement du serveur et ne peut pas être modifié ici.",
+        "open_needs_sender": "L'inscription ouverte nécessite un expéditeur d'e-mails, car les nouveaux comptes vérifient leur adresse e-mail. Configurez d'abord l'expéditeur, ou dans le même enregistrement.",
+        "sender_needed": "L'inscription est ouverte, et les nouveaux comptes ont besoin de l'expéditeur pour vérifier leur adresse e-mail. Passez d'abord l'inscription en mode sur invitation uniquement.",
+        "no_sender": "Il n'y a pas d'expéditeur d'e-mails. Enregistrez d'abord un expéditeur."
+      },
+      "limits": {
+        "title": "Limites par défaut",
+        "description": "Les limites de tout espace de travail qui n'en a pas en propre. Laissez une limite vide pour ne pas en avoir. Les limites données à un espace de travail sur la page Espaces de travail remplacent celles-ci."
+      }
+    }
+  },
   "auth": {
     "login": {
       "description": "Connexion avec votre e‑mail",
       "no_account": "Pas de compte ?",
       "sign_up": "S'inscrire",
       "submit": "Connexion",
-      "title": "Bon retour"
+      "title": "Bon retour",
+      "forgot_password": "Mot de passe oublié ?",
+      "ask_admin": "Demandez une invitation à un administrateur de cette installation"
     },
     "register": {
       "description": "Créez votre compte d'administrateur",
+      "description_open": "Créez votre compte",
       "have_account": "Vous avez déjà un compte ?",
       "sign_in": "Se connecter",
       "submit": "Créer",
       "title": "Bonjour",
       "telemetry_note": "Anonyme : aucun nom de moniteur, aucune URL ni aucun hôte. Vous pourrez le modifier plus tard dans « Paramètres ».",
-      "telemetry_whats_sent": "Ce qui est envoyé"
+      "telemetry_whats_sent": "Ce qui est envoyé",
+      "errors": {
+        "rate_limited": "Trop d'inscriptions depuis votre réseau. Réessayez dans une heure.",
+        "email_taken": "Un compte existe déjà avec cet e-mail.",
+        "sign_in_instead": "Connectez-vous plutôt.",
+        "check_failed": "La vérification a échoué. Réessayez.",
+        "check_load_failed": "La vérification n'a pas pu se charger. Vérifiez votre connexion et réessayez."
+      }
     },
     "twofa": {
       "code_label": "Code d'authentification à deux facteurs",
@@ -27,6 +297,45 @@
       "title": "Authentification à deux facteurs requise",
       "verify_button": "Vérifier 2FA",
       "verifying": "Vérification..."
+    },
+    "forgot": {
+      "title": "Réinitialiser votre mot de passe",
+      "description": "Saisissez l'e-mail de votre compte et nous vous enverrons un lien.",
+      "submit": "Envoyer le lien",
+      "sent": "Si un compte existe pour cet e-mail, nous avons envoyé un lien. Il est valable une heure.",
+      "back_to_login": "Retour à la connexion"
+    },
+    "reset": {
+      "title": "Choisir un nouveau mot de passe",
+      "description": "Saisissez un nouveau mot de passe pour votre compte.",
+      "submit": "Définir le mot de passe",
+      "success": "Votre mot de passe a été changé et vous avez été déconnecté partout. Connectez-vous avec le nouveau mot de passe.",
+      "sign_in": "Se connecter",
+      "invalid_link": "Ce lien a déjà été utilisé ou a expiré.",
+      "request_new": "Demander un nouveau lien"
+    },
+    "verify": {
+      "title": "Vérifiez votre e-mail",
+      "verifying": "Vérification de votre e-mail...",
+      "success": "Votre e-mail est vérifié.",
+      "open_app": "Ouvrir Peekaping",
+      "invalid_link": "Ce lien a déjà été utilisé ou a expiré."
+    },
+    "errors": {
+      "rate_limited": "Trop de demandes. Réessayez plus tard.",
+      "generic": "Un problème est survenu. Réessayez.",
+      "already_verified": "Votre e-mail est déjà vérifié."
+    },
+    "resend": {
+      "button": "Renvoyer",
+      "sent": "Nous avons envoyé un nouveau lien. Consultez votre boîte de réception."
+    },
+    "verification_banner": {
+      "message": "Vérifiez votre e-mail : nous avons envoyé un lien à {{email}}."
+    },
+    "suspension_notice": {
+      "message": "Vos moniteurs démarreront une fois votre e-mail vérifié.",
+      "member_message": "Les moniteurs de cet espace de travail démarreront une fois que son propriétaire aura vérifié son e-mail."
     }
   },
   "bars": {
@@ -73,6 +382,7 @@
     "no_tags_available": "Aucun tag disponible",
     "please_refresh_page": "Veuillez actualiser la page.",
     "required": "Obligatoire",
+    "retry": "Réessayer",
     "save": "Enregistrer",
     "saving": "Sauvegarde en cours...",
     "search": "Rechercher",
@@ -124,6 +434,33 @@
       "password_required": "Le mot de passe est requis",
       "password_min_length": "Le mot de passe doit contenir au moins 8 caractères",
       "passwords_mismatch": "Les mots de passe ne correspondent pas"
+    }
+  },
+  "invite": {
+    "accept": "Accepter l'invitation",
+    "accepting": "Adhésion...",
+    "creating": "Création...",
+    "description": "Vous êtes invité à rejoindre {{workspace}} en tant que {{role}}.",
+    "enter_failed": "Vous avez rejoint l'espace de travail, mais son ouverture a échoué. Réessayez.",
+    "errors": {
+      "other_email": "Cette invitation est destinée à une autre adresse e-mail."
+    },
+    "for_email": "Cette invitation est destinée à {{email}}.",
+    "have_account": "Vous avez déjà un compte ?",
+    "open_app": "Ouvrir Peekaping",
+    "other_account": "Vous êtes connecté en tant que {{current}}, mais cette invitation est destinée à {{invited}}. Déconnectez-vous, puis connectez-vous ou inscrivez-vous avec {{invited}} pour l'accepter.",
+    "sign_in_instead": "Se connecter à la place",
+    "sign_out": "Se déconnecter",
+    "signup_description": "Choisissez un mot de passe pour créer votre compte et rejoindre {{workspace}} en tant que {{role}}.",
+    "signup_submit": "Créer le compte et rejoindre",
+    "title": "Rejoindre {{workspace}}",
+    "unavailable": {
+      "accepted": "Cette invitation a déjà été utilisée.",
+      "expired": "Cette invitation a expiré. Demandez-en une nouvelle.",
+      "not_found": "Ce lien d'invitation n'existe pas. Vérifiez que vous l'avez copié en entier.",
+      "revoked": "Cette invitation a été révoquée. Demandez-en une nouvelle.",
+      "title": "Cette invitation ne peut pas être utilisée",
+      "unknown": "Cette invitation ne peut pas être utilisée. Demandez-en une nouvelle."
     }
   },
   "maintenance": {
@@ -231,6 +568,79 @@
       "wed": "Mer."
     }
   },
+  "members": {
+    "change_role_aria": "Modifier le rôle de {{email}}",
+    "errors": {
+      "account_exists": "Un compte avec cet e-mail existe déjà. Connectez-vous et acceptez l'invitation.",
+      "already_member": "Cette personne est déjà membre de cet espace de travail.",
+      "forbidden": "Votre rôle dans cet espace de travail ne permet pas cette action.",
+      "generic": "Une erreur s'est produite. Veuillez réessayer.",
+      "last_owner": "Un espace de travail doit avoir au moins un propriétaire.",
+      "member_not_found": "Ce membre n'est plus dans l'espace de travail."
+    },
+    "invite": {
+      "copied": "Lien copié",
+      "copy": "Copier",
+      "creating": "Création...",
+      "description": "Créez un lien pour une adresse e-mail et un rôle. Aucun e-mail n'est envoyé : copiez le lien et envoyez-le vous-même.",
+      "done": "Terminé",
+      "email_label": "E-mail",
+      "link_note": "Ce lien ne fonctionne qu'une fois et expire dans 7 jours. Il n'est affiché que maintenant, copiez-le donc avant de quitter cette page.",
+      "link_title": "Lien d'invitation",
+      "role_label": "Rôle",
+      "submit": "Créer un lien d'invitation",
+      "title": "Inviter quelqu'un"
+    },
+    "leave": {
+      "button": "Quitter l'espace de travail",
+      "confirm": "Quitter",
+      "description": "Vous perdez immédiatement l'accès à cet espace de travail et à ses données.",
+      "done": "Vous avez quitté l'espace de travail",
+      "last_owner": "Vous êtes le dernier propriétaire, vous ne pouvez donc pas partir. Nommez d'abord un autre membre propriétaire.",
+      "refresh_failed": "Vous avez quitté l'espace de travail, mais le chargement de vos espaces de travail a échoué. Réessayez.",
+      "title": "Quitter cet espace de travail"
+    },
+    "list": {
+      "description": "Toutes les personnes qui travaillent dans cet espace de travail, et leur rôle.",
+      "email": "E-mail",
+      "joined": "Rejoint le",
+      "role": "Rôle",
+      "title": "Membres",
+      "you": "vous"
+    },
+    "page_name": "Membres",
+    "pending": {
+      "description": "Invitations pas encore utilisées. Le lien d'une invitation révoquée cesse de fonctionner.",
+      "email": "E-mail",
+      "empty": "Aucune invitation en attente.",
+      "expired": "Expirée",
+      "expires": "Expire le",
+      "revoke": "Révoquer",
+      "revoke_aria": "Révoquer l'invitation de {{email}}",
+      "revoked": "Invitation révoquée",
+      "role": "Rôle",
+      "title": "Invitations en attente"
+    },
+    "remove": "Retirer",
+    "remove_aria": "Retirer {{email}}",
+    "remove_dialog": {
+      "confirm": "Retirer",
+      "description": "{{email}} perd immédiatement l'accès à cet espace de travail.",
+      "title": "Retirer le membre"
+    },
+    "removed": "Membre retiré",
+    "role_updated": "Rôle mis à jour",
+    "roles": {
+      "admin": "Administrateur",
+      "member": "Membre",
+      "owner": "Propriétaire"
+    },
+    "settings_card": {
+      "description": "Voyez qui travaille dans cet espace de travail et, si vous êtes administrateur ou propriétaire, invitez des personnes et gérez leurs rôles.",
+      "open": "Ouvrir les membres",
+      "title": "Membres"
+    }
+  },
   "messages": {
     "login_error": "Une erreur s'est produite lors de la connexion",
     "login_no_tokens": "Connexion réussie mais aucun jeton reçu",
@@ -258,6 +668,7 @@
     },
     "empty_state": {
       "action": "Créez votre premier moniteur",
+      "add_channel": "Ajouter un canal de notification",
       "description": "Commencez par créer votre premier moniteur pour surveiller la santé de vos services.",
       "title": "Aucun moniteur trouvé"
     },
@@ -500,6 +911,7 @@
       "shared": {
         "intervals": {
           "heartbeat_retry": "Intervalle de réessai du heartbeat (Réessayer toutes les {{seconds}} secondes)",
+          "interval_too_short": "Ne peut pas être inférieur à {{minimum}} secondes",
           "max_retries_description": "Nombre maximal de tentatives avant que le service soit considéré comme hors service et qu'une notification soit envoyée",
           "request_timeout": "Expiration de la requête (Timeout après {{seconds}} secondes)",
           "resend_notification": "Renvoyer la notification si en panne X fois de suite (renvoi désactivé)",
@@ -542,6 +954,10 @@
           "select_proxy_placeholder": "Sélectionner un proxy",
           "selected_proxy": "Proxy sélectionné",
           "title": "Proxy"
+        },
+        "run_from": {
+          "default_locations": "S'exécute depuis les emplacements par défaut",
+          "label": "Exécuter depuis"
         },
         "tags": {
           "label": "Étiquettes",
@@ -649,9 +1065,12 @@
     "toasts": {
       "deleted": "Moniteur supprimé",
       "paused": "Surveillance interrompue",
+      "push_token_already_used": "Un autre moniteur utilise déjà ce jeton push. Générez-en un nouveau.",
       "reset_success": "Réinitialisation des données du moniteur réussie",
       "resumed": "Surveillance reprise"
     },
+    "type_disabled": "Le type {{type}} est désactivé sur cette installation",
+    "over_limit": "Non vérifié : l'espace de travail a plus de moniteurs actifs que sa limite ne le permet",
     "view": {
       "buttons": {
         "clone": "Cloner",
@@ -712,6 +1131,7 @@
     }
   },
   "navigation": {
+    "admin": "Administration",
     "maintenance": "Maintenance",
     "monitors": "Moniteurs",
     "notification_channels": "Canaux de notification",
@@ -1124,6 +1544,12 @@
         "signing_secret_docs_link": "Comment vérifier la signature",
         "signing_secret_label": "Secret de signature",
         "signing_secret_placeholder": "Laissez vide pour envoyer des requêtes non signées"
+      },
+      "install_email": {
+        "description": "Envoyé par cette installation, aucun serveur SMTP n'est nécessaire.",
+        "to_description": "Un membre de cet espace de travail. Les notifications sont envoyées une fois qu'il a vérifié l'adresse.",
+        "to_label": "Destinataire",
+        "to_placeholder": "Choisissez un membre"
       }
     },
     "important": "Notifications importantes",
@@ -1142,7 +1568,8 @@
       "updated_success": "Notificateur mis à jour avec succès"
     },
     "new": {
-      "title": "Nouveau canal de notification"
+      "title": "Nouveau canal de notification",
+      "default_hint": "Ce canal sera coché sur les nouveaux moniteurs."
     },
     "no_important": "Aucune notification importante trouvée.",
     "placeholders": {
@@ -1152,11 +1579,21 @@
     "secret": {
       "reenter_error": "Saisissez à nouveau ce secret ou retirez-le : la destination d'envoi a changé",
       "reenter_hint": "Saisissez à nouveau ce secret : la destination d'envoi a changé",
+      "reenter_url_error": "Saisissez à nouveau les identifiants de cette URL : l'URL a changé depuis son enregistrement",
       "remove": "Retirer",
       "saved_hint": "Enregistré — saisissez pour remplacer"
     }
   },
   "probes": {
+    "default": {
+      "description": "Un moniteur créé sans choix de sondes s'exécute sur les sondes par défaut qui ne sont pas désactivées et qui prennent en charge son type, et sur la sonde locale si aucune ne convient. Les moniteurs existants conservent leurs sondes.",
+      "failed": "Impossible de modifier le statut par défaut de la sonde.",
+      "label": "Sonde par défaut",
+      "off": "{{name}} n'est plus une sonde par défaut",
+      "on": "{{name}} est maintenant une sonde par défaut",
+      "title": "Par défaut pour les nouveaux moniteurs"
+    },
+    "default_badge": "Par défaut",
     "page_name": "Sondes",
     "description": "Les sondes exécutent les vérifications des moniteurs depuis les endroits où elles sont installées. La sonde locale est Peekaping lui-même.",
     "local_name": "Locale",
@@ -1438,7 +1875,9 @@
     "data_retention": {
       "days_label": "Jours",
       "description": "Définissez le nombre de jours de conservation des données (KEEP_DATA_PERIOD_DAYS).",
-      "title": "Période de conservation des données"
+      "read_only": "Seul un administrateur ou le propriétaire de l'espace de travail peut modifier ceci.",
+      "title": "Période de conservation des données",
+      "capped": "Jusqu'à {{max}} jours dans cet espace de travail"
     },
     "error_reporting": {
       "cluster_note": "En mode cluster, un changement atteint tous les processus en moins d'une minute.",
@@ -1464,6 +1903,10 @@
     },
     "validation": {
       "min_days": "Doit être d'au moins 1 jour"
+    },
+    "workspace_name": {
+      "description": "Le nom affiché dans le sélecteur d'espace de travail et pour ses membres.",
+      "title": "Nom de l'espace de travail"
     }
   },
   "status": {
@@ -1479,6 +1922,7 @@
       "refresh_in": "Actualiser dans",
       "refresh_now": "Actualiser maintenant",
       "status_page_not_found": "Page d'état non trouvée ou non publiée.",
+      "status_page_unavailable": "Cette page d'état est indisponible",
       "under_maintenance": "En maintenance",
       "unknown": "Inconnu"
     }
@@ -1522,6 +1966,7 @@
     "search_placeholder": "Rechercher des pages d'état par titre...",
     "show_locations": "Afficher chaque emplacement",
     "show_locations_info": "Pour les moniteurs vérifiés depuis plusieurs emplacements, affiche l'état et l'historique de chacun",
+    "slug_already_used": "Une autre page d'état utilise déjà cette adresse",
     "update_status_page": "Mettre à jour la page de statut",
     "view_page": "Afficher la page"
   },
@@ -1587,5 +2032,93 @@
   "ui": {
     "general": "Général",
     "intervals_retries": "Intervalles, Réessais, Timeout"
+  },
+  "workspaces": {
+    "create": "Créer l'espace de travail",
+    "create_error": "Échec de la création de l'espace de travail",
+    "create_first": "Créer un espace de travail",
+    "creating": "Création...",
+    "enter": "Ouvrir l'espace de travail",
+    "entering": "Ouverture...",
+    "entry_failed": "L'espace de travail a été créé, mais son ouverture a échoué. Réessayez.",
+    "name_label": "Nom",
+    "name_placeholder": "Mon équipe",
+    "name_required": "Saisissez un nom",
+    "new": "Nouvel espace de travail",
+    "new_description": "Un espace de travail a ses propres moniteurs, canaux de notification, pages d'état et membres. Vous en serez le propriétaire.",
+    "new_title": "Nouvel espace de travail",
+    "none_description": "Votre compte n'est membre d'aucun espace de travail, il n'y a donc rien à afficher ici. Demandez à une personne qui gère un espace de travail de vous y ajouter.",
+    "none_title": "Vous n'êtes encore dans aucun espace de travail",
+    "refresh_failed": "Impossible de charger vos espaces de travail. Vérifiez votre connexion et réessayez.",
+    "rename_error": "Échec du renommage de l'espace de travail",
+    "rename_success": "Espace de travail renommé",
+    "suspended_banner": {
+      "contact": "Pour prendre contact :",
+      "message": "Cet espace de travail est suspendu par l'administrateur de cette installation. Ses moniteurs ne s'exécutent pas et ses pages d'état sont indisponibles.",
+      "no_contact": "Contactez la personne qui gère cette installation."
+    },
+    "switcher_label": "Changer d'espace de travail"
+  },
+  "get_started": {
+    "page_name": "Premiers pas",
+    "skip": "Passer la configuration",
+    "step_of": "Étape {{current}} sur {{total}}",
+    "name": {
+      "description": "Vos moniteurs, canaux de notification et pages de statut se trouvent ici. Vous pourrez le renommer plus tard dans les Paramètres.",
+      "title": "Nommez votre espace de travail"
+    },
+    "monitor": {
+      "create": "Créer le moniteur",
+      "create_failed": "Échec de la création du moniteur",
+      "creating": "Création...",
+      "description": "Saisissez l'adresse d'un site web ou d'une API. Peekaping la vérifie et vous prévient quand elle cesse de répondre.",
+      "full_form": "Ou configurez un moniteur avec toutes les options",
+      "title": "Ajoutez votre premier moniteur",
+      "url_invalid": "Saisissez une adresse qui commence par http:// ou https://",
+      "url_label": "Adresse à surveiller"
+    },
+    "channel": {
+      "continue_unlinked": "Continuer sans associer",
+      "description": "Choisissez où Peekaping envoie une alerte quand votre moniteur tombe. Il deviendra le canal par défaut des nouveaux moniteurs.",
+      "link_failed": "Le canal a été enregistré, mais son association à votre moniteur a échoué. Ajoutez-le depuis la page de modification du moniteur.",
+      "retry_link": "Réessayer l'association",
+      "title": "Soyez prévenu"
+    },
+    "done": {
+      "description": "Peekaping surveille votre service. Voici ce que vous pouvez faire ensuite.",
+      "title": "Tout est prêt",
+      "unverified": "Votre moniteur démarrera une fois votre adresse e-mail vérifiée. Cherchez le lien de vérification dans votre boîte de réception.",
+      "links": {
+        "members": "Inviter votre équipe",
+        "monitor": "Ouvrir votre moniteur",
+        "monitors": "Aller aux moniteurs",
+        "probes": "Gérer les sondes",
+        "status_pages": "Publier une page d'état"
+      }
+    }
+  },
+  "limits": {
+    "reached": {
+      "monitors": "Cet espace de travail peut avoir au plus {{max}} moniteurs en cours d'exécution",
+      "status_pages": "Cet espace de travail peut avoir au plus {{max}} pages d'état",
+      "custom_domains": "Les pages d'état de cet espace de travail peuvent avoir au plus {{max}} domaines personnalisés au total",
+      "members": "Cet espace de travail peut avoir au plus {{max}} membres, invitations en attente comprises",
+      "owned_workspaces": "Vous pouvez posséder au plus {{max}} espaces de travail",
+      "probes": "Un moniteur de cet espace de travail peut s'exécuter sur au plus {{max}} sondes",
+      "retention_days": "Cet espace de travail peut conserver les données au plus {{max}} jours"
+    },
+    "names": {
+      "monitors": "Moniteurs actifs",
+      "min_check_interval": "Intervalle de vérification le plus court (secondes)",
+      "status_pages": "Pages d'état",
+      "custom_domains": "Domaines personnalisés",
+      "members": "Membres",
+      "owned_workspaces": "Espaces de travail qu'un utilisateur peut posséder",
+      "probes_per_monitor": "Sondes par moniteur",
+      "retention_days": "Conservation des données (jours)"
+    },
+    "none": "Aucune limite",
+    "invalid": "Saisissez un nombre entier supérieur ou égal à 1, ou laissez le champ vide pour ne pas avoir de limite.",
+    "retention_too_long": "Ne peut pas dépasser {{max}} jours"
   }
 }

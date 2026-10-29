@@ -104,7 +104,7 @@ type fakeSource struct {
 	mu     sync.Mutex
 }
 
-func (s *fakeSource) FindActiveByProbe(_ context.Context, probeID string) ([]*monitor.Model, error) {
+func (s *fakeSource) FindActiveByProbeAnyWorkspace(_ context.Context, probeID string) ([]*monitor.Model, error) {
 	s.mu.Lock()
 	s.calls++
 	s.mu.Unlock()
@@ -122,7 +122,7 @@ type fakeMonitors struct {
 	finds []string
 }
 
-func (m *fakeMonitors) FindByID(_ context.Context, id string) (*monitor.Model, error) {
+func (m *fakeMonitors) FindByIDAnyWorkspace(_ context.Context, id string) (*monitor.Model, error) {
 	m.finds = append(m.finds, id)
 	return m.byID[id], m.err
 }
@@ -133,7 +133,7 @@ type fakeMaintenance struct {
 	under map[string]bool
 }
 
-func (f *fakeMaintenance) GetMaintenancesByMonitorID(_ context.Context, monitorID string) ([]*maintenance.Model, error) {
+func (f *fakeMaintenance) GetMaintenancesByMonitorIDAnyWorkspace(_ context.Context, monitorID string) ([]*maintenance.Model, error) {
 	if f.under[monitorID] {
 		return []*maintenance.Model{{ID: "window-of-" + monitorID}}, nil
 	}
@@ -354,6 +354,31 @@ func TestResults_AcceptsAResultOfAMonitorTheListingSkipped(t *testing.T) {
 	require.Len(t, s.ingest.storedFor(monSkipped), 1)
 	assert.Equal(t, "Skipped", s.ingest.storedFor(monSkipped)[0].MonitorName, "it is stored with the monitor's own settings")
 	assert.Equal(t, []string{monSkipped}, s.monitors.finds)
+}
+
+// A result a probe sends for a monitor whose workspace was suspended since it was dealt is dropped
+// for good, as a monitor that is no longer its own is (PP-155)
+func TestResults_RejectsAResultOfAMonitorWhoseWorkspaceIsSuspended(t *testing.T) {
+	s := newResultsServer(t)
+	s.monitors.byID[monSkipped].WorkspaceSuspended = true
+	start := time.Now().UTC().Add(-time.Minute)
+
+	got := s.results(t, checkResult("held", monSkipped, start), checkResult("control", monCheckout, start.Add(time.Second)))
+
+	assert.Equal(t, []probeproto.ResultOutcome{rejected("held", probeproto.ReasonNotAssigned), accepted("control")}, got)
+	assert.Empty(t, s.ingest.storedFor(monSkipped))
+}
+
+// The same goes for a monitor whose type the install turned off since it was dealt (PP-157)
+func TestResults_RejectsAResultOfAMonitorWhoseTypeIsDisabled(t *testing.T) {
+	s := newResultsServer(t)
+	s.monitors.byID[monSkipped].TypeDisabled = true
+	start := time.Now().UTC().Add(-time.Minute)
+
+	got := s.results(t, checkResult("held", monSkipped, start), checkResult("control", monCheckout, start.Add(time.Second)))
+
+	assert.Equal(t, []probeproto.ResultOutcome{rejected("held", probeproto.ReasonNotAssigned), accepted("control")}, got)
+	assert.Empty(t, s.ingest.storedFor(monSkipped))
 }
 
 // An instance can be replaced to make room for a new one, or pruned, between the middleware's stamp

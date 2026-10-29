@@ -3,7 +3,7 @@ import { withSavedSecret } from "../../secrets";
 
 export const webhookSchema = z.object({
   type: z.literal("webhook"),
-  webhook_url: z.string().url({ message: "Valid URL is required" }),
+  webhook_url: withSavedSecret(z.string().url({ message: "Valid URL is required" })),
   webhook_content_type: z.enum(["json", "form-data", "custom"]),
   webhook_custom_body: z.string().optional(),
   webhook_additional_headers: withSavedSecret(z.string()).optional(),

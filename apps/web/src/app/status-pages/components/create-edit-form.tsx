@@ -30,7 +30,9 @@ import {
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { commonMutationErrorHandler } from "@/lib/utils";
+import { showLimitReached } from "@/lib/limit-errors";
 import type { AxiosError } from "axios";
+import { useWorkspacePath } from "@/hooks/useWorkspacePath";
 
 const statusPageSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -65,6 +67,11 @@ type DomainAlreadyUsedError = {
   domain: string;
 };
 
+type SlugAlreadyUsedError = {
+  code: "SLUG_EXISTS";
+  slug: string;
+};
+
 const statusPageDefaultValues: StatusPageFormValues = {
   title: "",
   slug: "",
@@ -89,6 +96,7 @@ const CreateEditForm = ({
 }) => {
   const { t } = useLocalizedTranslation();
   const navigate = useNavigate();
+  const workspacePath = useWorkspacePath();
   const queryClient = useQueryClient();
   const [domainToHighlight, setDomainToHighlight] = useState<string | undefined>(undefined);
 
@@ -97,10 +105,11 @@ const CreateEditForm = ({
     resolver: zodResolver(statusPageSchema),
   });
 
-  const handleMutationError = (error: AxiosError<{error: DomainAlreadyUsedError}>) => {
+  const handleMutationError = (error: AxiosError<{error: DomainAlreadyUsedError | SlugAlreadyUsedError}>) => {
     // Fallback toast
     const fallbackMessage = mode === "create" ? "Failed to create status page" : "Failed to update status page";
-    commonMutationErrorHandler(fallbackMessage)(error);
+    // Too many status pages, or custom domains across them
+    showLimitReached(t, commonMutationErrorHandler(fallbackMessage))(error);
     
     // Handle structured error response
     const errorData = error.response?.data?.error;
@@ -114,6 +123,10 @@ const CreateEditForm = ({
         setDomainToHighlight(errorData.domain);
       }
     }
+
+    if (errorData?.code === "SLUG_EXISTS") {
+      form.setError("slug", { message: t("status_pages.slug_already_used") });
+    }
   };
 
   const createStatusPageMutation = useMutation({
@@ -123,7 +136,7 @@ const CreateEditForm = ({
       queryClient.invalidateQueries({
         queryKey: getStatusPagesInfiniteQueryKey(),
       });
-      navigate("/status-pages");
+      navigate(workspacePath("/status-pages"));
     },
     onError: handleMutationError,
   });
@@ -140,14 +153,14 @@ const CreateEditForm = ({
       queryClient.removeQueries({
         queryKey: getStatusPagesByIdQueryKey({ path: { id: id! } }),
       });
-      navigate("/status-pages");
+      navigate(workspacePath("/status-pages"));
     },
     onError: handleMutationError,
   });
 
   const handleSubmit = (data: StatusPageFormValues) => {
     // Clear previous errors
-    form.clearErrors("domains");
+    form.clearErrors(["domains", "slug"]);
     setDomainToHighlight(undefined);
     
     const { monitors, ...rest } = data;

@@ -3,12 +3,12 @@
   "private": true,
   "workspaces": ["apps/*"],
   "scripts": {
-    "build": "turbo run build",
-    "dev": "turbo run dev",
-    "dev:api": "turbo run dev:api",
-    "dev:probe": "turbo run dev:probe",
-    "lint": "turbo run lint",
-    "check-types": "turbo run check-types",
+    "build": "bun run --filter '*' build",
+    "dev": "concurrently --kill-others-on-fail --names web,api,probe,openapi,docs --prefix-colors auto \"bun run --cwd apps/web dev\" \"bun run dev:api\" \"bun run dev:probe\" \"bun run --cwd apps/server docs:watch\" \"bun run --cwd apps/docs dev\"",
+    "dev:api": "bun run --cwd apps/server dev:api",
+    "dev:probe": "bun run --cwd apps/server dev:probe",
+    "lint": "bun run --filter '*' lint",
+    "check-types": "bun run --filter '*' check-types",
     "e2e": "playwright test",
     "api:generate": "bun run --filter server docs:generate && bun run --filter web gen",
     "api:validate": "redocly lint apps/server/docs/openapi.json",
@@ -18,9 +18,9 @@
     "@playwright/test": "^1.53.1",
     "@redocly/cli": "1.34.3",
     "@types/node": "22.15.17",
+    "concurrently": "^10.0.6",
     "nodemon": "^3.1.10",
-    "prettier": "3.6.2",
-    "turbo": "^2.5.4"
+    "prettier": "3.6.2"
   },
   "packageManager": "bun@1.4.3",
   "engines": {

@@ -29,6 +29,16 @@ type ProbeInfo struct {
 type ProbeLookup interface {
 	// FindProbe returns nil when there is no such probe
 	FindProbe(ctx context.Context, id string) (*ProbeInfo, error)
+	// FindDefaultProbes returns the probes an instance admin marked as default that are not
+	// disabled, the local probe first. A monitor created without probes runs on those that run its
+	// type.
+	FindDefaultProbes(ctx context.Context) ([]*DefaultProbe, error)
+}
+
+// DefaultProbe is a probe that monitors created without choosing probes run on
+type DefaultProbe struct {
+	ID string
+	ProbeInfo
 }
 
 // currentProbeIDs are the probes a monitor runs on. One read without its probes runs on the local
@@ -38,6 +48,37 @@ func currentProbeIDs(m *Model) []string {
 		return []string{shared.LocalProbeID}
 	}
 	return m.ProbeIDs
+}
+
+// defaultProbeIDs are the probes a monitor of the type runs on when its creation chose none: the
+// default probes that run the type. A push monitor runs on the local probe alone. It returns nil
+// when no default probe fits, and the monitor then runs on the local probe, as it does on an
+// install that has no default probes.
+func (mr *MonitorServiceImpl) defaultProbeIDs(ctx context.Context, monitorType string) ([]string, error) {
+	if mr.probes == nil {
+		return nil, nil
+	}
+	defaults, err := mr.probes.FindDefaultProbes(ctx)
+	if errors.Is(err, ErrNoProbes) {
+		// Without probes the local one is all there is
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	var ids []string
+	for _, p := range defaults {
+		switch {
+		case monitorType == pushType:
+			if p.ID != shared.LocalProbeID {
+				continue
+			}
+		case len(p.SupportedTypes) > 0 && !slices.Contains(p.SupportedTypes, monitorType):
+			continue
+		}
+		ids = append(ids, p.ID)
+	}
+	return ids, nil
 }
 
 // validateProbes checks that a monitor of the type can run on the probes: it has one or more,

@@ -17,7 +17,7 @@ on:
 
 jobs:
   deploy-demo:
-    runs-on: nexus-runner
+    runs-on: ubuntu-latest
     steps:
       - name: Deploy to Demo Environment
         continue-on-error: ${{ github.event_name == 'workflow_call' }}

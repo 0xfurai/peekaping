@@ -25,14 +25,14 @@ type fakeMonitors struct {
 	byID   map[string]*shared.Monitor
 }
 
-func (m *fakeMonitors) FindActivePaginated(_ context.Context, page, _ int) ([]*shared.Monitor, error) {
+func (m *fakeMonitors) FindActivePaginatedAnyWorkspace(_ context.Context, page, _ int) ([]*shared.Monitor, error) {
 	if page == 0 {
 		return m.active, nil
 	}
 	return nil, nil
 }
 
-func (m *fakeMonitors) FindByID(_ context.Context, id string) (*shared.Monitor, error) {
+func (m *fakeMonitors) FindByIDAnyWorkspace(_ context.Context, id string) (*shared.Monitor, error) {
 	return m.byID[id], nil
 }
 
@@ -293,6 +293,38 @@ func TestWatchdog_ForgetsMonitorsThatWerePausedOrDeleted(t *testing.T) {
 	require.NoError(t, err)
 	assert.Zero(t, count)
 	assert.Empty(t, f.published(MonitorStaleRecovered), "a paused monitor wasn't checked again")
+}
+
+func TestWatchdog_ForgetsAMonitorWhoseWorkspaceWasSuspended(t *testing.T) {
+	now := time.Date(2026, 10, 18, 12, 0, 0, 0, time.UTC)
+	f := newWatchdogFixture(t)
+	held := testMonitor("held", 60, 10, now.Add(-time.Hour))
+	held.WorkspaceSuspended = true
+	f.monitors.byID["held"] = held // the paged listing leaves it out, and the read by id says why
+	require.NoError(t, f.store.Put(context.Background(), Entry{MonitorID: "held", Since: now.Add(-time.Hour), DetectedAt: now.Add(-time.Minute), Notified: true}))
+
+	f.run(t)
+
+	count, err := f.store.Count(context.Background())
+	require.NoError(t, err)
+	assert.Zero(t, count)
+	assert.Empty(t, f.published(MonitorStaleRecovered), "a suspended monitor wasn't checked again")
+}
+
+func TestWatchdog_ForgetsAMonitorWhoseTypeWasDisabled(t *testing.T) {
+	now := time.Date(2026, 10, 18, 12, 0, 0, 0, time.UTC)
+	f := newWatchdogFixture(t)
+	held := testMonitor("held", 60, 10, now.Add(-time.Hour))
+	held.TypeDisabled = true
+	f.monitors.byID["held"] = held // the paged listing leaves it out, and the read by id says why
+	require.NoError(t, f.store.Put(context.Background(), Entry{MonitorID: "held", Since: now.Add(-time.Hour), DetectedAt: now.Add(-time.Minute), Notified: true}))
+
+	f.run(t)
+
+	count, err := f.store.Count(context.Background())
+	require.NoError(t, err)
+	assert.Zero(t, count)
+	assert.Empty(t, f.published(MonitorStaleRecovered), "a monitor of a disabled type wasn't checked again")
 }
 
 func TestWatchdog_SavingANotifiedMonitorIsNotARecovery(t *testing.T) {
@@ -661,12 +693,12 @@ type stopsOnRead struct {
 	heartbeatReads int
 }
 
-func (s *stopsOnRead) FindActivePaginated(ctx context.Context, page, limit int) ([]*shared.Monitor, error) {
+func (s *stopsOnRead) FindActivePaginatedAnyWorkspace(ctx context.Context, page, limit int) ([]*shared.Monitor, error) {
 	if s.failOnMonitors {
 		s.cancel()
 		return nil, ctx.Err()
 	}
-	return s.fakeMonitors.FindActivePaginated(ctx, page, limit)
+	return s.fakeMonitors.FindActivePaginatedAnyWorkspace(ctx, page, limit)
 }
 
 func (s *stopsOnRead) FindByMonitorIDPaginated(ctx context.Context, _ string, _, _ int, _ *bool, _ bool) ([]*shared.HeartBeatModel, error) {

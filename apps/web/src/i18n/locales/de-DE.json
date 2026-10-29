@@ -3,22 +3,292 @@
     "cancel": "Abbrechen",
     "saving": "Speichern..."
   },
+  "admin": {
+    "nav": {
+      "back_to_workspace": "Zurück zu {{name}}",
+      "probes": "Sonden",
+      "title": "Administration",
+      "users": "Benutzer",
+      "workspaces": "Arbeitsbereiche",
+      "settings": "Einstellungen"
+    },
+    "users": {
+      "actions": {
+        "delete": "Benutzer löschen",
+        "disable": "Benutzer deaktivieren",
+        "disableTwoFactor": "2FA ausschalten",
+        "enable": "Benutzer aktivieren",
+        "grantAdmin": "Zum Instanz-Admin machen",
+        "resetLink": "Link zum Zurücksetzen erstellen",
+        "revokeAdmin": "Instanz-Admin entziehen"
+      },
+      "actions_aria": "Aktionen für {{email}}",
+      "columns": {
+        "created": "Erstellt",
+        "email": "E-Mail",
+        "email_verified": "E-Mail bestätigt",
+        "instance_admin": "Instanz-Admin",
+        "last_sign_in": "Letzte Anmeldung",
+        "status": "Status",
+        "two_factor": "2FA",
+        "workspaces": "Arbeitsbereiche"
+      },
+      "confirm": {
+        "cancel": "Abbrechen",
+        "delete": {
+          "confirm": "Benutzer löschen",
+          "description": "{{email}} löschen? Das Konto wird entfernt, ebenso die Plätze in Arbeitsbereichen. Das lässt sich nicht rückgängig machen.",
+          "title": "Benutzer löschen"
+        },
+        "disable": {
+          "confirm": "Deaktivieren",
+          "description": "{{email}} kann sich nicht mehr anmelden und ist jetzt überall abgemeldet. Die Arbeitsbereiche laufen weiter. Sie können den Benutzer später wieder aktivieren.",
+          "title": "Benutzer deaktivieren"
+        },
+        "disableTwoFactor": {
+          "confirm": "2FA ausschalten",
+          "description": "{{email}} meldet sich dann nur noch mit dem Passwort an und kann 2FA erneut einrichten. Tun Sie das nur, wenn Sie sicher sind, dass die Person selbst darum bittet.",
+          "title": "2FA ausschalten"
+        }
+      },
+      "description": "Alle mit einem Konto auf dieser Installation. Instanz-Admins verwalten die Installation selbst, etwa Sonden und Benutzer. Die Rolle eines Benutzers in einem Arbeitsbereich legen die Inhaber dieses Arbeitsbereichs fest.",
+      "empty": "Keine Benutzer gefunden",
+      "errors": {
+        "last_instance_admin": "Die Installation braucht mindestens einen Instanz-Admin.",
+        "last_owner": "Der Benutzer ist der letzte Inhaber dieser Arbeitsbereiche: {{workspaces}}. Machen Sie zuerst jemand anderen zum Inhaber oder löschen Sie den Arbeitsbereich.",
+        "self": "Das geht mit dem eigenen Konto nicht."
+      },
+      "load_failed": "Die Benutzer konnten nicht geladen werden.",
+      "messages": {
+        "admin_granted": "{{email}} ist jetzt Instanz-Admin",
+        "admin_revoked": "{{email}} ist kein Instanz-Admin mehr",
+        "deleted": "{{email}} wurde gelöscht",
+        "disabled": "{{email}} ist deaktiviert und abgemeldet",
+        "enabled": "{{email}} ist aktiviert",
+        "two_factor_off": "2FA ist für {{email}} ausgeschaltet",
+        "update_failed": "Der Benutzer konnte nicht aktualisiert werden."
+      },
+      "never": "Nie",
+      "none": "Keine",
+      "page_name": "Benutzer",
+      "paging": {
+        "next": "Weiter",
+        "page": "Seite {{page}} von {{pages}}",
+        "previous": "Zurück"
+      },
+      "reset_link": {
+        "close": "Schließen",
+        "copied": "Link kopiert",
+        "copy": "Link kopieren",
+        "copy_failed": "Der Link konnte nicht kopiert werden. Markieren Sie ihn und kopieren Sie ihn von Hand.",
+        "description": "Ein Link, mit dem {{email}} ein neues Passwort wählt. Kopieren Sie ihn und geben Sie ihn jetzt weiter: Er wird nur einmal angezeigt.",
+        "emailed": "Diese Installation verschickt Konto-E-Mails, deshalb erfährt der Benutzer per E-Mail, dass ein Link für ihn erstellt wurde.",
+        "expires": "Der Link funktioniert nur einmal und läuft am {{when}} ab.",
+        "failed": "Der Link konnte nicht erstellt werden.",
+        "label": "Link",
+        "making": "Link wird erstellt...",
+        "signs_out": "Wird der Link benutzt, wird der Benutzer überall abgemeldet.",
+        "title": "Link zum Zurücksetzen des Passworts"
+      },
+      "search_label": "Benutzer nach E-Mail suchen",
+      "search_placeholder": "Nach E-Mail suchen",
+      "total": "{{total}} gefunden",
+      "values": {
+        "active": "Aktiv",
+        "disabled": "Deaktiviert",
+        "no": "Nein",
+        "two_factor_off": "Aus",
+        "two_factor_on": "An",
+        "yes": "Ja"
+      },
+      "you": "Sie"
+    },
+    "workspaces": {
+      "actions": {
+        "delete": "Arbeitsbereich löschen",
+        "resume": "Arbeitsbereich reaktivieren",
+        "suspend": "Arbeitsbereich sperren",
+        "limits": "Limits"
+      },
+      "actions_aria": "Aktionen für {{name}}",
+      "columns": {
+        "created": "Erstellt",
+        "custom_domains": "Eigene Domains",
+        "members": "Mitglieder",
+        "monitors": "Monitore",
+        "name": "Name",
+        "owners": "Inhaber",
+        "status": "Status",
+        "status_pages": "Statusseiten",
+        "limits": "Limits"
+      },
+      "confirm": {
+        "cancel": "Abbrechen",
+        "delete": {
+          "confirm": "Arbeitsbereich löschen",
+          "description": "{{name}} löschen? Alles darin wird entfernt: die Monitore und ihr Verlauf, Statusseiten, Benachrichtigungskanäle und der Zugriff der Mitglieder. Das lässt sich nicht rückgängig machen.",
+          "name_label": "Geben Sie zur Bestätigung den Namen des Arbeitsbereichs ein: {{name}}",
+          "title": "Arbeitsbereich löschen"
+        },
+        "resume": {
+          "confirm": "Reaktivieren",
+          "description": "Die Monitore von {{name}} laufen wieder in dem Zustand, den sie hatten, und die Mitglieder können den Arbeitsbereich wie zuvor nutzen. Ein Arbeitsbereich, der auf die E-Mail-Bestätigung seines Inhabers wartet, wartet weiter.",
+          "title": "Arbeitsbereich reaktivieren"
+        },
+        "suspend": {
+          "confirm": "Sperren",
+          "description": "Die Monitore von {{name}} laufen nicht mehr, die öffentlichen Statusseiten melden, dass sie nicht verfügbar sind, und die Mitglieder sehen, dass der Arbeitsbereich gesperrt ist. Nichts wird gelöscht, und Sie können ihn später reaktivieren.",
+          "title": "Arbeitsbereich sperren"
+        }
+      },
+      "description": "Alle Arbeitsbereiche auf dieser Installation mit ihren Inhabern, ihren Mitgliedern und ihrem Umfang. Es werden nur Anzahlen angezeigt, nichts aus dem Inhalt eines Arbeitsbereichs.",
+      "empty": "Keine Arbeitsbereiche gefunden",
+      "load_failed": "Die Arbeitsbereiche konnten nicht geladen werden.",
+      "messages": {
+        "deleted": "{{name}} wurde gelöscht",
+        "failed": "Der Arbeitsbereich konnte nicht geändert werden.",
+        "resumed": "{{name}} ist wieder aktiv",
+        "suspended": "{{name}} ist gesperrt"
+      },
+      "monitors": "{{active}} aktiv, {{paused}} pausiert",
+      "none": "Keine",
+      "page_name": "Arbeitsbereiche",
+      "paging": {
+        "next": "Weiter",
+        "page": "Seite {{page}} von {{pages}}",
+        "previous": "Zurück"
+      },
+      "search_label": "Arbeitsbereiche nach Name oder E-Mail des Inhabers suchen",
+      "search_placeholder": "Nach Name oder E-Mail des Inhabers suchen",
+      "status": {
+        "running": "Läuft",
+        "suspended_admin": "Von einem Admin gesperrt",
+        "suspended_unverified": "Gesperrt, bis der Inhaber seine E-Mail bestätigt"
+      },
+      "total": "{{total}} gefunden",
+      "limits": {
+        "item": "{{name}}: {{value}}",
+        "more": "+{{number}} weitere",
+        "unlimited": "Keine Limits",
+        "source": {
+          "workspace": "Eigene",
+          "install": "Standard der Installation",
+          "none": "Nicht festgelegt"
+        },
+        "dialog": {
+          "title": "Limits von {{name}}",
+          "description": "Woran dieser Arbeitsbereich gebunden ist. Ein niedrigeres Limit pausiert und löscht nichts: Die neuesten Monitore über dem Limit laufen nicht mehr, bis wieder Platz ist.",
+          "own": "Eigene Limits",
+          "own_help": "Sie ersetzen die Standardlimits der Installation. Lassen Sie ein Limit leer, wenn es keins geben soll.",
+          "unlimited": "Keine Limits",
+          "unlimited_help": "Überhaupt kein Limit, egal was die Standardlimits der Installation sagen.",
+          "defaults": "Standardlimits der Installation verwenden",
+          "defaults_help": "Die Standardlimits unter Administration → Einstellungen, oder keine, wenn die Installation keine festlegt.",
+          "save": "Limits speichern",
+          "cancel": "Abbrechen",
+          "saved": "Die Limits von {{name}} wurden gespeichert",
+          "failed": "Die Limits konnten nicht gespeichert werden."
+        }
+      }
+    },
+    "settings": {
+      "page_name": "Einstellungen",
+      "description": "Einstellungen der gesamten Installation. Ein Wert, den die Umgebung des Servers setzt, ist hier gesperrt.",
+      "load_failed": "Die Einstellungen konnten nicht geladen werden.",
+      "saved": "Einstellungen gespeichert",
+      "save_failed": "Die Einstellungen wurden nicht gespeichert.",
+      "locked": "Von der Umgebung des Servers gesetzt",
+      "source": {
+        "environment": "Aus der Umgebung des Servers",
+        "saved": "Hier gespeichert",
+        "default": "Standard"
+      },
+      "signup": {
+        "title": "Registrierung",
+        "description": "Wer auf dieser Installation ein Konto erstellen darf.",
+        "label": "Registrierungsmodus",
+        "invite": "Nur mit Einladung",
+        "open": "Offen",
+        "invite_help": "Der erste Benutzer registriert sich, und alle weiteren treten einem Arbeitsbereich über eine Einladung bei.",
+        "open_help": "Jeder kann sich registrieren und erhält einen eigenen Arbeitsbereich. Neue Konten bestätigen ihre E-Mail-Adresse, daher wird ein E-Mail-Absender benötigt."
+      },
+      "sender": {
+        "title": "E-Mail-Absender",
+        "description": "Der SMTP-Server, der die Konto-E-Mails versendet: Links zum Zurücksetzen des Passworts, E-Mail-Bestätigung und Einladungen.",
+        "on": "Konto-E-Mails sind eingeschaltet.",
+        "off": "Konto-E-Mails sind ausgeschaltet: Es gibt keinen SMTP-Host.",
+        "host": "SMTP-Server",
+        "port": "Port",
+        "tls": "Sicherheit",
+        "tls_starttls": "STARTTLS",
+        "tls_tls": "TLS",
+        "tls_none": "Keine",
+        "user": "Benutzer",
+        "password": "Passwort",
+        "password_set": "Ein Passwort ist gesetzt. Tippen Sie, um es zu ersetzen.",
+        "password_not_set": "Kein Passwort gesetzt",
+        "password_removed": "Das Passwort wird beim Speichern entfernt.",
+        "password_reenter": "Wenn Sie Host, Port, Sicherheit oder Benutzer ändern, wird das gespeicherte Passwort entfernt. Geben Sie es erneut ein.",
+        "remove_password": "Passwort entfernen",
+        "keep_password": "Passwort behalten",
+        "from": "Absenderadresse"
+      },
+      "public_url": {
+        "title": "Öffentliche URL",
+        "description": "Die Adresse der Web-App, die die Links in E-Mails und Benachrichtigungen öffnen.",
+        "label": "Öffentliche URL"
+      },
+      "test_email": {
+        "title": "Test-E-Mail senden",
+        "description": "Sendet eine kurze E-Mail über den gespeicherten Absender, um zu prüfen, ob er funktioniert.",
+        "to": "Senden an",
+        "send": "Test-E-Mail senden",
+        "sending": "Wird gesendet…",
+        "sent": "Test-E-Mail an {{to}} gesendet.",
+        "failed": "Die Test-E-Mail wurde nicht gesendet.",
+        "unsaved": "Der Absender hat ungespeicherte Änderungen. Der Test verwendet den gespeicherten Absender, speichern Sie also zuerst."
+      },
+      "validation": {
+        "port": "Geben Sie einen Port von 1 bis 65535 ein, oder lassen Sie das Feld für den Standardwert leer."
+      },
+      "errors": {
+        "locked": "{{field}} wird von der Umgebung des Servers gesetzt und kann hier nicht geändert werden.",
+        "open_needs_sender": "Offene Registrierung benötigt einen E-Mail-Absender, weil neue Konten ihre E-Mail-Adresse bestätigen. Richten Sie zuerst den Absender ein, oder im selben Speichervorgang.",
+        "sender_needed": "Die Registrierung ist offen, und neue Konten benötigen den Absender, um ihre E-Mail-Adresse zu bestätigen. Stellen Sie die Registrierung zuerst auf nur mit Einladung um.",
+        "no_sender": "Es gibt keinen E-Mail-Absender. Speichern Sie zuerst einen Absender."
+      },
+      "limits": {
+        "title": "Standardlimits",
+        "description": "Die Limits jedes Arbeitsbereichs, der keine eigenen hat. Lassen Sie ein Limit leer, wenn es keins geben soll. Limits, die ein Arbeitsbereich auf der Seite Arbeitsbereiche erhält, ersetzen diese."
+      }
+    }
+  },
   "auth": {
     "login": {
       "description": "Mit Ihrer E-Mail anmelden",
       "no_account": "Noch kein Konto?",
       "sign_up": "Registrieren",
       "submit": "Anmelden",
-      "title": "Willkommen zurück"
+      "title": "Willkommen zurück",
+      "forgot_password": "Passwort vergessen?",
+      "ask_admin": "Bitten Sie einen Admin dieser Installation um eine Einladung"
     },
     "register": {
       "description": "Erstellen Sie Ihr Admin-Konto",
+      "description_open": "Erstellen Sie Ihr Konto",
       "have_account": "Haben Sie bereits ein Konto?",
       "sign_in": "Anmelden",
       "submit": "Registrieren",
       "title": "Hallo",
       "telemetry_note": "Anonym: keine Monitornamen, URLs oder Hosts. Sie können das später unter „Einstellungen“ ändern.",
-      "telemetry_whats_sent": "Was gesendet wird"
+      "telemetry_whats_sent": "Was gesendet wird",
+      "errors": {
+        "rate_limited": "Zu viele Registrierungen aus Ihrem Netzwerk. Versuchen Sie es in einer Stunde erneut.",
+        "email_taken": "Ein Konto mit dieser E-Mail-Adresse existiert bereits.",
+        "sign_in_instead": "Melden Sie sich stattdessen an.",
+        "check_failed": "Die Prüfung ist fehlgeschlagen. Versuchen Sie es erneut.",
+        "check_load_failed": "Die Prüfung konnte nicht geladen werden. Prüfen Sie Ihre Verbindung und versuchen Sie es erneut."
+      }
     },
     "twofa": {
       "code_label": "2-Faktor-Code",
@@ -27,6 +297,45 @@
       "title": "Zwei-Faktor-Authentifizierung erforderlich",
       "verify_button": "2FA verifizieren",
       "verifying": "Verifizierung läuft..."
+    },
+    "forgot": {
+      "title": "Passwort zurücksetzen",
+      "description": "Gib die E-Mail-Adresse deines Kontos ein, dann senden wir dir einen Link.",
+      "submit": "Link senden",
+      "sent": "Falls ein Konto mit dieser E-Mail-Adresse existiert, haben wir einen Link gesendet. Er gilt eine Stunde.",
+      "back_to_login": "Zurück zur Anmeldung"
+    },
+    "reset": {
+      "title": "Neues Passwort wählen",
+      "description": "Gib ein neues Passwort für dein Konto ein.",
+      "submit": "Passwort festlegen",
+      "success": "Dein Passwort wurde geändert, und du wurdest überall abgemeldet. Melde dich mit dem neuen Passwort an.",
+      "sign_in": "Anmelden",
+      "invalid_link": "Dieser Link wurde bereits verwendet oder ist abgelaufen.",
+      "request_new": "Neuen Link anfordern"
+    },
+    "verify": {
+      "title": "E-Mail-Adresse bestätigen",
+      "verifying": "Deine E-Mail-Adresse wird bestätigt...",
+      "success": "Deine E-Mail-Adresse ist bestätigt.",
+      "open_app": "Peekaping öffnen",
+      "invalid_link": "Dieser Link wurde bereits verwendet oder ist abgelaufen."
+    },
+    "errors": {
+      "rate_limited": "Zu viele Anfragen. Versuche es später erneut.",
+      "generic": "Etwas ist schiefgelaufen. Versuche es erneut.",
+      "already_verified": "Deine E-Mail-Adresse ist bereits bestätigt."
+    },
+    "resend": {
+      "button": "Erneut senden",
+      "sent": "Wir haben einen neuen Link gesendet. Sieh in deinem Posteingang nach."
+    },
+    "verification_banner": {
+      "message": "Bestätige deine E-Mail-Adresse: Wir haben einen Link an {{email}} gesendet."
+    },
+    "suspension_notice": {
+      "message": "Ihre Monitore starten, sobald Sie Ihre E-Mail-Adresse bestätigt haben.",
+      "member_message": "Die Monitore dieses Arbeitsbereichs starten, sobald dessen Eigentümer seine E-Mail-Adresse bestätigt hat."
     }
   },
   "bars": {
@@ -73,6 +382,7 @@
     "no_tags_available": "Keine Tags verfügbar",
     "please_refresh_page": "Bitte aktualisieren Sie die Seite.",
     "required": "Erforderlich",
+    "retry": "Erneut versuchen",
     "save": "Speichern",
     "saving": "Speichern...",
     "search": "Suchen",
@@ -124,6 +434,33 @@
       "password_required": "Passwort ist erforderlich",
       "password_min_length": "Passwort muss mindestens 8 Zeichen lang sein.",
       "passwords_mismatch": "Passwörter stimmen nicht überein"
+    }
+  },
+  "invite": {
+    "accept": "Einladung annehmen",
+    "accepting": "Beitritt läuft...",
+    "creating": "Wird erstellt...",
+    "description": "Sie wurden eingeladen, {{workspace}} beizutreten, mit der Rolle: {{role}}.",
+    "enter_failed": "Sie sind dem Arbeitsbereich beigetreten, aber er konnte nicht geöffnet werden. Versuchen Sie es erneut.",
+    "errors": {
+      "other_email": "Diese Einladung gilt für eine andere E-Mail-Adresse."
+    },
+    "for_email": "Diese Einladung gilt für {{email}}.",
+    "have_account": "Haben Sie bereits ein Konto?",
+    "open_app": "Peekaping öffnen",
+    "other_account": "Sie sind als {{current}} angemeldet, aber diese Einladung gilt für {{invited}}. Melden Sie sich ab und melden Sie sich dann mit {{invited}} an oder registrieren Sie sich damit, um sie anzunehmen.",
+    "sign_in_instead": "Stattdessen anmelden",
+    "sign_out": "Abmelden",
+    "signup_description": "Wählen Sie ein Passwort, um Ihr Konto zu erstellen und {{workspace}} beizutreten, mit der Rolle: {{role}}.",
+    "signup_submit": "Konto erstellen und beitreten",
+    "title": "{{workspace}} beitreten",
+    "unavailable": {
+      "accepted": "Diese Einladung wurde bereits verwendet.",
+      "expired": "Diese Einladung ist abgelaufen. Fordern Sie eine neue an.",
+      "not_found": "Dieser Einladungslink existiert nicht. Prüfen Sie, ob Sie ihn vollständig kopiert haben.",
+      "revoked": "Diese Einladung wurde widerrufen. Fordern Sie eine neue an.",
+      "title": "Diese Einladung kann nicht verwendet werden",
+      "unknown": "Diese Einladung kann nicht verwendet werden. Fordern Sie eine neue an."
     }
   },
   "maintenance": {
@@ -231,6 +568,79 @@
       "wed": "Mi"
     }
   },
+  "members": {
+    "change_role_aria": "Rolle von {{email}} ändern",
+    "errors": {
+      "account_exists": "Ein Konto mit dieser E-Mail-Adresse existiert bereits. Melden Sie sich an und nehmen Sie die Einladung an.",
+      "already_member": "Diese Person ist bereits Mitglied dieses Arbeitsbereichs.",
+      "forbidden": "Ihre Rolle in diesem Arbeitsbereich erlaubt dies nicht.",
+      "generic": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut.",
+      "last_owner": "Ein Arbeitsbereich braucht mindestens einen Inhaber.",
+      "member_not_found": "Dieses Mitglied ist nicht mehr im Arbeitsbereich."
+    },
+    "invite": {
+      "copied": "Link kopiert",
+      "copy": "Kopieren",
+      "creating": "Wird erstellt...",
+      "description": "Erstellen Sie einen Link für eine E-Mail-Adresse und eine Rolle. Es wird keine E-Mail verschickt: Kopieren Sie den Link und senden Sie ihn selbst.",
+      "done": "Fertig",
+      "email_label": "E-Mail",
+      "link_note": "Dieser Link funktioniert nur einmal und läuft nach 7 Tagen ab. Er wird nur jetzt angezeigt, kopieren Sie ihn also, bevor Sie diese Seite verlassen.",
+      "link_title": "Einladungslink",
+      "role_label": "Rolle",
+      "submit": "Einladungslink erstellen",
+      "title": "Jemanden einladen"
+    },
+    "leave": {
+      "button": "Arbeitsbereich verlassen",
+      "confirm": "Verlassen",
+      "description": "Sie verlieren sofort den Zugriff auf diesen Arbeitsbereich und seine Daten.",
+      "done": "Sie haben den Arbeitsbereich verlassen",
+      "last_owner": "Sie sind der letzte Inhaber und können daher nicht austreten. Machen Sie zuerst ein anderes Mitglied zum Inhaber.",
+      "refresh_failed": "Sie haben den Arbeitsbereich verlassen, aber Ihre Arbeitsbereiche konnten nicht geladen werden. Versuchen Sie es erneut.",
+      "title": "Diesen Arbeitsbereich verlassen"
+    },
+    "list": {
+      "description": "Alle, die in diesem Arbeitsbereich arbeiten, und ihre Rolle.",
+      "email": "E-Mail",
+      "joined": "Beigetreten",
+      "role": "Rolle",
+      "title": "Mitglieder",
+      "you": "Sie"
+    },
+    "page_name": "Mitglieder",
+    "pending": {
+      "description": "Einladungen, die noch nicht verwendet wurden. Der Link einer widerrufenen Einladung funktioniert nicht mehr.",
+      "email": "E-Mail",
+      "empty": "Keine offenen Einladungen.",
+      "expired": "Abgelaufen",
+      "expires": "Läuft ab",
+      "revoke": "Widerrufen",
+      "revoke_aria": "Einladung für {{email}} widerrufen",
+      "revoked": "Einladung widerrufen",
+      "role": "Rolle",
+      "title": "Offene Einladungen"
+    },
+    "remove": "Entfernen",
+    "remove_aria": "{{email}} entfernen",
+    "remove_dialog": {
+      "confirm": "Entfernen",
+      "description": "{{email}} verliert sofort den Zugriff auf diesen Arbeitsbereich.",
+      "title": "Mitglied entfernen"
+    },
+    "removed": "Mitglied entfernt",
+    "role_updated": "Rolle aktualisiert",
+    "roles": {
+      "admin": "Admin",
+      "member": "Mitglied",
+      "owner": "Inhaber"
+    },
+    "settings_card": {
+      "description": "Sehen Sie, wer in diesem Arbeitsbereich arbeitet, und laden Sie als Admin oder Inhaber Personen ein und verwalten Sie deren Rollen.",
+      "open": "Mitglieder öffnen",
+      "title": "Mitglieder"
+    }
+  },
   "messages": {
     "login_error": "Beim Anmelden ist ein Fehler aufgetreten.",
     "login_no_tokens": "Anmeldung erfolgreich, aber keine Tokens erhalten.",
@@ -258,6 +668,7 @@
     },
     "empty_state": {
       "action": "Erstelle deinen ersten Monitor",
+      "add_channel": "Benachrichtigungskanal hinzufügen",
       "description": "Legen Sie los, indem Sie Ihren ersten Monitor erstellen, um den Gesundheitszustand Ihrer Dienste zu überwachen.",
       "title": "Keine Monitore gefunden"
     },
@@ -500,6 +911,7 @@
       "shared": {
         "intervals": {
           "heartbeat_retry": "Lebenszeichen-Wiederholungsintervall (Wiederhole alle {{seconds}} Sekunden)",
+          "interval_too_short": "Darf nicht weniger als {{minimum}} Sekunden betragen",
           "max_retries_description": "Maximale Wiederholungsversuche, bevor der Dienst als ausgefallen markiert wird und eine Benachrichtigung gesendet wird",
           "request_timeout": "Zeitüberschreitung der Anfrage (Timeout nach {{seconds}} Sekunden)",
           "resend_notification": "Benachrichtigung erneut senden, wenn der Monitor X Mal hintereinander ausfällt (Wiederholung deaktiviert)",
@@ -542,6 +954,10 @@
           "select_proxy_placeholder": "Proxy auswählen",
           "selected_proxy": "Ausgewählter Proxy",
           "title": "Proxy-Server"
+        },
+        "run_from": {
+          "default_locations": "Läuft an den Standardstandorten",
+          "label": "Ausführen von"
         },
         "tags": {
           "label": "Schlagwörter",
@@ -649,9 +1065,12 @@
     "toasts": {
       "deleted": "Monitor gelöscht",
       "paused": "Monitor pausiert",
+      "push_token_already_used": "Ein anderer Monitor verwendet dieses Push-Token bereits. Erzeuge ein neues.",
       "reset_success": "Monitordaten erfolgreich zurückgesetzt",
       "resumed": "Monitor fortgesetzt"
     },
+    "type_disabled": "Der Typ {{type}} ist auf dieser Installation ausgeschaltet",
+    "over_limit": "Wird nicht geprüft: Der Arbeitsbereich hat mehr aktive Monitore, als sein Limit erlaubt",
     "view": {
       "buttons": {
         "clone": "Duplizieren",
@@ -712,6 +1131,7 @@
     }
   },
   "navigation": {
+    "admin": "Administration",
     "maintenance": "Wartung",
     "monitors": "Monitore",
     "notification_channels": "Benachrichtigungskanäle",
@@ -1124,6 +1544,12 @@
         "signing_secret_docs_link": "So prüfen Sie die Signatur",
         "signing_secret_label": "Signaturschlüssel",
         "signing_secret_placeholder": "Leer lassen, um unsignierte Anfragen zu senden"
+      },
+      "install_email": {
+        "description": "Wird von dieser Installation gesendet, ein SMTP-Server ist nicht nötig.",
+        "to_description": "Ein Mitglied dieses Arbeitsbereichs. Benachrichtigungen werden gesendet, sobald es die Adresse bestätigt hat.",
+        "to_label": "Empfänger",
+        "to_placeholder": "Mitglied auswählen"
       }
     },
     "important": "Wichtige Benachrichtigungen",
@@ -1142,7 +1568,8 @@
       "updated_success": "Benachrichtigungsdienst erfolgreich aktualisiert"
     },
     "new": {
-      "title": "Neuer Benachrichtigungskanal"
+      "title": "Neuer Benachrichtigungskanal",
+      "default_hint": "Dieser Kanal wird bei neuen Monitoren angehakt."
     },
     "no_important": "Keine wichtigen Benachrichtigungen gefunden.",
     "placeholders": {
@@ -1152,11 +1579,21 @@
     "secret": {
       "reenter_error": "Diesen geheimen Wert erneut eingeben oder entfernen: Das Ziel des Versands hat sich geändert",
       "reenter_hint": "Diesen geheimen Wert erneut eingeben: Das Ziel des Versands hat sich geändert",
+      "reenter_url_error": "Die Zugangsdaten dieser URL erneut eingeben: Die URL hat sich seit dem Speichern geändert",
       "remove": "Entfernen",
       "saved_hint": "Gespeichert — zum Ersetzen eingeben"
     }
   },
   "probes": {
+    "default": {
+      "description": "Ein Monitor, der ohne Auswahl von Sonden erstellt wird, läuft auf den Standardsonden, die nicht deaktiviert sind und seinen Typ ausführen, und auf der lokalen Sonde, wenn keine das tut. Bestehende Monitore behalten ihre Sonden.",
+      "failed": "Es konnte nicht geändert werden, ob die Sonde eine Standardsonde ist.",
+      "label": "Standardsonde",
+      "off": "{{name}} ist keine Standardsonde mehr",
+      "on": "{{name}} ist jetzt eine Standardsonde",
+      "title": "Standard für neue Monitore"
+    },
+    "default_badge": "Standard",
     "page_name": "Sonden",
     "description": "Sonden führen die Prüfungen der Monitore von den Orten aus, an denen sie installiert sind. Die lokale Sonde ist Peekaping selbst.",
     "local_name": "Lokal",
@@ -1438,7 +1875,9 @@
     "data_retention": {
       "days_label": "Tage",
       "description": "Legen Sie fest, wie viele Tage Daten gespeichert bleiben sollen (KEEP_DATA_PERIOD_DAYS).",
-      "title": "Datenaufbewahrungsdauer"
+      "read_only": "Nur ein Admin oder Eigentümer des Arbeitsbereichs kann dies ändern.",
+      "title": "Datenaufbewahrungsdauer",
+      "capped": "Bis zu {{max}} Tage in diesem Arbeitsbereich"
     },
     "error_reporting": {
       "cluster_note": "Im Cluster-Modus erreicht eine Änderung jeden Prozess innerhalb einer Minute.",
@@ -1464,6 +1903,10 @@
     },
     "validation": {
       "min_days": "Muss mindestens 1 Tag sein"
+    },
+    "workspace_name": {
+      "description": "Der Name, der in der Arbeitsbereichsauswahl und den Mitgliedern angezeigt wird.",
+      "title": "Name des Arbeitsbereichs"
     }
   },
   "status": {
@@ -1479,6 +1922,7 @@
       "refresh_in": "Aktualisieren in",
       "refresh_now": "Jetzt aktualisieren",
       "status_page_not_found": "Statusseite nicht gefunden oder nicht veröffentlicht.",
+      "status_page_unavailable": "Diese Statusseite ist nicht verfügbar",
       "under_maintenance": "Wartungsarbeiten",
       "unknown": "Unbekannt"
     }
@@ -1522,6 +1966,7 @@
     "search_placeholder": "Statusseiten nach Titel suchen...",
     "show_locations": "Jeden Standort anzeigen",
     "show_locations_info": "Bei Monitoren, die von mehreren Standorten aus geprüft werden, Status und Verlauf jedes Standorts anzeigen",
+    "slug_already_used": "Eine andere Statusseite verwendet diese Adresse bereits",
     "update_status_page": "Statusseite aktualisieren",
     "view_page": "Seite anzeigen"
   },
@@ -1587,5 +2032,93 @@
   "ui": {
     "general": "Allgemein",
     "intervals_retries": "Intervalle, Wiederholungen, Zeitüberschreitungen"
+  },
+  "workspaces": {
+    "create": "Arbeitsbereich erstellen",
+    "create_error": "Arbeitsbereich konnte nicht erstellt werden",
+    "create_first": "Arbeitsbereich erstellen",
+    "creating": "Wird erstellt...",
+    "enter": "Arbeitsbereich öffnen",
+    "entering": "Wird geöffnet...",
+    "entry_failed": "Der Arbeitsbereich wurde erstellt, konnte aber nicht geöffnet werden. Versuche es erneut.",
+    "name_label": "Name",
+    "name_placeholder": "Mein Team",
+    "name_required": "Namen eingeben",
+    "new": "Neuer Arbeitsbereich",
+    "new_description": "Ein Arbeitsbereich hat eigene Monitore, Benachrichtigungskanäle, Statusseiten und Mitglieder. Sie werden sein Inhaber.",
+    "new_title": "Neuer Arbeitsbereich",
+    "none_description": "Ihr Konto ist in keinem Arbeitsbereich Mitglied, deshalb gibt es hier nichts anzuzeigen. Bitten Sie jemanden, der einen Arbeitsbereich betreut, Sie hinzuzufügen.",
+    "none_title": "Sie sind noch in keinem Arbeitsbereich",
+    "refresh_failed": "Ihre Arbeitsbereiche konnten nicht geladen werden. Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
+    "rename_error": "Der Arbeitsbereich konnte nicht umbenannt werden",
+    "rename_success": "Arbeitsbereich umbenannt",
+    "suspended_banner": {
+      "contact": "Kontakt:",
+      "message": "Dieser Arbeitsbereich wurde vom Administrator dieser Installation gesperrt. Seine Monitore laufen nicht, und seine Statusseiten sind nicht verfügbar.",
+      "no_contact": "Wenden Sie sich an die Person, die diese Installation betreibt."
+    },
+    "switcher_label": "Arbeitsbereich wechseln"
+  },
+  "get_started": {
+    "page_name": "Erste Schritte",
+    "skip": "Einrichtung überspringen",
+    "step_of": "Schritt {{current}} von {{total}}",
+    "name": {
+      "description": "Hier befinden sich Ihre Monitore, Benachrichtigungskanäle und Statusseiten. Den Namen können Sie später in den Einstellungen ändern.",
+      "title": "Benennen Sie Ihren Arbeitsbereich"
+    },
+    "monitor": {
+      "create": "Monitor erstellen",
+      "create_failed": "Der Monitor konnte nicht erstellt werden",
+      "creating": "Wird erstellt...",
+      "description": "Gib die Adresse einer Website oder API ein. Peekaping prüft sie und meldet dir, wenn sie nicht mehr antwortet.",
+      "full_form": "Oder richte einen Monitor mit allen Optionen ein",
+      "title": "Füge deinen ersten Monitor hinzu",
+      "url_invalid": "Gib eine Adresse ein, die mit http:// oder https:// beginnt",
+      "url_label": "Zu überwachende Adresse"
+    },
+    "channel": {
+      "continue_unlinked": "Ohne Verknüpfung fortfahren",
+      "description": "Wähle, wohin Peekaping einen Alarm sendet, wenn dein Monitor ausfällt. Er wird zum Standard für neue Monitore.",
+      "link_failed": "Der Kanal wurde gespeichert, aber die Verknüpfung mit deinem Monitor ist fehlgeschlagen. Füge ihn auf der Bearbeitungsseite des Monitors hinzu.",
+      "retry_link": "Erneut verknüpfen",
+      "title": "Lass dich benachrichtigen"
+    },
+    "done": {
+      "description": "Peekaping überwacht deinen Dienst. Das kannst du als Nächstes tun.",
+      "title": "Alles bereit",
+      "unverified": "Dein Monitor läuft, sobald deine E-Mail-Adresse bestätigt ist. Den Bestätigungslink findest du in deinem Posteingang.",
+      "links": {
+        "members": "Team einladen",
+        "monitor": "Monitor öffnen",
+        "monitors": "Zu den Monitoren",
+        "probes": "Sonden verwalten",
+        "status_pages": "Statusseite veröffentlichen"
+      }
+    }
+  },
+  "limits": {
+    "reached": {
+      "monitors": "Dieser Arbeitsbereich darf höchstens {{max}} laufende Monitore haben",
+      "status_pages": "Dieser Arbeitsbereich darf höchstens {{max}} Statusseiten haben",
+      "custom_domains": "Die Statusseiten dieses Arbeitsbereichs dürfen zusammen höchstens {{max}} eigene Domains haben",
+      "members": "Dieser Arbeitsbereich darf höchstens {{max}} Mitglieder haben, offene Einladungen eingerechnet",
+      "owned_workspaces": "Sie dürfen höchstens {{max}} Arbeitsbereiche besitzen",
+      "probes": "Ein Monitor in diesem Arbeitsbereich darf auf höchstens {{max}} Sonden laufen",
+      "retention_days": "Dieser Arbeitsbereich darf Daten höchstens {{max}} Tage aufbewahren"
+    },
+    "names": {
+      "monitors": "Aktive Monitore",
+      "min_check_interval": "Kürzestes Prüfintervall (Sekunden)",
+      "status_pages": "Statusseiten",
+      "custom_domains": "Eigene Domains",
+      "members": "Mitglieder",
+      "owned_workspaces": "Arbeitsbereiche, die ein Benutzer besitzen darf",
+      "probes_per_monitor": "Sonden pro Monitor",
+      "retention_days": "Datenaufbewahrung (Tage)"
+    },
+    "none": "Kein Limit",
+    "invalid": "Geben Sie eine ganze Zahl ab 1 ein oder lassen Sie das Feld leer, wenn es kein Limit geben soll.",
+    "retention_too_long": "Darf nicht mehr als {{max}} Tage betragen"
   }
 }

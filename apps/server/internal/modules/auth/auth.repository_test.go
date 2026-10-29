@@ -9,11 +9,13 @@ import (
 	"strings"
 	"sync"
 	"testing"
+	"time"
 
 	"peekaping/cmd/bun/migrations"
 	"peekaping/internal/config"
 	"peekaping/internal/infra"
 	"peekaping/internal/modules/auth"
+	"peekaping/internal/modules/setting"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -98,6 +100,7 @@ func TestRepository_CreateFirst_CreatesOnlyTheFirstUser(t *testing.T) {
 		assert.NotEmpty(t, created.ID)
 		assert.Equal(t, "first@example.com", created.Email)
 		assert.True(t, created.Active)
+		assert.True(t, created.InstanceAdmin, "the first user manages the install")
 
 		stored, err := repo.FindByID(ctx, created.ID)
 		require.NoError(t, err)
@@ -105,6 +108,7 @@ func TestRepository_CreateFirst_CreatesOnlyTheFirstUser(t *testing.T) {
 		assert.Equal(t, "first@example.com", stored.Email)
 		assert.Equal(t, "password-hash", stored.Password)
 		assert.True(t, stored.Active)
+		assert.True(t, stored.InstanceAdmin)
 
 		for _, email := range []string{"second@example.com", "first@example.com"} {
 			second, err := repo.CreateFirst(ctx, newUser(email))
@@ -114,6 +118,24 @@ func TestRepository_CreateFirst_CreatesOnlyTheFirstUser(t *testing.T) {
 		count, err := repo.FindAllCount(ctx)
 		require.NoError(t, err)
 		assert.EqualValues(t, 1, count)
+	})
+}
+
+// AnyUser says whether a user exists, which the first signup is judged by
+func TestRepository_AnyUser_IsWhetherTheInstallHasAUser(t *testing.T) {
+	forEachBackend(t, func(t *testing.T, repo auth.Repository) {
+		ctx := context.Background()
+		exists, err := repo.AnyUser(ctx)
+		require.NoError(t, err)
+		assert.False(t, exists, "a new install has no user")
+
+		for _, email := range []string{"first@example.com", "second@example.com"} {
+			_, err := repo.Create(ctx, newUser(email))
+			require.NoError(t, err)
+			exists, err = repo.AnyUser(ctx)
+			require.NoError(t, err)
+			assert.True(t, exists, email)
+		}
 	})
 }
 
@@ -150,5 +172,104 @@ func TestRepository_CreateFirst_ConcurrentCallsCreateOneUser(t *testing.T) {
 		count, err := repo.FindAllCount(ctx)
 		require.NoError(t, err)
 		assert.EqualValues(t, 1, count)
+	})
+}
+
+// The first signup writes the user and its workspace in one transaction. Signups that arrive
+// together still make one user, one workspace and one membership, on both databases.
+func TestService_Register_ConcurrentSignupsMakeOneUserAndOneWorkspace(t *testing.T) {
+	for name, open := range map[string]func(*testing.T) *bun.DB{"SQLite": sqliteDB, "Postgres": postgresDB} {
+		t.Run(name, func(t *testing.T) {
+			ctx := context.Background()
+			db := open(t)
+			migrator := migrate.NewMigrator(db, migrations.Migrations)
+			require.NoError(t, migrator.Init(ctx))
+			_, err := migrator.Migrate(ctx)
+			require.NoError(t, err)
+			logger := zap.NewNop().Sugar()
+			settings := setting.NewService(setting.NewSQLRepository(db), logger)
+			require.NoError(t, settings.InitializeSettings(ctx))
+			svc := newService(db, auth.NewSQLRepository(db), auth.NewTokenMaker(settings, logger), logger)
+			const calls = 10
+
+			errs := make(chan error, calls)
+			start := make(chan struct{})
+			var wg sync.WaitGroup
+			for n := range calls {
+				wg.Add(1)
+				go func() {
+					defer wg.Done()
+					<-start
+					_, err := svc.Register(ctx, auth.RegisterDto{Email: fmt.Sprintf("admin%d@example.com", n), Password: "Correct-horse-1"})
+					errs <- err
+				}()
+			}
+			close(start)
+			wg.Wait()
+			close(errs)
+
+			created := 0
+			for err := range errs {
+				if err == nil {
+					created++
+					continue
+				}
+				assert.ErrorIs(t, err, auth.ErrAdminExists)
+			}
+			assert.Equal(t, 1, created, "signups that created a user")
+			for table, want := range map[string]int{"users": 1, "workspaces": 1, "workspace_members": 1} {
+				n, err := db.NewSelect().Table(table).Count(ctx)
+				require.NoError(t, err)
+				assert.Equal(t, want, n, table)
+			}
+		})
+	}
+}
+
+func TestRepository_FindByEmailIgnoringCase_FindsTheAccountInAnyCaseAroundSpaces(t *testing.T) {
+	forEachBackend(t, func(t *testing.T, repo auth.Repository) {
+		ctx := context.Background()
+		created, err := repo.Create(ctx, newUser("Alice@Example.com"))
+		require.NoError(t, err)
+
+		for _, typed := range []string{"Alice@Example.com", "alice@example.com", "ALICE@EXAMPLE.COM", "  alice@example.com "} {
+			found, err := repo.FindByEmailIgnoringCase(ctx, typed)
+			require.NoError(t, err, typed)
+			require.NotNil(t, found, typed)
+			assert.Equal(t, created.ID, found.ID, typed)
+		}
+		found, err := repo.FindByEmailIgnoringCase(ctx, "bob@example.com")
+		require.NoError(t, err)
+		assert.Nil(t, found)
+		exact, err := repo.FindByEmail(ctx, "alice@example.com")
+		require.NoError(t, err)
+		assert.Nil(t, exact, "FindByEmail, which login uses, stays exact")
+	})
+}
+
+// Two sign-ins can overlap, and the earlier one can commit last; the later time stays.
+func TestRepository_RecordLogin_KeepsTheLaterTime(t *testing.T) {
+	forEachBackend(t, func(t *testing.T, repo auth.Repository) {
+		ctx := context.Background()
+		user, err := repo.Create(ctx, newUser("login@example.com"))
+		require.NoError(t, err)
+
+		later := time.Date(2026, 10, 28, 12, 0, 0, 0, time.UTC)
+		earlier := later.Add(-time.Minute)
+		require.NoError(t, repo.RecordLogin(ctx, user.ID, later))
+		require.NoError(t, repo.RecordLogin(ctx, user.ID, earlier))
+
+		stored, err := repo.FindByID(ctx, user.ID)
+		require.NoError(t, err)
+		require.NotNil(t, stored.LastLoginAt)
+		assert.True(t, later.Equal(*stored.LastLoginAt), "last_login_at is %s, want %s", stored.LastLoginAt, later)
+
+		// A sign-in after it still moves the time forward
+		next := later.Add(time.Minute)
+		require.NoError(t, repo.RecordLogin(ctx, user.ID, next))
+		stored, err = repo.FindByID(ctx, user.ID)
+		require.NoError(t, err)
+		require.NotNil(t, stored.LastLoginAt)
+		assert.True(t, next.Equal(*stored.LastLoginAt), "last_login_at is %s, want %s", stored.LastLoginAt, next)
 	})
 }

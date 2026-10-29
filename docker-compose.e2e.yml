@@ -1,11 +1,19 @@
 # Test-only overlay for the Playwright suite. It adds `e2e-target`, the local
-# service e2e monitors check and notify (e2e/fake-target/server.mjs).
-# Use it on top of any dev, single or cluster compose file:
+# service e2e monitors check and notify (e2e/fake-target/server.mjs), and
+# Mailpit, a mail catcher. Use it on top of any dev, single or cluster compose file:
 #
 #   docker compose -f docker-compose.dev.sqlite.yml -f docker-compose.e2e.yml up -d
 #
-# It joins both `appnet` (dev and cluster stacks) and the default network (single
-# stacks), so monitors reach it at http://e2e-target:3033 either way.
+# Both join `appnet` (dev and cluster stacks) and the default network (single
+# stacks), so monitors reach the target at http://e2e-target:3033 and the
+# install reaches Mailpit at mailpit:1025 either way.
+#
+# Mailpit catches the mail of whatever sender sends to mailpit:1025: the one the
+# cloud suite sets in the environment (ACCOUNT_SMTP_HOST=mailpit, with
+# SIGNUP_MODE=open, for e2e/onboarding.spec.ts), or the one e2e/admin-settings.spec.ts
+# saves in Admin → Settings and removes again. The tests read it through its
+# HTTP API on localhost:8025 (E2E_MAILPIT_URL). A server run natively, outside
+# the stack, sends to localhost:1025 instead (E2E_MAILPIT_SMTP_HOST=localhost).
 networks:
   appnet:
 
@@ -23,6 +31,30 @@ services:
       - appnet
     healthcheck:
       test: ["CMD", "wget", "-qO", "-", "http://localhost:3033/health"]
+      interval: 30s
+      timeout: 2s
+      retries: 5
+      start_period: 30s
+      start_interval: 1s
+
+  mailpit:
+    image: axllent/mailpit:v1.27
+    restart: unless-stopped
+    # Loopback only: Mailpit's API and SMTP server need no sign-in, and the mail
+    # it catches holds reset links. An install in the stack reaches SMTP inside
+    # the network at mailpit:1025, whatever port is published. A server run
+    # natively reaches it on the published port: set E2E_MAILPIT_SMTP_HOST=localhost
+    # for the specs too. E2E_MAILPIT_SMTP_PUBLISHED_PORT moves the published port (then
+    # set E2E_MAILPIT_SMTP_PORT to it for a native server); it is its own variable, since
+    # E2E_MAILPIT_SMTP_PORT is where the specs' sender sends, mailpit:1025 in the stack.
+    ports:
+      - "127.0.0.1:${E2E_MAILPIT_PORT:-8025}:8025"
+      - "127.0.0.1:${E2E_MAILPIT_SMTP_PUBLISHED_PORT:-1025}:1025"
+    networks:
+      - default
+      - appnet
+    healthcheck:
+      test: ["CMD", "/mailpit", "readyz"]
       interval: 30s
       timeout: 2s
       retries: 5

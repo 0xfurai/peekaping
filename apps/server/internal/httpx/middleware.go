@@ -100,7 +100,8 @@ func LimitBody(max int64) Middleware {
 // is served as it is, without CORS headers, so its browser won't hand the response to the page.
 // A request with no Origin, or from the host it is sent to, isn't cross-origin and is left
 // alone. Responses never carry Access-Control-Allow-Credentials: the API's auth is a bearer
-// header, not a cookie. With a list of origins every response gets Vary: Origin, since what it
+// header, not a cookie. Retry-After is exposed so a page can read how long a 429 asks it to
+// wait. With a list of origins every response gets Vary: Origin, since what it
 // carries depends on the request's Origin and a cache must not serve one origin's copy to another.
 func CORS(origins *CORSOrigins) Middleware {
 	return func(next http.Handler) http.Handler {
@@ -118,11 +119,11 @@ func CORS(origins *CORSOrigins) Middleware {
 			w.Header().Set("Access-Control-Allow-Origin", allowOrigin)
 			if r.Method == http.MethodOptions {
 				w.Header().Set("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS,PATCH")
-				w.Header().Set("Access-Control-Allow-Headers", "Origin,X-Requested-With,Content-Type,Accept,Authorization,X-Request-ID")
+				w.Header().Set("Access-Control-Allow-Headers", "Origin,X-Requested-With,Content-Type,Accept,Authorization,X-Request-ID,X-Workspace-ID")
 				w.WriteHeader(http.StatusNoContent)
 				return
 			}
-			w.Header().Set("Access-Control-Expose-Headers", "Authorization, X-Request-ID")
+			w.Header().Set("Access-Control-Expose-Headers", "Authorization, X-Request-ID, Retry-After")
 			next.ServeHTTP(w, r)
 		})
 	}

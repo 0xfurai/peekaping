@@ -2,8 +2,12 @@ package maintenance
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
+	"errors"
 	"time"
+
+	"peekaping/internal/modules/workspace"
 
 	"github.com/google/uuid"
 	"github.com/uptrace/bun"
@@ -12,7 +16,9 @@ import (
 type sqlModel struct {
 	bun.BaseModel `bun:"table:maintenances,alias:m"`
 
-	ID            string    `bun:"id,pk"`
+	ID string `bun:"id,pk"`
+	// WorkspaceID is set when the window is created and never changes
+	WorkspaceID   string    `bun:"workspace_id,notnull"`
 	Title         string    `bun:"title,notnull"`
 	Description   string    `bun:"description"`
 	Active        bool      `bun:"active,notnull"` // no Bun default: it would replace false with the column default
@@ -45,6 +51,7 @@ func toDomainModelFromSQL(sm *sqlModel) *Model {
 
 	return &Model{
 		ID:            sm.ID,
+		WorkspaceID:   workspace.ID(sm.WorkspaceID),
 		Title:         sm.Title,
 		Description:   sm.Description,
 		Active:        sm.Active,
@@ -72,13 +79,14 @@ func NewSQLRepository(db *bun.DB) Repository {
 	return &SQLRepositoryImpl{db: db}
 }
 
-func (r *SQLRepositoryImpl) Create(ctx context.Context, entity *Model) (*Model, error) {
+func (r *SQLRepositoryImpl) Create(ctx context.Context, workspaceID workspace.ID, entity *Model) (*Model, error) {
 	// Marshal arrays to JSON strings
 	weekdaysJSON, _ := json.Marshal(entity.Weekdays)
 	daysOfMonthJSON, _ := json.Marshal(entity.DaysOfMonth)
 
 	sm := &sqlModel{
 		ID:            uuid.New().String(),
+		WorkspaceID:   string(workspaceID), // whatever the window says
 		Title:         entity.Title,
 		Description:   entity.Description,
 		Active:        entity.Active,
@@ -105,11 +113,11 @@ func (r *SQLRepositoryImpl) Create(ctx context.Context, entity *Model) (*Model, 
 	return toDomainModelFromSQL(sm), nil
 }
 
-func (r *SQLRepositoryImpl) FindByID(ctx context.Context, id string) (*Model, error) {
+func (r *SQLRepositoryImpl) FindByID(ctx context.Context, workspaceID workspace.ID, id string) (*Model, error) {
 	sm := new(sqlModel)
-	err := r.db.NewSelect().Model(sm).Where("id = ?", id).Scan(ctx)
+	err := r.db.NewSelect().Model(sm).Where("id = ?", id).Where("workspace_id = ?", string(workspaceID)).Scan(ctx)
 	if err != nil {
-		if err.Error() == "sql: no rows in result set" {
+		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		}
 		return nil, err
@@ -117,8 +125,20 @@ func (r *SQLRepositoryImpl) FindByID(ctx context.Context, id string) (*Model, er
 	return toDomainModelFromSQL(sm), nil
 }
 
-func (r *SQLRepositoryImpl) FindAll(ctx context.Context, page int, limit int, q string, strategy string) ([]*Model, error) {
+func (r *SQLRepositoryImpl) FindAll(ctx context.Context, workspaceID workspace.ID, page int, limit int, q string, strategy string) ([]*Model, error) {
+	return r.findAll(ctx, &workspaceID, page, limit, q, strategy)
+}
+
+func (r *SQLRepositoryImpl) FindAllAnyWorkspace(ctx context.Context, page int, limit int) ([]*Model, error) {
+	return r.findAll(ctx, nil, page, limit, "", "")
+}
+
+func (r *SQLRepositoryImpl) findAll(ctx context.Context, workspaceID *workspace.ID, page int, limit int, q string, strategy string) ([]*Model, error) {
 	query := r.db.NewSelect().Model((*sqlModel)(nil))
+
+	if workspaceID != nil {
+		query = query.Where("workspace_id = ?", string(*workspaceID))
+	}
 
 	if q != "" {
 		query = query.Where("LOWER(title) LIKE ? OR LOWER(description) LIKE ?", "%"+q+"%", "%"+q+"%")
@@ -145,7 +165,7 @@ func (r *SQLRepositoryImpl) FindAll(ctx context.Context, page int, limit int, q 
 	return models, nil
 }
 
-func (r *SQLRepositoryImpl) UpdateFull(ctx context.Context, id string, entity *Model) (*Model, error) {
+func (r *SQLRepositoryImpl) UpdateFull(ctx context.Context, workspaceID workspace.ID, id string, entity *Model) (*Model, error) {
 	// Marshal arrays to JSON strings
 	weekdaysJSON, _ := json.Marshal(entity.Weekdays)
 	daysOfMonthJSON, _ := json.Marshal(entity.DaysOfMonth)
@@ -169,20 +189,22 @@ func (r *SQLRepositoryImpl) UpdateFull(ctx context.Context, id string, entity *M
 		UpdatedAt:     time.Now(),
 	}
 
-	_, err := r.db.NewUpdate().
+	result, err := r.db.NewUpdate().
 		Model(sm).
 		Where("id = ?", id).
+		Where("workspace_id = ?", string(workspaceID)).
+		ExcludeColumn("workspace_id").
 		OmitZero().
 		Exec(ctx)
-	if err != nil {
+	if err := requireOneRow(result, err); err != nil {
 		return nil, err
 	}
 
 	return toDomainModelFromSQL(sm), nil
 }
 
-func (r *SQLRepositoryImpl) UpdatePartial(ctx context.Context, id string, entity *UpdateModel) (*Model, error) {
-	query := r.db.NewUpdate().Model((*sqlModel)(nil)).Where("id = ?", id)
+func (r *SQLRepositoryImpl) UpdatePartial(ctx context.Context, workspaceID workspace.ID, id string, entity *UpdateModel) (*Model, error) {
+	query := r.db.NewUpdate().Model((*sqlModel)(nil)).Where("id = ?", id).Where("workspace_id = ?", string(workspaceID))
 
 	hasUpdates := false
 
@@ -245,42 +267,69 @@ func (r *SQLRepositoryImpl) UpdatePartial(ctx context.Context, id string, entity
 		hasUpdates = true
 	}
 
-	if !hasUpdates {
-		return r.FindByID(ctx, id)
+	if hasUpdates {
+		// Always set updated_at
+		query = query.Set("updated_at = ?", time.Now())
+
+		result, err := query.Exec(ctx)
+		if err := requireOneRow(result, err); err != nil {
+			return nil, err
+		}
 	}
 
-	// Always set updated_at
-	query = query.Set("updated_at = ?", time.Now())
-
-	_, err := query.Exec(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	return r.FindByID(ctx, id)
+	return r.requireWindow(ctx, workspaceID, id)
 }
 
-func (r *SQLRepositoryImpl) Delete(ctx context.Context, id string) error {
-	_, err := r.db.NewDelete().Model((*sqlModel)(nil)).Where("id = ?", id).Exec(ctx)
-	return err
+func (r *SQLRepositoryImpl) Delete(ctx context.Context, workspaceID workspace.ID, id string) error {
+	result, err := r.db.NewDelete().Model((*sqlModel)(nil)).Where("id = ?", id).Where("workspace_id = ?", string(workspaceID)).Exec(ctx)
+	return requireOneRow(result, err)
 }
 
-func (r *SQLRepositoryImpl) SetActive(ctx context.Context, id string, active bool) (*Model, error) {
-	_, err := r.db.NewUpdate().
+func (r *SQLRepositoryImpl) SetActive(ctx context.Context, workspaceID workspace.ID, id string, active bool) (*Model, error) {
+	result, err := r.db.NewUpdate().
 		Model((*sqlModel)(nil)).
 		Set("active = ?", active).
 		Set("updated_at = ?", time.Now()).
 		Where("id = ?", id).
+		Where("workspace_id = ?", string(workspaceID)).
 		Exec(ctx)
-	if err != nil {
+	if err := requireOneRow(result, err); err != nil {
 		return nil, err
 	}
 
-	return r.FindByID(ctx, id)
+	return r.requireWindow(ctx, workspaceID, id)
 }
 
-// GetMaintenancesByMonitorID returns all active maintenances for a given monitor_id
-func (r *SQLRepositoryImpl) GetMaintenancesByMonitorID(ctx context.Context, monitorID string) ([]*Model, error) {
+// requireWindow reads the window back after a write, and is ErrNotFound when it isn't there
+func (r *SQLRepositoryImpl) requireWindow(ctx context.Context, workspaceID workspace.ID, id string) (*Model, error) {
+	found, err := r.FindByID(ctx, workspaceID, id)
+	if err != nil {
+		return nil, err
+	}
+	if found == nil {
+		return nil, ErrNotFound
+	}
+	return found, nil
+}
+
+// requireOneRow turns a write that changed no row into ErrNotFound: the window doesn't exist, or
+// belongs to another workspace, and the caller can't tell which
+func requireOneRow(result sql.Result, err error) error {
+	if err != nil {
+		return err
+	}
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		return ErrNotFound
+	}
+	return nil
+}
+
+// GetMaintenancesByMonitorIDAnyWorkspace returns all active maintenances for a given monitor_id
+func (r *SQLRepositoryImpl) GetMaintenancesByMonitorIDAnyWorkspace(ctx context.Context, monitorID string) ([]*Model, error) {
 	var sms []*sqlModel
 
 	// Use JOIN to get maintenances that are associated with the monitor and are active

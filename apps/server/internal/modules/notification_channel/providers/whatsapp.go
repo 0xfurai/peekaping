@@ -16,7 +16,7 @@ import (
 )
 
 type WhatsAppConfig struct {
-	ServerURL     string `json:"server_url" validate:"required,url" endpoint:"true"`
+	ServerURL     string `json:"server_url" validate:"required,url" endpoint:"true" urlCredentials:"true" target:"url"`
 	APIKey        string `json:"api_key" secret:"true"`
 	PhoneNumber   string `json:"phone_number" validate:"required"`
 	Session       string `json:"session" validate:"required"`

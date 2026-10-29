@@ -1,6 +1,10 @@
 package monitor_status_page
 
-import "context"
+import (
+	"context"
+
+	"peekaping/internal/modules/workspace"
+)
 
 type Repository interface {
 	Create(ctx context.Context, entity *Model) (*Model, error)
@@ -19,4 +23,6 @@ type Repository interface {
 	UpdateMonitorOrder(ctx context.Context, statusPageID, monitorID string, order int) (*Model, error)
 	UpdateMonitorActiveStatus(ctx context.Context, statusPageID, monitorID string, active bool) (*Model, error)
 	DeleteAllMonitorsForStatusPage(ctx context.Context, statusPageID string) error
+	// FindMonitorIDsInWorkspace is the ids among ids that name a monitor of the workspace
+	FindMonitorIDsInWorkspace(ctx context.Context, workspaceID workspace.ID, ids []string) ([]string, error)
 }

@@ -7,7 +7,6 @@ import React, {
   useEffect,
 } from "react";
 import { useForm, type UseFormReturn } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import {
   useMutation,
   useQueryClient,
@@ -28,22 +27,30 @@ import { AxiosError } from "axios";
 import type {
   Options,
   PostMonitorsData,
-  HttpxErrorBody,
+  PostMonitorsError,
   PutMonitorsByIdResponse,
   PutMonitorsByIdError,
   PutMonitorsByIdData,
 } from "@/api";
 import type { UtilsApiResponseMonitorMonitorResponseDto } from "@/api/types.gen";
-import { commonMutationErrorHandler } from "@/lib/utils";
+import { apiErrorCode, commonMutationErrorHandler } from "@/lib/utils";
+import { limitReachedMessage } from "@/lib/limit-errors";
 import {
   deserializeMonitor,
-  checkedMonitorFormSchema,
   monitorTypes,
   type MonitorFormValues,
 } from "../monitor-types/registry";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 import { useProbes } from "@/hooks/useProbes";
-import { probeTypeError, withEffectiveProbes } from "../monitor-types/shared/probe-support";
+import { useCurrentAccess } from "@/hooks/useCurrentAccess";
+import { useMinCheckInterval } from "@/hooks/useMinCheckInterval";
+import { withMinimumIntervals } from "../monitor-types/shared/intervals-support";
+import { checkMonitorValues } from "../monitor-types/shared/check-values";
+import { allNotificationChannelsOptions, defaultChannelIds } from "../monitor-types/shared/channel-support";
+import { useWorkspacePath } from "@/hooks/useWorkspacePath";
+import { useDisabledMonitorTypes } from "@/hooks/useDisabledMonitorTypes";
+import { replacementForDisabledType, selectableMonitorTypes } from "../monitor-types/disabled";
+import { valuesForNewType } from "../monitor-types/shared/type-change";
 
 type Mode = "create" | "edit";
 
@@ -58,7 +65,7 @@ interface MonitorFormContextType {
   isPending: boolean;
   createMonitorMutation: UseMutationResult<
     UtilsApiResponseMonitorMonitorResponseDto,
-    AxiosError<HttpxErrorBody, unknown>,
+    AxiosError<PostMonitorsError, unknown>,
     Options<PostMonitorsData>,
     unknown
   >;
@@ -94,6 +101,7 @@ export const MonitorFormProvider: React.FC<MonitorFormProviderProps> = ({
   initialValues,
 }) => {
   const navigate = useNavigate();
+  const workspacePath = useWorkspacePath();
   const queryClient = useQueryClient();
   const { t } = useLocalizedTranslation();
   const [notifierSheetOpen, setNotifierSheetOpen] = useState(false);
@@ -106,24 +114,83 @@ export const MonitorFormProvider: React.FC<MonitorFormProviderProps> = ({
   });
 
   const { probes } = useProbes();
+  const { instanceAdmin } = useCurrentAccess();
+  const minCheckInterval = useMinCheckInterval();
   const probesChosenByHand = useRef(false);
 
+  // A new monitor that isn't a clone starts with the workspace's default channels ticked: from the
+  // channels already loaded, and again from the answer to this page's own request, since the loaded
+  // ones may be old (see below).
+  const presetsChannels = mode === "create" && !initialValues;
+  const { data: channels, isFetchedAfterMount: channelsFetched } = useQuery({
+    ...allNotificationChannelsOptions(),
+    enabled: presetsChannels,
+  });
+  const startingChannelIds = useRef(defaultChannelIds(channels?.data));
+  const channelsPreset = useRef(false);
+
+  // A new monitor starts as the first type the registry lists that the install doesn't turn off.
+  // Read here, not at module level: the type forms import this module, so the registry is still
+  // loading then.
+  const disabledTypes = useDisabledMonitorTypes();
+  const startingType = selectableMonitorTypes(monitorTypes, { disabled: disabledTypes })[0] ?? monitorTypes[0];
+  // The type the form set itself, which it may change while the user hasn't (see below)
+  const presetsType = mode === "create" && !initialValues;
+  const typeSetByForm = useRef(startingType.type);
+
   const form = useForm<MonitorFormValues>({
-    // A new monitor starts as the first type the registry lists. Read here, not at module
-    // level: the type forms import this module, so the registry is still loading then.
-    defaultValues: initialValues ?? monitorTypes[0].defaultValues,
+    // A monitor's interval and retry interval start at least at the install's minimum, a clone's and
+    // an edit's too: the monitor may be stored below a minimum raised since. It already runs at the
+    // minimum, and the API refuses a save below it, even of the stored values.
+    defaultValues: withMinimumIntervals(
+      initialValues ??
+        (channels?.data
+          ? { ...startingType.defaultValues, notification_ids: startingChannelIds.current }
+          : startingType.defaultValues),
+      minCheckInterval
+    ),
     // The schema, and a check of the probe that it can't make: which probes run which types
     // comes from the probes query
-    resolver: async (values, context, options) => {
-      // A push monitor is checked and submitted on the local probe, as its probe field shows it
-      // (the form keeps the earlier selection for when the type changes back)
-      const effective = withEffectiveProbes(values);
-      const result = await zodResolver(checkedMonitorFormSchema)(effective, context, options);
-      const message = probeTypeError(effective, probes, monitor?.data);
-      if (!message) return result;
-      return { values: {}, errors: { ...result.errors, probe_ids: { type: "probe", message } } };
-    },
+    resolver: (values, context, options) =>
+      checkMonitorValues(values, context, options, {
+        probes,
+        saved: monitor?.data,
+        // Someone who isn't an instance admin may leave a new monitor on no probe
+        mayUseDefaultProbes: !instanceAdmin && mode === "create",
+        minCheckInterval,
+      }),
   });
+
+  // The default channels are ticked once, from this page's own answer. Not over a choice of the
+  // user's: the channels they changed, or one they just made, stay.
+  useEffect(() => {
+    if (!presetsChannels || channelsPreset.current || !channelsFetched || !channels?.data) return;
+    channelsPreset.current = true;
+    const current = form.getValues("notification_ids");
+    const untouched =
+      !form.getFieldState("notification_ids").isDirty &&
+      current.length === startingChannelIds.current.length &&
+      current.every((id) => startingChannelIds.current.includes(id));
+    if (untouched) form.setValue("notification_ids", defaultChannelIds(channels.data));
+  }, [presetsChannels, channelsFetched, channels, form]);
+
+  // A new monitor that isn't a clone moves off its starting type when /me, loaded or refetched after
+  // the form opened, turns that type off. As the type select does, it starts from the new type's
+  // defaults, keeping the name, the probes and the channels. Not over a type the user chose.
+  useEffect(() => {
+    if (!presetsType) return;
+    const next = replacementForDisabledType(monitorTypes, {
+      type: form.getValues("type"),
+      setByForm: typeSetByForm.current,
+      dirty: form.getFieldState("type").isDirty,
+      disabled: disabledTypes,
+    });
+    if (!next) return;
+    typeSetByForm.current = next.type;
+    form.reset(
+      valuesForNewType(withMinimumIntervals(next.defaultValues, minCheckInterval) as MonitorFormValues, form.getValues())
+    );
+  }, [presetsType, disabledTypes, minCheckInterval, form]);
 
   // In edit mode the form shows the saved monitor once it is loaded
   useEffect(() => {
@@ -136,6 +203,34 @@ export const MonitorFormProvider: React.FC<MonitorFormProviderProps> = ({
     }
   }, [mode, monitor, form]);
 
+  // The minimum arrives with /me, which the workspace layout has loaded by the time the form shows.
+  // If it comes later, the intervals the user hasn't touched follow it, an edit's too. So does the
+  // saved monitor once the effect above shows it, which is why this one comes after it.
+  useEffect(() => {
+    for (const name of ["interval", "retry_interval"] as const) {
+      if (!form.getFieldState(name).isDirty && Number(form.getValues(name)) < minCheckInterval) {
+        form.setValue(name, minCheckInterval);
+      }
+    }
+  }, [monitor, minCheckInterval, form]);
+
+  // Another monitor holding the push token has a message of its own, since the response carries
+  // only its code
+  const handleMutationError = (fallbackMessage: string) => (error: unknown) => {
+    // Too many active monitors, or more probes than a monitor of the workspace may run on
+    const limit = limitReachedMessage(error, t);
+    if (limit) {
+      toast.error(limit);
+      return;
+    }
+    if (apiErrorCode(error) === "PUSH_TOKEN_EXISTS") {
+      toast.error(t("monitors.toasts.push_token_already_used"));
+      console.error(error);
+      return;
+    }
+    commonMutationErrorHandler(fallbackMessage)(error);
+  };
+
   const createMonitorMutation = useMutation({
     ...postMonitorsMutation(),
     onSuccess: (res) => {
@@ -146,9 +241,9 @@ export const MonitorFormProvider: React.FC<MonitorFormProviderProps> = ({
       queryClient.invalidateQueries({
         queryKey: getMonitorsQueryKey(),
       });
-      navigate(`/monitors/${res.data.id}`);
+      navigate(workspacePath(`/monitors/${res.data.id}`));
     },
-    onError: commonMutationErrorHandler("Failed to create monitor"),
+    onError: handleMutationError("Failed to create monitor"),
   });
 
   const editMonitorMutation = useMutation({
@@ -166,9 +261,9 @@ export const MonitorFormProvider: React.FC<MonitorFormProviderProps> = ({
         queryKey: getMonitorsByIdQueryKey({ path: { id: monitorId! } }),
       });
 
-      navigate(`/monitors/${monitorId}`);
+      navigate(workspacePath(`/monitors/${monitorId}`));
     },
-    onError: commonMutationErrorHandler("Failed to update monitor"),
+    onError: handleMutationError("Failed to update monitor"),
   });
 
   const value = useMemo(

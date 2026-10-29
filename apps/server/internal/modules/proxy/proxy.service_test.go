@@ -1,806 +1,303 @@
-package proxy
+package proxy_test
 
 import (
 	"context"
+	"database/sql"
 	"errors"
-	"peekaping/internal/modules/heartbeat"
-	"peekaping/internal/modules/monitor"
-	"peekaping/internal/modules/shared"
+	"path/filepath"
 	"testing"
-	"time"
 
+	"peekaping/cmd/bun/migrations"
+	"peekaping/internal/config"
+	"peekaping/internal/dbtx"
+	"peekaping/internal/infra"
+	"peekaping/internal/modules/monitor"
+	"peekaping/internal/modules/proxy"
+	"peekaping/internal/modules/workspace"
+	"peekaping/internal/modules/workspace/workspacetest"
+
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
+	"github.com/uptrace/bun"
+	"github.com/uptrace/bun/migrate"
 	"go.uber.org/zap"
 )
 
-// MockRepository implements Repository interface for testing
-type MockRepository struct {
-	mock.Mock
+// removal is one call of RemoveProxyReference
+type removal struct {
+	workspace workspace.ID
+	proxy     string
 }
 
-func (m *MockRepository) Create(ctx context.Context, entity *Model) (*Model, error) {
-	args := m.Called(ctx, entity)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
+// recordingMonitors answers the monitor service calls the proxy service makes. It clears the proxy
+// from the monitors the way the real service does, in the transaction the context carries.
+type recordingMonitors struct {
+	monitor.Service
+	db       *bun.DB
+	removals []removal
+	// published is every monitor that PublishUpdated was given
+	published []*monitor.Model
+	err       error
+	// onRemove runs inside the call, to see what the proxy is like by then
+	onRemove func(ctx context.Context)
+}
+
+func (m *recordingMonitors) RemoveProxyReference(ctx context.Context, workspaceID workspace.ID, proxyID string) ([]*monitor.Model, error) {
+	m.removals = append(m.removals, removal{workspaceID, proxyID})
+	if m.onRemove != nil {
+		m.onRemove(ctx)
 	}
-	return args.Get(0).(*Model), args.Error(1)
-}
-
-func (m *MockRepository) FindByID(ctx context.Context, id string) (*Model, error) {
-	args := m.Called(ctx, id)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
+	if m.err != nil {
+		return nil, m.err
 	}
-	return args.Get(0).(*Model), args.Error(1)
-}
-
-func (m *MockRepository) FindAll(ctx context.Context, page int, limit int, q string) ([]*Model, error) {
-	args := m.Called(ctx, page, limit, q)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
+	var ids []string
+	idb := dbtx.DB(ctx, m.db)
+	if err := idb.NewSelect().Table("monitors").Column("id").Where("proxy_id = ?", proxyID).Where("workspace_id = ?", string(workspaceID)).Scan(ctx, &ids); err != nil {
+		return nil, err
 	}
-	return args.Get(0).([]*Model), args.Error(1)
-}
-
-func (m *MockRepository) UpdateFull(ctx context.Context, id string, entity *Model) (*Model, error) {
-	args := m.Called(ctx, id, entity)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
+	if _, err := idb.NewUpdate().Table("monitors").Set("proxy_id = NULL").Where("proxy_id = ?", proxyID).Where("workspace_id = ?", string(workspaceID)).Exec(ctx); err != nil {
+		return nil, err
 	}
-	return args.Get(0).(*Model), args.Error(1)
-}
-
-func (m *MockRepository) UpdatePartial(ctx context.Context, id string, entity *UpdateModel) (*Model, error) {
-	args := m.Called(ctx, id, entity)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
+	changed := make([]*monitor.Model, 0, len(ids))
+	for _, id := range ids {
+		changed = append(changed, &monitor.Model{ID: id})
 	}
-	return args.Get(0).(*Model), args.Error(1)
+	return changed, nil
 }
 
-func (m *MockRepository) Delete(ctx context.Context, id string) error {
-	args := m.Called(ctx, id)
-	return args.Error(0)
+func (m *recordingMonitors) PublishUpdated(_ context.Context, monitors []*monitor.Model) {
+	m.published = append(m.published, monitors...)
 }
 
-// MockMonitorService implements monitor.Service interface for testing
-type MockMonitorService struct {
-	mock.Mock
+// failingDelete is a repository whose delete fails, as a database does when it goes away between
+// the service's steps
+type failingDelete struct {
+	proxy.Repository
+	err error
 }
 
-func (m *MockMonitorService) Create(ctx context.Context, monitor *monitor.CreateUpdateDto) (*shared.Monitor, error) {
-	args := m.Called(ctx, monitor)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*shared.Monitor), args.Error(1)
+func (f *failingDelete) Delete(context.Context, workspace.ID, string) error { return f.err }
+
+type harness struct {
+	db       *bun.DB
+	svc      proxy.Service
+	monitors *recordingMonitors
+	// ws is the workspace the tests' requests run in: the install's oldest one
+	ws workspace.ID
 }
 
-func (m *MockMonitorService) FindByID(ctx context.Context, id string) (*shared.Monitor, error) {
-	args := m.Called(ctx, id)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*shared.Monitor), args.Error(1)
-}
-
-func (m *MockMonitorService) FindByIDs(ctx context.Context, ids []string) ([]*shared.Monitor, error) {
-	args := m.Called(ctx, ids)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).([]*shared.Monitor), args.Error(1)
-}
-
-func (m *MockMonitorService) FindAll(ctx context.Context, page int, limit int, q string, active *bool, status *int, tagIds []string) ([]*shared.Monitor, error) {
-	args := m.Called(ctx, page, limit, q, active, status, tagIds)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).([]*shared.Monitor), args.Error(1)
-}
-
-func (m *MockMonitorService) FindActive(ctx context.Context) ([]*shared.Monitor, error) {
-	args := m.Called(ctx)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).([]*shared.Monitor), args.Error(1)
-}
-
-func (m *MockMonitorService) UpdateFull(ctx context.Context, id string, monitor *monitor.CreateUpdateDto) (*shared.Monitor, error) {
-	args := m.Called(ctx, id, monitor)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*shared.Monitor), args.Error(1)
-}
-
-func (m *MockMonitorService) UpdatePartial(ctx context.Context, id string, monitor *monitor.PartialUpdateDto, noPublish bool) (*shared.Monitor, error) {
-	args := m.Called(ctx, id, monitor, noPublish)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*shared.Monitor), args.Error(1)
-}
-
-func (m *MockMonitorService) Delete(ctx context.Context, id string) error {
-	args := m.Called(ctx, id)
-	return args.Error(0)
-}
-
-func (m *MockMonitorService) ValidateMonitorConfig(monitorType string, configJSON string) error {
-	args := m.Called(monitorType, configJSON)
-	return args.Error(0)
-}
-
-func (m *MockMonitorService) GetHeartbeats(ctx context.Context, id, probeID string, limit, page int, important *bool, reverse bool) ([]*heartbeat.Model, error) {
-	args := m.Called(ctx, id, limit, page, important, reverse)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).([]*heartbeat.Model), args.Error(1)
-}
-
-func (m *MockMonitorService) RemoveProxyReference(ctx context.Context, proxyID string) error {
-	args := m.Called(ctx, proxyID)
-	return args.Error(0)
-}
-
-func (m *MockMonitorService) FindByProxyId(ctx context.Context, proxyId string) ([]*shared.Monitor, error) {
-	args := m.Called(ctx, proxyId)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).([]*shared.Monitor), args.Error(1)
-}
-
-func (m *MockMonitorService) GetStatPoints(ctx context.Context, id, probeID string, since, until time.Time, granularity string) (*monitor.StatPointsSummaryDto, error) {
-	args := m.Called(ctx, id, since, until, granularity)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*monitor.StatPointsSummaryDto), args.Error(1)
-}
-
-func (m *MockMonitorService) GetUptimeStats(ctx context.Context, id, probeID string) (*monitor.CustomUptimeStatsDto, error) {
-	args := m.Called(ctx, id)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*monitor.CustomUptimeStatsDto), args.Error(1)
-}
-
-func (m *MockMonitorService) FindOneByPushToken(ctx context.Context, pushToken string) (*shared.Monitor, error) {
-	args := m.Called(ctx, pushToken)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*shared.Monitor), args.Error(1)
-}
-
-func (m *MockMonitorService) GetUptime24h(ctx context.Context, id, probeID string) (*float64, error) {
-	args := m.Called(ctx, id, probeID)
-	uptime, _ := args.Get(0).(*float64)
-	return uptime, args.Error(1)
-}
-
-func (m *MockMonitorService) ResetMonitorData(ctx context.Context, id string) error {
-	args := m.Called(ctx, id)
-	return args.Error(0)
-}
-
-func (m *MockMonitorService) RepairStoredStatuses(ctx context.Context) (int, error) {
-	args := m.Called(ctx)
-	return args.Int(0), args.Error(1)
-}
-
-func (m *MockMonitorService) AssignProbeToAll(ctx context.Context, probeID string, supportedTypes []string, claim func(ctx context.Context) (bool, error)) (int, error) {
-	args := m.Called(ctx, probeID, supportedTypes, claim)
-	return args.Int(0), args.Error(1)
-}
-
-func (m *MockMonitorService) FindActiveByProbe(ctx context.Context, probeID string, page int, limit int) ([]*shared.Monitor, error) {
-	args := m.Called(ctx, probeID, page, limit)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).([]*shared.Monitor), args.Error(1)
-}
-
-func (m *MockMonitorService) FindActivePaginated(ctx context.Context, page int, limit int) ([]*shared.Monitor, error) {
-	args := m.Called(ctx, page, limit)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).([]*shared.Monitor), args.Error(1)
-}
-
-func TestNewService(t *testing.T) {
-	// Setup
-	mockRepo := new(MockRepository)
-	mockMonitorService := new(MockMonitorService)
+// newHarness builds the proxy service over a migrated SQLite database, with foreign keys on
+func newHarness(t *testing.T) *harness {
+	t.Helper()
+	ctx := context.Background()
 	logger := zap.NewNop().Sugar()
+	db, err := infra.ProvideSQLDB(&config.Config{DBType: "sqlite", DBName: filepath.Join(t.TempDir(), "proxy.db")}, logger)
+	require.NoError(t, err)
+	t.Cleanup(func() { require.NoError(t, db.Close()) })
+	migrator := migrate.NewMigrator(db, migrations.Migrations)
+	require.NoError(t, migrator.Init(ctx))
+	_, err = migrator.Migrate(ctx)
+	require.NoError(t, err)
 
-	params := NewServiceParams{
-		Repository:     mockRepo,
-		MonitorService: mockMonitorService,
-		Logger:         logger,
-	}
-
-	// Execute
-	service := NewService(params)
-
-	// Assert
-	assert.NotNil(t, service)
-	serviceImpl, ok := service.(*ServiceImpl)
-	assert.True(t, ok)
-	assert.Equal(t, mockRepo, serviceImpl.repository)
-	assert.Equal(t, mockMonitorService, serviceImpl.monitorService)
-	assert.NotNil(t, serviceImpl.logger)
+	monitors := &recordingMonitors{db: db}
+	h := &harness{db: db, monitors: monitors, ws: workspace.ID(workspacetest.OldestOrAdd(t, db))}
+	h.svc = h.serviceOver(proxy.NewSQLRepository(db))
+	return h
 }
 
-func TestServiceImpl_Create(t *testing.T) {
-	tests := []struct {
-		name          string
-		entity        *CreateUpdateDto
-		repoResponse  *Model
-		repoError     error
-		expectedError bool
-	}{
-		{
-			name: "successful creation",
-			entity: &CreateUpdateDto{
-				Protocol: "http",
-				Host:     "proxy.example.com",
-				Port:     8080,
-				Auth:     true,
-				Username: "user",
-				Password: "pass",
-			},
-			repoResponse: &Model{
-				ID:       "proxy1",
-				Protocol: "http",
-				Host:     "proxy.example.com",
-				Port:     8080,
-				Auth:     true,
-				Username: "user",
-				Password: "pass",
-			},
-			repoError:     nil,
-			expectedError: false,
-		},
-		{
-			name: "creation without auth",
-			entity: &CreateUpdateDto{
-				Protocol: "https",
-				Host:     "secure-proxy.example.com",
-				Port:     443,
-				Auth:     false,
-			},
-			repoResponse: &Model{
-				ID:       "proxy2",
-				Protocol: "https",
-				Host:     "secure-proxy.example.com",
-				Port:     443,
-				Auth:     false,
-			},
-			repoError:     nil,
-			expectedError: false,
-		},
-		{
-			name: "repository error",
-			entity: &CreateUpdateDto{
-				Protocol: "socks5",
-				Host:     "socks-proxy.example.com",
-				Port:     1080,
-				Auth:     false,
-			},
-			repoResponse:  nil,
-			repoError:     errors.New("database error"),
-			expectedError: true,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			// Setup
-			mockRepo := new(MockRepository)
-			mockMonitorService := new(MockMonitorService)
-			logger := zap.NewNop().Sugar()
-
-			service := &ServiceImpl{
-				repository:     mockRepo,
-				monitorService: mockMonitorService,
-				logger:         logger,
-			}
-
-			expectedModel := &Model{
-				Protocol: tt.entity.Protocol,
-				Host:     tt.entity.Host,
-				Port:     tt.entity.Port,
-				Auth:     tt.entity.Auth,
-				Username: tt.entity.Username,
-				Password: tt.entity.Password,
-			}
-
-			mockRepo.On("Create", mock.Anything, mock.MatchedBy(func(model *Model) bool {
-				return model.Protocol == expectedModel.Protocol &&
-					model.Host == expectedModel.Host &&
-					model.Port == expectedModel.Port &&
-					model.Auth == expectedModel.Auth &&
-					model.Username == expectedModel.Username &&
-					model.Password == expectedModel.Password
-			})).Return(tt.repoResponse, tt.repoError)
-
-			// Execute
-			result, err := service.Create(context.Background(), tt.entity)
-
-			// Assert
-			if tt.expectedError {
-				assert.Error(t, err)
-				assert.Nil(t, result)
-			} else {
-				assert.NoError(t, err)
-				assert.NotNil(t, result)
-				assert.Equal(t, tt.repoResponse, result)
-			}
-
-			mockRepo.AssertExpectations(t)
-		})
-	}
+// serviceOver is the proxy service on the repository, with the harness's database and monitors
+func (h *harness) serviceOver(repository proxy.Repository) proxy.Service {
+	return proxy.NewService(proxy.NewServiceParams{Repository: repository, MonitorService: h.monitors, Transactor: dbtx.NewSQLTransactor(h.db), Logger: zap.NewNop().Sugar()})
 }
 
-func TestServiceImpl_FindByID(t *testing.T) {
-	tests := []struct {
-		name          string
-		id            string
-		repoResponse  *Model
-		repoError     error
-		expectedError bool
-	}{
-		{
-			name: "successful find",
-			id:   "proxy1",
-			repoResponse: &Model{
-				ID:       "proxy1",
-				Protocol: "http",
-				Host:     "proxy.example.com",
-				Port:     8080,
-			},
-			repoError:     nil,
-			expectedError: false,
-		},
-		{
-			name:          "proxy not found",
-			id:            "nonexistent",
-			repoResponse:  nil,
-			repoError:     errors.New("not found"),
-			expectedError: true,
-		},
-		{
-			name:          "empty id",
-			id:            "",
-			repoResponse:  nil,
-			repoError:     errors.New("invalid id"),
-			expectedError: true,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			// Setup
-			mockRepo := new(MockRepository)
-			mockMonitorService := new(MockMonitorService)
-			logger := zap.NewNop().Sugar()
-
-			service := &ServiceImpl{
-				repository:     mockRepo,
-				monitorService: mockMonitorService,
-				logger:         logger,
-			}
-
-			mockRepo.On("FindByID", mock.Anything, tt.id).Return(tt.repoResponse, tt.repoError)
-
-			// Execute
-			result, err := service.FindByID(context.Background(), tt.id)
-
-			// Assert
-			if tt.expectedError {
-				assert.Error(t, err)
-				assert.Nil(t, result)
-			} else {
-				assert.NoError(t, err)
-				assert.NotNil(t, result)
-				assert.Equal(t, tt.repoResponse, result)
-			}
-
-			mockRepo.AssertExpectations(t)
-		})
-	}
+// monitorUsing stores a monitor that uses the proxy, and returns its ID
+func (h *harness) monitorUsing(t *testing.T, workspaceID workspace.ID, proxyID string) string {
+	t.Helper()
+	id := uuid.NewString()
+	_, err := h.db.Exec(`INSERT INTO monitors (id, workspace_id, type, name, interval, timeout, max_retries, retry_interval, resend_interval, proxy_id) VALUES (?, ?, 'http', 'Monitor', 60, 10, 1, 10, 0, ?)`, id, string(workspaceID), proxyID)
+	require.NoError(t, err)
+	return id
 }
 
-func TestServiceImpl_FindAll(t *testing.T) {
-	tests := []struct {
-		name          string
-		page          int
-		limit         int
-		query         string
-		repoResponse  []*Model
-		repoError     error
-		expectedError bool
-	}{
-		{
-			name:  "successful find all",
-			page:  1,
-			limit: 10,
-			query: "",
-			repoResponse: []*Model{
-				{
-					ID:       "proxy1",
-					Protocol: "http",
-					Host:     "proxy1.example.com",
-					Port:     8080,
-				},
-				{
-					ID:       "proxy2",
-					Protocol: "https",
-					Host:     "proxy2.example.com",
-					Port:     443,
-				},
-			},
-			repoError:     nil,
-			expectedError: false,
-		},
-		{
-			name:  "find with search query",
-			page:  1,
-			limit: 5,
-			query: "example",
-			repoResponse: []*Model{
-				{
-					ID:       "proxy1",
-					Protocol: "http",
-					Host:     "proxy1.example.com",
-					Port:     8080,
-				},
-			},
-			repoError:     nil,
-			expectedError: false,
-		},
-		{
-			name:          "repository error",
-			page:          1,
-			limit:         10,
-			query:         "",
-			repoResponse:  nil,
-			repoError:     errors.New("database error"),
-			expectedError: true,
-		},
-		{
-			name:          "empty result",
-			page:          1,
-			limit:         10,
-			query:         "nonexistent",
-			repoResponse:  []*Model{},
-			repoError:     nil,
-			expectedError: false,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			// Setup
-			mockRepo := new(MockRepository)
-			mockMonitorService := new(MockMonitorService)
-			logger := zap.NewNop().Sugar()
-
-			service := &ServiceImpl{
-				repository:     mockRepo,
-				monitorService: mockMonitorService,
-				logger:         logger,
-			}
-
-			mockRepo.On("FindAll", mock.Anything, tt.page, tt.limit, tt.query).Return(tt.repoResponse, tt.repoError)
-
-			// Execute
-			result, err := service.FindAll(context.Background(), tt.page, tt.limit, tt.query)
-
-			// Assert
-			if tt.expectedError {
-				assert.Error(t, err)
-				assert.Nil(t, result)
-			} else {
-				assert.NoError(t, err)
-				assert.NotNil(t, result)
-				assert.Equal(t, tt.repoResponse, result)
-			}
-
-			mockRepo.AssertExpectations(t)
-		})
-	}
+// proxyOf is the proxy a monitor uses, empty when it uses none
+func (h *harness) proxyOf(t *testing.T, monitorID string) string {
+	t.Helper()
+	var proxyID sql.NullString
+	require.NoError(t, h.db.NewSelect().Table("monitors").Column("proxy_id").Where("id = ?", monitorID).Scan(context.Background(), &proxyID))
+	return proxyID.String
 }
 
-func TestServiceImpl_UpdateFull(t *testing.T) {
-	tests := []struct {
-		name          string
-		id            string
-		entity        *CreateUpdateDto
-		repoResponse  *Model
-		repoError     error
-		expectedError bool
-	}{
-		{
-			name: "successful full update",
-			id:   "proxy1",
-			entity: &CreateUpdateDto{
-				Protocol: "https",
-				Host:     "updated-proxy.example.com",
-				Port:     443,
-				Auth:     true,
-				Username: "newuser",
-				Password: "newpass",
-			},
-			repoResponse: &Model{
-				ID:       "proxy1",
-				Protocol: "https",
-				Host:     "updated-proxy.example.com",
-				Port:     443,
-				Auth:     true,
-				Username: "newuser",
-				Password: "newpass",
-			},
-			repoError:     nil,
-			expectedError: false,
-		},
-		{
-			name: "repository error",
-			id:   "proxy1",
-			entity: &CreateUpdateDto{
-				Protocol: "http",
-				Host:     "proxy.example.com",
-				Port:     8080,
-			},
-			repoResponse:  nil,
-			repoError:     errors.New("update failed"),
-			expectedError: true,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			// Setup
-			mockRepo := new(MockRepository)
-			mockMonitorService := new(MockMonitorService)
-			logger := zap.NewNop().Sugar()
-			service := &ServiceImpl{
-				repository:     mockRepo,
-				monitorService: mockMonitorService,
-				logger:         logger,
-			}
-
-			expectedModel := &Model{
-				Protocol: tt.entity.Protocol,
-				Host:     tt.entity.Host,
-				Port:     tt.entity.Port,
-				Auth:     tt.entity.Auth,
-				Username: tt.entity.Username,
-				Password: tt.entity.Password,
-			}
-
-			mockRepo.On("UpdateFull", mock.Anything, tt.id, mock.MatchedBy(func(model *Model) bool {
-				return model.Protocol == expectedModel.Protocol &&
-					model.Host == expectedModel.Host &&
-					model.Port == expectedModel.Port &&
-					model.Auth == expectedModel.Auth &&
-					model.Username == expectedModel.Username &&
-					model.Password == expectedModel.Password
-			})).Return(tt.repoResponse, tt.repoError)
-
-			// Execute
-			result, err := service.UpdateFull(context.Background(), tt.id, tt.entity)
-
-			// Assert
-			if tt.expectedError {
-				assert.Error(t, err)
-				assert.Nil(t, result)
-			} else {
-				assert.NoError(t, err)
-				assert.NotNil(t, result)
-				assert.Equal(t, tt.repoResponse, result)
-			}
-
-			mockRepo.AssertExpectations(t)
-		})
-	}
+func (h *harness) create(t *testing.T, workspaceID workspace.ID, host string) *proxy.Model {
+	t.Helper()
+	created, err := h.svc.Create(context.Background(), workspaceID, &proxy.CreateUpdateDto{Protocol: "http", Host: host, Port: 8080})
+	require.NoError(t, err)
+	return created
 }
 
-func TestServiceImpl_UpdatePartial(t *testing.T) {
-	protocol := "https"
-	host := "updated-host.com"
-	port := 443
-	auth := true
-	username := "newuser"
-	password := "newpass"
+func ptr[T any](v T) *T { return &v }
 
-	tests := []struct {
-		name          string
-		id            string
-		entity        *PartialUpdateDto
-		repoResponse  *Model
-		repoError     error
-		expectedError bool
-	}{
-		{
-			name: "successful partial update",
-			id:   "proxy1",
-			entity: &PartialUpdateDto{
-				Protocol: &protocol,
-				Host:     &host,
-				Port:     &port,
-				Auth:     &auth,
-				Username: &username,
-				Password: &password,
-			},
-			repoResponse: &Model{
-				ID:       "proxy1",
-				Protocol: "https",
-				Host:     "updated-host.com",
-				Port:     443,
-				Auth:     true,
-				Username: "newuser",
-				Password: "newpass",
-			},
-			repoError:     nil,
-			expectedError: false,
-		},
-		{
-			name: "partial update with only host",
-			id:   "proxy1",
-			entity: &PartialUpdateDto{
-				Host: &host,
-			},
-			repoResponse: &Model{
-				ID:       "proxy1",
-				Protocol: "http",
-				Host:     "updated-host.com",
-				Port:     8080,
-			},
-			repoError:     nil,
-			expectedError: false,
-		},
-		{
-			name: "repository error",
-			id:   "proxy1",
-			entity: &PartialUpdateDto{
-				Host: &host,
-			},
-			repoResponse:  nil,
-			repoError:     errors.New("update failed"),
-			expectedError: true,
-		},
-	}
+func TestProxyService_CreateStoresTheProxyInTheWorkspace(t *testing.T) {
+	h := newHarness(t)
+	workspacetest.Add(t, h.db, workspacetest.Other, "Other")
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			// Setup
-			mockRepo := new(MockRepository)
-			mockMonitorService := new(MockMonitorService)
-			logger := zap.NewNop().Sugar()
-			service := &ServiceImpl{
-				repository:     mockRepo,
-				monitorService: mockMonitorService,
-				logger:         logger,
-			}
+	mine := h.create(t, h.ws, "proxy.example.com")
+	theirs := h.create(t, workspacetest.Other, "proxy.example.com")
 
-			expectedUpdateModel := &UpdateModel{
-				Protocol: tt.entity.Protocol,
-				Host:     tt.entity.Host,
-				Port:     tt.entity.Port,
-				Auth:     tt.entity.Auth,
-				Username: tt.entity.Username,
-				Password: tt.entity.Password,
-			}
-
-			mockRepo.On("UpdatePartial", mock.Anything, tt.id, mock.MatchedBy(func(model *UpdateModel) bool {
-				return ((model.Protocol == nil && expectedUpdateModel.Protocol == nil) ||
-					(model.Protocol != nil && expectedUpdateModel.Protocol != nil && *model.Protocol == *expectedUpdateModel.Protocol)) &&
-					((model.Host == nil && expectedUpdateModel.Host == nil) ||
-						(model.Host != nil && expectedUpdateModel.Host != nil && *model.Host == *expectedUpdateModel.Host)) &&
-					((model.Port == nil && expectedUpdateModel.Port == nil) ||
-						(model.Port != nil && expectedUpdateModel.Port != nil && *model.Port == *expectedUpdateModel.Port)) &&
-					((model.Auth == nil && expectedUpdateModel.Auth == nil) ||
-						(model.Auth != nil && expectedUpdateModel.Auth != nil && *model.Auth == *expectedUpdateModel.Auth)) &&
-					((model.Username == nil && expectedUpdateModel.Username == nil) ||
-						(model.Username != nil && expectedUpdateModel.Username != nil && *model.Username == *expectedUpdateModel.Username)) &&
-					((model.Password == nil && expectedUpdateModel.Password == nil) ||
-						(model.Password != nil && expectedUpdateModel.Password != nil && *model.Password == *expectedUpdateModel.Password))
-			})).Return(tt.repoResponse, tt.repoError)
-
-			// Execute
-			result, err := service.UpdatePartial(context.Background(), tt.id, tt.entity)
-
-			// Assert
-			if tt.expectedError {
-				assert.Error(t, err)
-				assert.Nil(t, result)
-			} else {
-				assert.NoError(t, err)
-				assert.NotNil(t, result)
-				assert.Equal(t, tt.repoResponse, result)
-			}
-
-			mockRepo.AssertExpectations(t)
-		})
-	}
+	assert.Equal(t, h.ws, mine.WorkspaceID)
+	assert.Equal(t, workspacetest.Other, theirs.WorkspaceID)
+	assert.Equal(t, "proxy.example.com", mine.Host)
+	found, err := h.svc.FindByID(context.Background(), h.ws, mine.ID)
+	require.NoError(t, err)
+	assert.Equal(t, mine.ID, found.ID)
+	assert.Equal(t, h.ws, found.WorkspaceID)
 }
 
-func TestServiceImpl_Delete(t *testing.T) {
-	tests := []struct {
-		name                     string
-		id                       string
-		monitorServiceError      error
-		repoError                error
-		expectedError            bool
-		expectMonitorServiceCall bool
-	}{
-		{
-			name:                     "successful delete",
-			id:                       "proxy1",
-			monitorServiceError:      nil,
-			repoError:                nil,
-			expectedError:            false,
-			expectMonitorServiceCall: true,
-		},
-		{
-			name:                     "repository error",
-			id:                       "proxy1",
-			monitorServiceError:      nil,
-			repoError:                errors.New("delete failed"),
-			expectedError:            true,
-			expectMonitorServiceCall: true,
-		},
-		{
-			name:                     "monitor service error ignored",
-			id:                       "proxy1",
-			monitorServiceError:      errors.New("monitor service error"),
-			repoError:                nil,
-			expectedError:            false,
-			expectMonitorServiceCall: true,
-		},
+func TestProxyService_APasswordIsStoredAndReadBack(t *testing.T) {
+	h := newHarness(t)
+
+	created, err := h.svc.Create(context.Background(), h.ws, &proxy.CreateUpdateDto{Protocol: "socks5", Host: "10.0.0.9", Port: 1080, Auth: true, Username: "user", Password: "secret"})
+	require.NoError(t, err)
+
+	found, err := h.svc.FindByID(context.Background(), h.ws, created.ID)
+	require.NoError(t, err)
+	assert.Equal(t, "secret", found.Password)
+	assert.Equal(t, "user", found.Username)
+	assert.True(t, found.Auth)
+}
+
+func TestProxyService_ListShowsOnlyTheWorkspacesProxies(t *testing.T) {
+	h := newHarness(t)
+	workspacetest.Add(t, h.db, workspacetest.Other, "Other")
+	mine := h.create(t, h.ws, "mine.example.com")
+	theirs := h.create(t, workspacetest.Other, "theirs.example.com")
+
+	inMine, err := h.svc.FindAll(context.Background(), h.ws, 0, 10, "")
+	require.NoError(t, err)
+	inTheirs, err := h.svc.FindAll(context.Background(), workspacetest.Other, 0, 10, "")
+	require.NoError(t, err)
+	searched, err := h.svc.FindAll(context.Background(), h.ws, 0, 10, "theirs")
+	require.NoError(t, err)
+
+	require.Len(t, inMine, 1)
+	assert.Equal(t, mine.ID, inMine[0].ID)
+	require.Len(t, inTheirs, 1)
+	assert.Equal(t, theirs.ID, inTheirs[0].ID)
+	assert.Empty(t, searched, "a search doesn't find another workspace's proxy")
+}
+
+func TestProxyService_UpdatesChangeTheProxyAndKeepItsWorkspace(t *testing.T) {
+	h := newHarness(t)
+	ctx := context.Background()
+	created := h.create(t, h.ws, "old.example.com")
+
+	full, err := h.svc.UpdateFull(ctx, h.ws, created.ID, &proxy.CreateUpdateDto{Protocol: "https", Host: "new.example.com", Port: 443})
+	require.NoError(t, err)
+	assert.Equal(t, "new.example.com", full.Host)
+	partial, err := h.svc.UpdatePartial(ctx, h.ws, created.ID, &proxy.PartialUpdateDto{Port: ptr(8443)})
+	require.NoError(t, err)
+
+	assert.Equal(t, 8443, partial.Port)
+	assert.Equal(t, "new.example.com", partial.Host)
+	assert.Equal(t, h.ws, partial.WorkspaceID)
+}
+
+func TestProxyService_AProxyOfAnotherWorkspaceIsNotFoundAndLeftAlone(t *testing.T) {
+	h := newHarness(t)
+	ctx := context.Background()
+	workspacetest.Add(t, h.db, workspacetest.Other, "Other")
+	mine := h.create(t, h.ws, "mine.example.com")
+
+	found, err := h.svc.FindByID(ctx, workspacetest.Other, mine.ID)
+	require.NoError(t, err)
+	assert.Nil(t, found)
+	_, err = h.svc.UpdateFull(ctx, workspacetest.Other, mine.ID, &proxy.CreateUpdateDto{Protocol: "http", Host: "hijacked.example.com", Port: 1})
+	assert.ErrorIs(t, err, proxy.ErrNotFound)
+	_, err = h.svc.UpdatePartial(ctx, workspacetest.Other, mine.ID, &proxy.PartialUpdateDto{Host: ptr("hijacked.example.com")})
+	assert.ErrorIs(t, err, proxy.ErrNotFound)
+	_, err = h.svc.UpdatePartial(ctx, workspacetest.Other, mine.ID, &proxy.PartialUpdateDto{})
+	assert.ErrorIs(t, err, proxy.ErrNotFound, "even an update that changes nothing")
+	assert.ErrorIs(t, h.svc.Delete(ctx, workspacetest.Other, mine.ID), proxy.ErrNotFound)
+
+	assert.Empty(t, h.monitors.removals, "no monitor is told about a proxy that wasn't deleted")
+	kept, err := h.svc.FindByID(ctx, h.ws, mine.ID)
+	require.NoError(t, err)
+	require.NotNil(t, kept)
+	assert.Equal(t, "mine.example.com", kept.Host)
+}
+
+func TestProxyService_DeleteClearsTheProxyFromTheWorkspacesMonitorsAndDeletesIt(t *testing.T) {
+	h := newHarness(t)
+	ctx := context.Background()
+	created := h.create(t, h.ws, "proxy.example.com")
+	h.monitors.onRemove = func(ctx context.Context) {
+		// through the transaction the call runs in: the database has one connection
+		count, err := dbtx.DB(ctx, h.db).NewSelect().Table("proxies").Where("id = ?", created.ID).Count(ctx)
+		require.NoError(t, err)
+		assert.Equal(t, 1, count, "the monitors are cleared while the proxy still exists, so the database clears nothing silently")
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			// Setup
-			mockRepo := new(MockRepository)
-			mockMonitorService := new(MockMonitorService)
-			logger := zap.NewNop().Sugar()
-			service := &ServiceImpl{
-				repository:     mockRepo,
-				monitorService: mockMonitorService,
-				logger:         logger,
-			}
+	require.NoError(t, h.svc.Delete(ctx, h.ws, created.ID))
 
-			if tt.expectMonitorServiceCall {
-				mockMonitorService.On("RemoveProxyReference", mock.Anything, tt.id).Return(tt.monitorServiceError)
-			}
+	assert.Equal(t, []removal{{h.ws, created.ID}}, h.monitors.removals)
+	found, err := h.svc.FindByID(ctx, h.ws, created.ID)
+	require.NoError(t, err)
+	assert.Nil(t, found)
+}
 
-			mockRepo.On("Delete", mock.Anything, tt.id).Return(tt.repoError)
+func TestProxyService_AFailureToClearTheMonitorsKeepsTheProxy(t *testing.T) {
+	h := newHarness(t)
+	ctx := context.Background()
+	created := h.create(t, h.ws, "proxy.example.com")
+	h.monitors.err = errors.New("clearing failed")
 
-			// Execute
-			err := service.Delete(context.Background(), tt.id)
+	err := h.svc.Delete(ctx, h.ws, created.ID)
 
-			// Assert
-			if tt.expectedError {
-				assert.Error(t, err)
-			} else {
-				assert.NoError(t, err)
-			}
+	assert.ErrorContains(t, err, "clearing failed")
+	found, findErr := h.svc.FindByID(ctx, h.ws, created.ID)
+	require.NoError(t, findErr)
+	assert.NotNil(t, found, "deleting it would clear the monitors with no event")
+}
 
-			mockRepo.AssertExpectations(t)
-			mockMonitorService.AssertExpectations(t)
-		})
+func TestProxyService_DeletingAMissingProxyIsNotFound(t *testing.T) {
+	h := newHarness(t)
+
+	err := h.svc.Delete(context.Background(), h.ws, uuid.NewString())
+
+	assert.ErrorIs(t, err, proxy.ErrNotFound)
+	assert.Empty(t, h.monitors.removals)
+}
+
+func TestProxyService_ADeleteThatFailsLeavesTheMonitorsTheirProxyAndPublishesNothing(t *testing.T) {
+	h := newHarness(t)
+	ctx := context.Background()
+	created := h.create(t, h.ws, "proxy.example.com")
+	first, second := h.monitorUsing(t, h.ws, created.ID), h.monitorUsing(t, h.ws, created.ID)
+	svc := h.serviceOver(&failingDelete{Repository: proxy.NewSQLRepository(h.db), err: errors.New("delete failed")})
+
+	err := svc.Delete(ctx, h.ws, created.ID)
+
+	assert.ErrorContains(t, err, "delete failed")
+	assert.Equal(t, created.ID, h.proxyOf(t, first), "the monitors still use the proxy that was not deleted")
+	assert.Equal(t, created.ID, h.proxyOf(t, second))
+	assert.Empty(t, h.monitors.published, "and nobody is told they changed")
+}
+
+func TestProxyService_ADeleteTellsTheMonitorsItClearedOnceItHasCommitted(t *testing.T) {
+	h := newHarness(t)
+	ctx := context.Background()
+	created := h.create(t, h.ws, "proxy.example.com")
+	using := h.monitorUsing(t, h.ws, created.ID)
+	h.monitors.onRemove = func(context.Context) {
+		assert.Empty(t, h.monitors.published, "nothing is published inside the transaction")
 	}
+
+	require.NoError(t, h.svc.Delete(ctx, h.ws, created.ID))
+
+	require.Len(t, h.monitors.published, 1)
+	assert.Equal(t, using, h.monitors.published[0].ID)
+	assert.Empty(t, h.proxyOf(t, using))
+	found, err := h.svc.FindByID(ctx, h.ws, created.ID)
+	require.NoError(t, err)
+	assert.Nil(t, found)
 }

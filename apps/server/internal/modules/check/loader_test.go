@@ -11,6 +11,7 @@ import (
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/proxy"
 	"peekaping/internal/modules/shared"
+	"peekaping/internal/modules/workspace"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -25,7 +26,7 @@ type fakeMonitorService struct {
 	err error
 }
 
-func (s *fakeMonitorService) FindByID(_ context.Context, id string) (*monitor.Model, error) {
+func (s *fakeMonitorService) FindByIDAnyWorkspace(_ context.Context, id string) (*monitor.Model, error) {
 	if s.err != nil {
 		return nil, s.err
 	}
@@ -41,7 +42,7 @@ type fakeProxyService struct {
 	err     error
 }
 
-func (s *fakeProxyService) FindByID(_ context.Context, id string) (*proxy.Model, error) {
+func (s *fakeProxyService) FindByID(_ context.Context, _ workspace.ID, id string) (*proxy.Model, error) {
 	if s.err != nil {
 		return nil, s.err
 	}
@@ -57,7 +58,7 @@ type fakeMaintenanceService struct {
 	statusErr map[string]bool
 }
 
-func (s *fakeMaintenanceService) GetMaintenancesByMonitorID(_ context.Context, _ string) ([]*maintenance.Model, error) {
+func (s *fakeMaintenanceService) GetMaintenancesByMonitorIDAnyWorkspace(_ context.Context, _ string) ([]*maintenance.Model, error) {
 	return s.windows, s.listErr
 }
 
@@ -144,6 +145,30 @@ func TestLoader_SkipsMonitorsThatCantBeChecked(t *testing.T) {
 		assert.Nil(t, job)
 	})
 
+	t.Run("a monitor of a suspended workspace", func(t *testing.T) {
+		mon := activeMonitor()
+		mon.WorkspaceSuspended = true
+		f := newFixture(t, mon)
+
+		job, err := f.loader.Load(context.Background(), monitorID)
+
+		assert.ErrorIs(t, err, ErrWorkspaceSuspended)
+		assert.Nil(t, job)
+		assert.Zero(t, f.heartbeats.reads)
+	})
+
+	t.Run("a monitor of a type the install turns off", func(t *testing.T) {
+		mon := activeMonitor()
+		mon.TypeDisabled = true
+		f := newFixture(t, mon)
+
+		job, err := f.loader.Load(context.Background(), monitorID)
+
+		assert.ErrorIs(t, err, ErrMonitorTypeDisabled)
+		assert.Nil(t, job)
+		assert.Zero(t, f.heartbeats.reads)
+	})
+
 	t.Run("a monitor that can't be read", func(t *testing.T) {
 		f := newFixture(t, activeMonitor())
 		f.monitors.err = errors.New("database error")
@@ -153,6 +178,7 @@ func TestLoader_SkipsMonitorsThatCantBeChecked(t *testing.T) {
 		assert.ErrorIs(t, err, f.monitors.err)
 		assert.NotErrorIs(t, err, ErrMonitorNotFound)
 		assert.NotErrorIs(t, err, ErrMonitorPaused)
+		assert.NotErrorIs(t, err, ErrWorkspaceSuspended)
 		assert.Nil(t, job)
 	})
 }
