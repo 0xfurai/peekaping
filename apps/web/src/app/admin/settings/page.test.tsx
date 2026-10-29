@@ -84,6 +84,14 @@ describe("InstallSettingsPage", () => {
     expect(around(html, "install-signup-mode")).toContain(text("admin.settings.source.default"));
   });
 
+  it("describes each field by where its value comes from, and a locked one by its lock note too", () => {
+    const html = page();
+    expect(tag(html, "install-smtp-host")).toContain('aria-describedby="install-smtp-host-source install-smtp-host-locked"');
+    expect(html).toContain(`id="install-smtp-host-source" class="text-xs text-muted-foreground">${text("admin.settings.source.environment")}<`);
+    expect(tag(html, "install-public-url")).toContain('aria-describedby="install-public-url-source"');
+    expect(tag(html, "install-smtp-password")).toContain('aria-describedby="install-smtp-password-source"');
+  });
+
   it("shows a field the environment sets read-only, with its variable", () => {
     const html = page();
     expect(tag(html, "install-smtp-host")).toContain('readOnly=""');

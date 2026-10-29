@@ -55,6 +55,11 @@ const createSchema = (t: (key: string) => string) =>
 
 type Setting = { source: SettingSource; locked: boolean; envVar: string };
 
+// A field is described by where its value comes from, and by the note that locks it
+const describedBy = (id: string, setting: Setting) => ({
+  "aria-describedby": setting.locked ? `${id}-source ${id}-locked` : `${id}-source`,
+});
+
 // A setting's label with where its value comes from, the field, and, for a field the server's
 // environment sets, the note that locks it
 function SettingField({
@@ -75,13 +80,13 @@ function SettingField({
     <div className="flex flex-col gap-2">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <Label htmlFor={id}>{label}</Label>
-        <span className="text-xs text-muted-foreground">
+        <span id={`${id}-source`} className="text-xs text-muted-foreground">
           {t(`admin.settings.source.${setting.source}`)}
         </span>
       </div>
       {children}
       {setting.locked && (
-        <p className="text-xs text-muted-foreground">
+        <p id={`${id}-locked`} className="text-xs text-muted-foreground">
           {t("admin.settings.locked")} (<code dir="ltr">{setting.envVar}</code>)
         </p>
       )}
@@ -170,7 +175,7 @@ function InstallSettingsForm({ settings }: { settings: AdminInstallSettingsRespo
         </CardHeader>
         <CardContent>
           <SettingField id="install-signup-mode" label={t("admin.settings.signup.label")} setting={settings.signupMode}>
-            <NativeSelect id="install-signup-mode" {...bindSelect("signupMode", settings.signupMode)}>
+            <NativeSelect id="install-signup-mode" {...describedBy("install-signup-mode", settings.signupMode)} {...bindSelect("signupMode", settings.signupMode)}>
               <option value="invite" className={option}>{t("admin.settings.signup.invite")}</option>
               <option value="open" className={option}>{t("admin.settings.signup.open")}</option>
             </NativeSelect>
@@ -193,25 +198,26 @@ function InstallSettingsForm({ settings }: { settings: AdminInstallSettingsRespo
             {settings.accountEmails ? t("admin.settings.sender.on") : t("admin.settings.sender.off")}
           </p>
           <SettingField id="install-smtp-host" label={t("admin.settings.sender.host")} setting={smtp.host}>
-            <Input id="install-smtp-host" dir="ltr" placeholder="smtp.example.com" readOnly={smtp.host.locked} {...bind("host")} />
+            <Input id="install-smtp-host" {...describedBy("install-smtp-host", smtp.host)} dir="ltr" placeholder="smtp.example.com" readOnly={smtp.host.locked} {...bind("host")} />
           </SettingField>
           <SettingField id="install-smtp-port" label={t("admin.settings.sender.port")} setting={smtp.port} error={errors.port?.message}>
-            <Input id="install-smtp-port" type="number" min={0} max={65535} readOnly={smtp.port.locked} {...bind("port")} />
+            <Input id="install-smtp-port" {...describedBy("install-smtp-port", smtp.port)} type="number" min={0} max={65535} readOnly={smtp.port.locked} {...bind("port")} />
           </SettingField>
           <SettingField id="install-smtp-tls" label={t("admin.settings.sender.tls")} setting={smtp.tls}>
-            <NativeSelect id="install-smtp-tls" {...bindSelect("tls", smtp.tls)}>
+            <NativeSelect id="install-smtp-tls" {...describedBy("install-smtp-tls", smtp.tls)} {...bindSelect("tls", smtp.tls)}>
               <option value="starttls" className={option}>{t("admin.settings.sender.tls_starttls")}</option>
               <option value="tls" className={option}>{t("admin.settings.sender.tls_tls")}</option>
               <option value="none" className={option}>{t("admin.settings.sender.tls_none")}</option>
             </NativeSelect>
           </SettingField>
           <SettingField id="install-smtp-user" label={t("admin.settings.sender.user")} setting={smtp.user}>
-            <Input id="install-smtp-user" dir="ltr" autoComplete="off" readOnly={smtp.user.locked} {...bind("user")} />
+            <Input id="install-smtp-user" {...describedBy("install-smtp-user", smtp.user)} dir="ltr" autoComplete="off" readOnly={smtp.user.locked} {...bind("user")} />
           </SettingField>
           <SettingField id="install-smtp-password" label={t("admin.settings.sender.password")} setting={smtp.password}>
             {/* Write-only: the field never holds the saved password, and typing replaces it */}
             <PasswordInput
               id="install-smtp-password"
+              {...describedBy("install-smtp-password", smtp.password)}
               autoComplete="new-password"
               readOnly={smtp.password.locked}
               placeholder={
@@ -243,7 +249,7 @@ function InstallSettingsForm({ settings }: { settings: AdminInstallSettingsRespo
             )}
           </SettingField>
           <SettingField id="install-smtp-from" label={t("admin.settings.sender.from")} setting={smtp.from}>
-            <Input id="install-smtp-from" dir="ltr" placeholder="Peekaping <no-reply@example.com>" readOnly={smtp.from.locked} {...bind("from")} />
+            <Input id="install-smtp-from" {...describedBy("install-smtp-from", smtp.from)} dir="ltr" placeholder="Peekaping <no-reply@example.com>" readOnly={smtp.from.locked} {...bind("from")} />
           </SettingField>
         </CardContent>
       </Card>
@@ -255,7 +261,7 @@ function InstallSettingsForm({ settings }: { settings: AdminInstallSettingsRespo
         </CardHeader>
         <CardContent>
           <SettingField id="install-public-url" label={t("admin.settings.public_url.label")} setting={settings.publicUrl}>
-            <Input id="install-public-url" dir="ltr" type="url" placeholder="https://peekaping.example.com" readOnly={settings.publicUrl.locked} {...bind("publicUrl")} />
+            <Input id="install-public-url" {...describedBy("install-public-url", settings.publicUrl)} dir="ltr" type="url" placeholder="https://peekaping.example.com" readOnly={settings.publicUrl.locked} {...bind("publicUrl")} />
           </SettingField>
         </CardContent>
       </Card>
