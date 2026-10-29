@@ -1978,8 +1978,10 @@
       "url_label": "Stebimas adresas"
     },
     "channel": {
+      "continue_unlinked": "Tęsti nesusiejus",
       "description": "Pasirinkite, kur „Peekaping“ siunčia įspėjimą, kai jūsų monitorius neveikia. Tai taps numatytuoju naujiems monitoriams.",
       "link_failed": "Kanalas išsaugotas, bet susieti jo su monitoriumi nepavyko. Pridėkite jį monitoriaus redagavimo puslapyje.",
+      "retry_link": "Bandyti susieti dar kartą",
       "title": "Gaukite pranešimus"
     },
     "done": {

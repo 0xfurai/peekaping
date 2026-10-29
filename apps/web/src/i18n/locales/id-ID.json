@@ -1978,8 +1978,10 @@
       "url_label": "Alamat yang dipantau"
     },
     "channel": {
+      "continue_unlinked": "Lanjutkan tanpa menautkan",
       "description": "Pilih ke mana Peekaping mengirim peringatan saat monitor Anda mati. Ini menjadi default untuk monitor baru.",
       "link_failed": "Saluran telah disimpan, tetapi gagal menautkannya ke monitor Anda. Tambahkan di halaman edit monitor.",
+      "retry_link": "Coba tautkan lagi",
       "title": "Dapatkan notifikasi"
     },
     "done": {

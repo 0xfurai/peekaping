@@ -1978,8 +1978,10 @@
       "url_label": "要監控的地址"
     },
     "channel": {
+      "continue_unlinked": "不連結並繼續",
       "description": "選擇監控宕機時 Peekaping 把警報發送到哪裡。它將成為新監控的預設頻道。",
       "link_failed": "頻道已儲存，但關聯到監控失敗。請在監控的編輯頁面中加入。",
+      "retry_link": "再次嘗試連結",
       "title": "接收通知"
     },
     "done": {
