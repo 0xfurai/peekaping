@@ -2116,6 +2116,7 @@
       "retention_days": "Ohranjanje podatkov (dnevi)"
     },
     "none": "Brez omejitve",
-    "invalid": "Vnesite celo število 1 ali več ali pustite prazno, če omejitve ne želite."
+    "invalid": "Vnesite celo število 1 ali več ali pustite prazno, če omejitve ne želite.",
+    "retention_too_long": "Ne sme biti več kot {{max}} dni"
   }
 }

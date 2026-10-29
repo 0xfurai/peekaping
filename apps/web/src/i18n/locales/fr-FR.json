@@ -2116,6 +2116,7 @@
       "retention_days": "Conservation des données (jours)"
     },
     "none": "Aucune limite",
-    "invalid": "Saisissez un nombre entier supérieur ou égal à 1, ou laissez le champ vide pour ne pas avoir de limite."
+    "invalid": "Saisissez un nombre entier supérieur ou égal à 1, ou laissez le champ vide pour ne pas avoir de limite.",
+    "retention_too_long": "Ne peut pas dépasser {{max}} jours"
   }
 }

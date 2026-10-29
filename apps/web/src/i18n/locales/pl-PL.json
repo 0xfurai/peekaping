@@ -2116,6 +2116,7 @@
       "retention_days": "Przechowywanie danych (dni)"
     },
     "none": "Bez limitu",
-    "invalid": "Wpisz liczbę całkowitą równą 1 lub większą albo zostaw puste, aby nie było limitu."
+    "invalid": "Wpisz liczbę całkowitą równą 1 lub większą albo zostaw puste, aby nie było limitu.",
+    "retention_too_long": "Nie może być więcej niż {{max}} dni"
   }
 }

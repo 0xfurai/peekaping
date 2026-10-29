@@ -2116,6 +2116,7 @@
       "retention_days": "Dataopbevaring (dage)"
     },
     "none": "Ingen grænse",
-    "invalid": "Indtast et helt tal på 1 eller mere, eller lad feltet stå tomt for ingen grænse."
+    "invalid": "Indtast et helt tal på 1 eller mere, eller lad feltet stå tomt for ingen grænse.",
+    "retention_too_long": "Må ikke være over {{max}} dage"
   }
 }

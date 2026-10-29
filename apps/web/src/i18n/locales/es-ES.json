@@ -2116,6 +2116,7 @@
       "retention_days": "Retención de datos (días)"
     },
     "none": "Sin límite",
-    "invalid": "Introduce un número entero de 1 o más, o déjalo en blanco para no tener límite."
+    "invalid": "Introduce un número entero de 1 o más, o déjalo en blanco para no tener límite.",
+    "retention_too_long": "No puede ser más de {{max}} días"
   }
 }
