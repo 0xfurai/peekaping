@@ -127,6 +127,7 @@ func TestRepairStoredStatuses_StoredStatusFollowsTheLatestHeartbeat(t *testing.T
 }
 
 func TestRepairStoredStatuses_WalksEveryPageOfMonitors(t *testing.T) {
+	parallel(t)
 	// A full last page is followed by an empty one, so the sweep has to stop on that too
 	for _, count := range []int{monitor.StatusRepairPageSize, monitor.StatusRepairPageSize + 1} {
 		t.Run(strconv.Itoa(count)+" monitors", func(t *testing.T) {

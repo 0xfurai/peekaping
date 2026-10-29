@@ -42,6 +42,7 @@ func (a *app) sayHelloWith(t *testing.T, token, instanceID string, types []strin
 // instance's are stored on the instance, a monitor is dealt only to the online instances that run
 // its type, and the probe's types are the union over its online instances.
 func TestProbeInstanceTypes_InstancesOnDifferentBuildsOfOneProbe(t *testing.T) {
+	parallel(t)
 	for name, setup := range map[string]func(*testing.T) (a *app, probeID, token string){
 		"a remote probe": func(t *testing.T) (*app, string, string) {
 			a := newAppWithAdmin(t, withAllMonitorTypes)

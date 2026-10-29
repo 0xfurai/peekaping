@@ -158,6 +158,7 @@ func watchDeleted(t *testing.T, a *app) *deletedFeed {
 }
 
 func TestAdminWorkspaceDelete_RemovesEveryRowOfTheWorkspaceAndNoneOfAnothers(t *testing.T) {
+	parallel(t)
 	forEachBackend(t, func(t *testing.T, backend func(*config.Config)) {
 		a := newAppWithAdmin(t, backend)
 		doomed := a.seedWorkspace(t, "Doomed", "doomed")
@@ -190,6 +191,7 @@ func TestAdminWorkspaceDelete_RemovesEveryRowOfTheWorkspaceAndNoneOfAnothers(t *
 }
 
 func TestAdminWorkspaceDelete_TheMonitorsStopAtOnceAndTheirPublicPagesGoWithThem(t *testing.T) {
+	parallel(t)
 	forEachBackend(t, func(t *testing.T, backend func(*config.Config)) {
 		a := newAppWithAdmin(t, backend)
 		w := a.seedWorkspace(t, "Doomed", "doomed")
@@ -236,6 +238,7 @@ func (a *app) storedHeartbeatsOf(t *testing.T, monitorIDs []string) []string {
 }
 
 func TestAdminWorkspaceDelete_MembersLeaveTheRoomsOnlyOnceTheDeleteIsStored(t *testing.T) {
+	parallel(t)
 	forEachBackend(t, func(t *testing.T, backend func(*config.Config)) {
 		leaves := &publishedLeaves{}
 		a := newAppDecorated(t, func(c *dig.Container) error {
@@ -268,6 +271,7 @@ func TestAdminWorkspaceDelete_MembersLeaveTheRoomsOnlyOnceTheDeleteIsStored(t *t
 }
 
 func TestAdminWorkspaceDelete_MembersKeepTheirAccountsAndOtherWorkspaces(t *testing.T) {
+	parallel(t)
 	forEachBackend(t, func(t *testing.T, backend func(*config.Config)) {
 		a := newAppWithAdmin(t, backend)
 		doomed := a.seedWorkspace(t, "Doomed", "doomed")
@@ -317,6 +321,7 @@ func TestAdminWorkspaceDelete_AnAPIKeyOfTheWorkspaceStopsWorking(t *testing.T) {
 }
 
 func TestAdminWorkspaceDelete_AnUnknownWorkspaceIs404AndNothingChanges(t *testing.T) {
+	parallel(t)
 	forEachBackend(t, func(t *testing.T, backend func(*config.Config)) {
 		a := newAppWithAdmin(t, backend)
 		w := a.seedWorkspace(t, "Kept", "kept")

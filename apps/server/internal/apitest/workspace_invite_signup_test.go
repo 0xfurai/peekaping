@@ -41,6 +41,7 @@ func (a *app) count(t *testing.T, table string) int {
 }
 
 func TestInviteSignup_JoinsTheInvitingWorkspaceWithTheRoleAndHasNoWorkspaceOfTheirOwnNorInstanceAdmin(t *testing.T) {
+	parallel(t)
 	isolationBackends(t, func(t *testing.T, a *app) {
 		// the install has a user already: in invite mode the first-user rule would refuse anyone else
 		if !cloudRun() {
@@ -68,6 +69,7 @@ func TestInviteSignup_JoinsTheInvitingWorkspaceWithTheRoleAndHasNoWorkspaceOfThe
 }
 
 func TestInviteSignup_TheEmailMayBeTypedInAnyCase(t *testing.T) {
+	parallel(t)
 	isolationBackends(t, func(t *testing.T, a *app) {
 		created := a.invite(t, "bob@example.com", "owner", a.asAdmin)
 
@@ -81,6 +83,7 @@ func TestInviteSignup_TheEmailMayBeTypedInAnyCase(t *testing.T) {
 }
 
 func TestInviteSignup_AnotherEmailIsRefusedAndCreatesNobody(t *testing.T) {
+	parallel(t)
 	isolationBackends(t, func(t *testing.T, a *app) {
 		created := a.invite(t, "bob@example.com", "member", a.asAdmin)
 		users, members := a.count(t, "users"), a.count(t, "workspace_members")
@@ -95,6 +98,7 @@ func TestInviteSignup_AnotherEmailIsRefusedAndCreatesNobody(t *testing.T) {
 }
 
 func TestInviteSignup_AUsedExpiredRevokedOrUnknownInviteIsRefusedAndCreatesNobody(t *testing.T) {
+	parallel(t)
 	isolationBackends(t, func(t *testing.T, a *app) {
 		used := a.invite(t, "used@example.com", "member", a.asAdmin)
 		require.Equal(t, http.StatusCreated, a.signUpThrough(t, used.Token, "used@example.com").Code)
@@ -124,6 +128,7 @@ func TestInviteSignup_AUsedExpiredRevokedOrUnknownInviteIsRefusedAndCreatesNobod
 }
 
 func TestInviteSignup_AnEmailThatHasAnAccountSignsInInstead(t *testing.T) {
+	parallel(t)
 	isolationBackends(t, func(t *testing.T, a *app) {
 		a.createUser(t, "bob@example.com")
 		created := a.invite(t, "bob@example.com", "member", a.asAdmin)
@@ -139,6 +144,7 @@ func TestInviteSignup_AnEmailThatHasAnAccountSignsInInstead(t *testing.T) {
 // The invite lower-cases its email and accounts keep the case their owner typed, so an account
 // the invite names can be stored in another case. It is the same person: no second account.
 func TestInviteSignup_AnAccountWhoseEmailDiffersOnlyInCaseSignsInInsteadAndNoSecondAccountIsMade(t *testing.T) {
+	parallel(t)
 	isolationBackends(t, func(t *testing.T, a *app) {
 		a.createUser(t, "Alice@Example.com")
 		created := a.invite(t, "alice@example.com", "member", a.asAdmin)
@@ -157,6 +163,7 @@ func TestInviteSignup_AnAccountWhoseEmailDiffersOnlyInCaseSignsInInsteadAndNoSec
 }
 
 func TestInviteSignup_ABadPasswordCreatesNobodyAndKeepsTheInvite(t *testing.T) {
+	parallel(t)
 	isolationBackends(t, func(t *testing.T, a *app) {
 		created := a.invite(t, "bob@example.com", "member", a.asAdmin)
 		users := a.count(t, "users")
@@ -170,6 +177,7 @@ func TestInviteSignup_ABadPasswordCreatesNobodyAndKeepsTheInvite(t *testing.T) {
 }
 
 func TestInviteSignup_WithoutATokenRegisterIsAsItWas(t *testing.T) {
+	parallel(t)
 	forEachDatabaseWith(t, []func(*config.Config){selfHosted}, func(t *testing.T, a *app) {
 		w := a.request(t, http.MethodPost, registerPath, map[string]any{"email": "bob@example.com", "password": adminPassword})
 
@@ -223,6 +231,7 @@ func assertOneWinsTheOtherIsRefused(t *testing.T, round, success int, codes []in
 // the other is told it was used, or that the address has an account by then. Nothing answers 5xx,
 // and one user and one membership are added.
 func TestInviteSignup_TwoSignupsWithOneTokenAtOnceMakeOneUserAndOneMembership(t *testing.T) {
+	parallel(t)
 	isolationBackends(t, func(t *testing.T, a *app) {
 		for round := range 5 {
 			email := fmt.Sprintf("racer%d@example.com", round)
@@ -246,6 +255,7 @@ func TestInviteSignup_TwoSignupsWithOneTokenAtOnceMakeOneUserAndOneMembership(t 
 // invite was used or that they are a member by then. Nothing answers 5xx, and one membership is
 // added.
 func TestInvites_TwoAcceptsOfOneTokenByTwoSessionsAtOnceMakeOneMembership(t *testing.T) {
+	parallel(t)
 	isolationBackends(t, func(t *testing.T, a *app) {
 		for round := range 5 {
 			email := fmt.Sprintf("sitter%d@example.com", round)

@@ -115,6 +115,7 @@ func (w assignWorld) nonPush() []string {
 // AC2, AC3: the first hello of a waiting probe assigns it every monitor that isn't a push monitor,
 // paused ones included, of a type the instance runs. An instance that lists no types runs them all.
 func TestProbeAssignAll_FirstHelloAssignsTheMonitorsTheInstanceRuns(t *testing.T) {
+	parallel(t)
 	for name, types := range map[string][]string{
 		"an instance that lists no types": nil,
 		"a full build":                    append([]string{"http", "tcp", "push"}, optionalTypes...),

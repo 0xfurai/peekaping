@@ -181,6 +181,7 @@ func TestAdminWorkspaces_OnlyAnInstanceAdminSignedInAsAUserReachesThem(t *testin
 // MARK: List
 
 func TestAdminWorkspaces_ListShowsEveryWorkspaceWithItsCountsAndNothingFromInside(t *testing.T) {
+	parallel(t)
 	forEachBackend(t, func(t *testing.T, backend func(*config.Config)) {
 		a := newAppWithAdmin(t, backend)
 		w := a.createAcme(t)
@@ -266,6 +267,7 @@ func keys[V any](m map[string]V) []string {
 }
 
 func TestAdminWorkspaces_SearchFindsAWorkspaceByNameOrAnOwnersEmailIgnoringCase(t *testing.T) {
+	parallel(t)
 	forEachBackend(t, func(t *testing.T, backend func(*config.Config)) {
 		a := newAppWithAdmin(t, backend)
 		acmeWorkspace := a.createAcme(t)
@@ -300,6 +302,7 @@ func TestAdminWorkspaces_SearchFindsAWorkspaceByNameOrAnOwnersEmailIgnoringCase(
 }
 
 func TestAdminWorkspaces_PagesInTheOrderOfCreation(t *testing.T) {
+	parallel(t)
 	forEachBackend(t, func(t *testing.T, backend func(*config.Config)) {
 		a := newAppWithAdmin(t, backend)
 		for i := 0; i < 4; i++ {
@@ -335,6 +338,7 @@ func TestAdminWorkspaces_PagesInTheOrderOfCreation(t *testing.T) {
 // MARK: Suspend
 
 func TestAdminWorkspaces_SuspendingHoldsBackEverythingThatRunsAndShowsMembersWhy(t *testing.T) {
+	parallel(t)
 	forEachBackend(t, func(t *testing.T, backend func(*config.Config)) {
 		a := newAppWithAdmin(t, backend)
 		w := a.createAcme(t)
@@ -449,6 +453,7 @@ var publicStatusPageRoutes = func(slug, domain string) []string {
 }
 
 func TestAdminWorkspaces_ASuspendedWorkspacesStatusPagesAndBadgesAnswerUnavailable(t *testing.T) {
+	parallel(t)
 	forEachBackend(t, func(t *testing.T, backend func(*config.Config)) {
 		a := newAppWithAdmin(t, backend)
 		w := a.createAcme(t)
@@ -477,6 +482,7 @@ func TestAdminWorkspaces_ASuspendedWorkspacesStatusPagesAndBadgesAnswerUnavailab
 }
 
 func TestAdminWorkspaces_AStatusPageOfAWorkspaceWaitingForVerificationAnswersUnavailable(t *testing.T) {
+	parallel(t)
 	forEachBackend(t, func(t *testing.T, backend func(*config.Config)) {
 		a := newAppWithAdmin(t, backend)
 		id, owner := a.createUnverifiedWorkspace(t, "Waiting", "wait@example.com")
@@ -514,6 +520,7 @@ func TestAdminWorkspaces_SuspendingTwiceKeepsTheFirstTime(t *testing.T) {
 // MARK: Resume
 
 func TestAdminWorkspaces_ResumingBringsEverythingBackAsItWas(t *testing.T) {
+	parallel(t)
 	forEachBackend(t, func(t *testing.T, backend func(*config.Config)) {
 		a := newAppWithAdmin(t, backend)
 		source := a.schedulerSource(t)
@@ -559,6 +566,7 @@ func TestAdminWorkspaces_ResumingBringsEverythingBackAsItWas(t *testing.T) {
 }
 
 func TestAdminWorkspaces_AWorkspaceWaitingForVerificationKeepsWaitingAfterTheAdminResumesIt(t *testing.T) {
+	parallel(t)
 	forEachBackend(t, func(t *testing.T, backend func(*config.Config)) {
 		a := newAppWithAdmin(t, backend)
 		id, owner := a.createUnverifiedWorkspace(t, "Waiting", "wait@example.com")

@@ -37,6 +37,7 @@ import (
 //
 //	go test -tags soak -run TestIngestRate -count=1 -timeout 15m -v ./internal/apitest/
 func TestIngestRate_TheAPIStoresWhatTheProbesSend(t *testing.T) {
+	serial(t) // it measures a rate, which tests beside it would lower
 	backends := map[string]func(*config.Config){
 		"sqlite": func(*config.Config) {},
 	}

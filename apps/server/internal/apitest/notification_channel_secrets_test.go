@@ -31,9 +31,11 @@ func (f roundTripperFunc) RoundTrip(req *http.Request) (*http.Response, error) {
 
 // blockExternalHTTP fails every HTTP request the test sends to a host that isn't on this machine,
 // and fails the test. The providers send with http.DefaultTransport, so a channel that reached
-// Send would otherwise go out to the real service of its type.
+// Send would otherwise go out to the real service of its type. The transport is the process's, so
+// the test runs alone.
 func blockExternalHTTP(t *testing.T) {
 	t.Helper()
+	serial(t)
 	original := http.DefaultTransport
 	var mu sync.Mutex
 	var blocked []string

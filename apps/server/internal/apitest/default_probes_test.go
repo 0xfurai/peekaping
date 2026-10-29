@@ -39,6 +39,7 @@ func sorted(ids []string) []string {
 }
 
 func TestDefaultProbes_TheLocalProbeIsTheDefaultOnAnInstallAndNoOtherProbeIs(t *testing.T) {
+	parallel(t)
 	forEachBackend(t, func(t *testing.T, backend func(*config.Config)) {
 		a := newAppWithAdmin(t, backend)
 
@@ -51,6 +52,7 @@ func TestDefaultProbes_TheLocalProbeIsTheDefaultOnAnInstallAndNoOtherProbeIs(t *
 }
 
 func TestDefaultProbes_AMonitorWithoutProbesRunsOnTheDefaultProbes(t *testing.T) {
+	parallel(t)
 	forEachBackend(t, func(t *testing.T, backend func(*config.Config)) {
 		a := newAppWithAdmin(t, backend)
 		frankfurt := a.createProbe(t, map[string]any{"name": "Frankfurt"})

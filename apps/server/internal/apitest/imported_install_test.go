@@ -34,6 +34,7 @@ func importMongoInstall(t *testing.T, in *mongoimporttest.Install) string {
 // What an install that moved from MongoDB to SQLite keeps working: the logins, the
 // API keys handed out, the badge URLs on other sites, and the data behind them.
 func TestImportedMongoInstall(t *testing.T) {
+	parallel(t)
 	in := mongoimporttest.Seed(t)
 	path := importMongoInstall(t, in)
 	a := newApp(t, func(cfg *config.Config) { cfg.DBName = path })

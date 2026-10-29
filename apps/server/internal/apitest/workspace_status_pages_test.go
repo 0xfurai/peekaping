@@ -110,6 +110,7 @@ func TestStatusPageWorkspaces_APageCannotShowAnotherWorkspacesMonitor(t *testing
 // An ID that isn't a UUID names no monitor, and gets the answer a UUID nobody has gets, on
 // PostgreSQL too, where the id column is a uuid. An upper case copy of an ID names the monitor.
 func TestStatusPageWorkspaces_AMalformedMonitorIDIsAnUnknownOne(t *testing.T) {
+	parallel(t)
 	forEachDatabase(t, func(t *testing.T, a *app) {
 		monitor := a.createMonitor(t, "Shown", "shown-token")
 		for _, malformed := range []string{"not-a-uuid", "12345"} {

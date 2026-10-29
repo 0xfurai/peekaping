@@ -1,22 +1,35 @@
 package executor
 
 import (
+	"errors"
 	"net"
+	"strconv"
 	"sync"
+	"syscall"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 )
 
-// refusedAddr returns host:port of a port nothing listens on: it listens to
-// get a free port, then closes the listener.
+// refusedAddr returns host:port of a port that refuses connections: the first of the low ports that
+// does. A port below the range the system hands out for ":0" can't be taken by another test between
+// this check and the test's dial, as a port that was only free a moment ago can.
 func refusedAddr(t *testing.T) string {
 	t.Helper()
-	l, err := net.Listen("tcp", "127.0.0.1:0")
-	require.NoError(t, err)
-	addr := l.Addr().String()
-	require.NoError(t, l.Close())
-	return addr
+	for port := 1; port < 100; port++ {
+		addr := net.JoinHostPort("127.0.0.1", strconv.Itoa(port))
+		conn, err := net.DialTimeout("tcp", addr, time.Second)
+		if err == nil {
+			_ = conn.Close()
+			continue
+		}
+		if errors.Is(err, syscall.ECONNREFUSED) {
+			return addr
+		}
+	}
+	t.Fatal("no port below 100 refuses connections on 127.0.0.1")
+	return ""
 }
 
 // silentAddr is a server that accepts connections and never says a word.

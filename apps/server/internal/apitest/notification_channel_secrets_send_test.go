@@ -47,9 +47,11 @@ func startRequestReceiver(t *testing.T) *requestReceiver {
 }
 
 // routeHostTo sends the requests the app makes to a host, which the test blocks, to the receiver
-// instead. Call it after newSecretsApp, which blocks the hosts that are not on this machine.
+// instead. Call it after newSecretsApp, which blocks the hosts that are not on this machine and
+// keeps the test serial: the transport is the process's.
 func routeHostTo(t *testing.T, host string, receiver *requestReceiver) {
 	t.Helper()
+	serial(t)
 	target, err := url.Parse(receiver.url)
 	require.NoError(t, err)
 	previous := http.DefaultTransport

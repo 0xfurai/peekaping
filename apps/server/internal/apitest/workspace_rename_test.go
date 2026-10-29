@@ -28,6 +28,7 @@ func workspaceNameInMe(t *testing.T, a *app, id workspace.ID, creds ...credentia
 }
 
 func TestWorkspaceRename_AnOwnerAndAnAdminRenameTheWorkspace(t *testing.T) {
+	parallel(t)
 	isolationBackends(t, func(t *testing.T, a *app) {
 		tm := newTeam(t, a)
 
@@ -50,6 +51,7 @@ func TestWorkspaceRename_AnOwnerAndAnAdminRenameTheWorkspace(t *testing.T) {
 }
 
 func TestWorkspaceRename_AnAPIKeyRenamesLikeAnAdmin(t *testing.T) {
+	parallel(t)
 	isolationBackends(t, func(t *testing.T, a *app) {
 		id := a.firstWorkspace(t)
 
@@ -62,6 +64,7 @@ func TestWorkspaceRename_AnAPIKeyRenamesLikeAnAdmin(t *testing.T) {
 }
 
 func TestWorkspaceRename_AMemberIsRefusedAndNothingChanges(t *testing.T) {
+	parallel(t)
 	isolationBackends(t, func(t *testing.T, a *app) {
 		tm := newTeam(t, a)
 		before := workspaceNameInMe(t, a, tm.id, a.asAdmin)
@@ -74,6 +77,7 @@ func TestWorkspaceRename_AMemberIsRefusedAndNothingChanges(t *testing.T) {
 }
 
 func TestWorkspaceRename_AWorkspaceTheCallerIsNotInIsNotFound(t *testing.T) {
+	parallel(t)
 	isolationBackends(t, func(t *testing.T, a *app) {
 		first := a.firstWorkspace(t)
 		second := a.createWorkspace(t, "Second")
@@ -89,6 +93,7 @@ func TestWorkspaceRename_AWorkspaceTheCallerIsNotInIsNotFound(t *testing.T) {
 }
 
 func TestWorkspaceRename_ABlankOrTooLongNameIsRefused(t *testing.T) {
+	parallel(t)
 	isolationBackends(t, func(t *testing.T, a *app) {
 		id := a.firstWorkspace(t)
 		before := workspaceNameInMe(t, a, id, a.asAdmin)

@@ -50,7 +50,7 @@ func withErrorReportingEnv(value string) func(*config.Config) {
 }
 
 func TestErrorReportingAPI_OnByDefault(t *testing.T) {
-	reportingtest.Install(t)
+	installReporting(t)
 	reporting.SetEnabled(false)
 	a := newAppWithAdmin(t)
 
@@ -64,7 +64,7 @@ func TestErrorReportingAPI_OnByDefault(t *testing.T) {
 // The api applies the stored choice at its start (cmd/api). With nothing stored that turns
 // reporting on in the api, and a panic is reported.
 func TestErrorReportingAPI_ReportsByDefaultOnceTheApiHasStarted(t *testing.T) {
-	recorder := reportingtest.Install(t)
+	recorder := installReporting(t)
 	reporting.SetEnabled(false)
 	a := newAppDecorated(t, func(container *dig.Container) error {
 		return container.Decorate(func(stale.Store) stale.Store { return panickingStore{} })
@@ -81,7 +81,7 @@ func TestErrorReportingAPI_ReportsByDefaultOnceTheApiHasStarted(t *testing.T) {
 
 // An opt-out is stored, and survives a restart of the api
 func TestErrorReportingAPI_AnOptOutSurvivesARestart(t *testing.T) {
-	reportingtest.Install(t)
+	installReporting(t)
 	a := newAppWithAdmin(t)
 	a.setErrorReporting(t, false)
 
@@ -97,7 +97,7 @@ func TestErrorReportingAPI_KillSwitchesWinWhenNothingIsStored(t *testing.T) {
 		"ERROR_REPORTING=off": withErrorReportingEnv("off"),
 	} {
 		t.Run(name, func(t *testing.T) {
-			reportingtest.Install(t)
+			installReporting(t)
 			reporting.SetEnabled(false)
 			a := newAppWithAdmin(t, option)
 
@@ -110,7 +110,7 @@ func TestErrorReportingAPI_KillSwitchesWinWhenNothingIsStored(t *testing.T) {
 }
 
 func TestErrorReportingAPI_PutStoresTheChoiceAndTurnsReportingOnAndOff(t *testing.T) {
-	reportingtest.Install(t)
+	installReporting(t)
 	reporting.SetEnabled(false)
 	a := newAppWithAdmin(t)
 
@@ -133,7 +133,7 @@ func TestErrorReportingAPI_ForcedOffByEnv(t *testing.T) {
 		"ERROR_REPORTING=No":    withErrorReportingEnv("No"),
 	} {
 		t.Run(name, func(t *testing.T) {
-			reportingtest.Install(t)
+			installReporting(t)
 			a := newAppWithAdmin(t, option)
 
 			assert.Equal(t, true, a.errorReporting(t)["forced_off"])
@@ -158,7 +158,7 @@ func TestErrorReportingAPI_OtherEnvValuesDoNotForceItOff(t *testing.T) {
 		"TELEMETRY=off":      withTelemetryEnv("off"),
 	} {
 		t.Run(name, func(t *testing.T) {
-			reportingtest.Install(t)
+			installReporting(t)
 			a := newAppWithAdmin(t, option)
 
 			assert.Equal(t, false, a.errorReporting(t)["forced_off"])
@@ -169,7 +169,7 @@ func TestErrorReportingAPI_OtherEnvValuesDoNotForceItOff(t *testing.T) {
 // The PUT body keeps a pointer, so the server can tell a missing or null enabled from false, but
 // the schema promises a plain boolean: the server answers a null with 400.
 func TestErrorReportingAPI_SchemaTakesNoNull(t *testing.T) {
-	reportingtest.Install(t)
+	installReporting(t)
 	reporting.SetEnabled(false)
 	a := newAppWithAdmin(t)
 	doc, err := jsonschema.UnmarshalJSON(a.request(t, http.MethodGet, "/openapi.json", nil).Body)
@@ -204,7 +204,7 @@ func TestErrorReportingAPI_SchemaTakesNoNull(t *testing.T) {
 }
 
 func TestErrorReportingAPI_RejectsInvalidInput(t *testing.T) {
-	reportingtest.Install(t)
+	installReporting(t)
 	reporting.SetEnabled(false)
 	a := newAppWithAdmin(t)
 
@@ -228,7 +228,7 @@ func TestErrorReportingAPI_RejectsInvalidInput(t *testing.T) {
 }
 
 func TestErrorReportingAPI_RequiresCredentials(t *testing.T) {
-	reportingtest.Install(t)
+	installReporting(t)
 	reporting.SetEnabled(false)
 	a := newAppWithAdmin(t)
 
@@ -241,7 +241,7 @@ func TestErrorReportingAPI_RequiresCredentials(t *testing.T) {
 }
 
 func TestErrorReportingAPI_APIKeyCanReadButNotChangeTheChoice(t *testing.T) {
-	reportingtest.Install(t)
+	installReporting(t)
 	reporting.SetEnabled(false)
 	a := newAppWithAdmin(t)
 
@@ -264,7 +264,7 @@ func TestErrorReportingAPI_APIKeyCanReadButNotChangeTheChoice(t *testing.T) {
 }
 
 func TestErrorReportingAPI_SettingsAPICannotReadOrWriteItsKey(t *testing.T) {
-	reportingtest.Install(t)
+	installReporting(t)
 	a := newAppWithAdmin(t)
 	a.setErrorReporting(t, true)
 	require.NotNil(t, a.storedSetting(t, "ERROR_REPORTING_ENABLED"))
@@ -283,7 +283,7 @@ func TestErrorReportingAPI_SettingsAPICannotReadOrWriteItsKey(t *testing.T) {
 // AC5: only a panic is reported. A validation error, any other 4xx and a 500 that is not a panic
 // send nothing.
 func TestErrorReportingAPI_ClientErrorsAndFailedRequestsAreNotReported(t *testing.T) {
-	recorder := reportingtest.Install(t)
+	recorder := installReporting(t)
 	a := newAppWithAdmin(t)
 	a.setErrorReporting(t, true)
 	require.True(t, reporting.Enabled())
@@ -350,7 +350,7 @@ func (panickingStore) RanAt(context.Context) (*time.Time, error) { panic("health
 func TestErrorReportingAPI_APanicInAHandlerIsReportedAndStillAnswers500(t *testing.T) {
 	for name, enabled := range map[string]bool{"on": true, "off": false} {
 		t.Run(name, func(t *testing.T) {
-			recorder := reportingtest.Install(t)
+			recorder := installReporting(t)
 			a := newAppDecorated(t, func(container *dig.Container) error {
 				return container.Decorate(func(stale.Store) stale.Store { return panickingStore{} })
 			})

@@ -205,8 +205,15 @@ func (t *TLSInterceptor) Reset() {
 	t.tlsInfo = nil
 }
 
+// registerConfigValidation registers the config's rule on the shared validator once. The
+// validator's Register methods are not safe while another goroutine validates, and the API tests
+// build many servers in one process while others check monitors.
+var registerConfigValidation sync.Once
+
 func NewHTTPExecutor(logger *zap.SugaredLogger) *HTTPExecutor {
-	validation.Validate.RegisterStructValidation(HTTPConfigStructLevelValidation, HTTPConfig{})
+	registerConfigValidation.Do(func() {
+		validation.Validate.RegisterStructValidation(HTTPConfigStructLevelValidation, HTTPConfig{})
+	})
 
 	return &HTTPExecutor{
 		logger: logger,

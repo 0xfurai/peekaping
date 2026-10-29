@@ -58,6 +58,7 @@ func TestAuthAPI_SignsAdminIn(t *testing.T) {
 // Registrations that arrive together on a new install create exactly one admin. The
 // others fail with "admin already exists", whatever email they register.
 func TestAuthAPI_ConcurrentFirstRegistrationsCreateOneAdmin(t *testing.T) {
+	parallel(t)
 	const attempts = 10
 	emails := map[string]func(n int) string{
 		"different emails": func(n int) string { return fmt.Sprintf("admin%d@example.com", n) },
