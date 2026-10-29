@@ -56,11 +56,13 @@ func blockExternalHTTP(t *testing.T) {
 }
 
 // newSecretsApp builds the API with an admin, as newAppWithAdmin does, and blocks the test from
-// sending anything outside this machine
+// sending anything outside this machine. The private address block is off (PP-158): its channels
+// send to receivers on this machine, and the transport the test replaces is the default one, which a
+// guarded client doesn't use.
 func newSecretsApp(t *testing.T) *app {
 	t.Helper()
 	blockExternalHTTP(t)
-	return newAppWithAdmin(t)
+	return newAppWithAdmin(t, withBlockPrivateTargets(false))
 }
 
 // secretChannel is a valid channel of one type with every one of its secrets set

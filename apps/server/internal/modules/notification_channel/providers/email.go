@@ -3,9 +3,11 @@ package providers
 import (
 	"context"
 	"fmt"
+	"net"
 	"net/smtp"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
+	"peekaping/internal/netguard"
 	"peekaping/internal/smtpclient"
 
 	liquid "github.com/osteele/liquid"
@@ -17,7 +19,7 @@ import (
 // Example JSON: {"smtp_host":"smtp.example.com","smtp_port":587,"username":"user","password":"pass","from":"noreply@example.com"}
 type EmailConfig struct {
 	SMTPSecure    bool   `json:"smtp_secure" endpoint:"true"`
-	SMTPHost      string `json:"smtp_host" validate:"required" endpoint:"true"`
+	SMTPHost      string `json:"smtp_host" validate:"required" endpoint:"true" target:"host"`
 	SMTPPort      int    `json:"smtp_port" validate:"required" endpoint:"true"`
 	SMTPUsername  string `json:"username" validate:"required"`
 	SMTPPassword  string `json:"password" validate:"required" secret:"true"`
@@ -34,11 +36,19 @@ const defaultEmailSubject = "Peekaping Notification"
 
 type EmailSender struct {
 	logger *zap.SugaredLogger
+	// guard refuses a server at an address the install blocks (BLOCK_PRIVATE_TARGETS, PP-158). A nil
+	// guard blocks nothing.
+	guard *netguard.Guard
 }
 
 // NewEmailSender creates an EmailSender
 func NewEmailSender(logger *zap.SugaredLogger) *EmailSender {
-	return &EmailSender{logger: logger}
+	return NewGuardedEmailSender(logger, nil)
+}
+
+// NewGuardedEmailSender creates an EmailSender that connects to its SMTP server through the guard
+func NewGuardedEmailSender(logger *zap.SugaredLogger, guard *netguard.Guard) *EmailSender {
+	return &EmailSender{logger: logger, guard: guard}
 }
 
 func (e *EmailSender) Unmarshal(configJSON string) (any, error) {
@@ -88,6 +98,9 @@ func (e *EmailSender) Send(
 	auth := smtp.PlainAuth("", cfg.SMTPUsername, cfg.SMTPPassword, cfg.SMTPHost)
 	msg := []byte(fmt.Sprintf("To: %s\r\nSubject: %s\r\nFrom: %s\r\n\r\n%s", to, finalSubject, cfg.SMTPFrom, finalBody))
 	server := smtpclient.Server{Host: cfg.SMTPHost, Port: cfg.SMTPPort, Auth: auth, TLS: smtpclient.Opportunistic}
+	if e.guard != nil {
+		server.Dialer = e.guard.Dialer(&net.Dialer{})
+	}
 	if err := smtpclient.Send(ctx, server, cfg.SMTPFrom, []string{to}, msg); err != nil {
 		return err
 	}

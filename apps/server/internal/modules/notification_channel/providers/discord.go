@@ -16,7 +16,7 @@ import (
 )
 
 type DiscordConfig struct {
-	WebhookURL          string `json:"webhook_url" validate:"required,url" secret:"true" endpoint:"true"`
+	WebhookURL          string `json:"webhook_url" validate:"required,url" secret:"true" endpoint:"true" target:"url"`
 	BotDisplayName      string `json:"bot_display_name"`
 	CustomMessagePrefix string `json:"custom_message_prefix"`
 	MessageType         string `json:"message_type" validate:"omitempty,oneof=send_to_channel send_to_new_forum_post send_to_thread"`

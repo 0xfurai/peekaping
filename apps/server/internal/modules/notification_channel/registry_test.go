@@ -34,7 +34,7 @@ func newTestRegistry(byType map[string]NotificationChannelProvider) *ProviderReg
 }
 
 func TestNewProviderRegistry_HasAProviderForEveryChannelType(t *testing.T) {
-	registry := NewProviderRegistry(zap.NewNop().Sugar(), &config.Config{}, nil, nil)
+	registry := NewProviderRegistry(zap.NewNop().Sugar(), &config.Config{}, nil, nil, nil)
 
 	assert.Equal(t, []string{
 		"discord", "google_chat", "gotify", "grafana_oncall", "install_email", "line", "matrix", "mattermost", "ntfy",
@@ -51,7 +51,7 @@ func TestNewProviderRegistry_HasAProviderForEveryChannelType(t *testing.T) {
 // Each channel type gets its own provider: a type wired to another type's constructor would send
 // to the wrong service, and no other test would notice
 func TestNewProviderRegistry_MapsEachChannelTypeToItsOwnProvider(t *testing.T) {
-	registry := NewProviderRegistry(zap.NewNop().Sugar(), &config.Config{}, nil, nil)
+	registry := NewProviderRegistry(zap.NewNop().Sugar(), &config.Config{}, nil, nil, nil)
 
 	wantProviders := map[string]NotificationChannelProvider{
 		"discord":        &providers.DiscordSender{},
@@ -89,7 +89,7 @@ func TestNewProviderRegistry_MapsEachChannelTypeToItsOwnProvider(t *testing.T) {
 }
 
 func TestProviderRegistry_GetRefusesAnUnknownChannelType(t *testing.T) {
-	registry := NewProviderRegistry(zap.NewNop().Sugar(), &config.Config{}, nil, nil)
+	registry := NewProviderRegistry(zap.NewNop().Sugar(), &config.Config{}, nil, nil, nil)
 
 	provider, ok := registry.Get("no-such-type")
 

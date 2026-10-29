@@ -35,6 +35,10 @@ type Server struct {
 	Auth smtp.Auth
 	// TLS defaults to Opportunistic
 	TLS TLSMode
+	// Dialer makes the connection. It defaults to a net.Dialer with no settings; the notification
+	// channels' sender gives one that dials through the netguard (PP-158), and the account emails'
+	// sender, which is the install's own setting, leaves it out.
+	Dialer *net.Dialer
 }
 
 // Send delivers msg, the whole message with its headers, from the envelope sender to the
@@ -42,11 +46,14 @@ type Server struct {
 // that never answers would hold the send forever.
 func Send(ctx context.Context, server Server, from string, to []string, msg []byte) error {
 	addr := net.JoinHostPort(server.Host, strconv.Itoa(server.Port))
-	var dialer net.Dialer
+	dialer := server.Dialer
+	if dialer == nil {
+		dialer = &net.Dialer{}
+	}
 	var conn net.Conn
 	var err error
 	if server.TLS == TLS {
-		tlsDialer := tls.Dialer{NetDialer: &dialer, Config: &tls.Config{ServerName: server.Host}}
+		tlsDialer := tls.Dialer{NetDialer: dialer, Config: &tls.Config{ServerName: server.Host}}
 		conn, err = tlsDialer.DialContext(ctx, "tcp", addr)
 	} else {
 		conn, err = dialer.DialContext(ctx, "tcp", addr)

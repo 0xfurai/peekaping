@@ -21,7 +21,7 @@ import (
 )
 
 type TeamsConfig struct {
-	WebhookURL string `json:"webhook_url" validate:"required,url" secret:"true" endpoint:"true"`
+	WebhookURL string `json:"webhook_url" validate:"required,url" secret:"true" endpoint:"true" target:"url"`
 	ServerURL  string `json:"server_url" validate:"omitempty,url"`
 }
 

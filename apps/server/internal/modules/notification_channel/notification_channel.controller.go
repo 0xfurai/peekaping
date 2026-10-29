@@ -11,6 +11,7 @@ import (
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/modules/workspace"
 	"peekaping/internal/modules/workspace/workspacehttp"
+	"peekaping/internal/netguard"
 	"peekaping/internal/utils"
 	"peekaping/internal/validation"
 	"strconv"
@@ -305,6 +306,10 @@ func (ic *Controller) Test(ctx context.Context, input *TestInput) (*httpx.Output
 	defer cancel()
 	// An HTTP client's errors hold the request URL, and for a channel the URL holds a credential
 	err = providers.RedactURLErrors(integration.Send(sendCtx, config, testMessage, testMonitor, testHeartbeat))
+	if errors.Is(err, netguard.ErrBlocked) {
+		// The channel's address resolves to one the install blocks, which only the caller can change
+		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Failed to send test notification: "+maskSecrets(err.Error(), resolvedSecrets)))
+	}
 	if errors.Is(err, providers.ErrRecipientNotVerified) {
 		// The caller can fix it, as with a config the provider refuses: their recipient has to verify
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Failed to send test notification: "+err.Error()))
@@ -367,6 +372,15 @@ func (ic *Controller) validateConfig(ctx context.Context, workspaceID workspace.
 	}
 	if err := integration.Validate(config); err != nil {
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Invalid config: "+err.Error()))
+	}
+	// With BLOCK_PRIVATE_TARGETS on, a URL or host that is a blocked address can't be saved or tested.
+	// Both answer 400 with the code a client reads, as a monitor does.
+	if err := ic.providers.CheckTargets(channelType, config); err != nil {
+		var blocked *netguard.TargetError
+		if errors.As(err, &blocked) {
+			return nil, utils.TargetNotAllowed(blocked)
+		}
+		return nil, err
 	}
 	if scoped, ok := integration.(WorkspaceValidator); ok {
 		if err := scoped.ValidateInWorkspace(providers.WithWorkspace(ctx, workspaceID), config); err != nil {

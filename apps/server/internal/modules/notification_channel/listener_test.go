@@ -1432,7 +1432,7 @@ func TestNotificationListener_EveryAPIReplicaStillGetsAHeartbeat(t *testing.T) {
 }
 
 func TestEveryChannelTypeHasGoldenRequests(t *testing.T) {
-	registry := NewProviderRegistry(zap.NewNop().Sugar(), &config.Config{}, nil, nil)
+	registry := NewProviderRegistry(zap.NewNop().Sugar(), &config.Config{}, nil, nil, nil)
 
 	// The listener sends both of these to every channel type
 	for _, event := range []string{"down", "certificate_expiry"} {

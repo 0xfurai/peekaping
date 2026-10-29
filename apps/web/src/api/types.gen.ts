@@ -4489,7 +4489,7 @@ export type PostNotificationChannelsErrors = {
   /**
    * Bad Request
    */
-  400: HttpxErrorBody;
+  400: UtilsTargetNotAllowedResponse | HttpxErrorBody;
   /**
    * Unauthorized
    */
@@ -4530,7 +4530,7 @@ export type PostNotificationChannelsTestErrors = {
   /**
    * Bad Request
    */
-  400: HttpxErrorBody;
+  400: UtilsTargetNotAllowedResponse | HttpxErrorBody;
   /**
    * Unauthorized
    */
@@ -4668,7 +4668,7 @@ export type PatchNotificationChannelsByIdErrors = {
   /**
    * Bad Request
    */
-  400: HttpxErrorBody;
+  400: UtilsTargetNotAllowedResponse | HttpxErrorBody;
   /**
    * Unauthorized
    */
@@ -4718,7 +4718,7 @@ export type PutNotificationChannelsByIdErrors = {
   /**
    * Bad Request
    */
-  400: HttpxErrorBody;
+  400: UtilsTargetNotAllowedResponse | HttpxErrorBody;
   /**
    * Unauthorized
    */

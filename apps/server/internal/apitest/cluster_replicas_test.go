@@ -37,8 +37,9 @@ func (a *app) takeNotificationsFromTheQueue(t *testing.T) {
 // both, and each would send it; the queue gives it to one.
 func TestClusterReplicas_AMonitorGoingDownIsNotifiedOnce(t *testing.T) {
 	blockExternalHTTP(t)
-	a := newAppWithAdmin(t)
-	b := newReplica(t, a)
+	// The webhook listens on this machine, which the cloud's run blocks
+	a := newAppWithAdmin(t, withBlockPrivateTargets(false))
+	b := newReplica(t, a, withBlockPrivateTargets(false))
 	a.takeNotificationsFromTheQueue(t)
 	b.takeNotificationsFromTheQueue(t)
 	hook := startRequestReceiver(t)

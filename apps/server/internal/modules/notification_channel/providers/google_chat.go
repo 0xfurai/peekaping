@@ -16,7 +16,7 @@ import (
 )
 
 type GoogleChatConfig struct {
-	WebhookURL string `json:"webhook_url" validate:"required,url" secret:"true" endpoint:"true"`
+	WebhookURL string `json:"webhook_url" validate:"required,url" secret:"true" endpoint:"true" target:"url"`
 }
 
 type GoogleChatSender struct {
