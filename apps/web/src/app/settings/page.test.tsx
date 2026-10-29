@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import { getSettingsKeyByKeyQueryKey } from "@/api/@tanstack/react-query.gen";
+import { getSettingsKeyByKeyQueryKey, getWorkspaceLimitsQueryKey } from "@/api/@tanstack/react-query.gen";
+import type { LimitsReport } from "@/api/types.gen";
 import { renderAs, text, WORKSPACE_ID } from "@/test-support/render-with-me";
 import SettingsPage from "./page";
 
@@ -8,12 +9,32 @@ vi.mock("@/context/timezone-context", () => ({
   useTimezone: () => ({ timezone: "UTC", setTimezone: () => {} }),
 }));
 
-const settings = (access: Parameters<typeof renderAs>[0]) =>
+// GET /workspace/limits with the monitors limited, or with no limit at all
+const limitsReport = (limited: boolean): LimitsReport => {
+  const none = { max: null, used: 0, source: "none" as const };
+  return {
+    source: limited ? "install" : "none",
+    installLimitsName: null,
+    limits: {
+      monitors: limited ? { max: 20, used: 14, source: "install" } : none,
+      min_check_interval: { ...none, used: 20 },
+      status_pages: none,
+      custom_domains: none,
+      members: none,
+      owned_workspaces: none,
+      probes_per_monitor: none,
+      retention_days: { ...none, used: 90 },
+    },
+  };
+};
+
+const settings = (access: Parameters<typeof renderAs>[0], { limited = false } = {}) =>
   renderAs(access, <SettingsPage />, undefined, (queryClient) => {
     queryClient.setQueryData(
       getSettingsKeyByKeyQueryKey({ path: { key: "KEEP_DATA_PERIOD_DAYS" } }),
       { data: { key: "KEEP_DATA_PERIOD_DAYS", type: "int", value: "90" } }
     );
+    queryClient.setQueryData(getWorkspaceLimitsQueryKey(), { data: limitsReport(limited), message: "" });
   });
 
 describe("SettingsPage", () => {
@@ -59,6 +80,25 @@ describe("SettingsPage", () => {
     const html = settings({ instanceAdmin: false, role });
     expect(html).toContain(`href="/w/${WORKSPACE_ID}/settings/members"`);
     expect(html).toContain(text("members.settings_card.open"));
+  });
+
+  it.each(["admin", "owner"] as const)("links an %s of a workspace with limits to its usage, after the members", (role) => {
+    const html = settings({ instanceAdmin: false, role }, { limited: true });
+    expect(html).toContain(`href="/w/${WORKSPACE_ID}/settings/usage"`);
+    expect(html).toContain(text("usage.open"));
+    expect(html.indexOf(text("usage.open"))).toBeGreaterThan(html.indexOf(text("members.settings_card.open")));
+  });
+
+  it("shows a workspace without limits no usage entry", () => {
+    const html = settings({ instanceAdmin: false, role: "owner" }, { limited: false });
+    expect(html).not.toContain("/settings/usage");
+    expect(html).not.toContain(text("usage.open"));
+  });
+
+  it("shows a plain member no usage entry, though the workspace has limits", () => {
+    const html = settings({ instanceAdmin: false, role: "member" }, { limited: true });
+    expect(html).not.toContain("/settings/usage");
+    expect(html).not.toContain(text("usage.open"));
   });
 
   it.each(["admin", "owner"] as const)("shows an %s the workspace's name in a field, with Save", (role) => {

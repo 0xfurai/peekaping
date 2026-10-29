@@ -23,6 +23,7 @@ import {
 import { toast } from "sonner";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
+  getWorkspaceLimitsOptions,
   getSettingsKeyByKeyOptions,
   putSettingsKeyByKeyMutation,
   getSettingsKeyByKeyQueryKey,
@@ -38,6 +39,7 @@ import { WorkspaceNameForm } from "@/components/workspace-name-form";
 import { useCurrentWorkspace } from "@/hooks/useCurrentWorkspace";
 import { useSaveWorkspaceName } from "@/hooks/useSaveWorkspaceName";
 import { workspaceErrorMessage } from "@/lib/workspace-errors";
+import { canSeeUsage } from "@/lib/workspace-usage";
 
 // The workspace's name, which an admin or owner changes. A member doesn't get the card: the
 // switcher shows them the name.
@@ -189,6 +191,28 @@ const KeepDataPeriodSetting = () => {
 };
 
 
+// The way to the Usage page (PP-163), for an owner or admin of a workspace with limits
+const UsageEntry = () => {
+  const { t } = useLocalizedTranslation();
+  const { role, canManageWorkspace } = useCurrentAccess();
+  const workspacePath = useWorkspacePath();
+  const { data } = useQuery({ ...getWorkspaceLimitsOptions(), enabled: canManageWorkspace });
+  if (!canSeeUsage(role, data?.data)) return null;
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{t("usage.title")}</CardTitle>
+        <CardDescription>{t("usage.description")}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Button asChild variant="outline">
+          <Link to={workspacePath("/settings/usage")}>{t("usage.open")}</Link>
+        </Button>
+      </CardContent>
+    </Card>
+  );
+};
+
 const SettingsPage = () => {
   const { t } = useLocalizedTranslation();
   const { canManageWorkspace } = useCurrentAccess();
@@ -224,6 +248,7 @@ const SettingsPage = () => {
             </Button>
           </CardContent>
         </Card>
+        <UsageEntry />
         {/* The usage ping and error reports belong to the install: they are on Admin → Settings */}
       </div>
     </Layout>

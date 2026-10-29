@@ -15,6 +15,7 @@ import NewMonitor from "@/app/monitors/new/page";
 import GetStartedPage from "@/app/get-started/page";
 import SettingsPage from "@/app/settings/page";
 import MembersPage from "@/app/settings/members/page";
+import UsagePage from "@/app/settings/usage/page";
 import ProxiesPage from "@/app/proxies/page";
 import NewProxy from "@/app/proxies/new/page";
 import NotificationChannelsPage from "@/app/notification-channels/page";
@@ -87,6 +88,7 @@ export const protectedRoutes = [
     {/* Settings and security */}
     <Route path="settings" element={<SettingsPage />} />
     <Route path="settings/members" element={<MembersPage />} />
+    <Route path="settings/usage" element={<UsagePage />} />
     <Route path="security" element={<SecurityPage />} />
 
     {/* Tag routes */}
