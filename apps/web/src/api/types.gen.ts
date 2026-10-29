@@ -125,7 +125,7 @@ export type AdminUpdateAccountSmtpDto = {
    */
   host?: string;
   /**
-   * The password. Write-only: it is never returned. Left out it stays as it is; empty clears it.
+   * The password. Write-only: it is never returned. Left out it stays as it is, unless the request changes the host, port, TLS mode or user: then the saved password is cleared, so that it is never sent to another server. Empty clears it.
    */
   password?: string;
   /**
