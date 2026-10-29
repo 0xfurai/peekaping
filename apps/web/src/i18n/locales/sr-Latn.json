@@ -202,6 +202,7 @@
         "password_set": "Lozinka je postavljena. Ukucajte novu da biste je zamenili.",
         "password_not_set": "Lozinka nije postavljena",
         "password_removed": "Lozinka će biti uklonjena kada sačuvate.",
+        "password_reenter": "Promena hosta, porta, bezbednosti ili korisnika uklanja sačuvanu lozinku. Unesite je ponovo.",
         "remove_password": "Ukloni lozinku",
         "keep_password": "Zadrži lozinku",
         "from": "Adresa pošiljaoca"

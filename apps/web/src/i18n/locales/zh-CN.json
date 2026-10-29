@@ -202,6 +202,7 @@
         "password_set": "已设置密码。输入新密码即可替换。",
         "password_not_set": "未设置密码",
         "password_removed": "保存时将移除密码。",
+        "password_reenter": "更改主机、端口、安全设置或用户会移除已保存的密码。请重新输入。",
         "remove_password": "移除密码",
         "keep_password": "保留密码",
         "from": "发件地址"

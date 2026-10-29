@@ -202,6 +202,7 @@
         "password_set": "Parool on määratud. Asendamiseks sisesta uus.",
         "password_not_set": "Parool pole määratud",
         "password_removed": "Parool eemaldatakse salvestamisel.",
+        "password_reenter": "Hosti, pordi, turvalisuse või kasutaja muutmine eemaldab salvestatud parooli. Sisestage see uuesti.",
         "remove_password": "Eemalda parool",
         "keep_password": "Jäta parool alles",
         "from": "Saatja aadress"

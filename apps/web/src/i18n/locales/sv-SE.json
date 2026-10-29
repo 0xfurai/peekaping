@@ -202,6 +202,7 @@
         "password_set": "Ett lösenord är angivet. Skriv för att ersätta det.",
         "password_not_set": "Inget lösenord angivet",
         "password_removed": "Lösenordet tas bort när du sparar.",
+        "password_reenter": "Om du ändrar värd, port, säkerhet eller användare tas det sparade lösenordet bort. Ange det igen.",
         "remove_password": "Ta bort lösenord",
         "keep_password": "Behåll lösenord",
         "from": "Avsändaradress"

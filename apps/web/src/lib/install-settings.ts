@@ -12,6 +12,9 @@ import type {
 
 export type SettingSource = "environment" | "saved" | "default";
 
+// The key of the save's mutation, so that the form knows while one is pending
+export const SAVE_INSTALL_SETTINGS = ["admin", "settings", "save"] as const;
+
 // The form's values. The password is what the admin typed: empty keeps the one there is.
 export type InstallSettingsFormValues = {
   signupMode: string;
@@ -66,6 +69,17 @@ export const installSettingsChange = (
   if (changed(smtp.tls, values.tls)) sender.tls = values.tls;
   if (Object.keys(sender).length > 0) body.accountSmtp = sender;
   return body;
+};
+
+// Whether saving the change clears the saved password: a change of the host, port, security or
+// user that sends no password does, so that the password is never sent to another server
+export const clearsSavedPassword = (
+  settings: AdminInstallSettingsResponse,
+  change: AdminUpdateInstallSettingsDto
+): boolean => {
+  const sender = change.accountSmtp;
+  if (!settings.accountSmtp.password.set || !sender || sender.password !== undefined) return false;
+  return [sender.host, sender.port, sender.user, sender.tls].some((value) => value !== undefined);
 };
 
 // The translation key of a setting's label, by its name in the admin API
