@@ -1908,8 +1908,10 @@
       "url_label": "Endereço a monitorar"
     },
     "channel": {
+      "continue_unlinked": "Continuar sem vincular",
       "description": "Escolha para onde o Peekaping envia um alerta quando seu monitor cair. Ele será o padrão dos novos monitores.",
       "link_failed": "O canal foi salvo, mas não foi possível vinculá-lo ao seu monitor. Adicione-o na página de edição do monitor.",
+      "retry_link": "Tentar vincular novamente",
       "title": "Receba notificações"
     },
     "done": {

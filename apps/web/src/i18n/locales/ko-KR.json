@@ -1908,8 +1908,10 @@
       "url_label": "모니터링할 주소"
     },
     "channel": {
+      "continue_unlinked": "연결하지 않고 계속",
       "description": "모니터가 다운되면 Peekaping이 경보를 보낼 곳을 선택하세요. 새 모니터의 기본값이 됩니다.",
       "link_failed": "채널은 저장되었지만 모니터에 연결하지 못했습니다. 모니터 편집 페이지에서 추가하세요.",
+      "retry_link": "다시 연결 시도",
       "title": "알림 받기"
     },
     "done": {
