@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 	"maps"
+	"net"
 	"peekaping/internal/modules/shared"
+	"peekaping/internal/netguard"
 	"slices"
 	"time"
 
@@ -46,9 +48,50 @@ type Executor interface {
 	Unmarshal(configJSON string) (any, error)
 }
 
+// TargetLister is implemented by the executors whose config names hosts they dial. The API asks
+// for them when a monitor is saved, so that an address the install blocks (BLOCK_PRIVATE_TARGETS)
+// is refused then and not only reported Down at each check.
+type TargetLister interface {
+	// Targets returns the hosts the config makes the executor dial: the host of a URL, a host, a
+	// resolver. Hosts, not host:port. A config that can't be read has none.
+	Targets(configJSON string) ([]string, error)
+}
+
+// guarded is embedded by the executors that dial through a netguard.Guard. The registry hands the
+// guard to each of them once, when it builds them. The zero value has none, which lets everything
+// through, as a guard that is off does.
+type guarded struct {
+	guard *netguard.Guard
+}
+
+func (g *guarded) useGuard(guard *netguard.Guard) { g.guard = guard }
+
+// dialer makes d dial through the executor's guard
+func (g *guarded) dialer(d *net.Dialer) *net.Dialer { return g.guard.Dialer(d) }
+
+// guardUser is what the registry looks for in an executor to hand the guard to
+type guardUser interface {
+	useGuard(*netguard.Guard)
+}
+
+// Option changes how NewExecutorRegistry builds the executors
+type Option func(*registryOptions)
+
+type registryOptions struct {
+	guard *netguard.Guard
+}
+
+// WithGuard gives every executor that dials a guard to dial through: with BLOCK_PRIVATE_TARGETS on,
+// a check can't reach the addresses the guard blocks. The guard can be turned on after the
+// registry is built, which is how a probe follows the server's setting.
+func WithGuard(guard *netguard.Guard) Option {
+	return func(o *registryOptions) { o.guard = guard }
+}
+
 type ExecutorRegistry struct {
 	logger   *zap.SugaredLogger
 	registry map[string]Executor
+	guard    *netguard.Guard
 }
 
 // optional holds the constructors of the executors that a slim build (-tags slim) leaves out. The
@@ -65,7 +108,12 @@ func registerOptional[E Executor](monitorType string, newExecutor func(*zap.Suga
 
 func NewExecutorRegistry(
 	logger *zap.SugaredLogger,
+	opts ...Option,
 ) *ExecutorRegistry {
+	var options registryOptions
+	for _, opt := range opts {
+		opt(&options)
+	}
 	registry := make(map[string]Executor)
 
 	registry["http"] = NewHTTPExecutor(logger)
@@ -87,9 +135,16 @@ func NewExecutorRegistry(
 		registry[monitorType] = newExecutor(logger)
 	}
 
+	for _, e := range registry {
+		if user, ok := e.(guardUser); ok {
+			user.useGuard(options.guard)
+		}
+	}
+
 	return &ExecutorRegistry{
 		registry: registry,
 		logger:   logger,
+		guard:    options.guard,
 	}
 }
 
@@ -126,5 +181,25 @@ func (er *ExecutorRegistry) ValidateConfig(monitorType string, configJSON string
 		return err
 	}
 
+	return er.checkTargets(executor, configJSON)
+}
+
+// checkTargets refuses a config that dials an IP address the guard blocks. It does nothing while
+// the guard is off, and for an executor that doesn't list its targets. A host that is a name
+// passes: what it resolves to is checked when the check dials.
+func (er *ExecutorRegistry) checkTargets(e Executor, configJSON string) error {
+	lister, ok := e.(TargetLister)
+	if !ok || !er.guard.Enabled() {
+		return nil
+	}
+	hosts, err := lister.Targets(configJSON)
+	if err != nil {
+		return err
+	}
+	for _, host := range hosts {
+		if err := er.guard.CheckLiteral(host); err != nil {
+			return err
+		}
+	}
 	return nil
 }

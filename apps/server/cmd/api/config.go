@@ -122,6 +122,10 @@ type Config struct {
 	// Monitor types this install refuses and does not run, comma-separated and empty by default.
 	// Validated in Validate() against the types the server has an executor for.
 	DisabledMonitorTypes string `env:"DISABLED_MONITOR_TYPES"`
+
+	// BlockPrivateTargets keeps monitors from reaching loopback, private and link-local addresses
+	// and cloud metadata. Off by default: a self-hosted install monitors its own network.
+	BlockPrivateTargets bool `env:"BLOCK_PRIVATE_TARGETS" default:"false"`
 }
 
 // LoadAndValidate loads and validates the API service configuration
@@ -282,6 +286,7 @@ func (c *Config) ToInternalConfig() *config.Config {
 		SignupTurnstileSiteKey:       c.SignupTurnstileSiteKey,
 		SignupTurnstileSecret:        c.SignupTurnstileSecret,
 		DisabledMonitorTypes:         c.DisabledMonitorTypes,
+		BlockPrivateTargets:          c.BlockPrivateTargets,
 
 		NotificationHistoryRetentionDays: c.NotificationHistoryRetentionDays,
 		TLSInfoRetentionDays:             c.TLSInfoRetentionDays,

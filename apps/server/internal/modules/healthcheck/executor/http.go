@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/url"
 	"peekaping/internal/modules/shared"
+	"peekaping/internal/netguard"
 	"peekaping/internal/validation"
 	"peekaping/internal/version"
 	"strconv"
@@ -147,6 +148,7 @@ type HTTPConfig struct {
 }
 
 type HTTPExecutor struct {
+	guarded
 	logger *zap.SugaredLogger
 }
 
@@ -221,6 +223,66 @@ func (s *HTTPExecutor) Validate(configJSON string) error {
 		return err
 	}
 	return GenericValidator(cfg.(*HTTPConfig))
+}
+
+// Targets lists the hosts an HTTP check dials: the URL's, and the OAuth token URL's when the
+// monitor authenticates with one. A proxy is not listed: it is a record of its own, which is
+// checked when it is saved.
+func (s *HTTPExecutor) Targets(configJSON string) ([]string, error) {
+	cfg, err := s.Unmarshal(configJSON)
+	if err != nil {
+		return nil, err
+	}
+	httpCfg := cfg.(*HTTPConfig)
+	var hosts []string
+	for _, raw := range []string{httpCfg.Url, httpCfg.OauthTokenUrl} {
+		if raw == "" {
+			continue
+		}
+		if u, err := url.Parse(raw); err == nil && u.Hostname() != "" {
+			hosts = append(hosts, u.Hostname())
+		}
+	}
+	return hosts, nil
+}
+
+// guardTransport makes t dial through the guard. The guard may be off now: it is asked at each
+// dial, so a guard turned on while a check runs refuses the check's request and its redirects too,
+// and off it lets every dial through. A transport that has a dial function of its own stops trying
+// HTTP/2 unless asked to, so it is asked to where it tried it before: when it has no TLS config of
+// its own.
+func guardTransport(t *http.Transport, guard *netguard.Guard) {
+	if guard == nil {
+		return
+	}
+	if t.TLSClientConfig == nil {
+		t.ForceAttemptHTTP2 = true
+	}
+	t.DialContext = guard.DialContext
+}
+
+// guardedDirect is the dialer a SOCKS proxy connects to its own server with, which is the only
+// connection the check makes itself: the proxy dials the target.
+type guardedDirect struct{ guard *netguard.Guard }
+
+func (d guardedDirect) Dial(network, addr string) (net.Conn, error) {
+	return d.guard.DialContext(context.Background(), network, addr)
+}
+
+func (d guardedDirect) DialContext(ctx context.Context, network, addr string) (net.Conn, error) {
+	return d.guard.DialContext(ctx, network, addr)
+}
+
+// guardedClient is a client for a request that isn't the check's own, such as the OAuth token
+// request. It is built for the one check, and dials through the guard, which may be turned on while
+// the check runs. With no guard it is http.DefaultClient, as the request used before.
+func guardedClient(guard *netguard.Guard) (*http.Client, func()) {
+	if guard == nil {
+		return http.DefaultClient, func() {}
+	}
+	transport := http.DefaultTransport.(*http.Transport).Clone()
+	guardTransport(transport, guard)
+	return &http.Client{Transport: transport}, transport.CloseIdleConnections
 }
 
 // Helper to check if status code matches accepted patterns
@@ -386,6 +448,14 @@ func checkJsonQuery(responseBody, jsonQuery, condition, expectedValue string) (b
 }
 
 func buildProxyTransport(base *http.Transport, proxyModel *Proxy) http.RoundTripper {
+	return buildGuardedTransport(base, proxyModel, nil)
+}
+
+// buildGuardedTransport is buildProxyTransport for a guard that may be on. The connection the
+// check makes is the one to the proxy, or to the target when there is none, and the guard checks
+// it: a proxy at a blocked address is refused. What an HTTP proxy then dials is its own business.
+func buildGuardedTransport(base *http.Transport, proxyModel *Proxy, guard *netguard.Guard) http.RoundTripper {
+	guardTransport(base, guard)
 	if proxyModel == nil {
 		return base
 	}
@@ -416,12 +486,19 @@ func buildProxyTransport(base *http.Transport, proxyModel *Proxy) http.RoundTrip
 			}
 		}
 		address := net.JoinHostPort(proxyModel.Host, strconv.Itoa(proxyModel.Port))
-		dialer, err := proxy.SOCKS5("tcp", address, auth, proxy.Direct)
+		var forward proxy.Dialer = proxy.Direct
+		if guard != nil {
+			forward = guardedDirect{guard}
+		}
+		dialer, err := proxy.SOCKS5("tcp", address, auth, forward)
 		if err != nil {
 			// fallback to default transport if dialer fails
 			return base
 		}
 		base.DialContext = func(ctx context.Context, network, addr string) (conn net.Conn, e error) {
+			if contextDialer, ok := dialer.(proxy.ContextDialer); ok {
+				return contextDialer.DialContext(ctx, network, addr)
+			}
 			return dialer.Dial(network, addr)
 		}
 		base.Proxy = nil // No HTTP proxy
@@ -534,7 +611,7 @@ func (h *HTTPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 		baseTransport.TLSClientConfig.InsecureSkipVerify = true
 	}
 
-	transport := buildProxyTransport(baseTransport, proxyModel)
+	transport := buildGuardedTransport(baseTransport, proxyModel, h.guard)
 
 	// Create TLS interceptor to capture certificate information
 	tlsInterceptor := NewTLSInterceptor(transport)
@@ -591,7 +668,9 @@ func (h *HTTPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 			tokenReq.Header.Set("Authorization", "Basic "+basic)
 		}
 
-		tokenResp, err := http.DefaultClient.Do(tokenReq)
+		tokenClient, closeTokenClient := guardedClient(h.guard)
+		defer closeTokenClient()
+		tokenResp, err := tokenClient.Do(tokenReq)
 		if err != nil {
 			return DownResult(fmt.Errorf("failed to get oauth2 token: %w", err), time.Now().UTC(), time.Now().UTC())
 		}
@@ -629,7 +708,7 @@ func (h *HTTPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 			},
 		}
 		defer mtlsTransport.CloseIdleConnections()
-		mtlsTransportWithProxy := buildProxyTransport(mtlsTransport, proxyModel)
+		mtlsTransportWithProxy := buildGuardedTransport(mtlsTransport, proxyModel, h.guard)
 		mtlsTLSInterceptor := NewTLSInterceptor(mtlsTransportWithProxy)
 		activeTLSInterceptor = mtlsTLSInterceptor // Update the active interceptor for mTLS
 		client = &http.Client{

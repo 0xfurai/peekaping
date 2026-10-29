@@ -18,6 +18,10 @@ _Avoid_: Connection type, check type
 A monitor type the install turns off with `DISABLED_MONITOR_TYPES`, empty by default. No monitor can be created with it or changed to it. A monitor that already has it is kept and listed, but it runs nothing: no checks, no missed-push detection, no notifications, and a push to it answers 403. Its stored settings, `active` among them, are left as they are, so it runs again once the type is turned back on. The cloud turns off `docker`, since the Docker monitor reads the Docker socket of the machine the server runs on.
 _Avoid_: Paused (that's a monitor switched off by a person), unsupported
 
+**Private target block**:
+`BLOCK_PRIVATE_TARGETS`, off by default, keeps checks from reaching the internal network: loopback, private and link-local addresses (cloud metadata at `169.254.169.254` among them), carrier-grade NAT, multicast, broadcast, IPv6 unique-local addresses and Unix sockets. It checks the address a check really connects to, so a hostname that resolves to a blocked address, a redirect to one and a changing DNS answer are all refused, and the check is Down with "target address is not allowed". Saving a monitor whose target is a blocked IP address, or a proxy whose host is one, answers 400 with `TARGET_NOT_ALLOWED`. A remote probe blocks when its own setting is on or the server's is, and a probe from before the setting, which would ignore the server's, gets no monitors while the server's is on. The cloud turns it on, since a monitor must not reach the network the server runs in.
+_Avoid_: Firewall, SSRF protection, allowlist
+
 **Check**:
 One attempt by a monitor to reach its target and judge whether it's healthy.
 _Avoid_: Health check, probe, ping

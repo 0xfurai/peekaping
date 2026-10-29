@@ -177,6 +177,12 @@ type Config struct {
 	// the machine the server runs on, which a shared install can't offer. DisabledMonitorTypeList
 	// splits it, and ValidateDisabledMonitorTypes checks the entries at startup.
 	DisabledMonitorTypes string `env:"DISABLED_MONITOR_TYPES"`
+
+	// BlockPrivateTargets keeps the checks from reaching the internal network (PP-156): loopback,
+	// private and link-local addresses, and cloud metadata. Off by default, since a self-hosted
+	// install monitors its own network; the cloud turns it on. A remote probe blocks when its own
+	// setting is on or the server's is, which the server states in hello.
+	BlockPrivateTargets bool `env:"BLOCK_PRIVATE_TARGETS" default:"false"`
 }
 
 // MinProbeOfflineAfter is the shortest PROBE_OFFLINE_AFTER. A probe instance that says bye is left

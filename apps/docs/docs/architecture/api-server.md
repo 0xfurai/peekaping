@@ -181,6 +181,21 @@ With a type turned off:
 - Monitors that already have the type are kept and listed with `type_disabled: true`, but none runs: no checks by the scheduler or by remote probes, no missed-push detection, no notifications, and a push to one of them answers 403. Nothing is changed in the monitor itself (`active`, its probes, its history), so removing the type from the list makes it run again. A result that was on its way when the type was turned off is dropped.
 - `GET /api/v1/me` returns `disabledMonitorTypes`, and the web app leaves those types out of the monitor type list and shows a monitor of one as paused, with the reason.
 
+### Blocking private targets
+
+`BLOCK_PRIVATE_TARGETS` keeps monitors from reaching the internal network and the cloud's metadata service. It applies to the api, to `peekaping` and to `peekaping-probe`. A self-hosted install usually monitors its own network and leaves it off; turn it on where the people who create monitors should not be able to point the server at the machine it runs on.
+
+| Variable | Type | Required | Default | Description |
+|----------|------|----------|---------|-------------|
+| `BLOCK_PRIVATE_TARGETS` | bool | No | `false` | `true` blocks the addresses listed below. Anything else leaves checks unrestricted |
+
+With it on, these addresses are blocked: loopback (`127.0.0.0/8`, `::1`), the private ranges `10.0.0.0/8`, `172.16.0.0/12` and `192.168.0.0/16`, carrier-grade NAT (`100.64.0.0/10`), `0.0.0.0/8` and the unspecified address, link-local addresses (`169.254.0.0/16`, which holds the metadata service at `169.254.169.254`, and `fe80::/10`), IPv6 unique-local addresses (`fc00::/7`), multicast, and the broadcast address. An IPv4-mapped IPv6 address counts as its IPv4 address. Unix sockets are blocked too.
+
+- The address a check connects to is what is checked, after the name is resolved. A hostname that resolves only to blocked addresses, an HTTP redirect to one, and a DNS answer that changes between lookups are all refused, and the check is Down with "target address is not allowed". A hostname with both blocked and allowed answers is not refused as a whole: the check refuses each blocked address and may connect to an allowed one, and ping drops the blocked answers and fails only when none is left. Such a check can then be Down with a connection error, from an allowed address that didn't answer, rather than "target address is not allowed". The target and redirect checks apply to the connections a check makes itself: behind a proxy, the check connects only to the proxy, so the proxy's address is what is checked, and the proxy dials the target and any redirect.
+- This covers the HTTP, keyword and JSON query monitors (including the OAuth token request, mTLS, NTLM and the proxy), TCP, ping, DNS and SMTP. For an HTTP monitor behind a proxy, the address checked is the proxy's: the proxy connects to the target.
+- Saving a monitor whose target is an IP address that is blocked answers 400 with the code `TARGET_NOT_ALLOWED`, on create, `PUT` and `PATCH`. So does saving a proxy whose host is one. A hostname is saved, since what it resolves to can change and is checked at each check. A monitor or proxy stored before the setting was turned on is kept, and its checks are refused.
+- A remote probe blocks private targets when its own `BLOCK_PRIVATE_TARGETS` is on, or when the server it connects to has it on: the server states its setting when the probe says hello, and the probe follows it at each hello. A server from before the setting leaves it out, which means off. A probe from before the setting ignores it, so its hello doesn't say that it blocks private targets (`enforces_private_target_block`): a server with `BLOCK_PRIVATE_TARGETS` on deals such an instance no monitors, logs a warning once for each, and lists it in the probe API with `enforces_private_target_block: false`. Upgrade the probes (in cluster mode, the local probe's `peekaping-probe` instances too) before turning the setting on, or they get no work.
+
 ### Metrics Configuration
 
 | Variable | Type | Required | Default | Description |

@@ -7,6 +7,7 @@ import (
 	"peekaping/internal/httpx"
 	"peekaping/internal/modules/workspace"
 	"peekaping/internal/modules/workspace/workspacehttp"
+	"peekaping/internal/netguard"
 	"peekaping/internal/utils"
 	"peekaping/internal/validation"
 
@@ -71,6 +72,10 @@ func (ic *Controller) Create(ctx context.Context, input *CreateInput) (*httpx.Ou
 
 	created, err := ic.service.Create(ctx, workspaceID, entity)
 	if err != nil {
+		var blocked *netguard.TargetError
+		if errors.As(err, &blocked) {
+			return nil, utils.TargetNotAllowed(blocked)
+		}
 		ic.logger.Errorw("Failed to create proxy", "error", err)
 		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 	}
@@ -120,6 +125,10 @@ func (ic *Controller) UpdateFull(ctx context.Context, input *UpdateFullInput) (*
 
 	updated, err := ic.service.UpdateFull(ctx, workspaceID, id, &entity)
 	if err != nil {
+		var blocked *netguard.TargetError
+		if errors.As(err, &blocked) {
+			return nil, utils.TargetNotAllowed(blocked)
+		}
 		if errors.Is(err, ErrNotFound) {
 			return nil, proxyNotFoundResponse()
 		}
@@ -152,6 +161,10 @@ func (ic *Controller) UpdatePartial(ctx context.Context, input *UpdatePartialInp
 
 	updated, err := ic.service.UpdatePartial(ctx, workspaceID, id, &entity)
 	if err != nil {
+		var blocked *netguard.TargetError
+		if errors.As(err, &blocked) {
+			return nil, utils.TargetNotAllowed(blocked)
+		}
 		if errors.Is(err, ErrNotFound) {
 			return nil, proxyNotFoundResponse()
 		}

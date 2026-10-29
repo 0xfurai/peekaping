@@ -3,8 +3,11 @@ package main
 import (
 	"testing"
 
+	"peekaping/internal/probeclient"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
 )
 
 // loadConfig loads the probe's configuration from env alone: the variables the probe reads that
@@ -12,7 +15,7 @@ import (
 func loadConfig(t *testing.T, env map[string]string) (*Config, error) {
 	t.Helper()
 	for _, name := range []string{
-		"PEEKAPING_URL", "PROBE_TOKEN", "PROBE_ALLOW_INSECURE", "PROBE_CONCURRENCY", "PROBE_READY_ADDR", "MODE", "LOG_LEVEL",
+		"PEEKAPING_URL", "PROBE_TOKEN", "PROBE_ALLOW_INSECURE", "PROBE_CONCURRENCY", "PROBE_READY_ADDR", "BLOCK_PRIVATE_TARGETS", "MODE", "LOG_LEVEL",
 	} {
 		t.Setenv(name, "")
 	}
@@ -219,5 +222,26 @@ func TestConfig_LogLevelTakesWhatTheOtherBinariesTake(t *testing.T) {
 			require.NoError(t, err)
 			assert.Equal(t, level, cfg.LogLevel)
 		})
+	}
+}
+
+func TestConfig_BlockPrivateTargetsIsOffByDefaultAndReadFromTheEnvironment(t *testing.T) {
+	cfg, err := loadConfig(t, minimal())
+	require.NoError(t, err)
+	assert.False(t, cfg.BlockPrivateTargets)
+
+	cfg, err = loadConfig(t, with(minimal(), "BLOCK_PRIVATE_TARGETS", "true"))
+	require.NoError(t, err)
+	assert.True(t, cfg.BlockPrivateTargets)
+}
+
+func TestNewRuntime_PassesBlockPrivateTargetsToTheProbe(t *testing.T) {
+	for _, on := range []bool{true, false} {
+		cfg := &Config{URL: "https://peekaping.example.com", Token: "secret-token", Concurrency: 1, BlockPrivateTargets: on}
+
+		built, err := newRuntime(cfg, zap.NewNop().Sugar())
+
+		require.NoError(t, err)
+		assert.Equal(t, on, built.(*probeclient.Probe).BlocksPrivateTargets())
 	}
 }

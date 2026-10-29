@@ -47,6 +47,11 @@ type HelloRequest struct {
 	Hostname        string   `json:"hostname"`
 	OS              string   `json:"os"`
 	Arch            string   `json:"arch"`
+	// EnforcesPrivateTargetBlock is true for a probe that blocks private and internal addresses
+	// when the hello answer's BlockPrivateTargets says so. A probe from before that field ignores
+	// it, and leaves this out: a server that blocks them deals no monitors to such an instance. A
+	// server from before ignores this, so the protocol version stays the same.
+	EnforcesPrivateTargetBlock bool `json:"enforces_private_target_block,omitempty"`
 }
 
 type ProbeInfo struct {
@@ -64,6 +69,11 @@ type HelloResponse struct {
 	FlushIntervalMs int       `json:"flush_interval_ms"`
 	BatchMax        int       `json:"batch_max"`
 	BufferMax       int       `json:"buffer_max"`
+	// BlockPrivateTargets is true when the server blocks private and internal addresses
+	// (BLOCK_PRIVATE_TARGETS), which the probe then blocks too. A server that doesn't leaves it out,
+	// and so did every server before it existed: an absent field is off, and a probe that doesn't
+	// know it ignores it, so the protocol version stays the same.
+	BlockPrivateTargets bool `json:"block_private_targets,omitempty"`
 }
 
 type Proxy struct {

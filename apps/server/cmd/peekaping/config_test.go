@@ -440,3 +440,18 @@ func TestAnUnknownDisabledMonitorTypeStopsStartupAndListsTheKnownTypes(t *testin
 	assert.ErrorContains(t, err, "docker")
 	assert.ErrorContains(t, err, "http")
 }
+
+func TestBlockPrivateTargetsIsOffByDefaultAndLoadedFromTheEnvironment(t *testing.T) {
+	t.Setenv("DB_TYPE", "sqlite")
+	t.Setenv("DB_NAME", "peekaping.db")
+	t.Setenv("BLOCK_PRIVATE_TARGETS", "")
+
+	cfg, err := LoadAndValidate(t.TempDir())
+	require.NoError(t, err)
+	assert.False(t, cfg.ToInternalConfig().BlockPrivateTargets)
+
+	t.Setenv("BLOCK_PRIVATE_TARGETS", "true")
+	cfg, err = LoadAndValidate(t.TempDir())
+	require.NoError(t, err)
+	assert.True(t, cfg.ToInternalConfig().BlockPrivateTargets)
+}

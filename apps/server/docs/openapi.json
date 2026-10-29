@@ -2267,6 +2267,29 @@
         ],
         "type": "object"
       },
+      "netguard.TargetError": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "examples": [
+              "TARGET_NOT_ALLOWED"
+            ],
+            "type": "string"
+          },
+          "host": {
+            "description": "The address that is not allowed.",
+            "examples": [
+              "169.254.169.254"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "host"
+        ],
+        "type": "object"
+      },
       "notification_channel.CreateUpdateDto": {
         "additionalProperties": true,
         "properties": {
@@ -2587,6 +2610,10 @@
           "arch": {
             "type": "string"
           },
+          "enforces_private_target_block": {
+            "description": "Whether the instance's hello said it blocks private targets when the server does. While BLOCK_PRIVATE_TARGETS is on, an instance that didn't (a probe from before the setting) is dealt no monitors: upgrade it.",
+            "type": "boolean"
+          },
           "hostname": {
             "type": "string"
           },
@@ -2622,7 +2649,8 @@
           "version",
           "protocol_version",
           "supported_types",
-          "last_seen_at"
+          "last_seen_at",
+          "enforces_private_target_block"
         ],
         "type": "object"
       },
@@ -2851,6 +2879,9 @@
           "arch": {
             "type": "string"
           },
+          "enforces_private_target_block": {
+            "type": "boolean"
+          },
           "hostname": {
             "type": "string"
           },
@@ -2885,6 +2916,9 @@
           "batch_max": {
             "format": "int64",
             "type": "integer"
+          },
+          "block_private_targets": {
+            "type": "boolean"
           },
           "buffer_max": {
             "format": "int64",
@@ -5017,6 +5051,29 @@
         "required": [
           "message",
           "data"
+        ],
+        "type": "object"
+      },
+      "utils.TargetNotAllowedResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "type": "null"
+          },
+          "error": {
+            "$ref": "#/components/schemas/netguard.TargetError"
+          },
+          "message": {
+            "examples": [
+              "target address is not allowed: 169.254.169.254"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "message",
+          "data",
+          "error"
         ],
         "type": "object"
       },
@@ -9610,6 +9667,9 @@
                       "$ref": "#/components/schemas/monitor.MonitorTypeDisabledResponse"
                     },
                     {
+                      "$ref": "#/components/schemas/utils.TargetNotAllowedResponse"
+                    },
+                    {
                       "$ref": "#/components/schemas/httpx.ErrorBody"
                     }
                   ]
@@ -9946,6 +10006,9 @@
                       "$ref": "#/components/schemas/monitor.MonitorTypeDisabledResponse"
                     },
                     {
+                      "$ref": "#/components/schemas/utils.TargetNotAllowedResponse"
+                    },
+                    {
                       "$ref": "#/components/schemas/httpx.ErrorBody"
                     }
                   ]
@@ -10052,6 +10115,9 @@
                     },
                     {
                       "$ref": "#/components/schemas/monitor.MonitorTypeDisabledResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/utils.TargetNotAllowedResponse"
                     },
                     {
                       "$ref": "#/components/schemas/httpx.ErrorBody"
@@ -12129,7 +12195,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/utils.TargetNotAllowedResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/httpx.ErrorBody"
+                    }
+                  ]
                 }
               }
             },
@@ -12375,7 +12448,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/utils.TargetNotAllowedResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/httpx.ErrorBody"
+                    }
+                  ]
                 }
               }
             },
@@ -12473,7 +12553,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/utils.TargetNotAllowedResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/httpx.ErrorBody"
+                    }
+                  ]
                 }
               }
             },
