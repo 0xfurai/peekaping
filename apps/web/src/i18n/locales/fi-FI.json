@@ -8,7 +8,8 @@
       "back_to_workspace": "Takaisin kohteeseen {{name}}",
       "probes": "Luotaimet",
       "title": "Ylläpito",
-      "users": "Käyttäjät"
+      "users": "Käyttäjät",
+      "workspaces": "Työtilat"
     },
     "users": {
       "actions": {
@@ -100,6 +101,68 @@
         "yes": "Kyllä"
       },
       "you": "sinä"
+    },
+    "workspaces": {
+      "actions": {
+        "delete": "Poista työtila",
+        "resume": "Jatka työtilaa",
+        "suspend": "Keskeytä työtila"
+      },
+      "actions_aria": "Toiminnot: {{name}}",
+      "columns": {
+        "created": "Luotu",
+        "custom_domains": "Mukautetut verkkotunnukset",
+        "members": "Jäsenet",
+        "monitors": "Valvonnat",
+        "name": "Nimi",
+        "owners": "Omistajat",
+        "status": "Tila",
+        "status_pages": "Tilasivut"
+      },
+      "confirm": {
+        "cancel": "Peru",
+        "delete": {
+          "confirm": "Poista työtila",
+          "description": "Poistetaanko {{name}}? Kaikki sen sisältö poistetaan: valvonnat ja niiden historia, tilasivut, ilmoituskanavat ja jäsenten käyttöoikeudet. Tätä ei voi perua.",
+          "name_label": "Vahvista kirjoittamalla työtilan nimi: {{name}}",
+          "title": "Poista työtila"
+        },
+        "resume": {
+          "confirm": "Jatka",
+          "description": "Työtilan {{name}} valvonnat käynnistyvät uudelleen siinä tilassa, jossa ne olivat, ja sen jäsenet voivat käyttää sitä kuten ennenkin. Työtila, joka odottaa omistajansa sähköpostin vahvistusta, jää edelleen odottamaan.",
+          "title": "Jatka työtilaa"
+        },
+        "suspend": {
+          "confirm": "Keskeytä",
+          "description": "Työtilan {{name}} valvonnat pysähtyvät, sen julkiset tilasivut ilmoittavat olevansa poissa käytöstä ja sen jäsenet näkevät, että se on keskeytetty. Mitään ei poisteta, ja voit jatkaa sitä myöhemmin.",
+          "title": "Keskeytä työtila"
+        }
+      },
+      "description": "Kaikki tämän asennuksen työtilat omistajineen ja jäsenineen sekä tieto siitä, kuinka paljon niissä on sisältöä. Vain määrät näytetään, ei mitään työtilan sisältä.",
+      "empty": "Työtiloja ei löytynyt",
+      "load_failed": "Työtilojen lataaminen epäonnistui.",
+      "messages": {
+        "deleted": "{{name}} on poistettu",
+        "failed": "Työtilan muuttaminen epäonnistui.",
+        "resumed": "{{name}} on taas käytössä",
+        "suspended": "{{name}} on keskeytetty"
+      },
+      "monitors": "Aktiivisia: {{active}}, keskeytettyjä: {{paused}}",
+      "none": "Ei mitään",
+      "page_name": "Työtilat",
+      "paging": {
+        "next": "Seuraava",
+        "page": "Sivu {{page}} / {{pages}}",
+        "previous": "Edellinen"
+      },
+      "search_label": "Hae työtiloja nimen tai omistajan sähköpostin mukaan",
+      "search_placeholder": "Hae nimellä tai omistajan sähköpostilla",
+      "status": {
+        "running": "Käynnissä",
+        "suspended_admin": "Ylläpitäjän keskeyttämä",
+        "suspended_unverified": "Keskeytetty, kunnes omistaja vahvistaa sähköpostinsa"
+      },
+      "total": "{{total}} löytyi"
     }
   },
   "auth": {
@@ -1758,6 +1821,7 @@
       "refresh_in": "Päivitä",
       "refresh_now": "Päivitä nyt",
       "status_page_not_found": "Tilasivu ei löytynyt tai ei ole julkaistu.",
+      "status_page_unavailable": "Tämä tilasivu ei ole käytettävissä",
       "under_maintenance": "Huoltotilassa",
       "unknown": "Tuntematon"
     }
@@ -1887,6 +1951,11 @@
     "refresh_failed": "Työtilojasi ei voitu ladata. Tarkista yhteytesi ja yritä uudelleen.",
     "rename_error": "Työtilan uudelleennimeäminen epäonnistui",
     "rename_success": "Työtila nimettiin uudelleen",
+    "suspended_banner": {
+      "contact": "Yhteystiedot:",
+      "message": "Tämän asennuksen ylläpitäjä on keskeyttänyt tämän työtilan. Sen valvonnat eivät ole käynnissä, eivätkä sen tilasivut ole käytettävissä.",
+      "no_contact": "Ota yhteyttä henkilöön, joka ylläpitää tätä asennusta."
+    },
     "switcher_label": "Vaihda työtilaa"
   },
   "get_started": {

@@ -8,7 +8,8 @@
       "back_to_workspace": "Înapoi la {{name}}",
       "probes": "Sonde",
       "title": "Administrare",
-      "users": "Utilizatori"
+      "users": "Utilizatori",
+      "workspaces": "Spații de lucru"
     },
     "users": {
       "actions": {
@@ -100,6 +101,68 @@
         "yes": "Da"
       },
       "you": "tu"
+    },
+    "workspaces": {
+      "actions": {
+        "delete": "Șterge spațiul de lucru",
+        "resume": "Reactivează spațiul de lucru",
+        "suspend": "Suspendă spațiul de lucru"
+      },
+      "actions_aria": "Acțiuni pentru {{name}}",
+      "columns": {
+        "created": "Creat",
+        "custom_domains": "Domenii personalizate",
+        "members": "Membri",
+        "monitors": "Monitoare",
+        "name": "Nume",
+        "owners": "Proprietari",
+        "status": "Stare",
+        "status_pages": "Pagini de stare"
+      },
+      "confirm": {
+        "cancel": "Anulează",
+        "delete": {
+          "confirm": "Șterge spațiul de lucru",
+          "description": "Ștergeți {{name}}? Tot ce conține dispare: monitoarele și istoricul lor, paginile de stare, canalele de notificare și accesul membrilor. Această acțiune nu poate fi anulată.",
+          "name_label": "Introduceți numele spațiului de lucru pentru a confirma: {{name}}",
+          "title": "Șterge spațiul de lucru"
+        },
+        "resume": {
+          "confirm": "Reactivează",
+          "description": "Monitoarele din {{name}} rulează din nou în starea pe care o aveau, iar membrii îl pot folosi ca înainte. Un spațiu de lucru care așteaptă verificarea e-mailului proprietarului continuă să aștepte.",
+          "title": "Reactivează spațiul de lucru"
+        },
+        "suspend": {
+          "confirm": "Suspendă",
+          "description": "Monitoarele din {{name}} nu mai rulează, paginile de stare publice arată că sunt indisponibile, iar membrii văd că este suspendat. Nimic nu este șters și îl puteți reactiva mai târziu.",
+          "title": "Suspendă spațiul de lucru"
+        }
+      },
+      "description": "Toate spațiile de lucru de pe această instalare, cu proprietarii, membrii lor și cât conțin. Se afișează doar numere, nimic din interiorul unui spațiu de lucru.",
+      "empty": "Nu s-a găsit niciun spațiu de lucru",
+      "load_failed": "Nu s-au putut încărca spațiile de lucru.",
+      "messages": {
+        "deleted": "{{name}} a fost șters",
+        "failed": "Nu s-a putut modifica spațiul de lucru.",
+        "resumed": "{{name}} a fost reactivat",
+        "suspended": "{{name}} a fost suspendat"
+      },
+      "monitors": "{{active}} active, {{paused}} în pauză",
+      "none": "Niciunul",
+      "page_name": "Spații de lucru",
+      "paging": {
+        "next": "Următorul",
+        "page": "Pagina {{page}} din {{pages}}",
+        "previous": "Anterior"
+      },
+      "search_label": "Caută spații de lucru după nume sau e-mailul proprietarului",
+      "search_placeholder": "Caută după nume sau e-mailul proprietarului",
+      "status": {
+        "running": "Rulează",
+        "suspended_admin": "Suspendat de un administrator",
+        "suspended_unverified": "Suspendat până când proprietarul își verifică e-mailul"
+      },
+      "total": "{{total}} găsite"
     }
   },
   "auth": {
@@ -1757,6 +1820,7 @@
       "refresh_in": "Actualizare în",
       "refresh_now": "Reîmprospătează acum",
       "status_page_not_found": "Pagina de stare nu a fost găsită sau nu este publicată.",
+      "status_page_unavailable": "Această pagină de stare nu este disponibilă",
       "under_maintenance": "În întreținere",
       "unknown": "Necunoscut"
     }
@@ -1886,6 +1950,11 @@
     "refresh_failed": "Spațiile tale de lucru nu au putut fi încărcate. Verifică conexiunea și încearcă din nou.",
     "rename_error": "Redenumirea spațiului de lucru a eșuat",
     "rename_success": "Spațiul de lucru a fost redenumit",
+    "suspended_banner": {
+      "contact": "Pentru contact:",
+      "message": "Acest spațiu de lucru este suspendat de administratorul acestei instalări. Monitoarele sale nu rulează, iar paginile de stare nu sunt disponibile.",
+      "no_contact": "Contactați persoana care administrează această instalare."
+    },
     "switcher_label": "Schimbă spațiul de lucru"
   },
   "get_started": {

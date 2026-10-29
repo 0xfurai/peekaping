@@ -8,7 +8,8 @@
       "back_to_workspace": "{{name}}に戻る",
       "probes": "プローブ",
       "title": "管理",
-      "users": "ユーザー"
+      "users": "ユーザー",
+      "workspaces": "ワークスペース"
     },
     "users": {
       "actions": {
@@ -100,6 +101,68 @@
         "yes": "はい"
       },
       "you": "あなた"
+    },
+    "workspaces": {
+      "actions": {
+        "delete": "ワークスペースを削除",
+        "resume": "ワークスペースの利用を再開",
+        "suspend": "ワークスペースを利用停止"
+      },
+      "actions_aria": "{{name}} の操作",
+      "columns": {
+        "created": "作成日",
+        "custom_domains": "カスタムドメイン",
+        "members": "メンバー",
+        "monitors": "モニター",
+        "name": "名前",
+        "owners": "オーナー",
+        "status": "ステータス",
+        "status_pages": "ステータスページ"
+      },
+      "confirm": {
+        "cancel": "キャンセル",
+        "delete": {
+          "confirm": "ワークスペースを削除",
+          "description": "{{name}} を削除しますか？中身はすべて削除されます：モニターとその履歴、ステータスページ、通知チャンネル、メンバーのアクセス権。この操作は元に戻せません。",
+          "name_label": "確認のため、ワークスペース名を入力してください：{{name}}",
+          "title": "ワークスペースを削除"
+        },
+        "resume": {
+          "confirm": "再開",
+          "description": "{{name}} のモニターは以前の状態のまま再び実行され、メンバーはこれまでどおり利用できます。オーナーのメール認証を待っているワークスペースは、引き続き待機します。",
+          "title": "ワークスペースの利用を再開"
+        },
+        "suspend": {
+          "confirm": "利用停止",
+          "description": "{{name}} のモニターは停止し、公開ステータスページには利用できない旨が表示され、メンバーには利用停止中であることが表示されます。何も削除されず、後で再開できます。",
+          "title": "ワークスペースを利用停止"
+        }
+      },
+      "description": "このインストール上のすべてのワークスペースと、そのオーナー、メンバー、保有データの量です。表示されるのは件数のみで、ワークスペースの中身は表示されません。",
+      "empty": "ワークスペースが見つかりません",
+      "load_failed": "ワークスペースを読み込めませんでした。",
+      "messages": {
+        "deleted": "{{name}} を削除しました",
+        "failed": "ワークスペースを変更できませんでした。",
+        "resumed": "{{name}} の利用を再開しました",
+        "suspended": "{{name}} を利用停止にしました"
+      },
+      "monitors": "稼働中 {{active}}、一時停止 {{paused}}",
+      "none": "なし",
+      "page_name": "ワークスペース",
+      "paging": {
+        "next": "次へ",
+        "page": "{{page}} / {{pages}} ページ",
+        "previous": "前へ"
+      },
+      "search_label": "名前またはオーナーのメールアドレスでワークスペースを検索",
+      "search_placeholder": "名前またはオーナーのメールアドレスで検索",
+      "status": {
+        "running": "稼働中",
+        "suspended_admin": "管理者により利用停止",
+        "suspended_unverified": "オーナーのメール認証まで利用停止"
+      },
+      "total": "{{total}}件見つかりました"
     }
   },
   "auth": {
@@ -1758,6 +1821,7 @@
       "refresh_in": "リフレッシュまで",
       "refresh_now": "今すぐ更新",
       "status_page_not_found": "ステータスページが見つからないか、公開されていません。",
+      "status_page_unavailable": "このステータスページは利用できません",
       "under_maintenance": "メンテナンス中",
       "unknown": "不明"
     }
@@ -1887,6 +1951,11 @@
     "refresh_failed": "ワークスペースを読み込めませんでした。接続を確認して、もう一度お試しください。",
     "rename_error": "ワークスペース名を変更できませんでした",
     "rename_success": "ワークスペース名を変更しました",
+    "suspended_banner": {
+      "contact": "連絡先：",
+      "message": "このワークスペースは、このインストールの管理者によって利用停止にされています。モニターは実行されず、ステータスページは利用できません。",
+      "no_contact": "このインストールの運営者にお問い合わせください。"
+    },
     "switcher_label": "ワークスペースを切り替え"
   },
   "get_started": {
