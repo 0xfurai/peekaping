@@ -65,6 +65,16 @@ describe("Run from, for someone who isn't an instance admin", () => {
     ]);
   });
 
+  // A screen reader names the checkboxes' group by the field's heading
+  it("is a group named by its heading", () => {
+    const html = create(member, [local, eu], { probe_ids: ["local"] });
+    const group = html.match(/<div[^>]*data-testid="monitor-run-from"[^>]*>/)?.[0] ?? "";
+    expect(group).toContain('role="group"');
+    const labelledBy = group.match(/aria-labelledby="([^"]+)"/)?.[1];
+    expect(labelledBy).toBeTruthy();
+    expect(html).toMatch(new RegExp(`<label[^>]*id="${labelledBy}"[^>]*>${text("monitors.form.shared.run_from.label")}</label>`));
+  });
+
   it("shows no status, instance, link or advanced option of the probe", () => {
     const html = create(member, [local, eu], { probe_ids: ["local"] });
     expect(html).not.toContain("secret-host.internal");
