@@ -518,6 +518,18 @@ func (r *SQLRepositoryImpl) FindByIDAnyWorkspace(ctx context.Context, id string)
 	return r.find(ctx, nil, id)
 }
 
+func (r *SQLRepositoryImpl) FindWorkspaceIDAnyWorkspace(ctx context.Context, id string) (workspace.ID, bool, error) {
+	var workspaceID string
+	err := dbtx.DB(ctx, r.db).NewSelect().Table("monitors").Column("workspace_id").Where("id = ?", id).Scan(ctx, &workspaceID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return "", false, nil
+	}
+	if err != nil {
+		return "", false, err
+	}
+	return workspace.ID(workspaceID), true, nil
+}
+
 // find reads the monitor, in the workspace when there is one. A monitor of another workspace is
 // not found.
 func (r *SQLRepositoryImpl) find(ctx context.Context, workspaceID *workspace.ID, id string) (*Model, error) {

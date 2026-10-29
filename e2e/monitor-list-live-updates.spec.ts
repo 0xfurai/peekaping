@@ -8,7 +8,8 @@ import {
   type Page,
 } from '@playwright/test';
 
-// The monitor list used to subscribe to the `monitor:all` room once, behind a ref, and its
+// The monitor list used to subscribe to the install-wide `monitor:all` room (now the room of the
+// workspace in its address) once, behind a ref, and its
 // cleanup removed the heartbeat listener whenever the socket dropped. After a reconnect the
 // effect ran again but the ref said it had already subscribed, so it never joined the room
 // again and the cards stopped updating until the page was reloaded (PP-205).
@@ -19,7 +20,7 @@ import {
 // the only way the card can change is through the room subscription. It never reloads or
 // navigates, because a fresh page load subscribes again and would hide the bug.
 
-const JOIN_ALL_ROOM = /^42\d*\["join_room","monitor:all"\]$/;
+const JOIN_WORKSPACE_ROOM = /^42\d*\["join_room","workspace:[0-9a-f-]{36}"\]$/i;
 
 // The browser talks to the API directly (API_URL in env.js), so the test has to as well.
 interface Api {
@@ -73,10 +74,10 @@ async function watchSockets(page: Page) {
 // page joined the room again after reconnecting.
 function describeSockets(connections: SocketConnection[]) {
   const lines = connections.map((connection, index) => {
-    const joined = connection.sent.some((frame) => JOIN_ALL_ROOM.test(frame));
+    const joined = connection.sent.some((frame) => JOIN_WORKSPACE_ROOM.test(frame));
     return `  connection #${index + 1}: ${
       joined ? 'sent' : 'did NOT send'
-    } join_room monitor:all, frames sent: ${JSON.stringify(connection.sent)}`;
+    } join_room for the workspace room, frames sent: ${JSON.stringify(connection.sent)}`;
   });
   return `sockets opened by the page: ${connections.length}\n${lines.join('\n')}`;
 }
@@ -263,7 +264,7 @@ test('a card on the monitor list keeps updating after the socket reconnects', as
   // Baseline: on the first connection the list gets live updates.
   await pushUntilCardShows(request, api, monitor, card, 'up');
   expect(connections).toHaveLength(1);
-  expect(connections[0].sent.some((frame) => JOIN_ALL_ROOM.test(frame))).toBe(
+  expect(connections[0].sent.some((frame) => JOIN_WORKSPACE_ROOM.test(frame))).toBe(
     true
   );
 

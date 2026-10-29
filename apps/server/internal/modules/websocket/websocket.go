@@ -8,18 +8,65 @@ import (
 	"peekaping/internal/modules/auth"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/heartbeat"
+	"peekaping/internal/modules/monitor"
+	"peekaping/internal/modules/workspace"
 	"runtime/debug"
+	"slices"
+	"strings"
+	"sync"
 
+	"github.com/google/uuid"
+	"github.com/zishang520/engine.io/v2/types"
 	"github.com/zishang520/socket.io/v2/socket"
 	"go.uber.org/zap"
+)
+
+// The rooms a socket can be in, and the events they deliver. Rooms are server-side: a client asks
+// for a room with join_room, and the server lets it into the two kinds below only while its user is a
+// member of the workspace they belong to.
+//
+//   - workspace:<id> gets "workspace:<id>:heartbeat" for every monitor of the workspace.
+//   - monitor:<id> gets "monitor:<id>:heartbeat" for that monitor.
+//
+// The ID in a room name is a UUID, and the room is named by its lower-case form.
+const (
+	workspacePrefix = "workspace:"
+	monitorPrefix   = "monitor:"
+	// maxRoomName bounds what a client may make the server look up
+	maxRoomName = 128
 )
 
 type Server struct {
 	io         *socket.Server
 	eventBus   events.EventBus
 	tokenMaker *auth.TokenMaker
-	// onConnection runs first in the connection handler. Only tests set it, to slow the handler.
-	onConnection func()
+	workspaces workspace.Repository
+	monitors   monitor.MonitorRepository
+	logger     *zap.SugaredLogger
+	// onConnection runs first in the connection handler, with the ID of the socket that connected.
+	// Only tests set it: by then the library knows the socket, so a test waits for it before it
+	// sends anything (see connectAs in the tests), and a test can slow the handler.
+	onConnection func(id string)
+
+	// monitorWorkspaces remembers the workspace of each monitor that has had a heartbeat or a
+	// join, so that a heartbeat costs no read: a monitor never changes workspace. A deleted
+	// monitor is forgotten.
+	monitorWorkspaces sync.Map // monitor ID -> workspace.ID
+
+	// sockets are the open sockets, by user, for taking a user out of a workspace's rooms
+	socketsMu sync.Mutex
+	sockets   map[string]map[socket.SocketId]*userSocket
+}
+
+// userSocket is an open socket and the lock that keeps its membership check and its join together
+// against it being taken out of a workspace.
+type userSocket struct {
+	client *socket.Socket
+	userID string
+	// mu is held while a join checks the membership and enters the room, and while the socket
+	// leaves a workspace's rooms. A removal commits before MemberLeft is published, so a join that
+	// passed its check before the removal is finished, and then left, before the leave returns.
+	mu sync.Mutex
 }
 
 type SocketData struct {
@@ -30,6 +77,8 @@ func NewServer(
 	cfg *config.Config,
 	eventBus events.EventBus,
 	tokenMaker *auth.TokenMaker,
+	workspaces workspace.Repository,
+	monitors monitor.MonitorRepository,
 	logger *zap.SugaredLogger,
 ) (*Server, error) {
 	opts := socket.DefaultServerOptions()
@@ -39,6 +88,10 @@ func NewServer(
 		io:         io,
 		eventBus:   eventBus,
 		tokenMaker: tokenMaker,
+		workspaces: workspaces,
+		monitors:   monitors,
+		logger:     logger,
+		sockets:    map[string]map[socket.SocketId]*userSocket{},
 	}
 
 	io.Use(func(s *socket.Socket, next func(*socket.ExtendedError)) {
@@ -71,39 +124,57 @@ func NewServer(
 	// the client, and emits "connection" after: a handler registered there could miss a join_room
 	// that the client sent as soon as it saw CONNECT.
 	io.Use(func(client *socket.Socket, next func(*socket.ExtendedError)) {
+		data, ok := client.Data().(SocketData)
+		if !ok {
+			next(socket.NewExtendedError("Unauthorized", nil))
+			return
+		}
+		us := server.register(client, data.UserId)
+		client.On("disconnect", safe(logger, "disconnect", func(...interface{}) { server.unregister(us) }))
+
 		client.On("join_room", safe(logger, "join_room", func(args ...interface{}) {
+			ack := ackOf(args)
 			roomName, ok := firstString(args)
 			if !ok {
 				logger.Debugf("join_room: dropped, no room name in %d arguments", len(args))
+				reply(ack, "error", "not allowed")
+				return
+			}
+			if reason := server.join(us, roomName); reason != "" {
+				logger.Debugf("join_room: refused %q for user %s: %s", roomName, us.userID, reason)
+				reply(ack, "error", "not allowed")
 				return
 			}
 			logger.Debugf("join_room: %s", roomName)
-
-			// Any signed-in user may join any room: the app is single-tenant, so every
-			// user sees every monitor. Per-organization rooms will need a check here.
-			client.Join(socket.Room(roomName))
-			// ack([]interface{}{map[string]string{"status": "ok"}}, nil)
+			reply(ack, "ok", "")
 		}))
 
 		client.On("leave_room", safe(logger, "leave_room", func(args ...interface{}) {
+			ack := ackOf(args)
 			roomName, ok := firstString(args)
 			if !ok {
 				logger.Debugf("leave_room: dropped, no room name in %d arguments", len(args))
+				reply(ack, "error", "not allowed")
+				return
+			}
+			// Only the rooms a client joins
+			prefix, id, ok := parseRoom(roomName)
+			if !ok {
+				logger.Debugf("leave_room: ignored %q", roomName)
+				reply(ack, "error", "not allowed")
 				return
 			}
 			logger.Debugf("leave_room: %s", roomName)
-			// ack := args[1].(func([]interface{}, error))
-			client.Leave(socket.Room(roomName))
-			// ack([]interface{}{map[string]string{"status": "ok"}}, nil)
+			us.mu.Lock()
+			client.Leave(socket.Room(prefix + id))
+			us.mu.Unlock()
+			reply(ack, "ok", "")
 		}))
 
 		next(nil)
 	})
 
 	io.On("connection", safe(logger, "connection", func(clients ...interface{}) {
-		if server.onConnection != nil {
-			server.onConnection()
-		}
 		var client *socket.Socket
 		if len(clients) > 0 {
 			client, _ = clients[0].(*socket.Socket)
@@ -111,6 +182,9 @@ func NewServer(
 		if client == nil {
 			logger.Warnf("[WS]connection: dropped, no socket in %d arguments", len(clients))
 			return
+		}
+		if server.onConnection != nil {
+			server.onConnection(string(client.Id()))
 		}
 		// The auth middleware sets the data, so a socket without it never authenticated
 		data, ok := client.Data().(SocketData)
@@ -123,14 +197,204 @@ func NewServer(
 		logger.Debugf("[WS]connection: %s", data.UserId)
 	}))
 
-	// Listen for heartbeat events and broadcast to room
-	events.Subscribe(events.NewSubscriber(eventBus, "websocket"), events.HeartbeatEvent, func(_ context.Context, hb heartbeat.Model) {
-		roomName := "monitor:" + hb.MonitorID
-		server.io.To(socket.Room(roomName)).Emit(roomName+":heartbeat", &hb)
-		server.io.To(socket.Room("monitor:all")).Emit("monitor:all:heartbeat", &hb)
+	subscriber := events.NewSubscriber(eventBus, "websocket")
+
+	// A heartbeat goes to its workspace's room and to its monitor's room, and to no other
+	events.Subscribe(subscriber, events.HeartbeatEvent, func(ctx context.Context, hb heartbeat.Model) {
+		monitorRoom := monitorPrefix + hb.MonitorID
+		server.emitToRoom(monitorRoom, monitorRoom+":heartbeat", &hb)
+
+		workspaceID, found, err := server.workspaceOf(ctx, hb.MonitorID)
+		if err != nil {
+			logger.Warnw("Heartbeat not sent to its workspace: could not read the monitor's workspace", "monitor_id", hb.MonitorID, "error", err)
+			return
+		}
+		if !found {
+			logger.Debugf("Heartbeat not sent to a workspace: monitor %s is gone", hb.MonitorID)
+			return
+		}
+		workspaceRoom := workspacePrefix + string(workspaceID)
+		server.emitToRoom(workspaceRoom, workspaceRoom+":heartbeat", &hb)
 	})
 
+	events.Subscribe(subscriber, events.MonitorDeleted, func(_ context.Context, monitorID string) {
+		server.monitorWorkspaces.Delete(monitorID)
+	})
+
+	events.Subscribe(subscriber, workspace.MemberLeft, server.memberLeft)
+
 	return server, nil
+}
+
+// emitToRoom sends an event to each socket in the room, one socket at a time. It is not
+// io.To(room).Emit: that broadcast marks its packet as pre-encoded, and engine.io's websocket
+// transport (zishang520/engine.io v2.5.0) writes only the first packet of a batch that starts with
+// a pre-encoded one and drops the rest. A client that gets two broadcasts while the transport is
+// still writing the one before them loses all but the first, so a burst of heartbeats reaches the
+// web app with holes in it. A packet from Socket.Emit isn't pre-encoded, and the transport sends
+// every one of a batch of those.
+func (s *Server) emitToRoom(room, event string, payload any) {
+	namespace := s.io.Sockets()
+	for _, id := range namespace.Adapter().Sockets(types.NewSet(socket.Room(room))).Keys() {
+		client, ok := namespace.Sockets().Load(id)
+		if !ok {
+			continue
+		}
+		if err := client.Emit(event, payload); err != nil {
+			s.logger.Warnw("Event not sent to a socket", "event", event, "error", err)
+		}
+	}
+}
+
+func (s *Server) register(client *socket.Socket, userID string) *userSocket {
+	us := &userSocket{client: client, userID: userID}
+	s.socketsMu.Lock()
+	defer s.socketsMu.Unlock()
+	if s.sockets[userID] == nil {
+		s.sockets[userID] = map[socket.SocketId]*userSocket{}
+	}
+	s.sockets[userID][client.Id()] = us
+	return us
+}
+
+func (s *Server) unregister(us *userSocket) {
+	s.socketsMu.Lock()
+	defer s.socketsMu.Unlock()
+	delete(s.sockets[us.userID], us.client.Id())
+	if len(s.sockets[us.userID]) == 0 {
+		delete(s.sockets, us.userID)
+	}
+}
+
+func (s *Server) socketsOf(userID string) []*userSocket {
+	s.socketsMu.Lock()
+	defer s.socketsMu.Unlock()
+	out := make([]*userSocket, 0, len(s.sockets[userID]))
+	for _, us := range s.sockets[userID] {
+		out = append(out, us)
+	}
+	return out
+}
+
+// parseRoom splits a room name a client may ask for into its prefix and its ID. The ID has to be a
+// UUID, so that nothing else is looked up in the database, and it comes back in its canonical
+// lower-case form, the one the room is named by.
+func parseRoom(name string) (prefix, id string, ok bool) {
+	if len(name) > maxRoomName {
+		return "", "", false
+	}
+	for _, p := range []string{workspacePrefix, monitorPrefix} {
+		raw, found := strings.CutPrefix(name, p)
+		if !found {
+			continue
+		}
+		parsed, err := uuid.Parse(raw)
+		if err != nil {
+			return "", "", false
+		}
+		return p, parsed.String(), true
+	}
+	return "", "", false
+}
+
+// workspaceOf returns the workspace a monitor is in, and false when there is no such monitor.
+func (s *Server) workspaceOf(ctx context.Context, monitorID string) (workspace.ID, bool, error) {
+	if known, ok := s.monitorWorkspaces.Load(monitorID); ok {
+		return known.(workspace.ID), true, nil
+	}
+	id, found, err := s.monitors.FindWorkspaceIDAnyWorkspace(ctx, monitorID)
+	if err != nil || !found {
+		return "", false, err
+	}
+	s.monitorWorkspaces.Store(monitorID, id)
+	return id, true, nil
+}
+
+// join lets the socket into the room when its user is a member of the room's workspace, and
+// returns why not when they aren't. A failure to read the membership refuses the join.
+func (s *Server) join(us *userSocket, roomName string) (refusal string) {
+	prefix, id, ok := parseRoom(roomName)
+	if !ok {
+		return "not a workspace or monitor room"
+	}
+	ctx := context.Background()
+
+	us.mu.Lock()
+	defer us.mu.Unlock()
+
+	var target workspace.ID
+	switch prefix {
+	case workspacePrefix:
+		target = workspace.ID(id)
+	case monitorPrefix:
+		workspaceID, found, err := s.workspaceOf(ctx, id)
+		if err != nil {
+			s.logger.Warnw("join_room refused: could not read the monitor's workspace", "monitor_id", id, "error", err)
+			return "could not read the monitor"
+		}
+		if !found {
+			return "no such monitor"
+		}
+		target = workspaceID
+	}
+
+	memberships, err := s.workspaces.ListMemberships(ctx, us.userID)
+	if err != nil {
+		s.logger.Warnw("join_room refused: could not read the user's memberships", "user_id", us.userID, "error", err)
+		return "could not read the memberships"
+	}
+	if !slices.ContainsFunc(memberships, func(m workspace.Membership) bool { return m.Workspace.ID == target }) {
+		return "not a member of the workspace"
+	}
+	us.client.Join(socket.Room(prefix + id))
+	return ""
+}
+
+// memberLeft takes every open socket of the user out of the workspace's room and the rooms of its
+// monitors, so that they stop getting its updates with no reconnect.
+func (s *Server) memberLeft(ctx context.Context, e workspace.MemberLeftEvent) {
+	for _, us := range s.socketsOf(e.UserID) {
+		s.leaveWorkspace(ctx, us, e.WorkspaceID)
+	}
+}
+
+func (s *Server) leaveWorkspace(ctx context.Context, us *userSocket, id workspace.ID) {
+	us.mu.Lock()
+	defer us.mu.Unlock()
+	us.client.Leave(socket.Room(workspacePrefix + string(id)))
+	for _, room := range us.client.Rooms().Keys() {
+		monitorID, ok := strings.CutPrefix(string(room), monitorPrefix)
+		if !ok {
+			continue
+		}
+		workspaceID, found, err := s.workspaceOf(ctx, monitorID)
+		// A monitor that is gone has no updates left to hide, and one that can't be read is
+		// left, since a socket must not keep a room it may have lost
+		if err != nil || !found || workspaceID == id {
+			us.client.Leave(room)
+		}
+	}
+}
+
+// ackOf returns the acknowledgement function a client attached to its message, or nil. The web app
+// sends none; a client that wants an answer gets one.
+func ackOf(args []interface{}) socket.Ack {
+	if len(args) == 0 {
+		return nil
+	}
+	ack, _ := args[len(args)-1].(socket.Ack)
+	return ack
+}
+
+func reply(ack socket.Ack, status, message string) {
+	if ack == nil {
+		return
+	}
+	answer := map[string]string{"status": status}
+	if message != "" {
+		answer["message"] = message
+	}
+	ack([]interface{}{answer}, nil)
 }
 
 // safe makes a socket handler recover from a panic: it logs the panic with the event

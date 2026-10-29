@@ -254,6 +254,19 @@ func (in *instance) registerAdmin(t testing.TB) {
 	}](t, status, body, http.StatusCreated).AccessToken
 }
 
+// workspaceRoom is the websocket room of the admin's workspace
+func (in *instance) workspaceRoom(t testing.TB) string {
+	t.Helper()
+	status, body := in.request(t, http.MethodGet, "/api/v1/me", nil)
+	me := decode[struct {
+		Workspaces []struct {
+			ID string `json:"id"`
+		} `json:"workspaces"`
+	}](t, status, body, http.StatusOK)
+	require.Len(t, me.Workspaces, 1)
+	return "workspace:" + me.Workspaces[0].ID
+}
+
 // createMonitor creates a monitor through the API and returns its ID
 func (in *instance) createMonitor(t testing.TB, monitor map[string]any) string {
 	t.Helper()

@@ -1,7 +1,7 @@
 import { test, expect, type APIRequestContext, type Page } from '@playwright/test';
 import { adminAPI, createHTTPMonitor, deleteCreated, randomID } from './support/api';
 import { setTargetStatus, targetURL } from './support/fake-target';
-import { cardStatusOf, listFor, openLive } from './support/monitor-list';
+import { WORKSPACE_ROOM, cardStatusOf, listFor, openLive } from './support/monitor-list';
 
 // A new monitor is checked at once and then every 20 seconds, the minimum
 // check interval. If whatever runs the checks misses the create event, its next
@@ -34,7 +34,7 @@ test('a failing target shows Pending, then Down, on the card and the page', asyn
     // Both pages join their rooms before the target fails and stay put until
     // Down: Pending is too short to reload for, and they update live.
     const monitorPage = await context.newPage();
-    await openLive(page, listFor(id), 'monitor:all');
+    await openLive(page, listFor(id), WORKSPACE_ROOM);
     await openLive(monitorPage, `/monitors/${monitor.id}`, `monitor:${monitor.id}`);
     const onCard = cardStatusOf(page, name);
     const onPage = pageStatusOf(monitorPage);
@@ -71,7 +71,7 @@ test('a monitor in a maintenance window shows Maintenance on the card and the pa
     created.push(`maintenances/${await createManualMaintenance(api, `Window ${id}`, [monitor.id])}`);
 
     const monitorPage = await context.newPage();
-    await openLive(page, listFor(id), 'monitor:all');
+    await openLive(page, listFor(id), WORKSPACE_ROOM);
     await openLive(monitorPage, `/monitors/${monitor.id}`, `monitor:${monitor.id}`);
 
     await expect(cardStatusOf(page, name)).toHaveText('Maintenance', nextCheck);

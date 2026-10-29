@@ -77,6 +77,30 @@ func TestSQLRepository_ReadsOfAWorkspaceShowItsMonitorsOnly(t *testing.T) {
 	})
 }
 
+func TestSQLRepository_FindWorkspaceIDAnyWorkspaceNamesTheMonitorsWorkspace(t *testing.T) {
+	forEachSQLBackend(t, func(t *testing.T, db *bun.DB) {
+		repo := NewSQLRepository(db)
+		ctx := context.Background()
+		mine, err := repo.Create(ctx, testWorkspace, createTestMonitor("Mine", true, shared.MonitorStatusPending))
+		require.NoError(t, err)
+		theirs, err := repo.Create(ctx, otherWorkspace, createTestMonitor("Theirs", true, shared.MonitorStatusPending))
+		require.NoError(t, err)
+
+		id, found, err := repo.FindWorkspaceIDAnyWorkspace(ctx, mine.ID)
+		require.NoError(t, err)
+		assert.True(t, found)
+		assert.Equal(t, testWorkspace, id)
+		id, found, err = repo.FindWorkspaceIDAnyWorkspace(ctx, theirs.ID)
+		require.NoError(t, err)
+		assert.True(t, found)
+		assert.Equal(t, otherWorkspace, id)
+
+		_, found, err = repo.FindWorkspaceIDAnyWorkspace(ctx, uuid.NewString())
+		require.NoError(t, err)
+		assert.False(t, found, "a monitor that doesn't exist has no workspace")
+	})
+}
+
 func TestSQLRepository_AWriteToAnotherWorkspacesMonitorIsNotFoundAndChangesNothing(t *testing.T) {
 	forEachSQLBackend(t, func(t *testing.T, db *bun.DB) {
 		repo := NewSQLRepository(db)
