@@ -79,8 +79,9 @@ type UpdateAccountSMTPDto struct {
 	Host *string `json:"host,omitempty" doc:"The SMTP server's host. Empty clears it, which turns account emails off."`
 	Port *int    `json:"port,omitempty" doc:"The SMTP server's port, 1 to 65535. 0 clears it (587)." minimum:"0" maximum:"65535"`
 	User *string `json:"user,omitempty" doc:"The user to sign in as. Empty signs in as nobody."`
-	// Password is write-only: it is never returned. Left out it stays; empty clears it.
-	Password *string `json:"password,omitempty" doc:"The password. Write-only: it is never returned. Left out it stays as it is; empty clears it."`
+	// Password is write-only: it is never returned. Left out it stays, unless the request changes
+	// the host, port, TLS mode or user, which clears it; empty clears it.
+	Password *string `json:"password,omitempty" doc:"The password. Write-only: it is never returned. Left out it stays as it is, unless the request changes the host, port, TLS mode or user: then the saved password is cleared, so that it is never sent to another server. Empty clears it."`
 	From     *string `json:"from,omitempty" doc:"The address account emails come from, such as no-reply@example.com or Peekaping <no-reply@example.com>. Required with a host."`
 	TLS      *string `json:"tls,omitempty" doc:"How the connection is secured: starttls, tls or none. Empty clears it (starttls)."`
 }

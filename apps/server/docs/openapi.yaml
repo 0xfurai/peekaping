@@ -219,7 +219,7 @@ components:
           description: The SMTP server's host. Empty clears it, which turns account emails off.
           type: string
         password:
-          description: "The password. Write-only: it is never returned. Left out it stays as it is; empty clears it."
+          description: "The password. Write-only: it is never returned. Left out it stays as it is, unless the request changes the host, port, TLS mode or user: then the saved password is cleared, so that it is never sent to another server. Empty clears it."
           type: string
         port:
           description: The SMTP server's port, 1 to 65535. 0 clears it (587).

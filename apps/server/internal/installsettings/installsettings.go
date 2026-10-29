@@ -2,7 +2,9 @@
 // web app (docs/adr/0005 section 5): the signup mode (SIGNUP_MODE), the sender of account emails
 // (ACCOUNT_SMTP_*) and the public URL (CLIENT_URL). Each value comes from the environment when its
 // variable is set, then from the value saved in the settings table, then from the default. A
-// setting the environment sets is locked: Update refuses to change it.
+// setting the environment sets is locked: Update refuses to change it. The sender is one setting
+// for this: any ACCOUNT_SMTP_* variable that is set locks all of it. A saved SMTP password is kept
+// only while the host, port, TLS mode and user stay as they were (GLOSSARY.md, Endpoint field).
 //
 // Every reader of these settings goes through a Resolver at the moment it needs the value, so a
 // saved change takes effect without a restart. The stored values are kept for a few seconds
@@ -176,7 +178,27 @@ var (
 
 	// all is every setting, in the order Update reports changes
 	all = []setting{signupMode, publicURL, smtpHost, smtpPort, smtpUser, smtpPassword, smtpFrom, smtpTLS}
+	// senderSettings is the settings of the sender, which the environment sets as one
+	senderSettings = []setting{smtpHost, smtpPort, smtpUser, smtpPassword, smtpFrom, smtpTLS}
 )
+
+// isSender is whether s is a setting of the sender
+func (s setting) isSender() bool {
+	for _, other := range senderSettings {
+		if other.key == s.key {
+			return true
+		}
+	}
+	return false
+}
+
+// endpoint is where the sender signs in: a saved password is kept only while it stays the same
+type endpoint struct {
+	host string
+	port int
+	user string
+	tls  string
+}
 
 // Resolver resolves the install settings. It is safe for concurrent use.
 type Resolver struct {
@@ -282,8 +304,12 @@ func (r *Resolver) Update(ctx context.Context, change Change) ([]string, error) 
 			continue
 		}
 		s := step.setting
-		if r.cfg.FromEnvironment(s.envVar) {
-			return nil, &Error{Code: CodeLocked, Field: s.field, Message: "set by the server's environment (" + s.envVar + ")"}
+		if envVar := r.lockedBy(s); envVar != "" {
+			message := "set by the server's environment (" + envVar + ")"
+			if envVar != s.envVar {
+				message = "the sender is set by the server's environment (" + envVar + ")"
+			}
+			return nil, &Error{Code: CodeLocked, Field: s.field, Message: message}
 		}
 		value := *step.value
 		// A password is taken as sent: a space may be part of it
@@ -298,6 +324,12 @@ func (r *Resolver) Update(ctx context.Context, change Change) ([]string, error) 
 			return nil, &Error{Code: CodeInvalid, Field: s.field, Message: problem}
 		}
 		next[s.key] = value
+	}
+	// A saved password is kept only while the server and user it was entered for stay the same
+	// (GLOSSARY.md, Endpoint field): a change of the host, port, TLS mode or user that sends no
+	// password clears it, and the admin enters it again, so that it is never sent somewhere new
+	if change.SMTPPassword == nil && r.endpoint(current) != r.endpoint(next) {
+		delete(next, KeySMTPPassword)
 	}
 
 	// The checks that take the settings together, on what they will resolve to: the startup's
@@ -335,9 +367,28 @@ func (r *Resolver) Update(ctx context.Context, change Change) ([]string, error) 
 	return changed, nil
 }
 
-// resolve is a setting's value: the environment's, then the saved one, then the default
-func (r *Resolver) resolve(values map[string]string, s setting) Field[string] {
+// lockedBy is the variable of the environment that locks the setting, or empty when none does. The
+// environment sets the sender as one: any ACCOUNT_SMTP_* variable that is set locks every setting
+// of the sender, so that a password from the environment is never sent to a saved host.
+func (r *Resolver) lockedBy(s setting) string {
 	if r.cfg.FromEnvironment(s.envVar) {
+		return s.envVar
+	}
+	if s.isSender() {
+		for _, other := range senderSettings {
+			if r.cfg.FromEnvironment(other.envVar) {
+				return other.envVar
+			}
+		}
+	}
+	return ""
+}
+
+// resolve is a setting's value: the environment's, then the saved one, then the default. A
+// setting the environment locks takes the environment's value, or the default when its own
+// variable is unset.
+func (r *Resolver) resolve(values map[string]string, s setting) Field[string] {
+	if r.lockedBy(s) != "" {
 		return Field[string]{Value: s.fallback(r.cfg), Source: SourceEnvironment, EnvVar: s.envVar}
 	}
 	if value, ok := values[s.key]; ok {
@@ -353,6 +404,15 @@ func (r *Resolver) port(values map[string]string) Field[int] {
 		port = defaultSMTPPort
 	}
 	return Field[int]{Value: port, Source: f.Source, EnvVar: f.EnvVar}
+}
+
+func (r *Resolver) endpoint(values map[string]string) endpoint {
+	return endpoint{
+		host: strings.TrimSpace(r.resolve(values, smtpHost).Value),
+		port: r.port(values).Value,
+		user: r.resolve(values, smtpUser).Value,
+		tls:  r.resolve(values, smtpTLS).Value,
+	}
 }
 
 func (r *Resolver) sender(values map[string]string) *AccountSMTP {

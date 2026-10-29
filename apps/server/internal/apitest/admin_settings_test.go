@@ -262,7 +262,7 @@ func TestAdminSettings_ThePasswordIsNeverInAnAnswerAndIsKeptWhenLeftOut(t *testi
 	assert.Equal(t, passwordSetting{Set: true, Source: "saved", EnvVar: "ACCOUNT_SMTP_PASSWORD"}, a.installSettings(t).AccountSMTP.Password)
 
 	// A later change that leaves the password out keeps it
-	again := a.putSettings(t, map[string]any{"accountSmtp": map[string]any{"user": "mailer2"}})
+	again := a.putSettings(t, map[string]any{"accountSmtp": map[string]any{"from": "Other <saved@peek.example>"}})
 	require.Equal(t, http.StatusOK, again.Code, again.Body.String())
 	assert.NotContains(t, again.Body.String(), smtpPassword)
 	assert.True(t, a.installSettings(t).AccountSMTP.Password.Set)
@@ -274,6 +274,57 @@ func TestAdminSettings_ThePasswordIsNeverInAnAnswerAndIsKeptWhenLeftOut(t *testi
 	// An empty one clears it
 	cleared := a.savedSettings(t, map[string]any{"accountSmtp": map[string]any{"password": ""}})
 	assert.Equal(t, passwordSetting{Set: false, Source: "default", EnvVar: "ACCOUNT_SMTP_PASSWORD"}, cleared.AccountSMTP.Password)
+}
+
+func TestAdminSettings_ASavedPasswordNeverFollowsTheSenderToAnotherServer(t *testing.T) {
+	first, other := smtptest.Start(t), smtptest.Start(t)
+	a := newAppWithAdmin(t, selfHosted)
+	a.savedSettings(t, map[string]any{"accountSmtp": senderBody(first)})
+
+	// Another server without a password clears the saved one: the admin enters it again
+	moved := a.savedSettings(t, map[string]any{"accountSmtp": map[string]any{"host": other.Host(), "port": other.Port()}})
+	assert.Equal(t, passwordSetting{Set: false, Source: "default", EnvVar: "ACCOUNT_SMTP_PASSWORD"}, moved.AccountSMTP.Password)
+	test := a.request(t, http.MethodPost, adminTestEmailPath, map[string]any{"to": "ops@example.com"}, a.asAdmin)
+	require.Equal(t, http.StatusOK, test.Code, test.Body.String())
+	sent := mailTo(other, "ops@example.com")
+	require.Len(t, sent, 1)
+	assert.Equal(t, "mailer", sent[0].User)
+	assert.Empty(t, sent[0].Password, "the saved password went nowhere new")
+
+	// A new password sent with it is the one used
+	a.savedSettings(t, map[string]any{"accountSmtp": map[string]any{"user": "mailer2", "password": "other-pass"}})
+	test = a.request(t, http.MethodPost, adminTestEmailPath, map[string]any{"to": "ops2@example.com"}, a.asAdmin)
+	require.Equal(t, http.StatusOK, test.Code, test.Body.String())
+	sent = mailTo(other, "ops2@example.com")
+	require.Len(t, sent, 1)
+	assert.Equal(t, "mailer2", sent[0].User)
+	assert.Equal(t, "other-pass", sent[0].Password)
+	for _, message := range first.Messages() {
+		assert.NotEqual(t, "other-pass", message.Password)
+	}
+}
+
+func TestAdminSettings_AnEnvironmentPasswordLocksTheWholeSender(t *testing.T) {
+	mail := smtptest.Start(t)
+	a := newAppWithAdmin(t, selfHosted, func(cfg *config.Config) { cfg.AccountSMTPPassword = "env-pass" }, withEnvironment("ACCOUNT_SMTP_PASSWORD"))
+
+	got := a.installSettings(t)
+	assert.True(t, got.AccountSMTP.Host.Locked)
+	assert.True(t, got.AccountSMTP.Port.Locked)
+	assert.True(t, got.AccountSMTP.User.Locked)
+	assert.True(t, got.AccountSMTP.From.Locked)
+	assert.True(t, got.AccountSMTP.TLS.Locked)
+	assert.Equal(t, passwordSetting{Set: true, Source: "environment", Locked: true, EnvVar: "ACCOUNT_SMTP_PASSWORD"}, got.AccountSMTP.Password)
+	assert.False(t, got.PublicURL.Locked)
+
+	body := senderBody(mail)
+	delete(body, "password")
+	refused := settingRefusal(t, a.putSettings(t, map[string]any{"accountSmtp": body}), http.StatusConflict)
+	assert.Equal(t, "SETTING_LOCKED", refused.Error.Code)
+	assert.Equal(t, "accountSmtp.host", refused.Error.Field)
+	assert.Contains(t, refused.Message, "ACCOUNT_SMTP_PASSWORD")
+	assert.False(t, a.installSettings(t).AccountEmails, "no host was saved")
+	assert.Empty(t, mail.Messages())
 }
 
 // MARK: Test email
