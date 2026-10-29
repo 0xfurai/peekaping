@@ -9,7 +9,8 @@
       "no_account": "Não tem conta?",
       "sign_up": "Cadastre-se",
       "submit": "Entrar",
-      "title": "Bem-vindo de volta"
+      "title": "Bem-vindo de volta",
+      "forgot_password": "Esqueceu a senha?"
     },
     "register": {
       "description": "Crie sua conta de administrador",
@@ -27,6 +28,41 @@
       "title": "Autenticação de Dois Fatores Requerida",
       "verify_button": "Verificar 2FA",
       "verifying": "Verificando..."
+    },
+    "forgot": {
+      "title": "Redefinir a senha",
+      "description": "Informe o e-mail da sua conta e enviaremos um link.",
+      "submit": "Enviar link",
+      "sent": "Se existir uma conta com este e-mail, enviamos um link. Ele vale por uma hora.",
+      "back_to_login": "Voltar para o login"
+    },
+    "reset": {
+      "title": "Escolha uma nova senha",
+      "description": "Informe uma nova senha para a sua conta.",
+      "submit": "Definir senha",
+      "success": "Sua senha foi alterada e você foi desconectado de todos os lugares. Entre com a nova senha.",
+      "sign_in": "Entrar",
+      "invalid_link": "Este link já foi usado ou expirou.",
+      "request_new": "Solicitar um novo link"
+    },
+    "verify": {
+      "title": "Verifique seu e-mail",
+      "verifying": "Verificando seu e-mail...",
+      "success": "Seu e-mail foi verificado.",
+      "open_app": "Abrir o Peekaping",
+      "invalid_link": "Este link já foi usado ou expirou."
+    },
+    "errors": {
+      "rate_limited": "Muitas solicitações. Tente novamente mais tarde.",
+      "generic": "Algo deu errado. Tente novamente.",
+      "already_verified": "Seu e-mail já foi verificado."
+    },
+    "resend": {
+      "button": "Reenviar",
+      "sent": "Enviamos um novo link. Confira sua caixa de entrada."
+    },
+    "verification_banner": {
+      "message": "Verifique seu e-mail: enviamos um link para {{email}}."
     }
   },
   "bars": {

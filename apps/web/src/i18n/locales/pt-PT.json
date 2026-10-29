@@ -9,7 +9,8 @@
       "no_account": "Não tem conta?",
       "sign_up": "Registar",
       "submit": "Entrar",
-      "title": "Bem-vindo de volta"
+      "title": "Bem-vindo de volta",
+      "forgot_password": "Esqueceu-se da palavra-passe?"
     },
     "register": {
       "description": "Criar a sua conta de administrador",
@@ -27,6 +28,41 @@
       "title": "Autenticação de Dois Fatores Requerida",
       "verify_button": "Verificar 2FA",
       "verifying": "A verificar…"
+    },
+    "forgot": {
+      "title": "Repor a palavra-passe",
+      "description": "Introduza o e-mail da sua conta e enviar-lhe-emos uma ligação.",
+      "submit": "Enviar ligação",
+      "sent": "Se existir uma conta com este e-mail, enviámos uma ligação. É válida durante uma hora.",
+      "back_to_login": "Voltar ao início de sessão"
+    },
+    "reset": {
+      "title": "Escolha uma nova palavra-passe",
+      "description": "Introduza uma nova palavra-passe para a sua conta.",
+      "submit": "Definir palavra-passe",
+      "success": "A sua palavra-passe foi alterada e a sua sessão foi terminada em todo o lado. Inicie sessão com a nova palavra-passe.",
+      "sign_in": "Iniciar sessão",
+      "invalid_link": "Esta ligação já foi utilizada ou expirou.",
+      "request_new": "Pedir uma nova ligação"
+    },
+    "verify": {
+      "title": "Verifique o seu e-mail",
+      "verifying": "A verificar o seu e-mail...",
+      "success": "O seu e-mail foi verificado.",
+      "open_app": "Abrir o Peekaping",
+      "invalid_link": "Esta ligação já foi utilizada ou expirou."
+    },
+    "errors": {
+      "rate_limited": "Demasiados pedidos. Tente novamente mais tarde.",
+      "generic": "Algo correu mal. Tente novamente.",
+      "already_verified": "O seu e-mail já foi verificado."
+    },
+    "resend": {
+      "button": "Reenviar",
+      "sent": "Enviámos uma nova ligação. Verifique a sua caixa de entrada."
+    },
+    "verification_banner": {
+      "message": "Verifique o seu e-mail: enviámos uma ligação para {{email}}."
     }
   },
   "bars": {

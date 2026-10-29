@@ -9,7 +9,8 @@
       "no_account": "還沒有帳戶？",
       "sign_up": "註冊",
       "submit": "登入",
-      "title": "歡迎回來"
+      "title": "歡迎回來",
+      "forgot_password": "忘記密碼?"
     },
     "register": {
       "description": "建立您的管理員帳戶",
@@ -27,6 +28,41 @@
       "title": "需要雙因素認證",
       "verify_button": "驗證雙因素認證碼",
       "verifying": "正在驗證..."
+    },
+    "forgot": {
+      "title": "重設密碼",
+      "description": "輸入你帳戶的電郵,我們會寄一個連結給你。",
+      "submit": "寄出連結",
+      "sent": "如果此電郵有對應的帳戶,我們已寄出連結。連結一小時內有效。",
+      "back_to_login": "返回登入"
+    },
+    "reset": {
+      "title": "選擇新密碼",
+      "description": "為你的帳戶輸入新密碼。",
+      "submit": "設定密碼",
+      "success": "你的密碼已更改,而且你已在所有裝置登出。請使用新密碼登入。",
+      "sign_in": "登入",
+      "invalid_link": "此連結已被使用或已過期。",
+      "request_new": "索取新連結"
+    },
+    "verify": {
+      "title": "驗證你的電郵",
+      "verifying": "正在驗證你的電郵...",
+      "success": "你的電郵已驗證。",
+      "open_app": "開啟 Peekaping",
+      "invalid_link": "此連結已被使用或已過期。"
+    },
+    "errors": {
+      "rate_limited": "要求過於頻繁,請稍後再試。",
+      "generic": "發生問題,請再試一次。",
+      "already_verified": "你的電郵已經驗證過了。"
+    },
+    "resend": {
+      "button": "重新寄出",
+      "sent": "我們已寄出新連結,請查看你的收件匣。"
+    },
+    "verification_banner": {
+      "message": "請驗證你的電郵:我們已向 {{email}} 寄出連結。"
     }
   },
   "bars": {

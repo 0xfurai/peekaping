@@ -9,7 +9,8 @@
       "no_account": "Ei sinulla ole tiliä?",
       "sign_up": "Rekisteröidy",
       "submit": "Kirjaudu sisään",
-      "title": "Tervetuloa takaisin"
+      "title": "Tervetuloa takaisin",
+      "forgot_password": "Unohtuiko salasana?"
     },
     "register": {
       "description": "Luo ylläpitokäyttäjätilisi",
@@ -27,6 +28,41 @@
       "title": "Kaksivaiheinen tunnistautuminen vaaditaan",
       "verify_button": "Vahvista 2FA",
       "verifying": "Tarkistetaan..."
+    },
+    "forgot": {
+      "title": "Nollaa salasanasi",
+      "description": "Kirjoita tilisi sähköpostiosoite, niin lähetämme sinulle linkin.",
+      "submit": "Lähetä linkki",
+      "sent": "Jos tällä sähköpostiosoitteella on tili, lähetimme linkin. Se toimii tunnin.",
+      "back_to_login": "Takaisin kirjautumiseen"
+    },
+    "reset": {
+      "title": "Valitse uusi salasana",
+      "description": "Kirjoita tilillesi uusi salasana.",
+      "submit": "Aseta salasana",
+      "success": "Salasanasi on vaihdettu ja sinut kirjattiin ulos kaikkialta. Kirjaudu sisään uudella salasanalla.",
+      "sign_in": "Kirjaudu sisään",
+      "invalid_link": "Tämä linkki on käytetty tai vanhentunut.",
+      "request_new": "Pyydä uusi linkki"
+    },
+    "verify": {
+      "title": "Vahvista sähköpostiosoitteesi",
+      "verifying": "Vahvistetaan sähköpostiosoitettasi...",
+      "success": "Sähköpostiosoitteesi on vahvistettu.",
+      "open_app": "Avaa Peekaping",
+      "invalid_link": "Tämä linkki on käytetty tai vanhentunut."
+    },
+    "errors": {
+      "rate_limited": "Liian monta pyyntöä. Yritä myöhemmin uudelleen.",
+      "generic": "Jokin meni pieleen. Yritä uudelleen.",
+      "already_verified": "Sähköpostiosoitteesi on jo vahvistettu."
+    },
+    "resend": {
+      "button": "Lähetä uudelleen",
+      "sent": "Lähetimme uuden linkin. Tarkista saapuneet."
+    },
+    "verification_banner": {
+      "message": "Vahvista sähköpostiosoitteesi: lähetimme linkin osoitteeseen {{email}}."
     }
   },
   "bars": {

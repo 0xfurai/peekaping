@@ -9,7 +9,8 @@
       "no_account": "Nu ai un cont?",
       "sign_up": "Înregistrează-te",
       "submit": "Conectare",
-      "title": "Bine ai revenit"
+      "title": "Bine ai revenit",
+      "forgot_password": "Ai uitat parola?"
     },
     "register": {
       "description": "Creați contul de admin",
@@ -27,6 +28,41 @@
       "title": "Autentificare cu doi factori necesară",
       "verify_button": "Verifică 2FA",
       "verifying": "Se verifică..."
+    },
+    "forgot": {
+      "title": "Resetează parola",
+      "description": "Introdu e-mailul contului tău și îți vom trimite un link.",
+      "submit": "Trimite linkul",
+      "sent": "Dacă există un cont cu acest e-mail, am trimis un link. Este valabil o oră.",
+      "back_to_login": "Înapoi la autentificare"
+    },
+    "reset": {
+      "title": "Alege o parolă nouă",
+      "description": "Introdu o parolă nouă pentru contul tău.",
+      "submit": "Setează parola",
+      "success": "Parola ta a fost schimbată și ai fost deconectat peste tot. Autentifică-te cu parola nouă.",
+      "sign_in": "Autentifică-te",
+      "invalid_link": "Acest link a fost folosit sau a expirat.",
+      "request_new": "Cere un link nou"
+    },
+    "verify": {
+      "title": "Verifică-ți e-mailul",
+      "verifying": "Se verifică e-mailul tău...",
+      "success": "E-mailul tău este verificat.",
+      "open_app": "Deschide Peekaping",
+      "invalid_link": "Acest link a fost folosit sau a expirat."
+    },
+    "errors": {
+      "rate_limited": "Prea multe cereri. Încearcă din nou mai târziu.",
+      "generic": "Ceva nu a mers bine. Încearcă din nou.",
+      "already_verified": "E-mailul tău este deja verificat."
+    },
+    "resend": {
+      "button": "Retrimite",
+      "sent": "Am trimis un link nou. Verifică-ți căsuța de e-mail."
+    },
+    "verification_banner": {
+      "message": "Verifică-ți e-mailul: am trimis un link la {{email}}."
     }
   },
   "bars": {

@@ -9,7 +9,8 @@
       "no_account": "Nincs fiókod?",
       "sign_up": "Regisztrálj",
       "submit": "Bejelentkezés",
-      "title": "Üdv újra"
+      "title": "Üdv újra",
+      "forgot_password": "Elfelejtette a jelszavát?"
     },
     "register": {
       "description": "Hozd létre az adminisztrátori fiókodat",
@@ -27,6 +28,41 @@
       "title": "Kétfaktoros hitelesítés szükséges",
       "verify_button": "2FA ellenőrzése",
       "verifying": "Ellenőrzés..."
+    },
+    "forgot": {
+      "title": "Jelszó visszaállítása",
+      "description": "Adja meg fiókja e-mail-címét, és küldünk egy hivatkozást.",
+      "submit": "Hivatkozás küldése",
+      "sent": "Ha létezik fiók ezzel az e-mail-címmel, küldtünk egy hivatkozást. Egy óráig érvényes.",
+      "back_to_login": "Vissza a bejelentkezéshez"
+    },
+    "reset": {
+      "title": "Válasszon új jelszót",
+      "description": "Adjon meg új jelszót a fiókjához.",
+      "submit": "Jelszó beállítása",
+      "success": "A jelszava megváltozott, és mindenhol kijelentkeztettük. Jelentkezzen be az új jelszóval.",
+      "sign_in": "Bejelentkezés",
+      "invalid_link": "Ez a hivatkozás már fel lett használva, vagy lejárt.",
+      "request_new": "Új hivatkozás kérése"
+    },
+    "verify": {
+      "title": "Erősítse meg az e-mail-címét",
+      "verifying": "E-mail-cím megerősítése...",
+      "success": "Az e-mail-címe meg van erősítve.",
+      "open_app": "Peekaping megnyitása",
+      "invalid_link": "Ez a hivatkozás már fel lett használva, vagy lejárt."
+    },
+    "errors": {
+      "rate_limited": "Túl sok kérés. Próbálja újra később.",
+      "generic": "Valami hiba történt. Próbálja újra.",
+      "already_verified": "Az e-mail-címe már meg van erősítve."
+    },
+    "resend": {
+      "button": "Újraküldés",
+      "sent": "Új hivatkozást küldtünk. Nézze meg a postaládáját."
+    },
+    "verification_banner": {
+      "message": "Erősítse meg az e-mail-címét: hivatkozást küldtünk a következő címre: {{email}}."
     }
   },
   "bars": {

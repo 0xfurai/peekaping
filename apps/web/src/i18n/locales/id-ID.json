@@ -9,7 +9,8 @@
       "no_account": "Tidak punya akun?",
       "sign_up": "Daftar",
       "submit": "Masuk",
-      "title": "Selamat datang kembali"
+      "title": "Selamat datang kembali",
+      "forgot_password": "Lupa kata sandi?"
     },
     "register": {
       "description": "Buat akun admin Anda",
@@ -27,6 +28,41 @@
       "title": "Autentikasi Dua Faktor Diperlukan",
       "verify_button": "Verifikasi 2FA",
       "verifying": "Memverifikasi..."
+    },
+    "forgot": {
+      "title": "Atur ulang kata sandi",
+      "description": "Masukkan email akun Anda dan kami akan mengirimkan tautan.",
+      "submit": "Kirim tautan",
+      "sent": "Jika ada akun dengan email ini, kami telah mengirim tautan. Tautan berlaku selama satu jam.",
+      "back_to_login": "Kembali ke halaman masuk"
+    },
+    "reset": {
+      "title": "Pilih kata sandi baru",
+      "description": "Masukkan kata sandi baru untuk akun Anda.",
+      "submit": "Atur kata sandi",
+      "success": "Kata sandi Anda telah diubah dan Anda dikeluarkan dari semua perangkat. Masuk dengan kata sandi baru.",
+      "sign_in": "Masuk",
+      "invalid_link": "Tautan ini sudah dipakai atau kedaluwarsa.",
+      "request_new": "Minta tautan baru"
+    },
+    "verify": {
+      "title": "Verifikasi email Anda",
+      "verifying": "Memverifikasi email Anda...",
+      "success": "Email Anda sudah terverifikasi.",
+      "open_app": "Buka Peekaping",
+      "invalid_link": "Tautan ini sudah dipakai atau kedaluwarsa."
+    },
+    "errors": {
+      "rate_limited": "Terlalu banyak permintaan. Coba lagi nanti.",
+      "generic": "Terjadi kesalahan. Coba lagi.",
+      "already_verified": "Email Anda sudah terverifikasi."
+    },
+    "resend": {
+      "button": "Kirim ulang",
+      "sent": "Kami telah mengirim tautan baru. Periksa kotak masuk Anda."
+    },
+    "verification_banner": {
+      "message": "Verifikasi email Anda: kami telah mengirim tautan ke {{email}}."
     }
   },
   "bars": {

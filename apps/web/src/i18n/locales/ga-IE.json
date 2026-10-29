@@ -9,7 +9,8 @@
       "no_account": "Níl cuntas agat?",
       "sign_up": "Cláraigh",
       "submit": "Logáil isteach",
-      "title": "Fáilte ar ais"
+      "title": "Fáilte ar ais",
+      "forgot_password": "Dearmad ar do phasfhocal?"
     },
     "register": {
       "description": "Cruthaigh do chuntas riarthóra",
@@ -27,6 +28,41 @@
       "title": "Fíordheimhniú dhá fhéad riachtanach",
       "verify_button": "Deimhnigh 2FA",
       "verifying": "Ag fíorú..."
+    },
+    "forgot": {
+      "title": "Athshocraigh do phasfhocal",
+      "description": "Cuir isteach ríomhphost do chuntais agus seolfaimid nasc chugat.",
+      "submit": "Seol an nasc",
+      "sent": "Má tá cuntas ann leis an ríomhphost seo, sheolamar nasc. Oibríonn sé ar feadh uair an chloig.",
+      "back_to_login": "Ar ais chuig an logáil isteach"
+    },
+    "reset": {
+      "title": "Roghnaigh pasfhocal nua",
+      "description": "Cuir isteach pasfhocal nua do do chuntas.",
+      "submit": "Socraigh an pasfhocal",
+      "success": "Athraíodh do phasfhocal agus logáladh amach thú i ngach áit. Logáil isteach leis an bpasfhocal nua.",
+      "sign_in": "Logáil isteach",
+      "invalid_link": "Úsáideadh an nasc seo cheana nó tá sé imithe in éag.",
+      "request_new": "Iarr nasc nua"
+    },
+    "verify": {
+      "title": "Fíoraigh do ríomhphost",
+      "verifying": "Do ríomhphost á fhíorú...",
+      "success": "Tá do ríomhphost fíoraithe.",
+      "open_app": "Oscail Peekaping",
+      "invalid_link": "Úsáideadh an nasc seo cheana nó tá sé imithe in éag."
+    },
+    "errors": {
+      "rate_limited": "An iomarca iarratas. Bain triail eile as níos déanaí.",
+      "generic": "Chuaigh rud éigin ar strae. Bain triail eile as.",
+      "already_verified": "Tá do ríomhphost fíoraithe cheana."
+    },
+    "resend": {
+      "button": "Athsheol",
+      "sent": "Sheolamar nasc nua. Seiceáil do bhosca isteach."
+    },
+    "verification_banner": {
+      "message": "Fíoraigh do ríomhphost: sheolamar nasc chuig {{email}}."
     }
   },
   "bars": {

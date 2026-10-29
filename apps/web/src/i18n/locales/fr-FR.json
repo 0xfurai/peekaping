@@ -9,7 +9,8 @@
       "no_account": "Pas de compte ?",
       "sign_up": "S'inscrire",
       "submit": "Connexion",
-      "title": "Bon retour"
+      "title": "Bon retour",
+      "forgot_password": "Mot de passe oublié ?"
     },
     "register": {
       "description": "Créez votre compte d'administrateur",
@@ -27,6 +28,41 @@
       "title": "Authentification à deux facteurs requise",
       "verify_button": "Vérifier 2FA",
       "verifying": "Vérification..."
+    },
+    "forgot": {
+      "title": "Réinitialiser votre mot de passe",
+      "description": "Saisissez l'e-mail de votre compte et nous vous enverrons un lien.",
+      "submit": "Envoyer le lien",
+      "sent": "Si un compte existe pour cet e-mail, nous avons envoyé un lien. Il est valable une heure.",
+      "back_to_login": "Retour à la connexion"
+    },
+    "reset": {
+      "title": "Choisir un nouveau mot de passe",
+      "description": "Saisissez un nouveau mot de passe pour votre compte.",
+      "submit": "Définir le mot de passe",
+      "success": "Votre mot de passe a été changé et vous avez été déconnecté partout. Connectez-vous avec le nouveau mot de passe.",
+      "sign_in": "Se connecter",
+      "invalid_link": "Ce lien a déjà été utilisé ou a expiré.",
+      "request_new": "Demander un nouveau lien"
+    },
+    "verify": {
+      "title": "Vérifiez votre e-mail",
+      "verifying": "Vérification de votre e-mail...",
+      "success": "Votre e-mail est vérifié.",
+      "open_app": "Ouvrir Peekaping",
+      "invalid_link": "Ce lien a déjà été utilisé ou a expiré."
+    },
+    "errors": {
+      "rate_limited": "Trop de demandes. Réessayez plus tard.",
+      "generic": "Un problème est survenu. Réessayez.",
+      "already_verified": "Votre e-mail est déjà vérifié."
+    },
+    "resend": {
+      "button": "Renvoyer",
+      "sent": "Nous avons envoyé un nouveau lien. Consultez votre boîte de réception."
+    },
+    "verification_banner": {
+      "message": "Vérifiez votre e-mail : nous avons envoyé un lien à {{email}}."
     }
   },
   "bars": {

@@ -9,7 +9,8 @@
       "no_account": "Neturite paskyros?",
       "sign_up": "Registruotis",
       "submit": "Prisijungti",
-      "title": "Sveiki atvykę"
+      "title": "Sveiki atvykę",
+      "forgot_password": "Pamiršote slaptažodį?"
     },
     "register": {
       "description": "Sukurkite savo administratoriaus paskyrą",
@@ -27,6 +28,41 @@
       "title": "Dviejų veiksnių autentifikacija reikalaujama",
       "verify_button": "Patvirtinti 2FA",
       "verifying": "Patikrinama..."
+    },
+    "forgot": {
+      "title": "Atkurti slaptažodį",
+      "description": "Įveskite savo paskyros el. paštą, ir atsiųsime nuorodą.",
+      "submit": "Siųsti nuorodą",
+      "sent": "Jei paskyra su šiuo el. paštu yra, nuorodą išsiuntėme. Ji galioja valandą.",
+      "back_to_login": "Grįžti į prisijungimą"
+    },
+    "reset": {
+      "title": "Pasirinkite naują slaptažodį",
+      "description": "Įveskite naują savo paskyros slaptažodį.",
+      "submit": "Nustatyti slaptažodį",
+      "success": "Jūsų slaptažodis pakeistas, o jūs buvote atjungti visur. Prisijunkite naujuoju slaptažodžiu.",
+      "sign_in": "Prisijungti",
+      "invalid_link": "Ši nuoroda jau panaudota arba nebegalioja.",
+      "request_new": "Prašyti naujos nuorodos"
+    },
+    "verify": {
+      "title": "Patvirtinkite el. paštą",
+      "verifying": "Tvirtinamas jūsų el. paštas...",
+      "success": "Jūsų el. paštas patvirtintas.",
+      "open_app": "Atidaryti Peekaping",
+      "invalid_link": "Ši nuoroda jau panaudota arba nebegalioja."
+    },
+    "errors": {
+      "rate_limited": "Per daug užklausų. Bandykite vėliau.",
+      "generic": "Kažkas nepavyko. Bandykite dar kartą.",
+      "already_verified": "Jūsų el. paštas jau patvirtintas."
+    },
+    "resend": {
+      "button": "Siųsti dar kartą",
+      "sent": "Išsiuntėme naują nuorodą. Patikrinkite gautuosius."
+    },
+    "verification_banner": {
+      "message": "Patvirtinkite el. paštą: nuorodą išsiuntėme adresu {{email}}."
     }
   },
   "bars": {

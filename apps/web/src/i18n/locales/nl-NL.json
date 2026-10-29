@@ -9,7 +9,8 @@
       "no_account": "Nog geen account?",
       "sign_up": "Registreren",
       "submit": "Inloggen",
-      "title": "Welkom terug"
+      "title": "Welkom terug",
+      "forgot_password": "Wachtwoord vergeten?"
     },
     "register": {
       "description": "Maak uw beheerdersaccount aan.",
@@ -27,6 +28,41 @@
       "title": "Tweestapsverificatie vereist",
       "verify_button": "Verifieer 2FA",
       "verifying": "Verifiëren..."
+    },
+    "forgot": {
+      "title": "Wachtwoord opnieuw instellen",
+      "description": "Vul het e-mailadres van je account in, dan sturen we je een link.",
+      "submit": "Link versturen",
+      "sent": "Als er een account bestaat voor dit e-mailadres, hebben we een link gestuurd. Hij werkt een uur.",
+      "back_to_login": "Terug naar inloggen"
+    },
+    "reset": {
+      "title": "Kies een nieuw wachtwoord",
+      "description": "Vul een nieuw wachtwoord in voor je account.",
+      "submit": "Wachtwoord instellen",
+      "success": "Je wachtwoord is gewijzigd en je bent overal uitgelogd. Log in met het nieuwe wachtwoord.",
+      "sign_in": "Inloggen",
+      "invalid_link": "Deze link is al gebruikt of verlopen.",
+      "request_new": "Nieuwe link aanvragen"
+    },
+    "verify": {
+      "title": "Bevestig je e-mailadres",
+      "verifying": "Je e-mailadres wordt bevestigd...",
+      "success": "Je e-mailadres is bevestigd.",
+      "open_app": "Peekaping openen",
+      "invalid_link": "Deze link is al gebruikt of verlopen."
+    },
+    "errors": {
+      "rate_limited": "Te veel verzoeken. Probeer het later opnieuw.",
+      "generic": "Er ging iets mis. Probeer het opnieuw.",
+      "already_verified": "Je e-mailadres is al bevestigd."
+    },
+    "resend": {
+      "button": "Opnieuw versturen",
+      "sent": "We hebben een nieuwe link gestuurd. Kijk in je inbox."
+    },
+    "verification_banner": {
+      "message": "Bevestig je e-mailadres: we hebben een link gestuurd naar {{email}}."
     }
   },
   "bars": {

@@ -9,7 +9,8 @@
       "no_account": "Hisobingiz yo'qmi?",
       "sign_up": "Ro'yxatdan o'tish",
       "submit": "Kirish",
-      "title": "Xush kelibsiz"
+      "title": "Xush kelibsiz",
+      "forgot_password": "Parolni unutdingizmi?"
     },
     "register": {
       "description": "Admin hisobingizni yarating",
@@ -27,6 +28,41 @@
       "title": "Ikki bosqichli autentifikatsiya talab qilinadi",
       "verify_button": "2FA ni tasdiqlash",
       "verifying": "Tasdiqlanmoqda..."
+    },
+    "forgot": {
+      "title": "Parolni tiklash",
+      "description": "Hisobingizning elektron pochtasini kiriting, biz sizga havola yuboramiz.",
+      "submit": "Havolani yuborish",
+      "sent": "Bu elektron pochta bilan hisob mavjud bo'lsa, havola yubordik. U bir soat amal qiladi.",
+      "back_to_login": "Kirishga qaytish"
+    },
+    "reset": {
+      "title": "Yangi parol tanlang",
+      "description": "Hisobingiz uchun yangi parol kiriting.",
+      "submit": "Parolni o'rnatish",
+      "success": "Parolingiz o'zgartirildi va hamma joydan chiqarildingiz. Yangi parol bilan kiring.",
+      "sign_in": "Kirish",
+      "invalid_link": "Bu havola ishlatilgan yoki muddati tugagan.",
+      "request_new": "Yangi havola so'rash"
+    },
+    "verify": {
+      "title": "Elektron pochtangizni tasdiqlang",
+      "verifying": "Elektron pochtangiz tasdiqlanmoqda...",
+      "success": "Elektron pochtangiz tasdiqlandi.",
+      "open_app": "Peekaping'ni ochish",
+      "invalid_link": "Bu havola ishlatilgan yoki muddati tugagan."
+    },
+    "errors": {
+      "rate_limited": "Juda ko'p so'rov. Keyinroq qayta urinib ko'ring.",
+      "generic": "Nimadir xato ketdi. Qayta urinib ko'ring.",
+      "already_verified": "Elektron pochtangiz allaqachon tasdiqlangan."
+    },
+    "resend": {
+      "button": "Qayta yuborish",
+      "sent": "Yangi havola yubordik. Kiruvchi xatlaringizni tekshiring."
+    },
+    "verification_banner": {
+      "message": "Elektron pochtangizni tasdiqlang: {{email}} manziliga havola yubordik."
     }
   },
   "bars": {

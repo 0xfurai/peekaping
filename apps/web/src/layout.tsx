@@ -6,6 +6,7 @@ import {
 import { AppSidebar } from "@/components/app-sidebar";
 import { SiteHeader } from "./components/app-header";
 import { TelemetryNotice } from "./components/telemetry-notice";
+import { VerificationBanner } from "./components/verification-banner";
 import { useLocalizedTranslation } from "./hooks/useTranslation";
 
 export default function Layout({
@@ -28,6 +29,9 @@ export default function Layout({
       <AppSidebar variant="inset" />
       <SidebarInset>
         <SiteHeader pageName={pageName} onCreate={onCreate} />
+        <div className="empty:hidden px-4 pt-4">
+          <VerificationBanner />
+        </div>
         <div className="empty:hidden px-4 pt-4">
           <TelemetryNotice />
         </div>

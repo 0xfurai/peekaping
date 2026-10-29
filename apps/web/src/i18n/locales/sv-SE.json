@@ -9,7 +9,8 @@
       "no_account": "Har du inget konto?",
       "sign_up": "Registrera dig",
       "submit": "Logga in",
-      "title": "Välkommen tillbaka"
+      "title": "Välkommen tillbaka",
+      "forgot_password": "Glömt lösenordet?"
     },
     "register": {
       "description": "Skapa ditt administratörskonto",
@@ -27,6 +28,41 @@
       "title": "Tvåfaktorsautentisering krävs",
       "verify_button": "Verifiera 2FA",
       "verifying": "Verifierar..."
+    },
+    "forgot": {
+      "title": "Återställ lösenordet",
+      "description": "Ange e-postadressen till ditt konto så skickar vi en länk.",
+      "submit": "Skicka länk",
+      "sent": "Om det finns ett konto med den här e-postadressen har vi skickat en länk. Den gäller i en timme.",
+      "back_to_login": "Tillbaka till inloggningen"
+    },
+    "reset": {
+      "title": "Välj ett nytt lösenord",
+      "description": "Ange ett nytt lösenord för ditt konto.",
+      "submit": "Ange lösenord",
+      "success": "Ditt lösenord är ändrat och du har loggats ut överallt. Logga in med det nya lösenordet.",
+      "sign_in": "Logga in",
+      "invalid_link": "Den här länken är använd eller har gått ut.",
+      "request_new": "Be om en ny länk"
+    },
+    "verify": {
+      "title": "Verifiera din e-postadress",
+      "verifying": "Verifierar din e-postadress...",
+      "success": "Din e-postadress är verifierad.",
+      "open_app": "Öppna Peekaping",
+      "invalid_link": "Den här länken är använd eller har gått ut."
+    },
+    "errors": {
+      "rate_limited": "För många förfrågningar. Försök igen senare.",
+      "generic": "Något gick fel. Försök igen.",
+      "already_verified": "Din e-postadress är redan verifierad."
+    },
+    "resend": {
+      "button": "Skicka igen",
+      "sent": "Vi har skickat en ny länk. Kolla din inkorg."
+    },
+    "verification_banner": {
+      "message": "Verifiera din e-postadress: vi har skickat en länk till {{email}}."
     }
   },
   "bars": {

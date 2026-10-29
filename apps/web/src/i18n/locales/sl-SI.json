@@ -9,7 +9,8 @@
       "no_account": "Nimate računa?",
       "sign_up": "Registriraj se",
       "submit": "Prijava",
-      "title": "Dobrodošel nazaj"
+      "title": "Dobrodošel nazaj",
+      "forgot_password": "Ste pozabili geslo?"
     },
     "register": {
       "description": "Ustvari svoj račun skrbnika",
@@ -27,6 +28,41 @@
       "title": "Dvostopenjska avtentikacija je zahtevana",
       "verify_button": "Preveri 2FA",
       "verifying": "Preverjanje..."
+    },
+    "forgot": {
+      "title": "Ponastavite geslo",
+      "description": "Vnesite e-naslov svojega računa in poslali vam bomo povezavo.",
+      "submit": "Pošlji povezavo",
+      "sent": "Če račun s tem e-naslovom obstaja, smo poslali povezavo. Velja eno uro.",
+      "back_to_login": "Nazaj na prijavo"
+    },
+    "reset": {
+      "title": "Izberite novo geslo",
+      "description": "Vnesite novo geslo za svoj račun.",
+      "submit": "Nastavi geslo",
+      "success": "Vaše geslo je spremenjeno in odjavljeni ste povsod. Prijavite se z novim geslom.",
+      "sign_in": "Prijava",
+      "invalid_link": "Ta povezava je že uporabljena ali je potekla.",
+      "request_new": "Zahtevaj novo povezavo"
+    },
+    "verify": {
+      "title": "Potrdite svoj e-naslov",
+      "verifying": "Potrjujemo vaš e-naslov ...",
+      "success": "Vaš e-naslov je potrjen.",
+      "open_app": "Odpri Peekaping",
+      "invalid_link": "Ta povezava je že uporabljena ali je potekla."
+    },
+    "errors": {
+      "rate_limited": "Preveč zahtev. Poskusite znova pozneje.",
+      "generic": "Nekaj je šlo narobe. Poskusite znova.",
+      "already_verified": "Vaš e-naslov je že potrjen."
+    },
+    "resend": {
+      "button": "Pošlji znova",
+      "sent": "Poslali smo novo povezavo. Preverite prejeto pošto."
+    },
+    "verification_banner": {
+      "message": "Potrdite svoj e-naslov: povezavo smo poslali na {{email}}."
     }
   },
   "bars": {

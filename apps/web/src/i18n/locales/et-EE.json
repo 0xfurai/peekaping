@@ -9,7 +9,8 @@
       "no_account": "Pole kontot?",
       "sign_up": "Registreeru",
       "submit": "Logi sisse",
-      "title": "Tere tulemast tagasi"
+      "title": "Tere tulemast tagasi",
+      "forgot_password": "Unustasid parooli?"
     },
     "register": {
       "description": "Loo oma admini konto",
@@ -27,6 +28,41 @@
       "title": "Kaksfaktoriline autentimine nõutud",
       "verify_button": "Kinnita 2FA",
       "verifying": "Kontrollimine..."
+    },
+    "forgot": {
+      "title": "Lähtesta parool",
+      "description": "Sisesta oma konto e-posti aadress ja saadame sulle lingi.",
+      "submit": "Saada link",
+      "sent": "Kui selle e-posti aadressiga konto on olemas, saatsime lingi. See kehtib tund aega.",
+      "back_to_login": "Tagasi sisselogimise juurde"
+    },
+    "reset": {
+      "title": "Vali uus parool",
+      "description": "Sisesta oma kontole uus parool.",
+      "submit": "Määra parool",
+      "success": "Sinu parool on muudetud ja sind logiti kõikjalt välja. Logi sisse uue parooliga.",
+      "sign_in": "Logi sisse",
+      "invalid_link": "See link on kasutatud või aegunud.",
+      "request_new": "Küsi uut linki"
+    },
+    "verify": {
+      "title": "Kinnita oma e-posti aadress",
+      "verifying": "E-posti aadressi kinnitamine...",
+      "success": "Sinu e-posti aadress on kinnitatud.",
+      "open_app": "Ava Peekaping",
+      "invalid_link": "See link on kasutatud või aegunud."
+    },
+    "errors": {
+      "rate_limited": "Liiga palju päringuid. Proovi hiljem uuesti.",
+      "generic": "Midagi läks valesti. Proovi uuesti.",
+      "already_verified": "Sinu e-posti aadress on juba kinnitatud."
+    },
+    "resend": {
+      "button": "Saada uuesti",
+      "sent": "Saatsime uue lingi. Vaata oma postkasti."
+    },
+    "verification_banner": {
+      "message": "Kinnita oma e-posti aadress: saatsime lingi aadressile {{email}}."
     }
   },
   "bars": {
