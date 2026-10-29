@@ -49,6 +49,9 @@ export const showInstallPreferences = (firstSignup: boolean | undefined): boolea
 export const canSubmitRegister = (siteKey: string | null | undefined, token: string | null, pending = false): boolean =>
   !pending && (!siteKey || Boolean(token));
 
+/** The register button's label: while the request is pending it says so, as the button is disabled. */
+export const registerSubmitKey = (pending: boolean): string => (pending ? "common.loading" : "auth.register.submit");
+
 export type RegisterValues = { email: string; password: string; confirmPassword: string };
 
 /** The request body: the form's values, with the Turnstile token when the widget gave one. */

@@ -47,6 +47,7 @@ import {
   registerBody,
   registerDescriptionKey,
   registerFailureKey,
+  registerSubmitKey,
   shownRegisterFailure,
   showInstallPreferences,
   type RegisterFailure,
@@ -329,7 +330,7 @@ export function RegisterForm({
                 className="w-full"
                 disabled={!canSubmitRegister(turnstileSiteKey, turnstileToken, registerMutation.isPending)}
               >
-                {t("auth.register.submit")}
+                {t(registerSubmitKey(registerMutation.isPending))}
               </Button>
 
               <div className="text-center text-sm text-muted-foreground">
