@@ -141,6 +141,8 @@ type assignmentServer struct {
 	versions []string
 	polls    int
 	stored   []probeproto.Result
+	// hellos are the bodies of the hellos, as the JSON the probe sent
+	hellos []map[string]any
 }
 
 func newAssignmentServer(t *testing.T, steps ...pollStep) *assignmentServer {
@@ -155,6 +157,11 @@ func newAssignmentServerWith(t *testing.T, limits func(*probeproto.HelloResponse
 	s.Server = newServer(t, func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case "/probe/v1/hello":
+			var hello map[string]any
+			readJSON(t, r, &hello)
+			s.mu.Lock()
+			s.hellos = append(s.hellos, hello)
+			s.mu.Unlock()
 			s.note("hello")
 			welcome := welcomeFrom(time.Now())
 			if limits != nil {
@@ -200,6 +207,13 @@ func (s *assignmentServer) storedResults() []probeproto.Result {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return append([]probeproto.Result(nil), s.stored...)
+}
+
+// helloBodies are the hellos the server has seen, in order
+func (s *assignmentServer) helloBodies() []map[string]any {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return append([]map[string]any(nil), s.hellos...)
 }
 
 func (s *assignmentServer) note(event string) {

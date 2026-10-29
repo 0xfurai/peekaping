@@ -21,6 +21,10 @@ const statusCard = (page: Page) =>
   page.locator('[data-slot="card"]').filter({ hasText: 'Current status' }).locator('.text-2xl');
 
 test('@cloud a new signup is walked through Get started and verifies their email', async ({ page }) => {
+  // If every wait runs out they add up to 240 seconds: 30 for each of the two verification mails,
+  // then 60 each for Up, Down and the Down mail. The timeout has to be longer, so a failing wait
+  // fails on its own assertion and the finally block still runs.
+  test.setTimeout(360_000);
   await page.goto('/login');
   const config = await page.request.get(`${await apiBaseURL(page)}/auth/config`);
   expect(config.ok(), `GET auth/config: ${await config.text()}`).toBeTruthy();
@@ -114,7 +118,12 @@ test('@cloud a new signup is walked through Get started and verifies their email
       const downAt = new Date();
       await setTargetStatus(page.request, targetID, 503);
       await expect(statusCard(page)).toHaveText('Down', { timeout: 60_000 });
-      const mail = await waitForMail(email, /Peekaping Notification/, { since: downAt, timeout: 60_000 });
+      // The mail's text is the Down check's message; the Up one would say "200 - 200 OK"
+      const mail = await waitForMail(email, /Peekaping Notification/, {
+        since: downAt,
+        body: /HTTP request failed with status: 503/,
+        timeout: 60_000,
+      });
       expect(mail.to).toEqual([email]);
     });
   } finally {

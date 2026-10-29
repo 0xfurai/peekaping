@@ -8,15 +8,19 @@ import (
 	"net"
 	"net/netip"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"strconv"
 	"sync/atomic"
 	"testing"
+	"time"
 
 	"github.com/IBM/sarama"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 
+	"peekaping/internal/modules/shared"
 	"peekaping/internal/netguard"
 )
 
@@ -237,4 +241,35 @@ func TestDriversFull_RefuseBlockedLiteralTargetsOnSave(t *testing.T) {
 		assert.NoError(t, registry.ValidateConfig("grpc-keyword", grpcConfig("8.8.8.8:443", true)))
 		assert.NoError(t, registry.ValidateConfig("kafka-producer", `{"brokers": ["localhost:9092"], "topic": "t", "message": "m", "sasl_options": {"mechanism": "None"}}`))
 	})
+}
+
+// With the guard on, a Docker daemon over tcp:// is dialed itself, and not through a proxy from the
+// environment, which the Docker client sets up for it: the guard would check the proxy's address
+// then, and a daemon at a blocked address would be reached through the proxy. Go reads HTTP_PROXY
+// once per process, so the test runs itself again with a proxy set, the way the standard library's
+// own tests do.
+func TestDockerExecutor_TheGuardChecksTheDaemonAndNotAProxyFromTheEnvironment(t *testing.T) {
+	if os.Getenv("PEEKAPING_TEST_DOCKER_PROXY") != "" {
+		guard := netguard.NewWithPrefixes(netip.MustParsePrefix("203.0.113.0/24"))
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
+		result := guardedExecutor(t, "docker", guard).Execute(ctx, &Monitor{ID: "docker-proxy", Name: "Docker", Type: "docker", Timeout: 2,
+			Config: `{"container_id": "c", "connection_type": "tcp", "docker_daemon": "tcp://203.0.113.7:2375"}`}, nil)
+		assert.Equal(t, shared.MonitorStatusDown, result.Status)
+		assert.Contains(t, result.Message, blockedMessage)
+		return
+	}
+
+	proxy := listenTCP(t)
+	proxyURL := "http://127.0.0.1:" + strconv.Itoa(proxy.port)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+	defer cancel()
+	cmd := exec.CommandContext(ctx, os.Args[0], "-test.run=^TestDockerExecutor_TheGuardChecksTheDaemonAndNotAProxyFromTheEnvironment$", "-test.v")
+	cmd.Env = append(os.Environ(), "PEEKAPING_TEST_DOCKER_PROXY=1",
+		"HTTP_PROXY="+proxyURL, "http_proxy="+proxyURL, "NO_PROXY=", "no_proxy=")
+	out, err := cmd.CombinedOutput()
+	require.NoError(t, err, string(out))
+	// A renamed test would match nothing and exit 0.
+	require.Contains(t, string(out), "--- PASS: TestDockerExecutor_TheGuardChecksTheDaemonAndNotAProxyFromTheEnvironment", string(out))
+	assert.Zero(t, proxy.connections(), "the proxy saw no connection")
 }
