@@ -9,7 +9,8 @@
       "probes": "Sonde",
       "title": "Skrbništvo",
       "users": "Uporabniki",
-      "workspaces": "Delovni prostori"
+      "workspaces": "Delovni prostori",
+      "settings": "Nastavitve"
     },
     "users": {
       "actions": {
@@ -163,6 +164,73 @@
         "suspended_unverified": "Začasno ustavljen, dokler lastnik ne potrdi e-pošte"
       },
       "total": "Najdenih: {{total}}"
+    },
+    "settings": {
+      "page_name": "Nastavitve",
+      "description": "Nastavitve celotne namestitve. Vrednost, ki jo nastavi okolje strežnika, je tukaj zaklenjena.",
+      "load_failed": "Nastavitev ni bilo mogoče naložiti.",
+      "saved": "Nastavitve shranjene",
+      "save_failed": "Nastavitve niso bile shranjene.",
+      "locked": "Nastavljeno v okolju strežnika",
+      "source": {
+        "environment": "Iz okolja strežnika",
+        "saved": "Shranjeno tukaj",
+        "default": "Privzeto"
+      },
+      "signup": {
+        "title": "Registracija",
+        "description": "Kdo lahko ustvari račun v tej namestitvi.",
+        "label": "Način registracije",
+        "invite": "Samo s povabilom",
+        "open": "Odprta",
+        "invite_help": "Prvi uporabnik se registrira, vsi naslednji pa se pridružijo delovnemu prostoru prek povabila.",
+        "open_help": "Registrira se lahko kdorkoli in dobi svoj delovni prostor. Novi računi potrdijo svoj e-poštni naslov, zato je potreben pošiljatelj e-pošte."
+      },
+      "sender": {
+        "title": "Pošiljatelj e-pošte",
+        "description": "Strežnik SMTP, ki pošilja e-pošto računa: povezave za ponastavitev gesla, potrditev e-pošte in povabila.",
+        "on": "E-pošta računa je vklopljena.",
+        "off": "E-pošta računa je izklopljena: ni gostitelja SMTP.",
+        "host": "SMTP strežnik",
+        "port": "Vrata",
+        "tls": "Varnost",
+        "tls_starttls": "STARTTLS",
+        "tls_tls": "TLS",
+        "tls_none": "Brez",
+        "user": "Uporabnik",
+        "password": "Geslo",
+        "password_set": "Geslo je nastavljeno. Vnesite novo, da ga zamenjate.",
+        "password_not_set": "Geslo ni nastavljeno",
+        "password_removed": "Geslo bo ob shranjevanju odstranjeno.",
+        "password_reenter": "S spremembo gostitelja, vrat, varnosti ali uporabnika se shranjeno geslo odstrani. Vnesite ga znova.",
+        "remove_password": "Odstrani geslo",
+        "keep_password": "Obdrži geslo",
+        "from": "Naslov pošiljatelja"
+      },
+      "public_url": {
+        "title": "Javni URL",
+        "description": "Naslov spletne aplikacije, ki ga odprejo povezave v e-pošti in obvestilih.",
+        "label": "Javni URL"
+      },
+      "test_email": {
+        "title": "Pošlji testno e-pošto",
+        "description": "Pošlje kratko sporočilo prek shranjenega pošiljatelja, da preveri, ali deluje.",
+        "to": "Pošlji na",
+        "send": "Pošlji testno e-pošto",
+        "sending": "Pošiljanje…",
+        "sent": "Testna e-pošta poslana na {{to}}.",
+        "failed": "Testna e-pošta ni bila poslana.",
+        "unsaved": "Pošiljatelj ima neshranjene spremembe. Test uporablja shranjenega pošiljatelja, zato najprej shranite."
+      },
+      "validation": {
+        "port": "Vnesite vrata od 1 do 65535 ali pustite prazno za privzeto vrednost."
+      },
+      "errors": {
+        "locked": "{{field}} nastavi okolje strežnika in ga tukaj ni mogoče spremeniti.",
+        "open_needs_sender": "Odprta registracija potrebuje pošiljatelja e-pošte, ker novi računi potrdijo svoj e-poštni naslov. Najprej nastavite pošiljatelja ali to storite v istem shranjevanju.",
+        "sender_needed": "Registracija je odprta in novi računi potrebujejo pošiljatelja, da potrdijo svoj e-poštni naslov. Najprej preklopite registracijo na samo s povabilom.",
+        "no_sender": "Ni pošiljatelja e-pošte. Najprej shranite pošiljatelja."
+      }
     }
   },
   "auth": {

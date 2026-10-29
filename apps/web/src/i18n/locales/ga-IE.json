@@ -9,7 +9,8 @@
       "probes": "Tóireadóirí",
       "title": "Riar",
       "users": "Úsáideoirí",
-      "workspaces": "Spásanna oibre"
+      "workspaces": "Spásanna oibre",
+      "settings": "Socruithe"
     },
     "users": {
       "actions": {
@@ -163,6 +164,73 @@
         "suspended_unverified": "Ar fionraí go dtí go bhfíoróidh an t-úinéir a ríomhphost"
       },
       "total": "{{total}} aimsithe"
+    },
+    "settings": {
+      "page_name": "Socruithe",
+      "description": "Socruithe na suiteála ar fad. Tá luach a shocraíonn timpeallacht an fhreastalaí faoi ghlas anseo.",
+      "load_failed": "Níorbh fhéidir na socruithe a lódáil.",
+      "saved": "Socruithe sábháilte",
+      "save_failed": "Níor sábháladh na socruithe.",
+      "locked": "Socraithe ag timpeallacht an fhreastalaí",
+      "source": {
+        "environment": "Ó thimpeallacht an fhreastalaí",
+        "saved": "Sábháilte anseo",
+        "default": "Réamhshocraithe"
+      },
+      "signup": {
+        "title": "Clárú",
+        "description": "Cé a fhéadfaidh cuntas a chruthú ar an suiteáil seo.",
+        "label": "Mód clárúcháin",
+        "invite": "Le cuireadh amháin",
+        "open": "Oscailte",
+        "invite_help": "Cláraíonn an chéad úsáideoir, agus téann gach duine ina dhiaidh isteach i spás oibre trí chuireadh.",
+        "open_help": "Is féidir le duine ar bith clárú agus faigheann siad spás oibre dá gcuid féin. Deimhníonn cuntais nua a seoladh ríomhphoist, mar sin teastaíonn seoltóir ríomhphoist."
+      },
+      "sender": {
+        "title": "Seoltóir ríomhphoist",
+        "description": "An freastalaí SMTP a sheolann ríomhphoist an chuntais: naisc athshocraithe pasfhocail, deimhniú ríomhphoist agus cuirí.",
+        "on": "Tá ríomhphoist an chuntais ar siúl.",
+        "off": "Tá ríomhphoist an chuntais as: níl óstach SMTP ann.",
+        "host": "Óst SMTP",
+        "port": "Port",
+        "tls": "Slándáil",
+        "tls_starttls": "STARTTLS",
+        "tls_tls": "TLS",
+        "tls_none": "Dada",
+        "user": "Úsáideoir",
+        "password": "Focal Faire",
+        "password_set": "Tá pasfhocal socraithe. Clóscríobh chun é a athsholáthar.",
+        "password_not_set": "Níl pasfhocal socraithe",
+        "password_removed": "Bainfear an pasfhocal nuair a shábhálann tú.",
+        "password_reenter": "Má athraítear an t-óstach, an port, an tslándáil nó an t-úsáideoir, bainfear an pasfhocal sábháilte. Cuir isteach arís é.",
+        "remove_password": "Bain an pasfhocal",
+        "keep_password": "Coinnigh an pasfhocal",
+        "from": "Seoladh an tseoltóra"
+      },
+      "public_url": {
+        "title": "URL poiblí",
+        "description": "Seoladh an aip ghréasáin, a osclaíonn na naisc i ríomhphoist agus i bhfógraí.",
+        "label": "URL poiblí"
+      },
+      "test_email": {
+        "title": "Seol ríomhphost tástála",
+        "description": "Seolann sé ríomhphost gearr tríd an seoltóir sábháilte, chun a sheiceáil go n-oibríonn sé.",
+        "to": "Seol chuig",
+        "send": "Seol ríomhphost tástála",
+        "sending": "Á sheoladh…",
+        "sent": "Seoladh ríomhphost tástála chuig {{to}}.",
+        "failed": "Níor seoladh an ríomhphost tástála.",
+        "unsaved": "Tá athruithe nár sábháladh ag an seoltóir. Úsáideann an tástáil an seoltóir sábháilte, mar sin sábháil ar dtús."
+      },
+      "validation": {
+        "port": "Cuir isteach port ó 1 go 65535, nó fág folamh é don réamhshocrú."
+      },
+      "errors": {
+        "locked": "Tá {{field}} socraithe ag timpeallacht an fhreastalaí agus ní féidir é a athrú anseo.",
+        "open_needs_sender": "Teastaíonn seoltóir ríomhphoist ó chlárú oscailte, mar go ndeimhníonn cuntais nua a seoladh ríomhphoist. Socraigh an seoltóir ar dtús, nó sa sábháil chéanna.",
+        "sender_needed": "Tá an clárú oscailte, agus teastaíonn an seoltóir ó chuntais nua chun a seoladh ríomhphoist a dheimhniú. Athraigh an clárú go le cuireadh amháin ar dtús.",
+        "no_sender": "Níl seoltóir ríomhphoist ann. Sábháil seoltóir ar dtús."
+      }
     }
   },
   "auth": {

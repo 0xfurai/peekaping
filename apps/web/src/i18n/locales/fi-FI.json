@@ -9,7 +9,8 @@
       "probes": "Luotaimet",
       "title": "Ylläpito",
       "users": "Käyttäjät",
-      "workspaces": "Työtilat"
+      "workspaces": "Työtilat",
+      "settings": "Asetukset"
     },
     "users": {
       "actions": {
@@ -163,6 +164,73 @@
         "suspended_unverified": "Keskeytetty, kunnes omistaja vahvistaa sähköpostinsa"
       },
       "total": "{{total}} löytyi"
+    },
+    "settings": {
+      "page_name": "Asetukset",
+      "description": "Koko asennuksen asetukset. Palvelimen ympäristön asettama arvo on tässä lukittu.",
+      "load_failed": "Asetuksia ei voitu ladata.",
+      "saved": "Asetukset tallennettu",
+      "save_failed": "Asetuksia ei tallennettu.",
+      "locked": "Palvelimen ympäristön asettama",
+      "source": {
+        "environment": "Palvelimen ympäristöstä",
+        "saved": "Tallennettu tähän",
+        "default": "Oletus"
+      },
+      "signup": {
+        "title": "Rekisteröityminen",
+        "description": "Kuka saa luoda tilin tähän asennukseen.",
+        "label": "Rekisteröitymistila",
+        "invite": "Vain kutsulla",
+        "open": "Avoin",
+        "invite_help": "Ensimmäinen käyttäjä rekisteröityy, ja kaikki sen jälkeen liittyvät työtilaan kutsun kautta.",
+        "open_help": "Kuka tahansa voi rekisteröityä ja saa oman työtilan. Uudet tilit vahvistavat sähköpostiosoitteensa, joten tarvitaan sähköpostin lähettäjä."
+      },
+      "sender": {
+        "title": "Sähköpostin lähettäjä",
+        "description": "SMTP-palvelin, joka lähettää tilin sähköpostit: salasanan palautuslinkit, sähköpostin vahvistuksen ja kutsut.",
+        "on": "Tilin sähköpostit ovat käytössä.",
+        "off": "Tilin sähköpostit ovat pois käytöstä: SMTP-palvelinta ei ole.",
+        "host": "SMTP-palvelin",
+        "port": "Portti",
+        "tls": "Turvallisuus",
+        "tls_starttls": "STARTTLS",
+        "tls_tls": "TLS",
+        "tls_none": "Ei mitään",
+        "user": "Käyttäjä",
+        "password": "Salasana",
+        "password_set": "Salasana on asetettu. Kirjoita uusi korvataksesi sen.",
+        "password_not_set": "Salasanaa ei ole asetettu",
+        "password_removed": "Salasana poistetaan, kun tallennat.",
+        "password_reenter": "Isännän, portin, suojauksen tai käyttäjän vaihtaminen poistaa tallennetun salasanan. Anna se uudelleen.",
+        "remove_password": "Poista salasana",
+        "keep_password": "Säilytä salasana",
+        "from": "Lähettäjän osoite"
+      },
+      "public_url": {
+        "title": "Julkinen URL",
+        "description": "Verkkosovelluksen osoite, jonka sähköpostien ja ilmoitusten linkit avaavat.",
+        "label": "Julkinen URL"
+      },
+      "test_email": {
+        "title": "Lähetä testiviesti",
+        "description": "Lähettää lyhyen viestin tallennetun lähettäjän kautta tarkistaakseen, että se toimii.",
+        "to": "Lähetä osoitteeseen",
+        "send": "Lähetä testiviesti",
+        "sending": "Lähetetään…",
+        "sent": "Testiviesti lähetetty osoitteeseen {{to}}.",
+        "failed": "Testiviestiä ei lähetetty.",
+        "unsaved": "Lähettäjässä on tallentamattomia muutoksia. Testi käyttää tallennettua lähettäjää, joten tallenna ensin."
+      },
+      "validation": {
+        "port": "Anna portti väliltä 1–65535 tai jätä tyhjäksi oletusarvoa varten."
+      },
+      "errors": {
+        "locked": "{{field}} on palvelimen ympäristön asettama, eikä sitä voi muuttaa tässä.",
+        "open_needs_sender": "Avoin rekisteröityminen tarvitsee sähköpostin lähettäjän, koska uudet tilit vahvistavat sähköpostiosoitteensa. Määritä lähettäjä ensin tai samassa tallennuksessa.",
+        "sender_needed": "Rekisteröityminen on avoin, ja uudet tilit tarvitsevat lähettäjän vahvistaakseen sähköpostiosoitteensa. Vaihda rekisteröityminen ensin tilaan vain kutsulla.",
+        "no_sender": "Sähköpostin lähettäjää ei ole. Tallenna lähettäjä ensin."
+      }
     }
   },
   "auth": {

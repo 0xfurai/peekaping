@@ -9,7 +9,8 @@
       "probes": "Zundak",
       "title": "Administrazioa",
       "users": "Erabiltzaileak",
-      "workspaces": "Lan-eremuak"
+      "workspaces": "Lan-eremuak",
+      "settings": "Ezarpenak"
     },
     "users": {
       "actions": {
@@ -163,6 +164,73 @@
         "suspended_unverified": "Etenda, jabeak bere helbide elektronikoa egiaztatu arte"
       },
       "total": "{{total}} aurkitu dira"
+    },
+    "settings": {
+      "page_name": "Ezarpenak",
+      "description": "Instalazio osoaren ezarpenak. Zerbitzariaren inguruneak ezarritako balioa blokeatuta dago hemen.",
+      "load_failed": "Ezin izan dira ezarpenak kargatu.",
+      "saved": "Ezarpenak gordeta",
+      "save_failed": "Ezarpenak ez dira gorde.",
+      "locked": "Zerbitzariaren inguruneak ezarria",
+      "source": {
+        "environment": "Zerbitzariaren ingurunetik",
+        "saved": "Hemen gordea",
+        "default": "Lehenetsia"
+      },
+      "signup": {
+        "title": "Izen-ematea",
+        "description": "Nork sor dezakeen kontu bat instalazio honetan.",
+        "label": "Izen-emate modua",
+        "invite": "Gonbidapenarekin soilik",
+        "open": "Irekia",
+        "invite_help": "Lehen erabiltzaileak izena ematen du, eta ondorengo guztiak gonbidapen baten bidez sartzen dira lan-eremu batean.",
+        "open_help": "Edonork eman dezake izena eta bere lan-eremua jasotzen du. Kontu berriek beren helbide elektronikoa egiaztatzen dute, beraz posta-igorle bat behar da."
+      },
+      "sender": {
+        "title": "Posta-igorlea",
+        "description": "Kontuko mezuak bidaltzen dituen SMTP zerbitzaria: pasahitza berrezartzeko estekak, helbidearen egiaztapena eta gonbidapenak.",
+        "on": "Kontuko mezuak aktibatuta daude.",
+        "off": "Kontuko mezuak desaktibatuta daude: ez dago SMTP ostalaririk.",
+        "host": "SMTP Ostalaria",
+        "port": "Ataka",
+        "tls": "Segurtasuna",
+        "tls_starttls": "STARTTLS",
+        "tls_tls": "TLS",
+        "tls_none": "Bat ere ez",
+        "user": "Erabiltzailea",
+        "password": "Pasahitza",
+        "password_set": "Pasahitz bat ezarrita dago. Idatzi ordezkatzeko.",
+        "password_not_set": "Ez dago pasahitzik ezarrita",
+        "password_removed": "Pasahitza kenduko da gordetzean.",
+        "password_reenter": "Ostalaria, ataka, segurtasuna edo erabiltzailea aldatzean, gordetako pasahitza kentzen da. Idatzi berriro.",
+        "remove_password": "Kendu pasahitza",
+        "keep_password": "Mantendu pasahitza",
+        "from": "Igorlearen helbidea"
+      },
+      "public_url": {
+        "title": "URL publikoa",
+        "description": "Web aplikazioaren helbidea, mezuetako eta jakinarazpenetako estekek irekitzen dutena.",
+        "label": "URL publikoa"
+      },
+      "test_email": {
+        "title": "Bidali proba-mezu bat",
+        "description": "Mezu labur bat bidaltzen du gordetako igorlearen bidez, funtzionatzen duela egiaztatzeko.",
+        "to": "Bidali hona",
+        "send": "Bidali proba-mezu bat",
+        "sending": "Bidaltzen…",
+        "sent": "Proba-mezua bidali da hona: {{to}}.",
+        "failed": "Proba-mezua ez da bidali.",
+        "unsaved": "Igorleak gorde gabeko aldaketak ditu. Probak gordetako igorlea erabiltzen du, beraz gorde lehenik."
+      },
+      "validation": {
+        "port": "Sartu 1 eta 65535 arteko ataka bat, edo utzi hutsik lehenetsia erabiltzeko."
+      },
+      "errors": {
+        "locked": "{{field}} zerbitzariaren inguruneak ezartzen du eta ezin da hemen aldatu.",
+        "open_needs_sender": "Izen-emate irekiak posta-igorle bat behar du, kontu berriek beren helbide elektronikoa egiaztatzen dutelako. Konfiguratu igorlea lehenik, edo gordetze berean.",
+        "sender_needed": "Izen-ematea irekia dago, eta kontu berriek igorlea behar dute beren helbide elektronikoa egiaztatzeko. Aldatu lehenik izen-ematea gonbidapenarekin soilik modura.",
+        "no_sender": "Ez dago posta-igorlerik. Gorde igorle bat lehenik."
+      }
     }
   },
   "auth": {

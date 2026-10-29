@@ -9,7 +9,8 @@
       "probes": "Sondas",
       "title": "Administração",
       "users": "Usuários",
-      "workspaces": "Espaços de trabalho"
+      "workspaces": "Espaços de trabalho",
+      "settings": "Configurações"
     },
     "users": {
       "actions": {
@@ -163,6 +164,73 @@
         "suspended_unverified": "Suspenso até o proprietário verificar o e-mail"
       },
       "total": "{{total}} encontrado(s)"
+    },
+    "settings": {
+      "page_name": "Configurações",
+      "description": "Configurações de toda a instalação. Um valor definido pelo ambiente do servidor fica bloqueado aqui.",
+      "load_failed": "Não foi possível carregar as configurações.",
+      "saved": "Configurações salvas",
+      "save_failed": "As configurações não foram salvas.",
+      "locked": "Definido pelo ambiente do servidor",
+      "source": {
+        "environment": "Do ambiente do servidor",
+        "saved": "Salvo aqui",
+        "default": "Padrão"
+      },
+      "signup": {
+        "title": "Cadastro",
+        "description": "Quem pode criar uma conta nesta instalação.",
+        "label": "Modo de cadastro",
+        "invite": "Somente por convite",
+        "open": "Aberto",
+        "invite_help": "O primeiro usuário se cadastra, e todos depois dele entram em um espaço de trabalho por um convite.",
+        "open_help": "Qualquer pessoa pode se cadastrar e recebe um espaço de trabalho próprio. Contas novas verificam o endereço de e-mail, então é preciso um remetente de e-mail."
+      },
+      "sender": {
+        "title": "Remetente de e-mail",
+        "description": "O servidor SMTP que envia os e-mails da conta: links de redefinição de senha, verificação de e-mail e convites.",
+        "on": "Os e-mails da conta estão ativados.",
+        "off": "Os e-mails da conta estão desativados: não há host SMTP.",
+        "host": "Host SMTP",
+        "port": "Porta",
+        "tls": "Segurança",
+        "tls_starttls": "STARTTLS",
+        "tls_tls": "TLS",
+        "tls_none": "Nenhuma",
+        "user": "Usuário",
+        "password": "Senha",
+        "password_set": "Há uma senha definida. Digite para substituí-la.",
+        "password_not_set": "Nenhuma senha definida",
+        "password_removed": "A senha será removida quando você salvar.",
+        "password_reenter": "Alterar o host, a porta, a segurança ou o usuário remove a senha salva. Digite-a novamente.",
+        "remove_password": "Remover senha",
+        "keep_password": "Manter senha",
+        "from": "Endereço do remetente"
+      },
+      "public_url": {
+        "title": "URL pública",
+        "description": "O endereço do aplicativo web, que os links dos e-mails e notificações abrem.",
+        "label": "URL pública"
+      },
+      "test_email": {
+        "title": "Enviar um e-mail de teste",
+        "description": "Envia um e-mail curto pelo remetente salvo, para verificar se ele funciona.",
+        "to": "Enviar para",
+        "send": "Enviar um e-mail de teste",
+        "sending": "Enviando…",
+        "sent": "E-mail de teste enviado para {{to}}.",
+        "failed": "O e-mail de teste não foi enviado.",
+        "unsaved": "O remetente tem alterações não salvas. O teste usa o remetente salvo, então salve primeiro."
+      },
+      "validation": {
+        "port": "Informe uma porta de 1 a 65535, ou deixe em branco para o padrão."
+      },
+      "errors": {
+        "locked": "{{field}} é definido pelo ambiente do servidor e não pode ser alterado aqui.",
+        "open_needs_sender": "O cadastro aberto precisa de um remetente de e-mail, porque contas novas verificam o endereço de e-mail. Configure o remetente primeiro, ou no mesmo salvamento.",
+        "sender_needed": "O cadastro está aberto, e contas novas precisam do remetente para verificar o endereço de e-mail. Mude o cadastro para somente por convite primeiro.",
+        "no_sender": "Não há remetente de e-mail. Salve um remetente primeiro."
+      }
     }
   },
   "auth": {

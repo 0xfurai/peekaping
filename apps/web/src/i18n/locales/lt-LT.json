@@ -9,7 +9,8 @@
       "probes": "Zondai",
       "title": "Administravimas",
       "users": "Naudotojai",
-      "workspaces": "Darbo erdvės"
+      "workspaces": "Darbo erdvės",
+      "settings": "Nustatymai"
     },
     "users": {
       "actions": {
@@ -163,6 +164,73 @@
         "suspended_unverified": "Sustabdyta, kol savininkas patvirtins el. paštą"
       },
       "total": "Rasta: {{total}}"
+    },
+    "settings": {
+      "page_name": "Nustatymai",
+      "description": "Visos diegimo sistemos nustatymai. Serverio aplinkos nustatyta reikšmė čia užrakinta.",
+      "load_failed": "Nepavyko įkelti nustatymų.",
+      "saved": "Nustatymai išsaugoti",
+      "save_failed": "Nustatymai nebuvo išsaugoti.",
+      "locked": "Nustatyta serverio aplinkos",
+      "source": {
+        "environment": "Iš serverio aplinkos",
+        "saved": "Išsaugota čia",
+        "default": "Numatytasis"
+      },
+      "signup": {
+        "title": "Registracija",
+        "description": "Kas gali susikurti paskyrą šioje diegimo sistemoje.",
+        "label": "Registracijos režimas",
+        "invite": "Tik su kvietimu",
+        "open": "Atvira",
+        "invite_help": "Pirmasis naudotojas užsiregistruoja, o visi kiti prisijungia prie darbo srities per kvietimą.",
+        "open_help": "Bet kas gali užsiregistruoti ir gauna savo darbo sritį. Naujos paskyros patvirtina savo el. pašto adresą, todėl reikia el. laiškų siuntėjo."
+      },
+      "sender": {
+        "title": "El. laiškų siuntėjas",
+        "description": "SMTP serveris, siunčiantis paskyros laiškus: slaptažodžio atkūrimo nuorodas, el. pašto patvirtinimą ir kvietimus.",
+        "on": "Paskyros laiškai įjungti.",
+        "off": "Paskyros laiškai išjungti: nėra SMTP serverio.",
+        "host": "SMTP serveris",
+        "port": "Portas",
+        "tls": "Saugumas",
+        "tls_starttls": "STARTTLS",
+        "tls_tls": "TLS",
+        "tls_none": "Nėra",
+        "user": "Vartotojas",
+        "password": "slaptažodis",
+        "password_set": "Slaptažodis nustatytas. Įveskite naują, kad jį pakeistumėte.",
+        "password_not_set": "Slaptažodis nenustatytas",
+        "password_removed": "Išsaugojus slaptažodis bus pašalintas.",
+        "password_reenter": "Pakeitus serverį, prievadą, saugumą ar naudotoją, išsaugotas slaptažodis pašalinamas. Įveskite jį iš naujo.",
+        "remove_password": "Pašalinti slaptažodį",
+        "keep_password": "Palikti slaptažodį",
+        "from": "Siuntėjo adresas"
+      },
+      "public_url": {
+        "title": "Viešas URL",
+        "description": "Žiniatinklio programos adresas, kurį atveria nuorodos laiškuose ir pranešimuose.",
+        "label": "Viešas URL"
+      },
+      "test_email": {
+        "title": "Siųsti bandomąjį laišką",
+        "description": "Išsiunčia trumpą laišką per išsaugotą siuntėją, kad patikrintų, ar jis veikia.",
+        "to": "Siųsti adresu",
+        "send": "Siųsti bandomąjį laišką",
+        "sending": "Siunčiama…",
+        "sent": "Bandomasis laiškas išsiųstas adresu {{to}}.",
+        "failed": "Bandomasis laiškas nebuvo išsiųstas.",
+        "unsaved": "Siuntėjas turi neišsaugotų pakeitimų. Bandymas naudoja išsaugotą siuntėją, todėl pirmiausia išsaugokite."
+      },
+      "validation": {
+        "port": "Įveskite prievadą nuo 1 iki 65535 arba palikite tuščią numatytajai reikšmei."
+      },
+      "errors": {
+        "locked": "{{field}} nustato serverio aplinka, todėl čia to pakeisti negalima.",
+        "open_needs_sender": "Atvirai registracijai reikia el. laiškų siuntėjo, nes naujos paskyros patvirtina savo el. pašto adresą. Pirmiausia nustatykite siuntėją arba tai padarykite tame pačiame išsaugojime.",
+        "sender_needed": "Registracija atvira, o naujoms paskyroms reikia siuntėjo el. pašto adresui patvirtinti. Pirmiausia perjunkite registraciją į tik su kvietimu.",
+        "no_sender": "Nėra el. laiškų siuntėjo. Pirmiausia išsaugokite siuntėją."
+      }
     }
   },
   "auth": {

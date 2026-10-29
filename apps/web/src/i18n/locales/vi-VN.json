@@ -9,7 +9,8 @@
       "probes": "Đầu dò",
       "title": "Quản trị",
       "users": "Người dùng",
-      "workspaces": "Không gian làm việc"
+      "workspaces": "Không gian làm việc",
+      "settings": "Cài đặt"
     },
     "users": {
       "actions": {
@@ -163,6 +164,73 @@
         "suspended_unverified": "Tạm ngưng cho đến khi chủ sở hữu xác minh email"
       },
       "total": "Tìm thấy {{total}}"
+    },
+    "settings": {
+      "page_name": "Cài đặt",
+      "description": "Cài đặt của toàn bộ bản cài đặt. Giá trị do môi trường của máy chủ đặt sẽ bị khóa ở đây.",
+      "load_failed": "Không thể tải cài đặt.",
+      "saved": "Đã lưu cài đặt",
+      "save_failed": "Cài đặt chưa được lưu.",
+      "locked": "Do môi trường của máy chủ đặt",
+      "source": {
+        "environment": "Từ môi trường của máy chủ",
+        "saved": "Đã lưu ở đây",
+        "default": "Mặc định"
+      },
+      "signup": {
+        "title": "Đăng ký",
+        "description": "Ai được tạo tài khoản trên bản cài đặt này.",
+        "label": "Chế độ đăng ký",
+        "invite": "Chỉ qua lời mời",
+        "open": "Mở",
+        "invite_help": "Người dùng đầu tiên đăng ký, và mọi người sau đó tham gia một không gian làm việc qua lời mời.",
+        "open_help": "Bất kỳ ai cũng có thể đăng ký và nhận một không gian làm việc riêng. Tài khoản mới xác minh địa chỉ email, nên cần một người gửi email."
+      },
+      "sender": {
+        "title": "Người gửi email",
+        "description": "Máy chủ SMTP gửi email tài khoản: liên kết đặt lại mật khẩu, xác minh email và lời mời.",
+        "on": "Email tài khoản đang bật.",
+        "off": "Email tài khoản đang tắt: không có máy chủ SMTP.",
+        "host": "Máy chủ SMTP",
+        "port": "Cổng",
+        "tls": "Bảo mật",
+        "tls_starttls": "STARTTLS",
+        "tls_tls": "TLS",
+        "tls_none": "Không có",
+        "user": "Người dùng",
+        "password": "Mật khẩu",
+        "password_set": "Đã đặt mật khẩu. Nhập để thay thế.",
+        "password_not_set": "Chưa đặt mật khẩu",
+        "password_removed": "Mật khẩu sẽ bị xóa khi bạn lưu.",
+        "password_reenter": "Thay đổi máy chủ, cổng, bảo mật hoặc người dùng sẽ xóa mật khẩu đã lưu. Hãy nhập lại.",
+        "remove_password": "Xóa mật khẩu",
+        "keep_password": "Giữ mật khẩu",
+        "from": "Địa chỉ người gửi"
+      },
+      "public_url": {
+        "title": "URL công khai",
+        "description": "Địa chỉ của ứng dụng web, nơi các liên kết trong email và thông báo mở tới.",
+        "label": "URL công khai"
+      },
+      "test_email": {
+        "title": "Gửi email thử",
+        "description": "Gửi một email ngắn qua người gửi đã lưu để kiểm tra rằng nó hoạt động.",
+        "to": "Gửi tới",
+        "send": "Gửi email thử",
+        "sending": "Đang gửi…",
+        "sent": "Đã gửi email thử tới {{to}}.",
+        "failed": "Email thử chưa được gửi.",
+        "unsaved": "Người gửi có thay đổi chưa lưu. Bài thử dùng người gửi đã lưu, nên hãy lưu trước."
+      },
+      "validation": {
+        "port": "Nhập cổng từ 1 đến 65535, hoặc để trống để dùng mặc định."
+      },
+      "errors": {
+        "locked": "{{field}} do môi trường của máy chủ đặt và không thể thay đổi ở đây.",
+        "open_needs_sender": "Đăng ký mở cần một người gửi email, vì tài khoản mới xác minh địa chỉ email. Hãy thiết lập người gửi trước, hoặc trong cùng lần lưu.",
+        "sender_needed": "Đăng ký đang mở, và tài khoản mới cần người gửi để xác minh địa chỉ email. Hãy chuyển đăng ký sang chỉ qua lời mời trước.",
+        "no_sender": "Không có người gửi email. Hãy lưu một người gửi trước."
+      }
     }
   },
   "auth": {

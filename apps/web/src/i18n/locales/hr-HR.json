@@ -9,7 +9,8 @@
       "probes": "Sonde",
       "title": "Administracija",
       "users": "Korisnici",
-      "workspaces": "Radni prostori"
+      "workspaces": "Radni prostori",
+      "settings": "Postavke"
     },
     "users": {
       "actions": {
@@ -163,6 +164,73 @@
         "suspended_unverified": "Suspendiran dok vlasnik ne potvrdi e-poštu"
       },
       "total": "Pronađeno: {{total}}"
+    },
+    "settings": {
+      "page_name": "Postavke",
+      "description": "Postavke cijele instalacije. Vrijednost koju postavlja okruženje poslužitelja ovdje je zaključana.",
+      "load_failed": "Postavke se nisu mogle učitati.",
+      "saved": "Postavke su spremljene",
+      "save_failed": "Postavke nisu spremljene.",
+      "locked": "Postavlja okruženje poslužitelja",
+      "source": {
+        "environment": "Iz okruženja poslužitelja",
+        "saved": "Spremljeno ovdje",
+        "default": "Zadano"
+      },
+      "signup": {
+        "title": "Registracija",
+        "description": "Tko smije stvoriti račun na ovoj instalaciji.",
+        "label": "Način registracije",
+        "invite": "Samo uz pozivnicu",
+        "open": "Otvorena",
+        "invite_help": "Prvi se korisnik registrira, a svi nakon njega pridružuju se radnom prostoru putem pozivnice.",
+        "open_help": "Svatko se može registrirati i dobiva vlastiti radni prostor. Novi računi potvrđuju svoju adresu e-pošte, pa je potreban pošiljatelj e-pošte."
+      },
+      "sender": {
+        "title": "Pošiljatelj e-pošte",
+        "description": "SMTP poslužitelj koji šalje e-poštu računa: poveznice za ponovno postavljanje lozinke, potvrdu e-pošte i pozivnice.",
+        "on": "E-pošta računa je uključena.",
+        "off": "E-pošta računa je isključena: nema SMTP hosta.",
+        "host": "SMTP poslužitelj",
+        "port": "Port",
+        "tls": "Sigurnost",
+        "tls_starttls": "STARTTLS",
+        "tls_tls": "TLS",
+        "tls_none": "Bez",
+        "user": "Korisnik",
+        "password": "Lozinka",
+        "password_set": "Lozinka je postavljena. Upišite novu da biste je zamijenili.",
+        "password_not_set": "Lozinka nije postavljena",
+        "password_removed": "Lozinka će se ukloniti kad spremite.",
+        "password_reenter": "Promjenom hosta, porta, sigurnosti ili korisnika uklanja se spremljena lozinka. Unesite je ponovno.",
+        "remove_password": "Ukloni lozinku",
+        "keep_password": "Zadrži lozinku",
+        "from": "Adresa pošiljatelja"
+      },
+      "public_url": {
+        "title": "Javni URL",
+        "description": "Adresa web-aplikacije koju otvaraju poveznice u e-pošti i obavijestima.",
+        "label": "Javni URL"
+      },
+      "test_email": {
+        "title": "Pošalji testnu e-poštu",
+        "description": "Šalje kratku poruku putem spremljenog pošiljatelja kako bi provjerio da radi.",
+        "to": "Pošalji na",
+        "send": "Pošalji testnu e-poštu",
+        "sending": "Slanje…",
+        "sent": "Testna e-pošta poslana je na {{to}}.",
+        "failed": "Testna e-pošta nije poslana.",
+        "unsaved": "Pošiljatelj ima nespremljene promjene. Test koristi spremljenog pošiljatelja, pa najprije spremite."
+      },
+      "validation": {
+        "port": "Unesite port od 1 do 65535 ili ostavite prazno za zadanu vrijednost."
+      },
+      "errors": {
+        "locked": "{{field}} postavlja okruženje poslužitelja i ne može se ovdje promijeniti.",
+        "open_needs_sender": "Otvorena registracija treba pošiljatelja e-pošte jer novi računi potvrđuju svoju adresu e-pošte. Najprije postavite pošiljatelja ili to učinite u istom spremanju.",
+        "sender_needed": "Registracija je otvorena, a novi računi trebaju pošiljatelja da potvrde svoju adresu e-pošte. Najprije prebacite registraciju na samo uz pozivnicu.",
+        "no_sender": "Nema pošiljatelja e-pošte. Najprije spremite pošiljatelja."
+      }
     }
   },
   "auth": {

@@ -9,7 +9,8 @@
       "probes": "Sondid",
       "title": "Haldus",
       "users": "Kasutajad",
-      "workspaces": "Tööruumid"
+      "workspaces": "Tööruumid",
+      "settings": "Seaded"
     },
     "users": {
       "actions": {
@@ -163,6 +164,73 @@
         "suspended_unverified": "Peatatud, kuni omanik oma e-posti kinnitab"
       },
       "total": "Leitud: {{total}}"
+    },
+    "settings": {
+      "page_name": "Seaded",
+      "description": "Kogu paigalduse seaded. Serveri keskkonna määratud väärtus on siin lukus.",
+      "load_failed": "Seadeid ei õnnestunud laadida.",
+      "saved": "Seaded salvestatud",
+      "save_failed": "Seadeid ei salvestatud.",
+      "locked": "Määratud serveri keskkonnaga",
+      "source": {
+        "environment": "Serveri keskkonnast",
+        "saved": "Siin salvestatud",
+        "default": "Vaikimisi"
+      },
+      "signup": {
+        "title": "Registreerumine",
+        "description": "Kes võib selles paigalduses konto luua.",
+        "label": "Registreerumise režiim",
+        "invite": "Ainult kutsega",
+        "open": "Avatud",
+        "invite_help": "Esimene kasutaja registreerub ja kõik järgmised liituvad tööruumiga kutse kaudu.",
+        "open_help": "Igaüks võib registreeruda ja saab oma tööruumi. Uued kontod kinnitavad oma e-posti aadressi, seega on vaja e-kirjade saatjat."
+      },
+      "sender": {
+        "title": "E-kirjade saatja",
+        "description": "SMTP-server, mis saadab kontoga seotud e-kirju: parooli lähtestamise lingid, e-posti kinnitamise ja kutsed.",
+        "on": "Konto e-kirjad on sees.",
+        "off": "Konto e-kirjad on väljas: SMTP-hosti pole.",
+        "host": "SMTP host",
+        "port": "Port",
+        "tls": "Turvalisus",
+        "tls_starttls": "STARTTLS",
+        "tls_tls": "TLS",
+        "tls_none": "Puudub",
+        "user": "Kasutaja",
+        "password": "Parool",
+        "password_set": "Parool on määratud. Asendamiseks sisesta uus.",
+        "password_not_set": "Parool pole määratud",
+        "password_removed": "Parool eemaldatakse salvestamisel.",
+        "password_reenter": "Hosti, pordi, turvalisuse või kasutaja muutmine eemaldab salvestatud parooli. Sisestage see uuesti.",
+        "remove_password": "Eemalda parool",
+        "keep_password": "Jäta parool alles",
+        "from": "Saatja aadress"
+      },
+      "public_url": {
+        "title": "Avalik URL",
+        "description": "Veebirakenduse aadress, mille e-kirjade ja teavituste lingid avavad.",
+        "label": "Avalik URL"
+      },
+      "test_email": {
+        "title": "Saada testkiri",
+        "description": "Saadab salvestatud saatja kaudu lühikese e-kirja, et kontrollida, kas see töötab.",
+        "to": "Saada aadressile",
+        "send": "Saada testkiri",
+        "sending": "Saatmine…",
+        "sent": "Testkiri saadeti aadressile {{to}}.",
+        "failed": "Testkirja ei saadetud.",
+        "unsaved": "Saatjal on salvestamata muudatusi. Test kasutab salvestatud saatjat, seega salvesta enne."
+      },
+      "validation": {
+        "port": "Sisesta port vahemikus 1 kuni 65535 või jäta tühjaks vaikeväärtuse jaoks."
+      },
+      "errors": {
+        "locked": "{{field}} on määratud serveri keskkonnaga ja seda ei saa siin muuta.",
+        "open_needs_sender": "Avatud registreerumine vajab e-kirjade saatjat, sest uued kontod kinnitavad oma e-posti aadressi. Seadista esmalt saatja või tee seda samas salvestuses.",
+        "sender_needed": "Registreerumine on avatud ja uued kontod vajavad saatjat oma e-posti aadressi kinnitamiseks. Lülita esmalt registreerumine ainult kutsega režiimile.",
+        "no_sender": "E-kirjade saatjat pole. Salvesta esmalt saatja."
+      }
     }
   },
   "auth": {

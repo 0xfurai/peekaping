@@ -9,7 +9,8 @@
       "probes": "Sondes",
       "title": "Administration",
       "users": "Utilisateurs",
-      "workspaces": "Espaces de travail"
+      "workspaces": "Espaces de travail",
+      "settings": "Paramètres"
     },
     "users": {
       "actions": {
@@ -163,6 +164,73 @@
         "suspended_unverified": "Suspendu jusqu'à ce que le propriétaire vérifie son e-mail"
       },
       "total": "{{total}} trouvé(s)"
+    },
+    "settings": {
+      "page_name": "Paramètres",
+      "description": "Paramètres de toute l'installation. Une valeur fixée par l'environnement du serveur est verrouillée ici.",
+      "load_failed": "Les paramètres n'ont pas pu être chargés.",
+      "saved": "Paramètres enregistrés",
+      "save_failed": "Les paramètres n'ont pas été enregistrés.",
+      "locked": "Fixé par l'environnement du serveur",
+      "source": {
+        "environment": "De l'environnement du serveur",
+        "saved": "Enregistré ici",
+        "default": "Par défaut"
+      },
+      "signup": {
+        "title": "Inscription",
+        "description": "Qui peut créer un compte sur cette installation.",
+        "label": "Mode d'inscription",
+        "invite": "Sur invitation uniquement",
+        "open": "Ouverte",
+        "invite_help": "Le premier utilisateur s'inscrit, et tous les suivants rejoignent un espace de travail par une invitation.",
+        "open_help": "Tout le monde peut s'inscrire et obtient son propre espace de travail. Les nouveaux comptes vérifient leur adresse e-mail, il faut donc un expéditeur d'e-mails."
+      },
+      "sender": {
+        "title": "Expéditeur d'e-mails",
+        "description": "Le serveur SMTP qui envoie les e-mails du compte : liens de réinitialisation du mot de passe, vérification de l'e-mail et invitations.",
+        "on": "Les e-mails du compte sont activés.",
+        "off": "Les e-mails du compte sont désactivés : il n'y a pas d'hôte SMTP.",
+        "host": "Hôte SMTP",
+        "port": "Port",
+        "tls": "Sécurité",
+        "tls_starttls": "STARTTLS",
+        "tls_tls": "TLS",
+        "tls_none": "Aucune",
+        "user": "Utilisateur",
+        "password": "Mot de passe",
+        "password_set": "Un mot de passe est défini. Saisissez-en un pour le remplacer.",
+        "password_not_set": "Aucun mot de passe défini",
+        "password_removed": "Le mot de passe sera supprimé à l'enregistrement.",
+        "password_reenter": "Modifier l'hôte, le port, la sécurité ou l'utilisateur supprime le mot de passe enregistré. Saisissez-le à nouveau.",
+        "remove_password": "Supprimer le mot de passe",
+        "keep_password": "Garder le mot de passe",
+        "from": "Adresse de l'expéditeur"
+      },
+      "public_url": {
+        "title": "URL publique",
+        "description": "L'adresse de l'application web, qu'ouvrent les liens des e-mails et des notifications.",
+        "label": "URL publique"
+      },
+      "test_email": {
+        "title": "Envoyer un e-mail de test",
+        "description": "Envoie un court e-mail par l'expéditeur enregistré, pour vérifier qu'il fonctionne.",
+        "to": "Envoyer à",
+        "send": "Envoyer un e-mail de test",
+        "sending": "Envoi…",
+        "sent": "E-mail de test envoyé à {{to}}.",
+        "failed": "L'e-mail de test n'a pas été envoyé.",
+        "unsaved": "L'expéditeur a des modifications non enregistrées. Le test utilise l'expéditeur enregistré, enregistrez donc d'abord."
+      },
+      "validation": {
+        "port": "Saisissez un port de 1 à 65535, ou laissez vide pour la valeur par défaut."
+      },
+      "errors": {
+        "locked": "{{field}} est fixé par l'environnement du serveur et ne peut pas être modifié ici.",
+        "open_needs_sender": "L'inscription ouverte nécessite un expéditeur d'e-mails, car les nouveaux comptes vérifient leur adresse e-mail. Configurez d'abord l'expéditeur, ou dans le même enregistrement.",
+        "sender_needed": "L'inscription est ouverte, et les nouveaux comptes ont besoin de l'expéditeur pour vérifier leur adresse e-mail. Passez d'abord l'inscription en mode sur invitation uniquement.",
+        "no_sender": "Il n'y a pas d'expéditeur d'e-mails. Enregistrez d'abord un expéditeur."
+      }
     }
   },
   "auth": {

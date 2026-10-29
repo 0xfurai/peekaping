@@ -9,7 +9,8 @@
       "probes": "Problar",
       "title": "Yönetici",
       "users": "Kullanıcılar",
-      "workspaces": "Çalışma alanları"
+      "workspaces": "Çalışma alanları",
+      "settings": "Ayarlar"
     },
     "users": {
       "actions": {
@@ -163,6 +164,73 @@
         "suspended_unverified": "Sahibi e-postasını doğrulayana kadar askıya alındı"
       },
       "total": "{{total}} bulundu"
+    },
+    "settings": {
+      "page_name": "Ayarlar",
+      "description": "Tüm kurulumun ayarları. Sunucunun ortamının belirlediği bir değer burada kilitlidir.",
+      "load_failed": "Ayarlar yüklenemedi.",
+      "saved": "Ayarlar kaydedildi",
+      "save_failed": "Ayarlar kaydedilmedi.",
+      "locked": "Sunucunun ortamı tarafından belirlendi",
+      "source": {
+        "environment": "Sunucunun ortamından",
+        "saved": "Burada kaydedildi",
+        "default": "Varsayılan"
+      },
+      "signup": {
+        "title": "Kayıt",
+        "description": "Bu kurulumda kimlerin hesap oluşturabileceği.",
+        "label": "Kayıt modu",
+        "invite": "Yalnızca davetle",
+        "open": "Açık",
+        "invite_help": "İlk kullanıcı kaydolur, sonrakilerin hepsi bir çalışma alanına davetle katılır.",
+        "open_help": "Herkes kaydolabilir ve kendi çalışma alanını alır. Yeni hesaplar e-posta adreslerini doğruladığı için bir e-posta göndericisi gerekir."
+      },
+      "sender": {
+        "title": "E-posta göndericisi",
+        "description": "Hesap e-postalarını gönderen SMTP sunucusu: parola sıfırlama bağlantıları, e-posta doğrulama ve davetler.",
+        "on": "Hesap e-postaları açık.",
+        "off": "Hesap e-postaları kapalı: SMTP sunucusu yok.",
+        "host": "SMTP Sunucusu",
+        "port": "Port",
+        "tls": "Güvenlik",
+        "tls_starttls": "STARTTLS",
+        "tls_tls": "TLS",
+        "tls_none": "Yok",
+        "user": "Kullanıcı",
+        "password": "Parola",
+        "password_set": "Bir parola ayarlı. Değiştirmek için yazın.",
+        "password_not_set": "Parola ayarlı değil",
+        "password_removed": "Kaydettiğinizde parola kaldırılır.",
+        "password_reenter": "Ana makineyi, bağlantı noktasını, güvenliği veya kullanıcıyı değiştirmek kayıtlı parolayı kaldırır. Parolayı yeniden girin.",
+        "remove_password": "Parolayı kaldır",
+        "keep_password": "Parolayı koru",
+        "from": "Gönderen adresi"
+      },
+      "public_url": {
+        "title": "Genel URL",
+        "description": "E-postalardaki ve bildirimlerdeki bağlantıların açtığı web uygulamasının adresi.",
+        "label": "Genel URL"
+      },
+      "test_email": {
+        "title": "Test e-postası gönder",
+        "description": "Çalıştığını kontrol etmek için kayıtlı gönderici üzerinden kısa bir e-posta gönderir.",
+        "to": "Alıcı",
+        "send": "Test e-postası gönder",
+        "sending": "Gönderiliyor…",
+        "sent": "Test e-postası {{to}} adresine gönderildi.",
+        "failed": "Test e-postası gönderilmedi.",
+        "unsaved": "Göndericide kaydedilmemiş değişiklikler var. Test kayıtlı göndericiyi kullanır, bu yüzden önce kaydedin."
+      },
+      "validation": {
+        "port": "1 ile 65535 arasında bir port girin veya varsayılan için boş bırakın."
+      },
+      "errors": {
+        "locked": "{{field}} sunucunun ortamı tarafından belirlenir ve burada değiştirilemez.",
+        "open_needs_sender": "Yeni hesaplar e-posta adreslerini doğruladığı için açık kayıt bir e-posta göndericisi gerektirir. Önce göndericiyi ayarlayın veya aynı kayıtta ayarlayın.",
+        "sender_needed": "Kayıt açık ve yeni hesapların e-posta adreslerini doğrulamak için göndericiye ihtiyacı var. Önce kaydı yalnızca davetle olarak değiştirin.",
+        "no_sender": "E-posta göndericisi yok. Önce bir gönderici kaydedin."
+      }
     }
   },
   "auth": {

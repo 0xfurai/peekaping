@@ -9,7 +9,8 @@
       "probes": "Sonde",
       "title": "Administrare",
       "users": "Utilizatori",
-      "workspaces": "Spații de lucru"
+      "workspaces": "Spații de lucru",
+      "settings": "Setări"
     },
     "users": {
       "actions": {
@@ -163,6 +164,73 @@
         "suspended_unverified": "Suspendat până când proprietarul își verifică e-mailul"
       },
       "total": "{{total}} găsite"
+    },
+    "settings": {
+      "page_name": "Setări",
+      "description": "Setările întregii instalări. O valoare setată de mediul serverului este blocată aici.",
+      "load_failed": "Setările nu au putut fi încărcate.",
+      "saved": "Setări salvate",
+      "save_failed": "Setările nu au fost salvate.",
+      "locked": "Setat de mediul serverului",
+      "source": {
+        "environment": "Din mediul serverului",
+        "saved": "Salvat aici",
+        "default": "Implicit"
+      },
+      "signup": {
+        "title": "Înregistrare",
+        "description": "Cine poate crea un cont pe această instalare.",
+        "label": "Mod de înregistrare",
+        "invite": "Doar cu invitație",
+        "open": "Deschisă",
+        "invite_help": "Primul utilizator se înregistrează, iar toți cei de după se alătură unui spațiu de lucru printr-o invitație.",
+        "open_help": "Oricine se poate înregistra și primește propriul spațiu de lucru. Conturile noi își verifică adresa de e-mail, deci este nevoie de un expeditor de e-mail."
+      },
+      "sender": {
+        "title": "Expeditor de e-mail",
+        "description": "Serverul SMTP care trimite e-mailurile contului: linkuri de resetare a parolei, verificarea e-mailului și invitații.",
+        "on": "E-mailurile contului sunt activate.",
+        "off": "E-mailurile contului sunt dezactivate: nu există gazdă SMTP.",
+        "host": "Gazda SMTP",
+        "port": "Port",
+        "tls": "Securitate",
+        "tls_starttls": "STARTTLS",
+        "tls_tls": "TLS",
+        "tls_none": "Niciuna",
+        "user": "Utilizator",
+        "password": "Parola",
+        "password_set": "Este setată o parolă. Tastați pentru a o înlocui.",
+        "password_not_set": "Nicio parolă setată",
+        "password_removed": "Parola va fi eliminată la salvare.",
+        "password_reenter": "Schimbarea gazdei, a portului, a securității sau a utilizatorului elimină parola salvată. Introduceți-o din nou.",
+        "remove_password": "Elimină parola",
+        "keep_password": "Păstrează parola",
+        "from": "Adresa expeditorului"
+      },
+      "public_url": {
+        "title": "URL public",
+        "description": "Adresa aplicației web, pe care o deschid linkurile din e-mailuri și notificări.",
+        "label": "URL public"
+      },
+      "test_email": {
+        "title": "Trimite un e-mail de test",
+        "description": "Trimite un e-mail scurt prin expeditorul salvat, pentru a verifica dacă funcționează.",
+        "to": "Trimite către",
+        "send": "Trimite un e-mail de test",
+        "sending": "Se trimite…",
+        "sent": "E-mailul de test a fost trimis către {{to}}.",
+        "failed": "E-mailul de test nu a fost trimis.",
+        "unsaved": "Expeditorul are modificări nesalvate. Testul folosește expeditorul salvat, așa că salvați mai întâi."
+      },
+      "validation": {
+        "port": "Introduceți un port între 1 și 65535 sau lăsați gol pentru valoarea implicită."
+      },
+      "errors": {
+        "locked": "{{field}} este setat de mediul serverului și nu poate fi modificat aici.",
+        "open_needs_sender": "Înregistrarea deschisă are nevoie de un expeditor de e-mail, pentru că conturile noi își verifică adresa de e-mail. Configurați mai întâi expeditorul sau în aceeași salvare.",
+        "sender_needed": "Înregistrarea este deschisă, iar conturile noi au nevoie de expeditor pentru a-și verifica adresa de e-mail. Treceți mai întâi înregistrarea pe doar cu invitație.",
+        "no_sender": "Nu există expeditor de e-mail. Salvați mai întâi un expeditor."
+      }
     }
   },
   "auth": {
