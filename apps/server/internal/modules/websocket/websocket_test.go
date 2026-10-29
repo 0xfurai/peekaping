@@ -97,13 +97,6 @@ func newHarness(t *testing.T) *harness {
 	return newHarnessWith(t, 0, 0)
 }
 
-// newHarnessWithConnectionDelay is newHarness with the server's connection handler waiting for
-// delay first, when it isn't zero.
-func newHarnessWithConnectionDelay(t *testing.T, delay time.Duration) *harness {
-	t.Helper()
-	return newHarnessWith(t, delay, 0)
-}
-
 // newHarnessWith is newHarness with the connection delay, and with the server sweeping its open
 // sockets every sweep when it isn't zero.
 func newHarnessWith(t *testing.T, delay, sweep time.Duration) *harness {
@@ -588,11 +581,55 @@ func TestConnectionTakesTheTokenFromTheAuthPayloadOnly(t *testing.T) {
 // A client sends join_room as soon as it sees CONNECT, the way the web app does. The server
 // registers its handler before it sends CONNECT, so the join is handled even when the connection
 // handler runs late.
+//
+// The test doesn't use connectAs, which waits for the connection handler to finish. The hook holds
+// the handler until the join is answered and the room delivers, so the join arrives while the
+// handler still runs. The client waits for the hook first: the library records the socket before
+// it runs the handler, and a packet that comes back before that closes the session.
 func TestJoinSentRightAfterConnectIsHandled(t *testing.T) {
-	h := newHarnessWithConnectionDelay(t, 300*time.Millisecond)
-	c := h.connect(t)
+	h := newHarness(t)
+	started, release := make(chan string, 8), make(chan struct{})
+	var releaseOnce sync.Once
+	releaseHandler := func() { releaseOnce.Do(func() { close(release) }) }
+	t.Cleanup(releaseHandler)
+	hook := func(id string) {
+		started <- id
+		<-release
+	}
+	h.onConnection.Store(&hook)
 
-	c.join(t, h.bus, "monitor:"+monitorA, monitorA)
+	c := h.dial(t, h.accessToken(t))
+	packet := c.next(t)
+	require.True(t, strings.HasPrefix(packet, "40"), "expected CONNECT, got %s", packet)
+	var connect struct {
+		Sid string `json:"sid"`
+	}
+	require.NoError(t, json.Unmarshal([]byte(strings.TrimPrefix(packet, "40")), &connect), packet)
+	select {
+	case id := <-started:
+		require.Equal(t, connect.Sid, id)
+	case <-time.After(wait):
+		require.FailNow(t, "the server didn't start the connection handler within "+wait.String())
+	}
+
+	c.joinOK(t, "monitor:"+monitorA)
+	publishHeartbeat(t, h.bus, monitorA, "while connecting")
+	assert.Equal(t, []string{"while connecting"}, heartbeatMsgs(c.untilMsg(t, "while connecting")))
+	select {
+	case <-h.connection(connect.Sid):
+		require.FailNow(t, "the connection handler finished before the hook released it")
+	default:
+	}
+
+	// The room still delivers once the handler is done with the socket
+	releaseHandler()
+	select {
+	case <-h.connection(connect.Sid):
+	case <-time.After(wait):
+		require.FailNow(t, "the server didn't connect the socket within "+wait.String())
+	}
+	publishHeartbeat(t, h.bus, monitorA, "connected")
+	assert.Equal(t, []string{"connected"}, heartbeatMsgs(c.untilMsg(t, "connected")))
 }
 
 func TestMonitorRoomGetsOnlyThatMonitorsHeartbeats(t *testing.T) {
