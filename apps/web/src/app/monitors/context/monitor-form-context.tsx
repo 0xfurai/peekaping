@@ -48,7 +48,8 @@ import { checkMonitorValues } from "../monitor-types/shared/check-values";
 import { allNotificationChannelsOptions, defaultChannelIds } from "../monitor-types/shared/channel-support";
 import { useWorkspacePath } from "@/hooks/useWorkspacePath";
 import { useDisabledMonitorTypes } from "@/hooks/useDisabledMonitorTypes";
-import { selectableMonitorTypes } from "../monitor-types/disabled";
+import { replacementForDisabledType, selectableMonitorTypes } from "../monitor-types/disabled";
+import { valuesForNewType } from "../monitor-types/shared/type-change";
 
 type Mode = "create" | "edit";
 
@@ -132,6 +133,9 @@ export const MonitorFormProvider: React.FC<MonitorFormProviderProps> = ({
   // loading then.
   const disabledTypes = useDisabledMonitorTypes();
   const startingType = selectableMonitorTypes(monitorTypes, { disabled: disabledTypes })[0] ?? monitorTypes[0];
+  // The type the form set itself, which it may change while the user hasn't (see below)
+  const presetsType = mode === "create" && !initialValues;
+  const typeSetByForm = useRef(startingType.type);
 
   const form = useForm<MonitorFormValues>({
     // The interval and retry interval start at the install's minimum.
@@ -178,6 +182,22 @@ export const MonitorFormProvider: React.FC<MonitorFormProviderProps> = ({
       current.every((id) => startingChannelIds.current.includes(id));
     if (untouched) form.setValue("notification_ids", defaultChannelIds(channels.data));
   }, [presetsChannels, channelsFetched, channels, form]);
+
+  // A new monitor that isn't a clone moves off its starting type when /me, loaded or refetched after
+  // the form opened, turns that type off. As the type select does, it starts from the new type's
+  // defaults, keeping the name, the probes and the channels. Not over a type the user chose.
+  useEffect(() => {
+    if (!presetsType) return;
+    const next = replacementForDisabledType(monitorTypes, {
+      type: form.getValues("type"),
+      setByForm: typeSetByForm.current,
+      dirty: form.getFieldState("type").isDirty,
+      disabled: disabledTypes,
+    });
+    if (!next) return;
+    typeSetByForm.current = next.type;
+    form.reset(valuesForNewType(next.defaultValues as MonitorFormValues, form.getValues()));
+  }, [presetsType, disabledTypes, form]);
 
   // In edit mode the form shows the saved monitor once it is loaded
   useEffect(() => {

@@ -1406,7 +1406,8 @@
       "updated_success": "Notifierを正常に更新しました"
     },
     "new": {
-      "title": "新しい通知チャネル"
+      "title": "新しい通知チャネル",
+      "default_hint": "このチャンネルは新しいモニターでチェックされた状態になります。"
     },
     "no_important": "重要な通知はありません。",
     "placeholders": {

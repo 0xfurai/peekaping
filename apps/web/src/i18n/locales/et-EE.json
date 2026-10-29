@@ -1406,7 +1406,8 @@
       "updated_success": "Teavitaja uuendati edukalt"
     },
     "new": {
-      "title": "Uus teavituskanal"
+      "title": "Uus teavituskanal",
+      "default_hint": "See kanal märgitakse uutel monitoridel."
     },
     "no_important": "Ühtegi olulist teadet ei leitud.",
     "placeholders": {

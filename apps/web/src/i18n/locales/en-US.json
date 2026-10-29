@@ -1406,7 +1406,8 @@
       "updated_success": "Notifier updated successfully"
     },
     "new": {
-      "title": "New Notification Channel"
+      "title": "New Notification Channel",
+      "default_hint": "This channel will be ticked on new monitors."
     },
     "no_important": "No important notifications found.",
     "placeholders": {
