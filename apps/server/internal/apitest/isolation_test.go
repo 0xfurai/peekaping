@@ -296,6 +296,7 @@ var (
 		"DELETE /api/v1/admin/users/{id}":           "the install's users, instance admin only: a user's memberships go with them, no workspace's records do",
 		"GET /api/v1/admin/workspaces":              "the install's workspaces, instance admin only: counts and metadata, never a workspace's records",
 		"PATCH /api/v1/admin/workspaces/{id}":       "the install's workspaces, instance admin only: suspending or resuming reaches the workspace's hold, not its records",
+		"DELETE /api/v1/admin/workspaces/{id}":      "the install's workspaces, instance admin only: deleting reaches the workspace and everything in it by cascade, no record is read",
 	}
 )
 

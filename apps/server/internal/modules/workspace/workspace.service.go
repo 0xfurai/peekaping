@@ -69,6 +69,13 @@ type Service interface {
 	// ErrNotFound, ErrForbidden or ErrInvalidName (a name that is blank once trimmed). The
 	// membership it returns holds the caller's role there; its JoinedAt is not read.
 	RenameWorkspace(ctx context.Context, name string) (*Membership, error)
+	// DeleteAnyWorkspace deletes the workspace with the ID and everything in it by cascade, and
+	// returns ErrNotFound for one that does not exist. It checks no role and reads no workspace
+	// from the context: the caller decides who may delete which workspace (an instance admin any,
+	// an owner their own). Once the delete is stored it publishes events.MonitorDeleted for each of
+	// the workspace's monitors, so that they stop at once, and MemberLeft for each member, so that
+	// their open sockets leave its rooms. Call it outside a transaction, or the events go before the commit.
+	DeleteAnyWorkspace(ctx context.Context, id ID) error
 }
 
 // MonitorWaker makes the scheduler and the probes pick up the monitors of a workspace whose
@@ -268,6 +275,44 @@ func (s *ServiceImpl) targetAndOwners(ctx context.Context, id ID, userID string)
 func (s *ServiceImpl) announceLeft(ctx context.Context, id ID, userID string) {
 	if err := events.Publish(ctx, s.bus, MemberLeft, MemberLeftEvent{WorkspaceID: id, UserID: userID}); err != nil {
 		s.logger.Errorw("Failed to publish that a member left a workspace", "workspaceId", id, "userId", userID, "error", err)
+	}
+}
+
+func (s *ServiceImpl) DeleteAnyWorkspace(ctx context.Context, id ID) error {
+	// An ID that is no UUID names no workspace, and PostgreSQL refuses to compare it with one
+	if _, err := uuid.Parse(string(id)); err != nil {
+		return ErrNotFound
+	}
+	var deleted *Deleted
+	err := s.transactor.WithTx(ctx, func(ctx context.Context) error {
+		var err error
+		deleted, err = s.workspaces.Delete(ctx, id)
+		if err != nil {
+			return err
+		}
+		if deleted == nil {
+			return ErrNotFound
+		}
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+	s.announceDeleted(ctx, id, deleted)
+	return nil
+}
+
+// announceDeleted tells the rest of the install that the workspace is gone, once that is stored:
+// the scheduler, the probes and the metrics drop its monitors, and the websocket takes its members
+// out of its rooms. A bus that fails is logged and not returned: the delete stands.
+func (s *ServiceImpl) announceDeleted(ctx context.Context, id ID, deleted *Deleted) {
+	for _, monitorID := range deleted.MonitorIDs {
+		if err := events.Publish(ctx, s.bus, events.MonitorDeleted, monitorID); err != nil {
+			s.logger.Errorw("Failed to publish that a monitor of a deleted workspace was deleted", "workspaceId", id, "monitorId", monitorID, "error", err)
+		}
+	}
+	for _, userID := range deleted.UserIDs {
+		s.announceLeft(ctx, id, userID)
 	}
 }
 

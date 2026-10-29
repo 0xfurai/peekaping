@@ -45,6 +45,15 @@ type Service interface {
 	// verification: resuming leaves that one, and the workspace's monitors run again once no hold
 	// remains. Nothing is deleted. A change that changes nothing is not logged.
 	SetWorkspaceSuspended(ctx context.Context, actorID, workspaceID string, suspended bool) (*Workspace, error)
+	// DeleteWorkspace deletes the workspace and everything in it: ErrWorkspaceNotFound. Its
+	// monitors stop at once and its members' open sockets leave its rooms. The members keep their
+	// accounts. An admin may delete a workspace they are a member of.
+	DeleteWorkspace(ctx context.Context, actorID, workspaceID string) error
+}
+
+// WorkspaceDeleter deletes a workspace with its records. workspace.Service is one.
+type WorkspaceDeleter interface {
+	DeleteAnyWorkspace(ctx context.Context, id workspace.ID) error
 }
 
 // MonitorWaker has the scheduler and the probes pick up the active monitors of a workspace whose
@@ -64,6 +73,7 @@ type ServiceImpl struct {
 	transactor dbtx.Transactor
 	links      ResetLinks
 	monitors   MonitorWaker
+	workspaces WorkspaceDeleter
 	bus        events.EventBus
 	mailer     *mailer.Mailer
 	installURL string
@@ -76,6 +86,7 @@ func NewService(
 	transactor dbtx.Transactor,
 	links ResetLinks,
 	monitors MonitorWaker,
+	workspaces WorkspaceDeleter,
 	bus events.EventBus,
 	mailer *mailer.Mailer,
 	cfg *config.Config,
@@ -86,6 +97,7 @@ func NewService(
 		transactor: transactor,
 		links:      links,
 		monitors:   monitors,
+		workspaces: workspaces,
 		bus:        bus,
 		mailer:     mailer,
 		installURL: strings.TrimRight(cfg.ClientURL, "/"),
@@ -362,4 +374,16 @@ func (s *ServiceImpl) wake(ctx context.Context, id workspace.ID) {
 	if err := s.monitors.PublishActiveUpdated(ctx, id); err != nil {
 		s.logger.Errorw("Failed to wake the monitors of a workspace that is no longer suspended", "workspaceId", id, "error", err)
 	}
+}
+
+func (s *ServiceImpl) DeleteWorkspace(ctx context.Context, actorID, workspaceID string) error {
+	err := s.workspaces.DeleteAnyWorkspace(ctx, workspace.ID(workspaceID))
+	if errors.Is(err, workspace.ErrNotFound) {
+		return ErrWorkspaceNotFound
+	}
+	if err != nil {
+		return err
+	}
+	s.logWorkspace(actorID, ActionDeleteWorkspace, workspaceID)
+	return nil
 }

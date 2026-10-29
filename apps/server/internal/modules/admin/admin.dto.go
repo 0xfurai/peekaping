@@ -179,3 +179,4 @@ type WorkspaceParams struct {
 	ID string `path:"id" doc:"The workspace's ID" required:"true"`
 }
 type UpdateWorkspaceInput = httpx.Input[UpdateWorkspaceDto, WorkspaceParams]
+type DeleteWorkspaceInput = httpx.Input[httpx.NoBody, WorkspaceParams]

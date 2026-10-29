@@ -84,6 +84,7 @@ var jwtOnlyRoutes = map[string]bool{
 	"DELETE /api/v1/admin/users/{id}":              true,
 	"GET /api/v1/admin/workspaces":                 true,
 	"PATCH /api/v1/admin/workspaces/{id}":          true,
+	"DELETE /api/v1/admin/workspaces/{id}":         true,
 }
 
 // instanceAdminRoutes are the jwtOnlyRoutes that an API key reaches the check of: it is
@@ -104,6 +105,7 @@ var instanceAdminRoutes = map[string]bool{
 	"DELETE /api/v1/admin/users/{id}":              true,
 	"GET /api/v1/admin/workspaces":                 true,
 	"PATCH /api/v1/admin/workspaces/{id}":          true,
+	"DELETE /api/v1/admin/workspaces/{id}":         true,
 }
 
 // probeRoutes are the probe protocol's. A probe authenticates with its token and an instance id,

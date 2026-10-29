@@ -176,3 +176,14 @@ func (c *Controller) UpdateWorkspace(ctx context.Context, input *UpdateWorkspace
 	}
 	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("Workspace updated successfully", workspaceResponse(updated)))
 }
+
+func (c *Controller) DeleteWorkspace(ctx context.Context, input *DeleteWorkspaceInput) (*httpx.Output[httpx.NoBody], error) {
+	actorID, err := actor(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err := c.service.DeleteWorkspace(ctx, actorID, input.Request.PathValue("id")); err != nil {
+		return nil, c.fail(err)
+	}
+	return httpx.Reply(http.StatusNoContent, httpx.NoBody{})
+}

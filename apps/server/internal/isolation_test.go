@@ -90,6 +90,7 @@ var anyWorkspaceCallers = map[string]string{
 	"internal/modules/admin.ServiceImpl.DeleteUser":            "deleting a user checks whether they are the last owner of any workspace they are in, and refuses naming it",
 	"internal/modules/admin.ServiceImpl.ListWorkspaces":        "the admin area lists every workspace of the install with counts and metadata only; an instance admin sees no workspace's records (PP-372)",
 	"internal/modules/admin.ServiceImpl.SetWorkspaceSuspended": "an instance admin suspends or resumes a workspace without joining it, and gets its counts and metadata back; no workspace's records are read (PP-372)",
+	"internal/modules/admin.ServiceImpl.DeleteWorkspace":       "an instance admin deletes a workspace without joining it; it goes with everything in it, by cascade, and no workspace's records are read (PP-372)",
 	// invites
 	"internal/modules/workspace.ServiceImpl.lookupInvite": "an invite is found by the hash of its token, which then says its workspace, as an API key's does (PP-154)",
 }
