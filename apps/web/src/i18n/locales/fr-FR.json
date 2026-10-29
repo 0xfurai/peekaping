@@ -1907,8 +1907,10 @@
       "url_label": "Adresse à surveiller"
     },
     "channel": {
+      "continue_unlinked": "Continuer sans associer",
       "description": "Choisissez où Peekaping envoie une alerte quand votre moniteur tombe. Il deviendra le canal par défaut des nouveaux moniteurs.",
       "link_failed": "Le canal a été enregistré, mais son association à votre moniteur a échoué. Ajoutez-le depuis la page de modification du moniteur.",
+      "retry_link": "Réessayer l'association",
       "title": "Soyez prévenu"
     },
     "done": {

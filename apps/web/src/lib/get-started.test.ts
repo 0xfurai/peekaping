@@ -5,6 +5,7 @@ import {
   firstMonitorBody,
   getStartedChannelTypes,
   getStartedGate,
+  linkChannel,
   nextStepLinks,
   parseMonitorUrl,
 } from "./get-started";
@@ -133,6 +134,31 @@ describe("createChannelAndLink", () => {
     const log = vi.spyOn(console, "error").mockImplementation(() => {});
 
     await expect(createChannelAndLink({ values, monitorId: "m1", create, link })).resolves.toEqual({
+      kind: "link_failed",
+      channelId: "c1",
+    });
+    log.mockRestore();
+  });
+});
+
+// Step 3's "Try linking again", after a save whose link failed
+describe("linkChannel", () => {
+  it("links the channel already made to the monitor", async () => {
+    const link = vi.fn().mockResolvedValue(undefined);
+
+    await expect(linkChannel({ monitorId: "m1", channelId: "c1", link })).resolves.toEqual({
+      kind: "linked",
+      channelId: "c1",
+    });
+    expect(link).toHaveBeenCalledTimes(1);
+    expect(link).toHaveBeenCalledWith("m1", "c1");
+  });
+
+  it("reports a failed link again, keeping the channel", async () => {
+    const link = vi.fn().mockRejectedValue(new Error("500"));
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    await expect(linkChannel({ monitorId: "m1", channelId: "c1", link })).resolves.toEqual({
       kind: "link_failed",
       channelId: "c1",
     });
