@@ -6074,7 +6074,7 @@ export type GetStatusPagesSlugBySlugMonitorsResponses = {
   /**
    * OK
    */
-  200: UtilsApiResponseStatusPageModel;
+  200: UtilsApiResponseArrayStatusPageMonitorWithHeartbeatsAndUptimeDto;
 };
 
 export type GetStatusPagesSlugBySlugMonitorsResponse =
@@ -6114,7 +6114,7 @@ export type GetStatusPagesSlugBySlugMonitorsHomepageResponses = {
   /**
    * OK
    */
-  200: UtilsApiResponseStatusPageModel;
+  200: UtilsApiResponseArrayStatusPageMonitorWithHeartbeatsAndUptimeDto;
 };
 
 export type GetStatusPagesSlugBySlugMonitorsHomepageResponse =
