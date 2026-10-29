@@ -13959,7 +13959,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/utils.ApiResponse_status_page.Model"
+                  "$ref": "#/components/schemas/utils.ApiResponse_Array_status_page.MonitorWithHeartbeatsAndUptimeDTO"
                 }
               }
             },
@@ -14023,7 +14023,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/utils.ApiResponse_status_page.Model"
+                  "$ref": "#/components/schemas/utils.ApiResponse_Array_status_page.MonitorWithHeartbeatsAndUptimeDTO"
                 }
               }
             },
