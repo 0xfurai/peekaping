@@ -909,6 +909,7 @@
       "resumed": "Nadzor ponovno zagnan"
     },
     "type_disabled": "Vrsta {{type}} je na tej namestitvi izklopljena",
+    "over_limit": "Ni preverjeno: delovni prostor ima več aktivnih nadzorov, kot jih dovoljuje njegova omejitev",
     "view": {
       "buttons": {
         "clone": "Kloniraj",

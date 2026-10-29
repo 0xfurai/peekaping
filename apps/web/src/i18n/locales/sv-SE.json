@@ -909,6 +909,7 @@
       "resumed": "Övervakning återupptagen"
     },
     "type_disabled": "Typen {{type}} är avstängd på den här installationen",
+    "over_limit": "Kontrolleras inte: arbetsytan har fler aktiva övervakningar än dess gräns tillåter",
     "view": {
       "buttons": {
         "clone": "Klonera",

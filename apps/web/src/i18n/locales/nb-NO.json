@@ -909,6 +909,7 @@
       "resumed": "Overvåking gjenopptatt"
     },
     "type_disabled": "Typen {{type}} er slått av på denne installasjonen",
+    "over_limit": "Sjekkes ikke: arbeidsområdet har flere aktive monitorer enn grensen tillater",
     "view": {
       "buttons": {
         "clone": "Klon",

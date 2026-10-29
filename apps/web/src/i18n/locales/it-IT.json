@@ -909,6 +909,7 @@
       "resumed": "Monitor ripreso"
     },
     "type_disabled": "Il tipo {{type}} è disattivato su questa installazione",
+    "over_limit": "Non controllato: lo spazio di lavoro ha più monitor attivi di quanti ne consenta il suo limite",
     "view": {
       "buttons": {
         "clone": "Duplica",

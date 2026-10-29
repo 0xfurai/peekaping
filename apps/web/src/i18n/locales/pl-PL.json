@@ -909,6 +909,7 @@
       "resumed": "Monitor wznowiony"
     },
     "type_disabled": "Typ {{type}} jest wyłączony w tej instalacji",
+    "over_limit": "Nie jest sprawdzany: obszar roboczy ma więcej aktywnych monitorów, niż pozwala jego limit",
     "view": {
       "buttons": {
         "clone": "Klonuj",

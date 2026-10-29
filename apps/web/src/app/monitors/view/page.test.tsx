@@ -84,6 +84,16 @@ describe("the monitor page", () => {
     expect(isOff(clone(html))).toBe(false);
   });
 
+  it("shows a monitor past its workspace's limit as paused, with the reason, and leaves Pause on to choose which stay", () => {
+    const html = page(monitor({ type: "http", active: true, over_limit: true }));
+
+    expect(html).toContain(`>${text("monitors.view.status.paused")}<`);
+    expect(html).toContain('data-testid="monitor-over-limit"');
+    expect(html).toContain(text("monitors.over_limit"));
+    expect(toggle(html)).toContain(text("monitors.view.buttons.pause"));
+    expect(isOff(toggle(html))).toBe(false);
+  });
+
   it("leaves Pause on for a running monitor", () => {
     const html = page(monitor({ type: "http", active: true }));
 

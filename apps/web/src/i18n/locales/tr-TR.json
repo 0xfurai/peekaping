@@ -909,6 +909,7 @@
       "resumed": "İzleme yeniden başladı"
     },
     "type_disabled": "{{type}} türü bu kurulumda kapalıdır",
+    "over_limit": "Kontrol edilmiyor: çalışma alanında sınırının izin verdiğinden fazla etkin izleyici var",
     "view": {
       "buttons": {
         "clone": "Klonla",

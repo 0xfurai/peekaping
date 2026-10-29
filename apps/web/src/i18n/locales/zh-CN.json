@@ -909,6 +909,7 @@
       "resumed": "监控已恢复"
     },
     "type_disabled": "此安装已关闭 {{type}} 类型",
+    "over_limit": "不会检查：此工作区的启用监控数超过其上限",
     "view": {
       "buttons": {
         "clone": "克隆",

@@ -909,6 +909,7 @@
       "resumed": "Monitor reanudado"
     },
     "type_disabled": "El tipo {{type}} está desactivado en esta instalación",
+    "over_limit": "No se comprueba: el espacio de trabajo tiene más monitores activos de los que permite su límite",
     "view": {
       "buttons": {
         "clone": "Clonar",

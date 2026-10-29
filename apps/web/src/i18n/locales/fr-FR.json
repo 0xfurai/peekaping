@@ -909,6 +909,7 @@
       "resumed": "Surveillance reprise"
     },
     "type_disabled": "Le type {{type}} est désactivé sur cette installation",
+    "over_limit": "Non vérifié : l'espace de travail a plus de moniteurs actifs que sa limite ne le permet",
     "view": {
       "buttons": {
         "clone": "Cloner",

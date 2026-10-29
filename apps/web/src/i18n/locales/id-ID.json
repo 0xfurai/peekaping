@@ -909,6 +909,7 @@
       "resumed": "Pemantauan dilanjutkan"
     },
     "type_disabled": "Tipe {{type}} dinonaktifkan pada instalasi ini",
+    "over_limit": "Tidak diperiksa: ruang kerja memiliki lebih banyak monitor aktif daripada yang diizinkan batasnya",
     "view": {
       "buttons": {
         "clone": "Duplikat",

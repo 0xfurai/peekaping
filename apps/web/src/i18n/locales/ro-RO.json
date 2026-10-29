@@ -909,6 +909,7 @@
       "resumed": "Monitorizarea reluată"
     },
     "type_disabled": "Tipul {{type}} este dezactivat pe această instalare",
+    "over_limit": "Nu este verificat: spațiul de lucru are mai multe monitoare active decât permite limita sa",
     "view": {
       "buttons": {
         "clone": "Clonează",

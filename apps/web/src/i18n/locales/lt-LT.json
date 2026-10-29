@@ -909,6 +909,7 @@
       "resumed": "Monitoringas tęsiamas"
     },
     "type_disabled": "Tipas {{type}} šioje diegtyje išjungtas",
+    "over_limit": "Netikrinama: darbo srityje yra daugiau aktyvių stebėjimų, nei leidžia jos riba",
     "view": {
       "buttons": {
         "clone": "Klonuoti",

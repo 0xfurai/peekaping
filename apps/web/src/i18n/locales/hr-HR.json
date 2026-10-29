@@ -909,6 +909,7 @@
       "resumed": "Nadzor nastavio"
     },
     "type_disabled": "Vrsta {{type}} isključena je na ovoj instalaciji",
+    "over_limit": "Ne provjerava se: radni prostor ima više aktivnih monitora nego što njegovo ograničenje dopušta",
     "view": {
       "buttons": {
         "clone": "Kloniraj",

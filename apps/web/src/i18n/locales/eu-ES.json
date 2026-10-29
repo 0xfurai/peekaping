@@ -909,6 +909,7 @@
       "resumed": "Monitorea berrabiarazi da"
     },
     "type_disabled": "{{type}} mota desaktibatuta dago instalazio honetan",
+    "over_limit": "Ez da egiaztatzen: lan-eremuak bere mugak baimentzen duena baino monitore aktibo gehiago ditu",
     "view": {
       "buttons": {
         "clone": "Klonatu",

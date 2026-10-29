@@ -909,6 +909,7 @@
       "resumed": "Monitor byl obnoven."
     },
     "type_disabled": "Typ {{type}} je na této instalaci vypnutý",
+    "over_limit": "Nekontroluje se: pracovní prostor má více aktivních monitorů, než povoluje jeho limit",
     "view": {
       "buttons": {
         "clone": "Duplikovat",

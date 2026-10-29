@@ -909,6 +909,7 @@
       "resumed": "Monitoring qayta boshlandi"
     },
     "type_disabled": "{{type}} turi bu o'rnatishda o'chirilgan",
+    "over_limit": "Tekshirilmaydi: ish maydonida uning chegarasi ruxsat berganidan ko'proq faol monitorlar bor",
     "view": {
       "buttons": {
         "clone": "Klonlash",

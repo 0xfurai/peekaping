@@ -28,7 +28,9 @@ const MonitorCard = ({ monitor, probes, unsupportedProbeIds }: MonitorCardProps)
   // The install turned the monitor's type off: it shows as paused whatever its own setting is,
   // since nothing checks it, and says why
   const typeDisabled = monitor.type_disabled === true;
-  const paused = monitor.active === false || typeDisabled;
+  // So does a monitor past its workspace's limit of active monitors, which nothing checks either
+  const overLimit = monitor.over_limit === true;
+  const paused = monitor.active === false || typeDisabled || overLimit;
 
   const { data: heartbeats } = useQuery({
     ...getMonitorsByIdHeartbeatsOptions({
@@ -87,6 +89,11 @@ const MonitorCard = ({ monitor, probes, unsupportedProbeIds }: MonitorCardProps)
               {typeDisabled && (
                 <p className="text-xs text-amber-500 mb-1" data-testid="monitor-type-disabled">
                   {monitorTypeDisabledReason(t, monitor.type ?? "")}
+                </p>
+              )}
+              {overLimit && (
+                <p className="text-xs text-amber-500 mb-1" data-testid="monitor-over-limit">
+                  {t("monitors.over_limit")}
                 </p>
               )}
               <div className="flex flex-wrap gap-1">

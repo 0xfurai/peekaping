@@ -909,6 +909,7 @@
       "resumed": "Monitor obnovljen"
     },
     "type_disabled": "Tip {{type}} je isključen na ovoj instalaciji",
+    "over_limit": "Ne proverava se: radni prostor ima više aktivnih monitora nego što njegovo ograničenje dozvoljava",
     "view": {
       "buttons": {
         "clone": "Kloniraj",

@@ -909,6 +909,7 @@
       "resumed": "Kontroll jätkati"
     },
     "type_disabled": "Tüüp {{type}} on selles paigalduses välja lülitatud",
+    "over_limit": "Ei kontrollita: tööruumis on rohkem aktiivseid monitore, kui selle limiit lubab",
     "view": {
       "buttons": {
         "clone": "Kopeeri",

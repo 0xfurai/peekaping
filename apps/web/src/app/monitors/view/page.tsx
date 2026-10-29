@@ -148,7 +148,11 @@ const MonitorPageContent = () => {
   // The install turned the monitor's type off: nothing checks it, whatever its own setting is, so
   // it reads as paused and can be neither paused nor resumed until the type is back on
   const typeDisabled = monitor?.type_disabled === true;
-  const running = !!monitor?.active && !typeDisabled;
+  // A monitor past its workspace's limit of active monitors isn't checked either, so it reads as
+  // paused; it can still be paused, which is how the owner chooses the monitors that stay
+  const overLimit = monitor?.over_limit === true;
+  const running = !!monitor?.active && !typeDisabled && !overLimit;
+  const pausable = !!monitor?.active && !typeDisabled;
   const typeDisabledReason = typeDisabled ? monitorTypeDisabledReason(t, monitor?.type ?? "") : undefined;
   const locations = useMemo(() => sortLocations(monitor?.locations ?? []), [monitor?.locations]);
   const showLocations = hasLocations(locations);
@@ -515,7 +519,7 @@ const MonitorPageContent = () => {
                 }
               }}
             >
-              {running ? (
+              {pausable ? (
                 <>
                   {pauseMutation.isPending ? (
                     <Loader2 className="animate-spin" />
@@ -586,6 +590,11 @@ const MonitorPageContent = () => {
         {typeDisabledReason && (
           <p className="mb-4 text-sm text-amber-500" data-testid="monitor-type-disabled">
             {typeDisabledReason}
+          </p>
+        )}
+        {overLimit && (
+          <p className="mb-4 text-sm text-amber-500" data-testid="monitor-over-limit">
+            {t("monitors.over_limit")}
           </p>
         )}
 
