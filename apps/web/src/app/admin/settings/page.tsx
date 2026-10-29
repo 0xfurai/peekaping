@@ -1,4 +1,4 @@
-import { useEffect, useState, type ComponentProps, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ComponentProps, type ReactNode } from "react";
 import { useLocation } from "react-router-dom";
 import { useIsMutating, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
@@ -437,20 +437,40 @@ function TestEmailCard({ unsaved }: { unsaved: boolean }) {
 // reports (docs/adr/0005, section 5)
 const InstallSettingsPage = () => {
   const { t } = useLocalizedTranslation();
-  const { data, isLoading, isError } = useQuery(getAdminSettingsOptions());
+  const { data, isLoading, isFetching, isError } = useQuery(getAdminSettingsOptions());
   const settings = data?.data;
   // The cards' own queries, read from the cache without a fetch of their own. The notice above the
   // page shows once they answer, so it waits for them too
   const usage = useQuery({ ...getTelemetryOptions(), enabled: false });
   const errors = useQuery({ ...getErrorReportingOptions(), enabled: false });
-  const settled = !isLoading && usage.status !== "pending" && errors.status !== "pending";
+  // Loaded, and not fetching again: a card shown from the cache refetches when it mounts, and an
+  // answer that fails changes its height
+  const settled =
+    !isLoading &&
+    !isFetching &&
+    usage.status !== "pending" &&
+    usage.fetchStatus === "idle" &&
+    errors.status !== "pending" &&
+    errors.fetchStatus === "idle";
 
   // The upgrade notice links to a card, such as /admin/settings#error-reports. The scroll waits
   // until everything above the card has loaded: an answer that came after it would push the card
-  // out of view
+  // out of view. It scrolls again each time the page settles, until the user scrolls themselves
   const { hash } = useLocation();
+  const userScrolled = useRef(false);
   useEffect(() => {
-    if (hash && settled) document.getElementById(hash.slice(1))?.scrollIntoView();
+    userScrolled.current = false;
+    const stop = () => {
+      userScrolled.current = true;
+    };
+    const events = ["wheel", "touchmove", "keydown"] as const;
+    for (const event of events) window.addEventListener(event, stop, { passive: true });
+    return () => {
+      for (const event of events) window.removeEventListener(event, stop);
+    };
+  }, [hash]);
+  useEffect(() => {
+    if (hash && settled && !userScrolled.current) document.getElementById(hash.slice(1))?.scrollIntoView();
   }, [hash, settled]);
 
   return (
