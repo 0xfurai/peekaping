@@ -3,6 +3,7 @@ import { AxiosError, AxiosHeaders } from "axios";
 import type { AdminInstallSettingsResponse } from "@/api/types.gen";
 import i18n from "@/i18n";
 import {
+  clearsSavedPassword,
   installSettingsChange,
   installSettingsErrorMessage,
   installSettingsFormValues,
@@ -140,6 +141,36 @@ describe("installSettingsChange", () => {
     it("loads empty: the form never holds the saved one", () => {
       expect(values.password).toBe("");
     });
+  });
+});
+
+describe("clearsSavedPassword", () => {
+  const saved: AdminInstallSettingsResponse = {
+    ...SETTINGS,
+    accountSmtp: { ...SETTINGS.accountSmtp, user: field("mailer", "saved", "ACCOUNT_SMTP_USER") },
+  };
+  const clears = (change: Partial<typeof values>, settings = saved) =>
+    clearsSavedPassword(settings, installSettingsChange(settings, { ...installSettingsFormValues(settings), ...change }));
+
+  it("is true when the host, port, security or user changes without a password", () => {
+    expect(clears({ host: "smtp.other.example" })).toBe(true);
+    expect(clears({ port: 465 })).toBe(true);
+    expect(clears({ tls: "tls" })).toBe(true);
+    expect(clears({ user: "someone-else" })).toBe(true);
+  });
+
+  it("is false when a new password is typed with it", () => {
+    expect(clears({ host: "smtp.other.example", password: "new-secret" })).toBe(false);
+  });
+
+  it("is false for a change that leaves the server and user as they are", () => {
+    expect(clears({})).toBe(false);
+    expect(clears({ from: "other@example.com", publicUrl: "https://peek.example" })).toBe(false);
+  });
+
+  it("is false when no password is saved", () => {
+    const none = { ...saved, accountSmtp: { ...saved.accountSmtp, password: { ...saved.accountSmtp.password, set: false } } };
+    expect(clears({ host: "smtp.other.example" }, none)).toBe(false);
   });
 });
 

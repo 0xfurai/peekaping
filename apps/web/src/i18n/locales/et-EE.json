@@ -228,6 +228,7 @@
         "password_set": "Parool on määratud. Asendamiseks sisesta uus.",
         "password_not_set": "Parool pole määratud",
         "password_removed": "Parool eemaldatakse salvestamisel.",
+        "password_reenter": "Hosti, pordi, turvalisuse või kasutaja muutmine eemaldab salvestatud parooli. Sisestage see uuesti.",
         "remove_password": "Eemalda parool",
         "keep_password": "Jäta parool alles",
         "from": "Saatja aadress"
@@ -257,7 +258,7 @@
         "no_sender": "E-kirjade saatjat pole. Salvesta esmalt saatja."
       },
       "limits": {
-        "title": "Uute tööruumide vaikelimiidid",
+        "title": "Vaikelimiidid",
         "description": "Iga sellise tööruumi limiidid, millel pole omi. Jäta limiit tühjaks, kui seda ei ole. Tööruumile lehel Tööruumid antud limiidid asendavad need."
       }
     }

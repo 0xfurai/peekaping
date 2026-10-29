@@ -228,6 +228,7 @@
         "password_set": "已設定密碼。輸入新密碼即可取代。",
         "password_not_set": "未設定密碼",
         "password_removed": "儲存時將移除密碼。",
+        "password_reenter": "更改主機、連接埠、安全設定或使用者會移除已儲存的密碼。請重新輸入。",
         "remove_password": "移除密碼",
         "keep_password": "保留密碼",
         "from": "寄件地址"
@@ -257,7 +258,7 @@
         "no_sender": "沒有電郵寄件者。請先儲存寄件者。"
       },
       "limits": {
-        "title": "新工作區嘅預設上限",
+        "title": "預設上限",
         "description": "所有沒有自有上限嘅工作區嘅上限。如不設某項上限，請將其留空。在「工作區」頁面為某個工作區設定嘅上限會取代這些預設值。"
       }
     }

@@ -228,6 +228,7 @@
         "password_set": "Geslo je nastavljeno. Vnesite novo, da ga zamenjate.",
         "password_not_set": "Geslo ni nastavljeno",
         "password_removed": "Geslo bo ob shranjevanju odstranjeno.",
+        "password_reenter": "S spremembo gostitelja, vrat, varnosti ali uporabnika se shranjeno geslo odstrani. Vnesite ga znova.",
         "remove_password": "Odstrani geslo",
         "keep_password": "Obdrži geslo",
         "from": "Naslov pošiljatelja"
@@ -257,7 +258,7 @@
         "no_sender": "Ni pošiljatelja e-pošte. Najprej shranite pošiljatelja."
       },
       "limits": {
-        "title": "Privzete omejitve za nove delovne prostore",
+        "title": "Privzete omejitve",
         "description": "Omejitve vsakega delovnega prostora, ki nima lastnih. Omejitev pustite prazno, če je ne želite. Omejitve, ki jih delovni prostor dobi na strani Delovni prostori, nadomestijo te."
       }
     }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"peekaping/internal/dbtx"
 	"peekaping/internal/modules/workspace"
 
 	"github.com/google/uuid"
@@ -47,7 +48,7 @@ func (r *SQLRepositoryImpl) Create(ctx context.Context, entity *Model) (*Model, 
 		UpdatedAt:    time.Now(),
 	}
 
-	_, err := r.db.NewInsert().Model(sm).Returning("*").Exec(ctx)
+	_, err := dbtx.DB(ctx, r.db).NewInsert().Model(sm).Returning("*").Exec(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +58,7 @@ func (r *SQLRepositoryImpl) Create(ctx context.Context, entity *Model) (*Model, 
 
 func (r *SQLRepositoryImpl) FindByID(ctx context.Context, id string) (*Model, error) {
 	sm := new(sqlModel)
-	err := r.db.NewSelect().Model(sm).Where("id = ?", id).Scan(ctx)
+	err := dbtx.DB(ctx, r.db).NewSelect().Model(sm).Where("id = ?", id).Scan(ctx)
 	if err != nil {
 		if err.Error() == "sql: no rows in result set" {
 			return nil, nil
@@ -68,7 +69,7 @@ func (r *SQLRepositoryImpl) FindByID(ctx context.Context, id string) (*Model, er
 }
 
 func (r *SQLRepositoryImpl) FindAll(ctx context.Context, page int, limit int, q string) ([]*Model, error) {
-	query := r.db.NewSelect().Model((*sqlModel)(nil))
+	query := dbtx.DB(ctx, r.db).NewSelect().Model((*sqlModel)(nil))
 
 	query = query.Order("created_at DESC").
 		Limit(limit).
@@ -95,7 +96,7 @@ func (r *SQLRepositoryImpl) UpdateFull(ctx context.Context, id string, entity *M
 		UpdatedAt:    time.Now(),
 	}
 
-	_, err := r.db.NewUpdate().
+	_, err := dbtx.DB(ctx, r.db).NewUpdate().
 		Model(sm).
 		Where("id = ?", id).
 		OmitZero().
@@ -108,7 +109,7 @@ func (r *SQLRepositoryImpl) UpdateFull(ctx context.Context, id string, entity *M
 }
 
 func (r *SQLRepositoryImpl) UpdatePartial(ctx context.Context, id string, entity *UpdateModel) (*Model, error) {
-	query := r.db.NewUpdate().Model((*sqlModel)(nil)).Where("id = ?", id)
+	query := dbtx.DB(ctx, r.db).NewUpdate().Model((*sqlModel)(nil)).Where("id = ?", id)
 
 	hasUpdates := false
 
@@ -137,7 +138,7 @@ func (r *SQLRepositoryImpl) UpdatePartial(ctx context.Context, id string, entity
 }
 
 func (r *SQLRepositoryImpl) Delete(ctx context.Context, id string) error {
-	_, err := r.db.NewDelete().Model((*sqlModel)(nil)).Where("id = ?", id).Exec(ctx)
+	_, err := dbtx.DB(ctx, r.db).NewDelete().Model((*sqlModel)(nil)).Where("id = ?", id).Exec(ctx)
 	return err
 }
 
@@ -150,7 +151,7 @@ func (r *SQLRepositoryImpl) AddMonitorToStatusPage(ctx context.Context, statusPa
 		UpdatedAt:    time.Now(),
 	}
 
-	_, err := r.db.NewInsert().Model(sm).Returning("*").Exec(ctx)
+	_, err := dbtx.DB(ctx, r.db).NewInsert().Model(sm).Returning("*").Exec(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -159,7 +160,7 @@ func (r *SQLRepositoryImpl) AddMonitorToStatusPage(ctx context.Context, statusPa
 }
 
 func (r *SQLRepositoryImpl) RemoveMonitorFromStatusPage(ctx context.Context, statusPageID, monitorID string) error {
-	_, err := r.db.NewDelete().
+	_, err := dbtx.DB(ctx, r.db).NewDelete().
 		Model((*sqlModel)(nil)).
 		Where("status_page_id = ? AND monitor_id = ?", statusPageID, monitorID).
 		Exec(ctx)
@@ -168,7 +169,7 @@ func (r *SQLRepositoryImpl) RemoveMonitorFromStatusPage(ctx context.Context, sta
 
 func (r *SQLRepositoryImpl) GetMonitorsForStatusPage(ctx context.Context, statusPageID string) ([]*Model, error) {
 	var sms []*sqlModel
-	err := r.db.NewSelect().
+	err := dbtx.DB(ctx, r.db).NewSelect().
 		Model(&sms).
 		Where("status_page_id = ?", statusPageID).
 		Order("created_at DESC").
@@ -186,7 +187,7 @@ func (r *SQLRepositoryImpl) GetMonitorsForStatusPage(ctx context.Context, status
 
 func (r *SQLRepositoryImpl) GetStatusPagesForMonitor(ctx context.Context, monitorID string) ([]*Model, error) {
 	var sms []*sqlModel
-	err := r.db.NewSelect().
+	err := dbtx.DB(ctx, r.db).NewSelect().
 		Model(&sms).
 		Where("monitor_id = ?", monitorID).
 		Order("created_at DESC").
@@ -204,7 +205,7 @@ func (r *SQLRepositoryImpl) GetStatusPagesForMonitor(ctx context.Context, monito
 
 func (r *SQLRepositoryImpl) FindByStatusPageAndMonitor(ctx context.Context, statusPageID, monitorID string) (*Model, error) {
 	sm := new(sqlModel)
-	err := r.db.NewSelect().
+	err := dbtx.DB(ctx, r.db).NewSelect().
 		Model(sm).
 		Where("status_page_id = ? AND monitor_id = ?", statusPageID, monitorID).
 		Scan(ctx)
@@ -220,7 +221,7 @@ func (r *SQLRepositoryImpl) FindByStatusPageAndMonitor(ctx context.Context, stat
 func (r *SQLRepositoryImpl) UpdateMonitorOrder(ctx context.Context, statusPageID, monitorID string, order int) (*Model, error) {
 	// For this simple implementation, we'll just update the updated_at timestamp
 	// In a real implementation, you'd have an order field
-	_, err := r.db.NewUpdate().
+	_, err := dbtx.DB(ctx, r.db).NewUpdate().
 		Model((*sqlModel)(nil)).
 		Set("updated_at = ?", time.Now()).
 		Where("status_page_id = ? AND monitor_id = ?", statusPageID, monitorID).
@@ -235,7 +236,7 @@ func (r *SQLRepositoryImpl) UpdateMonitorOrder(ctx context.Context, statusPageID
 func (r *SQLRepositoryImpl) UpdateMonitorActiveStatus(ctx context.Context, statusPageID, monitorID string, active bool) (*Model, error) {
 	// For this simple implementation, we'll just update the updated_at timestamp
 	// In a real implementation, you'd have an active field
-	_, err := r.db.NewUpdate().
+	_, err := dbtx.DB(ctx, r.db).NewUpdate().
 		Model((*sqlModel)(nil)).
 		Set("updated_at = ?", time.Now()).
 		Where("status_page_id = ? AND monitor_id = ?", statusPageID, monitorID).
@@ -248,7 +249,7 @@ func (r *SQLRepositoryImpl) UpdateMonitorActiveStatus(ctx context.Context, statu
 }
 
 func (r *SQLRepositoryImpl) DeleteAllMonitorsForStatusPage(ctx context.Context, statusPageID string) error {
-	_, err := r.db.NewDelete().
+	_, err := dbtx.DB(ctx, r.db).NewDelete().
 		Model((*sqlModel)(nil)).
 		Where("status_page_id = ?", statusPageID).
 		Exec(ctx)
@@ -267,7 +268,7 @@ func (r *SQLRepositoryImpl) FindMonitorIDsInWorkspace(ctx context.Context, works
 		return nil, nil
 	}
 	var found []string
-	err := r.db.NewSelect().Table("monitors").Column("id").
+	err := dbtx.DB(ctx, r.db).NewSelect().Table("monitors").Column("id").
 		Where("workspace_id = ?", string(workspaceID)).
 		Where("id IN (?)", bun.In(known)).
 		Scan(ctx, &found)

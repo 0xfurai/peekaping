@@ -228,6 +228,7 @@
         "password_set": "Đã đặt mật khẩu. Nhập để thay thế.",
         "password_not_set": "Chưa đặt mật khẩu",
         "password_removed": "Mật khẩu sẽ bị xóa khi bạn lưu.",
+        "password_reenter": "Thay đổi máy chủ, cổng, bảo mật hoặc người dùng sẽ xóa mật khẩu đã lưu. Hãy nhập lại.",
         "remove_password": "Xóa mật khẩu",
         "keep_password": "Giữ mật khẩu",
         "from": "Địa chỉ người gửi"
@@ -257,7 +258,7 @@
         "no_sender": "Không có người gửi email. Hãy lưu một người gửi trước."
       },
       "limits": {
-        "title": "Giới hạn mặc định cho không gian làm việc mới",
+        "title": "Giới hạn mặc định",
         "description": "Giới hạn của mọi không gian làm việc không có giới hạn riêng. Để trống một giới hạn nếu không muốn giới hạn đó. Các giới hạn được đặt cho một không gian làm việc ở trang Không gian làm việc sẽ thay thế các giới hạn này."
       }
     }

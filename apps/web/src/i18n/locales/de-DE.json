@@ -228,6 +228,7 @@
         "password_set": "Ein Passwort ist gesetzt. Tippen Sie, um es zu ersetzen.",
         "password_not_set": "Kein Passwort gesetzt",
         "password_removed": "Das Passwort wird beim Speichern entfernt.",
+        "password_reenter": "Wenn Sie Host, Port, Sicherheit oder Benutzer ändern, wird das gespeicherte Passwort entfernt. Geben Sie es erneut ein.",
         "remove_password": "Passwort entfernen",
         "keep_password": "Passwort behalten",
         "from": "Absenderadresse"
@@ -257,7 +258,7 @@
         "no_sender": "Es gibt keinen E-Mail-Absender. Speichern Sie zuerst einen Absender."
       },
       "limits": {
-        "title": "Standardlimits für neue Arbeitsbereiche",
+        "title": "Standardlimits",
         "description": "Die Limits jedes Arbeitsbereichs, der keine eigenen hat. Lassen Sie ein Limit leer, wenn es keins geben soll. Limits, die ein Arbeitsbereich auf der Seite Arbeitsbereiche erhält, ersetzen diese."
       }
     }

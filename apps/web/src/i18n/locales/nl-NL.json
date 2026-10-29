@@ -228,6 +228,7 @@
         "password_set": "Er is een wachtwoord ingesteld. Typ om het te vervangen.",
         "password_not_set": "Geen wachtwoord ingesteld",
         "password_removed": "Het wachtwoord wordt verwijderd wanneer je opslaat.",
+        "password_reenter": "Als je de host, poort, beveiliging of gebruiker wijzigt, wordt het opgeslagen wachtwoord verwijderd. Voer het opnieuw in.",
         "remove_password": "Wachtwoord verwijderen",
         "keep_password": "Wachtwoord behouden",
         "from": "Afzenderadres"
@@ -257,7 +258,7 @@
         "no_sender": "Er is geen e-mailafzender. Sla eerst een afzender op."
       },
       "limits": {
-        "title": "Standaardlimieten voor nieuwe werkruimtes",
+        "title": "Standaardlimieten",
         "description": "De limieten van elke werkruimte die geen eigen limieten heeft. Laat een limiet leeg voor geen limiet. Limieten die een werkruimte op de pagina Werkruimtes krijgt, vervangen deze."
       }
     }

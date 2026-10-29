@@ -26,6 +26,8 @@ type Router struct {
 	middleware []Middleware
 	// parameters are documented on every operation registered after they are added
 	parameters []*huma.Param
+	// errors are error responses documented on every operation registered after they are added
+	errors []int
 }
 
 func NewRouter(middleware ...Middleware) *Router {
@@ -35,7 +37,7 @@ func NewRouter(middleware ...Middleware) *Router {
 	return &Router{registry: &registry{mux: mux, middleware: middleware}}
 }
 func (r *Router) Group(prefix string) *Router {
-	return &Router{registry: r.registry, prefix: join(r.prefix, prefix), middleware: append([]Middleware(nil), r.middleware...), parameters: append([]*huma.Param(nil), r.parameters...)}
+	return &Router{registry: r.registry, prefix: join(r.prefix, prefix), middleware: append([]Middleware(nil), r.middleware...), parameters: append([]*huma.Param(nil), r.parameters...), errors: append([]int(nil), r.errors...)}
 }
 
 // Document adds parameters to the API reference of every operation that is registered on this
@@ -43,6 +45,15 @@ func (r *Router) Group(prefix string) *Router {
 // as a header, once for the group of routes behind that middleware and not on each operation.
 func (r *Router) Document(parameters ...*huma.Param) {
 	r.parameters = append(r.parameters, parameters...)
+}
+
+// DocumentWorkspace documents, on every operation registered on this router or on a group made
+// from it after the call, what the middleware of a route group whose records belong to a workspace
+// (WorkspaceAuth, WorkspaceJWTAuth) adds: the X-Workspace-ID header it reads, and the 429 with
+// Retry-After it answers when the workspace or the API key is over its API rate limit.
+func (r *Router) DocumentWorkspace() {
+	r.Document(WorkspaceIDHeader)
+	r.errors = append(r.errors, http.StatusTooManyRequests)
 }
 func (r *Router) Use(middleware ...Middleware) { r.middleware = append(r.middleware, middleware...) }
 func join(prefix, suffix string) string {

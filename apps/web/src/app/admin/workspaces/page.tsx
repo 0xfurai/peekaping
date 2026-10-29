@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
+import { workspacesPageWithin } from "@/lib/admin-workspaces";
 import Layout from "@/layout";
 import { WorkspacesTable } from "./workspaces-table";
 
@@ -21,7 +22,7 @@ const WorkspacesPage = () => {
   const [page, setPage] = useState(0);
   const q = useDebounce(search.trim(), SEARCH_DELAY_MS);
 
-  const { data, isLoading, isError } = useQuery({
+  const { data, isLoading, isError, isPlaceholderData } = useQuery({
     ...getAdminWorkspacesOptions({ query: { ...(q ? { q } : {}), page, limit: PAGE_SIZE } }),
     // Typing or paging keeps the rows on screen until the next ones arrive
     placeholderData: keepPreviousData,
@@ -30,6 +31,10 @@ const WorkspacesPage = () => {
   const workspaces = data?.data.workspaces ?? [];
   const total = data?.data.total ?? 0;
   const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  // Deleting the last workspace of the last page leaves the page past the end, with no rows and no
+  // pager to go back with: the list goes back to its last page
+  const within = data && !isPlaceholderData ? workspacesPageWithin(page, total, PAGE_SIZE) : page;
+  if (within !== page) setPage(within);
 
   return (
     <Layout pageName={t("admin.workspaces.page_name")} isLoading={isLoading}>

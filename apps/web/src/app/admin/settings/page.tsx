@@ -1,6 +1,6 @@
 import { useEffect, useState, type ComponentProps, type ReactNode } from "react";
 import { useLocation } from "react-router-dom";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useIsMutating, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -27,6 +27,7 @@ import { PasswordInput } from "@/components/ui/password-input";
 import { useMe } from "@/hooks/useMe";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 import {
+  clearsSavedPassword,
   DEFAULT_LIMITS,
   installSettingsChange,
   installSettingsErrorMessage,
@@ -35,6 +36,7 @@ import {
   type DefaultLimit,
   type InstallSettingsFormValues,
   type SettingSource,
+  SAVE_INSTALL_SETTINGS,
 } from "@/lib/install-settings";
 import { cn } from "@/lib/utils";
 import Layout from "@/layout";
@@ -157,6 +159,7 @@ function InstallSettingsForm({ settings }: { settings: AdminInstallSettingsRespo
 
   const mutation = useMutation({
     ...putAdminSettingsMutation(),
+    mutationKey: [...SAVE_INSTALL_SETTINGS],
     onSuccess: (response) => {
       queryClient.setQueryData(getAdminSettingsQueryKey(), response);
       form.reset(installSettingsFormValues(response.data));
@@ -166,10 +169,13 @@ function InstallSettingsForm({ settings }: { settings: AdminInstallSettingsRespo
     },
     onError: (error) => setSaveError(installSettingsErrorMessage(error, t, t("admin.settings.save_failed"))),
   });
+  // While a save is pending the fields are disabled: its answer resets the form, which would drop
+  // anything typed in the meantime
+  const saving = useIsMutating({ mutationKey: [...SAVE_INSTALL_SETTINGS] }) > 0;
 
   const submit = (values: InstallSettingsFormValues) => {
     const body = installSettingsChange(settings, values, { removePassword });
-    if (Object.keys(body).length === 0) return;
+    if (saving || Object.keys(body).length === 0) return;
     setSaveError(null);
     mutation.mutate({ body });
   };
@@ -177,139 +183,145 @@ function InstallSettingsForm({ settings }: { settings: AdminInstallSettingsRespo
   const smtp = settings.accountSmtp;
   const errors = form.formState.errors;
   const passwordTyped = watched.password !== "";
+  // A change of the server or user without a password clears the saved one on the server
+  const passwordGoes = clearsSavedPassword(settings, pendingChange);
 
   return (
     <form onSubmit={form.handleSubmit(submit)} className="flex flex-col gap-6" noValidate>
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("admin.settings.signup.title")}</CardTitle>
-          <CardDescription>{t("admin.settings.signup.description")}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <SettingField id="install-signup-mode" label={t("admin.settings.signup.label")} setting={settings.signupMode}>
-            <NativeSelect id="install-signup-mode" {...describedBy("install-signup-mode", settings.signupMode)} {...bindSelect("signupMode", settings.signupMode)}>
-              <option value="invite" className={option}>{t("admin.settings.signup.invite")}</option>
-              <option value="open" className={option}>{t("admin.settings.signup.open")}</option>
-            </NativeSelect>
-            <p className="text-sm text-muted-foreground">
-              {watched.signupMode === "open"
-                ? t("admin.settings.signup.open_help")
-                : t("admin.settings.signup.invite_help")}
+      <fieldset disabled={saving} className="flex min-w-0 flex-col gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>{t("admin.settings.signup.title")}</CardTitle>
+            <CardDescription>{t("admin.settings.signup.description")}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <SettingField id="install-signup-mode" label={t("admin.settings.signup.label")} setting={settings.signupMode}>
+              <NativeSelect id="install-signup-mode" {...describedBy("install-signup-mode", settings.signupMode)} {...bindSelect("signupMode", settings.signupMode)}>
+                <option value="invite" className={option}>{t("admin.settings.signup.invite")}</option>
+                <option value="open" className={option}>{t("admin.settings.signup.open")}</option>
+              </NativeSelect>
+              <p className="text-sm text-muted-foreground">
+                {watched.signupMode === "open"
+                  ? t("admin.settings.signup.open_help")
+                  : t("admin.settings.signup.invite_help")}
+              </p>
+            </SettingField>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>{t("admin.settings.sender.title")}</CardTitle>
+            <CardDescription>{t("admin.settings.sender.description")}</CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-4">
+            <p className="text-sm">
+              {settings.accountEmails ? t("admin.settings.sender.on") : t("admin.settings.sender.off")}
             </p>
-          </SettingField>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("admin.settings.sender.title")}</CardTitle>
-          <CardDescription>{t("admin.settings.sender.description")}</CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-4">
-          <p className="text-sm">
-            {settings.accountEmails ? t("admin.settings.sender.on") : t("admin.settings.sender.off")}
-          </p>
-          <SettingField id="install-smtp-host" label={t("admin.settings.sender.host")} setting={smtp.host}>
-            <Input id="install-smtp-host" {...describedBy("install-smtp-host", smtp.host)} dir="ltr" placeholder="smtp.example.com" readOnly={smtp.host.locked} {...bind("host")} />
-          </SettingField>
-          <SettingField id="install-smtp-port" label={t("admin.settings.sender.port")} setting={smtp.port} error={errors.port?.message}>
-            <Input id="install-smtp-port" {...describedBy("install-smtp-port", smtp.port)} type="number" min={0} max={65535} readOnly={smtp.port.locked} {...bind("port")} />
-          </SettingField>
-          <SettingField id="install-smtp-tls" label={t("admin.settings.sender.tls")} setting={smtp.tls}>
-            <NativeSelect id="install-smtp-tls" {...describedBy("install-smtp-tls", smtp.tls)} {...bindSelect("tls", smtp.tls)}>
-              <option value="starttls" className={option}>{t("admin.settings.sender.tls_starttls")}</option>
-              <option value="tls" className={option}>{t("admin.settings.sender.tls_tls")}</option>
-              <option value="none" className={option}>{t("admin.settings.sender.tls_none")}</option>
-            </NativeSelect>
-          </SettingField>
-          <SettingField id="install-smtp-user" label={t("admin.settings.sender.user")} setting={smtp.user}>
-            <Input id="install-smtp-user" {...describedBy("install-smtp-user", smtp.user)} dir="ltr" autoComplete="off" readOnly={smtp.user.locked} {...bind("user")} />
-          </SettingField>
-          <SettingField id="install-smtp-password" label={t("admin.settings.sender.password")} setting={smtp.password}>
-            {/* Write-only: the field never holds the saved password, and typing replaces it */}
-            <PasswordInput
-              id="install-smtp-password"
-              {...describedBy("install-smtp-password", smtp.password)}
-              autoComplete="new-password"
-              readOnly={smtp.password.locked}
-              placeholder={
-                removePassword && !passwordTyped
-                  ? t("admin.settings.sender.password_removed")
-                  : smtp.password.set
-                    ? t("admin.settings.sender.password_set")
-                    : t("admin.settings.sender.password_not_set")
-              }
-              {...bind("password")}
-            />
-            {smtp.password.set && !smtp.password.locked && !passwordTyped && (
-              <div className="flex flex-wrap items-center gap-2">
-                {removePassword ? (
-                  <>
-                    <span className="text-sm text-muted-foreground">
-                      {t("admin.settings.sender.password_removed")}
-                    </span>
-                    <Button type="button" variant="ghost" size="sm" onClick={() => setRemovePassword(false)}>
-                      {t("admin.settings.sender.keep_password")}
+            <SettingField id="install-smtp-host" label={t("admin.settings.sender.host")} setting={smtp.host}>
+              <Input id="install-smtp-host" {...describedBy("install-smtp-host", smtp.host)} dir="ltr" placeholder="smtp.example.com" readOnly={smtp.host.locked} {...bind("host")} />
+            </SettingField>
+            <SettingField id="install-smtp-port" label={t("admin.settings.sender.port")} setting={smtp.port} error={errors.port?.message}>
+              <Input id="install-smtp-port" {...describedBy("install-smtp-port", smtp.port)} type="number" min={0} max={65535} readOnly={smtp.port.locked} {...bind("port")} />
+            </SettingField>
+            <SettingField id="install-smtp-tls" label={t("admin.settings.sender.tls")} setting={smtp.tls}>
+              <NativeSelect id="install-smtp-tls" {...describedBy("install-smtp-tls", smtp.tls)} {...bindSelect("tls", smtp.tls)}>
+                <option value="starttls" className={option}>{t("admin.settings.sender.tls_starttls")}</option>
+                <option value="tls" className={option}>{t("admin.settings.sender.tls_tls")}</option>
+                <option value="none" className={option}>{t("admin.settings.sender.tls_none")}</option>
+              </NativeSelect>
+            </SettingField>
+            <SettingField id="install-smtp-user" label={t("admin.settings.sender.user")} setting={smtp.user}>
+              <Input id="install-smtp-user" {...describedBy("install-smtp-user", smtp.user)} dir="ltr" autoComplete="off" readOnly={smtp.user.locked} {...bind("user")} />
+            </SettingField>
+            <SettingField id="install-smtp-password" label={t("admin.settings.sender.password")} setting={smtp.password}>
+              {/* Write-only: the field never holds the saved password, and typing replaces it */}
+              <PasswordInput
+                id="install-smtp-password"
+                {...describedBy("install-smtp-password", smtp.password)}
+                autoComplete="new-password"
+                readOnly={smtp.password.locked}
+                placeholder={
+                  (removePassword || passwordGoes) && !passwordTyped
+                    ? t("admin.settings.sender.password_removed")
+                    : smtp.password.set
+                      ? t("admin.settings.sender.password_set")
+                      : t("admin.settings.sender.password_not_set")
+                }
+                {...bind("password")}
+              />
+              {passwordGoes ? (
+                <p className="text-sm text-muted-foreground">{t("admin.settings.sender.password_reenter")}</p>
+              ) : smtp.password.set && !smtp.password.locked && !passwordTyped && (
+                <div className="flex flex-wrap items-center gap-2">
+                  {removePassword ? (
+                    <>
+                      <span className="text-sm text-muted-foreground">
+                        {t("admin.settings.sender.password_removed")}
+                      </span>
+                      <Button type="button" variant="ghost" size="sm" onClick={() => setRemovePassword(false)}>
+                        {t("admin.settings.sender.keep_password")}
+                      </Button>
+                    </>
+                  ) : (
+                    <Button type="button" variant="outline" size="sm" onClick={() => setRemovePassword(true)}>
+                      {t("admin.settings.sender.remove_password")}
                     </Button>
-                  </>
-                ) : (
-                  <Button type="button" variant="outline" size="sm" onClick={() => setRemovePassword(true)}>
-                    {t("admin.settings.sender.remove_password")}
-                  </Button>
-                )}
-              </div>
-            )}
-          </SettingField>
-          <SettingField id="install-smtp-from" label={t("admin.settings.sender.from")} setting={smtp.from}>
-            <Input id="install-smtp-from" {...describedBy("install-smtp-from", smtp.from)} dir="ltr" placeholder="Peekaping <no-reply@example.com>" readOnly={smtp.from.locked} {...bind("from")} />
-          </SettingField>
-        </CardContent>
-      </Card>
+                  )}
+                </div>
+              )}
+            </SettingField>
+            <SettingField id="install-smtp-from" label={t("admin.settings.sender.from")} setting={smtp.from}>
+              <Input id="install-smtp-from" {...describedBy("install-smtp-from", smtp.from)} dir="ltr" placeholder="Peekaping <no-reply@example.com>" readOnly={smtp.from.locked} {...bind("from")} />
+            </SettingField>
+          </CardContent>
+        </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("admin.settings.public_url.title")}</CardTitle>
-          <CardDescription>{t("admin.settings.public_url.description")}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <SettingField id="install-public-url" label={t("admin.settings.public_url.label")} setting={settings.publicUrl}>
-            <Input id="install-public-url" {...describedBy("install-public-url", settings.publicUrl)} dir="ltr" type="url" placeholder="https://peekaping.example.com" readOnly={settings.publicUrl.locked} {...bind("publicUrl")} />
-          </SettingField>
-        </CardContent>
-      </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>{t("admin.settings.public_url.title")}</CardTitle>
+            <CardDescription>{t("admin.settings.public_url.description")}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <SettingField id="install-public-url" label={t("admin.settings.public_url.label")} setting={settings.publicUrl}>
+              <Input id="install-public-url" {...describedBy("install-public-url", settings.publicUrl)} dir="ltr" type="url" placeholder="https://peekaping.example.com" readOnly={settings.publicUrl.locked} {...bind("publicUrl")} />
+            </SettingField>
+          </CardContent>
+        </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("admin.settings.limits.title")}</CardTitle>
-          <CardDescription>{t("admin.settings.limits.description")}</CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-4">
-          {DEFAULT_LIMITS.map((name) => {
-            const id = `install-limit-${name}`;
-            const setting = settings.workspaceLimits[name];
-            return (
-              <SettingField
-                key={name}
-                id={id}
-                label={t(`limits.names.${name}`)}
-                setting={setting}
-                error={errors.workspaceLimits?.[name]?.message}
-              >
-                <Input
+        <Card>
+          <CardHeader>
+            <CardTitle>{t("admin.settings.limits.title")}</CardTitle>
+            <CardDescription>{t("admin.settings.limits.description")}</CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-4">
+            {DEFAULT_LIMITS.map((name) => {
+              const id = `install-limit-${name}`;
+              const setting = settings.workspaceLimits[name];
+              return (
+                <SettingField
+                  key={name}
                   id={id}
-                  {...describedBy(id, setting)}
-                  type="number"
-                  min={1}
-                  inputMode="numeric"
-                  placeholder={t("limits.none")}
-                  readOnly={setting.locked}
-                  {...bindLimit(name)}
-                />
-              </SettingField>
-            );
-          })}
-        </CardContent>
-      </Card>
+                  label={t(`limits.names.${name}`)}
+                  setting={setting}
+                  error={errors.workspaceLimits?.[name]?.message}
+                >
+                  <Input
+                    id={id}
+                    {...describedBy(id, setting)}
+                    type="number"
+                    min={1}
+                    inputMode="numeric"
+                    placeholder={t("limits.none")}
+                    readOnly={setting.locked}
+                    {...bindLimit(name)}
+                  />
+                </SettingField>
+              );
+            })}
+          </CardContent>
+        </Card>
+      </fieldset>
 
       {saveError && (
         <Alert variant="destructive" role="alert">
@@ -317,8 +329,8 @@ function InstallSettingsForm({ settings }: { settings: AdminInstallSettingsRespo
         </Alert>
       )}
       <div>
-        <Button type="submit" disabled={!hasChanges || mutation.isPending}>
-          {mutation.isPending ? t("common.saving") : t("common.save")}
+        <Button type="submit" disabled={!hasChanges || saving}>
+          {saving ? t("common.saving") : t("common.save")}
         </Button>
       </div>
 

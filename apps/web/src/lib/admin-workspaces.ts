@@ -135,3 +135,8 @@ export const isStatusPageUnavailable = (error: unknown): boolean => {
   const body = error.response.data as { error?: { code?: unknown } } | undefined;
   return body?.error?.code === UNAVAILABLE;
 };
+
+// The page of the Workspaces list to show, counted from 0, when the list holds total workspaces:
+// page, or the last page once the list has shrunk under it
+export const workspacesPageWithin = (page: number, total: number, pageSize: number): number =>
+  Math.min(page, Math.max(0, Math.ceil(total / pageSize) - 1));

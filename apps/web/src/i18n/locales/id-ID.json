@@ -228,6 +228,7 @@
         "password_set": "Kata sandi sudah diatur. Ketik untuk menggantinya.",
         "password_not_set": "Belum ada kata sandi",
         "password_removed": "Kata sandi dihapus saat Anda menyimpan.",
+        "password_reenter": "Mengubah host, port, keamanan, atau pengguna akan menghapus kata sandi yang tersimpan. Masukkan lagi.",
         "remove_password": "Hapus kata sandi",
         "keep_password": "Pertahankan kata sandi",
         "from": "Alamat pengirim"
@@ -257,7 +258,7 @@
         "no_sender": "Tidak ada pengirim email. Simpan pengirim terlebih dahulu."
       },
       "limits": {
-        "title": "Batas default untuk ruang kerja baru",
+        "title": "Batas default",
         "description": "Batas setiap ruang kerja yang tidak punya batas sendiri. Kosongkan batas jika tidak ingin ada batas. Batas yang diberikan ke ruang kerja di halaman Ruang kerja menggantikan batas ini."
       }
     }

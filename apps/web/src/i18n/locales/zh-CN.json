@@ -228,6 +228,7 @@
         "password_set": "已设置密码。输入新密码即可替换。",
         "password_not_set": "未设置密码",
         "password_removed": "保存时将移除密码。",
+        "password_reenter": "更改主机、端口、安全设置或用户会移除已保存的密码。请重新输入。",
         "remove_password": "移除密码",
         "keep_password": "保留密码",
         "from": "发件地址"
@@ -257,7 +258,7 @@
         "no_sender": "没有邮件发件人。请先保存发件人。"
       },
       "limits": {
-        "title": "新工作区的默认上限",
+        "title": "默认上限",
         "description": "所有没有自有上限的工作区的上限。如不设某项上限，请将其留空。在“工作区”页面为某个工作区设置的上限会取代这些默认值。"
       }
     }

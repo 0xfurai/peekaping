@@ -228,6 +228,7 @@
         "password_set": "Heslo je nastaveno. Napište nové, chcete-li ho nahradit.",
         "password_not_set": "Heslo není nastaveno",
         "password_removed": "Heslo bude při uložení odstraněno.",
+        "password_reenter": "Změnou hostitele, portu, zabezpečení nebo uživatele se uložené heslo odstraní. Zadejte ho znovu.",
         "remove_password": "Odstranit heslo",
         "keep_password": "Ponechat heslo",
         "from": "Adresa odesílatele"
@@ -257,7 +258,7 @@
         "no_sender": "Není nastaven žádný odesílatel e-mailů. Nejdřív uložte odesílatele."
       },
       "limits": {
-        "title": "Výchozí limity pro nové pracovní prostory",
+        "title": "Výchozí limity",
         "description": "Limity každého pracovního prostoru, který nemá vlastní. Nechte limit prázdný, aby nebyl. Limity přidělené pracovnímu prostoru na stránce Pracovní prostory je nahrazují."
       }
     }

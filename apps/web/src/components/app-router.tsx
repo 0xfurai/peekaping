@@ -29,10 +29,12 @@ export const AppRouter = () => {
   // `isFetched` turns true when it settles and stays true, so a later refetch — a reconnect after a laptop wakes, say —
   // leaves the routes below mounted. Gating on the hook's loading flag instead unmounted them for the length of every
   // background refetch, which wiped whatever was being typed into an open form (see issues #161 and #228).
-  const shouldShowCustomDomainRoute = isFetched && customDomain && customDomain.data?.slug && !accessToken;
   // A custom domain whose page's workspace is suspended answers 503 to the lookup: its visitors
-  // see that the page is unavailable, not the sign-in page
+  // see that the page is unavailable, not the sign-in page. A refetch that fails keeps the data of
+  // the lookup before it, so the page's route gives way to this one.
   const shouldShowUnavailableRoute = isFetched && unavailable && !accessToken;
+  const shouldShowCustomDomainRoute =
+    isFetched && customDomain && customDomain.data?.slug && !accessToken && !shouldShowUnavailableRoute;
   const shouldRenderAuthRoutes =
     isFetched && !shouldShowUnavailableRoute && (!customDomain || accessToken);
 
