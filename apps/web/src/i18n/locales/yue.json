@@ -107,7 +107,8 @@
       "actions": {
         "delete": "刪除工作區",
         "resume": "恢復工作區",
-        "suspend": "暫停工作區"
+        "suspend": "暫停工作區",
+        "limits": "上限"
       },
       "actions_aria": "{{name}} 嘅操作",
       "columns": {
@@ -118,7 +119,8 @@
         "name": "名稱",
         "owners": "擁有者",
         "status": "狀態",
-        "status_pages": "狀態頁面"
+        "status_pages": "狀態頁面",
+        "limits": "上限"
       },
       "confirm": {
         "cancel": "取消",
@@ -163,7 +165,31 @@
         "suspended_admin": "已被管理員暫停",
         "suspended_unverified": "暫停中，直到擁有者驗證電郵"
       },
-      "total": "搵到 {{total}} 個"
+      "total": "搵到 {{total}} 個",
+      "limits": {
+        "item": "{{name}}：{{value}}",
+        "more": "仲有 {{number}} 個",
+        "unlimited": "冇上限",
+        "source": {
+          "workspace": "自己設定",
+          "install": "安裝嘅預設值",
+          "none": "未設定"
+        },
+        "dialog": {
+          "title": "{{name}} 嘅上限",
+          "description": "呢個工作區受到嘅限制。調低上限唔會暫停或者刪除任何嘢：超出上限嘅最新監控會停止運行，直到再有位為止。",
+          "own": "自己嘅上限",
+          "own_help": "呢啲會取代安裝嘅預設值。如果唔想設上限，就將佢留空。",
+          "unlimited": "冇上限",
+          "unlimited_help": "完全冇上限，唔理安裝嘅預設值點寫。",
+          "defaults": "用安裝嘅預設值",
+          "defaults_help": "管理 → 設定入面嘅預設上限，如果安裝冇設定就冇上限。",
+          "save": "儲存上限",
+          "cancel": "取消",
+          "saved": "已儲存 {{name}} 嘅上限",
+          "failed": "儲存唔到上限。"
+        }
+      }
     },
     "settings": {
       "page_name": "設定",
@@ -230,6 +256,10 @@
         "open_needs_sender": "開放註冊需要電郵寄件者，因為新帳戶要驗證電郵地址。請先設定寄件者，或者喺同一次儲存入面設定。",
         "sender_needed": "註冊係開放嘅，新帳戶需要寄件者嚟驗證電郵地址。請先將註冊轉做淨係邀請。",
         "no_sender": "冇電郵寄件者。請先儲存寄件者。"
+      },
+      "limits": {
+        "title": "預設上限",
+        "description": "每個冇自己上限嘅工作區嘅上限。如果唔想設上限，就將佢留空。喺「工作區」頁面畀工作區設定嘅上限會取代呢啲。"
       }
     }
   },
@@ -2065,5 +2095,28 @@
         "status_pages": "發佈狀態頁"
       }
     }
+  },
+  "limits": {
+    "reached": {
+      "monitors": "呢個工作區最多可以有 {{max}} 個運行緊嘅監控",
+      "status_pages": "呢個工作區最多可以有 {{max}} 個狀態頁面",
+      "custom_domains": "呢個工作區嘅狀態頁面加埋最多可以有 {{max}} 個自訂域名",
+      "members": "呢個工作區最多可以有 {{max}} 個成員，待處理嘅邀請都計埋",
+      "owned_workspaces": "你最多可以擁有 {{max}} 個工作區",
+      "probes": "呢個工作區入面嘅監控最多可以喺 {{max}} 個探針上運行"
+    },
+    "names": {
+      "monitors": "啟用中嘅監控",
+      "min_check_interval": "最短檢查間隔（秒）",
+      "status_pages": "狀態頁面",
+      "custom_domains": "自訂域名",
+      "members": "成員",
+      "owned_workspaces": "一個用戶可以擁有嘅工作區",
+      "probes_per_monitor": "每個監控嘅探針",
+      "retention_days": "資料保留（日）"
+    },
+    "none": "冇上限",
+    "invalid": "請輸入 1 或以上嘅整數，如果唔想設上限就留空。",
+    "retention_too_long": "唔可以多過 {{max}} 日"
   }
 }

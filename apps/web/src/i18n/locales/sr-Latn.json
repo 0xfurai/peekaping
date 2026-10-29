@@ -107,7 +107,8 @@
       "actions": {
         "delete": "Obriši radni prostor",
         "resume": "Ponovo aktiviraj radni prostor",
-        "suspend": "Suspenduj radni prostor"
+        "suspend": "Suspenduj radni prostor",
+        "limits": "Ograničenja"
       },
       "actions_aria": "Radnje za {{name}}",
       "columns": {
@@ -118,7 +119,8 @@
         "name": "Naziv",
         "owners": "Vlasnici",
         "status": "Status",
-        "status_pages": "Statusne stranice"
+        "status_pages": "Statusne stranice",
+        "limits": "Ograničenja"
       },
       "confirm": {
         "cancel": "Otkaži",
@@ -163,7 +165,31 @@
         "suspended_admin": "Suspendovao administrator",
         "suspended_unverified": "Suspendovan dok vlasnik ne potvrdi e-poštu"
       },
-      "total": "Pronađeno: {{total}}"
+      "total": "Pronađeno: {{total}}",
+      "limits": {
+        "item": "{{name}}: {{value}}",
+        "more": "+{{number}} više",
+        "unlimited": "Bez ograničenja",
+        "source": {
+          "workspace": "Sopstvena",
+          "install": "Podrazumevane vrednosti instalacije",
+          "none": "Nije podešeno"
+        },
+        "dialog": {
+          "title": "Ograničenja za {{name}}",
+          "description": "Čime je ovaj radni prostor ograničen. Snižavanje ograničenja ništa ne pauzira niti briše: najnoviji monitori iznad ograničenja prestaju da rade dok ponovo ne bude mesta.",
+          "own": "Sopstvena ograničenja",
+          "own_help": "Ona zamenjuju podrazumevane vrednosti instalacije. Ostavite ograničenje prazno ako ga ne želite.",
+          "unlimited": "Bez ograničenja",
+          "unlimited_help": "Nikakvo ograničenje, šta god govorile podrazumevane vrednosti instalacije.",
+          "defaults": "Koristi podrazumevane vrednosti instalacije",
+          "defaults_help": "Podrazumevana ograničenja iz Administracija → Podešavanja ili nikakva ako ih instalacija ne postavlja.",
+          "save": "Sačuvaj ograničenja",
+          "cancel": "Otkaži",
+          "saved": "Ograničenja za {{name}} su sačuvana",
+          "failed": "Ograničenja nije moguće sačuvati."
+        }
+      }
     },
     "settings": {
       "page_name": "Podešavanja",
@@ -230,6 +256,10 @@
         "open_needs_sender": "Otvorenoj registraciji je potreban pošiljalac e-pošte, jer novi nalozi potvrđuju svoju adresu e-pošte. Prvo podesite pošiljaoca ili to uradite u istom čuvanju.",
         "sender_needed": "Registracija je otvorena, a novim nalozima je potreban pošiljalac da potvrde svoju adresu e-pošte. Prvo prebacite registraciju na samo uz pozivnicu.",
         "no_sender": "Nema pošiljaoca e-pošte. Prvo sačuvajte pošiljaoca."
+      },
+      "limits": {
+        "title": "Podrazumevana ograničenja",
+        "description": "Ograničenja svakog radnog prostora koji nema sopstvena. Ostavite ograničenje prazno ako ga ne želite. Ograničenja koja radni prostor dobije na stranici Radni prostori zamenjuju ova."
       }
     }
   },
@@ -2065,5 +2095,28 @@
         "status_pages": "Objavite statusnu stranicu"
       }
     }
+  },
+  "limits": {
+    "reached": {
+      "monitors": "Najveći broj monitora koji mogu raditi u ovom radnom prostoru: {{max}}",
+      "status_pages": "Najveći broj statusnih stranica u ovom radnom prostoru: {{max}}",
+      "custom_domains": "Najveći ukupan broj prilagođenih domena na statusnim stranicama ovog radnog prostora: {{max}}",
+      "members": "Najveći broj članova ovog radnog prostora, uključujući pozivnice na čekanju: {{max}}",
+      "owned_workspaces": "Najveći broj radnih prostora čiji možete biti vlasnik: {{max}}",
+      "probes": "Najveći broj sondi na kojima monitor u ovom radnom prostoru može da radi: {{max}}"
+    },
+    "names": {
+      "monitors": "Aktivni monitori",
+      "min_check_interval": "Najkraći interval provere (sekunde)",
+      "status_pages": "Statusne stranice",
+      "custom_domains": "Prilagođeni domeni",
+      "members": "Članovi",
+      "owned_workspaces": "Radni prostori koje jedan korisnik sme da poseduje",
+      "probes_per_monitor": "Sonde po monitoru",
+      "retention_days": "Zadržavanje podataka (dani)"
+    },
+    "none": "Bez ograničenja",
+    "invalid": "Unesite ceo broj od 1 naviše ili ostavite prazno ako ne želite ograničenje.",
+    "retention_too_long": "Ne može biti više od {{max}} dana"
   }
 }

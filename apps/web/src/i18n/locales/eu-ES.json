@@ -107,7 +107,8 @@
       "actions": {
         "delete": "Ezabatu lan-eremua",
         "resume": "Berrekin lan-eremuari",
-        "suspend": "Eten lan-eremua"
+        "suspend": "Eten lan-eremua",
+        "limits": "Mugak"
       },
       "actions_aria": "{{name}} lan-eremuaren ekintzak",
       "columns": {
@@ -118,7 +119,8 @@
         "name": "Izena",
         "owners": "Jabeak",
         "status": "Egoera",
-        "status_pages": "Egoera-orriak"
+        "status_pages": "Egoera-orriak",
+        "limits": "Mugak"
       },
       "confirm": {
         "cancel": "Ezeztatu",
@@ -163,7 +165,31 @@
         "suspended_admin": "Administratzaile batek etenda",
         "suspended_unverified": "Etenda, jabeak bere helbide elektronikoa egiaztatu arte"
       },
-      "total": "{{total}} aurkitu dira"
+      "total": "{{total}} aurkitu dira",
+      "limits": {
+        "item": "{{name}}: {{value}}",
+        "more": "+{{number}} gehiago",
+        "unlimited": "Mugarik gabe",
+        "source": {
+          "workspace": "Berarenak",
+          "install": "Instalazioaren lehenespenak",
+          "none": "Ezarri gabe"
+        },
+        "dialog": {
+          "title": "{{name}} lan-eremuaren mugak",
+          "description": "Zeren mende dagoen lan-eremu hau. Muga bat jaisteak ez du ezer geldiarazten ez ezabatzen: mugaren gainetik dauden monitore berrienak gelditu egiten dira, berriro tokia egon arte.",
+          "own": "Bere mugak",
+          "own_help": "Hauek instalazioaren lehenespenak ordezkatzen dituzte. Utzi muga hutsik mugarik ez izateko.",
+          "unlimited": "Mugarik gabe",
+          "unlimited_help": "Inolako mugarik ez, instalazioaren lehenespenek zer esaten duten axola gabe.",
+          "defaults": "Erabili instalazioaren lehenespenak",
+          "defaults_help": "Administrazioa → Ezarpenak atalaren muga lehenetsiak, edo bat ere ez instalazioak batere ezartzen ez badu.",
+          "save": "Gorde mugak",
+          "cancel": "Ezeztatu",
+          "saved": "{{name}} lan-eremuaren mugak gorde dira",
+          "failed": "Ezin izan dira mugak gorde."
+        }
+      }
     },
     "settings": {
       "page_name": "Ezarpenak",
@@ -230,6 +256,10 @@
         "open_needs_sender": "Izen-emate irekiak posta-igorle bat behar du, kontu berriek beren helbide elektronikoa egiaztatzen dutelako. Konfiguratu igorlea lehenik, edo gordetze berean.",
         "sender_needed": "Izen-ematea irekia dago, eta kontu berriek igorlea behar dute beren helbide elektronikoa egiaztatzeko. Aldatu lehenik izen-ematea gonbidapenarekin soilik modura.",
         "no_sender": "Ez dago posta-igorlerik. Gorde igorle bat lehenik."
+      },
+      "limits": {
+        "title": "Muga lehenetsiak",
+        "description": "Berezko mugarik ez duen lan-eremu bakoitzaren mugak. Utzi muga hutsik mugarik ez izateko. Lan-eremu bati Lan-eremuak orrian ematen zaizkion mugek hauek ordezkatzen dituzte."
       }
     }
   },
@@ -2065,5 +2095,28 @@
         "status_pages": "Argitaratu egoera-orri bat"
       }
     }
+  },
+  "limits": {
+    "reached": {
+      "monitors": "Lan-eremu honek gehienez {{max}} monitore ibil ditzake",
+      "status_pages": "Lan-eremu honek gehienez {{max}} egoera-orri izan ditzake",
+      "custom_domains": "Lan-eremu honen egoera-orriek, guztira, gehienez {{max}} domeinu pertsonalizatu izan ditzakete",
+      "members": "Lan-eremu honek gehienez {{max}} kide izan ditzake, zain dauden gonbidapenak barne",
+      "owned_workspaces": "Gehienez {{max}} lan-eremuren jabe izan zaitezke",
+      "probes": "Lan-eremu honetako monitore batek gehienez {{max}} zundatan ibil daiteke"
+    },
+    "names": {
+      "monitors": "Monitore aktiboak",
+      "min_check_interval": "Egiaztapen tarterik laburrena (segundoak)",
+      "status_pages": "Egoera-orriak",
+      "custom_domains": "Domeinu pertsonalizatuak",
+      "members": "Kideak",
+      "owned_workspaces": "Erabiltzaile batek izan ditzakeen lan-eremuak",
+      "probes_per_monitor": "Zundak monitoreko",
+      "retention_days": "Datuen mantentzea (egunak)"
+    },
+    "none": "Mugarik gabe",
+    "invalid": "Sartu 1 edo handiagoa den zenbaki oso bat, edo utzi hutsik mugarik ez izateko.",
+    "retention_too_long": "Ezin da {{max}} egun baino gehiago izan"
   }
 }

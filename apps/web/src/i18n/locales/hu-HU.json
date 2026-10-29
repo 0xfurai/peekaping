@@ -107,7 +107,8 @@
       "actions": {
         "delete": "Munkaterület törlése",
         "resume": "Munkaterület újraindítása",
-        "suspend": "Munkaterület felfüggesztése"
+        "suspend": "Munkaterület felfüggesztése",
+        "limits": "Korlátok"
       },
       "actions_aria": "Műveletek: {{name}}",
       "columns": {
@@ -118,7 +119,8 @@
         "name": "Név",
         "owners": "Tulajdonosok",
         "status": "Állapot",
-        "status_pages": "Állapotlapok"
+        "status_pages": "Állapotlapok",
+        "limits": "Korlátok"
       },
       "confirm": {
         "cancel": "Mégse",
@@ -163,7 +165,31 @@
         "suspended_admin": "Egy adminisztrátor felfüggesztette",
         "suspended_unverified": "Felfüggesztve, amíg a tulajdonos meg nem erősíti az e-mail-címét"
       },
-      "total": "{{total}} találat"
+      "total": "{{total}} találat",
+      "limits": {
+        "item": "{{name}}: {{value}}",
+        "more": "+{{number}} további",
+        "unlimited": "Nincsenek korlátok",
+        "source": {
+          "workspace": "Saját",
+          "install": "A telepítés alapértékei",
+          "none": "Nincs beállítva"
+        },
+        "dialog": {
+          "title": "{{name}} korlátai",
+          "description": "Mihez van kötve ez a munkaterület. A korlát csökkentése nem szüneteltet és nem töröl semmit: a korláton túli legújabb monitorok leállnak, amíg nem lesz újra hely.",
+          "own": "Saját korlátok",
+          "own_help": "Ezek felváltják a telepítés alapértékeit. Hagyjon egy korlátot üresen, ha nem kér korlátot.",
+          "unlimited": "Nincsenek korlátok",
+          "unlimited_help": "Egyáltalán nincs korlát, bármit mondanak is a telepítés alapértékei.",
+          "defaults": "A telepítés alapértékeinek használata",
+          "defaults_help": "Az Adminisztráció → Beállítások alapértelmezett korlátai, vagy semmi, ha a telepítés nem állít be egyet sem.",
+          "save": "Korlátok mentése",
+          "cancel": "Mégse",
+          "saved": "{{name}} korlátai mentve",
+          "failed": "A korlátokat nem sikerült menteni."
+        }
+      }
     },
     "settings": {
       "page_name": "Beállítások",
@@ -230,6 +256,10 @@
         "open_needs_sender": "A nyitott regisztrációhoz e-mail-küldő kell, mert az új fiókok megerősítik az e-mail-címüket. Előbb állítsa be a küldőt, vagy ugyanabban a mentésben.",
         "sender_needed": "A regisztráció nyitott, és az új fiókoknak szükségük van a küldőre az e-mail-címük megerősítéséhez. Előbb állítsa a regisztrációt csak meghívással módra.",
         "no_sender": "Nincs e-mail-küldő. Előbb mentsen egy küldőt."
+      },
+      "limits": {
+        "title": "Alapértelmezett korlátok",
+        "description": "Minden olyan munkaterület korlátai, amelynek nincsenek sajátjai. Hagyjon egy korlátot üresen, ha nem kér korlátot. A munkaterületnek a Munkaterületek oldalon adott korlátok felváltják ezeket."
       }
     }
   },
@@ -2065,5 +2095,28 @@
         "status_pages": "Állapotoldal közzététele"
       }
     }
+  },
+  "limits": {
+    "reached": {
+      "monitors": "Ennek a munkaterületnek legfeljebb {{max}} futó monitora lehet",
+      "status_pages": "Ennek a munkaterületnek legfeljebb {{max}} állapotlapja lehet",
+      "custom_domains": "Ennek a munkaterületnek az állapotlapjain együtt legfeljebb {{max}} egyéni domain lehet",
+      "members": "Ennek a munkaterületnek legfeljebb {{max}} tagja lehet, a függőben lévő meghívókkal együtt",
+      "owned_workspaces": "Legfeljebb {{max}} munkaterület tulajdonosa lehet",
+      "probes": "Az ebben a munkaterületben lévő monitorok legfeljebb {{max}} szondán futhatnak"
+    },
+    "names": {
+      "monitors": "Aktív monitorok",
+      "min_check_interval": "Legrövidebb ellenőrzési időköz (másodperc)",
+      "status_pages": "Állapotlapok",
+      "custom_domains": "Egyéni domainek",
+      "members": "Tagok",
+      "owned_workspaces": "Munkaterületek, amelyeknek egy felhasználó a tulajdonosa lehet",
+      "probes_per_monitor": "Szondák monitoronként",
+      "retention_days": "Adattartás (nap)"
+    },
+    "none": "Nincs korlát",
+    "invalid": "Adjon meg egy 1 vagy nagyobb egész számot, vagy hagyja üresen, ha nem kér korlátot.",
+    "retention_too_long": "Nem lehet több {{max}} napnál"
   }
 }

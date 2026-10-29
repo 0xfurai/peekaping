@@ -107,7 +107,8 @@
       "actions": {
         "delete": "Arbeitsbereich löschen",
         "resume": "Arbeitsbereich reaktivieren",
-        "suspend": "Arbeitsbereich sperren"
+        "suspend": "Arbeitsbereich sperren",
+        "limits": "Limits"
       },
       "actions_aria": "Aktionen für {{name}}",
       "columns": {
@@ -118,7 +119,8 @@
         "name": "Name",
         "owners": "Inhaber",
         "status": "Status",
-        "status_pages": "Statusseiten"
+        "status_pages": "Statusseiten",
+        "limits": "Limits"
       },
       "confirm": {
         "cancel": "Abbrechen",
@@ -163,7 +165,31 @@
         "suspended_admin": "Von einem Admin gesperrt",
         "suspended_unverified": "Gesperrt, bis der Inhaber seine E-Mail bestätigt"
       },
-      "total": "{{total}} gefunden"
+      "total": "{{total}} gefunden",
+      "limits": {
+        "item": "{{name}}: {{value}}",
+        "more": "+{{number}} weitere",
+        "unlimited": "Keine Limits",
+        "source": {
+          "workspace": "Eigene",
+          "install": "Standard der Installation",
+          "none": "Nicht festgelegt"
+        },
+        "dialog": {
+          "title": "Limits von {{name}}",
+          "description": "Woran dieser Arbeitsbereich gebunden ist. Ein niedrigeres Limit pausiert und löscht nichts: Die neuesten Monitore über dem Limit laufen nicht mehr, bis wieder Platz ist.",
+          "own": "Eigene Limits",
+          "own_help": "Sie ersetzen die Standardlimits der Installation. Lassen Sie ein Limit leer, wenn es keins geben soll.",
+          "unlimited": "Keine Limits",
+          "unlimited_help": "Überhaupt kein Limit, egal was die Standardlimits der Installation sagen.",
+          "defaults": "Standardlimits der Installation verwenden",
+          "defaults_help": "Die Standardlimits unter Administration → Einstellungen, oder keine, wenn die Installation keine festlegt.",
+          "save": "Limits speichern",
+          "cancel": "Abbrechen",
+          "saved": "Die Limits von {{name}} wurden gespeichert",
+          "failed": "Die Limits konnten nicht gespeichert werden."
+        }
+      }
     },
     "settings": {
       "page_name": "Einstellungen",
@@ -230,6 +256,10 @@
         "open_needs_sender": "Offene Registrierung benötigt einen E-Mail-Absender, weil neue Konten ihre E-Mail-Adresse bestätigen. Richten Sie zuerst den Absender ein, oder im selben Speichervorgang.",
         "sender_needed": "Die Registrierung ist offen, und neue Konten benötigen den Absender, um ihre E-Mail-Adresse zu bestätigen. Stellen Sie die Registrierung zuerst auf nur mit Einladung um.",
         "no_sender": "Es gibt keinen E-Mail-Absender. Speichern Sie zuerst einen Absender."
+      },
+      "limits": {
+        "title": "Standardlimits",
+        "description": "Die Limits jedes Arbeitsbereichs, der keine eigenen hat. Lassen Sie ein Limit leer, wenn es keins geben soll. Limits, die ein Arbeitsbereich auf der Seite Arbeitsbereiche erhält, ersetzen diese."
       }
     }
   },
@@ -2065,5 +2095,28 @@
         "status_pages": "Statusseite veröffentlichen"
       }
     }
+  },
+  "limits": {
+    "reached": {
+      "monitors": "Dieser Arbeitsbereich darf höchstens {{max}} laufende Monitore haben",
+      "status_pages": "Dieser Arbeitsbereich darf höchstens {{max}} Statusseiten haben",
+      "custom_domains": "Die Statusseiten dieses Arbeitsbereichs dürfen zusammen höchstens {{max}} eigene Domains haben",
+      "members": "Dieser Arbeitsbereich darf höchstens {{max}} Mitglieder haben, offene Einladungen eingerechnet",
+      "owned_workspaces": "Sie dürfen höchstens {{max}} Arbeitsbereiche besitzen",
+      "probes": "Ein Monitor in diesem Arbeitsbereich darf auf höchstens {{max}} Sonden laufen"
+    },
+    "names": {
+      "monitors": "Aktive Monitore",
+      "min_check_interval": "Kürzestes Prüfintervall (Sekunden)",
+      "status_pages": "Statusseiten",
+      "custom_domains": "Eigene Domains",
+      "members": "Mitglieder",
+      "owned_workspaces": "Arbeitsbereiche, die ein Benutzer besitzen darf",
+      "probes_per_monitor": "Sonden pro Monitor",
+      "retention_days": "Datenaufbewahrung (Tage)"
+    },
+    "none": "Kein Limit",
+    "invalid": "Geben Sie eine ganze Zahl ab 1 ein oder lassen Sie das Feld leer, wenn es kein Limit geben soll.",
+    "retention_too_long": "Darf nicht mehr als {{max}} Tage betragen"
   }
 }

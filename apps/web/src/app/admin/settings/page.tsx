@@ -25,12 +25,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/ui/password-input";
 import { useMe } from "@/hooks/useMe";
+import { ABSOLUTE_MIN_CHECK_INTERVAL } from "@/hooks/useMinCheckInterval";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 import {
   clearsSavedPassword,
+  DEFAULT_LIMITS,
+  defaultLimitBounds,
+  defaultLimitsSchema,
   installSettingsChange,
   installSettingsErrorMessage,
   installSettingsFormValues,
+  type DefaultLimit,
   type InstallSettingsFormValues,
   type SettingSource,
   SAVE_INSTALL_SETTINGS,
@@ -39,7 +44,11 @@ import { cn } from "@/lib/utils";
 import Layout from "@/layout";
 import { ErrorReportingSetting, TelemetrySetting } from "./telemetry-settings";
 
-const createSchema = (t: (key: string) => string) =>
+const createSchema = (
+  t: (key: string, vars?: Record<string, unknown>) => string,
+  minCheckInterval: number,
+  settings: AdminInstallSettingsResponse
+) =>
   z.object({
     signupMode: z.string(),
     publicUrl: z.string(),
@@ -53,6 +62,7 @@ const createSchema = (t: (key: string) => string) =>
     password: z.string(),
     from: z.string(),
     tls: z.string(),
+    workspaceLimits: defaultLimitsSchema(t, minCheckInterval, settings.workspaceLimits),
   });
 
 type Setting = { source: SettingSource; locked: boolean; envVar: string };
@@ -114,16 +124,22 @@ function NativeSelect({ className, ...props }: ComponentProps<"select">) {
 
 const option = "bg-popover text-popover-foreground";
 
-// The signup mode, the sender and the public URL, saved together: a save sends only what changed,
-// so that open signup and the sender it needs can be set in one go.
+// The signup mode, the sender, the public URL and the default limits, saved together: a save sends
+// only what changed, so that open signup and the sender it needs can be set in one go.
 function InstallSettingsForm({ settings }: { settings: AdminInstallSettingsResponse }) {
   const { t } = useLocalizedTranslation();
   const queryClient = useQueryClient();
   const [removePassword, setRemovePassword] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  // The server holds the shortest check interval to the install's MIN_CHECK_INTERVAL, which /me
+  // states; 20 while it loads
+  const minCheckInterval = Math.max(
+    useMe().data?.data?.minCheckInterval ?? ABSOLUTE_MIN_CHECK_INTERVAL,
+    ABSOLUTE_MIN_CHECK_INTERVAL
+  );
 
   const form = useForm({
-    resolver: zodResolver(createSchema(t)),
+    resolver: zodResolver(createSchema(t, minCheckInterval, settings)),
     values: installSettingsFormValues(settings),
     // A refetch while the admin types keeps what they typed
     resetOptions: { keepDirtyValues: true },
@@ -136,9 +152,13 @@ function InstallSettingsForm({ settings }: { settings: AdminInstallSettingsRespo
   );
   const hasChanges = Object.keys(pendingChange).length > 0;
   // A field shows the form's value, so that what loaded is in the markup before any effect runs
-  const bind = (name: keyof InstallSettingsFormValues) => ({
+  const bind = (name: Exclude<keyof InstallSettingsFormValues, "workspaceLimits">) => ({
     ...form.register(name),
     value: watched[name] ?? "",
+  });
+  const bindLimit = (name: DefaultLimit) => ({
+    ...form.register(`workspaceLimits.${name}`),
+    value: watched.workspaceLimits?.[name] ?? "",
   });
   // A select can't be read-only, and the form reads no value from a disabled one: a locked select
   // shows its value outside the form, which keeps the loaded one
@@ -276,6 +296,39 @@ function InstallSettingsForm({ settings }: { settings: AdminInstallSettingsRespo
             </SettingField>
           </CardContent>
         </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>{t("admin.settings.limits.title")}</CardTitle>
+            <CardDescription>{t("admin.settings.limits.description")}</CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-4">
+            {DEFAULT_LIMITS.map((name) => {
+              const id = `install-limit-${name}`;
+              const setting = settings.workspaceLimits[name];
+              return (
+                <SettingField
+                  key={name}
+                  id={id}
+                  label={t(`limits.names.${name}`)}
+                  setting={setting}
+                  error={errors.workspaceLimits?.[name]?.message}
+                >
+                  <Input
+                    id={id}
+                    {...describedBy(id, setting)}
+                    type="number"
+                    {...defaultLimitBounds(name, minCheckInterval)}
+                    inputMode="numeric"
+                    placeholder={t("limits.none")}
+                    readOnly={setting.locked}
+                    {...bindLimit(name)}
+                  />
+                </SettingField>
+              );
+            })}
+          </CardContent>
+        </Card>
       </fieldset>
 
       {saveError && (
@@ -360,7 +413,8 @@ function TestEmailCard({ unsaved }: { unsaved: boolean }) {
 }
 
 // The install's settings (/admin/settings): the signup mode, the sender of account emails, the
-// public URL, and the switches of the usage ping and error reports (docs/adr/0005, section 5)
+// public URL, the default limits of a workspace, and the switches of the usage ping and error
+// reports (docs/adr/0005, section 5)
 const InstallSettingsPage = () => {
   const { t } = useLocalizedTranslation();
   const { data, isLoading, isError } = useQuery(getAdminSettingsOptions());

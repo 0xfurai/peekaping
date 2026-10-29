@@ -107,7 +107,8 @@
       "actions": {
         "delete": "Slet arbejdsområde",
         "resume": "Genoptag arbejdsområde",
-        "suspend": "Suspendér arbejdsområde"
+        "suspend": "Suspendér arbejdsområde",
+        "limits": "Grænser"
       },
       "actions_aria": "Handlinger for {{name}}",
       "columns": {
@@ -118,7 +119,8 @@
         "name": "Navn",
         "owners": "Ejere",
         "status": "Status",
-        "status_pages": "Statussider"
+        "status_pages": "Statussider",
+        "limits": "Grænser"
       },
       "confirm": {
         "cancel": "Annullér",
@@ -163,7 +165,31 @@
         "suspended_admin": "Suspenderet af en administrator",
         "suspended_unverified": "Suspenderet, indtil ejeren bekræfter sin e-mail"
       },
-      "total": "{{total}} fundet"
+      "total": "{{total}} fundet",
+      "limits": {
+        "item": "{{name}}: {{value}}",
+        "more": "+{{number}} mere",
+        "unlimited": "Ingen grænser",
+        "source": {
+          "workspace": "Egne",
+          "install": "Installationens standarder",
+          "none": "Ingen angivet"
+        },
+        "dialog": {
+          "title": "Grænser for {{name}}",
+          "description": "Hvad dette arbejdsområde er bundet af. Hvis du sænker en grænse, bliver intet sat på pause eller slettet: de nyeste monitorer over grænsen holder op med at køre, indtil der igen er plads.",
+          "own": "Egne grænser",
+          "own_help": "Disse erstatter installationens standarder. Lad en grænse stå tom for ingen grænse.",
+          "unlimited": "Ingen grænser",
+          "unlimited_help": "Slet ingen grænse, uanset hvad installationens standarder siger.",
+          "defaults": "Brug installationens standarder",
+          "defaults_help": "Standardgrænserne under Administration → Indstillinger, eller ingen, hvis installationen ikke angiver nogen.",
+          "save": "Gem grænser",
+          "cancel": "Annullér",
+          "saved": "Grænserne for {{name}} er gemt",
+          "failed": "Grænserne kunne ikke gemmes."
+        }
+      }
     },
     "settings": {
       "page_name": "Indstillinger",
@@ -230,6 +256,10 @@
         "open_needs_sender": "Åben tilmelding kræver en e-mailafsender, fordi nye konti bekræfter deres e-mailadresse. Opsæt afsenderen først, eller i samme gemning.",
         "sender_needed": "Tilmelding er åben, og nye konti skal bruge afsenderen til at bekræfte deres e-mailadresse. Skift tilmelding til kun med invitation først.",
         "no_sender": "Der er ingen e-mailafsender. Gem en afsender først."
+      },
+      "limits": {
+        "title": "Standardgrænser",
+        "description": "Grænserne for hvert arbejdsområde, der ikke har egne. Lad en grænse stå tom for ingen grænse. Grænser, et arbejdsområde får på siden Arbejdsområder, erstatter disse."
       }
     }
   },
@@ -2065,5 +2095,28 @@
         "status_pages": "Udgiv en statusside"
       }
     }
+  },
+  "limits": {
+    "reached": {
+      "monitors": "Dette arbejdsområde kan højst have {{max}} kørende monitorer",
+      "status_pages": "Dette arbejdsområde kan højst have {{max}} statussider",
+      "custom_domains": "Statussiderne i dette arbejdsområde kan højst have {{max}} egne domæner tilsammen",
+      "members": "Dette arbejdsområde kan højst have {{max}} medlemmer, inklusive ventende invitationer",
+      "owned_workspaces": "Du kan højst eje {{max}} arbejdsområder",
+      "probes": "En monitor i dette arbejdsområde kan højst køre på {{max}} probes"
+    },
+    "names": {
+      "monitors": "Aktive monitorer",
+      "min_check_interval": "Korteste kontrolinterval (sekunder)",
+      "status_pages": "Statussider",
+      "custom_domains": "Egne domæner",
+      "members": "Medlemmer",
+      "owned_workspaces": "Arbejdsområder, en bruger må eje",
+      "probes_per_monitor": "Probes pr. monitor",
+      "retention_days": "Dataopbevaring (dage)"
+    },
+    "none": "Ingen grænse",
+    "invalid": "Indtast et helt tal på 1 eller mere, eller lad feltet stå tomt for ingen grænse.",
+    "retention_too_long": "Må ikke være over {{max}} dage"
   }
 }

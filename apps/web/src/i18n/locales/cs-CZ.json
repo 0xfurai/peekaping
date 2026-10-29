@@ -107,7 +107,8 @@
       "actions": {
         "delete": "Smazat pracovní prostor",
         "resume": "Obnovit pracovní prostor",
-        "suspend": "Pozastavit pracovní prostor"
+        "suspend": "Pozastavit pracovní prostor",
+        "limits": "Limity"
       },
       "actions_aria": "Akce pro {{name}}",
       "columns": {
@@ -118,7 +119,8 @@
         "name": "Název",
         "owners": "Vlastníci",
         "status": "Stav",
-        "status_pages": "Stránky stavu"
+        "status_pages": "Stránky stavu",
+        "limits": "Limity"
       },
       "confirm": {
         "cancel": "Zrušit",
@@ -163,7 +165,31 @@
         "suspended_admin": "Pozastaveno správcem",
         "suspended_unverified": "Pozastaveno, dokud vlastník neověří svůj e-mail"
       },
-      "total": "Nalezeno: {{total}}"
+      "total": "Nalezeno: {{total}}",
+      "limits": {
+        "item": "{{name}}: {{value}}",
+        "more": "+{{number}} dalších",
+        "unlimited": "Bez limitů",
+        "source": {
+          "workspace": "Vlastní",
+          "install": "Výchozí z instalace",
+          "none": "Nenastaveno"
+        },
+        "dialog": {
+          "title": "Limity: {{name}}",
+          "description": "Čím je tento pracovní prostor omezen. Snížení limitu nic nepozastaví ani nesmaže: nejnovější monitory nad limitem přestanou běžet, dokud nebude zase místo.",
+          "own": "Vlastní limity",
+          "own_help": "Nahrazují výchozí limity instalace. Nechte limit prázdný, aby nebyl.",
+          "unlimited": "Bez limitů",
+          "unlimited_help": "Žádný limit, ať říkají výchozí limity instalace cokoli.",
+          "defaults": "Použít výchozí limity instalace",
+          "defaults_help": "Výchozí limity ze sekce Správa → Nastavení, nebo žádné, pokud je instalace nenastavuje.",
+          "save": "Uložit limity",
+          "cancel": "Zrušit",
+          "saved": "Limity pracovního prostoru {{name}} jsou uloženy",
+          "failed": "Limity se nepodařilo uložit."
+        }
+      }
     },
     "settings": {
       "page_name": "Nastavení",
@@ -230,6 +256,10 @@
         "open_needs_sender": "Otevřená registrace potřebuje odesílatele e-mailů, protože nové účty ověřují svou e-mailovou adresu. Nejdřív nastavte odesílatele, nebo to udělejte ve stejném uložení.",
         "sender_needed": "Registrace je otevřená a nové účty potřebují odesílatele k ověření své e-mailové adresy. Nejdřív přepněte registraci na pouze na pozvánku.",
         "no_sender": "Není nastaven žádný odesílatel e-mailů. Nejdřív uložte odesílatele."
+      },
+      "limits": {
+        "title": "Výchozí limity",
+        "description": "Limity každého pracovního prostoru, který nemá vlastní. Nechte limit prázdný, aby nebyl. Limity přidělené pracovnímu prostoru na stránce Pracovní prostory je nahrazují."
       }
     }
   },
@@ -2065,5 +2095,28 @@
         "status_pages": "Zveřejnit stavovou stránku"
       }
     }
+  },
+  "limits": {
+    "reached": {
+      "monitors": "Tento pracovní prostor může mít spuštěno nejvýše {{max}} monitorů",
+      "status_pages": "Tento pracovní prostor může mít nejvýše {{max}} stránek stavu",
+      "custom_domains": "Stránky stavu tohoto pracovního prostoru mohou mít dohromady nejvýše {{max}} vlastních domén",
+      "members": "Tento pracovní prostor může mít nejvýše {{max}} členů včetně čekajících pozvánek",
+      "owned_workspaces": "Můžete vlastnit nejvýše {{max}} pracovních prostorů",
+      "probes": "Monitor v tomto pracovním prostoru může běžet nejvýše na {{max}} sondách"
+    },
+    "names": {
+      "monitors": "Aktivní monitory",
+      "min_check_interval": "Nejkratší interval kontroly (sekundy)",
+      "status_pages": "Stránky stavu",
+      "custom_domains": "Vlastní domény",
+      "members": "Členové",
+      "owned_workspaces": "Pracovní prostory, které smí vlastnit jeden uživatel",
+      "probes_per_monitor": "Sondy na monitor",
+      "retention_days": "Uchovávání dat (dny)"
+    },
+    "none": "Bez limitu",
+    "invalid": "Zadejte celé číslo 1 nebo větší, nebo pole nechte prázdné, aby limit nebyl.",
+    "retention_too_long": "Nesmí být víc než {{max}} dní"
   }
 }

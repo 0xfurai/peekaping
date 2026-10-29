@@ -107,7 +107,8 @@
       "actions": {
         "delete": "Obriši radni prostor",
         "resume": "Ponovno aktiviraj radni prostor",
-        "suspend": "Suspendiraj radni prostor"
+        "suspend": "Suspendiraj radni prostor",
+        "limits": "Ograničenja"
       },
       "actions_aria": "Radnje za {{name}}",
       "columns": {
@@ -118,7 +119,8 @@
         "name": "Naziv",
         "owners": "Vlasnici",
         "status": "Status",
-        "status_pages": "Statusne stranice"
+        "status_pages": "Statusne stranice",
+        "limits": "Ograničenja"
       },
       "confirm": {
         "cancel": "Otkaži",
@@ -163,7 +165,31 @@
         "suspended_admin": "Suspendirao administrator",
         "suspended_unverified": "Suspendiran dok vlasnik ne potvrdi e-poštu"
       },
-      "total": "Pronađeno: {{total}}"
+      "total": "Pronađeno: {{total}}",
+      "limits": {
+        "item": "{{name}}: {{value}}",
+        "more": "+{{number}} više",
+        "unlimited": "Bez ograničenja",
+        "source": {
+          "workspace": "Vlastita",
+          "install": "Zadane vrijednosti instalacije",
+          "none": "Nije postavljeno"
+        },
+        "dialog": {
+          "title": "Ograničenja za {{name}}",
+          "description": "Čime je ovaj radni prostor ograničen. Snižavanje ograničenja ništa ne pauzira niti briše: najnoviji nadzori iznad ograničenja prestaju raditi dok opet ne bude mjesta.",
+          "own": "Vlastita ograničenja",
+          "own_help": "Ona zamjenjuju zadane vrijednosti instalacije. Ostavite ograničenje prazno ako ga ne želite.",
+          "unlimited": "Bez ograničenja",
+          "unlimited_help": "Nikakvo ograničenje, što god govorile zadane vrijednosti instalacije.",
+          "defaults": "Koristi zadane vrijednosti instalacije",
+          "defaults_help": "Zadana ograničenja iz Administracija → Postavke ili nikakva ako ih instalacija ne postavlja.",
+          "save": "Spremi ograničenja",
+          "cancel": "Otkaži",
+          "saved": "Ograničenja za {{name}} su spremljena",
+          "failed": "Ograničenja nije moguće spremiti."
+        }
+      }
     },
     "settings": {
       "page_name": "Postavke",
@@ -230,6 +256,10 @@
         "open_needs_sender": "Otvorena registracija treba pošiljatelja e-pošte jer novi računi potvrđuju svoju adresu e-pošte. Najprije postavite pošiljatelja ili to učinite u istom spremanju.",
         "sender_needed": "Registracija je otvorena, a novi računi trebaju pošiljatelja da potvrde svoju adresu e-pošte. Najprije prebacite registraciju na samo uz pozivnicu.",
         "no_sender": "Nema pošiljatelja e-pošte. Najprije spremite pošiljatelja."
+      },
+      "limits": {
+        "title": "Zadana ograničenja",
+        "description": "Ograničenja svakog radnog prostora koji nema vlastita. Ostavite ograničenje prazno ako ga ne želite. Ograničenja koja radni prostor dobije na stranici Radni prostori zamjenjuju ova."
       }
     }
   },
@@ -2065,5 +2095,28 @@
         "status_pages": "Objavite statusnu stranicu"
       }
     }
+  },
+  "limits": {
+    "reached": {
+      "monitors": "Ovaj radni prostor može imati pokrenuto najviše {{max}} nadzora",
+      "status_pages": "Ovaj radni prostor može imati najviše {{max}} statusnih stranica",
+      "custom_domains": "Statusne stranice ovog radnog prostora zajedno mogu imati najviše {{max}} prilagođenih domena",
+      "members": "Ovaj radni prostor može imati najviše {{max}} članova, uključujući pozivnice na čekanju",
+      "owned_workspaces": "Možete biti vlasnik najviše {{max}} radnih prostora",
+      "probes": "Nadzor u ovom radnom prostoru može raditi na najviše {{max}} sondi"
+    },
+    "names": {
+      "monitors": "Aktivni nadzori",
+      "min_check_interval": "Najkraći interval provjere (sekunde)",
+      "status_pages": "Statusne stranice",
+      "custom_domains": "Prilagođene domene",
+      "members": "Članovi",
+      "owned_workspaces": "Radni prostori koje jedan korisnik smije posjedovati",
+      "probes_per_monitor": "Sonde po nadzoru",
+      "retention_days": "Zadržavanje podataka (dani)"
+    },
+    "none": "Bez ograničenja",
+    "invalid": "Unesite cijeli broj od 1 naviše ili ostavite prazno ako ne želite ograničenje.",
+    "retention_too_long": "Ne smije biti više od {{max}} dana"
   }
 }

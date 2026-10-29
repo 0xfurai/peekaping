@@ -1,16 +1,33 @@
 import { isAxiosError } from "axios";
+import { z } from "zod";
 import type {
   AdminInstallSettingsResponse,
   AdminUpdateAccountSmtpDto,
+  AdminUpdateDefaultLimitsDto,
   AdminUpdateInstallSettingsDto,
 } from "@/api/types.gen";
 
 // The install settings an instance admin changes on Admin → Settings (docs/adr/0005, section 5):
-// the signup mode, the sender of account emails and the public URL. Each comes from the server's
-// environment, which locks it, or from the value saved here, or from the default. The server
-// decides and refuses; these only shape the form and its request.
+// the signup mode, the sender of account emails, the public URL and the default limits of a
+// workspace (PP-160). Each comes from the server's environment, which locks it, or from the value
+// saved here, or from the default. The server decides and refuses; these only shape the form and
+// its request.
 
 export type SettingSource = "environment" | "saved" | "default";
+
+// The install's default limits, in the order the page shows them, by their names in the admin API
+export const DEFAULT_LIMITS = [
+  "monitors",
+  "min_check_interval",
+  "status_pages",
+  "custom_domains",
+  "members",
+  "owned_workspaces",
+  "probes_per_monitor",
+  "retention_days",
+] as const satisfies readonly (keyof AdminInstallSettingsResponse["workspaceLimits"])[];
+
+export type DefaultLimit = (typeof DEFAULT_LIMITS)[number];
 
 // The key of the save's mutation, so that the form knows while one is pending
 export const SAVE_INSTALL_SETTINGS = ["admin", "settings", "save"] as const;
@@ -25,6 +42,8 @@ export type InstallSettingsFormValues = {
   password: string;
   from: string;
   tls: string;
+  // Each default limit as typed: blank is none
+  workspaceLimits: Record<DefaultLimit, string>;
 };
 
 export const installSettingsFormValues = (
@@ -38,6 +57,9 @@ export const installSettingsFormValues = (
   password: "",
   from: settings.accountSmtp.from.value,
   tls: settings.accountSmtp.tls.value,
+  workspaceLimits: Object.fromEntries(
+    DEFAULT_LIMITS.map((name) => [name, settings.workspaceLimits[name].value?.toString() ?? ""])
+  ) as Record<DefaultLimit, string>,
 });
 
 // The request that saves what the admin changed, and nothing else: a field left as it loaded, or
@@ -68,8 +90,74 @@ export const installSettingsChange = (
   if (changed(smtp.from, values.from)) sender.from = values.from.trim();
   if (changed(smtp.tls, values.tls)) sender.tls = values.tls;
   if (Object.keys(sender).length > 0) body.accountSmtp = sender;
+
+  // A default limit emptied is sent as null, which clears it: no limit. The form's check keeps a
+  // value the server refuses from being saved (defaultLimitsSchema).
+  const limits: AdminUpdateDefaultLimitsDto = {};
+  for (const name of DEFAULT_LIMITS) {
+    const setting = settings.workspaceLimits[name];
+    const typed = values.workspaceLimits[name].trim();
+    if (setting.locked || typed === (setting.value?.toString() ?? "")) continue;
+    if (typed === "") limits[name] = null;
+    else if (Number.isFinite(Number(typed))) limits[name] = Number(typed);
+  }
+  if (Object.keys(limits).length > 0) body.workspaceLimits = limits;
   return body;
 };
+
+// The longest data retention period, in days, a default limit can hold: the server's
+// installsettings.MaxRetentionDays
+export const MAX_DEFAULT_RETENTION_DAYS = 36500;
+
+/**
+ * The whole numbers a default limit can be saved with, as the server checks them: 1 or more, the
+ * shortest check interval at least the install's MIN_CHECK_INTERVAL, since a smaller one would never
+ * apply, and a retention period at most MAX_DEFAULT_RETENTION_DAYS.
+ */
+export const defaultLimitBounds = (
+  name: DefaultLimit,
+  minCheckInterval: number
+): { min: number; max?: number } => {
+  if (name === "min_check_interval") return { min: Math.max(minCheckInterval, 1) };
+  if (name === "retention_days") return { min: 1, max: MAX_DEFAULT_RETENTION_DAYS };
+  return { min: 1 };
+};
+
+/**
+ * The schema of the typed default limits: each blank for none, or a whole number in its bounds, so
+ * that the form keeps a value the server refuses from being saved. minCheckInterval is the
+ * install's own, as /me states it, not the workspace's. A limit as it loaded, or locked by the
+ * environment, is not sent, so it is not checked: the environment's value or a raised
+ * MIN_CHECK_INTERVAL can leave it out of bounds, and that must not hold back the rest of a save.
+ */
+export const defaultLimitsSchema = (
+  t: Translate,
+  minCheckInterval: number,
+  loaded: AdminInstallSettingsResponse["workspaceLimits"]
+) =>
+  z.object(
+    Object.fromEntries(
+      DEFAULT_LIMITS.map((name) => {
+        const { min, max } = defaultLimitBounds(name, minCheckInterval);
+        const setting = loaded[name];
+        const check = z.string().superRefine((typed, ctx) => {
+          const value = typed.trim();
+          if (value === "" || setting.locked || value === (setting.value?.toString() ?? "")) return;
+          let message: string | undefined;
+          // A number too long to hold exactly would be sent rounded, or as null (no limit)
+          if (!/^\d+$/.test(value) || !Number.isSafeInteger(Number(value))) message = t("limits.invalid");
+          else if (Number(value) < min)
+            message =
+              name === "min_check_interval"
+                ? t("monitors.form.shared.intervals.interval_too_short", { minimum: min })
+                : t("limits.invalid");
+          else if (max !== undefined && Number(value) > max) message = t("limits.retention_too_long", { max });
+          if (message) ctx.addIssue({ code: z.ZodIssueCode.custom, message });
+        });
+        return [name, check];
+      })
+    ) as Record<DefaultLimit, z.ZodEffects<z.ZodString>>
+  );
 
 // Whether saving the change clears the saved password: a change of the host, port, security or
 // user that sends no password does, so that the password is never sent to another server
@@ -92,6 +180,7 @@ const FIELD_LABELS: Record<string, string> = {
   "accountSmtp.password": "admin.settings.sender.password",
   "accountSmtp.from": "admin.settings.sender.from",
   "accountSmtp.tls": "admin.settings.sender.tls",
+  ...Object.fromEntries(DEFAULT_LIMITS.map((name) => [`workspaceLimits.${name}`, `limits.names.${name}`])),
 };
 
 type Translate = (key: string, vars?: Record<string, unknown>) => string;

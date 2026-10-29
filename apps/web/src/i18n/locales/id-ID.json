@@ -107,7 +107,8 @@
       "actions": {
         "delete": "Hapus ruang kerja",
         "resume": "Aktifkan kembali ruang kerja",
-        "suspend": "Tangguhkan ruang kerja"
+        "suspend": "Tangguhkan ruang kerja",
+        "limits": "Batas"
       },
       "actions_aria": "Tindakan untuk {{name}}",
       "columns": {
@@ -118,7 +119,8 @@
         "name": "Nama",
         "owners": "Pemilik",
         "status": "Status",
-        "status_pages": "Halaman status"
+        "status_pages": "Halaman status",
+        "limits": "Batas"
       },
       "confirm": {
         "cancel": "Batal",
@@ -163,7 +165,31 @@
         "suspended_admin": "Ditangguhkan oleh admin",
         "suspended_unverified": "Ditangguhkan sampai pemilik memverifikasi emailnya"
       },
-      "total": "{{total}} ditemukan"
+      "total": "{{total}} ditemukan",
+      "limits": {
+        "item": "{{name}}: {{value}}",
+        "more": "+{{number}} lagi",
+        "unlimited": "Tanpa batas",
+        "source": {
+          "workspace": "Milik sendiri",
+          "install": "Default instalasi",
+          "none": "Belum diatur"
+        },
+        "dialog": {
+          "title": "Batas {{name}}",
+          "description": "Hal yang membatasi ruang kerja ini. Menurunkan batas tidak menjeda atau menghapus apa pun: monitor terbaru yang melewati batas berhenti berjalan sampai ada ruang lagi.",
+          "own": "Batas sendiri",
+          "own_help": "Ini menggantikan default instalasi. Kosongkan batas jika tidak ingin ada batas.",
+          "unlimited": "Tanpa batas",
+          "unlimited_help": "Sama sekali tanpa batas, apa pun kata default instalasi.",
+          "defaults": "Gunakan default instalasi",
+          "defaults_help": "Batas default di Admin → Pengaturan, atau tanpa batas jika instalasi tidak menetapkannya.",
+          "save": "Simpan batas",
+          "cancel": "Batal",
+          "saved": "Batas {{name}} telah disimpan",
+          "failed": "Batas tidak dapat disimpan."
+        }
+      }
     },
     "settings": {
       "page_name": "Pengaturan",
@@ -230,6 +256,10 @@
         "open_needs_sender": "Pendaftaran terbuka memerlukan pengirim email, karena akun baru memverifikasi alamat emailnya. Atur pengirim terlebih dahulu, atau dalam penyimpanan yang sama.",
         "sender_needed": "Pendaftaran terbuka, dan akun baru memerlukan pengirim untuk memverifikasi alamat emailnya. Ubah pendaftaran ke hanya dengan undangan terlebih dahulu.",
         "no_sender": "Tidak ada pengirim email. Simpan pengirim terlebih dahulu."
+      },
+      "limits": {
+        "title": "Batas default",
+        "description": "Batas setiap ruang kerja yang tidak punya batas sendiri. Kosongkan batas jika tidak ingin ada batas. Batas yang diberikan ke ruang kerja di halaman Ruang kerja menggantikan batas ini."
       }
     }
   },
@@ -2065,5 +2095,28 @@
         "status_pages": "Publikasikan halaman status"
       }
     }
+  },
+  "limits": {
+    "reached": {
+      "monitors": "Ruang kerja ini dapat memiliki paling banyak {{max}} monitor yang berjalan",
+      "status_pages": "Ruang kerja ini dapat memiliki paling banyak {{max}} halaman status",
+      "custom_domains": "Halaman status ruang kerja ini dapat memiliki paling banyak {{max}} domain kustom secara total",
+      "members": "Ruang kerja ini dapat memiliki paling banyak {{max}} anggota, termasuk undangan yang tertunda",
+      "owned_workspaces": "Anda dapat memiliki paling banyak {{max}} ruang kerja",
+      "probes": "Sebuah monitor di ruang kerja ini dapat berjalan di paling banyak {{max}} probe"
+    },
+    "names": {
+      "monitors": "Monitor aktif",
+      "min_check_interval": "Interval pemeriksaan terpendek (detik)",
+      "status_pages": "Halaman status",
+      "custom_domains": "Domain kustom",
+      "members": "Anggota",
+      "owned_workspaces": "Ruang kerja yang boleh dimiliki satu pengguna",
+      "probes_per_monitor": "Probe per monitor",
+      "retention_days": "Retensi data (hari)"
+    },
+    "none": "Tanpa batas",
+    "invalid": "Masukkan bilangan bulat 1 atau lebih, atau kosongkan untuk tanpa batas.",
+    "retention_too_long": "Tidak boleh lebih dari {{max}} hari"
   }
 }

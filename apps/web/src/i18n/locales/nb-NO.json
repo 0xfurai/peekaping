@@ -107,7 +107,8 @@
       "actions": {
         "delete": "Slett arbeidsområde",
         "resume": "Gjenoppta arbeidsområde",
-        "suspend": "Suspender arbeidsområde"
+        "suspend": "Suspender arbeidsområde",
+        "limits": "Grenser"
       },
       "actions_aria": "Handlinger for {{name}}",
       "columns": {
@@ -118,7 +119,8 @@
         "name": "Navn",
         "owners": "Eiere",
         "status": "Status",
-        "status_pages": "Status-sider"
+        "status_pages": "Status-sider",
+        "limits": "Grenser"
       },
       "confirm": {
         "cancel": "Avbryt",
@@ -163,7 +165,31 @@
         "suspended_admin": "Suspendert av en administrator",
         "suspended_unverified": "Suspendert til eieren bekrefter e-posten sin"
       },
-      "total": "{{total}} funnet"
+      "total": "{{total}} funnet",
+      "limits": {
+        "item": "{{name}}: {{value}}",
+        "more": "+{{number}} til",
+        "unlimited": "Ingen grenser",
+        "source": {
+          "workspace": "Egne",
+          "install": "Installasjonens standarder",
+          "none": "Ingen angitt"
+        },
+        "dialog": {
+          "title": "Grenser for {{name}}",
+          "description": "Hva dette arbeidsområdet er bundet av. Å senke en grense setter ingenting på pause og sletter ingenting: de nyeste overvåkingene over grensen slutter å kjøre til det igjen er plass.",
+          "own": "Egne grenser",
+          "own_help": "Disse erstatter installasjonens standarder. La en grense stå tom for ingen grense.",
+          "unlimited": "Ingen grenser",
+          "unlimited_help": "Ingen grense i det hele tatt, uansett hva installasjonens standarder sier.",
+          "defaults": "Bruk installasjonens standarder",
+          "defaults_help": "Standardgrensene under Admin → Innstillinger, eller ingen hvis installasjonen ikke setter noen.",
+          "save": "Lagre grenser",
+          "cancel": "Avbryt",
+          "saved": "Grensene for {{name}} er lagret",
+          "failed": "Kunne ikke lagre grensene."
+        }
+      }
     },
     "settings": {
       "page_name": "Innstillinger",
@@ -230,6 +256,10 @@
         "open_needs_sender": "Åpen registrering krever en e-postavsender, fordi nye kontoer bekrefter e-postadressen sin. Sett opp avsenderen først, eller i samme lagring.",
         "sender_needed": "Registreringen er åpen, og nye kontoer trenger avsenderen for å bekrefte e-postadressen sin. Bytt registreringen til kun med invitasjon først.",
         "no_sender": "Det finnes ingen e-postavsender. Lagre en avsender først."
+      },
+      "limits": {
+        "title": "Standardgrenser",
+        "description": "Grensene for hvert arbeidsområde som ikke har egne. La en grense stå tom for ingen grense. Grenser et arbeidsområde får på siden Arbeidsområder, erstatter disse."
       }
     }
   },
@@ -2065,5 +2095,28 @@
         "status_pages": "Publiser en statusside"
       }
     }
+  },
+  "limits": {
+    "reached": {
+      "monitors": "Dette arbeidsområdet kan ha høyst {{max}} kjørende overvåkinger",
+      "status_pages": "Dette arbeidsområdet kan ha høyst {{max}} statussider",
+      "custom_domains": "Statussidene i dette arbeidsområdet kan ha høyst {{max}} egendefinerte domener til sammen",
+      "members": "Dette arbeidsområdet kan ha høyst {{max}} medlemmer, inkludert ventende invitasjoner",
+      "owned_workspaces": "Du kan eie høyst {{max}} arbeidsområder",
+      "probes": "En overvåking i dette arbeidsområdet kan kjøre på høyst {{max}} prober"
+    },
+    "names": {
+      "monitors": "Aktive overvåkinger",
+      "min_check_interval": "Korteste kontrollintervall (sekunder)",
+      "status_pages": "Statussider",
+      "custom_domains": "Egendefinerte domener",
+      "members": "Medlemmer",
+      "owned_workspaces": "Arbeidsområder én bruker kan eie",
+      "probes_per_monitor": "Prober per overvåking",
+      "retention_days": "Databeholdelse (dager)"
+    },
+    "none": "Ingen grense",
+    "invalid": "Skriv inn et helt tall på 1 eller mer, eller la feltet stå tomt for ingen grense.",
+    "retention_too_long": "Kan ikke være over {{max}} dager"
   }
 }

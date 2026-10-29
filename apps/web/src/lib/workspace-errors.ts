@@ -1,4 +1,5 @@
 import { isAxiosError } from "axios";
+import { limitReachedMessage } from "./limit-errors";
 
 // The translation key of a workspace, member or invite answer the server words in English, by
 // its status and message (workspacehttp.Fail, auth.controller). undefined when the answer isn't
@@ -39,14 +40,17 @@ export const workspaceErrorKey = (status: number, message: string): string | und
   }
 };
 
-// The text to show for a failed workspace request: the translated reason when the server gave
-// one we know, else the server's message, else the fallback.
+// The text to show for a failed workspace request: a limit the request would go over (an invite,
+// accepting one, signing up through one, a new workspace), else the translated reason when the
+// server gave one we know, else the server's message, else the fallback.
 export const workspaceErrorMessage = (
   error: unknown,
-  t: (key: string) => string,
+  t: (key: string, vars?: Record<string, unknown>) => string,
   fallback: string
 ): string => {
   if (!isAxiosError(error)) return fallback;
+  const limit = limitReachedMessage(error, t);
+  if (limit) return limit;
   const message = (error.response?.data as { message?: unknown } | undefined)?.message;
   const text = typeof message === "string" ? message : "";
   const key = error.response ? workspaceErrorKey(error.response.status, text) : undefined;

@@ -4,6 +4,8 @@ import type { AdminInstallSettingsResponse } from "@/api/types.gen";
 import i18n from "@/i18n";
 import {
   clearsSavedPassword,
+  defaultLimitBounds,
+  defaultLimitsSchema,
   installSettingsChange,
   installSettingsErrorMessage,
   installSettingsFormValues,
@@ -85,6 +87,37 @@ describe("installSettingsChange", () => {
     expect(body).toEqual({});
   });
 
+  describe("the default limits", () => {
+    it("load as text, blank for none", () => {
+      expect(values.workspaceLimits).toEqual({
+        monitors: "10",
+        min_check_interval: "",
+        status_pages: "2",
+        custom_domains: "",
+        members: "5",
+        owned_workspaces: "",
+        probes_per_monitor: "",
+        retention_days: "",
+      });
+    });
+
+    it("send a typed number, and null for one that was emptied, which is no limit", () => {
+      const body = installSettingsChange(SETTINGS, {
+        ...values,
+        workspaceLimits: { ...values.workspaceLimits, monitors: "", min_check_interval: " 300 ", members: "5" },
+      });
+      expect(body).toEqual({ workspaceLimits: { monitors: null, min_check_interval: 300 } });
+    });
+
+    it("never send one the environment locks", () => {
+      const body = installSettingsChange(SETTINGS, {
+        ...values,
+        workspaceLimits: { ...values.workspaceLimits, status_pages: "9", owned_workspaces: "1" },
+      });
+      expect(body).toEqual({});
+    });
+  });
+
   describe("the password", () => {
     it("is left out while nothing is typed: the one there is stays", () => {
       expect(installSettingsChange(SETTINGS, { ...values, password: "" })).toEqual({});
@@ -110,6 +143,87 @@ describe("installSettingsChange", () => {
     it("loads empty: the form never holds the saved one", () => {
       expect(values.password).toBe("");
     });
+  });
+});
+
+// The default limits the server takes (installsettings.checkLimit and its neighbours): a whole
+// number of 1 or more, the shortest check interval at least the install's MIN_CHECK_INTERVAL, and
+// a retention period at most 36500 days. Blank is no limit.
+describe("defaultLimitsSchema", () => {
+  // Every limit editable and none set, so that each typed value is a change the save sends
+  const unset = Object.fromEntries(
+    Object.keys(SETTINGS.workspaceLimits).map((name) => [name, field<number | null>(null)])
+  ) as AdminInstallSettingsResponse["workspaceLimits"];
+  const blank = Object.fromEntries(Object.keys(unset).map((name) => [name, ""]));
+  const errorOf = (
+    minCheckInterval: number,
+    name: string,
+    typed: string,
+    loaded: AdminInstallSettingsResponse["workspaceLimits"] = unset
+  ) => {
+    const result = defaultLimitsSchema(t, minCheckInterval, loaded).safeParse({ ...blank, [name]: typed });
+    return result.success ? undefined : result.error.issues.find((issue) => issue.path[0] === name)?.message;
+  };
+
+  it("takes blank, which is no limit, for every limit", () => {
+    expect(defaultLimitsSchema(t, 20, unset).safeParse(blank).success).toBe(true);
+  });
+
+  it("leaves a limit as it loaded, or locked by the environment, unchecked: the save doesn't send it", () => {
+    const loaded = {
+      ...unset,
+      min_check_interval: field<number | null>(30, "saved"),
+      retention_days: field<number | null>(40000, "environment"),
+    };
+    expect(errorOf(60, "min_check_interval", "30", loaded)).toBeUndefined();
+    expect(errorOf(60, "retention_days", "40000", loaded)).toBeUndefined();
+    expect(errorOf(60, "min_check_interval", "31", loaded)).toBe(
+      t("monitors.form.shared.intervals.interval_too_short", { minimum: 60 })
+    );
+  });
+
+  it("takes a count of 1 or more, and refuses 0, a fraction or a word", () => {
+    for (const name of ["monitors", "status_pages", "custom_domains", "members", "owned_workspaces", "probes_per_monitor"]) {
+      expect(errorOf(20, name, "1"), name).toBeUndefined();
+      expect(errorOf(20, name, "1000"), name).toBeUndefined();
+      for (const refused of ["0", "-1", "1.5", "ten"]) {
+        expect(errorOf(20, name, refused), `${name} ${refused}`).toBe(t("limits.invalid"));
+      }
+    }
+  });
+
+  it("refuses a number too long to hold exactly, which the save would send rounded or as null", () => {
+    for (const name of Object.keys(unset)) {
+      for (const refused of ["1".repeat(400), "9007199254740993"]) {
+        expect(errorOf(20, name, refused), `${name} ${refused.length} digits`).toBe(t("limits.invalid"));
+      }
+    }
+    expect(errorOf(20, "monitors", "9007199254740991")).toBeUndefined();
+  });
+
+  it("refuses a shortest check interval below the install's minimum", () => {
+    expect(errorOf(20, "min_check_interval", "20")).toBeUndefined();
+    expect(errorOf(20, "min_check_interval", "1")).toBe(
+      t("monitors.form.shared.intervals.interval_too_short", { minimum: 20 })
+    );
+    expect(errorOf(60, "min_check_interval", "59")).toBe(
+      t("monitors.form.shared.intervals.interval_too_short", { minimum: 60 })
+    );
+    expect(errorOf(60, "min_check_interval", "60")).toBeUndefined();
+    expect(errorOf(20, "min_check_interval", "1.5")).toBe(t("limits.invalid"));
+  });
+
+  it("refuses a retention period above 36500 days", () => {
+    expect(errorOf(20, "retention_days", "36500")).toBeUndefined();
+    expect(errorOf(20, "retention_days", "1")).toBeUndefined();
+    expect(errorOf(20, "retention_days", "36501")).toBe(t("limits.retention_too_long", { max: 36500 }));
+    expect(errorOf(20, "retention_days", "0")).toBe(t("limits.invalid"));
+  });
+
+  it("gives each input the range the server takes", () => {
+    expect(defaultLimitBounds("monitors", 60)).toEqual({ min: 1 });
+    expect(defaultLimitBounds("min_check_interval", 60)).toEqual({ min: 60 });
+    expect(defaultLimitBounds("retention_days", 60)).toEqual({ min: 1, max: 36500 });
   });
 });
 
@@ -153,6 +267,21 @@ const refusal = (status: number, data: unknown) =>
   });
 
 describe("installSettingsErrorMessage", () => {
+  it("names the default limit a refused value is for", () => {
+    const error = refusal(400, {
+      message: "workspaceLimits.min_check_interval: must be at least 60 seconds, the install's MIN_CHECK_INTERVAL",
+      error: { code: "INVALID_SETTING", field: "workspaceLimits.min_check_interval" },
+    });
+    expect(installSettingsErrorMessage(error, t, "fallback")).toBe(
+      "Shortest check interval (seconds): must be at least 60 seconds, the install's MIN_CHECK_INTERVAL"
+    );
+    const locked = refusal(409, {
+      message: "workspaceLimits.monitors: set by the server's environment (WORKSPACE_LIMIT_MONITORS)",
+      error: { code: "SETTING_LOCKED", field: "workspaceLimits.monitors" },
+    });
+    expect(installSettingsErrorMessage(locked, t, "fallback")).toContain("Active monitors");
+  });
+
   it("names the locked setting of a 409", () => {
     const error = refusal(409, {
       message: "signupMode: set by the server's environment (SIGNUP_MODE)",

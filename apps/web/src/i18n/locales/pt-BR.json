@@ -107,7 +107,8 @@
       "actions": {
         "delete": "Excluir espaço de trabalho",
         "resume": "Retomar espaço de trabalho",
-        "suspend": "Suspender espaço de trabalho"
+        "suspend": "Suspender espaço de trabalho",
+        "limits": "Limites"
       },
       "actions_aria": "Ações para {{name}}",
       "columns": {
@@ -118,7 +119,8 @@
         "name": "Nome",
         "owners": "Proprietários",
         "status": "Status",
-        "status_pages": "Páginas de status"
+        "status_pages": "Páginas de status",
+        "limits": "Limites"
       },
       "confirm": {
         "cancel": "Cancelar",
@@ -163,7 +165,31 @@
         "suspended_admin": "Suspenso por um administrador",
         "suspended_unverified": "Suspenso até o proprietário verificar o e-mail"
       },
-      "total": "{{total}} encontrado(s)"
+      "total": "{{total}} encontrado(s)",
+      "limits": {
+        "item": "{{name}}: {{value}}",
+        "more": "+{{number}} mais",
+        "unlimited": "Sem limites",
+        "source": {
+          "workspace": "Próprios",
+          "install": "Padrões da instalação",
+          "none": "Nenhum definido"
+        },
+        "dialog": {
+          "title": "Limites de {{name}}",
+          "description": "A que este espaço de trabalho está sujeito. Reduzir um limite não pausa nem exclui nada: os monitores mais recentes acima do limite deixam de ser executados até haver espaço novamente.",
+          "own": "Limites próprios",
+          "own_help": "Estes substituem os padrões da instalação. Deixe um limite em branco para não ter nenhum.",
+          "unlimited": "Sem limites",
+          "unlimited_help": "Nenhum limite, não importa o que os padrões da instalação digam.",
+          "defaults": "Usar os padrões da instalação",
+          "defaults_help": "Os limites padrão de Administração → Configurações, ou nenhum quando a instalação não define nenhum.",
+          "save": "Salvar limites",
+          "cancel": "Cancelar",
+          "saved": "Os limites de {{name}} foram salvos",
+          "failed": "Não foi possível salvar os limites."
+        }
+      }
     },
     "settings": {
       "page_name": "Configurações",
@@ -230,6 +256,10 @@
         "open_needs_sender": "O cadastro aberto precisa de um remetente de e-mail, porque contas novas verificam o endereço de e-mail. Configure o remetente primeiro, ou no mesmo salvamento.",
         "sender_needed": "O cadastro está aberto, e contas novas precisam do remetente para verificar o endereço de e-mail. Mude o cadastro para somente por convite primeiro.",
         "no_sender": "Não há remetente de e-mail. Salve um remetente primeiro."
+      },
+      "limits": {
+        "title": "Limites padrão",
+        "description": "Os limites de cada espaço de trabalho que não tem limites próprios. Deixe um limite em branco para não ter nenhum. Os limites dados a um espaço de trabalho na página Espaços de trabalho substituem estes."
       }
     }
   },
@@ -2065,5 +2095,28 @@
         "status_pages": "Publicar uma página de status"
       }
     }
+  },
+  "limits": {
+    "reached": {
+      "monitors": "Este espaço de trabalho pode ter no máximo {{max}} monitores em execução",
+      "status_pages": "Este espaço de trabalho pode ter no máximo {{max}} páginas de status",
+      "custom_domains": "As páginas de status deste espaço de trabalho podem ter no máximo {{max}} domínios personalizados no total",
+      "members": "Este espaço de trabalho pode ter no máximo {{max}} membros, incluindo convites pendentes",
+      "owned_workspaces": "Você pode ser proprietário de no máximo {{max}} espaços de trabalho",
+      "probes": "Um monitor deste espaço de trabalho pode ser executado em no máximo {{max}} sondas"
+    },
+    "names": {
+      "monitors": "Monitores ativos",
+      "min_check_interval": "Menor intervalo de verificação (segundos)",
+      "status_pages": "Páginas de status",
+      "custom_domains": "Domínios personalizados",
+      "members": "Membros",
+      "owned_workspaces": "Espaços de trabalho que um usuário pode ter",
+      "probes_per_monitor": "Sondas por monitor",
+      "retention_days": "Retenção de dados (dias)"
+    },
+    "none": "Sem limite",
+    "invalid": "Digite um número inteiro igual ou maior que 1, ou deixe em branco para não ter limite.",
+    "retention_too_long": "Não pode ser maior que {{max}} dias"
   }
 }

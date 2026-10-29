@@ -107,7 +107,8 @@
       "actions": {
         "delete": "Ish maydonini o'chirish",
         "resume": "Ish maydonini davom ettirish",
-        "suspend": "Ish maydonini to'xtatib qo'yish"
+        "suspend": "Ish maydonini to'xtatib qo'yish",
+        "limits": "Chegaralar"
       },
       "actions_aria": "{{name}} uchun amallar",
       "columns": {
@@ -118,7 +119,8 @@
         "name": "Nomi",
         "owners": "Egalari",
         "status": "Holati",
-        "status_pages": "Holat sahifalari"
+        "status_pages": "Holat sahifalari",
+        "limits": "Chegaralar"
       },
       "confirm": {
         "cancel": "Bekor qilish",
@@ -163,7 +165,31 @@
         "suspended_admin": "Administrator tomonidan to'xtatib qo'yilgan",
         "suspended_unverified": "Egasi e-pochtasini tasdiqlaguncha to'xtatib qo'yilgan"
       },
-      "total": "{{total}} ta topildi"
+      "total": "{{total}} ta topildi",
+      "limits": {
+        "item": "{{name}}: {{value}}",
+        "more": "yana +{{number}} ta",
+        "unlimited": "Chegaralarsiz",
+        "source": {
+          "workspace": "O'ziniki",
+          "install": "O'rnatishning standart qiymatlari",
+          "none": "Belgilanmagan"
+        },
+        "dialog": {
+          "title": "{{name}} chegaralari",
+          "description": "Bu ish maydoni nimaga bog'langan. Chegarani pasaytirish hech narsani to'xtatmaydi va o'chirmaydi: chegaradan oshgan eng yangi monitorlar yana joy bo'lguncha ishlashdan to'xtaydi.",
+          "own": "O'zining chegaralari",
+          "own_help": "Bular o'rnatishning standart qiymatlarini almashtiradi. Chegara kerak bo'lmasa, uni bo'sh qoldiring.",
+          "unlimited": "Chegaralarsiz",
+          "unlimited_help": "O'rnatishning standart qiymatlari nima desa ham, umuman chegara yo'q.",
+          "defaults": "O'rnatishning standart qiymatlaridan foydalanish",
+          "defaults_help": "Admin → Sozlamalardagi standart chegaralar yoki o'rnatish hech narsa belgilamasa, hech qanday chegara yo'q.",
+          "save": "Chegaralarni saqlash",
+          "cancel": "Bekor qilish",
+          "saved": "{{name}} chegaralari saqlandi",
+          "failed": "Chegaralarni saqlab bo'lmadi."
+        }
+      }
     },
     "settings": {
       "page_name": "Sozlamalar",
@@ -230,6 +256,10 @@
         "open_needs_sender": "Ochiq roʻyxatdan oʻtish uchun pochta joʻnatuvchisi kerak, chunki yangi hisoblar pochta manzilini tasdiqlaydi. Avval joʻnatuvchini sozlang yoki shu saqlashda sozlang.",
         "sender_needed": "Roʻyxatdan oʻtish ochiq, yangi hisoblarga pochta manzilini tasdiqlash uchun joʻnatuvchi kerak. Avval roʻyxatdan oʻtishni faqat taklif bilan rejimiga oʻtkazing.",
         "no_sender": "Pochta joʻnatuvchisi yoʻq. Avval joʻnatuvchini saqlang."
+      },
+      "limits": {
+        "title": "Standart chegaralar",
+        "description": "O'z chegarasi bo'lmagan har bir ish maydonining chegaralari. Chegara kerak bo'lmasa, uni bo'sh qoldiring. Ish maydonlari sahifasida ish maydoniga berilgan chegaralar bularni almashtiradi."
       }
     }
   },
@@ -2064,5 +2094,28 @@
         "status_pages": "Holat sahifasini e'lon qilish"
       }
     }
+  },
+  "limits": {
+    "reached": {
+      "monitors": "Bu ish maydonida ko'pi bilan {{max}} ta monitor ishlashi mumkin",
+      "status_pages": "Bu ish maydonida ko'pi bilan {{max}} ta holat sahifasi bo'lishi mumkin",
+      "custom_domains": "Bu ish maydonining holat sahifalarida jami ko'pi bilan {{max}} ta maxsus domen bo'lishi mumkin",
+      "members": "Bu ish maydonida kutilayotgan takliflar bilan birga ko'pi bilan {{max}} ta a'zo bo'lishi mumkin",
+      "owned_workspaces": "Siz ko'pi bilan {{max}} ta ish maydoniga egalik qila olasiz",
+      "probes": "Bu ish maydonidagi monitor ko'pi bilan {{max}} ta zondda ishlashi mumkin"
+    },
+    "names": {
+      "monitors": "Faol monitorlar",
+      "min_check_interval": "Eng qisqa tekshirish intervali (soniya)",
+      "status_pages": "Holat sahifalari",
+      "custom_domains": "Maxsus domenlar",
+      "members": "A'zolar",
+      "owned_workspaces": "Bitta foydalanuvchi egalik qila oladigan ish maydonlari",
+      "probes_per_monitor": "Har bir monitorga zondlar",
+      "retention_days": "Ma'lumotlarni saqlash (kun)"
+    },
+    "none": "Chegarasiz",
+    "invalid": "1 yoki undan katta butun son kiriting yoki chegara kerak bo'lmasa, bo'sh qoldiring.",
+    "retention_too_long": "{{max}} kundan oshmasligi kerak"
   }
 }
