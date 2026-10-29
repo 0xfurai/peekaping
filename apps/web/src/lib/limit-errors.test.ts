@@ -31,6 +31,7 @@ describe("limitReachedMessage", () => {
     ["members", 5, "This workspace can have at most 5 members, pending invites included"],
     ["owned_workspaces", 1, "You can own at most 1 workspaces"],
     ["probes", 2, "A monitor in this workspace can run on at most 2 probes"],
+    ["retention_days", 30, "This workspace can keep data for at most 30 days"],
   ])("words the %s limit with its value", (limit, max, message) => {
     expect(limitReachedMessage(reached(limit, max), t)).toBe(message);
   });

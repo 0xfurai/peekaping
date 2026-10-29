@@ -13,6 +13,7 @@ export const REACHABLE_LIMITS = [
   "members",
   "owned_workspaces",
   "probes",
+  "retention_days",
 ] as const;
 
 export type ReachableLimit = (typeof REACHABLE_LIMITS)[number];
