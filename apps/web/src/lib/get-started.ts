@@ -61,6 +61,20 @@ export const createChannelAndLink = async ({
 }): Promise<CreateChannelAndLinkResult> => {
   const { id: channelId } = await create(channelCreateBody(values, true));
   if (monitorId === null) return { kind: "created", channelId };
+  return linkChannel({ monitorId, channelId, link });
+};
+
+// Links a channel step 3 made to the monitor step 2 made: the save's second half, and the step's
+// "Try linking again" after a failed link, which must not create the channel a second time.
+export const linkChannel = async ({
+  monitorId,
+  channelId,
+  link,
+}: {
+  monitorId: string;
+  channelId: string;
+  link: (monitorId: string, channelId: string) => Promise<unknown>;
+}): Promise<Extract<CreateChannelAndLinkResult, { kind: "linked" | "link_failed" }>> => {
   try {
     await link(monitorId, channelId);
     return { kind: "linked", channelId };
