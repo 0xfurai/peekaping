@@ -161,7 +161,7 @@ func (s *ServiceImpl) ChangeRole(ctx context.Context, userID string, role Role) 
 		updated.Role = role
 		changed = &updated
 		if role == RoleOwner {
-			lifted, err = s.workspaces.LiftUnverifiedWithVerifiedOwner(ctx, id)
+			lifted, err = s.liftForNewOwner(ctx, id, userID)
 		}
 		return err
 	})
@@ -170,6 +170,19 @@ func (s *ServiceImpl) ChangeRole(ctx context.Context, userID string, role Role) 
 	}
 	s.wake(ctx, lifted)
 	return changed, nil
+}
+
+// liftForNewOwner ends the workspace's unverified suspension, inside the transaction that made
+// userID one of its owners, when an owner has a verified email address. The new owner's row is
+// held before the lift reads, as CreateWorkspace does: on PostgreSQL a verification in flight that committed after
+// the lift's read would otherwise find the owner role uncommitted and lift nothing, and the
+// workspace would stay suspended for good. Now it is either seen by the lift or waits for the
+// commit, and then finds the owner.
+func (s *ServiceImpl) liftForNewOwner(ctx context.Context, id ID, userID string) ([]ID, error) {
+	if _, err := s.members.LockEmailVerified(ctx, userID); err != nil {
+		return nil, err
+	}
+	return s.workspaces.LiftUnverifiedWithVerifiedOwner(ctx, id)
 }
 
 func (s *ServiceImpl) RemoveMember(ctx context.Context, userID string) error {
@@ -417,7 +430,7 @@ func (s *ServiceImpl) AcceptInvite(ctx context.Context, token, userID string) (*
 			JoinedAt:  now,
 		}
 		if invite.Role == RoleOwner {
-			lifted, err = s.workspaces.LiftUnverifiedWithVerifiedOwner(ctx, invite.WorkspaceID)
+			lifted, err = s.liftForNewOwner(ctx, invite.WorkspaceID, userID)
 		}
 		return err
 	})
