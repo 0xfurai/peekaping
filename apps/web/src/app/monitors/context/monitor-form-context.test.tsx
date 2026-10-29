@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vitest";
 import type { QueryClient } from "@tanstack/react-query";
-import { getMonitorsByIdQueryKey, getNotificationChannelsQueryKey } from "@/api/@tanstack/react-query.gen";
+import { getMonitorsByIdQueryKey } from "@/api/@tanstack/react-query.gen";
 import type { NotificationChannelModel } from "@/api/types.gen";
 import { renderAs } from "@/test-support/render-with-me";
 import { deserializeMonitor, monitorTypes, type MonitorFormValues } from "../monitor-types/registry";
+import { allNotificationChannelsOptions } from "../monitor-types/shared/channel-support";
 import { MonitorFormProvider, useMonitorFormContext } from "./monitor-form-context";
 
 const channel = (id: string, isDefault: boolean): NotificationChannelModel => ({
@@ -30,7 +31,7 @@ const StartingChannels = () => {
 const startingChannels = (html: string): string[] => JSON.parse(html.match(/<output>(.*)<\/output>/)![1].replace(/&quot;/g, '"'));
 
 const seedChannels = (list: NotificationChannelModel[] | null) => (queryClient: QueryClient) =>
-  queryClient.setQueryData(getNotificationChannelsQueryKey(), { data: list });
+  queryClient.setQueryData(allNotificationChannelsOptions().queryKey, { message: "success", data: list });
 
 describe("The channels a monitor form starts on", () => {
   const create = (initial?: Partial<MonitorFormValues>, list: NotificationChannelModel[] | null = channels) =>

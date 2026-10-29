@@ -14,7 +14,6 @@ import {
   useQuery,
 } from "@tanstack/react-query";
 import {
-  getNotificationChannelsOptions,
   getMonitorsInfiniteQueryKey,
   getMonitorsQueryKey,
   postMonitorsMutation,
@@ -44,7 +43,7 @@ import { useLocalizedTranslation } from "@/hooks/useTranslation";
 import { useProbes } from "@/hooks/useProbes";
 import { useCurrentAccess } from "@/hooks/useCurrentAccess";
 import { checkMonitorValues } from "../monitor-types/shared/check-values";
-import { defaultChannelIds } from "../monitor-types/shared/channel-support";
+import { allNotificationChannelsOptions, defaultChannelIds } from "../monitor-types/shared/channel-support";
 import { useWorkspacePath } from "@/hooks/useWorkspacePath";
 
 type Mode = "create" | "edit";
@@ -117,7 +116,7 @@ export const MonitorFormProvider: React.FC<MonitorFormProviderProps> = ({
   // ones may be old (see below).
   const presetsChannels = mode === "create" && !initialValues;
   const { data: channels, isFetchedAfterMount: channelsFetched } = useQuery({
-    ...getNotificationChannelsOptions(),
+    ...allNotificationChannelsOptions(),
     enabled: presetsChannels,
   });
   const startingChannelIds = useRef(defaultChannelIds(channels?.data));
