@@ -534,6 +534,11 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) Close() {
-	s.closeOnce.Do(func() { close(s.stopSweep) })
+	s.stopSweeping()
 	s.io.Close(nil)
+}
+
+// stopSweeping ends the sweep of the open sockets
+func (s *Server) stopSweeping() {
+	s.closeOnce.Do(func() { close(s.stopSweep) })
 }

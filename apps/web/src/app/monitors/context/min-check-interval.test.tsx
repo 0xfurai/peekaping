@@ -1,12 +1,14 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
+import type { UseFormReturn } from "react-hook-form";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "@/i18n";
 import i18n from "i18next";
 import { getMonitorsByIdQueryKey } from "@/api/@tanstack/react-query.gen";
 import { useMinCheckInterval } from "@/hooks/useMinCheckInterval";
 import { renderAs } from "@/test-support/render-with-me";
-import { deserializeMonitor, monitorTypes, type MonitorFormValues } from "../monitor-types/registry";
+import { LOCAL_PROBE_ID } from "@/app/probes/components/local-probe";
+import { deserializeMonitor, monitorTypes, serializeMonitor, type MonitorFormValues } from "../monitor-types/registry";
 import { INTERVAL_TOO_SHORT } from "../monitor-types/shared/schema";
 import { MonitorFormProvider, useMonitorFormContext } from "./monitor-form-context";
 
@@ -62,29 +64,59 @@ describe("A clone's form", () => {
 });
 
 describe("An edit's form", () => {
-  const saved = {
+  const stored = (interval: number, retry_interval: number) => ({
     id: "m1",
     name: "Site",
     type: "http",
-    interval: 30,
+    interval,
     timeout: 16,
     max_retries: 3,
-    retry_interval: 40,
+    retry_interval,
     resend_interval: 10,
     config: JSON.stringify({ url: "https://example.com", method: "GET", encoding: "json", accepted_statuscodes: ["2XX"] }),
     notification_ids: [],
-  };
+    probe_ids: [LOCAL_PROBE_ID],
+  });
 
-  it("keeps the intervals the monitor is stored with, below the minimum", () => {
+  // The edit's form as it starts, kept to fill in and submit after the render
+  const edit = (saved: ReturnType<typeof stored>) => {
+    let form: UseFormReturn<MonitorFormValues> | undefined;
+    const Keep = () => {
+      form = useMonitorFormContext().form;
+      return <Starts />;
+    };
     const html = renderAs(
       { instanceAdmin: false, role: "member", minCheckInterval: 60 },
       <MonitorFormProvider mode="edit" monitorId="m1" initialValues={deserializeMonitor(saved as never)}>
-        <Starts />
+        <Keep />
       </MonitorFormProvider>,
       undefined,
       (queryClient) => queryClient.setQueryData(getMonitorsByIdQueryKey({ path: { id: "m1" } }), { data: saved })
     );
-    expect(startedWith(html)).toEqual({ interval: 30, retry_interval: 40, timeout: 16 });
+    return { started: startedWith(html), form: form! };
+  };
+
+  // A monitor stored below a minimum raised since already runs at the minimum, and the API refuses
+  // a save below it, even of the stored values
+  it("raises the intervals of a monitor stored below the install's minimum to it", () => {
+    expect(edit(stored(20, 20)).started).toEqual({ interval: 60, retry_interval: 60, timeout: 16 });
+  });
+
+  it("saves a rename of a monitor stored below the minimum at the minimum", async () => {
+    const { form } = edit(stored(20, 20));
+    form.setValue("name", "Renamed", { shouldDirty: true });
+    const submitted = vi.fn();
+    const refused = vi.fn();
+    await form.handleSubmit(submitted, refused)();
+    expect(refused).not.toHaveBeenCalled();
+    expect(submitted).toHaveBeenCalledOnce();
+    const values = submitted.mock.calls[0][0] as MonitorFormValues;
+    expect(values).toMatchObject({ name: "Renamed", interval: 60, retry_interval: 60 });
+    expect(serializeMonitor(values)).toMatchObject({ interval: 60, retry_interval: 60 });
+  });
+
+  it("keeps intervals above the minimum", () => {
+    expect(edit(stored(120, 90)).started).toEqual({ interval: 120, retry_interval: 90, timeout: 16 });
   });
 });
 
