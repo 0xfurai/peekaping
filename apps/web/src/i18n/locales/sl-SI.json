@@ -10,16 +10,25 @@
       "sign_up": "Registriraj se",
       "submit": "Prijava",
       "title": "Dobrodošel nazaj",
-      "forgot_password": "Ste pozabili geslo?"
+      "forgot_password": "Ste pozabili geslo?",
+      "ask_admin": "Prosite skrbnika te namestitve za povabilo"
     },
     "register": {
       "description": "Ustvari svoj račun skrbnika",
+      "description_open": "Ustvari svoj račun",
       "have_account": "Ali že imate račun?",
       "sign_in": "Prijavi se",
       "submit": "Ustvari",
       "title": "Pozdravljeni",
       "telemetry_note": "Anonimno: brez imen nadzorov, URL-jev in gostiteljev. To lahko pozneje spremenite v razdelku Nastavitve.",
-      "telemetry_whats_sent": "Kaj se pošilja"
+      "telemetry_whats_sent": "Kaj se pošilja",
+      "errors": {
+        "rate_limited": "Preveč registracij iz vašega omrežja. Poskusite znova čez eno uro.",
+        "email_taken": "Račun s tem e-poštnim naslovom že obstaja.",
+        "sign_in_instead": "Raje se prijavite.",
+        "check_failed": "Preverjanje ni uspelo. Poskusite znova.",
+        "check_load_failed": "Preverjanja ni bilo mogoče naložiti. Preverite povezavo in poskusite znova."
+      }
     },
     "twofa": {
       "code_label": "2FA Koda",
@@ -63,6 +72,10 @@
     },
     "verification_banner": {
       "message": "Potrdite svoj e-naslov: povezavo smo poslali na {{email}}."
+    },
+    "suspension_notice": {
+      "message": "Vaši monitorji se zaženejo, ko potrdite svoj e-poštni naslov.",
+      "member_message": "Monitorji tega delovnega prostora se zaženejo, ko lastnik potrdi svoj e-poštni naslov."
     }
   },
   "bars": {

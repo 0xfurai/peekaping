@@ -10,16 +10,25 @@
       "sign_up": "Cadastre-se",
       "submit": "Entrar",
       "title": "Bem-vindo de volta",
-      "forgot_password": "Esqueceu a senha?"
+      "forgot_password": "Esqueceu a senha?",
+      "ask_admin": "Peça um convite a um administrador desta instalação"
     },
     "register": {
       "description": "Crie sua conta de administrador",
+      "description_open": "Crie sua conta",
       "have_account": "Já tem uma conta?",
       "sign_in": "Entrar",
       "submit": "Criar",
       "title": "Olá",
       "telemetry_note": "Anônimo: sem nomes de monitores, URLs ou hosts. Você pode mudar isso depois em “Configurações”.",
-      "telemetry_whats_sent": "O que é enviado"
+      "telemetry_whats_sent": "O que é enviado",
+      "errors": {
+        "rate_limited": "Cadastros demais vindos da sua rede. Tente de novo em uma hora.",
+        "email_taken": "Já existe uma conta com este e-mail.",
+        "sign_in_instead": "Entre com ela.",
+        "check_failed": "A verificação não passou. Tente de novo.",
+        "check_load_failed": "Não foi possível carregar a verificação. Confira sua conexão e tente de novo."
+      }
     },
     "twofa": {
       "code_label": "Código 2FA",
@@ -63,6 +72,10 @@
     },
     "verification_banner": {
       "message": "Verifique seu e-mail: enviamos um link para {{email}}."
+    },
+    "suspension_notice": {
+      "message": "Seus monitores começam depois que você verificar seu e-mail.",
+      "member_message": "Os monitores deste espaço de trabalho começam depois que o proprietário verificar o e-mail dele."
     }
   },
   "bars": {

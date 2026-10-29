@@ -10,16 +10,25 @@
       "sign_up": "Registrer deg",
       "submit": "Logg inn",
       "title": "Velkommen tilbake",
-      "forgot_password": "Glemt passordet?"
+      "forgot_password": "Glemt passordet?",
+      "ask_admin": "Be en administrator av denne installasjonen om en invitasjon"
     },
     "register": {
       "description": "Opprett din admin-konto",
+      "description_open": "Opprett kontoen din",
       "have_account": "Har du allerede en konto?",
       "sign_in": "Logg inn",
       "submit": "Opprett",
       "title": "Hei",
       "telemetry_note": "Anonymt: ingen navn på overvåkninger, nettadresser eller verter. Du kan endre det senere under «Innstillinger».",
-      "telemetry_whats_sent": "Hva som sendes"
+      "telemetry_whats_sent": "Hva som sendes",
+      "errors": {
+        "rate_limited": "For mange registreringer fra nettverket ditt. Prøv igjen om en time.",
+        "email_taken": "Det finnes allerede en konto med denne e-postadressen.",
+        "sign_in_instead": "Logg inn i stedet.",
+        "check_failed": "Kontrollen ble ikke bestått. Prøv igjen.",
+        "check_load_failed": "Kontrollen kunne ikke lastes. Sjekk tilkoblingen din og prøv igjen."
+      }
     },
     "twofa": {
       "code_label": "2FA-kode",
@@ -63,6 +72,10 @@
     },
     "verification_banner": {
       "message": "Bekreft e-posten din: vi har sendt en lenke til {{email}}."
+    },
+    "suspension_notice": {
+      "message": "Overvåkingene dine starter når du har bekreftet e-postadressen din.",
+      "member_message": "Overvåkingene i dette arbeidsområdet starter når eieren har bekreftet e-postadressen sin."
     }
   },
   "bars": {

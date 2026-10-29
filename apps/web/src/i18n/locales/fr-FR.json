@@ -10,16 +10,25 @@
       "sign_up": "S'inscrire",
       "submit": "Connexion",
       "title": "Bon retour",
-      "forgot_password": "Mot de passe oublié ?"
+      "forgot_password": "Mot de passe oublié ?",
+      "ask_admin": "Demandez une invitation à un administrateur de cette installation"
     },
     "register": {
       "description": "Créez votre compte d'administrateur",
+      "description_open": "Créez votre compte",
       "have_account": "Vous avez déjà un compte ?",
       "sign_in": "Se connecter",
       "submit": "Créer",
       "title": "Bonjour",
       "telemetry_note": "Anonyme : aucun nom de moniteur, aucune URL ni aucun hôte. Vous pourrez le modifier plus tard dans « Paramètres ».",
-      "telemetry_whats_sent": "Ce qui est envoyé"
+      "telemetry_whats_sent": "Ce qui est envoyé",
+      "errors": {
+        "rate_limited": "Trop d'inscriptions depuis votre réseau. Réessayez dans une heure.",
+        "email_taken": "Un compte existe déjà avec cet e-mail.",
+        "sign_in_instead": "Connectez-vous plutôt.",
+        "check_failed": "La vérification a échoué. Réessayez.",
+        "check_load_failed": "La vérification n'a pas pu se charger. Vérifiez votre connexion et réessayez."
+      }
     },
     "twofa": {
       "code_label": "Code d'authentification à deux facteurs",
@@ -63,6 +72,10 @@
     },
     "verification_banner": {
       "message": "Vérifiez votre e-mail : nous avons envoyé un lien à {{email}}."
+    },
+    "suspension_notice": {
+      "message": "Vos moniteurs démarreront une fois votre e-mail vérifié.",
+      "member_message": "Les moniteurs de cet espace de travail démarreront une fois que son propriétaire aura vérifié son e-mail."
     }
   },
   "bars": {

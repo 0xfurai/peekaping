@@ -10,16 +10,25 @@
       "sign_up": "Registrera dig",
       "submit": "Logga in",
       "title": "Välkommen tillbaka",
-      "forgot_password": "Glömt lösenordet?"
+      "forgot_password": "Glömt lösenordet?",
+      "ask_admin": "Be en administratör för den här installationen om en inbjudan"
     },
     "register": {
       "description": "Skapa ditt administratörskonto",
+      "description_open": "Skapa ditt konto",
       "have_account": "Har du redan ett konto?",
       "sign_in": "Logga in",
       "submit": "Skapa",
       "title": "Hej",
       "telemetry_note": "Anonymt: inga namn på övervakningar, webbadresser eller värdar. Du kan ändra det senare under ”Inställningar”.",
-      "telemetry_whats_sent": "Vad som skickas"
+      "telemetry_whats_sent": "Vad som skickas",
+      "errors": {
+        "rate_limited": "För många registreringar från ditt nätverk. Försök igen om en timme.",
+        "email_taken": "Det finns redan ett konto med den här e-postadressen.",
+        "sign_in_instead": "Logga in i stället.",
+        "check_failed": "Kontrollen godkändes inte. Försök igen.",
+        "check_load_failed": "Kontrollen kunde inte laddas. Kontrollera din anslutning och försök igen."
+      }
     },
     "twofa": {
       "code_label": "2FA-kod",
@@ -63,6 +72,10 @@
     },
     "verification_banner": {
       "message": "Verifiera din e-postadress: vi har skickat en länk till {{email}}."
+    },
+    "suspension_notice": {
+      "message": "Dina övervakningar startar när du har verifierat din e-postadress.",
+      "member_message": "Den här arbetsytans övervakningar startar när ägaren har verifierat sin e-postadress."
     }
   },
   "bars": {
@@ -1741,7 +1754,7 @@
     "name_placeholder": "Mitt team",
     "name_required": "Ange ett namn",
     "new": "Ny arbetsyta",
-    "new_description": "En arbetsyta har egna övervakare, aviseringskanaler, statussidor och medlemmar. Du blir dess ägare.",
+    "new_description": "En arbetsyta har egna övervakningar, aviseringskanaler, statussidor och medlemmar. Du blir dess ägare.",
     "new_title": "Ny arbetsyta",
     "none_description": "Ditt konto är inte medlem i någon arbetsyta, så det finns inget att visa här. Be någon som hanterar en arbetsyta att lägga till dig.",
     "none_title": "Du är inte med i någon arbetsyta ännu",

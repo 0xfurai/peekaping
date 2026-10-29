@@ -10,16 +10,25 @@
       "sign_up": "회원가입",
       "submit": "로그인",
       "title": "다시 오신 것을 환영합니다",
-      "forgot_password": "비밀번호를 잊으셨나요?"
+      "forgot_password": "비밀번호를 잊으셨나요?",
+      "ask_admin": "이 설치본의 관리자에게 초대를 요청하세요"
     },
     "register": {
       "description": "관리자 계정 만들기",
+      "description_open": "계정 만들기",
       "have_account": "이미 계정이 있나요?",
       "sign_in": "로그인",
       "submit": "생성",
       "title": "안녕하세요",
       "telemetry_note": "익명: 모니터 이름, URL, 호스트는 포함되지 않습니다. 나중에 “설정”에서 바꿀 수 있습니다.",
-      "telemetry_whats_sent": "전송되는 내용"
+      "telemetry_whats_sent": "전송되는 내용",
+      "errors": {
+        "rate_limited": "네트워크에서 가입 시도가 너무 많습니다. 1시간 후에 다시 시도하세요.",
+        "email_taken": "이 이메일로 만든 계정이 이미 있습니다.",
+        "sign_in_instead": "대신 로그인하세요.",
+        "check_failed": "확인을 통과하지 못했습니다. 다시 시도하세요.",
+        "check_load_failed": "확인 항목을 불러오지 못했습니다. 연결을 확인하고 다시 시도하세요."
+      }
     },
     "twofa": {
       "code_label": "2FA 코드",
@@ -63,6 +72,10 @@
     },
     "verification_banner": {
       "message": "이메일을 인증하세요: {{email}}(으)로 링크를 보냈습니다."
+    },
+    "suspension_notice": {
+      "message": "이메일을 인증하면 모니터가 시작됩니다.",
+      "member_message": "이 워크스페이스의 모니터는 소유자가 이메일을 인증하면 시작됩니다."
     }
   },
   "bars": {

@@ -10,16 +10,25 @@
       "sign_up": "Kayıt Ol",
       "submit": "Giriş",
       "title": "Tekrar hoş geldiniz",
-      "forgot_password": "Parolanızı mı unuttunuz?"
+      "forgot_password": "Parolanızı mı unuttunuz?",
+      "ask_admin": "Bu kurulumun bir yöneticisinden davet isteyin"
     },
     "register": {
       "description": "Yönetici hesabınızı oluşturun",
+      "description_open": "Hesabınızı oluşturun",
       "have_account": "Zaten bir hesabınız var mı?",
       "sign_in": "Giriş Yap",
       "submit": "Oluştur",
       "title": "Merhaba",
       "telemetry_note": "Anonim: monitör adları, URL'ler veya ana makineler yok. Bunu daha sonra “Ayarlar” bölümünden değiştirebilirsiniz.",
-      "telemetry_whats_sent": "Neler gönderilir"
+      "telemetry_whats_sent": "Neler gönderilir",
+      "errors": {
+        "rate_limited": "Ağınızdan çok fazla kayıt yapıldı. Bir saat sonra tekrar deneyin.",
+        "email_taken": "Bu e-postayla bir hesap zaten var.",
+        "sign_in_instead": "Bunun yerine oturum açın.",
+        "check_failed": "Doğrulama geçilemedi. Tekrar deneyin.",
+        "check_load_failed": "Doğrulama yüklenemedi. Bağlantınızı kontrol edip tekrar deneyin."
+      }
     },
     "twofa": {
       "code_label": "2FA Kodu",
@@ -63,6 +72,10 @@
     },
     "verification_banner": {
       "message": "E-postanızı doğrulayın: {{email}} adresine bir bağlantı gönderdik."
+    },
+    "suspension_notice": {
+      "message": "E-postanızı doğruladığınızda monitörleriniz başlar.",
+      "member_message": "Bu çalışma alanının monitörleri, sahibi e-postasını doğruladığında başlar."
     }
   },
   "bars": {

@@ -10,16 +10,25 @@
       "sign_up": "Înregistrează-te",
       "submit": "Conectare",
       "title": "Bine ai revenit",
-      "forgot_password": "Ai uitat parola?"
+      "forgot_password": "Ai uitat parola?",
+      "ask_admin": "Cereți o invitație unui administrator al acestei instalări"
     },
     "register": {
       "description": "Creați contul de admin",
+      "description_open": "Creați-vă contul",
       "have_account": "Ai deja un cont?",
       "sign_in": "Autentificare",
       "submit": "Creează",
       "title": "Salut",
       "telemetry_note": "Anonim: fără numele monitoarelor, URL-uri sau gazde. Îl puteți schimba mai târziu în „Setări”.",
-      "telemetry_whats_sent": "Ce se trimite"
+      "telemetry_whats_sent": "Ce se trimite",
+      "errors": {
+        "rate_limited": "Prea multe înregistrări din rețeaua dvs. Încercați din nou peste o oră.",
+        "email_taken": "Există deja un cont cu acest e-mail.",
+        "sign_in_instead": "Autentificați-vă în schimb.",
+        "check_failed": "Verificarea nu a trecut. Încercați din nou.",
+        "check_load_failed": "Verificarea nu a putut fi încărcată. Verificați conexiunea și încercați din nou."
+      }
     },
     "twofa": {
       "code_label": "Cod 2FA",
@@ -63,6 +72,10 @@
     },
     "verification_banner": {
       "message": "Verifică-ți e-mailul: am trimis un link la {{email}}."
+    },
+    "suspension_notice": {
+      "message": "Monitoarele dvs. pornesc după ce vă verificați e-mailul.",
+      "member_message": "Monitoarele acestui spațiu de lucru pornesc după ce proprietarul său își verifică e-mailul."
     }
   },
   "bars": {

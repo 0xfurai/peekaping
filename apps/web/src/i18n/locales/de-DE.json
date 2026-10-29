@@ -10,16 +10,25 @@
       "sign_up": "Registrieren",
       "submit": "Anmelden",
       "title": "Willkommen zurück",
-      "forgot_password": "Passwort vergessen?"
+      "forgot_password": "Passwort vergessen?",
+      "ask_admin": "Bitten Sie einen Admin dieser Installation um eine Einladung"
     },
     "register": {
       "description": "Erstellen Sie Ihr Admin-Konto",
+      "description_open": "Erstellen Sie Ihr Konto",
       "have_account": "Haben Sie bereits ein Konto?",
       "sign_in": "Anmelden",
       "submit": "Registrieren",
       "title": "Hallo",
       "telemetry_note": "Anonym: keine Monitornamen, URLs oder Hosts. Sie können das später unter „Einstellungen“ ändern.",
-      "telemetry_whats_sent": "Was gesendet wird"
+      "telemetry_whats_sent": "Was gesendet wird",
+      "errors": {
+        "rate_limited": "Zu viele Registrierungen aus Ihrem Netzwerk. Versuchen Sie es in einer Stunde erneut.",
+        "email_taken": "Ein Konto mit dieser E-Mail-Adresse existiert bereits.",
+        "sign_in_instead": "Melden Sie sich stattdessen an.",
+        "check_failed": "Die Prüfung ist fehlgeschlagen. Versuchen Sie es erneut.",
+        "check_load_failed": "Die Prüfung konnte nicht geladen werden. Prüfen Sie Ihre Verbindung und versuchen Sie es erneut."
+      }
     },
     "twofa": {
       "code_label": "2-Faktor-Code",
@@ -63,6 +72,10 @@
     },
     "verification_banner": {
       "message": "Bestätige deine E-Mail-Adresse: Wir haben einen Link an {{email}} gesendet."
+    },
+    "suspension_notice": {
+      "message": "Ihre Monitore starten, sobald Sie Ihre E-Mail-Adresse bestätigt haben.",
+      "member_message": "Die Monitore dieses Arbeitsbereichs starten, sobald dessen Eigentümer seine E-Mail-Adresse bestätigt hat."
     }
   },
   "bars": {

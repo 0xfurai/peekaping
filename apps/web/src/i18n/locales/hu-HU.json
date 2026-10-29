@@ -10,16 +10,25 @@
       "sign_up": "Regisztrálj",
       "submit": "Bejelentkezés",
       "title": "Üdv újra",
-      "forgot_password": "Elfelejtette a jelszavát?"
+      "forgot_password": "Elfelejtette a jelszavát?",
+      "ask_admin": "Kérjen meghívót a telepítés egyik adminisztrátorától"
     },
     "register": {
       "description": "Hozd létre az adminisztrátori fiókodat",
+      "description_open": "Hozd létre a fiókodat",
       "have_account": "Már van fiókod?",
       "sign_in": "Bejelentkezés",
       "submit": "Létrehoz",
       "title": "Szia",
       "telemetry_note": "Névtelen: nincsenek benne figyelők nevei, URL-ek vagy gazdagépek. Később megváltoztathatja a „Beállítások” részben.",
-      "telemetry_whats_sent": "Mit küld"
+      "telemetry_whats_sent": "Mit küld",
+      "errors": {
+        "rate_limited": "Túl sok regisztráció a hálózatáról. Próbálja újra egy óra múlva.",
+        "email_taken": "Ezzel az e-mail-címmel már létezik fiók.",
+        "sign_in_instead": "Inkább jelentkezzen be.",
+        "check_failed": "Az ellenőrzés nem sikerült. Próbálja újra.",
+        "check_load_failed": "Az ellenőrzést nem sikerült betölteni. Ellenőrizze a kapcsolatot, és próbálja újra."
+      }
     },
     "twofa": {
       "code_label": "2FA kód",
@@ -63,6 +72,10 @@
     },
     "verification_banner": {
       "message": "Erősítse meg az e-mail-címét: hivatkozást küldtünk a következő címre: {{email}}."
+    },
+    "suspension_notice": {
+      "message": "A monitorai az e-mail-címe megerősítése után indulnak el.",
+      "member_message": "A munkaterület monitorai azután indulnak el, hogy a tulajdonosa megerősíti az e-mail-címét."
     }
   },
   "bars": {

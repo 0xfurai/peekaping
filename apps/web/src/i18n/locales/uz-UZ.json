@@ -10,16 +10,25 @@
       "sign_up": "Ro'yxatdan o'tish",
       "submit": "Kirish",
       "title": "Xush kelibsiz",
-      "forgot_password": "Parolni unutdingizmi?"
+      "forgot_password": "Parolni unutdingizmi?",
+      "ask_admin": "Bu o'rnatishning administratoridan taklifnoma so'rang"
     },
     "register": {
       "description": "Admin hisobingizni yarating",
+      "description_open": "Hisobingizni yarating",
       "have_account": "Allaqachon hisobingiz bormi?",
       "sign_in": "Kirish",
       "submit": "Yaratish",
       "title": "Salom",
       "telemetry_note": "Anonim: monitor nomlari, URL manzillari va xostlarsiz. Buni keyinroq «Sozlamalar» bo'limida o'zgartirishingiz mumkin.",
-      "telemetry_whats_sent": "Nima yuboriladi"
+      "telemetry_whats_sent": "Nima yuboriladi",
+      "errors": {
+        "rate_limited": "Tarmog'ingizdan juda ko'p ro'yxatdan o'tish bo'ldi. Bir soatdan keyin qayta urinib ko'ring.",
+        "email_taken": "Bu elektron pochta bilan hisob allaqachon mavjud.",
+        "sign_in_instead": "Buning o'rniga tizimga kiring.",
+        "check_failed": "Tekshiruvdan o'tilmadi. Qayta urinib ko'ring.",
+        "check_load_failed": "Tekshiruvni yuklab bo'lmadi. Ulanishingizni tekshiring va qayta urinib ko'ring."
+      }
     },
     "twofa": {
       "code_label": "2FA kodi",
@@ -63,6 +72,10 @@
     },
     "verification_banner": {
       "message": "Elektron pochtangizni tasdiqlang: {{email}} manziliga havola yubordik."
+    },
+    "suspension_notice": {
+      "message": "Monitorlaringiz elektron pochtangizni tasdiqlaganingizdan so'ng ishga tushadi.",
+      "member_message": "Bu ish maydonining monitorlari egasi elektron pochtasini tasdiqlaganidan so'ng ishga tushadi."
     }
   },
   "bars": {

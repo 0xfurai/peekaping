@@ -10,16 +10,25 @@
       "sign_up": "Erregistratu",
       "submit": "Saioa hasi",
       "title": "Berriz ongi etorri",
-      "forgot_password": "Pasahitza ahaztu duzu?"
+      "forgot_password": "Pasahitza ahaztu duzu?",
+      "ask_admin": "Eskatu gonbidapen bat instalazio honen administratzaile bati"
     },
     "register": {
       "description": "Sortu zure administratzaile kontua",
+      "description_open": "Sortu zure kontua",
       "have_account": "Kontu bat baduzu?",
       "sign_in": "Sartu",
       "submit": "Sortu",
       "title": "Kaixo",
       "telemetry_note": "Anonimoa: monitoreen izenik, URLrik edo ostalaririk gabe. Geroago aldatu dezakezu «Ezarpenak» atalean.",
-      "telemetry_whats_sent": "Zer bidaltzen den"
+      "telemetry_whats_sent": "Zer bidaltzen den",
+      "errors": {
+        "rate_limited": "Zure sareatik izen-emate gehiegi. Saiatu berriro ordubete barru.",
+        "email_taken": "Badago kontu bat posta elektroniko honekin.",
+        "sign_in_instead": "Hobe saioa hasi.",
+        "check_failed": "Egiaztapenak ez du gainditu. Saiatu berriro.",
+        "check_load_failed": "Ezin izan da egiaztapena kargatu. Egiaztatu zure konexioa eta saiatu berriro."
+      }
     },
     "twofa": {
       "code_label": "2FA kodea",
@@ -63,6 +72,10 @@
     },
     "verification_banner": {
       "message": "Egiaztatu zure helbide elektronikoa: esteka bat bidali dugu {{email}} helbidera."
+    },
+    "suspension_notice": {
+      "message": "Zure monitoreak martxan jarriko dira posta elektronikoa egiaztatzen duzunean.",
+      "member_message": "Lan-eremu honen monitoreak martxan jarriko dira bere jabeak posta elektronikoa egiaztatzen duenean."
     }
   },
   "bars": {

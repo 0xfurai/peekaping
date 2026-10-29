@@ -10,16 +10,25 @@
       "sign_up": "註冊",
       "submit": "登入",
       "title": "歡迎返嚟",
-      "forgot_password": "唔記得密碼？"
+      "forgot_password": "唔記得密碼？",
+      "ask_admin": "請向呢個安裝嘅管理員要邀請"
     },
     "register": {
       "description": "創建你的管理員帳戶",
+      "description_open": "創建你的帳戶",
       "have_account": "已有帳戶？",
       "sign_in": "登入",
       "submit": "創建",
       "title": "你好",
       "telemetry_note": "匿名：唔包含監測名稱、URL 或者主機。你之後可以喺「設定」度更改。",
-      "telemetry_whats_sent": "會傳送啲咩"
+      "telemetry_whats_sent": "會傳送啲咩",
+      "errors": {
+        "rate_limited": "你個網絡有太多人註冊。請一個鐘之後再試。",
+        "email_taken": "呢個電郵已經有帳戶。",
+        "sign_in_instead": "改為登入。",
+        "check_failed": "驗證冇通過。請再試一次。",
+        "check_load_failed": "載入唔到驗證。請檢查你嘅網絡連線，然後再試一次。"
+      }
     },
     "twofa": {
       "code_label": "兩步驗證碼",
@@ -63,6 +72,10 @@
     },
     "verification_banner": {
       "message": "驗證你嘅電郵：我哋已經寄咗條連結去 {{email}}。"
+    },
+    "suspension_notice": {
+      "message": "你驗證咗電郵之後，監察項目先會開始運行。",
+      "member_message": "呢個工作區嘅監察項目，要等擁有人驗證咗電郵之後先會開始運行。"
     }
   },
   "bars": {

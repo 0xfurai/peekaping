@@ -10,16 +10,25 @@
       "sign_up": "Registreeru",
       "submit": "Logi sisse",
       "title": "Tere tulemast tagasi",
-      "forgot_password": "Unustasid parooli?"
+      "forgot_password": "Unustasid parooli?",
+      "ask_admin": "Küsi selle paigalduse administraatorilt kutset"
     },
     "register": {
       "description": "Loo oma admini konto",
+      "description_open": "Loo oma konto",
       "have_account": "Sul on juba konto?",
       "sign_in": "Logi sisse",
       "submit": "Loo",
       "title": "Tere",
       "telemetry_note": "Anonüümne: ei sisalda monitoride nimesid, URL-e ega hoste. Saate seda hiljem muuta jaotises „Seaded“.",
-      "telemetry_whats_sent": "Mida saadetakse"
+      "telemetry_whats_sent": "Mida saadetakse",
+      "errors": {
+        "rate_limited": "Teie võrgust tuli liiga palju registreerumisi. Proovige tunni aja pärast uuesti.",
+        "email_taken": "Selle e-posti aadressiga konto on juba olemas.",
+        "sign_in_instead": "Logige selle asemel sisse.",
+        "check_failed": "Kontroll ei läbinud. Proovige uuesti.",
+        "check_load_failed": "Kontrolli ei õnnestunud laadida. Kontrollige ühendust ja proovige uuesti."
+      }
     },
     "twofa": {
       "code_label": "2FA kood",
@@ -63,6 +72,10 @@
     },
     "verification_banner": {
       "message": "Kinnita oma e-posti aadress: saatsime lingi aadressile {{email}}."
+    },
+    "suspension_notice": {
+      "message": "Teie monitorid käivituvad pärast e-posti aadressi kinnitamist.",
+      "member_message": "Selle tööruumi monitorid käivituvad pärast seda, kui selle omanik on oma e-posti aadressi kinnitanud."
     }
   },
   "bars": {

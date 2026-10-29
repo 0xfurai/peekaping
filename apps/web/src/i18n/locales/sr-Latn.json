@@ -10,16 +10,25 @@
       "sign_up": "Registrujte se",
       "submit": "Prijava",
       "title": "Dobrodošli nazad",
-      "forgot_password": "Zaboravili ste lozinku?"
+      "forgot_password": "Zaboravili ste lozinku?",
+      "ask_admin": "Zatražite pozivnicu od administratora ove instalacije"
     },
     "register": {
       "description": "Kreiraj svoj admin nalog",
+      "description_open": "Kreiraj svoj nalog",
       "have_account": "Već imate nalog?",
       "sign_in": "Prijavi se",
       "submit": "Kreiraj",
       "title": "Zdravo",
       "telemetry_note": "Anonimno: bez naziva nadgledaja, URL adresa i hostova. To možete da promenite kasnije u „Podešavanja“.",
-      "telemetry_whats_sent": "Šta se šalje"
+      "telemetry_whats_sent": "Šta se šalje",
+      "errors": {
+        "rate_limited": "Previše registracija sa vaše mreže. Pokušajte ponovo za sat vremena.",
+        "email_taken": "Nalog sa ovom adresom e-pošte već postoji.",
+        "sign_in_instead": "Umesto toga se prijavite.",
+        "check_failed": "Provera nije prošla. Pokušajte ponovo.",
+        "check_load_failed": "Provera nije mogla da se učita. Proverite vezu i pokušajte ponovo."
+      }
     },
     "twofa": {
       "code_label": "2FA kod",
@@ -63,6 +72,10 @@
     },
     "verification_banner": {
       "message": "Potvrdite svoj imejl: poslali smo vezu na {{email}}."
+    },
+    "suspension_notice": {
+      "message": "Vaši monitori će početi da rade kada potvrdite adresu e-pošte.",
+      "member_message": "Monitori ovog radnog prostora će početi da rade kada njegov vlasnik potvrdi adresu e-pošte."
     }
   },
   "bars": {

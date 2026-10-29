@@ -41,6 +41,17 @@ import { useLocalizedTranslation } from "@/hooks/useTranslation";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { TelemetryDocsLink } from "@/components/telemetry-docs-link";
+import { TurnstileWidget } from "@/components/turnstile-widget";
+import {
+  canSubmitRegister,
+  registerBody,
+  registerDescriptionKey,
+  registerFailureKey,
+  registerSubmitKey,
+  shownRegisterFailure,
+  showInstallPreferences,
+  type RegisterFailure,
+} from "@/lib/signup";
 
 const createRegisterSchema = (t: (key: string) => string) => z
   .object({
@@ -57,12 +68,49 @@ const createRegisterSchema = (t: (key: string) => string) => z
 
 type RegisterFormValues = z.infer<ReturnType<typeof createRegisterSchema>>;
 
+// The answer to a failed signup. When the address has an account, a link to sign in follows it.
+export function RegisterErrorAlert({ message, signInLink }: { message: string; signInLink: boolean }) {
+  const { t } = useLocalizedTranslation();
+  return (
+    <Alert variant="destructive">
+      <AlertCircle className="h-4 w-4" />
+      <AlertTitle>{t("common.error")}</AlertTitle>
+      <AlertDescription>
+        {message}
+        {signInLink && (
+          <>
+            {" "}
+            <Link to="/login" className="font-medium underline">
+              {t("auth.register.errors.sign_in_instead")}
+            </Link>
+          </>
+        )}
+      </AlertDescription>
+    </Alert>
+  );
+}
+
 export function RegisterForm({
   className,
+  turnstileSiteKey,
+  signupMode,
+  firstSignup,
   ...props
-}: React.ComponentPropsWithoutRef<"div">) {
+}: React.ComponentPropsWithoutRef<"div"> & {
+  // The key of the Turnstile widget the install asks for, or null without one
+  turnstileSiteKey?: string | null;
+  // The install's signup mode. Open mode signs up strangers, who are not admins after the first.
+  signupMode?: "invite" | "open";
+  // Whether the install has no user yet, so that this signup becomes its instance admin
+  firstSignup?: boolean;
+}) {
   const { t } = useLocalizedTranslation();
-  const [serverError, setServerError] = React.useState<string | null>(null);
+  // The install's first signup becomes its admin and chooses for the install; anyone else may not
+  const installPreferences = showInstallPreferences(firstSignup);
+  // A refused signup's message. One the visitor can fix by signing in gets a link beside it.
+  const [failure, setFailure] = React.useState<RegisterFailure | null>(null);
+  const [turnstileToken, setTurnstileToken] = React.useState<string | null>(null);
+  const [turnstileReset, setTurnstileReset] = React.useState(0);
   const setTokens = useAuthStore(
     (state: {
       setTokens: (accessToken: string, refreshToken: string) => void;
@@ -109,25 +157,38 @@ export function RegisterForm({
       if (response.data?.accessToken && response.data?.refreshToken) {
         setTokens(response.data.accessToken, response.data.refreshToken);
         setUser(response.data.user ?? null);
-        // Storing the tokens signs the API client in, so these requests are the admin's. Both
-        // send the choice, on or off: an unticked box is an opt-out to store, not nothing.
-        telemetryMutation.mutate({ body: { enabled: sendUsageStatistics } });
-        errorReportingMutation.mutate({ body: { enabled: sendErrorReports } });
+        if (installPreferences) {
+          // Storing the tokens signs the API client in, so these requests are the admin's. Both
+          // send the choice, on or off: an unticked box is an opt-out to store, not nothing.
+          telemetryMutation.mutate({ body: { enabled: sendUsageStatistics } });
+          errorReportingMutation.mutate({ body: { enabled: sendErrorReports } });
+        }
         toast.success(t("messages.register_success"));
       } else {
         toast.error(t("messages.register_no_tokens"));
       }
     },
-    onError: (error) => {
-      if (isAxiosError(error)) {
+    onError: (error, variables) => {
+      // A token is good for one check, so a refused signup needs a new one
+      if (turnstileSiteKey) {
+        setTurnstileToken(null);
+        setTurnstileReset((n) => n + 1);
+      }
+      const email = variables.body.email;
+      const failureKey = registerFailureKey(error);
+      if (failureKey) {
+        const errorMessage = t(failureKey);
+        setFailure({ message: errorMessage, emailTaken: failureKey === "auth.register.errors.email_taken", email });
+        toast.error(errorMessage);
+      } else if (isAxiosError(error)) {
         const errorMessage =
           error.response?.data.message ||
           t("messages.register_error");
-        setServerError(errorMessage);
+        setFailure({ message: errorMessage, emailTaken: false, email });
         toast.error(errorMessage);
       } else {
         const errorMessage = t("messages.unexpected_error");
-        setServerError(errorMessage);
+        setFailure({ message: errorMessage, emailTaken: false, email });
         console.error(error);
       }
     },
@@ -144,10 +205,13 @@ export function RegisterForm({
     },
   });
 
+  // The refused signup shows while the email field holds its address
+  const shownFailure = shownRegisterFailure(failure, form.watch("email"));
+
   function onSubmit(data: RegisterFormValues) {
-    setServerError(null);
+    setFailure(null);
     registerMutation.mutate({
-      body: data,
+      body: registerBody(data, turnstileSiteKey ? turnstileToken : null),
     });
   }
 
@@ -156,7 +220,7 @@ export function RegisterForm({
       <Card>
         <CardHeader className="text-center">
           <CardTitle className="text-xl">{t("auth.register.title")}</CardTitle>
-          <CardDescription>{t("auth.register.description")}</CardDescription>
+          <CardDescription>{t(registerDescriptionKey(signupMode, firstSignup))}</CardDescription>
         </CardHeader>
 
         <CardContent>
@@ -210,55 +274,63 @@ export function RegisterForm({
                 )}
               />
 
-              <div className="grid gap-2">
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    id="send-usage-statistics"
-                    checked={sendUsageStatistics}
-                    onCheckedChange={(checked) =>
-                      setSendUsageStatistics(checked === true)
-                    }
-                  />
-                  <Label
-                    htmlFor="send-usage-statistics"
-                    className="text-xs text-muted-foreground font-normal"
-                  >
-                    {t("telemetry.label")}
-                  </Label>
+              {installPreferences && (
+                <div className="grid gap-2">
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="send-usage-statistics"
+                      checked={sendUsageStatistics}
+                      onCheckedChange={(checked) =>
+                        setSendUsageStatistics(checked === true)
+                      }
+                    />
+                    <Label
+                      htmlFor="send-usage-statistics"
+                      className="text-xs text-muted-foreground font-normal"
+                    >
+                      {t("telemetry.label")}
+                    </Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="send-error-reports"
+                      checked={sendErrorReports}
+                      onCheckedChange={(checked) =>
+                        setSendErrorReports(checked === true)
+                      }
+                    />
+                    <Label
+                      htmlFor="send-error-reports"
+                      className="text-xs text-muted-foreground font-normal"
+                    >
+                      {t("error_reporting.label")}
+                    </Label>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {t("auth.register.telemetry_note")}{" "}
+                    <TelemetryDocsLink>
+                      {t("auth.register.telemetry_whats_sent")}
+                    </TelemetryDocsLink>
+                  </p>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    id="send-error-reports"
-                    checked={sendErrorReports}
-                    onCheckedChange={(checked) =>
-                      setSendErrorReports(checked === true)
-                    }
-                  />
-                  <Label
-                    htmlFor="send-error-reports"
-                    className="text-xs text-muted-foreground font-normal"
-                  >
-                    {t("error_reporting.label")}
-                  </Label>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  {t("auth.register.telemetry_note")}{" "}
-                  <TelemetryDocsLink>
-                    {t("auth.register.telemetry_whats_sent")}
-                  </TelemetryDocsLink>
-                </p>
-              </div>
-
-              {serverError && (
-                <Alert variant="destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertTitle>{t("common.error")}</AlertTitle>
-                  <AlertDescription>{serverError}</AlertDescription>
-                </Alert>
               )}
 
-              <Button type="submit" className="w-full">
-                {t("auth.register.submit")}
+              {turnstileSiteKey && (
+                <TurnstileWidget
+                  siteKey={turnstileSiteKey}
+                  onToken={setTurnstileToken}
+                  resetKey={turnstileReset}
+                />
+              )}
+
+              {shownFailure && <RegisterErrorAlert message={shownFailure.message} signInLink={shownFailure.emailTaken} />}
+
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={!canSubmitRegister(turnstileSiteKey, turnstileToken, registerMutation.isPending)}
+              >
+                {t(registerSubmitKey(registerMutation.isPending))}
               </Button>
 
               <div className="text-center text-sm text-muted-foreground">

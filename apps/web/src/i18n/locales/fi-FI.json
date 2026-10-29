@@ -10,16 +10,25 @@
       "sign_up": "Rekisteröidy",
       "submit": "Kirjaudu sisään",
       "title": "Tervetuloa takaisin",
-      "forgot_password": "Unohtuiko salasana?"
+      "forgot_password": "Unohtuiko salasana?",
+      "ask_admin": "Pyydä kutsu tämän asennuksen ylläpitäjältä"
     },
     "register": {
       "description": "Luo ylläpitokäyttäjätilisi",
+      "description_open": "Luo tilisi",
       "have_account": "Onko sinulla jo tili?",
       "sign_in": "Kirjaudu sisään",
       "submit": "Luo",
       "title": "Hei",
       "telemetry_note": "Anonyymi: ei valvontojen nimiä, URL-osoitteita eikä isäntiä. Voit muuttaa tätä myöhemmin kohdassa ”Asetukset”.",
-      "telemetry_whats_sent": "Mitä lähetetään"
+      "telemetry_whats_sent": "Mitä lähetetään",
+      "errors": {
+        "rate_limited": "Verkostasi tuli liian monta rekisteröitymistä. Yritä uudelleen tunnin kuluttua.",
+        "email_taken": "Tällä sähköpostiosoitteella on jo tili.",
+        "sign_in_instead": "Kirjaudu sen sijaan sisään.",
+        "check_failed": "Tarkistus ei mennyt läpi. Yritä uudelleen.",
+        "check_load_failed": "Tarkistusta ei voitu ladata. Tarkista yhteytesi ja yritä uudelleen."
+      }
     },
     "twofa": {
       "code_label": "2FA-koodi",
@@ -63,6 +72,10 @@
     },
     "verification_banner": {
       "message": "Vahvista sähköpostiosoitteesi: lähetimme linkin osoitteeseen {{email}}."
+    },
+    "suspension_notice": {
+      "message": "Valvontasi alkavat, kun olet vahvistanut sähköpostiosoitteesi.",
+      "member_message": "Tämän työtilan valvonnat alkavat, kun sen omistaja on vahvistanut sähköpostiosoitteensa."
     }
   },
   "bars": {

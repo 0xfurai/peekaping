@@ -10,16 +10,25 @@
       "sign_up": "Cláraigh",
       "submit": "Logáil isteach",
       "title": "Fáilte ar ais",
-      "forgot_password": "Dearmad ar do phasfhocal?"
+      "forgot_password": "Dearmad ar do phasfhocal?",
+      "ask_admin": "Iarr cuireadh ar riarthóir an suiteála seo"
     },
     "register": {
       "description": "Cruthaigh do chuntas riarthóra",
+      "description_open": "Cruthaigh do chuntas",
       "have_account": "An bhfuil cuntas agat cheana féin?",
       "sign_in": "Logáil isteach",
       "submit": "Cruthaigh",
       "title": "Dia dhuit",
       "telemetry_note": "Gan ainm: gan ainmneacha móntóirí, URLanna ná óstaigh. Is féidir leat é a athrú ar ball faoi “Socruithe”.",
-      "telemetry_whats_sent": "Cad a sheoltar"
+      "telemetry_whats_sent": "Cad a sheoltar",
+      "errors": {
+        "rate_limited": "An iomarca clárúchán ó do líonra. Bain triail eile as faoi uair an chloig.",
+        "email_taken": "Tá cuntas leis an ríomhphost seo ann cheana.",
+        "sign_in_instead": "Sínigh isteach ina ionad.",
+        "check_failed": "Níor éirigh leis an seiceáil. Bain triail eile as.",
+        "check_load_failed": "Níorbh fhéidir an tseiceáil a luchtú. Seiceáil do cheangal agus bain triail eile as."
+      }
     },
     "twofa": {
       "code_label": "Cód 2FA",
@@ -63,6 +72,10 @@
     },
     "verification_banner": {
       "message": "Fíoraigh do ríomhphost: sheolamar nasc chuig {{email}}."
+    },
+    "suspension_notice": {
+      "message": "Tosóidh do mhonatóirí nuair a dhearbhóidh tú do ríomhphost.",
+      "member_message": "Tosóidh monatóirí an spáis oibre seo nuair a dhearbhóidh a úinéir a ríomhphost."
     }
   },
   "bars": {
