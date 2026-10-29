@@ -9,6 +9,7 @@
       "probes": "Zondai",
       "title": "Administravimas",
       "users": "Naudotojai",
+      "workspaces": "Darbo erdvės",
       "settings": "Nustatymai"
     },
     "users": {
@@ -101,6 +102,68 @@
         "yes": "Taip"
       },
       "you": "jūs"
+    },
+    "workspaces": {
+      "actions": {
+        "delete": "Ištrinti darbo erdvę",
+        "resume": "Tęsti darbo erdvės veiklą",
+        "suspend": "Sustabdyti darbo erdvę"
+      },
+      "actions_aria": "{{name}} veiksmai",
+      "columns": {
+        "created": "Sukurta",
+        "custom_domains": "Pasirinktiniai domenai",
+        "members": "Nariai",
+        "monitors": "Monitoriai",
+        "name": "Pavadinimas",
+        "owners": "Savininkai",
+        "status": "Būsena",
+        "status_pages": "Būsenos puslapiai"
+      },
+      "confirm": {
+        "cancel": "Atšaukti",
+        "delete": {
+          "confirm": "Ištrinti darbo erdvę",
+          "description": "Ištrinti {{name}}? Bus pašalinta viskas, kas joje yra: monitoriai ir jų istorija, būsenos puslapiai, pranešimų kanalai ir narių prieiga. Šio veiksmo anuliuoti negalima.",
+          "name_label": "Norėdami patvirtinti, įveskite darbo erdvės pavadinimą: {{name}}",
+          "title": "Ištrinti darbo erdvę"
+        },
+        "resume": {
+          "confirm": "Tęsti",
+          "description": "{{name}} monitoriai vėl veiks tokios būsenos, kokios buvo, o nariai galės ja naudotis kaip anksčiau. Darbo erdvė, laukianti, kol savininkas patvirtins el. paštą, ir toliau lauks.",
+          "title": "Tęsti darbo erdvės veiklą"
+        },
+        "suspend": {
+          "confirm": "Sustabdyti",
+          "description": "{{name}} monitoriai nustoja veikti, jos vieši būsenos puslapiai praneša, kad yra nepasiekiami, o nariai mato, kad ji sustabdyta. Niekas neištrinama, vėliau galėsite jos veiklą tęsti.",
+          "title": "Sustabdyti darbo erdvę"
+        }
+      },
+      "description": "Visos šio diegimo darbo erdvės su jų savininkais, nariais ir tuo, kiek jose yra. Rodomi tik skaičiai, o ne darbo erdvių turinys.",
+      "empty": "Darbo erdvių nerasta",
+      "load_failed": "Nepavyko įkelti darbo erdvių.",
+      "messages": {
+        "deleted": "{{name}} ištrinta",
+        "failed": "Nepavyko pakeisti darbo erdvės.",
+        "resumed": "{{name}} veikla tęsiama",
+        "suspended": "{{name}} sustabdyta"
+      },
+      "monitors": "Aktyvių: {{active}}, pristabdytų: {{paused}}",
+      "none": "Nėra",
+      "page_name": "Darbo erdvės",
+      "paging": {
+        "next": "Kitas",
+        "page": "{{page}} puslapis iš {{pages}}",
+        "previous": "Ankstesnis"
+      },
+      "search_label": "Ieškoti darbo erdvių pagal pavadinimą arba savininko el. paštą",
+      "search_placeholder": "Ieškoti pagal pavadinimą arba savininko el. paštą",
+      "status": {
+        "running": "Veikia",
+        "suspended_admin": "Sustabdė administratorius",
+        "suspended_unverified": "Sustabdyta, kol savininkas patvirtins el. paštą"
+      },
+      "total": "Rasta: {{total}}"
     },
     "settings": {
       "page_name": "Nustatymai",
@@ -1473,7 +1536,8 @@
       "updated_success": "Pranešiklis sėkmingai atnaujintas"
     },
     "new": {
-      "title": "Naujas pranešimų kanalas"
+      "title": "Naujas pranešimų kanalas",
+      "default_hint": "Šis kanalas bus pažymėtas naujuose monitoriuose."
     },
     "no_important": "Nėra svarbių pranešimų.",
     "placeholders": {
@@ -1825,6 +1889,7 @@
       "refresh_in": "Per",
       "refresh_now": "Atnaujinti dabar",
       "status_page_not_found": "Statuso puslapis nerastas arba nebuvo paskelbtas.",
+      "status_page_unavailable": "Šis būsenos puslapis nepasiekiamas",
       "under_maintenance": "Priežiūroje",
       "unknown": "Nežinoma"
     }
@@ -1954,6 +2019,11 @@
     "refresh_failed": "Nepavyko įkelti jūsų darbo sričių. Patikrinkite ryšį ir bandykite dar kartą.",
     "rename_error": "Nepavyko pervadinti darbo erdvės",
     "rename_success": "Darbo erdvė pervadinta",
+    "suspended_banner": {
+      "contact": "Susisiekti:",
+      "message": "Šią darbo erdvę sustabdė šio diegimo administratorius. Jos monitoriai neveikia, o būsenos puslapiai nepasiekiami.",
+      "no_contact": "Susisiekite su asmeniu, kuris prižiūri šį diegimą."
+    },
     "switcher_label": "Perjungti darbo erdvę"
   },
   "get_started": {

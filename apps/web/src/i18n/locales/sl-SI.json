@@ -9,6 +9,7 @@
       "probes": "Sonde",
       "title": "Skrbništvo",
       "users": "Uporabniki",
+      "workspaces": "Delovni prostori",
       "settings": "Nastavitve"
     },
     "users": {
@@ -101,6 +102,68 @@
         "yes": "Da"
       },
       "you": "vi"
+    },
+    "workspaces": {
+      "actions": {
+        "delete": "Izbriši delovni prostor",
+        "resume": "Ponovno omogoči delovni prostor",
+        "suspend": "Začasno ustavi delovni prostor"
+      },
+      "actions_aria": "Dejanja za {{name}}",
+      "columns": {
+        "created": "Ustvarjen",
+        "custom_domains": "Domene po meri",
+        "members": "Člani",
+        "monitors": "Monitorji",
+        "name": "Ime",
+        "owners": "Lastniki",
+        "status": "Stanje",
+        "status_pages": "Statusne strani"
+      },
+      "confirm": {
+        "cancel": "Prekliči",
+        "delete": {
+          "confirm": "Izbriši delovni prostor",
+          "description": "Želite izbrisati {{name}}? Izbrisano bo vse v njem: monitorji in njihova zgodovina, statusne strani, kanali obvestil in dostop članov. Tega ni mogoče razveljaviti.",
+          "name_label": "Za potrditev vnesite ime delovnega prostora: {{name}}",
+          "title": "Izbriši delovni prostor"
+        },
+        "resume": {
+          "confirm": "Ponovno omogoči",
+          "description": "Monitorji v {{name}} znova tečejo v stanju, v kakršnem so bili, člani pa ga lahko uporabljajo kot prej. Delovni prostor, ki čaka, da lastnik potrdi svoj e-poštni naslov, čaka še naprej.",
+          "title": "Ponovno omogoči delovni prostor"
+        },
+        "suspend": {
+          "confirm": "Začasno ustavi",
+          "description": "Monitorji v {{name}} prenehajo teči, njegove javne statusne strani sporočajo, da niso na voljo, člani pa vidijo, da je začasno ustavljen. Nič ni izbrisano in ga lahko pozneje ponovno omogočite.",
+          "title": "Začasno ustavi delovni prostor"
+        }
+      },
+      "description": "Vsi delovni prostori v tej namestitvi z lastniki, člani in koliko vsebujejo. Prikazana so le števila, nič iz vsebine delovnega prostora.",
+      "empty": "Ni najdenih delovnih prostorov",
+      "load_failed": "Delovnih prostorov ni bilo mogoče naložiti.",
+      "messages": {
+        "deleted": "{{name}} je izbrisan",
+        "failed": "Delovnega prostora ni bilo mogoče spremeniti.",
+        "resumed": "{{name}} je ponovno omogočen",
+        "suspended": "{{name}} je začasno ustavljen"
+      },
+      "monitors": "Aktivni: {{active}}, zaustavljeni: {{paused}}",
+      "none": "Brez",
+      "page_name": "Delovni prostori",
+      "paging": {
+        "next": "Naslednja",
+        "page": "Stran {{page}} od {{pages}}",
+        "previous": "Prejšnja"
+      },
+      "search_label": "Išči delovne prostore po imenu ali e-pošti lastnika",
+      "search_placeholder": "Išči po imenu ali e-pošti lastnika",
+      "status": {
+        "running": "Deluje",
+        "suspended_admin": "Začasno ustavil skrbnik",
+        "suspended_unverified": "Začasno ustavljen, dokler lastnik ne potrdi e-pošte"
+      },
+      "total": "Najdenih: {{total}}"
     },
     "settings": {
       "page_name": "Nastavitve",
@@ -1473,7 +1536,8 @@
       "updated_success": "Obveščevalnik je bil uspešno posodobljen."
     },
     "new": {
-      "title": "Nova kanal za obvestila"
+      "title": "Nova kanal za obvestila",
+      "default_hint": "Ta kanal bo označen pri novih monitorjih."
     },
     "no_important": "Ni najdenih pomembnih obvestil.",
     "placeholders": {
@@ -1825,6 +1889,7 @@
       "refresh_in": "Osveži v",
       "refresh_now": "Osveži zdaj",
       "status_page_not_found": "Statusna stran ni bila najdena ali ni objavljena.",
+      "status_page_unavailable": "Ta statusna stran ni na voljo",
       "under_maintenance": "V vzdrževanju",
       "unknown": "Neznano"
     }
@@ -1954,6 +2019,11 @@
     "refresh_failed": "Vaših delovnih prostorov ni bilo mogoče naložiti. Preverite povezavo in poskusite znova.",
     "rename_error": "Preimenovanje delovnega prostora ni uspelo",
     "rename_success": "Delovni prostor je preimenovan",
+    "suspended_banner": {
+      "contact": "Za stik:",
+      "message": "Ta delovni prostor je začasno ustavil skrbnik te namestitve. Njegovi monitorji ne delujejo, statusne strani pa niso na voljo.",
+      "no_contact": "Obrnite se na osebo, ki upravlja to namestitev."
+    },
     "switcher_label": "Zamenjaj delovni prostor"
   },
   "get_started": {

@@ -1,5 +1,6 @@
 import { Navigate, Route } from "react-router-dom";
 import PublicStatusPage from "@/app/status/[slug]/page";
+import { StatusPageUnavailable } from "@/app/status/status-page-unavailable";
 import InvitePage from "@/app/invite/page";
 import ResetPasswordPage from "@/app/reset-password/page";
 import VerifyEmailPage from "@/app/verify-email/page";
@@ -20,3 +21,12 @@ export const createCustomDomainRoute = (slug: string) => (
     <Route path="*" element={<Navigate to="/" replace />} />
   </>
 ); 
+
+// A custom domain whose status page belongs to a suspended workspace: its lookup answers 503, and
+// every address shows that the page is unavailable
+export const createCustomDomainUnavailableRoute = () => (
+  <>
+    <Route path="/" element={<StatusPageUnavailable />} />
+    <Route path="*" element={<Navigate to="/" replace />} />
+  </>
+);

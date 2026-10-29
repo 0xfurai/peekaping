@@ -226,3 +226,22 @@ func TestDisabledMonitorTypes_WithTheVariableUnsetNothingChanges(t *testing.T) {
 	patched := a.request(t, http.MethodPatch, monitorsPath+"/"+made.ID, map[string]any{"type": "tcp", "config": tcpMonitorBody("")["config"]}, a.asAdmin)
 	assert.Equal(t, http.StatusOK, patched.Code, patched.Body.String())
 }
+
+func TestDisabledMonitorTypes_APublicStatusPageShowsAMonitorOfADisabledTypeAsNotActive(t *testing.T) {
+	a := newAppWithAdmin(t, withDisabledMonitorTypes("docker"))
+	containers := a.storeMonitor(t, "Containers", "docker", dockerMonitorConfig, "")
+	site := a.createHTTPMonitor(t, "Site", "")
+	a.createStatusPage(t, statusPage{slug: "shop", published: true, monitors: []string{containers, site}})
+
+	for _, path := range []string{"/api/v1/status-pages/slug/shop/monitors", "/api/v1/status-pages/slug/shop/monitors/homepage"} {
+		t.Run(path, func(t *testing.T) {
+			monitors := decode[[]typedMonitor](t, a.request(t, http.MethodGet, path, nil), http.StatusOK)
+			active := map[string]bool{}
+			for _, m := range monitors {
+				active[m.ID] = m.Active
+			}
+			assert.Equal(t, map[string]bool{containers: false, site: true}, active, "nothing checks the docker monitor, so the page shows it paused")
+		})
+	}
+	assert.True(t, a.typedMonitorOf(t, containers).Active, "its own setting is left as it is")
+}

@@ -9,6 +9,7 @@
       "probes": "프로브",
       "title": "관리자",
       "users": "사용자",
+      "workspaces": "워크스페이스",
       "settings": "설정"
     },
     "users": {
@@ -101,6 +102,68 @@
         "yes": "예"
       },
       "you": "나"
+    },
+    "workspaces": {
+      "actions": {
+        "delete": "워크스페이스 삭제",
+        "resume": "워크스페이스 재개",
+        "suspend": "워크스페이스 일시 정지"
+      },
+      "actions_aria": "{{name}}에 대한 작업",
+      "columns": {
+        "created": "생성일",
+        "custom_domains": "사용자 지정 도메인",
+        "members": "구성원",
+        "monitors": "모니터",
+        "name": "이름",
+        "owners": "소유자",
+        "status": "상태",
+        "status_pages": "상태 페이지"
+      },
+      "confirm": {
+        "cancel": "취소",
+        "delete": {
+          "confirm": "워크스페이스 삭제",
+          "description": "{{name}}을(를) 삭제할까요? 모니터와 그 기록, 상태 페이지, 알림 채널, 구성원의 접근 권한까지 안에 있는 모든 것이 사라집니다. 이 작업은 되돌릴 수 없습니다.",
+          "name_label": "확인하려면 워크스페이스 이름을 입력하세요: {{name}}",
+          "title": "워크스페이스 삭제"
+        },
+        "resume": {
+          "confirm": "재개",
+          "description": "{{name}}의 모니터가 이전 상태 그대로 다시 실행되고, 구성원은 이전처럼 워크스페이스를 사용할 수 있습니다. 소유자의 이메일 인증을 기다리는 워크스페이스는 계속 기다립니다.",
+          "title": "워크스페이스 재개"
+        },
+        "suspend": {
+          "confirm": "일시 정지",
+          "description": "{{name}}의 모니터 실행이 멈추고, 공개 상태 페이지에는 이용할 수 없다고 표시되며, 구성원에게는 워크스페이스가 일시 정지되었다고 표시됩니다. 삭제되는 것은 없으며 나중에 재개할 수 있습니다.",
+          "title": "워크스페이스 일시 정지"
+        }
+      },
+      "description": "이 설치의 모든 워크스페이스와 그 소유자, 구성원, 보유 항목 수입니다. 개수만 표시되며 워크스페이스 내부의 내용은 표시되지 않습니다.",
+      "empty": "워크스페이스를 찾을 수 없습니다",
+      "load_failed": "워크스페이스를 불러오지 못했습니다.",
+      "messages": {
+        "deleted": "{{name}}이(가) 삭제되었습니다",
+        "failed": "워크스페이스를 변경하지 못했습니다.",
+        "resumed": "{{name}}이(가) 재개되었습니다",
+        "suspended": "{{name}}이(가) 일시 정지되었습니다"
+      },
+      "monitors": "활성 {{active}}개, 일시 중지 {{paused}}개",
+      "none": "없음",
+      "page_name": "워크스페이스",
+      "paging": {
+        "next": "다음",
+        "page": "{{pages}}페이지 중 {{page}}페이지",
+        "previous": "이전"
+      },
+      "search_label": "이름 또는 소유자 이메일로 워크스페이스 검색",
+      "search_placeholder": "이름 또는 소유자 이메일로 검색",
+      "status": {
+        "running": "실행 중",
+        "suspended_admin": "관리자가 일시 정지함",
+        "suspended_unverified": "소유자가 이메일을 인증할 때까지 일시 정지됨"
+      },
+      "total": "{{total}}개 찾음"
     },
     "settings": {
       "page_name": "설정",
@@ -1473,7 +1536,8 @@
       "updated_success": "Notifier 업데이트가 완료되었습니다."
     },
     "new": {
-      "title": "새 알림 채널"
+      "title": "새 알림 채널",
+      "default_hint": "이 채널은 새 모니터에서 선택된 상태가 됩니다."
     },
     "no_important": "중요 알림이 없습니다.",
     "placeholders": {
@@ -1825,6 +1889,7 @@
       "refresh_in": "새로 고침까지",
       "refresh_now": "지금 새로 고침",
       "status_page_not_found": "상태 페이지를 찾을 수 없거나 공개되지 않았습니다.",
+      "status_page_unavailable": "이 상태 페이지는 사용할 수 없습니다",
       "under_maintenance": "유지보수 중",
       "unknown": "알 수 없음"
     }
@@ -1954,6 +2019,11 @@
     "refresh_failed": "워크스페이스를 불러오지 못했습니다. 연결을 확인하고 다시 시도하세요.",
     "rename_error": "워크스페이스 이름을 변경하지 못했습니다",
     "rename_success": "워크스페이스 이름을 변경했습니다",
+    "suspended_banner": {
+      "contact": "연락처:",
+      "message": "이 워크스페이스는 이 설치의 관리자가 일시 정지했습니다. 모니터가 실행되지 않으며 상태 페이지를 이용할 수 없습니다.",
+      "no_contact": "이 설치를 운영하는 사람에게 문의하세요."
+    },
     "switcher_label": "워크스페이스 전환"
   },
   "get_started": {

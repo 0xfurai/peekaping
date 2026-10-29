@@ -3,11 +3,12 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TypographyH4 } from "@/components/ui/typography";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
-import { getMonitorType } from "../registry";
+import { getMonitorType, type MonitorFormValues } from "../registry";
 import { useMonitorTypeOptions } from "./type-options";
 import { useMonitorFormContext } from "../../context/monitor-form-context";
 import { useMinCheckInterval } from "@/hooks/useMinCheckInterval";
 import { withMinimumIntervals } from "./intervals-support";
+import { valuesForNewType } from "./type-change";
 
 const General = () => {
   const { form, mode } = useMonitorFormContext();
@@ -41,17 +42,17 @@ const General = () => {
             <Select
               onValueChange={(val) => {
                 // A new monitor that changes type starts from the new type's defaults, keeping
-                // the name typed so far and the probe chosen (the probe section flags it if the
-                // new type doesn't run there). Done here, before the type's form mounts, so that
-                // what its effects set (a push token) stays. An edited monitor keeps its values.
+                // the name, the probes and the channels (see valuesForNewType). Done here, before
+                // the type's form mounts, so that what its effects set (a push token) stays. An
+                // edited monitor keeps its values.
                 const definition = getMonitorType(val);
                 if (mode === "create" && definition) {
-                  const name = form.getValues("name");
-                  form.reset({
-                    ...withMinimumIntervals(definition.defaultValues, minCheckInterval),
-                    name: name || definition.defaultValues.name,
-                    probe_ids: form.getValues("probe_ids"),
-                  });
+                  form.reset(
+                    valuesForNewType(
+                      withMinimumIntervals(definition.defaultValues, minCheckInterval) as MonitorFormValues,
+                      form.getValues()
+                    )
+                  );
                   return;
                 }
                 field.onChange(val);

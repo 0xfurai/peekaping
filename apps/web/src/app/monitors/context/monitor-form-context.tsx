@@ -14,7 +14,6 @@ import {
   useQuery,
 } from "@tanstack/react-query";
 import {
-  getNotificationChannelsOptions,
   getMonitorsInfiniteQueryKey,
   getMonitorsQueryKey,
   postMonitorsMutation,
@@ -46,8 +45,11 @@ import { useCurrentAccess } from "@/hooks/useCurrentAccess";
 import { useMinCheckInterval } from "@/hooks/useMinCheckInterval";
 import { withMinimumIntervals } from "../monitor-types/shared/intervals-support";
 import { checkMonitorValues } from "../monitor-types/shared/check-values";
-import { defaultChannelIds } from "../monitor-types/shared/channel-support";
+import { allNotificationChannelsOptions, defaultChannelIds } from "../monitor-types/shared/channel-support";
 import { useWorkspacePath } from "@/hooks/useWorkspacePath";
+import { useDisabledMonitorTypes } from "@/hooks/useDisabledMonitorTypes";
+import { replacementForDisabledType, selectableMonitorTypes } from "../monitor-types/disabled";
+import { valuesForNewType } from "../monitor-types/shared/type-change";
 
 type Mode = "create" | "edit";
 
@@ -120,22 +122,29 @@ export const MonitorFormProvider: React.FC<MonitorFormProviderProps> = ({
   // ones may be old (see below).
   const presetsChannels = mode === "create" && !initialValues;
   const { data: channels, isFetchedAfterMount: channelsFetched } = useQuery({
-    ...getNotificationChannelsOptions(),
+    ...allNotificationChannelsOptions(),
     enabled: presetsChannels,
   });
   const startingChannelIds = useRef(defaultChannelIds(channels?.data));
   const channelsPreset = useRef(false);
 
+  // A new monitor starts as the first type the registry lists that the install doesn't turn off.
+  // Read here, not at module level: the type forms import this module, so the registry is still
+  // loading then.
+  const disabledTypes = useDisabledMonitorTypes();
+  const startingType = selectableMonitorTypes(monitorTypes, { disabled: disabledTypes })[0] ?? monitorTypes[0];
+  // The type the form set itself, which it may change while the user hasn't (see below)
+  const presetsType = mode === "create" && !initialValues;
+  const typeSetByForm = useRef(startingType.type);
+
   const form = useForm<MonitorFormValues>({
-    // A new monitor starts as the first type the registry lists. Read here, not at module
-    // level: the type forms import this module, so the registry is still loading then.
     // The interval and retry interval start at the install's minimum.
     defaultValues:
       initialValues ??
       withMinimumIntervals(
         channels?.data
-          ? { ...monitorTypes[0].defaultValues, notification_ids: startingChannelIds.current }
-          : monitorTypes[0].defaultValues,
+          ? { ...startingType.defaultValues, notification_ids: startingChannelIds.current }
+          : startingType.defaultValues,
         minCheckInterval
       ),
     // The schema, and a check of the probe that it can't make: which probes run which types
@@ -173,6 +182,24 @@ export const MonitorFormProvider: React.FC<MonitorFormProviderProps> = ({
       current.every((id) => startingChannelIds.current.includes(id));
     if (untouched) form.setValue("notification_ids", defaultChannelIds(channels.data));
   }, [presetsChannels, channelsFetched, channels, form]);
+
+  // A new monitor that isn't a clone moves off its starting type when /me, loaded or refetched after
+  // the form opened, turns that type off. As the type select does, it starts from the new type's
+  // defaults, keeping the name, the probes and the channels. Not over a type the user chose.
+  useEffect(() => {
+    if (!presetsType) return;
+    const next = replacementForDisabledType(monitorTypes, {
+      type: form.getValues("type"),
+      setByForm: typeSetByForm.current,
+      dirty: form.getFieldState("type").isDirty,
+      disabled: disabledTypes,
+    });
+    if (!next) return;
+    typeSetByForm.current = next.type;
+    form.reset(
+      valuesForNewType(withMinimumIntervals(next.defaultValues, minCheckInterval) as MonitorFormValues, form.getValues())
+    );
+  }, [presetsType, disabledTypes, minCheckInterval, form]);
 
   // In edit mode the form shows the saved monitor once it is loaded
   useEffect(() => {

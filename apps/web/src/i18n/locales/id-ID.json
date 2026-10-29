@@ -9,6 +9,7 @@
       "probes": "Probe",
       "title": "Admin",
       "users": "Pengguna",
+      "workspaces": "Ruang kerja",
       "settings": "Pengaturan"
     },
     "users": {
@@ -101,6 +102,68 @@
         "yes": "Ya"
       },
       "you": "Anda"
+    },
+    "workspaces": {
+      "actions": {
+        "delete": "Hapus ruang kerja",
+        "resume": "Aktifkan kembali ruang kerja",
+        "suspend": "Tangguhkan ruang kerja"
+      },
+      "actions_aria": "Tindakan untuk {{name}}",
+      "columns": {
+        "created": "Dibuat",
+        "custom_domains": "Domain kustom",
+        "members": "Anggota",
+        "monitors": "Pengawasan",
+        "name": "Nama",
+        "owners": "Pemilik",
+        "status": "Status",
+        "status_pages": "Halaman status"
+      },
+      "confirm": {
+        "cancel": "Batal",
+        "delete": {
+          "confirm": "Hapus ruang kerja",
+          "description": "Hapus {{name}}? Semua isinya ikut terhapus: pengawasan beserta riwayatnya, halaman status, saluran pemberitahuan, dan akses anggotanya. Tindakan ini tidak bisa dibatalkan.",
+          "name_label": "Ketik nama ruang kerja untuk mengonfirmasi: {{name}}",
+          "title": "Hapus ruang kerja"
+        },
+        "resume": {
+          "confirm": "Aktifkan kembali",
+          "description": "Pengawasan di {{name}} berjalan lagi dengan status seperti sebelumnya, dan anggotanya bisa menggunakannya seperti biasa. Ruang kerja yang menunggu verifikasi email pemiliknya tetap menunggu.",
+          "title": "Aktifkan kembali ruang kerja"
+        },
+        "suspend": {
+          "confirm": "Tangguhkan",
+          "description": "Pengawasan di {{name}} berhenti berjalan, halaman status publiknya menyatakan tidak tersedia, dan anggotanya melihat bahwa ruang kerja ini ditangguhkan. Tidak ada yang dihapus, dan Anda bisa mengaktifkannya kembali nanti.",
+          "title": "Tangguhkan ruang kerja"
+        }
+      },
+      "description": "Semua ruang kerja di instalasi ini, beserta pemilik, anggota, dan seberapa banyak isinya. Hanya jumlah yang ditampilkan, bukan isi ruang kerja.",
+      "empty": "Ruang kerja tidak ditemukan",
+      "load_failed": "Gagal memuat ruang kerja.",
+      "messages": {
+        "deleted": "{{name}} dihapus",
+        "failed": "Gagal mengubah ruang kerja.",
+        "resumed": "{{name}} diaktifkan kembali",
+        "suspended": "{{name}} ditangguhkan"
+      },
+      "monitors": "{{active}} aktif, {{paused}} dijeda",
+      "none": "Tidak ada",
+      "page_name": "Ruang kerja",
+      "paging": {
+        "next": "Berikutnya",
+        "page": "Halaman {{page}} dari {{pages}}",
+        "previous": "Sebelumnya"
+      },
+      "search_label": "Cari ruang kerja berdasarkan nama atau email pemilik",
+      "search_placeholder": "Cari berdasarkan nama atau email pemilik",
+      "status": {
+        "running": "Berjalan",
+        "suspended_admin": "Ditangguhkan oleh admin",
+        "suspended_unverified": "Ditangguhkan sampai pemilik memverifikasi emailnya"
+      },
+      "total": "{{total}} ditemukan"
     },
     "settings": {
       "page_name": "Pengaturan",
@@ -1473,7 +1536,8 @@
       "updated_success": "Notifier berhasil diperbarui"
     },
     "new": {
-      "title": "Saluran Pemberitahuan Baru"
+      "title": "Saluran Pemberitahuan Baru",
+      "default_hint": "Saluran ini akan dicentang pada monitor baru."
     },
     "no_important": "Tidak ada notifikasi penting.",
     "placeholders": {
@@ -1825,6 +1889,7 @@
       "refresh_in": "Segarkan dalam",
       "refresh_now": "Segarkan Sekarang",
       "status_page_not_found": "Halaman status tidak ditemukan atau belum dipublikasikan.",
+      "status_page_unavailable": "Halaman status ini tidak tersedia",
       "under_maintenance": "Sedang dalam Pemeliharaan",
       "unknown": "Tidak diketahui"
     }
@@ -1954,6 +2019,11 @@
     "refresh_failed": "Ruang kerja Anda tidak dapat dimuat. Periksa koneksi Anda dan coba lagi.",
     "rename_error": "Gagal mengganti nama ruang kerja",
     "rename_success": "Ruang kerja diganti namanya",
+    "suspended_banner": {
+      "contact": "Untuk menghubungi:",
+      "message": "Ruang kerja ini ditangguhkan oleh administrator instalasi ini. Pengawasannya tidak berjalan, dan halaman statusnya tidak tersedia.",
+      "no_contact": "Hubungi orang yang mengelola instalasi ini."
+    },
     "switcher_label": "Ganti ruang kerja"
   },
   "get_started": {

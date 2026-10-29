@@ -9,6 +9,7 @@
       "probes": "Sondy",
       "title": "Správa",
       "users": "Uživatelé",
+      "workspaces": "Pracovní prostory",
       "settings": "Nastavení"
     },
     "users": {
@@ -101,6 +102,68 @@
         "yes": "Ano"
       },
       "you": "vy"
+    },
+    "workspaces": {
+      "actions": {
+        "delete": "Smazat pracovní prostor",
+        "resume": "Obnovit pracovní prostor",
+        "suspend": "Pozastavit pracovní prostor"
+      },
+      "actions_aria": "Akce pro {{name}}",
+      "columns": {
+        "created": "Vytvořen",
+        "custom_domains": "Vlastní domény",
+        "members": "Členové",
+        "monitors": "Monitory",
+        "name": "Název",
+        "owners": "Vlastníci",
+        "status": "Stav",
+        "status_pages": "Stránky stavu"
+      },
+      "confirm": {
+        "cancel": "Zrušit",
+        "delete": {
+          "confirm": "Smazat pracovní prostor",
+          "description": "Smazat {{name}}? Zmizí vše, co obsahuje: jeho monitory a jejich historie, stránky stavu, kanály oznámení a přístup jeho členů. Tuto akci nelze vrátit zpět.",
+          "name_label": "Pro potvrzení zadejte název pracovního prostoru: {{name}}",
+          "title": "Smazat pracovní prostor"
+        },
+        "resume": {
+          "confirm": "Obnovit",
+          "description": "Monitory pracovního prostoru {{name}} znovu poběží ve stavu, ve kterém byly, a jeho členové ho mohou používat jako dřív. Pracovní prostor, který čeká, až vlastník ověří svůj e-mail, čeká dál.",
+          "title": "Obnovit pracovní prostor"
+        },
+        "suspend": {
+          "confirm": "Pozastavit",
+          "description": "Monitory pracovního prostoru {{name}} přestanou běžet, jeho veřejné stránky stavu budou hlásit, že nejsou dostupné, a jeho členové uvidí, že je pozastaven. Nic se nesmaže a později ho můžete obnovit.",
+          "title": "Pozastavit pracovní prostor"
+        }
+      },
+      "description": "Všechny pracovní prostory v této instalaci s jejich vlastníky, členy a tím, kolik obsahují. Zobrazují se jen počty, nic z obsahu pracovního prostoru.",
+      "empty": "Nebyly nalezeny žádné pracovní prostory",
+      "load_failed": "Pracovní prostory se nepodařilo načíst.",
+      "messages": {
+        "deleted": "{{name}} je smazán",
+        "failed": "Pracovní prostor se nepodařilo změnit.",
+        "resumed": "{{name}} je obnoven",
+        "suspended": "{{name}} je pozastaven"
+      },
+      "monitors": "Aktivní: {{active}}, pozastavené: {{paused}}",
+      "none": "Žádné",
+      "page_name": "Pracovní prostory",
+      "paging": {
+        "next": "Další",
+        "page": "Strana {{page}} z {{pages}}",
+        "previous": "Předchozí"
+      },
+      "search_label": "Hledat pracovní prostory podle názvu nebo e-mailu vlastníka",
+      "search_placeholder": "Hledat podle názvu nebo e-mailu vlastníka",
+      "status": {
+        "running": "Běží",
+        "suspended_admin": "Pozastaveno správcem",
+        "suspended_unverified": "Pozastaveno, dokud vlastník neověří svůj e-mail"
+      },
+      "total": "Nalezeno: {{total}}"
     },
     "settings": {
       "page_name": "Nastavení",
@@ -1473,7 +1536,8 @@
       "updated_success": "Notifikátor byl úspěšně aktualizován"
     },
     "new": {
-      "title": "Nový notifikační kanál"
+      "title": "Nový notifikační kanál",
+      "default_hint": "Tento kanál bude u nových monitorů zaškrtnutý."
     },
     "no_important": "Nebyly nalezeny žádné důležité notifikace.",
     "placeholders": {
@@ -1825,6 +1889,7 @@
       "refresh_in": "Obnovit za",
       "refresh_now": "Obnovit nyní",
       "status_page_not_found": "Stránka stavu nebyla nalezena nebo nebyla zveřejněna.",
+      "status_page_unavailable": "Tato stránka stavu není dostupná",
       "under_maintenance": "Probíhá údržba",
       "unknown": "Neznámý"
     }
@@ -1954,6 +2019,11 @@
     "refresh_failed": "Vaše pracovní prostory se nepodařilo načíst. Zkontrolujte připojení a zkuste to znovu.",
     "rename_error": "Pracovní prostor se nepodařilo přejmenovat",
     "rename_success": "Pracovní prostor byl přejmenován",
+    "suspended_banner": {
+      "contact": "Kontakt:",
+      "message": "Tento pracovní prostor pozastavil správce této instalace. Jeho monitory neběží a jeho stránky stavu nejsou dostupné.",
+      "no_contact": "Obraťte se na osobu, která tuto instalaci spravuje."
+    },
     "switcher_label": "Přepnout pracovní prostor"
   },
   "get_started": {

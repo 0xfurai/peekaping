@@ -9,6 +9,7 @@
       "probes": "Sondy",
       "title": "Administracja",
       "users": "Użytkownicy",
+      "workspaces": "Obszary robocze",
       "settings": "Ustawienia"
     },
     "users": {
@@ -101,6 +102,68 @@
         "yes": "Tak"
       },
       "you": "ty"
+    },
+    "workspaces": {
+      "actions": {
+        "delete": "Usuń obszar roboczy",
+        "resume": "Wznów obszar roboczy",
+        "suspend": "Zawieś obszar roboczy"
+      },
+      "actions_aria": "Akcje dla {{name}}",
+      "columns": {
+        "created": "Utworzono",
+        "custom_domains": "Własne domeny",
+        "members": "Członkowie",
+        "monitors": "Monitory",
+        "name": "Nazwa",
+        "owners": "Właściciele",
+        "status": "Status",
+        "status_pages": "Strony statusu"
+      },
+      "confirm": {
+        "cancel": "Anuluj",
+        "delete": {
+          "confirm": "Usuń obszar roboczy",
+          "description": "Usunąć {{name}}? Zniknie wszystko, co się w nim znajduje: monitory i ich historia, strony statusu, kanały powiadomień oraz dostęp członków. Tej operacji nie można cofnąć.",
+          "name_label": "Aby potwierdzić, wpisz nazwę obszaru roboczego: {{name}}",
+          "title": "Usuń obszar roboczy"
+        },
+        "resume": {
+          "confirm": "Wznów",
+          "description": "Monitory obszaru {{name}} znów działają w stanie, w jakim były, a jego członkowie mogą z niego korzystać jak wcześniej. Obszar roboczy, który czeka na weryfikację adresu e-mail właściciela, nadal czeka.",
+          "title": "Wznów obszar roboczy"
+        },
+        "suspend": {
+          "confirm": "Zawieś",
+          "description": "Monitory obszaru {{name}} przestają działać, jego publiczne strony statusu informują, że są niedostępne, a członkowie widzą, że obszar jest zawieszony. Nic nie zostaje usunięte i później możesz go wznowić.",
+          "title": "Zawieś obszar roboczy"
+        }
+      },
+      "description": "Wszystkie obszary robocze w tej instalacji wraz z ich właścicielami, członkami i tym, ile zawierają. Widoczne są tylko liczby, nic z zawartości obszaru roboczego.",
+      "empty": "Nie znaleziono obszarów roboczych",
+      "load_failed": "Nie udało się wczytać obszarów roboczych.",
+      "messages": {
+        "deleted": "Obszar roboczy {{name}} został usunięty",
+        "failed": "Nie udało się zmienić obszaru roboczego.",
+        "resumed": "Obszar roboczy {{name}} został wznowiony",
+        "suspended": "Obszar roboczy {{name}} został zawieszony"
+      },
+      "monitors": "Aktywne: {{active}}, wstrzymane: {{paused}}",
+      "none": "Brak",
+      "page_name": "Obszary robocze",
+      "paging": {
+        "next": "Następna",
+        "page": "Strona {{page}} z {{pages}}",
+        "previous": "Poprzednia"
+      },
+      "search_label": "Szukaj obszarów roboczych po nazwie lub adresie e-mail właściciela",
+      "search_placeholder": "Szukaj po nazwie lub adresie e-mail właściciela",
+      "status": {
+        "running": "Działa",
+        "suspended_admin": "Zawieszony przez administratora",
+        "suspended_unverified": "Zawieszony do czasu weryfikacji adresu e-mail przez właściciela"
+      },
+      "total": "Znaleziono: {{total}}"
     },
     "settings": {
       "page_name": "Ustawienia",
@@ -1473,7 +1536,8 @@
       "updated_success": "Notifier został pomyślnie zaktualizowany"
     },
     "new": {
-      "title": "Nowy kanał powiadomień"
+      "title": "Nowy kanał powiadomień",
+      "default_hint": "Ten kanał będzie zaznaczony w nowych monitorach."
     },
     "no_important": "Nie znaleziono ważnych powiadomień.",
     "placeholders": {
@@ -1825,6 +1889,7 @@
       "refresh_in": "Odśwież w",
       "refresh_now": "Odśwież teraz",
       "status_page_not_found": "Strona statusu nie została znaleziona lub nie jest opublikowana.",
+      "status_page_unavailable": "Ta strona statusu jest niedostępna",
       "under_maintenance": "W trakcie konserwacji",
       "unknown": "Nieznany"
     }
@@ -1954,6 +2019,11 @@
     "refresh_failed": "Nie udało się wczytać Twoich przestrzeni roboczych. Sprawdź połączenie i spróbuj ponownie.",
     "rename_error": "Nie udało się zmienić nazwy obszaru roboczego",
     "rename_success": "Zmieniono nazwę obszaru roboczego",
+    "suspended_banner": {
+      "contact": "Kontakt:",
+      "message": "Ten obszar roboczy został zawieszony przez administratora tej instalacji. Jego monitory nie działają, a strony statusu są niedostępne.",
+      "no_contact": "Skontaktuj się z osobą, która zarządza tą instalacją."
+    },
     "switcher_label": "Przełącz obszar roboczy"
   },
   "get_started": {
