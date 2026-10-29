@@ -121,6 +121,9 @@ func newHarnessWith(t *testing.T, delay, sweep time.Duration) *harness {
 	bus := eventstest.NewBus()
 	server, err := websocket.NewServer(&config.Config{}, bus, tokens, workspace.NewSQLRepository(db), monitor.NewSQLRepository(db), logger)
 	require.NoError(t, err)
+	// The sweep starts with the first socket and would outlive the test. It stops before the
+	// database closes, since cleanups run last first.
+	t.Cleanup(func() { websocket.StopSweep(server) })
 	h := &harness{bus: bus, tokens: tokens, db: db}
 	websocket.OnConnection(server, delay, func(id string) {
 		if hook := h.onConnection.Load(); hook != nil {
