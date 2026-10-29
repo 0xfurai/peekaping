@@ -52,6 +52,23 @@ describe("runFromChoices", () => {
   it("is hidden for a push monitor, which runs on the local probe", () => {
     expect(runFromChoices([local, eu], "push", []).hidden).toBe(true);
   });
+
+  // A saved monitor whose probe was disabled, or no longer runs the type, can move to the one
+  // probe left only through the list
+  it("is shown with one probe to choose from when the monitor runs on a probe that isn't one", () => {
+    expect(runFromChoices([off, eu], "http", ["off"]).hidden).toBe(false);
+    expect(runFromChoices([off, eu], "http", ["eu", "off"]).hidden).toBe(false);
+    expect(runFromChoices([local, eu], "docker", ["eu"]).hidden).toBe(false);
+  });
+
+  it("stays hidden with one probe to choose from that the monitor already runs on", () => {
+    expect(runFromChoices([off, eu], "http", ["eu"]).hidden).toBe(true);
+  });
+
+  it("stays hidden with no probe to choose from", () => {
+    expect(runFromChoices([], "http", ["local"]).hidden).toBe(true);
+    expect(runFromChoices([off], "http", ["off"]).hidden).toBe(true);
+  });
 });
 
 describe("runFromDefaultIds", () => {
