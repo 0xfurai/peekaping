@@ -34,6 +34,7 @@ import type {
 } from "@/api";
 import type { UtilsApiResponseMonitorMonitorResponseDto } from "@/api/types.gen";
 import { apiErrorCode, commonMutationErrorHandler } from "@/lib/utils";
+import { limitReachedMessage } from "@/lib/limit-errors";
 import {
   deserializeMonitor,
   monitorTypes,
@@ -215,6 +216,12 @@ export const MonitorFormProvider: React.FC<MonitorFormProviderProps> = ({
   // Another monitor holding the push token has a message of its own, since the response carries
   // only its code
   const handleMutationError = (fallbackMessage: string) => (error: unknown) => {
+    // Too many active monitors, or more probes than a monitor of the workspace may run on
+    const limit = limitReachedMessage(error, t);
+    if (limit) {
+      toast.error(limit);
+      return;
+    }
     if (apiErrorCode(error) === "PUSH_TOKEN_EXISTS") {
       toast.error(t("monitors.toasts.push_token_already_used"));
       console.error(error);

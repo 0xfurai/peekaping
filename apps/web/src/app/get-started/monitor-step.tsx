@@ -18,6 +18,7 @@ import { useWorkspacePath } from "@/hooks/useWorkspacePath";
 import { monitorTypeDisabledReason } from "@/app/monitors/monitor-types/disabled";
 import { firstMonitorBody, parseMonitorUrl } from "@/lib/get-started";
 import { commonMutationErrorHandler } from "@/lib/utils";
+import { showLimitReached } from "@/lib/limit-errors";
 import { SkipSetup } from "./skip-setup";
 import { StepCard } from "./step-card";
 
@@ -49,7 +50,7 @@ export function MonitorStep({ onCreated }: { onCreated: (monitorId: string) => v
       queryClient.invalidateQueries({ queryKey: getMonitorsQueryKey() });
       onCreated(response.data.id);
     },
-    onError: commonMutationErrorHandler(t("get_started.monitor.create_failed")),
+    onError: showLimitReached(t, commonMutationErrorHandler(t("get_started.monitor.create_failed"))),
   });
 
   const submit = (values: MonitorStepValues) => {

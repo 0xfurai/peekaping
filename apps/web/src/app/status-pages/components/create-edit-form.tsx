@@ -30,6 +30,7 @@ import {
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { commonMutationErrorHandler } from "@/lib/utils";
+import { showLimitReached } from "@/lib/limit-errors";
 import type { AxiosError } from "axios";
 import { useWorkspacePath } from "@/hooks/useWorkspacePath";
 
@@ -107,7 +108,8 @@ const CreateEditForm = ({
   const handleMutationError = (error: AxiosError<{error: DomainAlreadyUsedError | SlugAlreadyUsedError}>) => {
     // Fallback toast
     const fallbackMessage = mode === "create" ? "Failed to create status page" : "Failed to update status page";
-    commonMutationErrorHandler(fallbackMessage)(error);
+    // Too many status pages, or custom domains across them
+    showLimitReached(t, commonMutationErrorHandler(fallbackMessage))(error);
     
     // Handle structured error response
     const errorData = error.response?.data?.error;

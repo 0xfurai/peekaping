@@ -49,6 +49,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { cn, commonMutationErrorHandler } from "@/lib/utils";
+import { showLimitReached } from "@/lib/limit-errors";
 import ImportantNotificationsList from "../components/important-notifications-list";
 import { BackButton } from "@/components/back-button";
 import dayjs from "dayjs";
@@ -246,7 +247,8 @@ const MonitorPageContent = () => {
         }
       );
     },
-    onError: commonMutationErrorHandler("Failed to pause monitor"),
+    // Resuming one in a workspace with as many active monitors as its limit is refused
+    onError: showLimitReached(t, commonMutationErrorHandler("Failed to pause monitor")),
   });
 
   const { data: heartbeatsResponse } = useQuery({
