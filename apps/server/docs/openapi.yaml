@@ -36,6 +36,60 @@ components:
         - id
         - name
       type: object
+    admin.LimitValuesResponse:
+      additionalProperties: false
+      properties:
+        custom_domains:
+          format: int64
+          type:
+            - integer
+            - "null"
+        members:
+          format: int64
+          type:
+            - integer
+            - "null"
+        min_check_interval:
+          format: int64
+          type:
+            - integer
+            - "null"
+        monitors:
+          format: int64
+          type:
+            - integer
+            - "null"
+        owned_workspaces:
+          description: The install's default, which a user's workspaces are counted against, whatever the source.
+          format: int64
+          type:
+            - integer
+            - "null"
+        probes_per_monitor:
+          format: int64
+          type:
+            - integer
+            - "null"
+        retention_days:
+          format: int64
+          type:
+            - integer
+            - "null"
+        status_pages:
+          format: int64
+          type:
+            - integer
+            - "null"
+      required:
+        - monitors
+        - min_check_interval
+        - status_pages
+        - custom_domains
+        - members
+        - owned_workspaces
+        - probes_per_monitor
+        - retention_days
+      type: object
     admin.ResetLinkResponse:
       additionalProperties: false
       properties:
@@ -65,8 +119,17 @@ components:
     admin.UpdateWorkspaceDto:
       additionalProperties: true
       properties:
+        clearLimits:
+          description: true removes the workspace's own limits, so that the install's defaults apply to it again. Not with limits.
+          type: boolean
+        limits:
+          $ref: "#/components/schemas/admin.WorkspaceLimitsDto"
+          description: Give the workspace limits of its own, which replace the install's defaults whole. A limit left out, or 0, is none, so {} is a workspace with no limits at all, whatever the defaults say. Not with clearLimits.
+          type:
+            - ""
+            - "null"
         suspended:
-          description: Suspend (true) or resume (false) the workspace. Required.
+          description: Suspend (true) or resume (false) the workspace.
           type:
             - boolean
             - "null"
@@ -149,6 +212,60 @@ components:
         - page
         - limit
       type: object
+    admin.WorkspaceLimitsDto:
+      additionalProperties: false
+      properties:
+        custom_domains:
+          description: How many custom domains its status pages may have, together.
+          format: int64
+          minimum: 0
+          type: integer
+        members:
+          description: How many members it may have, with its pending invites counted.
+          format: int64
+          minimum: 0
+          type: integer
+        min_check_interval:
+          description: "The shortest check interval and retry interval of its monitors, in seconds. MIN_CHECK_INTERVAL applies as well: the stricter wins."
+          format: int64
+          minimum: 0
+          type: integer
+        monitors:
+          description: How many active monitors the workspace may have.
+          format: int64
+          minimum: 0
+          type: integer
+        probes_per_monitor:
+          description: How many probes one of its monitors may run on.
+          format: int64
+          minimum: 0
+          type: integer
+        retention_days:
+          description: The longest data retention period it may keep, in days.
+          format: int64
+          minimum: 0
+          type: integer
+        status_pages:
+          description: How many status pages it may have.
+          format: int64
+          minimum: 0
+          type: integer
+      type: object
+    admin.WorkspaceLimitsResponse:
+      additionalProperties: false
+      properties:
+        source:
+          enum:
+            - workspace
+            - install
+            - none
+          type: string
+        values:
+          $ref: "#/components/schemas/admin.LimitValuesResponse"
+      required:
+        - source
+        - values
+      type: object
     admin.WorkspaceMonitorsResponse:
       additionalProperties: false
       properties:
@@ -173,6 +290,8 @@ components:
           type: integer
         id:
           type: string
+        limits:
+          $ref: "#/components/schemas/admin.WorkspaceLimitsResponse"
         memberCount:
           format: int64
           type: integer
@@ -213,6 +332,7 @@ components:
         - suspended
         - suspendedReason
         - suspendedAt
+        - limits
       type: object
     admin.WorkspacesPageResponse:
       additionalProperties: false
@@ -920,6 +1040,78 @@ components:
         - message
         - data
         - error
+      type: object
+    limits.Report:
+      additionalProperties: false
+      properties:
+        limits:
+          $ref: "#/components/schemas/limits.Uses"
+        source:
+          description: Where the workspace's limits come from.
+          enum:
+            - workspace
+            - install
+            - none
+          type: string
+      required:
+        - source
+        - limits
+      type: object
+    limits.Use:
+      additionalProperties: false
+      properties:
+        max:
+          description: The limit, or null for none.
+          format: int64
+          type:
+            - integer
+            - "null"
+        source:
+          description: "Where the limit comes from: the workspace's own limits, the install's defaults, or none."
+          enum:
+            - workspace
+            - install
+            - none
+          type: string
+        used:
+          description: What the workspace has of it. For min_check_interval, the shortest interval that applies; for retention_days, the workspace's data retention period; for probes_per_monitor, the most probes a monitor runs on; for owned_workspaces, how many the caller owns (0 for an API key).
+          format: int64
+          type: integer
+      required:
+        - max
+        - used
+        - source
+      type: object
+    limits.Uses:
+      additionalProperties: false
+      properties:
+        custom_domains:
+          $ref: "#/components/schemas/limits.Use"
+        members:
+          $ref: "#/components/schemas/limits.Use"
+          description: Members, with the pending invites counted.
+        min_check_interval:
+          $ref: "#/components/schemas/limits.Use"
+        monitors:
+          $ref: "#/components/schemas/limits.Use"
+        owned_workspaces:
+          $ref: "#/components/schemas/limits.Use"
+          description: Counted per user, against the install's defaults alone.
+        probes_per_monitor:
+          $ref: "#/components/schemas/limits.Use"
+        retention_days:
+          $ref: "#/components/schemas/limits.Use"
+        status_pages:
+          $ref: "#/components/schemas/limits.Use"
+      required:
+        - monitors
+        - min_check_interval
+        - status_pages
+        - custom_domains
+        - members
+        - owned_workspaces
+        - probes_per_monitor
+        - retention_days
       type: object
     maintenance.CreateUpdateDto:
       additionalProperties: true
@@ -3678,6 +3870,17 @@ components:
         - message
         - data
       type: object
+    utils.ApiResponse_peekaping_internal_limits.Report:
+      additionalProperties: false
+      properties:
+        data:
+          $ref: "#/components/schemas/limits.Report"
+        message:
+          type: string
+      required:
+        - message
+        - data
+      type: object
     utils.ApiResponse_probe.AssignAllMonitorsResponse:
       additionalProperties: false
       properties:
@@ -4350,7 +4553,7 @@ paths:
         - admin
   /api/v1/admin/workspaces:
     get:
-      description: "Only an instance admin may do this: any other user and any API key get 403. Every workspace with its name, when it was created, its owners' emails, how many members it has, how many monitors are active and paused, how many status pages and custom domains it has, and whether and why it is suspended (\"admin\" when an instance admin suspended it, \"unverified\" when it waits for its owner to verify their email address) and since when. Counts and metadata only: never a monitor's target, a channel or anything else inside a workspace. q finds the workspaces whose name or whose owner's email contains it, ignoring case. The oldest workspace is first."
+      description: "Only an instance admin may do this: any other user and any API key get 403. Every workspace with its name, when it was created, its owners' emails, how many members it has, how many monitors are active and paused, how many status pages and custom domains it has, and whether and why it is suspended (\"admin\" when an instance admin suspended it, \"unverified\" when it waits for its owner to verify their email address) and since when, and its limits: each value, null for none, and where they come from (its own, the install's defaults or none; owned_workspaces is always the install's). Counts and metadata only: never a monitor's target, a channel or anything else inside a workspace. q finds the workspaces whose name or whose owner's email contains it, ignoring case. The oldest workspace is first."
       operationId: getAdminWorkspaces
       parameters:
         - description: Only workspaces whose name or whose owner's email contains this text, ignoring case
@@ -4459,7 +4662,7 @@ paths:
       tags:
         - admin
     patch:
-      description: "Only an instance admin may do this. suspended true suspends the workspace: its monitors stop running, its public status pages and badges answer 503 with the code STATUS_PAGE_UNAVAILABLE, and its members see that it is suspended. Nothing is deleted. suspended false resumes it: the monitors keep the state they had and run again, unless the workspace still waits for its owner to verify their email address, which is a hold of its own that resuming leaves. Suspending a suspended workspace, and resuming one that is not held by an admin, change nothing. suspended is required. The answer is the workspace as the list shows it."
+      description: "Only an instance admin may do this. suspended true suspends the workspace: its monitors stop running, its public status pages and badges answer 503 with the code STATUS_PAGE_UNAVAILABLE, and its members see that it is suspended. Nothing is deleted. suspended false resumes it: the monitors keep the state they had and run again, unless the workspace still waits for its owner to verify their email address, which is a hold of its own that resuming leaves. Suspending a suspended workspace, and resuming one that is not held by an admin, change nothing. limits gives the workspace limits of its own, which replace the install's defaults (WORKSPACE_LIMIT_*) whole: a limit left out, or 0, is none, so {} is a workspace with no limits at all; a value below 0 is 400. clearLimits true removes them, and the install's defaults apply again. A limit that is lowered pauses and deletes nothing. Each set and clear is logged. Name at least one of suspended, limits and clearLimits, and not both limits and clearLimits (400). The answer is the workspace as the list shows it."
       operationId: patchAdminWorkspacesById
       parameters:
         - description: The workspace's ID
@@ -4514,7 +4717,7 @@ paths:
           description: Internal Server Error
       security:
         - JwtAuth: []
-      summary: Suspend or resume a workspace
+      summary: Suspend or resume a workspace, or set its limits
       tags:
         - admin
   /api/v1/api-keys:
@@ -5047,7 +5250,7 @@ paths:
         - auth
   /api/v1/auth/register:
     post:
-      description: "Who may register depends on SIGNUP_MODE. In invite mode (the default) it creates the install's first user, who is its instance admin and the owner of its first workspace, and refuses once the install has a user (400). In open mode anyone may register: it creates the user and a workspace of their own, \"My workspace\", that they own. Only the install's very first user is an instance admin. The new workspace is suspended until the user verifies their email address (GET /me says so), and the verification email is sent. In open mode a client address may register 5 times an hour (429), an email that has an account is refused (409), and when the install uses Cloudflare Turnstile the body needs turnstileToken, which the server checks: a missing, refused or unchecked answer is 400. With inviteToken, the token of an invite link, it creates the user the invite names instead: they join the inviting workspace with the invite's role, get no workspace of their own and no instance admin flag. The email must be the invited one (403), and the invite must exist (404) and not be used, expired or revoked (410). An email that has an account already is refused (409): sign in and accept the invite."
+      description: "Who may register depends on SIGNUP_MODE. In invite mode (the default) it creates the install's first user, who is its instance admin and the owner of its first workspace, and refuses once the install has a user (400). In open mode anyone may register: it creates the user and a workspace of their own, \"My workspace\", that they own. Only the install's very first user is an instance admin. The new workspace is suspended until the user verifies their email address (GET /me says so), and the verification email is sent. In open mode a client address may register 5 times an hour (429), an email that has an account is refused (409), and when the install uses Cloudflare Turnstile the body needs turnstileToken, which the server checks: a missing, refused or unchecked answer is 400. With inviteToken, the token of an invite link, it creates the user the invite names instead: they join the inviting workspace with the invite's role, get no workspace of their own and no instance admin flag. The email must be the invited one (403), and the invite must exist (404) and not be used, expired or revoked (410). An email that has an account already is refused (409): sign in and accept the invite. A workspace that has as many members as its limit refuses it (403 LIMIT_REACHED, limit members), and no account is made."
       operationId: postAuthRegister
       requestBody:
         content:
@@ -5072,7 +5275,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/httpx.ErrorBody"
+                anyOf:
+                  - $ref: "#/components/schemas/limits.ReachedResponse"
+                  - $ref: "#/components/schemas/httpx.ErrorBody"
           description: Forbidden
         "404":
           content:
@@ -6345,7 +6550,7 @@ paths:
         - workspace
   /api/v1/invites/{token}/accept:
     post:
-      description: A signed-in user whose account email is the invited one joins the workspace with the invite's role. A used, expired or revoked invite is refused (410), and so is one for another email (403). Someone without an account signs up through the invite instead (POST /auth/register with inviteToken).
+      description: A signed-in user whose account email is the invited one joins the workspace with the invite's role. A used, expired or revoked invite is refused (410), and so is one for another email (403). Someone without an account signs up through the invite instead (POST /auth/register with inviteToken). An invite counted against the members limit when it was made can be accepted; a workspace that has as many members as its limit refuses it (403 LIMIT_REACHED, limit members).
       operationId: postInvitesByTokenAccept
       parameters:
         - description: The invite's token, from its link
@@ -6372,7 +6577,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/httpx.ErrorBody"
+                anyOf:
+                  - $ref: "#/components/schemas/limits.ReachedResponse"
+                  - $ref: "#/components/schemas/httpx.ErrorBody"
           description: Forbidden
         "404":
           content:
@@ -9110,6 +9317,14 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: "#/components/schemas/limits.ReachedResponse"
+                  - $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Forbidden
         "500":
           content:
             application/json:
@@ -9421,6 +9636,14 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: "#/components/schemas/limits.ReachedResponse"
+                  - $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Forbidden
         "404":
           content:
             application/json:
@@ -10012,7 +10235,7 @@ paths:
       tags:
         - workspace
     post:
-      description: An admin or owner invites an email with a role; only an owner invites an owner. The answer holds the invite's link, once. It works once, for 7 days, for the account with that email. The link is also emailed to the invited address when the install sends account emails (ACCOUNT_SMTP_HOST is set); otherwise copy it to the person you invite. An earlier invite for the same email is revoked. Each invite can send an email, so a caller (a user, or the API keys of a workspace together) makes at most 20 an hour and one address gets at most 3 an hour; past either the answer is 429. A caller that may not invite is refused before either limit counts.
+      description: An admin or owner invites an email with a role; only an owner invites an owner. The answer holds the invite's link, once. It works once, for 7 days, for the account with that email. The link is also emailed to the invited address when the install sends account emails (ACCOUNT_SMTP_HOST is set); otherwise copy it to the person you invite. An earlier invite for the same email is revoked. Each invite can send an email, so a caller (a user, or the API keys of a workspace together) makes at most 20 an hour and one address gets at most 3 an hour; past either the answer is 429. A caller that may not invite is refused before either limit counts. A workspace whose members and pending invites are as many as its members limit is refused (403 LIMIT_REACHED, limit members); inviting a pending address again replaces its invite and takes no more room.
       operationId: postWorkspaceInvites
       parameters:
         - description: The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
@@ -10050,7 +10273,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/httpx.ErrorBody"
+                anyOf:
+                  - $ref: "#/components/schemas/limits.ReachedResponse"
+                  - $ref: "#/components/schemas/httpx.ErrorBody"
           description: Forbidden
         "404":
           content:
@@ -10179,6 +10404,48 @@ paths:
       security:
         - JwtAuth: []
       summary: Leave the workspace
+      tags:
+        - workspace
+  /api/v1/workspace/limits:
+    get:
+      description: "Every member of the workspace (and an API key) sees its limits: for each, its value (null for none), what the workspace has of it and where it comes from: the workspace's own limits, which an instance admin sets, the install's defaults (WORKSPACE_LIMIT_*) or none. An install that sets no limits answers null for each. members counts the pending invites beside the members; owned_workspaces counts the caller's own workspaces (0 for an API key) against the install's defaults alone; min_check_interval is used as the shortest interval that applies, the stricter of MIN_CHECK_INTERVAL and the limit; retention_days as the workspace's data retention period."
+      operationId: getWorkspaceLimits
+      parameters:
+        - description: The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+          in: header
+          name: X-Workspace-ID
+          schema:
+            format: uuid
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_peekaping_internal_limits.Report"
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+        - ApiKeyAuth: []
+      summary: Get the limits of the workspace
       tags:
         - workspace
   /api/v1/workspace/members:
@@ -10354,7 +10621,7 @@ paths:
         - workspace
   /api/v1/workspaces:
     post:
-      description: Any signed-in user makes a workspace and becomes its owner. It starts with the default settings of a new workspace.
+      description: Any signed-in user makes a workspace and becomes its owner. It starts with the default settings of a new workspace. A user who owns as many workspaces as the install's WORKSPACE_LIMIT_OWNED_WORKSPACES is refused (403 LIMIT_REACHED, limit owned_workspaces).
       operationId: postWorkspaces
       requestBody:
         content:
@@ -10381,6 +10648,14 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: "#/components/schemas/limits.ReachedResponse"
+                  - $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Forbidden
         "500":
           content:
             application/json:

@@ -925,8 +925,7 @@ func (r *SQLRepositoryImpl) LockWorkspace(ctx context.Context, workspaceID works
 }
 
 func (r *SQLRepositoryImpl) CountActive(ctx context.Context, workspaceID workspace.ID) (int, error) {
-	return dbtx.DB(ctx, r.db).NewSelect().Model((*sqlModel)(nil)).
-		Where("m.workspace_id = ?", string(workspaceID)).Where("m.active = ?", true).Count(ctx)
+	return limits.CountActiveMonitors(ctx, r.db, workspaceID)
 }
 
 func (r *SQLRepositoryImpl) UpdateFull(ctx context.Context, workspaceID workspace.ID, id string, monitor *Model) error {

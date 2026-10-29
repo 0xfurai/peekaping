@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"peekaping/internal/httpx"
+	"peekaping/internal/limits"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/monitor_status_page"
@@ -55,7 +56,12 @@ func (c *Controller) Create(ctx context.Context, input *CreateInput) (*httpx.Out
 			return nil, unknownMonitorResponse()
 		}
 		// Surface domain uniqueness validation errors as 400
-		if domainErr, ok := err.(*DomainAlreadyUsedError); ok {
+		var reached *limits.ReachedError
+		if errors.As(err, &reached) {
+			return nil, limits.Fail(reached)
+		}
+		var domainErr *DomainAlreadyUsedError
+		if errors.As(err, &domainErr) {
 			return nil, httpx.Fail(http.StatusBadRequest, DomainErrorResponse{Error: domainErr})
 		}
 		var slugErr *SlugAlreadyUsedError
@@ -165,7 +171,12 @@ func (c *Controller) Update(ctx context.Context, input *UpdateInput) (*httpx.Out
 			return nil, unknownMonitorResponse()
 		}
 		// Surface domain uniqueness validation errors as 400
-		if domainErr, ok := err.(*DomainAlreadyUsedError); ok {
+		var reached *limits.ReachedError
+		if errors.As(err, &reached) {
+			return nil, limits.Fail(reached)
+		}
+		var domainErr *DomainAlreadyUsedError
+		if errors.As(err, &domainErr) {
 			return nil, httpx.Fail(http.StatusBadRequest, DomainErrorResponse{Error: domainErr})
 		}
 		var slugErr *SlugAlreadyUsedError

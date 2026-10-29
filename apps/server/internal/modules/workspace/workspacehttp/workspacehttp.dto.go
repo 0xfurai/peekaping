@@ -106,6 +106,7 @@ func workspaceResponse(m *workspace.Membership) *WorkspaceResponse {
 }
 
 type ListMembersInput = httpx.Input[httpx.NoBody, struct{}]
+type GetLimitsInput = httpx.Input[httpx.NoBody, struct{}]
 
 type MemberParams struct {
 	UserID string `path:"userId" doc:"The member's user ID" required:"true"`

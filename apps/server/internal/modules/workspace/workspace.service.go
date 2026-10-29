@@ -13,6 +13,7 @@ import (
 
 	"peekaping/internal/config"
 	"peekaping/internal/dbtx"
+	"peekaping/internal/limits"
 	"peekaping/internal/mailer"
 	"peekaping/internal/modules/events"
 
@@ -45,7 +46,8 @@ type Service interface {
 	// ListInvites returns the invites that are neither used nor revoked, expired ones included
 	ListInvites(ctx context.Context) ([]Invite, error)
 	// CreateInvite invites the email with the role. userID is the inviter, empty for an API key.
-	// An earlier invite for the email is revoked, so that one link is live.
+	// An earlier invite for the email is revoked, so that one link is live. A workspace whose
+	// members and pending invites are as many as its members limit is refused (limits.ReachedError).
 	CreateInvite(ctx context.Context, userID, email string, role Role) (*CreatedInvite, error)
 	// RevokeInvite revokes a pending invite of the workspace: ErrInviteNotFound
 	RevokeInvite(ctx context.Context, inviteID string) error
@@ -60,10 +62,12 @@ type Service interface {
 	// their account is the one the invite names. It joins the transaction the context carries, so
 	// that signup can create the user and the membership together. It returns ErrInviteNotFound,
 	// an ErrInviteUnavailable (ErrInviteUsed, ErrInviteExpired, ErrInviteRevoked),
-	// ErrInviteEmailMismatch or ErrAlreadyMember, and changes nothing then.
+	// ErrInviteEmailMismatch, ErrAlreadyMember, or a limits.ReachedError when the workspace has as
+	// many members as its limit, and changes nothing then.
 	AcceptInvite(ctx context.Context, token, userID string) (*Membership, error)
 
-	// CreateWorkspace makes a workspace with the user as its owner and the settings of a new one
+	// CreateWorkspace makes a workspace with the user as its owner and the settings of a new one. A
+	// user who owns as many workspaces as the install's limit is refused (limits.ReachedError).
 	CreateWorkspace(ctx context.Context, userID, name string) (*Membership, error)
 	// RenameWorkspace renames the workspace the context runs in, for an admin or an owner:
 	// ErrNotFound, ErrForbidden or ErrInvalidName (a name that is blank once trimmed). The
@@ -99,6 +103,17 @@ type ServiceImpl struct {
 	monitors   MonitorWaker
 	logger     *zap.SugaredLogger
 	now        func() time.Time
+	// limits are the workspaces' limits (PP-160). Without them no workspace has any.
+	limits limits.Source
+}
+
+// ServiceOption changes how the workspace service behaves, for an install that has a reason to
+type ServiceOption func(*ServiceImpl)
+
+// WithLimits tells the service each workspace's limits, which it enforces: how many members a
+// workspace may have, and how many workspaces a user may own
+func WithLimits(source limits.Source) ServiceOption {
+	return func(s *ServiceImpl) { s.limits = source }
 }
 
 func NewService(
@@ -111,8 +126,9 @@ func NewService(
 	mailer *mailer.Mailer,
 	monitors MonitorWaker,
 	logger *zap.SugaredLogger,
+	opts ...ServiceOption,
 ) Service {
-	return &ServiceImpl{
+	s := &ServiceImpl{
 		workspaces: workspaces,
 		members:    members,
 		invites:    invites,
@@ -125,6 +141,72 @@ func NewService(
 		logger:     logger.Named("[workspace-service]"),
 		now:        time.Now,
 	}
+	for _, opt := range opts {
+		opt(s)
+	}
+	return s
+}
+
+// limitsOf are the workspace's limits (PP-160), none without a source
+func (s *ServiceImpl) limitsOf(ctx context.Context, id ID) (limits.Limits, error) {
+	if s.limits == nil {
+		return limits.Limits{}, nil
+	}
+	l, _, err := s.limits.For(ctx, id)
+	if err != nil {
+		return limits.Limits{}, fmt.Errorf("read the workspace's limits: %w", err)
+	}
+	return l, nil
+}
+
+// requireRoomForMember refuses one more member of a workspace that has as many as its limit, or
+// more. An invite counts the pending invites beside the members (withInvites), since each can
+// become one; accepting one counts the members alone, so that an invite counted when it was made
+// can be accepted. It holds the workspace first, in the caller's transaction, so that two such
+// writes at once count one after the other (limits.LockWorkspace).
+func (s *ServiceImpl) requireRoomForMember(ctx context.Context, id ID, l limits.Limits, withInvites bool) error {
+	if l.Members == nil {
+		return nil
+	}
+	if err := s.workspaces.LockWorkspace(ctx, id); err != nil {
+		return fmt.Errorf("lock the workspace: %w", err)
+	}
+	have, err := s.members.CountMembers(ctx, id)
+	if err != nil {
+		return fmt.Errorf("count the members: %w", err)
+	}
+	if withInvites {
+		pending, err := s.invites.CountPending(ctx, id, s.now())
+		if err != nil {
+			return fmt.Errorf("count the pending invites: %w", err)
+		}
+		have += pending
+	}
+	if have >= *l.Members {
+		return limits.Reached(limits.Members, *l.Members)
+	}
+	return nil
+}
+
+// requireRoomForOwned refuses a workspace the user creates when they own as many as the limit, or
+// more. The limit is the install's default: the workspace they create has no limits of its own yet,
+// and the user's other workspaces each have their own. It holds the user first, in the caller's
+// transaction (limits.LockUser).
+func (s *ServiceImpl) requireRoomForOwned(ctx context.Context, userID string, most *int) error {
+	if most == nil {
+		return nil
+	}
+	if err := s.members.LockUser(ctx, userID); err != nil {
+		return fmt.Errorf("lock the user: %w", err)
+	}
+	owned, err := s.members.CountOwned(ctx, userID)
+	if err != nil {
+		return fmt.Errorf("count the owned workspaces: %w", err)
+	}
+	if owned >= *most {
+		return limits.Reached(limits.OwnedWorkspaces, *most)
+	}
+	return nil
 }
 
 // scope returns the workspace the context runs in and the caller's role, after checking the role
@@ -344,6 +426,10 @@ func (s *ServiceImpl) CreateInvite(ctx context.Context, userID, email string, ro
 	if userID != "" {
 		invite.InvitedBy = &userID
 	}
+	workspaceLimits, err := s.limitsOf(ctx, id)
+	if err != nil {
+		return nil, err
+	}
 	err = s.transactor.WithTx(ctx, func(ctx context.Context) error {
 		member, err := s.members.HasMemberWithEmail(ctx, id, email)
 		if err != nil {
@@ -353,6 +439,11 @@ func (s *ServiceImpl) CreateInvite(ctx context.Context, userID, email string, ro
 			return ErrAlreadyMember
 		}
 		if err := s.invites.RevokePendingForEmail(ctx, id, email, now); err != nil {
+			return err
+		}
+		// Counted once the earlier invite for the email is revoked: inviting it again takes no
+		// more room
+		if err := s.requireRoomForMember(ctx, id, workspaceLimits, true); err != nil {
 			return err
 		}
 		return s.invites.CreateInvite(ctx, &invite, hash)
@@ -453,6 +544,13 @@ func (s *ServiceImpl) AcceptInvite(ctx context.Context, token, userID string) (*
 		if existing != nil {
 			return ErrAlreadyMember
 		}
+		workspaceLimits, err := s.limitsOf(ctx, invite.WorkspaceID)
+		if err != nil {
+			return err
+		}
+		if err := s.requireRoomForMember(ctx, invite.WorkspaceID, workspaceLimits, false); err != nil {
+			return err
+		}
 		now := s.now().UTC()
 		if err := s.workspaces.AddMember(ctx, invite.WorkspaceID, userID, invite.Role); err != nil {
 			// The user became a member since the lookup above: the answer a later accept gets
@@ -530,8 +628,19 @@ func (s *ServiceImpl) lookupInvite(ctx context.Context, token string) (*Invite, 
 // MARK: Workspaces
 
 func (s *ServiceImpl) CreateWorkspace(ctx context.Context, userID, name string) (*Membership, error) {
+	var mostOwned *int
+	if s.limits != nil {
+		snapshot, err := s.limits.Snapshot(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("read the install's limits: %w", err)
+		}
+		mostOwned = snapshot.Defaults.OwnedWorkspaces
+	}
 	var created *Membership
 	err := s.transactor.WithTx(ctx, func(ctx context.Context) error {
+		if err := s.requireRoomForOwned(ctx, userID, mostOwned); err != nil {
+			return err
+		}
 		// In an open install a user must verify their email before any workspace of theirs runs: one
 		// made by a user who has not is suspended, so that making workspaces is no way round it
 		suspend := false

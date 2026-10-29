@@ -228,12 +228,15 @@ func TestAdminWorkspaces_AnItemCarriesExactlyTheseKeys(t *testing.T) {
 	var items []map[string]json.RawMessage
 	require.NoError(t, json.Unmarshal(envelope.Data["workspaces"], &items))
 	require.NotEmpty(t, items)
-	wantItem := []string{"id", "name", "createdAt", "owners", "memberCount", "monitors", "statusPages", "customDomains", "suspended", "suspendedReason", "suspendedAt"}
+	wantItem := []string{"id", "name", "createdAt", "owners", "memberCount", "monitors", "statusPages", "customDomains", "suspended", "suspendedReason", "suspendedAt", "limits"}
 	for _, item := range items {
 		assert.ElementsMatch(t, wantItem, keys(item))
 		var monitors map[string]json.RawMessage
 		require.NoError(t, json.Unmarshal(item["monitors"], &monitors))
 		assert.ElementsMatch(t, []string{"active", "paused"}, keys(monitors))
+		var workspaceLimits map[string]json.RawMessage
+		require.NoError(t, json.Unmarshal(item["limits"], &workspaceLimits))
+		assert.ElementsMatch(t, []string{"source", "values"}, keys(workspaceLimits))
 	}
 
 	// the answer of a change is the same item

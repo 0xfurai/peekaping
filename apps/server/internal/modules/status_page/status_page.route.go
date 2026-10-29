@@ -3,6 +3,7 @@ package status_page
 import (
 	"net/http"
 	"peekaping/internal/httpx"
+	"peekaping/internal/limits"
 	"peekaping/internal/modules/middleware"
 
 	"github.com/danielgtaylor/huma/v2"
@@ -36,10 +37,10 @@ func (r *Route) ConnectRoute(rg *httpx.Router, controller *Controller) {
 	sp.Use(r.middleware.WorkspaceAuth())
 	sp.Document(httpx.WorkspaceIDHeader)
 	{
-		httpx.Register(sp, "POST", "", huma.Operation{Summary: "Create a new status page", Responses: map[string]*huma.Response{"400": httpx.ErrorVariants2[DomainErrorResponse, SlugErrorResponse](sp, 400)}, Tags: []string{"status_page"}, DefaultStatus: http.StatusCreated, Security: httpx.SharedAuth, Errors: []int{http.StatusBadRequest, http.StatusInternalServerError, http.StatusUnauthorized}}, r.controller.Create)
+		httpx.Register(sp, "POST", "", huma.Operation{Summary: "Create a new status page", Responses: map[string]*huma.Response{"400": httpx.ErrorVariants2[DomainErrorResponse, SlugErrorResponse](sp, 400), "403": httpx.ErrorVariants[limits.ReachedResponse](sp, 403)}, Tags: []string{"status_page"}, DefaultStatus: http.StatusCreated, Security: httpx.SharedAuth, Errors: []int{http.StatusBadRequest, http.StatusForbidden, http.StatusInternalServerError, http.StatusUnauthorized}}, r.controller.Create)
 		httpx.Register(sp, "GET", "", huma.Operation{Summary: "Get all status pages", Tags: []string{"status_page"}, DefaultStatus: http.StatusOK, Security: httpx.SharedAuth, Errors: []int{http.StatusBadRequest, http.StatusInternalServerError, http.StatusUnauthorized}}, r.controller.FindAll)
 		httpx.Register(sp, "GET", "/{id}", huma.Operation{Summary: "Get a status page by ID", Tags: []string{"status_page"}, DefaultStatus: http.StatusOK, Security: httpx.SharedAuth, Errors: []int{http.StatusInternalServerError, http.StatusNotFound, http.StatusUnauthorized}}, r.controller.FindByID)
-		httpx.Register(sp, "PATCH", "/{id}", huma.Operation{Summary: "Update a status page", Responses: map[string]*huma.Response{"400": httpx.ErrorVariants2[DomainErrorResponse, SlugErrorResponse](sp, 400)}, Tags: []string{"status_page"}, DefaultStatus: http.StatusOK, Security: httpx.SharedAuth, Errors: []int{http.StatusNotFound, http.StatusBadRequest, http.StatusInternalServerError, http.StatusUnauthorized}}, r.controller.Update)
+		httpx.Register(sp, "PATCH", "/{id}", huma.Operation{Summary: "Update a status page", Responses: map[string]*huma.Response{"400": httpx.ErrorVariants2[DomainErrorResponse, SlugErrorResponse](sp, 400), "403": httpx.ErrorVariants[limits.ReachedResponse](sp, 403)}, Tags: []string{"status_page"}, DefaultStatus: http.StatusOK, Security: httpx.SharedAuth, Errors: []int{http.StatusNotFound, http.StatusBadRequest, http.StatusForbidden, http.StatusInternalServerError, http.StatusUnauthorized}}, r.controller.Update)
 		httpx.Register(sp, "DELETE", "/{id}", huma.Operation{Summary: "Delete a status page", Tags: []string{"status_page"}, DefaultStatus: http.StatusOK, Security: httpx.SharedAuth, Errors: []int{http.StatusNotFound, http.StatusInternalServerError, http.StatusUnauthorized}}, r.controller.Delete)
 	}
 }

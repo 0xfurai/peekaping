@@ -44,4 +44,8 @@ type Repository interface {
 	// is for the background work that goes through the workspaces one by one, such as the cleanup
 	// job.
 	ListIDsAnyWorkspace(ctx context.Context) ([]ID, error)
+	// LockWorkspace holds the workspace until the transaction ctx carries ends, so that a count
+	// against one of its limits and the write after it see every other such write before or after
+	// them (limits.LockWorkspace)
+	LockWorkspace(ctx context.Context, id ID) error
 }

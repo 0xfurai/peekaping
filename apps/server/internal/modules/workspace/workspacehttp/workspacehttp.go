@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"peekaping/internal/httpx"
+	"peekaping/internal/limits"
 	"peekaping/internal/modules/workspace"
 	"peekaping/internal/utils"
 )
@@ -31,10 +32,14 @@ func Scope(ctx context.Context) (workspace.ID, error) {
 // Fail turns the error of a role check, and of the people of a workspace, into its answer: 404 for
 // no workspace, a member or an invite that isn't there, 403 for a role that is too low or an
 // invite for another email, 409 for the last owner and for someone who is a member already, 410
-// for an invite that can't be used, 400 for a role that doesn't exist or a name that is blank. It returns nil for any
-// other error, which the caller maps as it does today.
+// for an invite that can't be used, 400 for a role that doesn't exist or a name that is blank, and
+// 403 LIMIT_REACHED for a member or a workspace past a limit. It returns nil for any other error,
+// which the caller maps as it does today.
 func Fail(err error) error {
+	var reached *limits.ReachedError
 	switch {
+	case errors.As(err, &reached):
+		return limits.Fail(reached)
 	case errors.Is(err, workspace.ErrNotFound):
 		return NotFound()
 	case errors.Is(err, workspace.ErrForbidden):
