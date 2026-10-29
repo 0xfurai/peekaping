@@ -110,6 +110,23 @@ describe("Run from, for someone who isn't an instance admin", () => {
       ]);
     });
 
+    it("can move off a disabled probe to the one probe left, which the list then shows", () => {
+      const paused = probe("paused", { name: "Paused", supported_types: ["http"], disabled: true });
+      const onPaused = { ...monitor, probe_ids: ["paused"] };
+      const html = renderAs(
+        member,
+        <MonitorFormProvider mode="edit" monitorId="m1" initialValues={deserializeMonitor(onPaused as never)}>
+          <CreateEditForm />
+        </MonitorFormProvider>,
+        undefined,
+        (queryClient) => {
+          queryClient.setQueryData(getProbesQueryKey(), { data: [paused, us] });
+          queryClient.setQueryData(getMonitorsByIdQueryKey({ path: { id: "m1" } }), { data: onPaused });
+        }
+      );
+      expect(boxes(html)).toEqual([["Virginia · US East", false]]);
+    });
+
     it("doesn't say it runs on the default locations when none is ticked, since that keeps its probes", () => {
       const html = edit({ ...deserializeMonitor(monitor as never), probe_ids: [] });
       expect(html).not.toContain(text("monitors.form.shared.run_from.default_locations"));
