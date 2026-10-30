@@ -80,6 +80,16 @@ func Reply[T any](status int, body T) (*Output[T], error) {
 	return output, nil
 }
 
+// EmptyBody is the body of a response that has none: the status alone is the answer. Huma writes a
+// []byte body as it is, so an empty one sends nothing, where NoBody would send "{}". The
+// specification documents such a response without content.
+type EmptyBody = []byte
+
+// Empty is a response with a status and no body, not even a Content-Type.
+func Empty(status int) (*Output[EmptyBody], error) {
+	return &Output[EmptyBody]{Status: status}, nil
+}
+
 // SVGBody is raw SVG, with a string schema and its own response media type.
 type SVGBody []byte
 
@@ -139,6 +149,8 @@ type operationAPI struct {
 	input  inputContract
 	// parameters are the ones the router documents on every operation (Router.Document)
 	parameters []*huma.Param
+	// empty is set when the handler answers with an EmptyBody
+	empty bool
 }
 
 func (a operationAPI) Adapter() huma.Adapter { return humago.NewAdapter(muxBridge{a.router}, "") }
@@ -187,7 +199,7 @@ func (a operationAPI) DocumentOperation(op *huma.Operation) {
 	}
 	delete(op.Responses, "default")
 	for code, response := range op.Responses {
-		if code == "204" || code == "304" {
+		if code == "204" || code == "304" || (a.empty && strings.HasPrefix(code, "2")) {
 			response.Content = nil
 			response.Headers = nil
 			continue
@@ -277,7 +289,7 @@ func Register[I, T any](router *Router, method, path string, op huma.Operation, 
 	if !ok {
 		panic("REST handlers must use httpx.Input")
 	}
-	huma.Register(operationAPI{API: api, router: &scoped, input: input, parameters: router.parameters}, op, handler)
+	huma.Register(operationAPI{API: api, router: &scoped, input: input, parameters: router.parameters, empty: reflect.TypeFor[T]() == reflect.TypeFor[EmptyBody]()}, op, handler)
 }
 
 // ErrorResponse and ErrorVariants describe the few established responses that

@@ -96,6 +96,7 @@ import {
   getStatusPagesSlugBySlug,
   getStatusPagesSlugBySlugMonitors,
   getStatusPagesSlugBySlugMonitorsHomepage,
+  getStatusPagesTlsAsk,
   deleteStatusPagesById,
   getStatusPagesById,
   patchStatusPagesById,
@@ -346,6 +347,7 @@ import type {
   GetStatusPagesSlugBySlugData,
   GetStatusPagesSlugBySlugMonitorsData,
   GetStatusPagesSlugBySlugMonitorsHomepageData,
+  GetStatusPagesTlsAskData,
   DeleteStatusPagesByIdData,
   DeleteStatusPagesByIdError,
   DeleteStatusPagesByIdResponse,
@@ -3906,6 +3908,31 @@ export const getStatusPagesSlugBySlugMonitorsHomepageOptions = (
       return data;
     },
     queryKey: getStatusPagesSlugBySlugMonitorsHomepageQueryKey(options),
+  });
+};
+
+export const getStatusPagesTlsAskQueryKey = (
+  options: Options<GetStatusPagesTlsAskData>
+) => createQueryKey("getStatusPagesTlsAsk", options);
+
+/**
+ * Ask whether a host may get a certificate
+ * For Caddy's on_demand_tls ask option: 200 with no body when the domain is on a status page's custom domain list, published or not, and 404 when it is not. The domain is compared in lower case and without a trailing dot. It reveals nothing beyond yes or no.
+ */
+export const getStatusPagesTlsAskOptions = (
+  options: Options<GetStatusPagesTlsAskData>
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getStatusPagesTlsAsk({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getStatusPagesTlsAskQueryKey(options),
   });
 };
 

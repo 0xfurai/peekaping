@@ -25,6 +25,11 @@ type FindByDomainParams struct {
 }
 type FindByDomainInput = httpx.Input[httpx.NoBody, FindByDomainParams]
 
+type TLSAskParams struct {
+	Domain string `query:"domain" doc:"The host a certificate is asked for" required:"true"`
+}
+type TLSAskInput = httpx.Input[httpx.NoBody, TLSAskParams]
+
 type FindAllParams struct {
 	Q     string `query:"q" doc:"Search query"`
 	Page  int    `query:"page" doc:"Page number" default:"0" minimum:"0"`

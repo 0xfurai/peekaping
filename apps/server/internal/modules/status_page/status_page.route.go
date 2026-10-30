@@ -38,6 +38,10 @@ func (r *Route) ConnectRoute(rg *httpx.Router, controller *Controller) {
 	httpx.Register(sp, "GET", "/slug/{slug}/monitors", huma.Operation{Summary: "Get monitors for a status page by slug with heartbeats and uptime", Description: unavailableNote, Responses: unavailable(), Tags: []string{"status_page"}, DefaultStatus: http.StatusOK, Errors: []int{http.StatusInternalServerError, http.StatusNotFound}}, r.controller.GetMonitorsBySlug)
 	httpx.Register(sp, "GET", "/slug/{slug}/monitors/homepage", huma.Operation{Summary: "Get monitors for a status page by slug for homepage", Description: unavailableNote, Responses: unavailable(), Tags: []string{"status_page"}, DefaultStatus: http.StatusOK, Errors: []int{http.StatusInternalServerError, http.StatusNotFound}}, r.controller.GetMonitorsBySlugForHomepage)
 
+	// Caddy asks this before it gets a certificate for a host (PP-332). It is registered beside the
+	// other literal paths, which win over /{id} below, and answers only yes or no.
+	httpx.Register(sp, "GET", "/tls-ask", huma.Operation{Summary: "Ask whether a host may get a certificate", Description: "For Caddy's on_demand_tls ask option: 200 with no body when the domain is on a status page's custom domain list, published or not, and 404 when it is not. The domain is compared in lower case and without a trailing dot. It reveals nothing beyond yes or no.", Tags: []string{"status_page"}, DefaultStatus: http.StatusOK, Errors: []int{http.StatusInternalServerError, http.StatusNotFound}}, r.controller.TLSAsk)
+
 	sp.Use(r.middleware.WorkspaceAuth())
 	sp.DocumentWorkspace()
 	{

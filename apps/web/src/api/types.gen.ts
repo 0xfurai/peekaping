@@ -6830,6 +6830,39 @@ export type GetStatusPagesSlugBySlugMonitorsHomepageResponses = {
 export type GetStatusPagesSlugBySlugMonitorsHomepageResponse =
   GetStatusPagesSlugBySlugMonitorsHomepageResponses[keyof GetStatusPagesSlugBySlugMonitorsHomepageResponses];
 
+export type GetStatusPagesTlsAskData = {
+  body?: never;
+  path?: never;
+  query: {
+    /**
+     * The host a certificate is asked for
+     */
+    domain: string;
+  };
+  url: "/api/v1/status-pages/tls-ask";
+};
+
+export type GetStatusPagesTlsAskErrors = {
+  /**
+   * Not Found
+   */
+  404: HttpxErrorBody;
+  /**
+   * Internal Server Error
+   */
+  500: HttpxErrorBody;
+};
+
+export type GetStatusPagesTlsAskError =
+  GetStatusPagesTlsAskErrors[keyof GetStatusPagesTlsAskErrors];
+
+export type GetStatusPagesTlsAskResponses = {
+  /**
+   * OK
+   */
+  200: unknown;
+};
+
 export type DeleteStatusPagesByIdData = {
   body?: never;
   headers?: {
