@@ -9,6 +9,7 @@ import (
 	"peekaping/internal/modules/maintenance/utils"
 	"peekaping/internal/modules/monitor_maintenance"
 	"peekaping/internal/modules/workspace"
+	"peekaping/internal/validation"
 )
 
 // Service works on maintenance windows, which belong to a workspace (docs/adr/0005 section 3).
@@ -20,6 +21,10 @@ import (
 // whose name ends in AnyWorkspace works across workspaces, for the paths that run for the whole
 // install.
 type Service interface {
+	// Check says whether Create would take the window, without writing anything: the rules the
+	// create route holds a body to, and the cron and duration Create works out. It is nil when it
+	// would, and otherwise says why not.
+	Check(entity *Model) error
 	// Create makes the window in the workspace, whatever workspace the window says
 	Create(ctx context.Context, workspaceID workspace.ID, entity *Model, monitorIDs []string) (*Model, error)
 	FindByID(ctx context.Context, workspaceID workspace.ID, id string) (*Model, error)
@@ -70,36 +75,8 @@ func NewService(
 }
 
 func (mr *ServiceImpl) Create(ctx context.Context, workspaceID workspace.ID, entity *Model, monitorIDs []string) (*Model, error) {
-	// Validate cron and duration
-	if err := mr.validator.ValidateCronAndDuration(&utils.ValidationParams{
-		Cron:     entity.Cron,
-		Duration: entity.Duration,
-	}); err != nil {
+	if err := mr.prepare(entity); err != nil {
 		return nil, err
-	}
-
-	// Generate cron expression for recurring strategies if not provided
-	if entity.Cron == nil || *entity.Cron == "" {
-		generatedCron, err := mr.generateCronExpression(entity)
-		if err != nil {
-			mr.logger.Errorf("Failed to generate cron expression for maintenance: %v", err)
-			return nil, err
-		}
-		if generatedCron != nil {
-			entity.Cron = generatedCron
-			mr.logger.Debugf("Generated cron expression for maintenance: %s", *generatedCron)
-		}
-	}
-
-	// Calculate duration from StartTime and EndTime if not provided
-	if entity.Duration == nil && entity.StartTime != nil && entity.EndTime != nil {
-		duration, err := mr.timeUtils.CalculateDurationFromTimes(*entity.StartTime, *entity.EndTime)
-		if err != nil {
-			mr.logger.Errorf("Failed to calculate duration from start and end times: %v", err)
-			return nil, err
-		}
-		entity.Duration = &duration
-		mr.logger.Debugf("Calculated duration from start/end times: %d minutes", duration)
 	}
 
 	// Every monitor must be in the workspace, and is checked before the window is written
@@ -122,6 +99,64 @@ func (mr *ServiceImpl) Create(ctx context.Context, workspaceID workspace.ID, ent
 	}
 
 	return created, nil
+}
+
+// prepare checks the window's cron and duration, and fills in the cron and the duration that follow
+// from its strategy and times when it has none. UpdateFull does the same inline.
+func (mr *ServiceImpl) prepare(entity *Model) error {
+	// Validate cron and duration
+	if err := mr.validator.ValidateCronAndDuration(&utils.ValidationParams{
+		Cron:     entity.Cron,
+		Duration: entity.Duration,
+	}); err != nil {
+		return err
+	}
+	if err := mr.fillCron(entity); err != nil {
+		return err
+	}
+	return mr.fillDuration(entity)
+}
+
+// fillCron generates the cron expression of a recurring strategy that has none
+func (mr *ServiceImpl) fillCron(entity *Model) error {
+	if entity.Cron != nil && *entity.Cron != "" {
+		return nil
+	}
+	generatedCron, err := mr.generateCronExpression(entity)
+	if err != nil {
+		mr.logger.Errorf("Failed to generate cron expression for maintenance: %v", err)
+		return err
+	}
+	if generatedCron != nil {
+		entity.Cron = generatedCron
+		mr.logger.Debugf("Generated cron expression for maintenance: %s", *generatedCron)
+	}
+	return nil
+}
+
+// fillDuration calculates the duration from the start and end times when the window has none
+func (mr *ServiceImpl) fillDuration(entity *Model) error {
+	if entity.Duration != nil || entity.StartTime == nil || entity.EndTime == nil {
+		return nil
+	}
+	duration, err := mr.timeUtils.CalculateDurationFromTimes(*entity.StartTime, *entity.EndTime)
+	if err != nil {
+		mr.logger.Errorf("Failed to calculate duration from start and end times: %v", err)
+		return err
+	}
+	entity.Duration = &duration
+	mr.logger.Debugf("Calculated duration from start/end times: %d minutes", duration)
+	return nil
+}
+
+// Check says whether the controller and Create would take the window, and changes nothing: the
+// rules of the create route's body, then the cron and duration that Create works out
+func (mr *ServiceImpl) Check(entity *Model) error {
+	if err := validation.Validate.Struct(dtoOf(entity)); err != nil {
+		return err
+	}
+	copied := *entity
+	return mr.prepare(&copied)
 }
 
 func (mr *ServiceImpl) FindByID(ctx context.Context, workspaceID workspace.ID, id string) (*Model, error) {

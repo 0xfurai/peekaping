@@ -66,6 +66,18 @@ func (dto *CreateUpdateDto) ApplyCreateDefaults() {
 // pushMonitorType is the type of a push monitor.
 const pushMonitorType = "push"
 
+// NewPushToken makes a push token the way a create without one does
+func NewPushToken() string { return rand.Text() }
+
+// ApplyPushToken is the push token part of ApplyCreateDefaults, for a caller that sets Active
+// itself: a push monitor gets one token in push_token and config.pushToken, a new one when it has
+// none.
+func (dto *CreateUpdateDto) ApplyPushToken() {
+	if dto != nil && dto.Type == pushMonitorType {
+		dto.applyPushToken()
+	}
+}
+
 // applyPushToken makes push_token and config.pushToken one token: push_token, else the one in
 // the config, else a new one. A config that isn't a JSON object with a text token is left as it
 // is, so the validation rejects it.
@@ -91,7 +103,7 @@ func (dto *CreateUpdateDto) applyPushToken() {
 		token = configToken
 	}
 	if token == "" {
-		token = rand.Text()
+		token = NewPushToken()
 	}
 	dto.PushToken = token
 	if configToken == token {
