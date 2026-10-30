@@ -118,7 +118,19 @@ func relativeFile(name string) string {
 // of a file is cut to its package and name: a source path names the machine that built the
 // binary, which is not ours to send.
 func parseStack(stack []byte) []sentry.Frame {
-	var frames []sentry.Frame // innermost first, as printed
+	frames := withoutHookFrames(printedFrames(stack))
+	if len(frames) > maxFrames {
+		frames = frames[:maxFrames]
+	}
+	for i, j := 0, len(frames)-1; i < j; i, j = i+1, j-1 {
+		frames[i], frames[j] = frames[j], frames[i]
+	}
+	return frames
+}
+
+// printedFrames reads the frames of the stack text, innermost first as they are printed
+func printedFrames(stack []byte) []sentry.Frame {
+	var frames []sentry.Frame
 	var pending *sentry.Frame
 	for _, text := range strings.Split(string(stack), "\n") {
 		if text == "" {
@@ -127,32 +139,35 @@ func parseStack(stack []byte) []sentry.Frame {
 		if text[0] != '\t' && text[0] != ' ' {
 			if pending != nil {
 				frames = append(frames, *pending)
-				pending = nil
 			}
-			if f, ok := parseFunctionLine(text); ok {
-				pending = &f
-			}
+			pending = functionFrame(text)
 			continue
 		}
-		if pending != nil && pending.Lineno == 0 {
-			if file, n, ok := parseFileLine(text); ok {
-				pending.Lineno = n
-				pending.Filename = frameFile(pending.Module, file)
-			}
-		}
+		addFile(pending, text)
 	}
 	if pending != nil {
 		frames = append(frames, *pending)
 	}
-
-	frames = withoutHookFrames(frames)
-	if len(frames) > maxFrames {
-		frames = frames[:maxFrames]
-	}
-	for i, j := 0, len(frames)-1; i < j; i, j = i+1, j-1 {
-		frames[i], frames[j] = frames[j], frames[i]
-	}
 	return frames
+}
+
+// functionFrame is the frame a function line starts, or nil when the line is not one
+func functionFrame(text string) *sentry.Frame {
+	f, ok := parseFunctionLine(text)
+	if !ok {
+		return nil
+	}
+	return &f
+}
+
+// addFile gives the frame the file and line of a file line, unless it has a line already
+func addFile(pending *sentry.Frame, text string) {
+	if pending != nil && pending.Lineno == 0 {
+		if file, n, ok := parseFileLine(text); ok {
+			pending.Lineno = n
+			pending.Filename = frameFile(pending.Module, file)
+		}
+	}
 }
 
 // parseFunctionLine reads "pkg/path.(*Type).Method(0x1, {0x2, 0x3})". The package path ends at

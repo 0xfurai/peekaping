@@ -174,25 +174,13 @@ func (s *ServiceImpl) noticePending(ctx context.Context) (bool, error) {
 }
 
 func (s *ServiceImpl) NextPing(ctx context.Context, now time.Time) (*Payload, error) {
-	if s.cfg.TelemetryForcedOff() {
-		return nil, nil
-	}
-	enabled, err := s.chosenEnabled(ctx)
-	if err != nil || !enabled {
+	allowed, err := s.mayPing(ctx)
+	if err != nil || !allowed {
 		return nil, err
 	}
-	id, err := s.ensureInstanceID(ctx)
-	if err != nil || id == "" {
+	recent, err := s.pingedRecently(ctx, now)
+	if err != nil || recent {
 		return nil, err
-	}
-	lastSent, err := s.storedValue(ctx, LastSentKey)
-	if err != nil {
-		return nil, err
-	}
-	// A time that is missing, unreadable or still ahead of the clock counts as no ping yet: a
-	// clock that was wrong once must not silence the ping until it is right again.
-	if last, err := time.Parse(time.RFC3339, lastSent); err == nil && !last.After(now) && now.Sub(last) <= pingInterval {
-		return nil, nil
 	}
 	payload, err := s.build(ctx, true)
 	if err != nil || payload.InstanceID == "" {
@@ -200,6 +188,35 @@ func (s *ServiceImpl) NextPing(ctx context.Context, now time.Time) (*Payload, er
 		return nil, err
 	}
 	return &payload, nil
+}
+
+// mayPing is whether the install pings at all: the environment does not force it off, and the
+// admin's choice is on. It makes the instance ID if there is none.
+func (s *ServiceImpl) mayPing(ctx context.Context) (bool, error) {
+	if s.cfg.TelemetryForcedOff() {
+		return false, nil
+	}
+	enabled, err := s.chosenEnabled(ctx)
+	if err != nil || !enabled {
+		return false, err
+	}
+	id, err := s.ensureInstanceID(ctx)
+	if err != nil || id == "" {
+		return false, err
+	}
+	return true, nil
+}
+
+// pingedRecently is whether the last ping was within a ping interval of now
+func (s *ServiceImpl) pingedRecently(ctx context.Context, now time.Time) (bool, error) {
+	lastSent, err := s.storedValue(ctx, LastSentKey)
+	if err != nil {
+		return false, err
+	}
+	// A time that is missing, unreadable or still ahead of the clock counts as no ping yet: a
+	// clock that was wrong once must not silence the ping until it is right again.
+	last, err := time.Parse(time.RFC3339, lastSent)
+	return err == nil && !last.After(now) && now.Sub(last) <= pingInterval, nil
 }
 
 func (s *ServiceImpl) RecordSent(ctx context.Context, instanceID string, at time.Time) error {

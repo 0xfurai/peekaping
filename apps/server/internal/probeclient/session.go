@@ -312,43 +312,70 @@ func (s *Session) failed(call string, err error, backoff *Backoff) time.Duration
 
 	switch {
 	case failure.Status == http.StatusConflict && call != callHello:
-		s.lose()
-		if backoff.conflicted {
-			wait := backoff.Next()
-			s.logger.Warnw("The server doesn't know this instance, though it was greeted since the last answer", "call", call, "message", failure.Message, "retry_in", wait.String())
-			return wait
-		}
-		backoff.conflicted = true
-		s.logger.Infow("The server doesn't know this instance; saying hello again", "call", call, "message", failure.Message)
-		return 0
+		return s.unknownInstance(call, failure, backoff)
 	case failure.Status == http.StatusUpgradeRequired:
-		s.lose()
-		s.logger.Errorw("The server doesn't speak this probe's protocol version; upgrade the probe. Trying again in an hour",
-			"call", call, "message", failure.Message, "protocol_version", probeproto.ProtocolVersion, "retry_in", upgradeRetry.String())
-		return upgradeRetry
+		return s.protocolRefused(call, failure)
 	case failure.Status == http.StatusUnauthorized:
-		s.lose()
-		wait := backoff.Next()
-		s.logger.Errorw("The server refused the probe token", "call", call, "message", failure.Message, "retry_in", wait.String())
-		return wait
+		return s.tokenRefused(call, failure, backoff)
 	case failure.Status == http.StatusTooManyRequests, failure.Status == http.StatusServiceUnavailable:
-		if failure.Status == http.StatusServiceUnavailable {
-			s.lose()
-		}
-		wait := min(failure.RetryAfter, maxRetryAfter)
-		if wait <= 0 {
-			wait = backoff.Next()
-		}
-		s.logger.Warnw("The server asked the probe to wait", "call", call, "status", failure.Status, "message", failure.Message, "retry_in", wait.String())
-		return wait
+		return s.askedToWait(call, failure, backoff)
 	default:
-		if failure.Status >= http.StatusInternalServerError {
-			s.lose()
-		}
+		return s.callFailed(call, failure, backoff)
+	}
+}
+
+// unknownInstance is failed for a 409 to a call other than hello: the first says hello again at
+// once, and the ones after it, before the server has answered anything else, back off
+func (s *Session) unknownInstance(call string, failure *probeproto.Error, backoff *Backoff) time.Duration {
+	s.lose()
+	if backoff.conflicted {
 		wait := backoff.Next()
-		s.logger.Warnw("The server failed a call", "call", call, "status", failure.Status, "message", failure.Message, "retry_in", wait.String())
+		s.logger.Warnw("The server doesn't know this instance, though it was greeted since the last answer", "call", call, "message", failure.Message, "retry_in", wait.String())
 		return wait
 	}
+	backoff.conflicted = true
+	s.logger.Infow("The server doesn't know this instance; saying hello again", "call", call, "message", failure.Message)
+	return 0
+}
+
+// protocolRefused is failed for a 426: the server needs a newer protocol version than the probe speaks
+func (s *Session) protocolRefused(call string, failure *probeproto.Error) time.Duration {
+	s.lose()
+	s.logger.Errorw("The server doesn't speak this probe's protocol version; upgrade the probe. Trying again in an hour",
+		"call", call, "message", failure.Message, "protocol_version", probeproto.ProtocolVersion, "retry_in", upgradeRetry.String())
+	return upgradeRetry
+}
+
+// tokenRefused is failed for a 401
+func (s *Session) tokenRefused(call string, failure *probeproto.Error, backoff *Backoff) time.Duration {
+	s.lose()
+	wait := backoff.Next()
+	s.logger.Errorw("The server refused the probe token", "call", call, "message", failure.Message, "retry_in", wait.String())
+	return wait
+}
+
+// askedToWait is failed for a 429 or a 503: the wait is the server's Retry-After, up to a cap, or
+// else the backoff's
+func (s *Session) askedToWait(call string, failure *probeproto.Error, backoff *Backoff) time.Duration {
+	if failure.Status == http.StatusServiceUnavailable {
+		s.lose()
+	}
+	wait := min(failure.RetryAfter, maxRetryAfter)
+	if wait <= 0 {
+		wait = backoff.Next()
+	}
+	s.logger.Warnw("The server asked the probe to wait", "call", call, "status", failure.Status, "message", failure.Message, "retry_in", wait.String())
+	return wait
+}
+
+// callFailed is failed for any other status: the hello is lost for a server error
+func (s *Session) callFailed(call string, failure *probeproto.Error, backoff *Backoff) time.Duration {
+	if failure.Status >= http.StatusInternalServerError {
+		s.lose()
+	}
+	wait := backoff.Next()
+	s.logger.Warnw("The server failed a call", "call", call, "status", failure.Status, "message", failure.Message, "retry_in", wait.String())
+	return wait
 }
 
 // poll long-polls for the probe's monitors, as probeproto's client does, bounded by the poll

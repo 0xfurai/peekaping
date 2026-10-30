@@ -77,35 +77,51 @@ func (v *Verifier) Verify(ctx context.Context, token, remoteIP string) error {
 	ctx, cancel := context.WithTimeout(ctx, v.timeout)
 	defer cancel()
 
+	status, body, err := v.ask(ctx, token, remoteIP)
+	if err != nil {
+		return err
+	}
+	return judge(status, body)
+}
+
+// ask sends the answer to Cloudflare and returns the status and the body of the reply. The error
+// wraps ErrUnavailable.
+func (v *Verifier) ask(ctx context.Context, token, remoteIP string) (int, []byte, error) {
 	form := url.Values{"secret": {v.secret}, "response": {token}}
 	if remoteIP != "" {
 		form.Set("remoteip", remoteIP)
 	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, v.url, strings.NewReader(form.Encode()))
 	if err != nil {
-		return fmt.Errorf("%w: %v", ErrUnavailable, err)
+		return 0, nil, fmt.Errorf("%w: %v", ErrUnavailable, err)
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	res, err := v.client.Do(req)
 	if err != nil {
-		return fmt.Errorf("%w: %s", ErrUnavailable, unwrapURLError(err))
+		return 0, nil, fmt.Errorf("%w: %s", ErrUnavailable, unwrapURLError(err))
 	}
 	defer res.Body.Close()
 	body, err := io.ReadAll(io.LimitReader(res.Body, maxResponseBytes))
 	if err != nil {
-		return fmt.Errorf("%w: reading the reply: %s", ErrUnavailable, unwrapURLError(err))
+		return 0, nil, fmt.Errorf("%w: reading the reply: %s", ErrUnavailable, unwrapURLError(err))
 	}
+	return res.StatusCode, body, nil
+}
+
+// judge reads Cloudflare's reply: nil for an accepted answer, else an error that wraps ErrRejected
+// or, for a reply that is not a verdict, ErrUnavailable
+func judge(status int, body []byte) error {
 	var verdict siteverifyResponse
 	jsonErr := json.Unmarshal(body, &verdict)
 	switch {
-	case res.StatusCode >= 500:
-		return fmt.Errorf("%w: Cloudflare answered %d", ErrUnavailable, res.StatusCode)
+	case status >= 500:
+		return fmt.Errorf("%w: Cloudflare answered %d", ErrUnavailable, status)
 	case jsonErr != nil:
-		return fmt.Errorf("%w: Cloudflare answered %d with a body that is not a verdict", ErrUnavailable, res.StatusCode)
+		return fmt.Errorf("%w: Cloudflare answered %d with a body that is not a verdict", ErrUnavailable, status)
 	case !verdict.Success:
 		return fmt.Errorf("%w: %s", ErrRejected, strings.Join(verdict.ErrorCodes, ", "))
-	case res.StatusCode != http.StatusOK:
-		return fmt.Errorf("%w: Cloudflare answered %d", ErrUnavailable, res.StatusCode)
+	case status != http.StatusOK:
+		return fmt.Errorf("%w: Cloudflare answered %d", ErrUnavailable, status)
 	}
 	return nil
 }

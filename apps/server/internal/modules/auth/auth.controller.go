@@ -105,50 +105,72 @@ func (c *Controller) Register(ctx context.Context, input *RegisterInput) (*httpx
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 
-	// An open signup passes the gate: a limit per client and, when set up, Turnstile. An invite signup
-	// does not: the invite is the proof that the visitor is wanted.
-	if dto.InviteToken == "" && c.signup.Open(ctx) {
-		if retryAfter, err := c.signup.Admit(ctx, c.clientKey(input.Request), c.proxies.ClientIP(input.Request), dto.TurnstileToken); err != nil {
-			if errors.Is(err, ErrSignupRateLimited) {
-				return nil, tooManyRequests(retryAfter)
-			}
-			return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("We could not verify that you are not a robot. Reload the page and try again."))
-		}
+	if err := c.admitSignup(ctx, input.Request, dto); err != nil {
+		return nil, err
 	}
 
 	response, err := c.service.Register(ctx, dto)
 	if err != nil {
-		// Signing up with an address that has an account is for the visitor to fix, with a way out
-		if errors.Is(err, ErrEmailTaken) && dto.InviteToken == "" {
-			c.logger.Infow("Registration refused: an account with this email exists")
-			return nil, httpx.Fail(http.StatusConflict, utils.NewFailResponse("An account with this email address exists already: sign in instead"))
-		}
-		if errors.Is(err, ErrAdminExists) {
-			c.logger.Infow("Registration refused: the install has its admin already")
-			return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
-		}
-		// The inviting workspace has as many members as its limit
-		var reached *limits.ReachedError
-		if errors.As(err, &reached) {
-			c.logger.Infow("Invite refused: the workspace has reached its members limit")
-			return nil, limits.Fail(reached)
-		}
-		// An invite that doesn't exist, can't be used or names another email is the visitor's
-		// problem, not the server's: it is logged as the refusal it is, without the token
-		if reason := inviteRefusal(err); reason != "" {
-			c.logger.Infow("Invite refused: " + reason)
-			if errors.Is(err, ErrEmailTaken) {
-				return nil, httpx.Fail(http.StatusConflict, utils.NewFailResponse("An account with this email exists: sign in and accept the invite"))
-			}
-			if answer := workspacehttp.Fail(err); answer != nil {
-				return nil, answer
-			}
-		}
-		c.logger.Errorw("Failed to register", "error", err)
-		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse(err.Error()))
+		return nil, c.registerFailure(err, dto)
 	}
 
 	return httpx.Reply(http.StatusCreated, utils.NewSuccessResponse("User registered successfully", response))
+}
+
+// admitSignup lets a signup through the gate, or answers why not. An open signup passes the gate: a
+// limit per client and, when set up, Turnstile. An invite signup does not: the invite is the proof
+// that the visitor is wanted.
+func (c *Controller) admitSignup(ctx context.Context, request *http.Request, dto RegisterDto) error {
+	if dto.InviteToken != "" || !c.signup.Open(ctx) {
+		return nil
+	}
+	retryAfter, err := c.signup.Admit(ctx, c.clientKey(request), c.proxies.ClientIP(request), dto.TurnstileToken)
+	if err == nil {
+		return nil
+	}
+	if errors.Is(err, ErrSignupRateLimited) {
+		return tooManyRequests(retryAfter)
+	}
+	return httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("We could not verify that you are not a robot. Reload the page and try again."))
+}
+
+// registerFailure answers the error of the service
+func (c *Controller) registerFailure(err error, dto RegisterDto) error {
+	// Signing up with an address that has an account is for the visitor to fix, with a way out
+	if errors.Is(err, ErrEmailTaken) && dto.InviteToken == "" {
+		c.logger.Infow("Registration refused: an account with this email exists")
+		return httpx.Fail(http.StatusConflict, utils.NewFailResponse("An account with this email address exists already: sign in instead"))
+	}
+	if errors.Is(err, ErrAdminExists) {
+		c.logger.Infow("Registration refused: the install has its admin already")
+		return httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
+	}
+	// The inviting workspace has as many members as its limit
+	var reached *limits.ReachedError
+	if errors.As(err, &reached) {
+		c.logger.Infow("Invite refused: the workspace has reached its members limit")
+		return limits.Fail(reached)
+	}
+	if answer := c.inviteFailure(err); answer != nil {
+		return answer
+	}
+	c.logger.Errorw("Failed to register", "error", err)
+	return httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse(err.Error()))
+}
+
+// inviteFailure answers the error of an invite that doesn't exist, can't be used or names another
+// email, or returns nil for any other error. Such an error is the visitor's problem, not the
+// server's: it is logged as the refusal it is, without the token.
+func (c *Controller) inviteFailure(err error) error {
+	reason := inviteRefusal(err)
+	if reason == "" {
+		return nil
+	}
+	c.logger.Infow("Invite refused: " + reason)
+	if errors.Is(err, ErrEmailTaken) {
+		return httpx.Fail(http.StatusConflict, utils.NewFailResponse("An account with this email exists: sign in and accept the invite"))
+	}
+	return workspacehttp.Fail(err)
 }
 
 // inviteRefusal says why a signup through an invite was refused, or returns "" for a failure

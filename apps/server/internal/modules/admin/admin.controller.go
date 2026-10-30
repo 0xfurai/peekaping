@@ -169,25 +169,36 @@ func (c *Controller) UpdateWorkspace(ctx context.Context, input *UpdateWorkspace
 		return nil, err
 	}
 	body, err := input.Decode()
-	if err != nil || (body.Suspended == nil && body.Limits == nil && !body.ClearLimits) {
-		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Name what to change: suspended, limits or clearLimits"))
+	if err := checkWorkspaceUpdate(body, err); err != nil {
+		return nil, err
+	}
+	updated, err := c.applyWorkspaceUpdate(ctx, actorID, input.Request.PathValue("id"), body)
+	if err != nil {
+		return nil, err
+	}
+	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("Workspace updated successfully", workspaceResponse(updated)))
+}
+
+// checkWorkspaceUpdate refuses a body that did not decode, names nothing to change, or names both
+// limits and clearLimits
+func checkWorkspaceUpdate(body UpdateWorkspaceDto, decodeErr error) error {
+	if decodeErr != nil || (body.Suspended == nil && body.Limits == nil && !body.ClearLimits) {
+		return httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Name what to change: suspended, limits or clearLimits"))
 	}
 	if body.Limits != nil && body.ClearLimits {
-		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Send limits or clearLimits, not both"))
+		return httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Send limits or clearLimits, not both"))
 	}
-	id := input.Request.PathValue("id")
+	return nil
+}
+
+// applyWorkspaceUpdate sets the limits and then the suspension the body names, and returns the
+// workspace the last call gave
+func (c *Controller) applyWorkspaceUpdate(ctx context.Context, actorID, id string, body UpdateWorkspaceDto) (*Workspace, error) {
 	var updated *Workspace
+	var err error
 	if body.Limits != nil || body.ClearLimits {
-		var own *limits.Limits
-		if body.Limits != nil {
-			l, err := body.Limits.limits()
-			if err != nil {
-				return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
-			}
-			own = &l
-		}
-		if updated, err = c.service.SetWorkspaceLimits(ctx, actorID, id, own); err != nil {
-			return nil, c.fail(err)
+		if updated, err = c.updateLimits(ctx, actorID, id, body); err != nil {
+			return nil, err
 		}
 	}
 	if body.Suspended != nil {
@@ -195,7 +206,24 @@ func (c *Controller) UpdateWorkspace(ctx context.Context, input *UpdateWorkspace
 			return nil, c.fail(err)
 		}
 	}
-	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("Workspace updated successfully", workspaceResponse(updated)))
+	return updated, nil
+}
+
+// updateLimits gives the workspace the limits of the body, or takes its own away when the body has none
+func (c *Controller) updateLimits(ctx context.Context, actorID, id string, body UpdateWorkspaceDto) (*Workspace, error) {
+	var own *limits.Limits
+	if body.Limits != nil {
+		l, err := body.Limits.limits()
+		if err != nil {
+			return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
+		}
+		own = &l
+	}
+	updated, err := c.service.SetWorkspaceLimits(ctx, actorID, id, own)
+	if err != nil {
+		return nil, c.fail(err)
+	}
+	return updated, nil
 }
 
 func (c *Controller) DeleteWorkspace(ctx context.Context, input *DeleteWorkspaceInput) (*httpx.Output[httpx.NoBody], error) {
