@@ -524,55 +524,11 @@ func (s *ServiceImpl) AcceptInvite(ctx context.Context, token, userID string) (*
 	var joined *Membership
 	var lifted []ID
 	err := s.transactor.WithTx(ctx, func(ctx context.Context) error {
-		invite, err := s.lookupInvite(ctx, token)
+		invite, err := s.acceptable(ctx, token, userID)
 		if err != nil {
 			return err
 		}
-		email, err := s.members.UserEmail(ctx, userID)
-		if err != nil {
-			return err
-		}
-		if err := s.usable(invite, email); err != nil {
-			return err
-		}
-		existing, err := s.members.FindMember(ctx, invite.WorkspaceID, userID)
-		if err != nil {
-			return err
-		}
-		if existing != nil {
-			return ErrAlreadyMember
-		}
-		workspaceLimits, err := s.limitsOf(ctx, invite.WorkspaceID)
-		if err != nil {
-			return err
-		}
-		if err := s.requireRoomForMember(ctx, invite.WorkspaceID, workspaceLimits, false); err != nil {
-			return err
-		}
-		now := s.now().UTC()
-		if err := s.workspaces.AddMember(ctx, invite.WorkspaceID, userID, invite.Role); err != nil {
-			// The user became a member since the lookup above: the answer a later accept gets
-			if dbtx.IsUniqueViolation(err) {
-				return ErrAlreadyMember
-			}
-			return err
-		}
-		// The invite works once: of two accepts that race, the one that finds it used rolls back
-		marked, err := s.invites.MarkAccepted(ctx, invite.ID, userID, now)
-		if err != nil {
-			return err
-		}
-		if !marked {
-			return ErrInviteUsed
-		}
-		joined = &Membership{
-			Workspace: Workspace{ID: invite.WorkspaceID, Name: invite.WorkspaceName},
-			Role:      invite.Role,
-			JoinedAt:  now,
-		}
-		if invite.Role == RoleOwner {
-			lifted, err = s.liftForNewOwner(ctx, invite.WorkspaceID, userID)
-		}
+		joined, lifted, err = s.joinThroughInvite(ctx, invite, userID)
 		return err
 	})
 	if err != nil {
@@ -580,6 +536,69 @@ func (s *ServiceImpl) AcceptInvite(ctx context.Context, token, userID string) (*
 	}
 	s.wake(ctx, lifted)
 	return joined, nil
+}
+
+// acceptable finds the invite the token names and checks that the user may take it: it can be
+// used, it is for their email, they are no member yet, and the workspace has room
+func (s *ServiceImpl) acceptable(ctx context.Context, token, userID string) (*Invite, error) {
+	invite, err := s.lookupInvite(ctx, token)
+	if err != nil {
+		return nil, err
+	}
+	email, err := s.members.UserEmail(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	if err := s.usable(invite, email); err != nil {
+		return nil, err
+	}
+	existing, err := s.members.FindMember(ctx, invite.WorkspaceID, userID)
+	if err != nil {
+		return nil, err
+	}
+	if existing != nil {
+		return nil, ErrAlreadyMember
+	}
+	workspaceLimits, err := s.limitsOf(ctx, invite.WorkspaceID)
+	if err != nil {
+		return nil, err
+	}
+	if err := s.requireRoomForMember(ctx, invite.WorkspaceID, workspaceLimits, false); err != nil {
+		return nil, err
+	}
+	return invite, nil
+}
+
+// joinThroughInvite makes the user a member through the invite and marks it accepted. A new owner lifts the
+// unverified suspension of the workspace if they are verified, and the workspaces that lifted are
+// returned.
+func (s *ServiceImpl) joinThroughInvite(ctx context.Context, invite *Invite, userID string) (*Membership, []ID, error) {
+	now := s.now().UTC()
+	if err := s.workspaces.AddMember(ctx, invite.WorkspaceID, userID, invite.Role); err != nil {
+		// The user became a member since the lookup above: the answer a later accept gets
+		if dbtx.IsUniqueViolation(err) {
+			return nil, nil, ErrAlreadyMember
+		}
+		return nil, nil, err
+	}
+	// The invite works once: of two accepts that race, the one that finds it used rolls back
+	marked, err := s.invites.MarkAccepted(ctx, invite.ID, userID, now)
+	if err != nil {
+		return nil, nil, err
+	}
+	if !marked {
+		return nil, nil, ErrInviteUsed
+	}
+	joined := &Membership{
+		Workspace: Workspace{ID: invite.WorkspaceID, Name: invite.WorkspaceName},
+		Role:      invite.Role,
+		JoinedAt:  now,
+	}
+	var lifted []ID
+	if invite.Role == RoleOwner {
+		lifted, err = s.liftForNewOwner(ctx, invite.WorkspaceID, userID)
+	}
+	return joined, lifted, err
 }
 
 func (s *ServiceImpl) CheckInvite(ctx context.Context, token, email string) error {
@@ -626,66 +645,98 @@ func (s *ServiceImpl) lookupInvite(ctx context.Context, token string) (*Invite, 
 // MARK: Workspaces
 
 func (s *ServiceImpl) CreateWorkspace(ctx context.Context, userID, name string) (*Membership, error) {
-	var mostOwned *int
-	if s.limits != nil {
-		snapshot, err := s.limits.Snapshot(ctx)
-		if err != nil {
-			return nil, fmt.Errorf("read the install's limits: %w", err)
-		}
-		mostOwned = snapshot.Defaults.OwnedWorkspaces
+	mostOwned, err := s.mostOwned(ctx)
+	if err != nil {
+		return nil, err
 	}
 	// Read before the transaction: the install settings are read outside it
 	open := s.settings.SignupOpen(ctx)
 	var created *Membership
-	err := s.transactor.WithTx(ctx, func(ctx context.Context) error {
-		if err := s.requireRoomForOwned(ctx, userID, mostOwned); err != nil {
-			return err
-		}
-		// In an open install a user must verify their email before any workspace of theirs runs: one
-		// made by a user who has not is suspended, so that making workspaces is no way round it
-		suspend := false
-		if open {
-			verified, err := s.members.EmailVerified(ctx, userID)
-			if err != nil {
-				return err
-			}
-			suspend = !verified
-		}
-		var made *Workspace
-		var err error
-		if suspend {
-			made, err = s.workspaces.CreateSuspended(ctx, strings.TrimSpace(name), SuspendedUnverified)
-		} else {
-			made, err = s.workspaces.Create(ctx, strings.TrimSpace(name))
-		}
-		if err != nil {
-			return err
-		}
-		if err := s.workspaces.AddMember(ctx, made.ID, userID, RoleOwner); err != nil {
-			return err
-		}
-		if suspend {
-			// The read above may be stale: a verification that committed since found no workspace of
-			// the user to lift, and would leave this one suspended for good. Read again with the user's
-			// row held, so that a verification either is seen now or waits for this workspace.
-			verified, err := s.members.LockEmailVerified(ctx, userID)
-			if err != nil {
-				return err
-			}
-			if verified {
-				if _, err := s.workspaces.LiftUnverifiedOwnedBy(ctx, userID); err != nil {
-					return err
-				}
-				made.SuspendedAt, made.SuspendedReason = nil, ""
-			}
-		}
-		created = &Membership{Workspace: *made, Role: RoleOwner, JoinedAt: made.CreatedAt}
-		return nil
+	err = s.transactor.WithTx(ctx, func(ctx context.Context) error {
+		created, err = s.createOwned(ctx, userID, name, mostOwned, open)
+		return err
 	})
 	if err != nil {
 		return nil, err
 	}
 	return created, nil
+}
+
+// createOwned makes the workspace and its owner, in the transaction ctx carries
+func (s *ServiceImpl) createOwned(ctx context.Context, userID, name string, mostOwned *int, open bool) (*Membership, error) {
+	if err := s.requireRoomForOwned(ctx, userID, mostOwned); err != nil {
+		return nil, err
+	}
+	// In an open install a user must verify their email before any workspace of theirs runs: one
+	// made by a user who has not is suspended, so that making workspaces is no way round it
+	suspend, err := s.mustSuspend(ctx, userID, open)
+	if err != nil {
+		return nil, err
+	}
+	made, err := s.makeWorkspace(ctx, name, suspend)
+	if err != nil {
+		return nil, err
+	}
+	if err := s.workspaces.AddMember(ctx, made.ID, userID, RoleOwner); err != nil {
+		return nil, err
+	}
+	if suspend {
+		if err := s.liftIfVerified(ctx, userID, made); err != nil {
+			return nil, err
+		}
+	}
+	return &Membership{Workspace: *made, Role: RoleOwner, JoinedAt: made.CreatedAt}, nil
+}
+
+// mostOwned is how many workspaces a user may own, nil without a limit
+func (s *ServiceImpl) mostOwned(ctx context.Context) (*int, error) {
+	if s.limits == nil {
+		return nil, nil
+	}
+	snapshot, err := s.limits.Snapshot(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("read the install's limits: %w", err)
+	}
+	return snapshot.Defaults.OwnedWorkspaces, nil
+}
+
+// mustSuspend is whether a workspace the user makes starts suspended: the install is open and their
+// email is not verified
+func (s *ServiceImpl) mustSuspend(ctx context.Context, userID string, open bool) (bool, error) {
+	if !open {
+		return false, nil
+	}
+	verified, err := s.members.EmailVerified(ctx, userID)
+	if err != nil {
+		return false, err
+	}
+	return !verified, nil
+}
+
+// makeWorkspace adds the workspace with no member, suspended as unverified when asked to
+func (s *ServiceImpl) makeWorkspace(ctx context.Context, name string, suspend bool) (*Workspace, error) {
+	if suspend {
+		return s.workspaces.CreateSuspended(ctx, strings.TrimSpace(name), SuspendedUnverified)
+	}
+	return s.workspaces.Create(ctx, strings.TrimSpace(name))
+}
+
+// liftIfVerified lifts the suspension of the workspace just made if the user is verified by now.
+// The read before may be stale: a verification that committed since found no workspace of the user
+// to lift, and would leave this one suspended for good. Read again with the user's row held, so
+// that a verification either is seen now or waits for this workspace.
+func (s *ServiceImpl) liftIfVerified(ctx context.Context, userID string, made *Workspace) error {
+	verified, err := s.members.LockEmailVerified(ctx, userID)
+	if err != nil {
+		return err
+	}
+	if verified {
+		if _, err := s.workspaces.LiftUnverifiedOwnedBy(ctx, userID); err != nil {
+			return err
+		}
+		made.SuspendedAt, made.SuspendedReason = nil, ""
+	}
+	return nil
 }
 
 // MARK: Tokens
