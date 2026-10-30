@@ -528,6 +528,29 @@ func TestWorkspaceImport_ATakenSlugGetsTheFirstFreeNumberAndATakenDomainIsDroppe
 	})
 }
 
+func TestWorkspaceImport_ASlugAtTheLongestLengthThatIsTakenIsTrimmedForItsNumberToFit(t *testing.T) {
+	forEachBackend(t, func(t *testing.T, backend func(*config.Config)) {
+		a := newAppWithAdmin(t, backend)
+		longest := strings.Repeat("a", 255)
+		other := a.emptyWorkspace(t, "Other", "other-owner@example.com")
+		a.createStatusPageAs(t, other.owner, statusPage{slug: longest, published: true})
+		target := a.emptyWorkspace(t, "Target", "target-owner@example.com")
+		doc := docOf()
+		doc.StatusPages = []workspaceport.StatusPage{docPage("p1", longest), docPage("p2", longest)}
+
+		result := a.imported(t, doc, target.owner)
+
+		assert.Equal(t, 2, result.Created.StatusPages)
+		assert.Equal(t, strings.Repeat("a", 253)+"-2", changeOf(t, result, "status_page_slug_changed", "p1").To, "the column holds 255 characters")
+		assert.Equal(t, strings.Repeat("a", 253)+"-3", changeOf(t, result, "status_page_slug_changed", "p2").To)
+		slugs := []string{}
+		for _, p := range a.exportDocument(t, target.owner).StatusPages {
+			slugs = append(slugs, p.Slug)
+		}
+		assert.ElementsMatch(t, []string{strings.Repeat("a", 253) + "-2", strings.Repeat("a", 253) + "-3"}, slugs)
+	})
+}
+
 func TestWorkspaceImport_StatusPagesAndDomainsPastThePlansLimitsAreLeftOut(t *testing.T) {
 	forEachBackend(t, func(t *testing.T, backend func(*config.Config)) {
 		a := newAppWithAdmin(t, backend)
