@@ -569,61 +569,9 @@ func (h *HTTPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 	}
 	cfg := cfgAny.(*HTTPConfig)
 
-	var bodyReader io.Reader
-	if cfg.Body != "" {
-		bodyReader = bytes.NewReader([]byte(cfg.Body))
-	}
-
-	req, err := http.NewRequestWithContext(ctx, cfg.Method, cfg.Url, bodyReader)
+	req, err := newHTTPRequest(ctx, cfg)
 	if err != nil {
 		return DownResult(err, time.Now().UTC(), time.Now().UTC())
-	}
-	setDefaultHeaders(req)
-
-	if cfg.Headers != "" {
-		headersMap := make(map[string]string)
-		err := json.Unmarshal([]byte(cfg.Headers), &headersMap)
-		if err != nil {
-			return DownResult(fmt.Errorf("invalid headers json: %w", err), time.Now().UTC(), time.Now().UTC())
-		}
-		dropLegacyContentType := isLegacyDefaultContentType(headersMap, cfg.Body)
-		for k, v := range headersMap {
-			if dropLegacyContentType && strings.EqualFold(k, "Content-Type") {
-				continue
-			}
-			req.Header.Set(k, v)
-		}
-	}
-
-	// Determine effective max redirects value
-	effectiveMaxRedirects := cfg.MaxRedirects
-
-	checkRedirect := func(req *http.Request, via []*http.Request) error {
-		h.logger.Debugf("checkRedirect: %d redirects followed, max allowed: %d", len(via), effectiveMaxRedirects)
-		if effectiveMaxRedirects == 0 {
-			return fmt.Errorf("redirects disabled: max_redirects set to 0")
-		}
-		if len(via) > effectiveMaxRedirects {
-			return fmt.Errorf("too many redirects: followed %d redirects, maximum allowed is %d", len(via), effectiveMaxRedirects)
-		}
-		return nil
-	}
-
-	// Content-Type describes the request body, so only infer it when one is
-	// sent. A Content-Type from the configured headers always wins.
-	if cfg.Body != "" {
-		if _, hasContentType := req.Header["Content-Type"]; !hasContentType {
-			switch cfg.Encoding {
-			case "json":
-				req.Header.Set("Content-Type", "application/json")
-			case "form":
-				req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-			case "xml":
-				req.Header.Set("Content-Type", "application/xml")
-			case "text":
-				req.Header.Set("Content-Type", "text/plain")
-			}
-		}
 	}
 
 	// --- PROXY LOGIC ---
@@ -636,10 +584,7 @@ func (h *HTTPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 
 	// Configure TLS settings if needed
 	if cfg.IgnoreTlsErrors {
-		if baseTransport.TLSClientConfig == nil {
-			baseTransport.TLSClientConfig = &tls.Config{}
-		}
-		baseTransport.TLSClientConfig.InsecureSkipVerify = true
+		baseTransport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 	}
 
 	transport := buildGuardedTransport(baseTransport, proxyModel, h.guard)
@@ -647,129 +592,32 @@ func (h *HTTPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 	// Create TLS interceptor to capture certificate information
 	tlsInterceptor := NewTLSInterceptor(transport)
 
-	// Keep track of the active TLS interceptor for error handling
-	var activeTLSInterceptor *TLSInterceptor = tlsInterceptor
-
-	// Set timeout from monitor configuration
-	timeout := time.Duration(m.Timeout) * time.Second
-
 	// Built for this check only: the executor is shared by every concurrent check.
-	var client *http.Client
+	sender := &httpSender{
+		client: &http.Client{
+			Timeout:       time.Duration(m.Timeout) * time.Second,
+			CheckRedirect: h.redirectPolicy(cfg.MaxRedirects),
+			Transport:     tlsInterceptor,
+		},
+		interceptor: tlsInterceptor,
+		cleanup:     func() {},
+	}
 
 	// --- AUTHENTICATION LOGIC ---
-	switch cfg.AuthMethod {
-	case "basic":
-		req.SetBasicAuth(cfg.BasicAuthUser, cfg.BasicAuthPass)
-	case "ntlm":
-		// NTLM authentication using github.com/Azure/go-ntlmssp
-		ntlmTransport := ntlmssp.Negotiator{
-			RoundTripper: tlsInterceptor,
-		}
-		client = &http.Client{
-			Transport:     &ntlmTransport,
-			Timeout:       time.Duration(m.Timeout) * time.Second,
-			CheckRedirect: checkRedirect,
-		}
-
-		if cfg.AuthDomain != "" {
-			req.SetBasicAuth(cfg.AuthDomain+"\\"+cfg.BasicAuthUser, cfg.BasicAuthPass)
-		} else {
-			req.SetBasicAuth(cfg.BasicAuthUser, cfg.BasicAuthPass)
-		}
-	case "oauth2-cc":
-		form := url.Values{}
-		form.Set("grant_type", "client_credentials")
-		if cfg.OauthScopes != "" {
-			form.Set("scope", cfg.OauthScopes)
-		}
-		if cfg.OauthAuthMethod == "client_secret_post" {
-			form.Set("client_id", cfg.OauthClientId)
-			form.Set("client_secret", cfg.OauthClientSecret)
-		}
-
-		tokenReq, err := http.NewRequestWithContext(ctx, "POST", cfg.OauthTokenUrl, strings.NewReader(form.Encode()))
-		if err != nil {
-			return DownResult(fmt.Errorf("failed to create oauth2 token request: %w", err), time.Now().UTC(), time.Now().UTC())
-		}
-		setDefaultHeaders(tokenReq)
-
-		tokenReq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-		if cfg.OauthAuthMethod == "client_secret_basic" {
-			basic := base64.StdEncoding.EncodeToString([]byte(cfg.OauthClientId + ":" + cfg.OauthClientSecret))
-			tokenReq.Header.Set("Authorization", "Basic "+basic)
-		}
-
-		tokenClient, closeTokenClient := guardedClient(h.guard)
-		defer closeTokenClient()
-		tokenResp, err := tokenClient.Do(tokenReq)
-		if err != nil {
-			return DownResult(fmt.Errorf("failed to get oauth2 token: %w", err), time.Now().UTC(), time.Now().UTC())
-		}
-		defer tokenResp.Body.Close()
-		if tokenResp.StatusCode < 200 || tokenResp.StatusCode >= 300 {
-			return DownResult(fmt.Errorf("oauth2 token endpoint returned status: %d", tokenResp.StatusCode), time.Now().UTC(), time.Now().UTC())
-		}
-		var tokenData struct {
-			AccessToken string `json:"access_token"`
-		}
-		err = json.NewDecoder(tokenResp.Body).Decode(&tokenData)
-		if err != nil || tokenData.AccessToken == "" {
-			return DownResult(fmt.Errorf("failed to parse oauth2 token response: %w", err), time.Now().UTC(), time.Now().UTC())
-		}
-		req.Header.Set("Authorization", "Bearer "+tokenData.AccessToken)
-	case "mtls":
-		cert, err := tls.X509KeyPair([]byte(cfg.TlsCert), []byte(cfg.TlsKey))
-		if err != nil {
-			return DownResult(fmt.Errorf("invalid mTLS cert/key: %w", err), time.Now().UTC(), time.Now().UTC())
-		}
-		// With no CA, RootCAs stays nil and crypto/tls verifies the server
-		// against the host's system roots.
-		var caCertPool *x509.CertPool
-		if strings.TrimSpace(cfg.TlsCa) != "" {
-			caCertPool = x509.NewCertPool()
-			if ok := caCertPool.AppendCertsFromPEM([]byte(cfg.TlsCa)); !ok {
-				return DownResult(fmt.Errorf("invalid mTLS CA cert"), time.Now().UTC(), time.Now().UTC())
-			}
-		}
-		mtlsTransport := &http.Transport{
-			TLSClientConfig: &tls.Config{
-				Certificates:       []tls.Certificate{cert},
-				RootCAs:            caCertPool,
-				InsecureSkipVerify: cfg.IgnoreTlsErrors,
-			},
-		}
-		defer mtlsTransport.CloseIdleConnections()
-		mtlsTransportWithProxy := buildGuardedTransport(mtlsTransport, proxyModel, h.guard)
-		mtlsTLSInterceptor := NewTLSInterceptor(mtlsTransportWithProxy)
-		activeTLSInterceptor = mtlsTLSInterceptor // Update the active interceptor for mTLS
-		client = &http.Client{
-			Transport:     mtlsTLSInterceptor,
-			Timeout:       time.Duration(m.Timeout) * time.Second,
-			CheckRedirect: checkRedirect,
-		}
+	if err := h.authenticate(ctx, req, cfg, proxyModel, sender); err != nil {
+		return DownResult(err, time.Now().UTC(), time.Now().UTC())
 	}
-
-	if cfg.AuthMethod != "mtls" && cfg.AuthMethod != "ntlm" {
-		client = &http.Client{
-			Timeout:       timeout,
-			CheckRedirect: checkRedirect,
-			Transport:     tlsInterceptor,
-		}
-	}
-
-	// Set user agent and accept headers
+	defer sender.close()
 
 	startTime := time.Now().UTC()
-	resp, err := client.Do(req)
+	resp, err := sender.client.Do(req)
 	endTime := time.Now().UTC()
 
 	if err != nil {
 		h.logger.Infof("HTTP request failed: %s, %s", m.Name, err.Error())
 		result := DownResult(err, startTime, endTime)
 		// Try to get TLS info even on error for HTTPS requests
-		if strings.HasPrefix(cfg.Url, "https://") && activeTLSInterceptor != nil {
-			result.TLSInfo = activeTLSInterceptor.GetTLSInfo()
-		}
+		result.TLSInfo = httpTLSInfo(cfg.Url, sender.interceptor)
 		return result
 	}
 	defer resp.Body.Close()
@@ -777,80 +625,267 @@ func (h *HTTPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 	h.logger.Infof("HTTP response status: %s, %d", m.Name, resp.StatusCode)
 
 	// Extract TLS information if available
-	var tlsInfo *shared.TLSInfo
-	if strings.HasPrefix(cfg.Url, "https://") && activeTLSInterceptor != nil {
-		tlsInfo = activeTLSInterceptor.GetTLSInfo()
+	tlsInfo := httpTLSInfo(cfg.Url, sender.interceptor)
+
+	return h.evaluateResponse(m, cfg, resp, startTime, endTime, tlsInfo)
+}
+
+// newHTTPRequest builds the request the check sends, with its headers and body
+func newHTTPRequest(ctx context.Context, cfg *HTTPConfig) (*http.Request, error) {
+	var bodyReader io.Reader
+	if cfg.Body != "" {
+		bodyReader = bytes.NewReader([]byte(cfg.Body))
 	}
 
-	if !isStatusAccepted(resp.StatusCode, cfg.AcceptedStatusCodes) {
+	req, err := http.NewRequestWithContext(ctx, cfg.Method, cfg.Url, bodyReader)
+	if err != nil {
+		return nil, err
+	}
+	setDefaultHeaders(req)
+
+	if err := applyConfiguredHeaders(req, cfg); err != nil {
+		return nil, err
+	}
+	setInferredContentType(req, cfg)
+
+	return req, nil
+}
+
+// applyConfiguredHeaders sets the headers the config holds, as a JSON object
+func applyConfiguredHeaders(req *http.Request, cfg *HTTPConfig) error {
+	if cfg.Headers == "" {
+		return nil
+	}
+
+	headersMap := make(map[string]string)
+	err := json.Unmarshal([]byte(cfg.Headers), &headersMap)
+	if err != nil {
+		return fmt.Errorf("invalid headers json: %w", err)
+	}
+	dropLegacyContentType := isLegacyDefaultContentType(headersMap, cfg.Body)
+	for k, v := range headersMap {
+		if dropLegacyContentType && strings.EqualFold(k, "Content-Type") {
+			continue
+		}
+		req.Header.Set(k, v)
+	}
+	return nil
+}
+
+// contentTypeByEncoding is the Content-Type that describes a request body of each encoding
+var contentTypeByEncoding = map[string]string{
+	"json": "application/json",
+	"form": "application/x-www-form-urlencoded",
+	"xml":  "application/xml",
+	"text": "text/plain",
+}
+
+// setInferredContentType sets the Content-Type of the body's encoding
+func setInferredContentType(req *http.Request, cfg *HTTPConfig) {
+	// Content-Type describes the request body, so only infer it when one is
+	// sent. A Content-Type from the configured headers always wins.
+	if cfg.Body == "" {
+		return
+	}
+	if _, hasContentType := req.Header["Content-Type"]; hasContentType {
+		return
+	}
+	if contentType, ok := contentTypeByEncoding[cfg.Encoding]; ok {
+		req.Header.Set("Content-Type", contentType)
+	}
+}
+
+// redirectPolicy is the client's CheckRedirect: it follows up to maxRedirects redirects, and none
+// when it is 0
+func (h *HTTPExecutor) redirectPolicy(maxRedirects int) func(req *http.Request, via []*http.Request) error {
+	return func(req *http.Request, via []*http.Request) error {
+		h.logger.Debugf("checkRedirect: %d redirects followed, max allowed: %d", len(via), maxRedirects)
+		if maxRedirects == 0 {
+			return fmt.Errorf("redirects disabled: max_redirects set to 0")
+		}
+		if len(via) > maxRedirects {
+			return fmt.Errorf("too many redirects: followed %d redirects, maximum allowed is %d", len(via), maxRedirects)
+		}
+		return nil
+	}
+}
+
+// httpSender is what sends a check's request: the client, the TLS interceptor that captures the
+// certificate of the connection it makes, and a cleanup for any transport the authentication set up
+type httpSender struct {
+	client      *http.Client
+	interceptor *TLSInterceptor
+	cleanup     func()
+}
+
+func (s *httpSender) close() {
+	s.cleanup()
+}
+
+// authenticate has the request carry the config's authentication. Some methods change the sender:
+// NTLM and mTLS replace its client's transport.
+func (h *HTTPExecutor) authenticate(ctx context.Context, req *http.Request, cfg *HTTPConfig, proxyModel *Proxy, sender *httpSender) error {
+	switch cfg.AuthMethod {
+	case "basic":
+		req.SetBasicAuth(cfg.BasicAuthUser, cfg.BasicAuthPass)
+	case "ntlm":
+		// NTLM authentication using github.com/Azure/go-ntlmssp
+		sender.client.Transport = &ntlmssp.Negotiator{RoundTripper: sender.interceptor}
+
+		if cfg.AuthDomain != "" {
+			req.SetBasicAuth(cfg.AuthDomain+"\\"+cfg.BasicAuthUser, cfg.BasicAuthPass)
+		} else {
+			req.SetBasicAuth(cfg.BasicAuthUser, cfg.BasicAuthPass)
+		}
+	case "oauth2-cc":
+		token, err := h.fetchOAuth2Token(ctx, cfg)
+		if err != nil {
+			return err
+		}
+		req.Header.Set("Authorization", "Bearer "+token)
+	case "mtls":
+		return h.setUpMTLS(cfg, proxyModel, sender)
+	}
+	return nil
+}
+
+// fetchOAuth2Token gets an access token from the config's token endpoint, with the client
+// credentials grant
+func (h *HTTPExecutor) fetchOAuth2Token(ctx context.Context, cfg *HTTPConfig) (string, error) {
+	tokenReq, err := oauth2TokenRequest(ctx, cfg)
+	if err != nil {
+		return "", fmt.Errorf("failed to create oauth2 token request: %w", err)
+	}
+
+	tokenClient, closeTokenClient := guardedClient(h.guard)
+	defer closeTokenClient()
+	tokenResp, err := tokenClient.Do(tokenReq)
+	if err != nil {
+		return "", fmt.Errorf("failed to get oauth2 token: %w", err)
+	}
+	defer tokenResp.Body.Close()
+	if tokenResp.StatusCode < 200 || tokenResp.StatusCode >= 300 {
+		return "", fmt.Errorf("oauth2 token endpoint returned status: %d", tokenResp.StatusCode)
+	}
+	var tokenData struct {
+		AccessToken string `json:"access_token"`
+	}
+	err = json.NewDecoder(tokenResp.Body).Decode(&tokenData)
+	if err != nil || tokenData.AccessToken == "" {
+		return "", fmt.Errorf("failed to parse oauth2 token response: %w", err)
+	}
+	return tokenData.AccessToken, nil
+}
+
+// oauth2TokenRequest builds the request for the access token, with the client credentials in the
+// body or in a Basic header, as the config says
+func oauth2TokenRequest(ctx context.Context, cfg *HTTPConfig) (*http.Request, error) {
+	form := url.Values{}
+	form.Set("grant_type", "client_credentials")
+	if cfg.OauthScopes != "" {
+		form.Set("scope", cfg.OauthScopes)
+	}
+	if cfg.OauthAuthMethod == "client_secret_post" {
+		form.Set("client_id", cfg.OauthClientId)
+		form.Set("client_secret", cfg.OauthClientSecret)
+	}
+
+	tokenReq, err := http.NewRequestWithContext(ctx, "POST", cfg.OauthTokenUrl, strings.NewReader(form.Encode()))
+	if err != nil {
+		return nil, err
+	}
+	setDefaultHeaders(tokenReq)
+
+	tokenReq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	if cfg.OauthAuthMethod == "client_secret_basic" {
+		basic := base64.StdEncoding.EncodeToString([]byte(cfg.OauthClientId + ":" + cfg.OauthClientSecret))
+		tokenReq.Header.Set("Authorization", "Basic "+basic)
+	}
+	return tokenReq, nil
+}
+
+// setUpMTLS has the sender connect with the config's client certificate, over a transport of its
+// own that the sender's cleanup closes
+func (h *HTTPExecutor) setUpMTLS(cfg *HTTPConfig, proxyModel *Proxy, sender *httpSender) error {
+	cert, err := tls.X509KeyPair([]byte(cfg.TlsCert), []byte(cfg.TlsKey))
+	if err != nil {
+		return fmt.Errorf("invalid mTLS cert/key: %w", err)
+	}
+	caCertPool, err := mtlsRootCAs(cfg.TlsCa)
+	if err != nil {
+		return err
+	}
+	mtlsTransport := &http.Transport{
+		TLSClientConfig: &tls.Config{
+			Certificates:       []tls.Certificate{cert},
+			RootCAs:            caCertPool,
+			InsecureSkipVerify: cfg.IgnoreTlsErrors,
+		},
+	}
+	sender.cleanup = mtlsTransport.CloseIdleConnections
+	mtlsTransportWithProxy := buildGuardedTransport(mtlsTransport, proxyModel, h.guard)
+	mtlsTLSInterceptor := NewTLSInterceptor(mtlsTransportWithProxy)
+	sender.interceptor = mtlsTLSInterceptor // Update the active interceptor for mTLS
+	sender.client.Transport = mtlsTLSInterceptor
+	return nil
+}
+
+// mtlsRootCAs is the pool of the CA the server's certificate is verified against, or nil without one
+func mtlsRootCAs(tlsCa string) (*x509.CertPool, error) {
+	// With no CA, RootCAs stays nil and crypto/tls verifies the server
+	// against the host's system roots.
+	if strings.TrimSpace(tlsCa) == "" {
+		return nil, nil
+	}
+	caCertPool := x509.NewCertPool()
+	if ok := caCertPool.AppendCertsFromPEM([]byte(tlsCa)); !ok {
+		return nil, fmt.Errorf("invalid mTLS CA cert")
+	}
+	return caCertPool, nil
+}
+
+// httpTLSInfo is the certificate information the interceptor captured, for an HTTPS URL
+func httpTLSInfo(requestURL string, interceptor *TLSInterceptor) *shared.TLSInfo {
+	if strings.HasPrefix(requestURL, "https://") && interceptor != nil {
+		return interceptor.GetTLSInfo()
+	}
+	return nil
+}
+
+// evaluateResponse is the check's result for the response: Down for a status that isn't accepted,
+// a body that can't be read, or a body that fails the keyword or JSON query check
+func (h *HTTPExecutor) evaluateResponse(m *Monitor, cfg *HTTPConfig, resp *http.Response, startTime, endTime time.Time, tlsInfo *shared.TLSInfo) *Result {
+	down := func(message string) *Result {
 		return &Result{
 			Status:    shared.MonitorStatusDown,
-			Message:   fmt.Sprintf("HTTP request failed with status: %d", resp.StatusCode),
+			Message:   message,
 			StartTime: startTime,
 			EndTime:   endTime,
 			TLSInfo:   tlsInfo,
 		}
+	}
+
+	if !isStatusAccepted(resp.StatusCode, cfg.AcceptedStatusCodes) {
+		return down(fmt.Sprintf("HTTP request failed with status: %d", resp.StatusCode))
 	}
 
 	// Read response body for content validation
 	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return &Result{
-			Status:    shared.MonitorStatusDown,
-			Message:   fmt.Sprintf("Failed to read response body: %v", err),
-			StartTime: startTime,
-			EndTime:   endTime,
-			TLSInfo:   tlsInfo,
-		}
+		return down(fmt.Sprintf("Failed to read response body: %v", err))
 	}
 	var responseBody = string(bodyBytes)
 	h.logger.Debugf("Response body length: %d", len(responseBody))
 
 	// Check keyword if specified
-	if cfg.Keyword != "" {
-		if !checkKeyword(responseBody, cfg.Keyword, cfg.InvertKeyword) {
-			var message string
-			if cfg.InvertKeyword {
-				message = fmt.Sprintf("Keyword check failed: keyword '%s' found in response (expected absent)", cfg.Keyword)
-			} else {
-				message = fmt.Sprintf("Keyword check failed: keyword '%s' not found in response", cfg.Keyword)
-			}
-			return &Result{
-				Status:    shared.MonitorStatusDown,
-				Message:   message,
-				StartTime: startTime,
-				EndTime:   endTime,
-				TLSInfo:   tlsInfo,
-			}
-		}
+	if message := httpKeywordFailure(cfg, responseBody); message != "" {
+		return down(message)
 	}
 
 	// Check JSON query if specified
 	if m.Type == "http-json-query" {
-		isValid, err := checkJsonQuery(responseBody, cfg.JsonQuery, cfg.JsonCondition, cfg.ExpectedValue)
-		if err != nil {
-			return &Result{
-				Status:    shared.MonitorStatusDown,
-				Message:   fmt.Sprintf("JSON query validation error: %v", err),
-				StartTime: startTime,
-				EndTime:   endTime,
-				TLSInfo:   tlsInfo,
-			}
-		}
-		if !isValid {
-			condition := cfg.JsonCondition
-			if condition == "" {
-				condition = "=="
-			}
-			message := fmt.Sprintf("JSON query validation failed: query '%s' with condition '%s' and expected value '%s'",
-				cfg.JsonQuery, condition, cfg.ExpectedValue)
-			return &Result{
-				Status:    shared.MonitorStatusDown,
-				Message:   message,
-				StartTime: startTime,
-				EndTime:   endTime,
-				TLSInfo:   tlsInfo,
-			}
+		if message := httpJSONQueryFailure(cfg, responseBody); message != "" {
+			return down(message)
 		}
 	}
 
@@ -861,4 +896,32 @@ func (h *HTTPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 		EndTime:   endTime,
 		TLSInfo:   tlsInfo,
 	}
+}
+
+// httpKeywordFailure describes how the body fails the keyword check, or is empty when it passes
+func httpKeywordFailure(cfg *HTTPConfig, responseBody string) string {
+	if cfg.Keyword == "" || checkKeyword(responseBody, cfg.Keyword, cfg.InvertKeyword) {
+		return ""
+	}
+	if cfg.InvertKeyword {
+		return fmt.Sprintf("Keyword check failed: keyword '%s' found in response (expected absent)", cfg.Keyword)
+	}
+	return fmt.Sprintf("Keyword check failed: keyword '%s' not found in response", cfg.Keyword)
+}
+
+// httpJSONQueryFailure describes how the body fails the JSON query check, or is empty when it passes
+func httpJSONQueryFailure(cfg *HTTPConfig, responseBody string) string {
+	isValid, err := checkJsonQuery(responseBody, cfg.JsonQuery, cfg.JsonCondition, cfg.ExpectedValue)
+	if err != nil {
+		return fmt.Sprintf("JSON query validation error: %v", err)
+	}
+	if isValid {
+		return ""
+	}
+	condition := cfg.JsonCondition
+	if condition == "" {
+		condition = "=="
+	}
+	return fmt.Sprintf("JSON query validation failed: query '%s' with condition '%s' and expected value '%s'",
+		cfg.JsonQuery, condition, cfg.ExpectedValue)
 }
