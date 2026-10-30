@@ -156,12 +156,8 @@ func (s *AccountService) ResetPassword(ctx context.Context, token, newPassword s
 	// Look the token up before the costly hash, so that a request with a token that is no good
 	// costs a lookup and not a bcrypt. The consume below stays the guard: of two requests that
 	// both pass this, one wins.
-	live, err := s.accounts.FindLiveToken(ctx, PurposeReset, hashAccountToken(token), s.now().UTC())
-	if err != nil {
+	if err := s.requireLiveToken(ctx, token); err != nil {
 		return err
-	}
-	if live == "" {
-		return ErrInvalidLink
 	}
 	hashed, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
 	if err != nil {
@@ -172,29 +168,9 @@ func (s *AccountService) ResetPassword(ctx context.Context, token, newPassword s
 		resetID string
 	)
 	err = s.transactor.WithTx(ctx, func(ctx context.Context) error {
-		now := s.now().UTC()
-		userID, err := s.accounts.ConsumeToken(ctx, PurposeReset, hashAccountToken(token), now)
-		if err != nil {
-			return err
-		}
-		if userID == "" {
-			return ErrInvalidLink
-		}
-		resetID = userID
-		// To the millisecond, as the tokens' issue times are: a session started right after this
-		// instant must be later than it
-		if err := s.accounts.SetPassword(ctx, userID, string(hashed), now.Truncate(time.Millisecond)); err != nil {
-			return err
-		}
-		// The link reached the address, which proves it as a verification link does (the first
-		// time stays when it was verified already)
-		if err := s.accounts.MarkEmailVerified(ctx, userID, now); err != nil {
-			return err
-		}
-		if lifted, err = s.workspaces.LiftUnverifiedOwnedBy(ctx, userID); err != nil {
-			return err
-		}
-		return s.accounts.DeleteUnusedTokens(ctx, userID, PurposeReset)
+		var err error
+		resetID, lifted, err = s.spendResetToken(ctx, token, string(hashed))
+		return err
 	})
 	if err != nil {
 		return err
@@ -206,6 +182,48 @@ func (s *AccountService) ResetPassword(ctx context.Context, token, newPassword s
 		s.logger.Errorw("Failed to publish that the sessions of a user ended", "userId", resetID, "error", err)
 	}
 	return nil
+}
+
+// requireLiveToken returns ErrInvalidLink unless the reset token is neither used nor expired
+func (s *AccountService) requireLiveToken(ctx context.Context, token string) error {
+	live, err := s.accounts.FindLiveToken(ctx, PurposeReset, hashAccountToken(token), s.now().UTC())
+	if err != nil {
+		return err
+	}
+	if live == "" {
+		return ErrInvalidLink
+	}
+	return nil
+}
+
+// spendResetToken spends the token and, for its user, sets the password, marks the address
+// verified, lifts the unverified suspension of the workspaces they own and deletes their other
+// reset links. It returns the user's ID and the workspaces lifted. It runs in the transaction ctx
+// carries.
+func (s *AccountService) spendResetToken(ctx context.Context, token, hashed string) (string, []workspace.ID, error) {
+	now := s.now().UTC()
+	userID, err := s.accounts.ConsumeToken(ctx, PurposeReset, hashAccountToken(token), now)
+	if err != nil {
+		return "", nil, err
+	}
+	if userID == "" {
+		return "", nil, ErrInvalidLink
+	}
+	// To the millisecond, as the tokens' issue times are: a session started right after this
+	// instant must be later than it
+	if err := s.accounts.SetPassword(ctx, userID, hashed, now.Truncate(time.Millisecond)); err != nil {
+		return "", nil, err
+	}
+	// The link reached the address, which proves it as a verification link does (the first
+	// time stays when it was verified already)
+	if err := s.accounts.MarkEmailVerified(ctx, userID, now); err != nil {
+		return "", nil, err
+	}
+	lifted, err := s.workspaces.LiftUnverifiedOwnedBy(ctx, userID)
+	if err != nil {
+		return "", nil, err
+	}
+	return userID, lifted, s.accounts.DeleteUnusedTokens(ctx, userID, PurposeReset)
 }
 
 // wake has the scheduler and the probes pick up the monitors of workspaces whose suspension was
