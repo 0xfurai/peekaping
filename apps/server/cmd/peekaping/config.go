@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"time"
 
 	"peekaping/internal/config"
@@ -303,7 +304,7 @@ func validateProbe(cfg *Config) error {
 }
 
 // validateAccountsAndMonitors checks the account email, signup, disabled monitor type and custom
-// domain CNAME target settings
+// domain settings
 func validateAccountsAndMonitors(cfg *Config) error {
 	// A sender host without a sender address stops startup, not the first password reset
 	if err := config.ValidateAccountSMTP(cfg.AccountSMTPHost, cfg.AccountSMTPFrom, cfg.AccountSMTPTLS); err != nil {
@@ -322,6 +323,12 @@ func validateAccountsAndMonitors(cfg *Config) error {
 
 	// A CNAME target that isn't a host name stops startup, not every domain check
 	if err := config.ValidateCustomDomainCNAMETarget(cfg.CustomDomainCNAMETarget); err != nil {
+		return err
+	}
+
+	// A VERIFY_CUSTOM_DOMAINS the boolean parser would read as false, such as TRUE, stops startup
+	// instead of leaving verification off
+	if err := config.ValidateVerifyCustomDomains(os.Getenv("VERIFY_CUSTOM_DOMAINS")); err != nil {
 		return err
 	}
 
