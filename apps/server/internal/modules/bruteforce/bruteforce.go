@@ -85,16 +85,11 @@ func (g *Guard) Middleware() httpx.Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			key, err := g.keyExtractor(r)
-			var tooLarge *http.MaxBytesError
-			switch {
-			case errors.Is(err, ErrNoKey):
+			if errors.Is(err, ErrNoKey) {
 				next.ServeHTTP(w, r)
 				return
-			case errors.As(err, &tooLarge):
-				httpx.JSON(w, http.StatusRequestEntityTooLarge, httpx.ErrorBody{Message: "request body too large"})
-				return
-			case errors.Is(err, ErrBodyUnreadable):
-				httpx.JSON(w, http.StatusBadRequest, httpx.ErrorBody{Message: "failed to read the request body"})
+			}
+			if answerUnkeyable(w, err) {
 				return
 			}
 			if err != nil || key == "" {
@@ -104,22 +99,11 @@ func (g *Guard) Middleware() httpx.Middleware {
 
 			ctx := r.Context()
 
-			locked, until, err := g.service.IsLocked(ctx, key)
-			if err != nil {
-				// Fail safe: pass, log/monitor
-				g.logger.Errorw("failed to check if locked", "error", err)
+			switch state, retryAfter := g.checkLock(ctx, key); state {
+			case lockPass:
 				next.ServeHTTP(w, r)
 				return
-			}
-			if locked {
-				// Fix race condition: recalculate retry time to avoid negative values
-				retryAfter := time.Until(until)
-				if retryAfter <= 0 {
-					// Lock expired between check and now, allow request to proceed
-					g.logger.Debugw("lock expired, allowing request", "key", key)
-					next.ServeHTTP(w, r)
-					return
-				}
+			case lockBlocked:
 				g.block(w, r, retryAfter)
 				return
 			}
@@ -128,29 +112,81 @@ func (g *Guard) Middleware() httpx.Middleware {
 			next.ServeHTTP(recorder, r)
 
 			// After handler runs, decide success/failure by status
-			status := recorder.status
-			if g.isFailure(status) {
-				now := time.Now()
-				// OnFailure atomically handles counting and locking
-				locked, until, err := g.service.OnFailure(ctx, key, now, g.cfg.Window, g.cfg.MaxAttempts, g.cfg.Lockout)
-				if err != nil {
-					// Log error but don't fail the request - the auth failure should still be returned
-					g.logger.Errorw("failed to record failure", "key", key, "error", err)
-				} else if locked {
-					// If we just got locked, we could optionally notify the client
-					// For now, just let the request complete normally
-					g.logger.Infow("account locked due to too many failures", "key", key, "until", until)
-				}
-				return
-			}
-
-			// Only reset on explicit success statuses (200-299), not on other statuses like 400, 500
-			if status >= 200 && status < 300 {
-				if err := g.service.Reset(ctx, key); err != nil {
-					g.logger.Errorw("failed to reset bruteforce state", "key", key, "error", err)
-				}
-			}
+			g.record(ctx, key, recorder.status)
 		})
+	}
+}
+
+// answerUnkeyable answers a request whose key the extractor could not read for a reason that must
+// not reach the handler, and says whether it did
+func answerUnkeyable(w http.ResponseWriter, err error) bool {
+	var tooLarge *http.MaxBytesError
+	switch {
+	case errors.As(err, &tooLarge):
+		httpx.JSON(w, http.StatusRequestEntityTooLarge, httpx.ErrorBody{Message: "request body too large"})
+		return true
+	case errors.Is(err, ErrBodyUnreadable):
+		httpx.JSON(w, http.StatusBadRequest, httpx.ErrorBody{Message: "failed to read the request body"})
+		return true
+	}
+	return false
+}
+
+// lockState is what the guard finds when it asks whether a key is locked
+type lockState int
+
+const (
+	// lockClear: the key is not locked, so the request goes through the handler and is counted
+	lockClear lockState = iota
+	// lockPass: the request goes to the handler uncounted, because the lock can't be read or has ended
+	lockPass
+	// lockBlocked: the key is locked
+	lockBlocked
+)
+
+// checkLock asks whether the key is locked. A blocked key also gets how long until its lock ends.
+func (g *Guard) checkLock(ctx context.Context, key string) (lockState, time.Duration) {
+	locked, until, err := g.service.IsLocked(ctx, key)
+	if err != nil {
+		// Fail safe: pass, log/monitor
+		g.logger.Errorw("failed to check if locked", "error", err)
+		return lockPass, 0
+	}
+	if !locked {
+		return lockClear, 0
+	}
+	// Fix race condition: recalculate retry time to avoid negative values
+	retryAfter := time.Until(until)
+	if retryAfter <= 0 {
+		// Lock expired between check and now, allow request to proceed
+		g.logger.Debugw("lock expired, allowing request", "key", key)
+		return lockPass, 0
+	}
+	return lockBlocked, retryAfter
+}
+
+// record counts the handler's answer: a failure status counts against the key, and a 2xx clears it
+func (g *Guard) record(ctx context.Context, key string, status int) {
+	if g.isFailure(status) {
+		now := time.Now()
+		// OnFailure atomically handles counting and locking
+		locked, until, err := g.service.OnFailure(ctx, key, now, g.cfg.Window, g.cfg.MaxAttempts, g.cfg.Lockout)
+		if err != nil {
+			// Log error but don't fail the request - the auth failure should still be returned
+			g.logger.Errorw("failed to record failure", "key", key, "error", err)
+		} else if locked {
+			// If we just got locked, we could optionally notify the client
+			// For now, just let the request complete normally
+			g.logger.Infow("account locked due to too many failures", "key", key, "until", until)
+		}
+		return
+	}
+
+	// Only reset on explicit success statuses (200-299), not on other statuses like 400, 500
+	if status >= 200 && status < 300 {
+		if err := g.service.Reset(ctx, key); err != nil {
+			g.logger.Errorw("failed to reset bruteforce state", "key", key, "error", err)
+		}
 	}
 }
 
@@ -186,27 +222,9 @@ func KeyByIPAndBodyField(field string, proxies *httpx.TrustedProxies) KeyExtract
 		ip := proxies.ClientIP(r)
 
 		// Only process JSON requests
-		if r.Header.Get("Content-Type") == "application/json" || strings.Contains(r.Header.Get("Content-Type"), "application/json") {
-			// Read body safely without consuming it
-			if r.Body != nil {
-				bodyBytes, err := io.ReadAll(r.Body)
-				if err != nil {
-					// On error, fallback to IP only
-					return ip, nil
-				}
-
-				// Restore the body for subsequent handlers
-				r.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
-
-				// Try to parse JSON and extract field
-				var m map[string]any
-				if err := json.Unmarshal(bodyBytes, &m); err == nil {
-					if v, ok := m[field]; ok {
-						if s, ok := v.(string); ok && s != "" {
-							return fmt.Sprintf("%s:%s", ip, strings.ToLower(s)), nil
-						}
-					}
-				}
+		if strings.Contains(r.Header.Get("Content-Type"), "application/json") {
+			if key, ok := jsonBodyKey(r, ip, field); ok {
+				return key, nil
 			}
 		}
 
@@ -220,6 +238,34 @@ func KeyByIPAndBodyField(field string, proxies *httpx.TrustedProxies) KeyExtract
 		// Fallback to IP only
 		return ip, nil
 	}
+}
+
+// jsonBodyKey is the key of a JSON request: the address and the lower-cased field of its body, or
+// the address alone when the body can't be read. It says false when the body has no such field, so
+// that the caller falls back to the address.
+func jsonBodyKey(r *http.Request, ip, field string) (string, bool) {
+	// Read body safely without consuming it
+	if r.Body == nil {
+		return "", false
+	}
+	bodyBytes, err := io.ReadAll(r.Body)
+	if err != nil {
+		// On error, fallback to IP only
+		return ip, true
+	}
+
+	// Restore the body for subsequent handlers
+	r.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+
+	// Try to parse JSON and extract field
+	var m map[string]any
+	if err := json.Unmarshal(bodyBytes, &m); err != nil {
+		return "", false
+	}
+	if s, ok := m[field].(string); ok && s != "" {
+		return fmt.Sprintf("%s:%s", ip, strings.ToLower(s)), true
+	}
+	return "", false
 }
 
 // accountKeyPrefix keeps an account's key apart from the "<ip>:<email>" keys in the same table.
