@@ -128,20 +128,24 @@ func TestEmailSender_SendGoldenRequests(t *testing.T) {
 	}
 }
 
-// TestEmailSender_SendToIPv6Host checks that a bare IPv6 address works as the SMTP host
+// TestEmailSender_SendToIPv6Host checks that an IPv6 address works as the SMTP host, bare or in brackets
 func TestEmailSender_SendToIPv6Host(t *testing.T) {
 	if l, err := net.Listen("tcp", "[::1]:0"); err != nil {
 		t.Skipf("no IPv6 loopback: %v", err)
 	} else {
 		_ = l.Close()
 	}
-	server := startFakeSMTPServerOn(t, "[::1]:0")
-	config := strings.Replace(withSMTPServer(t, emailGoldenCases[1].config, server.port()), "127.0.0.1", "::1", 1)
-	message, mon, hb := goldenNotification(emailGoldenCases[1].event)
+	for _, host := range []string{"::1", "[::1]"} {
+		t.Run(host, func(t *testing.T) {
+			server := startFakeSMTPServerOn(t, "[::1]:0")
+			config := strings.Replace(withSMTPServer(t, emailGoldenCases[1].config, server.port()), "127.0.0.1", host, 1)
+			message, mon, hb := goldenNotification(emailGoldenCases[1].event)
 
-	require.NoError(t, NewEmailSender(nopLogger()).Send(context.Background(), config, message, mon, hb))
+			require.NoError(t, NewEmailSender(nopLogger()).Send(context.Background(), config, message, mon, hb))
 
-	assert.Contains(t, <-server.sessions, "EHLO")
+			assert.Contains(t, <-server.sessions, "EHLO")
+		})
+	}
 }
 
 // TestEmailSender_SendWithoutAMonitor checks that a template that names the monitor renders, and

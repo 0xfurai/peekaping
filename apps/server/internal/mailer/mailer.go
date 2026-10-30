@@ -32,6 +32,7 @@ import (
 	"time"
 
 	"peekaping/internal/config"
+	"peekaping/internal/hostport"
 	"peekaping/internal/installsettings"
 	"peekaping/internal/smtpclient"
 
@@ -105,7 +106,7 @@ func (m *Mailer) sender(ctx context.Context) (sender, bool) {
 	var auth smtp.Auth
 	if s.User != "" {
 		// PlainAuth sends the password only over TLS or to a server on this machine
-		auth = smtp.PlainAuth("", s.User, s.Password, host)
+		auth = smtp.PlainAuth("", s.User, s.Password, hostport.Bare(host))
 	}
 	mode := smtpclient.TLSMode(s.TLS)
 	if mode == "" {

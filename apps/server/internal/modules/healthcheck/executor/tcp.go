@@ -4,9 +4,8 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"peekaping/internal/hostport"
 	"peekaping/internal/modules/shared"
-	"strconv"
-	"strings"
 	"time"
 
 	"go.uber.org/zap"
@@ -56,11 +55,7 @@ func (t *TCPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Proxy
 	}
 	cfg := cfgAny.(*TCPConfig)
 
-	host := cfg.Host
-	if strings.HasPrefix(host, "[") && strings.HasSuffix(host, "]") {
-		host = host[1 : len(host)-1]
-	}
-	address := net.JoinHostPort(host, strconv.Itoa(cfg.Port))
+	address := hostport.Join(cfg.Host, cfg.Port)
 
 	startTime := time.Now().UTC()
 

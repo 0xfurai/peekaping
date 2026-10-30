@@ -4,12 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"net"
 	"net/url"
+	"peekaping/internal/hostport"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/validation"
-	"strconv"
 	"strings"
 )
 
@@ -93,7 +92,7 @@ func monitorAddress(m *monitor.Model) string {
 		return cfg.URL
 	case "tcp":
 		if cfg.Host != "" && cfg.Port > 0 {
-			return net.JoinHostPort(cfg.Host, strconv.Itoa(cfg.Port))
+			return hostport.Join(cfg.Host, cfg.Port)
 		}
 		return cfg.Host
 	case "ping", "dns":

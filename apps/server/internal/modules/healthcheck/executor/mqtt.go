@@ -8,9 +8,9 @@ import (
 	"fmt"
 	"net"
 	"net/url"
+	"peekaping/internal/hostport"
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/netguard"
-	"strconv"
 	"strings"
 	"time"
 
@@ -224,8 +224,7 @@ func mqttBrokerURL(hostname string, port int) string {
 			break
 		}
 	}
-	hostname = strings.TrimSuffix(strings.TrimPrefix(hostname, "["), "]")
-	return scheme + net.JoinHostPort(hostname, strconv.Itoa(port))
+	return scheme + hostport.Join(hostname, port)
 }
 
 // openConnection opens the connection to a broker through the guard. The broker URL is mqtt:// or

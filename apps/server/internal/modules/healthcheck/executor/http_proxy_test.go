@@ -2,6 +2,7 @@ package executor
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"net"
 	"net/http"
@@ -22,6 +23,10 @@ func TestBuildProxyTransport_HTTPProxyURL(t *testing.T) {
 		{name: "https", proxy: Proxy{Protocol: "https", Host: "proxy.example.com", Port: 8443}, want: "https://proxy.example.com:8443"},
 		{name: "default protocol", proxy: Proxy{Host: "proxy.example.com", Port: 3128}, want: "http://proxy.example.com:3128"},
 		{name: "with credentials", proxy: Proxy{Protocol: "http", Host: "proxy.example.com", Port: 8080, Auth: true, Username: "user", Password: "pass"}, want: "http://user:pass@proxy.example.com:8080"},
+		{name: "IPv4", proxy: Proxy{Protocol: "http", Host: "192.0.2.1", Port: 8080}, want: "http://192.0.2.1:8080"},
+		{name: "bare IPv6", proxy: Proxy{Protocol: "http", Host: "2001:db8::1", Port: 8080}, want: "http://[2001:db8::1]:8080"},
+		{name: "bracketed IPv6", proxy: Proxy{Protocol: "http", Host: "[2001:db8::1]", Port: 8080}, want: "http://[2001:db8::1]:8080"},
+		{name: "bracketed IPv6 with credentials", proxy: Proxy{Protocol: "https", Host: "[2001:db8::1]", Port: 8443, Auth: true, Username: "user", Password: "pass"}, want: "https://user:pass@[2001:db8::1]:8443"},
 		{name: "credentials are escaped", proxy: Proxy{Protocol: "https", Host: "proxy.example.com", Port: 8080, Auth: true, Username: "us er", Password: "p@ss"}, want: "https://us%20er:p%40ss@proxy.example.com:8080"},
 		{name: "credentials without auth", proxy: Proxy{Protocol: "http", Host: "proxy.example.com", Port: 8080, Username: "user", Password: "pass"}, want: "http://proxy.example.com:8080"},
 		{name: "auth without a username", proxy: Proxy{Protocol: "http", Host: "proxy.example.com", Port: 8080, Auth: true, Password: "pass"}, want: "http://proxy.example.com:8080"},
@@ -74,7 +79,13 @@ type socksGreeting struct {
 // greeting, then turns the client away: nothing is proxied.
 func startSOCKSGreetingServer(t *testing.T) (string, <-chan socksGreeting) {
 	t.Helper()
-	lis, err := net.Listen("tcp", "127.0.0.1:0")
+	return startSOCKSGreetingServerOn(t, "127.0.0.1:0")
+}
+
+// startSOCKSGreetingServerOn is startSOCKSGreetingServer listening on addr
+func startSOCKSGreetingServerOn(t *testing.T, addr string) (string, <-chan socksGreeting) {
+	t.Helper()
+	lis, err := net.Listen("tcp", addr)
 	require.NoError(t, err)
 	t.Cleanup(func() { _ = lis.Close() })
 	greetings := make(chan socksGreeting, 1)
@@ -129,6 +140,35 @@ func startSOCKSGreetingServer(t *testing.T) (string, <-chan socksGreeting) {
 	}()
 
 	return lis.Addr().String(), greetings
+}
+
+// TestBuildProxyTransport_SOCKSIPv6Host checks that a SOCKS proxy on an IPv6 address gets the
+// client's greeting whether the host is saved bare or in brackets
+func TestBuildProxyTransport_SOCKSIPv6Host(t *testing.T) {
+	requireIPv6Loopback(t)
+	for _, form := range []string{"%s", "[%s]"} {
+		t.Run(form, func(t *testing.T) {
+			addr, greetings := startSOCKSGreetingServerOn(t, "[::1]:0")
+			host, port, err := net.SplitHostPort(addr)
+			require.NoError(t, err)
+			portNumber, err := net.LookupPort("tcp", port)
+			require.NoError(t, err)
+			proxy := &Proxy{Protocol: "socks5", Host: fmt.Sprintf(form, host), Port: portNumber}
+			transport := buildProxyTransport(&http.Transport{}, proxy).(*http.Transport)
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+
+			_, err = transport.DialContext(ctx, "tcp", "target.example.com:80")
+
+			require.Error(t, err)
+			select {
+			case greeting := <-greetings:
+				assert.Equal(t, []byte{0x00}, greeting.methods)
+			case <-time.After(5 * time.Second):
+				t.Fatalf("the proxy got no greeting: %v", err)
+			}
+		})
+	}
 }
 
 func containsByte(bytes []byte, b byte) bool {

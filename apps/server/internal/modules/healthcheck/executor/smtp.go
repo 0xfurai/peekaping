@@ -10,6 +10,7 @@ import (
 	"net"
 	"net/smtp"
 	"net/textproto"
+	"peekaping/internal/hostport"
 	"peekaping/internal/modules/shared"
 	"time"
 
@@ -104,7 +105,7 @@ func (s *SMTPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 
 	s.logger.Debugf("execute smtp check for %s: %s:%d", m.Name, config.Host, config.Port)
 
-	address := net.JoinHostPort(config.Host, fmt.Sprintf("%d", config.Port))
+	address := hostport.Join(config.Host, config.Port)
 	check := s.newSMTPCheck(ctx, m, config)
 
 	// Check for context cancellation before expensive operations
@@ -162,7 +163,7 @@ func (s *SMTPExecutor) newSMTPCheck(ctx context.Context, m *Monitor, config *SMT
 	// Create TLS configuration if TLS is enabled
 	if config.UseDirectTLS || config.UseTLS {
 		check.tlsConfig = &tls.Config{
-			ServerName:         config.Host,
+			ServerName:         hostport.Bare(config.Host),
 			InsecureSkipVerify: config.IgnoreTlsErrors,
 		}
 
@@ -246,10 +247,10 @@ func (c *smtpCheck) openClient() (*smtp.Client, *Result) {
 			return nil, c.down("SMTP direct TLS handshake failed: %v", err)
 		}
 		c.setOperationDeadline()
-		smtpClient, err = smtp.NewClient(tlsConnection, c.config.Host)
+		smtpClient, err = smtp.NewClient(tlsConnection, hostport.Bare(c.config.Host))
 	} else {
 		// Plain SMTP or STARTTLS: the greeting is read over the TCP connection
-		smtpClient, err = smtp.NewClient(c.tcpConnection, c.config.Host)
+		smtpClient, err = smtp.NewClient(c.tcpConnection, hostport.Bare(c.config.Host))
 	}
 	if err != nil {
 		return nil, c.down("SMTP client creation failed: %v", err)
@@ -346,7 +347,7 @@ func (c *smtpCheck) authenticate(smtpClient *smtp.Client) *Result {
 	}
 
 	c.setOperationDeadline()
-	if err := smtpClient.Auth(smtp.PlainAuth("", c.config.Username, c.config.Password, c.config.Host)); err != nil {
+	if err := smtpClient.Auth(smtp.PlainAuth("", c.config.Username, c.config.Password, hostport.Bare(c.config.Host))); err != nil {
 		return c.down("SMTP authentication failed: %v", err)
 	}
 	c.authenticated = true
