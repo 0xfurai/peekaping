@@ -299,6 +299,10 @@ var shutdownOrder = []string{
 // shutdownOrderWithMetrics is shutdownOrder with METRICS_ENABLED, which adds the collector
 var shutdownOrderWithMetrics = slices.Insert(slices.Clone(shutdownOrder), slices.Index(shutdownOrder, "Closed the event bus"), "Stopped the metrics collector")
 
+// shutdownOrderWithMetricsPort is shutdownOrderWithMetrics with METRICS_PORT, which adds the
+// metrics server, stopped right after the HTTP server
+var shutdownOrderWithMetricsPort = slices.Insert(slices.Clone(shutdownOrderWithMetrics), 2, "Stopped the metrics server")
+
 // logged returns the messages logged that are among messages, in the order they were logged
 func logged(logs *observer.ObservedLogs, messages []string) []string {
 	var got []string
@@ -382,4 +386,72 @@ func TestRun_StopsWhatItStartedAndReturnsAnErrorWhenStartingFails(t *testing.T) 
 
 	_, err = net.Dial("tcp", listener.Addr().String())
 	assert.Error(t, err, "the listener is closed")
+}
+
+func TestRun_ServesMetricsOnMetricsPortAndNotOnTheAPIPort(t *testing.T) {
+	port := freeMetricsPort(t)
+	cfg := loadConfig(t, map[string]string{"METRICS_ENABLED": "true", "METRICS_PORT": port})
+	logger, logs := observedLogger()
+	in := startAPI(t, cfg, logger, logs)
+	metricsURL := "http://127.0.0.1:" + port
+
+	status, body := get(t, metricsURL+"/metrics")
+	assert.Equal(t, http.StatusOK, status)
+	assert.Contains(t, body, "peekaping_build_info", "METRICS_PORT serves the collector")
+
+	status, _ = get(t, in.url+"/metrics")
+	assert.Equal(t, http.StatusNotFound, status, "the API port answers /metrics like any unknown path")
+
+	status, _ = get(t, metricsURL+"/api/v1/health")
+	assert.Equal(t, http.StatusNotFound, status, "METRICS_PORT serves /metrics alone")
+	status, _ = get(t, metricsURL+"/")
+	assert.Equal(t, http.StatusNotFound, status, "METRICS_PORT serves /metrics alone")
+	resp, err := testHTTP.Post(metricsURL+"/metrics", "text/plain", nil)
+	require.NoError(t, err)
+	require.NoError(t, resp.Body.Close())
+	assert.Equal(t, http.StatusNotFound, resp.StatusCode, "METRICS_PORT serves GET /metrics alone")
+
+	assert.NoError(t, in.stop(t))
+}
+
+func TestRun_ServesMetricsOnTheAPIPortWhenMetricsPortIsUnset(t *testing.T) {
+	cfg := loadConfig(t, map[string]string{"METRICS_ENABLED": "true"})
+	logger, logs := observedLogger()
+	in := startAPI(t, cfg, logger, logs)
+
+	status, body := get(t, in.url+"/metrics")
+	assert.Equal(t, http.StatusOK, status)
+	assert.Contains(t, body, "peekaping_build_info")
+	assert.NoError(t, in.stop(t))
+}
+
+func TestRun_StopsTheMetricsServerRightAfterTheHTTPServer(t *testing.T) {
+	port := freeMetricsPort(t)
+	cfg := loadConfig(t, map[string]string{"METRICS_ENABLED": "true", "METRICS_PORT": port})
+	logger, logs := observedLogger()
+	in := startAPI(t, cfg, logger, logs)
+
+	require.NoError(t, in.stop(t))
+
+	assert.Equal(t, shutdownOrderWithMetricsPort, logged(logs, shutdownOrderWithMetricsPort), "the shutdown's steps, in the order logged")
+	_, err := testHTTP.Get("http://127.0.0.1:" + port + "/metrics")
+	assert.Error(t, err, "the metrics port is closed")
+}
+
+func TestRun_StopsStartupWhenTheMetricsPortIsTaken(t *testing.T) {
+	taken, err := net.Listen("tcp", ":0")
+	require.NoError(t, err)
+	t.Cleanup(func() { _ = taken.Close() })
+	_, port, err := net.SplitHostPort(taken.Addr().String())
+	require.NoError(t, err)
+	cfg := loadConfig(t, map[string]string{"METRICS_ENABLED": "true", "METRICS_PORT": port})
+	migrateDatabase(t, cfg)
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	require.NoError(t, err)
+
+	err, _ = runWith(t, context.Background(), cfg, listener)
+
+	require.Error(t, err)
+	assert.ErrorContains(t, err, "METRICS_PORT")
+	assert.ErrorContains(t, err, port)
 }
