@@ -106,81 +106,110 @@ func (s *Server) accept() {
 
 func (s *Server) serve(conn net.Conn) {
 	defer conn.Close()
-	reader := bufio.NewReader(conn)
-	reply := func(text string) { _, _ = fmt.Fprintf(conn, "%s\r\n", text) }
-	readLine := func() (string, bool) {
-		text, err := reader.ReadString('\n')
-		if err != nil {
-			return "", false
-		}
-		return strings.TrimRight(text, "\r\n"), true
-	}
+	sess := &session{server: s, conn: conn, reader: bufio.NewReader(conn)}
 
-	var current Message
-	reply("220 smtp.example.com ESMTP")
+	sess.reply("220 smtp.example.com ESMTP")
 	for {
-		command, ok := readLine()
+		command, ok := sess.readLine()
 		if !ok {
 			return
 		}
 		verb, rest, _ := strings.Cut(command, " ")
-		switch strings.ToUpper(verb) {
-		case "EHLO", "HELO":
-			reply("250-smtp.example.com")
-			reply("250 AUTH PLAIN")
-		case "AUTH":
-			current.Authenticated = true
-			current.User, current.Password = plainCredentials(rest)
-			reply("235 2.7.0 Authentication successful")
-		case "MAIL":
-			current.From = address(rest)
-			reply("250 2.1.0 OK")
-		case "RCPT":
-			s.mu.Lock()
-			rejected := s.rejectRcpt
-			s.mu.Unlock()
-			if rejected != "" {
-				reply(rejected)
-				continue
-			}
-			current.To = append(current.To, address(rest))
-			reply("250 2.1.5 OK")
-		case "RSET":
-			current = Message{}
-			reply("250 2.0.0 OK")
-		case "DATA":
-			s.mu.Lock()
-			rejected := s.rejectData
-			s.mu.Unlock()
-			if rejected != "" {
-				reply(rejected)
-				continue
-			}
-			reply("354 End data with <CR><LF>.<CR><LF>")
-			var data strings.Builder
-			for {
-				line, ok := readLine()
-				if !ok {
-					return
-				}
-				if line == "." {
-					break
-				}
-				data.WriteString(strings.TrimPrefix(line, ".") + "\r\n")
-			}
-			current.Data = data.String()
-			s.mu.Lock()
-			s.messages = append(s.messages, current)
-			s.mu.Unlock()
-			current = Message{}
-			reply("250 2.0.0 OK: queued")
-		case "QUIT":
-			reply("221 2.0.0 Bye")
+		if !sess.handle(strings.ToUpper(verb), rest) {
 			return
-		default:
-			reply("502 5.5.2 Command not recognized")
 		}
 	}
+}
+
+// session is one client's conversation with the server, and the message it is writing
+type session struct {
+	server  *Server
+	conn    net.Conn
+	reader  *bufio.Reader
+	current Message
+}
+
+func (c *session) reply(text string) { _, _ = fmt.Fprintf(c.conn, "%s\r\n", text) }
+
+func (c *session) readLine() (string, bool) {
+	text, err := c.reader.ReadString('\n')
+	if err != nil {
+		return "", false
+	}
+	return strings.TrimRight(text, "\r\n"), true
+}
+
+// handle answers one command, and reports whether the conversation goes on
+func (c *session) handle(verb, rest string) bool {
+	switch verb {
+	case "EHLO", "HELO":
+		c.reply("250-smtp.example.com")
+		c.reply("250 AUTH PLAIN")
+	case "AUTH":
+		c.current.Authenticated = true
+		c.current.User, c.current.Password = plainCredentials(rest)
+		c.reply("235 2.7.0 Authentication successful")
+	case "MAIL":
+		c.current.From = address(rest)
+		c.reply("250 2.1.0 OK")
+	case "RCPT":
+		c.recipient(rest)
+	case "RSET":
+		c.current = Message{}
+		c.reply("250 2.0.0 OK")
+	case "DATA":
+		return c.data()
+	case "QUIT":
+		c.reply("221 2.0.0 Bye")
+		return false
+	default:
+		c.reply("502 5.5.2 Command not recognized")
+	}
+	return true
+}
+
+// recipient takes the recipient of the message, or answers with the rejection the test set
+func (c *session) recipient(rest string) {
+	c.server.mu.Lock()
+	rejected := c.server.rejectRcpt
+	c.server.mu.Unlock()
+	if rejected != "" {
+		c.reply(rejected)
+		return
+	}
+	c.current.To = append(c.current.To, address(rest))
+	c.reply("250 2.1.5 OK")
+}
+
+// data takes the message, or answers with the rejection the test set, and reports whether the
+// conversation goes on: it does not when the client hangs up before the message ends
+func (c *session) data() bool {
+	c.server.mu.Lock()
+	rejected := c.server.rejectData
+	c.server.mu.Unlock()
+	if rejected != "" {
+		c.reply(rejected)
+		return true
+	}
+	c.reply("354 End data with <CR><LF>.<CR><LF>")
+	var data strings.Builder
+	for {
+		line, ok := c.readLine()
+		if !ok {
+			return false
+		}
+		if line == "." {
+			break
+		}
+		data.WriteString(strings.TrimPrefix(line, ".") + "\r\n")
+	}
+	c.current.Data = data.String()
+	c.server.mu.Lock()
+	c.server.messages = append(c.server.messages, c.current)
+	c.server.mu.Unlock()
+	c.current = Message{}
+	c.reply("250 2.0.0 OK: queued")
+	return true
 }
 
 // plainCredentials returns the user and password of "PLAIN <base64 of \x00user\x00password>"
