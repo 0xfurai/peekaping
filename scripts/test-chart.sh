@@ -11,8 +11,9 @@
 # `./bun db status` reports none unapplied, the migrate Job is named
 # after the release revision (and its name fits Kubernetes' limit of 63
 # characters for the longest release name Helm allows) and retries 6 times, so
-# it outlasts a restart of the bundled PostgreSQL, the api and probe pods get 35
-# seconds to stop, the web pod sets the sysctl that lets
+# it outlasts a restart of the bundled PostgreSQL, the probe pod gets 35 seconds
+# to stop and the api pod 35 plus api.preStopSleepSeconds (5 by default, 0 for
+# none), which its container sleeps in a preStop hook, the web pod sets the sysctl that lets
 # its non-root nginx bind port 80 (web.sysctls) and mounts the
 # writable paths that nginx needs under a read-only root filesystem, the
 # ConfigMap sets TRUSTED_PROXIES to loopback and the private ranges (and a
@@ -580,23 +581,66 @@ apparmor_off() {
   return $status
 }
 
-# grace_periods <rendered file>: the api and probe pods get 35 seconds to stop,
-# the 30 (api) or 25 (probe) their binaries take to shut down and a margin.
-# Kubernetes' default of 30 would kill an api pod that uses its whole time.
+# grace_period_of <rendered file> <component>: the pod template's
+# terminationGracePeriodSeconds, empty when it has none
+grace_period_of() {
+  awk -v template="$2-deploy" '
+    /^# Source: / { in_template = ($0 ~ "/" template "\\.yaml$"); next }
+    /^---$/ { in_template = 0 }
+    in_template && /^ *terminationGracePeriodSeconds:/ { print $2; exit }
+  ' "$1"
+}
+
+# grace_periods <rendered file> <api seconds>: the probe pod gets 35 seconds to
+# stop, the 25 its binary takes to shut down and a margin, and the api pod gets
+# <api seconds>: the 30 its binary takes and a margin (35), plus the preStop
+# sleep, which runs before the api gets SIGTERM. Kubernetes' default of 30
+# would kill a pod that uses its whole time.
 grace_periods() {
-  local component seconds status=0
+  local component expected seconds status=0
   for component in api probe; do
-    seconds=$(awk -v template="$component-deploy" '
-      /^# Source: / { in_template = ($0 ~ "/" template "\\.yaml$"); next }
-      /^---$/ { in_template = 0 }
-      in_template && /^ *terminationGracePeriodSeconds:/ { print $2; exit }
-    ' "$1")
-    if [ "$seconds" != 35 ]; then
-      echo "       the $component pod's terminationGracePeriodSeconds is '${seconds:-<none>}', expected 35"
+    expected=35
+    [ "$component" = api ] && expected=$2
+    seconds=$(grace_period_of "$1" "$component")
+    if [ "$seconds" != "$expected" ]; then
+      echo "       the $component pod's terminationGracePeriodSeconds is '${seconds:-<none>}', expected $expected"
       status=1
     fi
   done
   return $status
+}
+
+# prestop_command_of <rendered file> <component>: the command of the pod's
+# preStop hook as one line, empty when the container has no hook
+prestop_command_of() {
+  awk -v template="$2-deploy" '
+    /^# Source: / { in_template = ($0 ~ "/" template "\\.yaml$"); in_hook = 0; next }
+    /^---$/ { in_template = 0 }
+    in_template && /^ *preStop:/ { in_hook = 1; next }
+    in_hook && /^ *command:/ { sub(/^ *command: */, ""); print; exit }
+  ' "$1"
+}
+
+# api_prestop_sleeps <rendered file> <seconds>: the api container's preStop
+# hook runs `sleep <seconds>`, so the Service's endpoints are gone before the api
+# gets SIGTERM
+api_prestop_sleeps() {
+  local command
+  command=$(prestop_command_of "$1" api | tr -d ' ')
+  if [ "$command" != "[\"sleep\",\"$2\"]" ]; then
+    echo "       the api preStop command is '${command:-<none>}', expected [\"sleep\",\"$2\"]"
+    return 1
+  fi
+}
+
+# no_prestop <rendered file> <component>: the pod has no preStop hook
+no_prestop() {
+  local command
+  command=$(prestop_command_of "$1" "$2")
+  if [ -n "$command" ]; then
+    echo "       the $2 Deployment has a preStop hook although it should have none: $command"
+    return 1
+  fi
 }
 
 # chart_field <package> <field>: the value of a top-level field of the
@@ -1060,8 +1104,12 @@ if check "helm dependency build fetches PostgreSQL and Redis" run dependency hel
       backend_components_wait "$work/default.yaml" 0xfurai/peekaping-migrate:latest || true
     check "default values: the api and probe pods have no AppArmor annotation" \
       apparmor_off "$work/default.yaml" || true
-    check "default values: the api and probe pods get 35 seconds to stop" \
-      grace_periods "$work/default.yaml" || true
+    check "default values: the api pod gets 40 seconds to stop, the probe pod 35" \
+      grace_periods "$work/default.yaml" 40 || true
+    check "default values: the api container sleeps 5 seconds in a preStop hook" \
+      api_prestop_sleeps "$work/default.yaml" 5 || true
+    check "default values: the probe container has no preStop hook" \
+      no_prestop "$work/default.yaml" probe || true
     # Cluster mode on SQL storage is the api replicas and the probes: no process
     # of the old layout is left to run
     check "default values: no producer, worker or ingester is rendered" \
@@ -1219,10 +1267,25 @@ if check "helm dependency build fetches PostgreSQL and Redis" run dependency hel
     check "migrate.image.tag=0.0.47: the migrate Job and the api's wait-for-migrations init container change tag, nothing else does" \
       tag_overrides "$work/migrate-tagged.yaml" 0xfurai/peekaping-migrate 0.0.47 latest 2 || true
   fi
+  if check "api.preStopSleepSeconds=0 renders" render prestop-off --set api.preStopSleepSeconds=0; then
+    check "api.preStopSleepSeconds=0: the api has no preStop hook" \
+      no_prestop "$work/prestop-off.yaml" api || true
+    check "api.preStopSleepSeconds=0: the api and probe pods get 35 seconds to stop" \
+      grace_periods "$work/prestop-off.yaml" 35 || true
+  fi
+  if check "api.preStopSleepSeconds=12 renders" render prestop-12 --set api.preStopSleepSeconds=12; then
+    check "api.preStopSleepSeconds=12: the api sleeps 12 seconds" \
+      api_prestop_sleeps "$work/prestop-12.yaml" 12 || true
+    check "api.preStopSleepSeconds=12: the api pod gets 47 seconds to stop, the probe pod still 35" \
+      grace_periods "$work/prestop-12.yaml" 47 || true
+  fi
   if check "apparmor.enabled=true for the api and probe renders" render apparmor \
     --set api.apparmor.enabled=true --set probe.apparmor.enabled=true; then
     check "api.apparmor.enabled=true: the pod template annotates $release-api and wait-for-migrations" \
       apparmor_covers_init "$work/apparmor.yaml" api || true
+    # The hook runs inside the container, under the container's profile
+    check "api.apparmor.enabled=true: the api keeps its preStop hook" \
+      api_prestop_sleeps "$work/apparmor.yaml" 5 || true
     # The probe has no init container, so its annotation names the one container
     check "probe.apparmor.enabled=true: the pod template annotates $release-probe" \
       grep -Fqx "container.apparmor.security.beta.kubernetes.io/$release-probe: runtime/default" \
