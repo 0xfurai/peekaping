@@ -51,13 +51,13 @@ func (s *TCPExecutor) Targets(configJSON string) ([]string, error) {
 func (t *TCPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Proxy) *Result {
 	cfgAny, err := t.Unmarshal(m.Config)
 	if err != nil {
-		return DownResult(err, time.Now().UTC(), time.Now().UTC())
+		return DownResult(err, time.Now(), time.Now())
 	}
 	cfg := cfgAny.(*TCPConfig)
 
 	address := hostport.Join(cfg.Host, cfg.Port)
 
-	startTime := time.Now().UTC()
+	startTime := time.Now()
 
 	// Create a custom dialer with timeout
 	dialer := t.dialer(&net.Dialer{
@@ -65,7 +65,7 @@ func (t *TCPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Proxy
 	})
 
 	conn, err := dialer.DialContext(ctx, "tcp", address)
-	endTime := time.Now().UTC()
+	endTime := time.Now()
 
 	if err != nil {
 		t.logger.Infof("TCP connection failed: %s, %s", m.Name, err.Error())

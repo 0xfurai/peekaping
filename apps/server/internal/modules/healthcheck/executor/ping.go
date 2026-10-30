@@ -112,7 +112,7 @@ func preferIPv4(addrs []netip.Addr) netip.Addr {
 func (p *PingExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Proxy) *Result {
 	cfgAny, err := p.Unmarshal(m.Config)
 	if err != nil {
-		return DownResult(err, time.Now().UTC(), time.Now().UTC())
+		return DownResult(err, time.Now(), time.Now())
 	}
 	cfg := cfgAny.(*PingConfig)
 
@@ -121,7 +121,7 @@ func (p *PingExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 		cfg.PacketSize = 32
 	}
 
-	startTime := time.Now().UTC()
+	startTime := time.Now()
 	timeout := time.Duration(m.Timeout) * time.Second
 	pingCtx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
@@ -133,7 +133,7 @@ func (p *PingExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 			Status:    shared.MonitorStatusDown,
 			Message:   fmt.Sprintf("Ping failed: %v", err),
 			StartTime: startTime,
-			EndTime:   time.Now().UTC(),
+			EndTime:   time.Now(),
 		}
 	}
 
@@ -143,7 +143,7 @@ func (p *PingExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 	if errors.Is(err, errNoICMPSocket) {
 		p.logger.Debugf("Ping failed: %s, %s, %s", m.Name, err.Error(), "trying system ping")
 		nativeErr := err
-		startTime = time.Now().UTC() // reset start time
+		startTime = time.Now() // reset start time
 		success, rtt, err = p.trySystemPing(pingCtx, host, cfg.PacketSize, timeout)
 		switch {
 		case errors.Is(err, exec.ErrNotFound):
@@ -153,7 +153,7 @@ func (p *PingExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 		}
 	}
 
-	endTime := time.Now().UTC()
+	endTime := time.Now()
 
 	if err != nil {
 		p.logger.Infof("Ping failed: %s, %s", m.Name, err.Error())

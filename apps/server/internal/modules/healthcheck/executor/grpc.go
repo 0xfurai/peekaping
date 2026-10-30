@@ -130,11 +130,11 @@ func (g *GRPCExecutor) guardedOptions(target string) ([]grpc.DialOption, error) 
 }
 
 func (g *GRPCExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Proxy) *Result {
-	startTime := time.Now().UTC()
+	startTime := time.Now()
 
 	cfgAny, err := g.Unmarshal(m.Config)
 	if err != nil {
-		return DownResult(fmt.Errorf("invalid config: %w", err), startTime, time.Now().UTC())
+		return DownResult(fmt.Errorf("invalid config: %w", err), startTime, time.Now())
 	}
 	cfg := cfgAny.(*GRPCConfig)
 
@@ -150,7 +150,7 @@ func (g *GRPCExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 	if g.on() {
 		guardOpts, err := g.guardedOptions(cfg.GrpcUrl)
 		if err != nil {
-			return DownResult(err, startTime, time.Now().UTC())
+			return DownResult(err, startTime, time.Now())
 		}
 		opts = append(opts, guardOpts...)
 	}
@@ -158,7 +158,7 @@ func (g *GRPCExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 	// Connect to gRPC server using modern API
 	conn, err := grpc.NewClient(cfg.GrpcUrl, opts...)
 	if err != nil {
-		return DownResult(fmt.Errorf("failed to create gRPC client: %w", err), startTime, time.Now().UTC())
+		return DownResult(fmt.Errorf("failed to create gRPC client: %w", err), startTime, time.Now())
 	}
 	defer conn.Close()
 
@@ -168,7 +168,7 @@ func (g *GRPCExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 
 	// Execute gRPC call using reflection (simplified approach)
 	response, err := g.executeGRPCCall(callCtx, conn, cfg)
-	endTime := time.Now().UTC()
+	endTime := time.Now()
 
 	if err != nil {
 		g.logger.Infof("gRPC call failed: %s, %s", m.Name, err.Error())

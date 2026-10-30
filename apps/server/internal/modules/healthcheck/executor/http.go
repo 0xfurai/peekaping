@@ -566,13 +566,13 @@ func isLegacyDefaultContentType(headers map[string]string, body string) bool {
 func (h *HTTPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Proxy) *Result {
 	cfgAny, err := h.Unmarshal(m.Config)
 	if err != nil {
-		return DownResult(err, time.Now().UTC(), time.Now().UTC())
+		return DownResult(err, time.Now(), time.Now())
 	}
 	cfg := cfgAny.(*HTTPConfig)
 
 	req, err := newHTTPRequest(ctx, cfg)
 	if err != nil {
-		return DownResult(err, time.Now().UTC(), time.Now().UTC())
+		return DownResult(err, time.Now(), time.Now())
 	}
 
 	// --- PROXY LOGIC ---
@@ -606,13 +606,13 @@ func (h *HTTPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 
 	// --- AUTHENTICATION LOGIC ---
 	if err := h.authenticate(ctx, req, cfg, proxyModel, sender); err != nil {
-		return DownResult(err, time.Now().UTC(), time.Now().UTC())
+		return DownResult(err, time.Now(), time.Now())
 	}
 	defer sender.close()
 
-	startTime := time.Now().UTC()
+	startTime := time.Now()
 	resp, err := sender.client.Do(req)
-	endTime := time.Now().UTC()
+	endTime := time.Now()
 
 	if err != nil {
 		h.logger.Infof("HTTP request failed: %s, %s", m.Name, err.Error())
