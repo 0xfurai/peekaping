@@ -399,33 +399,94 @@ func (r *Resolver) Update(ctx context.Context, change Change) ([]string, error) 
 	if err != nil {
 		return nil, err
 	}
+	next, err := r.apply(current, change)
+	if err != nil {
+		return nil, err
+	}
+
+	changed := changedFields(current, next)
+	if err := r.save(ctx, current, next); err != nil {
+		return nil, err
+	}
+	r.invalidate(next)
+	return changed, nil
+}
+
+// pending is a setting a change sets, with the text to set it to: nil leaves it as it is, empty
+// clears it
+type pending struct {
+	setting setting
+	value   *string
+}
+
+// apply is the saved values after the change, or the *Error that refuses it. It stores nothing.
+func (r *Resolver) apply(current map[string]string, change Change) (map[string]string, error) {
 	next := make(map[string]string, len(current))
 	for key, value := range current {
 		next[key] = value
 	}
-	var port *string
-	if change.SMTPPort != nil {
-		port = new(string)
-		if *change.SMTPPort != 0 {
-			*port = strconv.Itoa(*change.SMTPPort)
+	steps, err := changeSteps(change)
+	if err != nil {
+		return nil, err
+	}
+	for _, step := range steps {
+		if err := r.applyStep(next, step); err != nil {
+			return nil, err
 		}
 	}
-	type pending struct {
-		setting setting
-		value   *string
+	// A saved password is kept only while the server and user it was entered for stay the same
+	// (GLOSSARY.md, Endpoint field): a change of the host, port, TLS mode or user that sends no
+	// password clears it, and the admin enters it again, so that it is never sent somewhere new
+	if change.SMTPPassword == nil && r.endpoint(current) != r.endpoint(next) {
+		delete(next, KeySMTPPassword)
 	}
+	if err := r.checkTogether(next, change); err != nil {
+		return nil, err
+	}
+	return next, nil
+}
+
+// changeSteps is the settings a change sets, in the order they are checked: the settings, then the
+// default limits by name. A limit the install doesn't have is an *Error.
+func changeSteps(change Change) ([]pending, error) {
 	steps := []pending{
 		{signupMode, change.SignupMode}, {publicURL, change.PublicURL}, {smtpHost, change.SMTPHost},
-		{smtpPort, port}, {smtpUser, change.SMTPUser}, {smtpPassword, change.SMTPPassword},
+		{smtpPort, portText(change.SMTPPort)}, {smtpUser, change.SMTPUser}, {smtpPassword, change.SMTPPassword},
 		{smtpFrom, change.SMTPFrom}, {smtpTLS, change.SMTPTLS}, {limitsName, change.WorkspaceLimitsName},
 	}
-	for name := range change.WorkspaceLimits {
+	if err := checkLimitNames(change.WorkspaceLimits); err != nil {
+		return nil, err
+	}
+	return append(steps, limitSteps(change.WorkspaceLimits)...), nil
+}
+
+// portText is a port as the text to save: empty for 0, which clears it, and nil for no change
+func portText(port *int) *string {
+	if port == nil {
+		return nil
+	}
+	text := new(string)
+	if *port != 0 {
+		*text = strconv.Itoa(*port)
+	}
+	return text
+}
+
+// checkLimitNames refuses a name that is not one of the default limits
+func checkLimitNames(limits map[string]*int) error {
+	for name := range limits {
 		if _, ok := limitsByName[name]; !ok {
-			return nil, &Error{Code: CodeInvalid, Field: "workspaceLimits." + name, Message: "is not a limit"}
+			return &Error{Code: CodeInvalid, Field: "workspaceLimits." + name, Message: "is not a limit"}
 		}
 	}
+	return nil
+}
+
+// limitSteps is the default limits a change holds, in the order of their names
+func limitSteps(limits map[string]*int) []pending {
+	var steps []pending
 	for _, name := range limitNames {
-		limit, ok := change.WorkspaceLimits[name]
+		limit, ok := limits[name]
 		if !ok {
 			continue
 		}
@@ -436,73 +497,80 @@ func (r *Resolver) Update(ctx context.Context, change Change) ([]string, error) 
 		}
 		steps = append(steps, pending{limitsByName[name], value})
 	}
-	for _, step := range steps {
-		if step.value == nil {
-			continue
-		}
-		s := step.setting
-		if envVar := r.lockedBy(s); envVar != "" {
-			message := "set by the server's environment (" + envVar + ")"
-			if envVar != s.envVar {
-				message = "the sender is set by the server's environment (" + envVar + ")"
-			}
-			return nil, &Error{Code: CodeLocked, Field: s.field, Message: message}
-		}
-		value := *step.value
-		// A password is taken as sent: a space may be part of it
-		if s.key != KeySMTPPassword {
-			value = strings.TrimSpace(value)
-		}
-		if value == "" {
-			delete(next, s.key)
-			continue
-		}
-		if problem := s.check(r.cfg, value); problem != "" {
-			return nil, &Error{Code: CodeInvalid, Field: s.field, Message: problem}
-		}
-		next[s.key] = value
-	}
-	// A saved password is kept only while the server and user it was entered for stay the same
-	// (GLOSSARY.md, Endpoint field): a change of the host, port, TLS mode or user that sends no
-	// password clears it, and the admin enters it again, so that it is never sent somewhere new
-	if change.SMTPPassword == nil && r.endpoint(current) != r.endpoint(next) {
-		delete(next, KeySMTPPassword)
-	}
+	return steps
+}
 
-	// The checks that take the settings together, on what they will resolve to: the startup's
-	// (config.ValidateAccountSMTP and config.ValidateSignup)
+// applyStep sets one setting in next, or clears it, or returns the *Error that refuses it: it is
+// locked by the environment, or its value is one the setting can't hold
+func (r *Resolver) applyStep(next map[string]string, step pending) error {
+	if step.value == nil {
+		return nil
+	}
+	s := step.setting
+	if envVar := r.lockedBy(s); envVar != "" {
+		return lockedError(s, envVar)
+	}
+	value := *step.value
+	// A password is taken as sent: a space may be part of it
+	if s.key != KeySMTPPassword {
+		value = strings.TrimSpace(value)
+	}
+	if value == "" {
+		delete(next, s.key)
+		return nil
+	}
+	if problem := s.check(r.cfg, value); problem != "" {
+		return &Error{Code: CodeInvalid, Field: s.field, Message: problem}
+	}
+	next[s.key] = value
+	return nil
+}
+
+// lockedError refuses a change to s, which the variable envVar of the environment locks
+func lockedError(s setting, envVar string) *Error {
+	message := "set by the server's environment (" + envVar + ")"
+	if envVar != s.envVar {
+		message = "the sender is set by the server's environment (" + envVar + ")"
+	}
+	return &Error{Code: CodeLocked, Field: s.field, Message: message}
+}
+
+// checkTogether makes the checks that take the settings together, on what they will resolve to
+// in next: the startup's (config.ValidateAccountSMTP and config.ValidateSignup)
+func (r *Resolver) checkTogether(next map[string]string, change Change) error {
 	resolvedHost := strings.TrimSpace(r.resolve(next, smtpHost).Value)
 	if resolvedHost != "" && strings.TrimSpace(r.resolve(next, smtpFrom).Value) == "" {
-		return nil, &Error{Code: CodeInvalid, Field: smtpFrom.field, Message: "a sender address, such as no-reply@example.com, is required with an SMTP host"}
+		return &Error{Code: CodeInvalid, Field: smtpFrom.field, Message: "a sender address, such as no-reply@example.com, is required with an SMTP host"}
 	}
 	if r.resolve(next, signupMode).Value == config.SignupModeOpen && resolvedHost == "" {
 		if change.SignupMode != nil && strings.TrimSpace(*change.SignupMode) == config.SignupModeOpen {
-			return nil, &Error{Code: CodeOpenSignupNeedsSender, Field: signupMode.field, Message: "open signup needs a sender for account emails, because new accounts must verify their email address"}
+			return &Error{Code: CodeOpenSignupNeedsSender, Field: signupMode.field, Message: "open signup needs a sender for account emails, because new accounts must verify their email address"}
 		}
-		return nil, &Error{Code: CodeSenderNeededForOpenSignup, Field: smtpHost.field, Message: "signup is open, and new accounts need the sender to verify their email address: switch signup to invite first"}
+		return &Error{Code: CodeSenderNeededForOpenSignup, Field: smtpHost.field, Message: "signup is open, and new accounts need the sender to verify their email address: switch signup to invite first"}
 	}
+	return nil
+}
 
+// changedFields are the settings that differ between current and next, in the order of all
+func changedFields(current, next map[string]string) []string {
 	var changed []string
 	for _, s := range all {
 		if differs(current, next, s.key) {
 			changed = append(changed, s.field)
 		}
 	}
-	// The keys are written one by one, without a transaction (the settings table has none), so a
-	// write that fails keeps the ones before it. The order makes sure that the saved password is
-	// never left next to an endpoint it wasn't entered for: when the endpoint changes, the old
-	// password goes first, and a new one is written last, after the endpoint.
-	order, cleared := all, false
-	if r.endpoint(current) != r.endpoint(next) {
-		_, hadPassword := current[KeySMTPPassword]
-		if hadPassword && differs(current, next, KeySMTPPassword) {
-			if err := r.store.DeleteByKey(ctx, KeySMTPPassword); err != nil {
-				r.invalidate(nil)
-				return nil, fmt.Errorf("failed to save %s: %w", smtpPassword.field, err)
-			}
-			cleared = true
-		}
-		order = passwordLast
+	return changed
+}
+
+// save writes the settings that differ between current and next to the store.
+// The keys are written one by one, without a transaction (the settings table has none), so a
+// write that fails keeps the ones before it. The order makes sure that the saved password is
+// never left next to an endpoint it wasn't entered for: when the endpoint changes, the old
+// password goes first, and a new one is written last, after the endpoint.
+func (r *Resolver) save(ctx context.Context, current, next map[string]string) error {
+	order, cleared, err := r.clearPasswordFirst(ctx, current, next)
+	if err != nil {
+		return err
 	}
 	// Open signup needs a sender, so a save that opens it writes the mode last: one that fails
 	// partway leaves signup as it was, not open with no sender. Closing it stays first.
@@ -510,23 +578,43 @@ func (r *Resolver) Update(ctx context.Context, change Change) ([]string, error) 
 		order = append(slices.DeleteFunc(slices.Clone(order), func(s setting) bool { return s.key == KeySignupMode }), signupMode)
 	}
 	for _, s := range order {
-		after, has := next[s.key]
+		_, has := next[s.key]
 		if !differs(current, next, s.key) || (s.key == KeySMTPPassword && cleared && !has) {
 			continue
 		}
-		var err error
-		if has {
-			_, err = r.store.SetByKey(ctx, s.key, &shared.SettingModel{Key: s.key, Value: after, Type: s.kind})
-		} else {
-			err = r.store.DeleteByKey(ctx, s.key)
-		}
-		if err != nil {
+		if err := r.writeKey(ctx, next, s); err != nil {
 			r.invalidate(nil)
-			return nil, fmt.Errorf("failed to save %s: %w", s.field, err)
+			return fmt.Errorf("failed to save %s: %w", s.field, err)
 		}
 	}
-	r.invalidate(next)
-	return changed, nil
+	return nil
+}
+
+// clearPasswordFirst deletes the saved password when the endpoint changes, before anything is
+// written, and returns the order to write the rest in, and whether it deleted the password
+func (r *Resolver) clearPasswordFirst(ctx context.Context, current, next map[string]string) (order []setting, cleared bool, err error) {
+	if r.endpoint(current) == r.endpoint(next) {
+		return all, false, nil
+	}
+	_, hadPassword := current[KeySMTPPassword]
+	if hadPassword && differs(current, next, KeySMTPPassword) {
+		if err := r.store.DeleteByKey(ctx, KeySMTPPassword); err != nil {
+			r.invalidate(nil)
+			return nil, false, fmt.Errorf("failed to save %s: %w", smtpPassword.field, err)
+		}
+		cleared = true
+	}
+	return passwordLast, cleared, nil
+}
+
+// writeKey stores the value of s in next, or deletes the key when next holds none
+func (r *Resolver) writeKey(ctx context.Context, next map[string]string, s setting) error {
+	after, has := next[s.key]
+	if has {
+		_, err := r.store.SetByKey(ctx, s.key, &shared.SettingModel{Key: s.key, Value: after, Type: s.kind})
+		return err
+	}
+	return r.store.DeleteByKey(ctx, s.key)
 }
 
 // differs is whether a key is saved in one of current and next and not in the other, or with
