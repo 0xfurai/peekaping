@@ -136,6 +136,9 @@ func TestKafkaProducerExecutor_Validate(t *testing.T) {
 	}{
 		{"valid", `{"brokers":["localhost:9092"],"topic":"t","message":"m","sasl_options":{"mechanism":"None"}}`, ""},
 		{"valid with SASL", `{"brokers":["localhost:9092"],"topic":"t","message":"m","sasl_options":{"mechanism":"PLAIN","username":"u","password":"p"}}`, ""},
+		{"no sasl_options", `{"brokers":["localhost:9092"],"topic":"t","message":"m"}`, ""},
+		{"empty mechanism", `{"brokers":["localhost:9092"],"topic":"t","message":"m","sasl_options":{"mechanism":""}}`, ""},
+		{"unknown mechanism", `{"brokers":["localhost:9092"],"topic":"t","message":"m","sasl_options":{"mechanism":"GSSAPI","username":"u","password":"p"}}`, "Mechanism"},
 		{"not JSON", `not json`, "invalid character"},
 		{"no brokers", `{"brokers":[],"topic":"t","message":"m","sasl_options":{"mechanism":"None"}}`, "brokers list cannot be empty"},
 		{"blank broker", `{"brokers":[" "],"topic":"t","message":"m","sasl_options":{"mechanism":"None"}}`, "broker address cannot be empty"},

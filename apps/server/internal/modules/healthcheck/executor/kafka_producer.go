@@ -27,7 +27,7 @@ type KafkaProducerConfig struct {
 }
 
 type KafkaProducerSASLOptions struct {
-	Mechanism string `json:"mechanism" validate:"oneof=PLAIN SCRAM-SHA-256 SCRAM-SHA-512 None" example:"PLAIN"`
+	Mechanism string `json:"mechanism" validate:"omitempty,oneof=PLAIN SCRAM-SHA-256 SCRAM-SHA-512 None" example:"PLAIN"`
 	Username  string `json:"username" example:"kafka_user"`
 	Password  string `json:"password" example:"kafka_password"`
 }
