@@ -302,7 +302,8 @@ func validateProbe(cfg *Config) error {
 	return nil
 }
 
-// validateAccountsAndMonitors checks the account email, signup and disabled monitor type settings
+// validateAccountsAndMonitors checks the account email, signup, disabled monitor type and custom
+// domain CNAME target settings
 func validateAccountsAndMonitors(cfg *Config) error {
 	// A sender host without a sender address stops startup, not the first password reset
 	if err := config.ValidateAccountSMTP(cfg.AccountSMTPHost, cfg.AccountSMTPFrom, cfg.AccountSMTPTLS); err != nil {
