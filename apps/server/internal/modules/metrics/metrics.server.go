@@ -11,6 +11,34 @@ import (
 	"go.uber.org/zap"
 )
 
+// Listener is the port that METRICS_PORT names, bound. A nil *Listener is a metrics port that isn't
+// set: Close does nothing.
+type Listener struct {
+	listener net.Listener
+}
+
+// Listen binds port on all interfaces. It returns nil when port is empty. A port that can't be
+// bound is an error, so that startup stops. The caller binds it before it opens anything else, and
+// closes it on every way out; a Server built from it closes it too, so a second Close is harmless.
+func Listen(port string) (*Listener, error) {
+	if port == "" {
+		return nil, nil
+	}
+	listener, err := net.Listen("tcp", ":"+port)
+	if err != nil {
+		return nil, fmt.Errorf("failed to listen on METRICS_PORT %s: %w", port, err)
+	}
+	return &Listener{listener: listener}, nil
+}
+
+// Close closes the port
+func (l *Listener) Close() error {
+	if l == nil {
+		return nil
+	}
+	return l.listener.Close()
+}
+
 // Server serves the collector's /metrics alone, on a port of its own (METRICS_PORT), so that the
 // API port can stay off the public internet's /metrics. A nil *Server is a metrics port that isn't
 // set: its methods do nothing.
@@ -19,18 +47,13 @@ type Server struct {
 	listener net.Listener
 }
 
-// NewServer binds port on all interfaces and returns a server for the collector's handler, which
-// Serve starts. It returns nil when port is empty. A port that can't be bound is an error, so
-// that startup stops.
-func NewServer(port string, c *Collector, timeouts httpx.Timeouts) (*Server, error) {
-	if port == "" {
-		return nil, nil
+// NewServer returns a server for the collector's handler on the bound port, which Serve starts. It
+// returns nil when l is nil.
+func NewServer(l *Listener, c *Collector, timeouts httpx.Timeouts) *Server {
+	if l == nil {
+		return nil
 	}
-	listener, err := net.Listen("tcp", ":"+port)
-	if err != nil {
-		return nil, fmt.Errorf("failed to listen on METRICS_PORT %s: %w", port, err)
-	}
-	return &Server{http: httpx.NewServer("", onlyMetrics(c.Handler()), timeouts), listener: listener}, nil
+	return &Server{http: httpx.NewServer("", onlyMetrics(c.Handler()), timeouts), listener: l.listener}
 }
 
 // onlyMetrics answers GET /metrics with handler and any other request with 404

@@ -440,7 +440,7 @@ func TestRun_StopsStartupWhenTheMetricsPortIsTaken(t *testing.T) {
 	migrateDatabase(t, cfg)
 	listener, err := net.Listen("tcp", "127.0.0.1:0")
 	require.NoError(t, err)
-	logger, _ := observedLogger()
+	logger, logs := observedLogger()
 	done := make(chan error, 1)
 	go func() { done <- run(context.Background(), cfg, logger, listener) }()
 
@@ -449,6 +449,10 @@ func TestRun_StopsStartupWhenTheMetricsPortIsTaken(t *testing.T) {
 		require.Error(t, err)
 		assert.ErrorContains(t, err, "METRICS_PORT")
 		assert.ErrorContains(t, err, port)
+		assert.Zero(t, logs.Len(), "the port is bound before anything starts, so nothing was logged")
+		_ = listener.(*net.TCPListener).SetDeadline(time.Now().Add(time.Second)) // an open listener times out
+		_, err = listener.Accept()
+		assert.ErrorIs(t, err, net.ErrClosed, "run closed the API's listener")
 	case <-time.After(shutdownTimeouts.Total() + 5*time.Second):
 		require.FailNow(t, "run didn't stop")
 	}

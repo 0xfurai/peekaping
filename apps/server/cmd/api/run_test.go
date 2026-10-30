@@ -449,9 +449,13 @@ func TestRun_StopsStartupWhenTheMetricsPortIsTaken(t *testing.T) {
 	listener, err := net.Listen("tcp", "127.0.0.1:0")
 	require.NoError(t, err)
 
-	err, _ = runWith(t, context.Background(), cfg, listener)
+	err, logs := runWith(t, context.Background(), cfg, listener)
 
 	require.Error(t, err)
 	assert.ErrorContains(t, err, "METRICS_PORT")
 	assert.ErrorContains(t, err, port)
+	assert.Zero(t, logs.Len(), "the port is bound before anything starts, so nothing was logged")
+	_ = listener.(*net.TCPListener).SetDeadline(time.Now().Add(time.Second)) // an open listener times out
+	_, err = listener.Accept()
+	assert.ErrorIs(t, err, net.ErrClosed, "run closed the API's listener")
 }

@@ -158,10 +158,19 @@ type parts struct {
 // METRICS_PORT set it binds that port too, and serves /metrics there alone. Then it stops
 // everything that started, in order, within shutdownTimeouts: the HTTP server, the metrics
 // server, the websocket, the background jobs, the event bus and the database. It returns nil when
-// serving ended with ctx and everything stopped in time. It closes the listener.
+// serving ended with ctx and everything stopped in time. It closes the listener and the metrics port.
 func run(ctx context.Context, cfg *Config, logger *zap.SugaredLogger, listener net.Listener) error {
 	// The HTTP server closes the listener once it serves, and a failure before leaves it open
 	defer func() { _ = listener.Close() }()
+
+	// Bound before the container builds anything, so that a port that is taken stops startup with
+	// nothing to close but the listeners. It serves once the jobs have started, like the HTTP
+	// server, and the deferred Close covers every way out before the shutdown stops its server.
+	metricsListener, err := metrics.Listen(cfg.MetricsPort)
+	if err != nil {
+		return err
+	}
+	defer func() { _ = metricsListener.Close() }()
 
 	logger.Infow("Starting the API in cluster mode", "version", version.Version)
 	internalCfg := cfg.ToInternalConfig()
@@ -203,12 +212,7 @@ func run(ctx context.Context, cfg *Config, logger *zap.SugaredLogger, listener n
 	// stop grace period run out
 	httpServer.RegisterOnShutdown(p.ProbeWaker.Close)
 
-	// Bound before anything starts, so that a port that is taken stops startup. It serves once the
-	// jobs have started, like the HTTP server; the shutdown below closes it either way.
-	metricsServer, err := metrics.NewServer(cfg.MetricsPort, p.Metrics, serverTimeouts)
-	if err != nil {
-		return err
-	}
+	metricsServer := metrics.NewServer(metricsListener, p.Metrics, serverTimeouts)
 
 	// A job that fails to start leaves the ones before it running, and the shutdown stops them
 	j, startErr := startJobs(ctx, p, internalCfg, logger)

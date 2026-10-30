@@ -141,18 +141,23 @@ type parts struct {
 // run starts Peekaping and serves the API on the listener until ctx is done. With METRICS_PORT set
 // it binds that port too, and serves /metrics there alone. Then it stops everything in order,
 // within shutdownTimeouts: the HTTP server, the metrics server, the websocket, the background
-// jobs, the event bus and the database. It returns nil when everything stopped in time.
+// jobs, the event bus and the database. It returns nil when everything stopped in time. It closes
+// the listener and the metrics port.
 func run(ctx context.Context, cfg *Config, logger *zap.SugaredLogger, listener net.Listener) error {
-	logger.Infow("Starting Peekaping in single mode", "version", version.Version)
-	if ignored := cfg.RedisSettings(); len(ignored) > 0 {
-		logger.Warnw("Single mode uses no Redis, ignoring the Redis settings", "settings", ignored)
-	}
+	// The HTTP server closes the listener once it serves, and a failure before leaves it open
+	defer func() { _ = listener.Close() }()
 
-	if cfg.ProbeBootstrapToken != "" {
-		// Not stored: this process checks the local probe's monitors, and the probe protocol
-		// refuses the local probe's token. Never the token itself.
-		logger.Warn("PROBE_BOOTSTRAP_TOKEN is set, but single mode doesn't use it: the peekaping process checks the local probe's monitors and refuses a probe instance that uses the local probe's token. Give peekaping-probe a remote probe's token.")
+	// Bound before the container builds anything, so that a port that is taken stops startup with
+	// nothing to close but the listeners. It serves once the jobs have started, like the HTTP
+	// server, and the deferred Close covers every way out before the shutdown stops its server.
+	metricsListener, err := metrics.Listen(cfg.MetricsPort)
+	if err != nil {
+		return err
 	}
+	defer func() { _ = metricsListener.Close() }()
+
+	logger.Infow("Starting Peekaping in single mode", "version", version.Version)
+	warnAboutIgnoredSettings(cfg, logger)
 
 	container := dig.New()
 	internalCfg := cfg.ToInternalConfig()
@@ -174,29 +179,17 @@ func run(ctx context.Context, cfg *Config, logger *zap.SugaredLogger, listener n
 		return fmt.Errorf("failed to build peekaping: %w", err)
 	}
 
-	// The API router serves every request. With WEB_DIR set, the gateway sends it the API's
-	// paths and serves the web app on the others. The gateway answers some requests itself, so
-	// it gets the request ID and the request log too. The router's own pass a request that comes
-	// through the gateway.
-	handler := http.Handler(p.Server.Router)
-	if cfg.WebDir != "" {
-		gateway, err := web.NewGateway(web.Config{Dir: cfg.WebDir, APIURL: cfg.APIURL, Metrics: cfg.MetricsEnabled && cfg.MetricsPort == ""}, p.Server.Router, logger)
-		if err != nil {
-			return fmt.Errorf("failed to serve the web app from WEB_DIR: %w", err)
-		}
-		handler = httpx.Chain(gateway, httpx.RequestID, httpx.Logger(logger, p.TrustedProxies))
-	}
-
-	// With METRICS_PORT set, /metrics is served on that port alone: the router and the gateway
-	// leave it out. Bound before anything starts, so that a port that is taken stops startup.
-	metricsServer, err := metrics.NewServer(cfg.MetricsPort, p.Metrics, serverTimeouts)
+	handler, err := apiHandler(cfg, p, logger)
 	if err != nil {
 		return err
 	}
 
+	// With METRICS_PORT set, /metrics is served on that port alone: the router and the gateway
+	// leave it out
+	metricsServer := metrics.NewServer(metricsListener, p.Metrics, serverTimeouts)
+
 	jobs, err := startJobs(ctx, p, cfg, logger)
 	if err != nil {
-		_ = metricsServer.Stop(context.Background(), logger)
 		return err
 	}
 
@@ -226,6 +219,35 @@ func run(ctx context.Context, cfg *Config, logger *zap.SugaredLogger, listener n
 	}
 	logger.Info("Peekaping stopped")
 	return nil
+}
+
+// warnAboutIgnoredSettings says which settings single mode ignores: the Redis settings, and the
+// probe bootstrap token
+func warnAboutIgnoredSettings(cfg *Config, logger *zap.SugaredLogger) {
+	if ignored := cfg.RedisSettings(); len(ignored) > 0 {
+		logger.Warnw("Single mode uses no Redis, ignoring the Redis settings", "settings", ignored)
+	}
+
+	if cfg.ProbeBootstrapToken != "" {
+		// Not stored: this process checks the local probe's monitors, and the probe protocol
+		// refuses the local probe's token. Never the token itself.
+		logger.Warn("PROBE_BOOTSTRAP_TOKEN is set, but single mode doesn't use it: the peekaping process checks the local probe's monitors and refuses a probe instance that uses the local probe's token. Give peekaping-probe a remote probe's token.")
+	}
+}
+
+// apiHandler is the handler that serves every request. The API router, or with WEB_DIR set the
+// gateway, which sends the router the API's paths and serves the web app on the others. The
+// gateway answers some requests itself, so it gets the request ID and the request log too. The
+// router's own pass a request that comes through the gateway.
+func apiHandler(cfg *Config, p parts, logger *zap.SugaredLogger) (http.Handler, error) {
+	if cfg.WebDir == "" {
+		return p.Server.Router, nil
+	}
+	gateway, err := web.NewGateway(web.Config{Dir: cfg.WebDir, APIURL: cfg.APIURL, Metrics: cfg.MetricsEnabled && cfg.MetricsPort == ""}, p.Server.Router, logger)
+	if err != nil {
+		return nil, fmt.Errorf("failed to serve the web app from WEB_DIR: %w", err)
+	}
+	return httpx.Chain(gateway, httpx.RequestID, httpx.Logger(logger, p.TrustedProxies)), nil
 }
 
 // serve serves the API on the listener, and the metrics on their own port when there is one, until
