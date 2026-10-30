@@ -3,11 +3,15 @@ package apitest
 import (
 	"context"
 	"net/http"
+	"slices"
 	"testing"
 	"time"
 
 	"peekaping/internal/config"
+	"peekaping/internal/modules/check"
 	"peekaping/internal/modules/cleanup"
+	"peekaping/internal/modules/monitor"
+	"peekaping/internal/modules/scheduler"
 	"peekaping/internal/modules/workspace"
 
 	"github.com/stretchr/testify/assert"
@@ -196,4 +200,178 @@ func (f failingFor) DeleteAnyWorkspace(ctx context.Context, id workspace.ID) err
 		return assert.AnError
 	}
 	return f.Service.DeleteAnyWorkspace(ctx, id)
+}
+
+// MARK: The hold
+
+// assertHeld checks everything that a hold keeps from running in the Acme workspace: the scheduler,
+// the loader, the queries that pick monitors, the push, the status pages and the badges
+func assertHeld(t *testing.T, a *app, w acme, source *scheduler.DatabaseSource) {
+	t.Helper()
+	assert.Empty(t, intersect(scheduled(t, source), w.monitorsOfWorkspace), "the scheduler's list")
+	found, err := source.Find(context.Background(), w.activeA)
+	require.NoError(t, err)
+	assert.Nil(t, found)
+	_, err = source.Load(context.Background(), w.activeA)
+	assert.ErrorIs(t, err, check.ErrWorkspaceSuspended, "the loader")
+	require.NoError(t, a.container.Invoke(func(monitors monitor.Service) error {
+		active, err := monitors.FindActiveAnyWorkspace(context.Background())
+		require.NoError(t, err)
+		assert.Empty(t, intersect(idsOf(active), w.monitorsOfWorkspace))
+		paged, err := monitors.FindActivePaginatedAnyWorkspace(context.Background(), 0, 1000)
+		require.NoError(t, err)
+		assert.Empty(t, intersect(idsOf(paged), w.monitorsOfWorkspace))
+		byProbe, err := monitors.FindActiveByProbeAnyWorkspace(context.Background(), "local", 0, 1000)
+		require.NoError(t, err)
+		assert.Empty(t, intersect(idsOf(byProbe), w.monitorsOfWorkspace))
+		return nil
+	}))
+	push := a.request(t, http.MethodGet, "/api/v1/push/"+w.pushTokenOfActiveA+"?status=up", nil)
+	assert.Equal(t, http.StatusForbidden, push.Code, push.Body.String())
+	assert.Empty(t, a.storedHeartbeats(t, w.activeA))
+	for _, path := range publicStatusPageRoutes(w.slugWithDomain, w.domain) {
+		assertUnavailable(t, a.request(t, http.MethodGet, path, nil), path)
+	}
+	for path := range badgePaths(w.activeA) {
+		assertUnavailable(t, a.request(t, http.MethodGet, path, nil), path)
+	}
+}
+
+// assertRunning checks that the Acme workspace runs: the opposite of assertHeld
+func assertRunning(t *testing.T, a *app, w acme, source *scheduler.DatabaseSource) {
+	t.Helper()
+	assert.ElementsMatch(t, w.monitorsOfWorkspace[:2], intersect(scheduled(t, source), w.monitorsOfWorkspace), "the paused one stays out")
+	loaded, err := source.Load(context.Background(), w.activeA)
+	require.NoError(t, err)
+	assert.Equal(t, w.activeA, loaded.Monitor.ID)
+	assert.Equal(t, http.StatusOK, a.request(t, http.MethodGet, "/api/v1/push/"+w.pushTokenOfActiveA+"?status=up", nil).Code)
+	for _, path := range publicStatusPageRoutes(w.slugWithDomain, w.domain) {
+		assert.Equal(t, http.StatusOK, a.request(t, http.MethodGet, path, nil).Code, path)
+	}
+	for path := range badgePaths(w.activeA) {
+		assert.Equal(t, http.StatusOK, a.request(t, http.MethodGet, path, nil).Code, path)
+	}
+}
+
+func TestWorkspaceDeletion_TheWorkspaceIsHeldDuringTheGracePeriodAndEveryMemberSeesTheDate(t *testing.T) {
+	parallel(t)
+	forEachBackend(t, func(t *testing.T, backend func(*config.Config)) {
+		a := newAppWithAdmin(t, backend)
+		w := a.createAcme(t)
+		member := a.loginAs(t, w.memberEmail)
+		source := a.schedulerSource(t)
+		require.ElementsMatch(t, w.monitorsOfWorkspace[:2], intersect(scheduled(t, source), w.monitorsOfWorkspace), "they run before")
+
+		due := decode[scheduledDeletion](t, a.scheduleDeletion(t, "Acme Corp", w.alice), http.StatusOK).DeletionScheduledAt
+
+		assertHeld(t, a, w, source)
+		push := a.request(t, http.MethodGet, "/api/v1/push/"+w.pushTokenOfActiveA+"?status=up", nil)
+		assert.Contains(t, push.Body.String(), "scheduled for deletion")
+		assert.NotContains(t, push.Body.String(), "verifies")
+		for _, creds := range []credentials{member, w.alice, w.bob} {
+			me := a.meOf(t, creds)
+			require.Len(t, me.Workspaces, 1)
+			assert.True(t, me.Workspaces[0].Suspended)
+			require.NotNil(t, me.Workspaces[0].SuspendedReason)
+			assert.Equal(t, "deleting", *me.Workspaces[0].SuspendedReason)
+			require.NotNil(t, me.Workspaces[0].DeletionScheduledAt)
+			assert.True(t, due.Equal(mustParse(t, *me.Workspaces[0].DeletionScheduledAt)), "the date is the one scheduling answered")
+		}
+		listed := decode[[]monitorViewWithFlag](t, a.request(t, http.MethodGet, monitorsPath, nil, w.alice), http.StatusOK)
+		assert.Len(t, listed, 3, "the monitors are kept and listed")
+		assert.Equal(t, "deleting", derefOr(a.adminWorkspaceView(t, w.id).SuspendedReason, ""), "the admin list says so too")
+	})
+}
+
+func derefOr(s *string, or string) string {
+	if s == nil {
+		return or
+	}
+	return *s
+}
+
+func TestWorkspaceDeletion_CancellingBringsEverythingBack(t *testing.T) {
+	parallel(t)
+	forEachBackend(t, func(t *testing.T, backend func(*config.Config)) {
+		a := newAppWithAdmin(t, backend)
+		source := a.schedulerSource(t)
+		var heard updates
+		source.Watch(func(string) {}, heard.add, func(string) {})
+		w := a.createAcme(t)
+		// pausing a monitor is an update too, and it can arrive late: wait for it
+		require.Eventually(t, func() bool { return slices.Contains(heard.seen(), w.paused) }, 5*time.Second, 10*time.Millisecond)
+		heard.reset()
+		updatedBefore := a.monitorUpdatedAt(t, w.activeA)
+		require.Equal(t, http.StatusOK, a.scheduleDeletion(t, "Acme Corp", w.alice).Code)
+		time.Sleep(5 * time.Millisecond)
+
+		require.Equal(t, http.StatusNoContent, a.cancelDeletion(t, w.bob).Code, "another owner may cancel")
+
+		assertRunning(t, a, w, source)
+		me := a.meOf(t, w.alice)
+		assert.False(t, me.Workspaces[0].Suspended)
+		assert.Nil(t, me.Workspaces[0].SuspendedReason)
+		assert.Nil(t, me.Workspaces[0].DeletionScheduledAt)
+		assert.True(t, a.monitorUpdatedAt(t, w.activeA).After(updatedBefore), "updated_at moved, so the watchdog does not count the days held back")
+		require.Eventually(t, func() bool { return len(intersect(heard.seen(), w.monitorsOfWorkspace)) >= 2 }, 5*time.Second, 10*time.Millisecond, "the scheduler is told to pick the monitors up")
+		assert.ElementsMatch(t, w.monitorsOfWorkspace[:2], intersect(heard.seen(), w.monitorsOfWorkspace))
+
+		// and it can be scheduled again, for a new date
+		assert.Equal(t, http.StatusOK, a.scheduleDeletion(t, "Acme Corp", w.alice).Code)
+	})
+}
+
+func TestWorkspaceDeletion_CancellingWhenNothingIsScheduledIs404(t *testing.T) {
+	a := newAppWithAdmin(t)
+	w := a.createAcme(t)
+
+	res := a.cancelDeletion(t, w.alice)
+
+	assert.Equal(t, http.StatusNotFound, res.Code, res.Body.String())
+}
+
+func TestWorkspaceDeletion_CancellingLiftsOnlyItsOwnHold(t *testing.T) {
+	parallel(t)
+	forEachBackend(t, func(t *testing.T, backend func(*config.Config)) {
+		a := newAppWithAdmin(t, backend)
+		w := a.createAcme(t)
+		source := a.schedulerSource(t)
+		reason := func(creds credentials) string {
+			me := a.meOf(t, creds)
+			return derefOr(me.Workspaces[0].SuspendedReason, "")
+		}
+		a.setSuspended(t, w.id, true)
+		require.Equal(t, http.StatusOK, a.scheduleDeletion(t, "Acme Corp", w.alice).Code)
+		assert.Equal(t, "deleting", reason(w.alice), "the deletion is told before the admin's hold")
+
+		require.Equal(t, http.StatusNoContent, a.cancelDeletion(t, w.alice).Code)
+
+		assert.Equal(t, "admin", reason(w.alice), "the admin's hold stays")
+		assert.Nil(t, a.meOf(t, w.alice).Workspaces[0].DeletionScheduledAt)
+		assertHeld(t, a, w, source)
+		push := a.request(t, http.MethodGet, "/api/v1/push/"+w.pushTokenOfActiveA+"?status=up", nil)
+		assert.Contains(t, push.Body.String(), "suspended by the install's administrator")
+
+		// and resuming while a deletion is scheduled leaves the workspace held
+		require.Equal(t, http.StatusOK, a.scheduleDeletion(t, "Acme Corp", w.alice).Code)
+		resumed := a.setSuspended(t, w.id, false)
+		assert.True(t, resumed.Suspended)
+		assert.Equal(t, "deleting", derefOr(resumed.SuspendedReason, ""))
+		assertHeld(t, a, w, source)
+	})
+}
+
+func TestWorkspaceDeletion_CancellingLeavesAWorkspaceThatWaitsForVerificationWaiting(t *testing.T) {
+	a := newAppWithAdmin(t)
+	id, owner := a.createUnverifiedWorkspace(t, "Waiting", "wait@example.com")
+	monitorID := a.createMonitorAs(t, owner, "Site", "waiting-push")
+	source := a.schedulerSource(t)
+	require.Equal(t, http.StatusOK, a.scheduleDeletion(t, "Waiting", owner).Code)
+	_ = id
+
+	require.Equal(t, http.StatusNoContent, a.cancelDeletion(t, owner).Code)
+
+	me := a.meOf(t, owner)
+	assert.Equal(t, "unverified", derefOr(me.Workspaces[0].SuspendedReason, ""))
+	assert.NotContains(t, scheduled(t, source), monitorID)
 }

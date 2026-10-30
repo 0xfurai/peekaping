@@ -103,8 +103,11 @@ type Workspace struct {
 	// SuspendedAt is when the hold the reason names began: the admin's when an admin holds the
 	// workspace, else the verification's. Nil when the workspace runs.
 	SuspendedAt *time.Time
-	// SuspendedReason is workspace.SuspendedByAdmin, workspace.SuspendedUnverified, or empty
+	// SuspendedReason is workspace.SuspendedDeleting, workspace.SuspendedByAdmin,
+	// workspace.SuspendedUnverified, or empty
 	SuspendedReason string
+	// DeletionScheduledAt is when the workspace will be deleted, nil when no deletion is scheduled
+	DeletionScheduledAt *time.Time
 	// Limits are what the workspace is held to (PP-160), and LimitsSource where they come from. The
 	// service fills them in: the repository reads none.
 	Limits       limits.Limits

@@ -50,6 +50,11 @@ type Monitor struct {
 	// beside the verification hold.
 	WorkspaceSuspendedByAdmin bool `json:"-"`
 
+	// WorkspaceDeleting is whether an owner scheduled the deletion of the monitor's workspace
+	// (PP-170), which a push says in its refusal. It is filled in with WorkspaceSuspended, and can be
+	// true beside the other holds.
+	WorkspaceDeleting bool `json:"-"`
+
 	// TypeDisabled is whether the monitor's type is one of DISABLED_MONITOR_TYPES (PP-157): the
 	// monitor is kept and shown, but it does not run, as in a suspended workspace, and its stored
 	// state is left alone so that it runs again once the type is turned back on. The repository

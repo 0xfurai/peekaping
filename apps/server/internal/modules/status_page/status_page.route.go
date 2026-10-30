@@ -22,7 +22,7 @@ func NewRoute(controller *Controller, middleware *middleware.AuthChain) *Route {
 }
 
 // unavailableNote is what a public route says of the 503 it answers for a suspended workspace
-const unavailableNote = "Answers 503 with the code STATUS_PAGE_UNAVAILABLE and the message \"This status page is unavailable\" when the page is published and its workspace is suspended, whether by an instance admin or while it waits for its owner to verify their email address. It does not say which, and a page that is not published is still 404."
+const unavailableNote = "Answers 503 with the code STATUS_PAGE_UNAVAILABLE and the message \"This status page is unavailable\" when the page is published and its workspace is suspended, whether by an instance admin, while it waits for its owner to verify their email address, or because its owner scheduled its deletion. It does not say which, and a page that is not published is still 404."
 
 func (r *Route) ConnectRoute(rg *httpx.Router, controller *Controller) {
 	// Public routes

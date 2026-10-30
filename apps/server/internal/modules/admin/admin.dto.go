@@ -207,11 +207,15 @@ type WorkspaceResponse struct {
 	CustomDomains int `json:"customDomains"`
 	// Suspended is whether the workspace's monitors are held back, whichever hold it is under
 	Suspended bool `json:"suspended"`
-	// SuspendedReason says why: "admin" when an instance admin suspended it, else "unverified" when
-	// it waits for its owner to verify their email address. Null when the workspace runs.
-	SuspendedReason *string `json:"suspendedReason" nullable:"true" enum:"admin,unverified"`
-	// SuspendedAt is when that hold began, or null when the workspace runs
+	// SuspendedReason says why: "deleting" when an owner scheduled its deletion, else "admin" when an
+	// instance admin suspended it, else "unverified" when it waits for its owner to verify their
+	// email address. Null when the workspace runs.
+	SuspendedReason *string `json:"suspendedReason" nullable:"true" enum:"deleting,admin,unverified"`
+	// SuspendedAt is when the admin's or the verification's hold began, or null when the workspace
+	// runs or is held by its scheduled deletion alone
 	SuspendedAt *time.Time `json:"suspendedAt" nullable:"true"`
+	// DeletionScheduledAt is when the workspace will be deleted, or null when no deletion is scheduled
+	DeletionScheduledAt *time.Time `json:"deletionScheduledAt" nullable:"true"`
 	// Limits are the limits the workspace is held to, and where they come from (PP-160)
 	Limits WorkspaceLimitsResponse `json:"limits"`
 }
@@ -221,7 +225,7 @@ func workspaceResponse(w *Workspace) *WorkspaceResponse {
 		ID: string(w.ID), Name: w.Name, CreatedAt: w.CreatedAt, Owners: append([]string{}, w.Owners...),
 		MemberCount: w.MemberCount, Monitors: WorkspaceMonitorsResponse{Active: w.ActiveMonitors, Paused: w.PausedMonitors},
 		StatusPages: w.StatusPages, CustomDomains: w.CustomDomains,
-		Suspended: w.SuspendedAt != nil, SuspendedAt: w.SuspendedAt,
+		Suspended: w.SuspendedReason != "", SuspendedAt: w.SuspendedAt, DeletionScheduledAt: w.DeletionScheduledAt,
 		Limits: workspaceLimitsResponse(w.Limits, w.LimitsSource),
 	}
 	if w.SuspendedReason != "" {

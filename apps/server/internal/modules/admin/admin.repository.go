@@ -53,7 +53,7 @@ type Repository interface {
 	FindWorkspaceAnyWorkspace(ctx context.Context, id string) (*Workspace, error)
 	// SetAdminSuspended puts the admin's hold on the workspace, or takes it off, and says whether
 	// that changed anything: a hold that is on keeps its time. Taking it off while no other hold
-	// remains gives the workspace's monitors a new updated_at, as lifting the verification hold does,
+	// remains (the verification's or a scheduled deletion) gives the workspace's monitors a new updated_at, as lifting the verification hold does,
 	// so that none counts as stale for the time it was held back. The verification hold is not
 	// touched. remaining is whether the workspace is still suspended, by the other hold.
 	SetAdminSuspended(ctx context.Context, id string, on bool) (changed, remaining bool, err error)
@@ -247,27 +247,30 @@ func (r *SQLRepository) DeleteUser(ctx context.Context, id string) error {
 
 // workspaceRow is a workspace with its counts
 type workspaceRow struct {
-	ID               string     `bun:"id"`
-	Name             string     `bun:"name"`
-	CreatedAt        time.Time  `bun:"created_at"`
-	SuspendedAt      *time.Time `bun:"suspended_at"`
-	SuspendedReason  *string    `bun:"suspended_reason"`
-	AdminSuspendedAt *time.Time `bun:"admin_suspended_at"`
-	MemberCount      int        `bun:"member_count"`
-	ActiveMonitors   int        `bun:"active_monitors"`
-	PausedMonitors   int        `bun:"paused_monitors"`
-	StatusPages      int        `bun:"status_pages"`
-	CustomDomains    int        `bun:"custom_domains"`
+	ID                  string     `bun:"id"`
+	Name                string     `bun:"name"`
+	CreatedAt           time.Time  `bun:"created_at"`
+	SuspendedAt         *time.Time `bun:"suspended_at"`
+	SuspendedReason     *string    `bun:"suspended_reason"`
+	AdminSuspendedAt    *time.Time `bun:"admin_suspended_at"`
+	DeletionScheduledAt *time.Time `bun:"deletion_scheduled_at"`
+	MemberCount         int        `bun:"member_count"`
+	ActiveMonitors      int        `bun:"active_monitors"`
+	PausedMonitors      int        `bun:"paused_monitors"`
+	StatusPages         int        `bun:"status_pages"`
+	CustomDomains       int        `bun:"custom_domains"`
 }
 
-// toDomain shows the admin's hold before the verification one, as workspace.Workspace.ShownReason does
+// toDomain shows the scheduled deletion first, then the admin's hold, then the verification one, as
+// workspace.Workspace.ShownReason does. SuspendedAt is when the hold of the admin or the verification
+// began, whichever is shown of those two: the deletion has its own date.
 func (r workspaceRow) toDomain() *Workspace {
 	w := &Workspace{
 		ID: workspace.ID(r.ID), Name: r.Name, CreatedAt: r.CreatedAt.UTC(), Owners: []string{},
 		MemberCount: r.MemberCount, ActiveMonitors: r.ActiveMonitors, PausedMonitors: r.PausedMonitors,
 		StatusPages: r.StatusPages, CustomDomains: r.CustomDomains,
 	}
-	shown := workspace.Workspace{SuspendedAt: r.SuspendedAt, AdminSuspendedAt: r.AdminSuspendedAt}
+	shown := workspace.Workspace{SuspendedAt: r.SuspendedAt, AdminSuspendedAt: r.AdminSuspendedAt, DeletionScheduledAt: r.DeletionScheduledAt}
 	if r.SuspendedReason != nil {
 		shown.SuspendedReason = *r.SuspendedReason
 	}
@@ -280,12 +283,16 @@ func (r workspaceRow) toDomain() *Workspace {
 		at := r.SuspendedAt.UTC()
 		w.SuspendedAt = &at
 	}
+	if r.DeletionScheduledAt != nil {
+		at := r.DeletionScheduledAt.UTC()
+		w.DeletionScheduledAt = &at
+	}
 	return w
 }
 
 // workspaceColumns are the columns of a workspace and its counts, each count a subquery of its own
 // so that none multiplies another
-const workspaceColumns = `w.id, w.name, w.created_at, w.suspended_at, w.suspended_reason, w.admin_suspended_at,
+const workspaceColumns = `w.id, w.name, w.created_at, w.suspended_at, w.suspended_reason, w.admin_suspended_at, w.deletion_scheduled_at,
 	(SELECT COUNT(*) FROM workspace_members AS wm WHERE wm.workspace_id = w.id) AS member_count,
 	(SELECT COUNT(*) FROM monitors AS mo WHERE mo.workspace_id = w.id AND mo.active = ?) AS active_monitors,
 	(SELECT COUNT(*) FROM monitors AS mo WHERE mo.workspace_id = w.id AND mo.active = ?) AS paused_monitors,
@@ -389,7 +396,7 @@ func (r *SQLRepository) SetAdminSuspended(ctx context.Context, id string, on boo
 		return false, false, err
 	}
 	var held bool
-	if err := db.NewSelect().Table("workspaces").ColumnExpr("(suspended_at IS NOT NULL OR admin_suspended_at IS NOT NULL)").Where("id = ?", id).Scan(ctx, &held); err != nil {
+	if err := db.NewSelect().Table("workspaces").ColumnExpr("(suspended_at IS NOT NULL OR admin_suspended_at IS NOT NULL OR deletion_scheduled_at IS NOT NULL)").Where("id = ?", id).Scan(ctx, &held); err != nil {
 		return false, false, err
 	}
 	if !on && affected > 0 && !held {

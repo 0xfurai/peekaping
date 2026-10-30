@@ -52,6 +52,9 @@ func RegisterPushEndpoint(
 			// The token holder is told why their pushes are not counted, as for a paused monitor: the
 			// token is the secret that names the monitor. Nothing is stored and nothing is sent.
 			logger.Infow("Push refused: the monitor's workspace is suspended", "monitor_id", monitor.ID)
+			if monitor.WorkspaceDeleting {
+				return nil, httpx.Fail(http.StatusForbidden, utils.NewFailResponse("The workspace of this monitor is scheduled for deletion"))
+			}
 			if monitor.WorkspaceSuspendedByAdmin {
 				return nil, httpx.Fail(http.StatusForbidden, utils.NewFailResponse("The workspace of this monitor is suspended by the install's administrator"))
 			}
