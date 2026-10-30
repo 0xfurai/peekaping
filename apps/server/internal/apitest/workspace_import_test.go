@@ -645,6 +645,17 @@ func TestWorkspaceImport_ALocationRuleThatCanNotBeMetIsRefusedAndNothingIsWritte
 	assert.Equal(t, before, a.footprint(t, seededWorkspace{id: target.id}), "nothing was written")
 }
 
+func TestWorkspaceImport_AnAtLeastThresholdBelowOneIsRefusedWithoutAProbeCount(t *testing.T) {
+	a := newAppWithAdmin(t)
+	target := a.emptyWorkspace(t, "Target", "target-owner@example.com")
+	zero := docHTTPMonitor("m1", "Zero threshold")
+	zero.LocationRule, zero.LocationThreshold = "at_least", new(0)
+
+	found := problemMessages(a.refused(t, with0(docOf(), zero), target.owner))
+	assertProblem(t, found, "monitor", "m1", "invalid location_rule: location_threshold must be 1 or more")
+	assert.NotContains(t, strings.Join(found, "\n"), "9223372036854775807")
+}
+
 // with0 is the document with the monitors
 func with0(doc workspaceport.Document, monitors ...workspaceport.Monitor) workspaceport.Document {
 	doc.Monitors = monitors

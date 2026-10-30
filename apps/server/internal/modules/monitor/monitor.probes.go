@@ -213,6 +213,10 @@ func validateLocationRule(rule shared.LocationRule, threshold *int, probes int) 
 // monitor will run on: the rule exists, and a threshold goes with at_least alone and is 1 or more.
 // An empty rule is any, as it is on a create.
 func CheckLocationRuleShape(rule shared.LocationRule, threshold *int) error {
+	// The probe count is unknown here, so an out-of-range threshold has no count to be worded with
+	if locationRuleOrAny(rule) == shared.LocationRuleAtLeast && threshold != nil && *threshold < 1 {
+		return &InvalidLocationRuleError{Err: errors.New("location_threshold must be 1 or more")}
+	}
 	return validateLocationRule(locationRuleOrAny(rule), threshold, math.MaxInt)
 }
 
