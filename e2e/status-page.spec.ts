@@ -2,7 +2,7 @@ import { test, expect, type Page } from '@playwright/test';
 import { adminAPI, createHTTPMonitor, deleteCreated, randomID } from './support/api';
 import { setTargetStatus, targetURL } from './support/fake-target';
 
-test('A published status page shows visitors its own monitors, and a draft shows nothing', async ({ page, browser }) => {
+test('@critical A published status page shows visitors its own monitors, and a draft shows nothing', async ({ page, browser }) => {
   const id = randomID();
   const api = await adminAPI(page);
   const onPublished = `Published monitor ${id}`;

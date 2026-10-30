@@ -275,7 +275,8 @@ test.describe('Monitor CRUD Operations', () => {
   });
 
   for (const [type, form] of Object.entries(monitorForms)) {
-    test(`${type} Monitor CRUD`, async ({ page }) => {
+    // The HTTP monitor's create, edit and delete is among the critical specs a PR runs
+    test(`${type === 'HTTP' ? '@critical ' : ''}${type} Monitor CRUD`, async ({ page }) => {
       const monitorName = randomMonitorName();
 
       await createMonitor(page, monitorName, form);
