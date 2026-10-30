@@ -99,7 +99,7 @@ export const problemLine = (problem: WorkspaceportProblem): string =>
   `${[problem.record, problem.ref].filter(Boolean).join(" ")}: ${problem.message}`;
 
 // The queries an import makes stale: the records it adds (and what hangs off a monitor), and the
-// settings it can cap
+// settings it can cap, with the usage and retention the workspace limits report
 const IMPORTED_QUERIES = [
   "getMonitors",
   "getNotificationChannels",
@@ -108,6 +108,7 @@ const IMPORTED_QUERIES = [
   "getMaintenances",
   "getStatusPages",
   "getSettings",
+  "getWorkspaceLimits",
 ];
 
 /** Whether the query with this key should be fetched again after an import. */

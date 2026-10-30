@@ -155,14 +155,15 @@ describe("affectedByImport", () => {
       "getMaintenances",
       "getStatusPages",
       "getSettingsKeyByKey",
+      // usage and retention, which the import changes
+      "getWorkspaceLimits",
     ]) {
       expect(affectedByImport(key(id)), id).toBe(true);
     }
   });
 
-  it("is not the queries about the user or the workspace itself", () => {
+  it("is not the queries about the user", () => {
     expect(affectedByImport(key("getMe"))).toBe(false);
-    expect(affectedByImport(key("getWorkspaceLimits"))).toBe(false);
     expect(affectedByImport([])).toBe(false);
     expect(affectedByImport(["getMonitors"])).toBe(false);
   });
