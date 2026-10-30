@@ -789,10 +789,10 @@ func refMapping(t *testing.T, from, to workspaceport.Document) map[string]string
 	return mapping
 }
 
-// comparable is the document as a test compares two exports of the same setup: the refs of
+// normalizedForCompare is the document as a test compares two exports of the same setup: the refs of
 // from are the refs of to, the time of the export and the workspace's name (which an import leaves
 // alone) are gone, and the lists of links, which an export sorts by ref, are sorted again
-func comparable(t *testing.T, doc workspaceport.Document, mapping map[string]string) workspaceport.Document {
+func normalizedForCompare(t *testing.T, doc workspaceport.Document, mapping map[string]string) workspaceport.Document {
 	t.Helper()
 	raw, err := json.Marshal(doc)
 	require.NoError(t, err)
@@ -844,11 +844,11 @@ func TestWorkspaceImport_ExportImportExportOnTheSameInstallDiffersOnlyInTheListe
 		}, result.Changes)
 		assert.Equal(t, workspaceport.Created{Tags: 2, Proxies: 1, NotificationChannels: 2, Monitors: 2, Maintenances: 1, StatusPages: 1}, result.Created)
 
-		want := comparable(t, exported, refMapping(t, exported, again))
+		want := normalizedForCompare(t, exported, refMapping(t, exported, again))
 		want.StatusPages[0].Slug, want.StatusPages[0].Domains = "acme-status-2", []string{}
 		cron := &want.Monitors[0]
 		require.Equal(t, "Cron", cron.Name)
-		got := comparable(t, again, nil)
+		got := normalizedForCompare(t, again, nil)
 		newToken := got.Monitors[0].PushToken
 		require.NotEqual(t, "acme-push-token", newToken)
 		cron.PushToken, cron.Config = newToken, workspaceport.ConfigJSON(`{"pushToken":"`+newToken+`"}`)
@@ -869,7 +869,7 @@ func TestWorkspaceImport_ExportImportExportAcrossInstallsDiffersInNothing(t *tes
 		again := second.exportDocument(t, target.owner)
 
 		assert.Empty(t, result.Changes, "a fresh install holds nothing that conflicts")
-		assert.Equal(t, asJSON(t, comparable(t, exported, refMapping(t, exported, again))), asJSON(t, comparable(t, again, nil)))
+		assert.Equal(t, asJSON(t, normalizedForCompare(t, exported, refMapping(t, exported, again))), asJSON(t, normalizedForCompare(t, again, nil)))
 		assert.Equal(t, again.Settings, exported.Settings)
 		assert.Equal(t, "Target", again.Workspace.Name, "the target keeps its own name")
 	})
