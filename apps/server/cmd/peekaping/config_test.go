@@ -456,6 +456,34 @@ func TestBlockPrivateTargetsIsOffByDefaultAndLoadedFromTheEnvironment(t *testing
 	assert.True(t, cfg.ToInternalConfig().BlockPrivateTargets)
 }
 
+func TestCustomDomainVerificationIsOffByDefaultAndLoadedFromTheEnvironment(t *testing.T) {
+	t.Setenv("DB_TYPE", "sqlite")
+	t.Setenv("DB_NAME", "peekaping.db")
+	t.Setenv("VERIFY_CUSTOM_DOMAINS", "")
+	t.Setenv("CUSTOM_DOMAIN_CNAME_TARGET", "")
+
+	cfg, err := LoadAndValidate(t.TempDir())
+	require.NoError(t, err)
+	assert.False(t, cfg.ToInternalConfig().VerifyCustomDomains)
+	assert.Empty(t, cfg.ToInternalConfig().CustomDomainCNAMETarget)
+
+	t.Setenv("VERIFY_CUSTOM_DOMAINS", "true")
+	t.Setenv("CUSTOM_DOMAIN_CNAME_TARGET", "Status.Example.com.")
+	cfg, err = LoadAndValidate(t.TempDir())
+	require.NoError(t, err)
+	assert.True(t, cfg.ToInternalConfig().VerifyCustomDomains)
+	assert.Equal(t, "Status.Example.com.", cfg.ToInternalConfig().CustomDomainCNAMETarget)
+}
+
+func TestACNAMETargetThatIsNotAHostNameStopsStartup(t *testing.T) {
+	t.Setenv("DB_TYPE", "sqlite")
+	t.Setenv("DB_NAME", "peekaping.db")
+	t.Setenv("CUSTOM_DOMAIN_CNAME_TARGET", "https://status.example.com")
+
+	_, err := LoadAndValidate(t.TempDir())
+	assert.ErrorContains(t, err, "CUSTOM_DOMAIN_CNAME_TARGET must be a host name")
+}
+
 func TestAPIRateLimitsAreOffByDefaultAndLoadedFromTheEnvironment(t *testing.T) {
 	t.Setenv("DB_TYPE", "sqlite")
 	t.Setenv("DB_NAME", "peekaping.db")

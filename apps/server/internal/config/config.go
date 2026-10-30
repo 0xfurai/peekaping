@@ -190,6 +190,17 @@ type Config struct {
 	// setting is on or the server's is, which the server states in hello.
 	BlockPrivateTargets bool `env:"BLOCK_PRIVATE_TARGETS" default:"false"`
 
+	// VerifyCustomDomains makes a custom domain serve its status page only once its owner has
+	// proved the domain points at this install (PP-165): a TXT record at _peekaping-verify.<domain>
+	// holding the domain's token, or a CNAME to CustomDomainCNAMETarget. Off by default, since a
+	// self-hosted install trusts its people to add their own domains; the cloud turns it on, so
+	// that a workspace can't hold a domain it doesn't own.
+	VerifyCustomDomains bool `env:"VERIFY_CUSTOM_DOMAINS" default:"false"`
+	// CustomDomainCNAMETarget is the host a verified custom domain may be a CNAME to. Empty, the
+	// default, means the host of the public URL (CLIENT_URL, or the address an instance admin
+	// saved); see CustomDomainCNAMETargetFor. ValidateCustomDomainCNAMETarget checks it at startup.
+	CustomDomainCNAMETarget string `env:"CUSTOM_DOMAIN_CNAME_TARGET"`
+
 	// APIRateLimitPerWorkspace and APIRateLimitPerAPIKey cap the requests a workspace, and one of
 	// its API keys, may make per minute (PP-159). 0, the default, is off. A request over either
 	// answers 429 with Retry-After. Each api replica counts for itself (see package ratelimit).

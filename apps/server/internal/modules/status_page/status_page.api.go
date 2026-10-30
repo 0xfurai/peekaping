@@ -47,6 +47,17 @@ type DeleteParams struct {
 }
 type DeleteInput = httpx.Input[httpx.NoBody, DeleteParams]
 
+type FindDomainsParams struct {
+	Id string `path:"id" doc:"Status Page ID" required:"true"`
+}
+type FindDomainsInput = httpx.Input[httpx.NoBody, FindDomainsParams]
+
+type VerifyDomainParams struct {
+	Id     string `path:"id" doc:"Status Page ID" required:"true"`
+	Domain string `path:"domain" doc:"A custom domain of the status page" required:"true"`
+}
+type VerifyDomainInput = httpx.Input[httpx.NoBody, VerifyDomainParams]
+
 type GetMonitorsBySlugParams struct {
 	Slug string `path:"slug" doc:"Status Page Slug" required:"true"`
 }

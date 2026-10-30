@@ -44,6 +44,10 @@ var anyWorkspaceCallers = map[string]string{
 	"internal/modules/badge.ServiceImpl.IsMonitorPublic":      "a badge is served only for a monitor on a published page",
 	"internal/modules/badge.ServiceImpl.ResolveMonitorID":     "a badge finds its monitor by ID with no workspace",
 	"internal/modules/badge.ServiceImpl.getMonitorBasicInfo":  "a badge shows a published monitor's name and status",
+	// custom domain verification
+
+	"internal/modules/domain_status_page.ServiceImpl.CheckDue": "the background check verifies the custom domains of every workspace, and removes the ones that stay unverified for 7 days (PP-165)",
+
 	// probe protocol
 	"internal/modules/probe/protocol.Controller.assign":            "the probe protocol deals the monitors of every workspace to the probe's instances",
 	"internal/modules/probe/protocol.Controller.dealtMonitors":     "a probe's results are accepted for the monitors it was dealt, whatever their workspace",
