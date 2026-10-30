@@ -82,10 +82,14 @@ export const createdLines = (created: WorkspaceportCreated, t: Translate): Creat
     count: created[key],
   }));
 
+type RejectedBody = { error?: { code?: unknown; problems?: unknown } };
+
+const rejectedBody = (error: unknown): RejectedBody["error"] =>
+  isAxiosError(error) ? (error.response?.data as RejectedBody | undefined)?.error : undefined;
+
 /** The problems of a file the server refused (400, INVALID_WORKSPACE_FILE), or undefined for any other failure. */
 export const importProblems = (error: unknown): WorkspaceportProblem[] | undefined => {
-  if (!isAxiosError(error)) return undefined;
-  const body = (error.response?.data as { error?: { code?: unknown; problems?: unknown } } | undefined)?.error;
+  const body = rejectedBody(error);
   if (body?.code !== "INVALID_WORKSPACE_FILE") return undefined;
   return Array.isArray(body.problems) ? (body.problems as WorkspaceportProblem[]) : [];
 };

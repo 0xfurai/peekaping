@@ -16,18 +16,25 @@ const decode = (value: string): string => {
 // A name from a header must not choose a folder: only its last part is kept
 const baseName = (name: string): string => name.split(/[\\/]/).pop()?.trim() ?? "";
 
+// The name as the header writes it: filename* (encoded) before filename (plain, quoted or not)
+const headerFilename = (header: string): string => {
+  const encoded = DISPOSITION_FILENAME_STAR.exec(header)?.[1];
+  if (encoded) return decode(encoded.trim());
+  const plain = DISPOSITION_FILENAME.exec(header);
+  return plain?.[1] ?? plain?.[2] ?? "";
+};
+
+const usable = (name: string): boolean => name !== "" && name !== "." && name !== "..";
+
 /**
- * The file name in a Content-Disposition header (`filename*` before `filename`), or the fallback
- * when the header is missing, has no name, or the browser hid it (the API's CORS answer doesn't
- * expose it to a page on another origin).
+ * The file name in a Content-Disposition header, or the fallback when the header is missing, has
+ * no name, or the browser hid it (the API's CORS answer doesn't expose it to a page on another
+ * origin).
  */
 export const filenameFromDisposition = (header: unknown, fallback: string): string => {
   if (typeof header !== "string") return fallback;
-  const encoded = DISPOSITION_FILENAME_STAR.exec(header)?.[1];
-  const plain = DISPOSITION_FILENAME.exec(header);
-  const raw = encoded ? decode(encoded.trim()) : (plain?.[1] ?? plain?.[2] ?? "");
-  const name = baseName(raw);
-  return name && name !== ".." && name !== "." ? name : fallback;
+  const name = baseName(headerFilename(header));
+  return usable(name) ? name : fallback;
 };
 
 /** `<prefix>-<yyyy-mm-dd>.<extension>`, the day in UTC as the server names its files. */
