@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { downloadName, filenameFromDisposition, saveBlob, saveDownload } from "./save-blob";
+import { asDownload, downloadName, filenameFromDisposition, saveBlob, saveDownload } from "./save-blob";
 
 describe("filenameFromDisposition", () => {
   it("reads a quoted filename", () => {
@@ -88,5 +88,16 @@ describe("saveDownload", () => {
     const page = fakePage();
     saveDownload({ data: new Blob(["x"]), headers: {} }, "fallback.json", page);
     expect(page.link.download).toBe("fallback.json");
+  });
+});
+
+describe("asDownload", () => {
+  it("passes a blob answer on, with its headers", () => {
+    const data = new Blob(["x"]);
+    expect(asDownload({ data, headers: { a: "b" } })).toEqual({ data, headers: { a: "b" } });
+  });
+
+  it("refuses an answer the client parsed as something else", () => {
+    expect(() => asDownload({ data: { format: "peekaping-workspace" }, headers: {} })).toThrow("did not come back as a file");
   });
 });

@@ -56,6 +56,18 @@ export const saveBlob = (blob: Blob, filename: string, page: Page = thisPage()):
   setTimeout(() => page.urls.revokeObjectURL(url), REVOKE_AFTER_MS);
 };
 
+/**
+ * An API download as saveDownload takes it. The generated client asks for these routes as blobs,
+ * but types the answer by the route's JSON schema, so the body is checked rather than trusted.
+ */
+export const asDownload = (response: {
+  data: unknown;
+  headers: Record<string, unknown>;
+}): { data: Blob; headers: Record<string, unknown> } => {
+  if (!(response.data instanceof Blob)) throw new Error("the download did not come back as a file");
+  return { data: response.data, headers: response.headers };
+};
+
 /** Saves the blob an API call answered with, named by its Content-Disposition or else the fallback. */
 export const saveDownload = (
   response: { data: Blob; headers: Record<string, unknown> },
