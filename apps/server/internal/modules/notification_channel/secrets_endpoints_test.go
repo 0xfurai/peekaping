@@ -94,3 +94,25 @@ func TestEndpointsUnchanged(t *testing.T) {
 		assert.False(t, endpointsUnchanged(provider, fields, `{"server":5}`, `{"server":"a"}`))
 	})
 }
+
+type secretURLConfig struct {
+	Hook string `json:"hook" secret:"true" urlCredentials:"true"`
+}
+
+// A field that is both a secret and a URL that holds credentials is a secret: it is hidden whole,
+// and a placeholder in it resolves as a secret does
+func TestAFieldThatIsASecretAndAURLIsASecret(t *testing.T) {
+	provider := strictProvider(func() any { return &secretURLConfig{} })
+	const saved = `{"hook":"https://user:pw@hooks.example/x?token=abc"}`
+
+	assert.JSONEq(t, `{"hook":"********"}`, redactConfig(provider, saved))
+
+	resolved, unresolved, used := resolveSecrets(provider, `{"hook":"********"}`, ptr(saved))
+	assert.JSONEq(t, saved, resolved)
+	assert.Empty(t, unresolved)
+	assert.Equal(t, []string{"https://user:pw@hooks.example/x?token=abc"}, used)
+
+	resolved, unresolved, _ = resolveSecrets(provider, `{"hook":"https://user:********@hooks.example/x?token=********"}`, ptr(saved))
+	assert.Equal(t, `{"hook":"https://user:********@hooks.example/x?token=********"}`, resolved, "a masked URL is no placeholder")
+	assert.Empty(t, unresolved)
+}
