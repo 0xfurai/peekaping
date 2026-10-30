@@ -211,32 +211,50 @@ func installEmail(link, message string, m *monitor.Model, hb *heartbeat.Model) m
 	subject := defaultEmailSubject
 	var fields [][2]string
 	if m != nil {
-		label := "Monitor"
-		if m.IsProbeEvent() {
-			label = "Probe"
-		}
-		fields = append(fields, [2]string{label, m.Name})
-		status := ""
-		switch {
-		case hb != nil:
-			status = statusName(hb.Status)
-		case m.IsProbeEvent() && m.Status == shared.MonitorStatusDown:
-			status = "offline"
-		case m.IsProbeEvent() && m.Status == shared.MonitorStatusUp:
-			status = "online"
-		}
-		name := singleLine(m.Name)
-		if status != "" {
-			subject = name + " is " + status
-			fields = append(fields, [2]string{"Status", status})
-		} else {
-			subject = defaultEmailSubject + ": " + name
-		}
+		subject, fields = installEmailMonitor(m, hb)
 	}
 	if hb != nil && !hb.Time.IsZero() {
 		fields = append(fields, [2]string{"Time", hb.Time.UTC().Format("2006-01-02 15:04:05") + " UTC"})
 	}
 
+	text, body := installEmailBody(fields, message, link)
+	return mailer.Message{Subject: subject, Text: text, HTML: body}
+}
+
+// installEmailMonitor is the subject of the email about a monitor, and the fields that name the
+// monitor and its status
+func installEmailMonitor(m *monitor.Model, hb *heartbeat.Model) (subject string, fields [][2]string) {
+	label := "Monitor"
+	if m.IsProbeEvent() {
+		label = "Probe"
+	}
+	fields = append(fields, [2]string{label, m.Name})
+	status := installEmailStatus(m, hb)
+	name := singleLine(m.Name)
+	if status == "" {
+		return defaultEmailSubject + ": " + name, fields
+	}
+	return name + " is " + status, append(fields, [2]string{"Status", status})
+}
+
+// installEmailStatus is the status the email says: the heartbeat's, or for a probe's notification,
+// which has no heartbeat, whether the probe went offline or came back online. It is "" when there
+// is none.
+func installEmailStatus(m *monitor.Model, hb *heartbeat.Model) string {
+	switch {
+	case hb != nil:
+		return statusName(hb.Status)
+	case m.IsProbeEvent() && m.Status == shared.MonitorStatusDown:
+		return "offline"
+	case m.IsProbeEvent() && m.Status == shared.MonitorStatusUp:
+		return "online"
+	}
+	return ""
+}
+
+// installEmailBody is the text and the HTML of the email: the fields, the message, and a link to
+// the monitor's page when there is one
+func installEmailBody(fields [][2]string, message, link string) (string, string) {
 	var text, body strings.Builder
 	for _, field := range fields {
 		fmt.Fprintf(&text, "%s: %s\n", field[0], field[1])
@@ -258,7 +276,7 @@ func installEmail(link, message string, m *monitor.Model, hb *heartbeat.Model) m
 		text.WriteString("\nOpen the monitor:\n" + link + "\n")
 		fmt.Fprintf(&body, "<p><a href=\"%s\">Open the monitor</a></p>\n", html.EscapeString(link))
 	}
-	return mailer.Message{Subject: subject, Text: text.String(), HTML: body.String()}
+	return text.String(), body.String()
 }
 
 // singleLine turns each control character (a line break, a tab) into a space. A monitor's name goes
