@@ -1279,6 +1279,22 @@ if check "helm dependency build fetches PostgreSQL and Redis" run dependency hel
     check "api.preStopSleepSeconds=12: the api pod gets 47 seconds to stop, the probe pod still 35" \
       grace_periods "$work/prestop-12.yaml" 47 || true
   fi
+  # A sleep that is not a whole number of 0 or more would give an unsafe grace
+  # period (-35 gives 0, -5 gives 30) or silently turn into no hook at all
+  for sleep in -5 -35 -40 7.5 10s abc true; do
+    check "api.preStopSleepSeconds=$sleep: rendering fails, naming the value" \
+      render_refused "refused-sleep-$sleep" "api.preStopSleepSeconds is \"$sleep\"" --set "api.preStopSleepSeconds=$sleep" || true
+    check "api.preStopSleepSeconds=$sleep: the message asks for a whole number of seconds, 0 or more" \
+      grep -qF "a whole number of seconds, 0 or more" "$work/refused-sleep-$sleep.log" || true
+  done
+  check "api.preStopSleepSeconds set to the string \"7.5\": rendering fails, naming the value" \
+    render_refused refused-sleep-string "api.preStopSleepSeconds is \"7.5\"" --set-string api.preStopSleepSeconds=7.5 || true
+  if check "api.preStopSleepSeconds set to the string \"9\" renders" render prestop-string --set-string api.preStopSleepSeconds=9; then
+    check "api.preStopSleepSeconds set to the string \"9\": the api sleeps 9 seconds" \
+      api_prestop_sleeps "$work/prestop-string.yaml" 9 || true
+    check "api.preStopSleepSeconds set to the string \"9\": the api pod gets 44 seconds to stop" \
+      grace_periods "$work/prestop-string.yaml" 44 || true
+  fi
   if check "apparmor.enabled=true for the api and probe renders" render apparmor \
     --set api.apparmor.enabled=true --set probe.apparmor.enabled=true; then
     check "api.apparmor.enabled=true: the pod template annotates $release-api and wait-for-migrations" \
