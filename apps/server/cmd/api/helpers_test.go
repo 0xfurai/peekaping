@@ -157,6 +157,10 @@ func startAPI(t testing.TB, cfg *Config, logger *zap.SugaredLogger, logs *observ
 func (in *instance) stop(t testing.TB) error {
 	t.Helper()
 	in.stopOnce.Do(func() {
+		// The client may hold a connection it dialed and never sent a request on, when a request
+		// went out on another one that came free first. The HTTP server's Shutdown waits up to 5
+		// seconds for such a connection.
+		testHTTP.CloseIdleConnections()
 		in.cancel()
 		limit := shutdownTimeouts.Total() + 5*time.Second
 		select {
