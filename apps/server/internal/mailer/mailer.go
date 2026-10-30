@@ -168,30 +168,46 @@ func Describe(err error) string {
 	}
 	var dnsErr *net.DNSError
 	if errors.As(err, &dnsErr) {
-		switch {
-		case dnsErr.IsNotFound:
-			return "send failed: the host name could not be resolved (not found)"
-		case dnsErr.IsTimeout:
-			return "send failed: the host name could not be resolved (timeout)"
-		}
-		return "send failed: the host name could not be resolved"
+		return describeLookup(dnsErr)
 	}
 	if certificateUnverified(err) {
 		return "send failed: the certificate could not be verified"
 	}
 	var opErr *net.OpError
 	if errors.As(err, &opErr) && opErr.Op != "" {
-		// Op is a fixed word of the net package ("dial", "read", "write"), and an errno's text is the
-		// OS's own ("connection refused"); neither names the server
-		var errno syscall.Errno
-		switch {
-		case errors.As(opErr.Err, &errno):
-			return fmt.Sprintf("send failed: %s: %s", opErr.Op, errno.Error())
-		case opErr.Timeout():
-			return fmt.Sprintf("send failed: %s: timed out", opErr.Op)
-		}
-		return fmt.Sprintf("send failed: %s: %T", opErr.Op, leaf(opErr))
+		return describeOperation(opErr)
 	}
+	return describeTimeoutOrType(err)
+}
+
+// describeLookup is Describe for a host name that did not resolve
+func describeLookup(dnsErr *net.DNSError) string {
+	switch {
+	case dnsErr.IsNotFound:
+		return "send failed: the host name could not be resolved (not found)"
+	case dnsErr.IsTimeout:
+		return "send failed: the host name could not be resolved (timeout)"
+	}
+	return "send failed: the host name could not be resolved"
+}
+
+// describeOperation is Describe for a failed network operation
+func describeOperation(opErr *net.OpError) string {
+	// Op is a fixed word of the net package ("dial", "read", "write"), and an errno's text is the
+	// OS's own ("connection refused"); neither names the server
+	var errno syscall.Errno
+	switch {
+	case errors.As(opErr.Err, &errno):
+		return fmt.Sprintf("send failed: %s: %s", opErr.Op, errno.Error())
+	case opErr.Timeout():
+		return fmt.Sprintf("send failed: %s: timed out", opErr.Op)
+	}
+	return fmt.Sprintf("send failed: %s: %T", opErr.Op, leaf(opErr))
+}
+
+// describeTimeoutOrType is Describe for what is left: an expired or cancelled context, a timeout, or
+// else the type of the error
+func describeTimeoutOrType(err error) string {
 	if errors.Is(err, context.DeadlineExceeded) {
 		return "send failed: timed out"
 	}
