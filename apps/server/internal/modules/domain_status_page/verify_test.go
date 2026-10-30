@@ -305,6 +305,11 @@ func TestVerification_APendingDomainIsRemovedSevenDaysAfterItsFirstCheck(t *test
 		require.NotNil(t, s.RemoveAt)
 		assert.Equal(t, t0.Add(7*24*time.Hour), s.RemoveAt.UTC())
 
+		// The background check runs every few minutes; hourly passes are the longest gap that counts
+		for hour := 1; hour < 7*24; hour++ {
+			v.clock.now = t0.Add(time.Duration(hour) * time.Hour)
+			require.NoError(t, v.svc.CheckDue(ctx))
+		}
 		v.clock.now = t0.Add(7*24*time.Hour - time.Minute)
 		require.NoError(t, v.svc.CheckDue(ctx))
 		assert.Equal(t, []string{"status.example.com"}, domainsOf(t, f.svc, page), "7 days minus a minute")
@@ -315,6 +320,27 @@ func TestVerification_APendingDomainIsRemovedSevenDaysAfterItsFirstCheck(t *test
 		assert.Equal(t, []string{"kept.example.com"}, domainsOf(t, f.svc, other), "a verified domain stays")
 		_, err := f.svc.AddDomainToStatusPage(ctx, other, "status.example.com")
 		assert.NoError(t, err, "another page can hold the freed name")
+	})
+}
+
+// Checks that did not run, because verification was off or the server was down, are not days the
+// domain was unverified (PP-165, AC7/AC8).
+func TestVerification_APendingDomainKeepsItsWeekWhenChecksWereNotRunning(t *testing.T) {
+	forEachBackend(t, func(t *testing.T, f fixture) {
+		v := f.verifying("peek.example")
+		page := f.page()
+		ctx := context.Background()
+		add(t, f.svc, page, "status.example.com")
+		require.NoError(t, v.svc.CheckDue(ctx))
+
+		// Nothing checks for 30 days
+		back := t0.Add(30 * 24 * time.Hour)
+		v.clock.now = back
+		require.NoError(t, v.svc.CheckDue(ctx))
+		assert.Equal(t, []string{"status.example.com"}, domainsOf(t, f.svc, page), "not removed at the first check after the pause")
+		s := v.status(t, page, "status.example.com")
+		require.NotNil(t, s.RemoveAt)
+		assert.Equal(t, back.Add(7*24*time.Hour), s.RemoveAt.UTC(), "its week starts again")
 	})
 }
 

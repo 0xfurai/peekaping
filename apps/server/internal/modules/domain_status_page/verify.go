@@ -84,9 +84,10 @@ type Status struct {
 	// FailingSince is when a check first missed a verified domain's records: the domain goes back
 	// to pending when they have been missing for 24 hours. Null while they are there.
 	FailingSince *time.Time `json:"failingSince" nullable:"true"`
-	// RemoveAt is when a pending domain is removed from its page, 7 days after the first check
-	// with verification on found it unverified. Null for a verified domain, while verification is
-	// off, and until that first check.
+	// RemoveAt is when a pending domain is removed from its page: 7 days of checks after the first
+	// one with verification on found it unverified. A pause in the checks (verification off, the
+	// server down) restarts the 7 days. Null for a verified domain, while verification is off, and
+	// until that first check.
 	RemoveAt *time.Time `json:"removeAt" nullable:"true"`
 	Records  Records    `json:"records"`
 }

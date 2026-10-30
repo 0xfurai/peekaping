@@ -70,14 +70,34 @@ func TestDecide_APendingDomainStartsItsWeekAtItsFirstCheck(t *testing.T) {
 
 func TestDecide_APendingDomainIsRemovedAfterSevenDays(t *testing.T) {
 	week := 7 * 24 * time.Hour
-	m := &domain_status_page.Model{PendingSince: at(t0.Add(-week + time.Minute))}
+	lastCheck := at(t0.Add(-5 * time.Minute))
+	m := &domain_status_page.Model{PendingSince: at(t0.Add(-week + time.Minute)), LastCheckedAt: lastCheck}
 	next, remove := domain_status_page.Decide(m, false, t0, true)
 	assert.False(t, remove, "7 days minus a minute")
 	assert.Equal(t, at(t0.Add(-week+time.Minute)), next.PendingSince)
 
-	m = &domain_status_page.Model{PendingSince: at(t0.Add(-week))}
+	m = &domain_status_page.Model{PendingSince: at(t0.Add(-week)), LastCheckedAt: lastCheck}
 	_, remove = domain_status_page.Decide(m, false, t0, true)
 	assert.True(t, remove, "7 days")
+}
+
+// Checks that were not running (verification off, or the server down) don't count against a
+// Pending domain's week: its clock starts again at the first check after the pause (PP-165, AC7/AC8).
+func TestDecide_APendingDomainsWeekRestartsAfterAGapInChecks(t *testing.T) {
+	eightDays := 8 * 24 * time.Hour
+	m := &domain_status_page.Model{PendingSince: at(t0.Add(-eightDays)), LastCheckedAt: at(t0.Add(-eightDays))}
+	next, remove := domain_status_page.Decide(m, false, t0, true)
+	assert.False(t, remove, "the week was mostly not checked")
+	assert.Equal(t, at(t0), next.PendingSince)
+
+	m = &domain_status_page.Model{PendingSince: at(t0.Add(-eightDays))}
+	next, remove = domain_status_page.Decide(m, false, t0, true)
+	assert.False(t, remove, "never checked since its clock was set")
+	assert.Equal(t, at(t0), next.PendingSince)
+
+	m = &domain_status_page.Model{PendingSince: at(t0.Add(-8 * 24 * time.Hour)), LastCheckedAt: at(t0.Add(-domain_status_page.RecheckEvery))}
+	_, remove = domain_status_page.Decide(m, false, t0, true)
+	assert.True(t, remove, "a last check an hour ago is no gap")
 }
 
 func TestDecide_WithoutEnforcementAMissIsOnlyRecorded(t *testing.T) {
