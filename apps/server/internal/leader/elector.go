@@ -175,6 +175,12 @@ func (e *Elector) tryBecomeLeader(ctx context.Context) {
 		return
 	}
 
+	e.checkCurrentLeader(ctx)
+}
+
+// checkCurrentLeader renews the lock if this node holds it, and else follows. It runs when the lock
+// was already taken.
+func (e *Elector) checkCurrentLeader(ctx context.Context) {
 	// Key already exists, check if we are the current leader
 	currentLeader, err := e.client.Get(ctx, Key).Result()
 	if err != nil {
@@ -189,17 +195,7 @@ func (e *Elector) tryBecomeLeader(ctx context.Context) {
 	}
 
 	if currentLeader == e.nodeID {
-		// We are already the leader, renew the lock
-		err = e.client.Expire(ctx, Key, TTL).Err()
-		if err != nil {
-			if ctx.Err() != nil {
-				return
-			}
-			e.logger.Errorw("Failed to renew leadership", "error", err)
-			e.setLeaderStatus(false)
-			return
-		}
-		e.setLeaderStatus(true)
+		e.renewLeadership(ctx)
 	} else {
 		// Another node is the leader
 		if e.IsLeader() {
@@ -207,6 +203,21 @@ func (e *Elector) tryBecomeLeader(ctx context.Context) {
 		}
 		e.setLeaderStatus(false)
 	}
+}
+
+// renewLeadership extends the lock this node holds
+func (e *Elector) renewLeadership(ctx context.Context) {
+	// We are already the leader, renew the lock
+	err := e.client.Expire(ctx, Key, TTL).Err()
+	if err != nil {
+		if ctx.Err() != nil {
+			return
+		}
+		e.logger.Errorw("Failed to renew leadership", "error", err)
+		e.setLeaderStatus(false)
+		return
+	}
+	e.setLeaderStatus(true)
 }
 
 // releaseLeadership releases the leadership if this node is the leader
