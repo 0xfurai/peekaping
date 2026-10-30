@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"peekaping/internal/httpx"
 	"peekaping/internal/modules/status_page"
 	"peekaping/internal/utils"
@@ -46,67 +47,72 @@ func (c *Controller) requirePublic(ctx context.Context, monitorID string) error 
 // parseQueryOptions parses badge options from query parameters
 func (c *Controller) parseQueryOptions(r *http.Request) *BadgeOptions {
 	options := DefaultBadgeOptions()
+	query := r.URL.Query()
 
 	// Parse style
-	if style := r.URL.Query().Get("style"); style != "" {
-		switch style {
-		case "flat", "flat-square", "plastic", "for-the-badge", "social":
-			options.Style = BadgeStyle(style)
+	switch style := query.Get("style"); style {
+	case "flat", "flat-square", "plastic", "for-the-badge", "social":
+		options.Style = BadgeStyle(style)
+	}
+
+	parseColorOptions(query, options)
+	parseTextOptions(query, options)
+	parseCertExpiryOptions(query, options)
+
+	return options
+}
+
+// parseColorOptions reads the color options. A color that isn't one leaves the default.
+func parseColorOptions(query url.Values, options *BadgeOptions) {
+	for _, option := range []struct {
+		key    string
+		target *string
+	}{
+		{"color", &options.Color},
+		{"labelColor", &options.LabelColor},
+		{"upColor", &options.UpColor},
+		{"downColor", &options.DownColor},
+	} {
+		if color, ok := parseColor(query.Get(option.key)); ok {
+			*option.target = color
 		}
 	}
+}
 
-	// Parse common options. A color that isn't one leaves the default.
-	if color, ok := parseColor(r.URL.Query().Get("color")); ok {
-		options.Color = color
+// parseTextOptions reads the status badge labels and the text customization options. An empty
+// one leaves the default.
+func parseTextOptions(query url.Values, options *BadgeOptions) {
+	for _, option := range []struct {
+		key    string
+		target *string
+	}{
+		{"upLabel", &options.UpLabel},
+		{"downLabel", &options.DownLabel},
+		{"labelPrefix", &options.LabelPrefix},
+		{"label", &options.Label},
+		{"labelSuffix", &options.LabelSuffix},
+		{"prefix", &options.Prefix},
+		{"suffix", &options.Suffix},
+	} {
+		if text := query.Get(option.key); text != "" {
+			*option.target = text
+		}
 	}
-	if labelColor, ok := parseColor(r.URL.Query().Get("labelColor")); ok {
-		options.LabelColor = labelColor
-	}
+}
 
-	// Parse status badge options
-	if upLabel := r.URL.Query().Get("upLabel"); upLabel != "" {
-		options.UpLabel = upLabel
-	}
-	if downLabel := r.URL.Query().Get("downLabel"); downLabel != "" {
-		options.DownLabel = downLabel
-	}
-	if upColor, ok := parseColor(r.URL.Query().Get("upColor")); ok {
-		options.UpColor = upColor
-	}
-	if downColor, ok := parseColor(r.URL.Query().Get("downColor")); ok {
-		options.DownColor = downColor
-	}
-
-	// Parse text customization options
-	if labelPrefix := r.URL.Query().Get("labelPrefix"); labelPrefix != "" {
-		options.LabelPrefix = labelPrefix
-	}
-	if label := r.URL.Query().Get("label"); label != "" {
-		options.Label = label
-	}
-	if labelSuffix := r.URL.Query().Get("labelSuffix"); labelSuffix != "" {
-		options.LabelSuffix = labelSuffix
-	}
-	if prefix := r.URL.Query().Get("prefix"); prefix != "" {
-		options.Prefix = prefix
-	}
-	if suffix := r.URL.Query().Get("suffix"); suffix != "" {
-		options.Suffix = suffix
-	}
-
-	// Parse certificate expiry options
-	if warnDays := r.URL.Query().Get("warnDays"); warnDays != "" {
+// parseCertExpiryOptions reads the certificate expiry options: warnDays above zero, downDays zero
+// or more
+func parseCertExpiryOptions(query url.Values, options *BadgeOptions) {
+	if warnDays := query.Get("warnDays"); warnDays != "" {
 		if days, err := strconv.Atoi(warnDays); err == nil && days > 0 {
 			options.WarnDays = days
 		}
 	}
-	if downDays := r.URL.Query().Get("downDays"); downDays != "" {
+	if downDays := query.Get("downDays"); downDays != "" {
 		if days, err := strconv.Atoi(downDays); err == nil && days >= 0 {
 			options.DownDays = days
 		}
 	}
-
-	return options
 }
 func (c *Controller) GetStatusBadge(ctx context.Context, input *GetStatusBadgeInput) (*httpx.Output[httpx.SVGBody], error) {
 	r := input.Request

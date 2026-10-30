@@ -471,3 +471,47 @@ func TestTheInternalConfigKnowsWhichVariablesTheEnvironmentSet(t *testing.T) {
 	assert.True(t, internal.FromEnvironment("CLIENT_URL"))
 	assert.False(t, internal.FromEnvironment("SIGNUP_MODE"))
 }
+
+func TestMetricsPortIsUnsetByDefaultAndLoadedFromTheEnvironment(t *testing.T) {
+	t.Setenv("DB_TYPE", "sqlite")
+	t.Setenv("DB_NAME", "peekaping.db")
+
+	cfg, err := LoadAndValidate(t.TempDir())
+	require.NoError(t, err)
+	assert.Empty(t, cfg.ToInternalConfig().MetricsPort)
+
+	t.Setenv("METRICS_ENABLED", "true")
+	t.Setenv("METRICS_PORT", "9464")
+	cfg, err = LoadAndValidate(t.TempDir())
+	require.NoError(t, err)
+	assert.Equal(t, "9464", cfg.ToInternalConfig().MetricsPort)
+}
+
+func TestMetricsPortThatCantBeServedStopsStartup(t *testing.T) {
+	tests := []struct {
+		name, enabled, port, serverPort, want string
+	}{
+		{name: "not a number", enabled: "true", port: "prometheus", want: "METRICS_PORT must be a port from 1 to 65535"},
+		{name: "above 65535", enabled: "true", port: "65536", want: "METRICS_PORT must be a port from 1 to 65535"},
+		{name: "zero", enabled: "true", port: "0", want: "METRICS_PORT must be a port from 1 to 65535"},
+		{name: "the same as SERVER_PORT", enabled: "true", port: "8034", want: "METRICS_PORT must differ from SERVER_PORT"},
+		{name: "the same as a set SERVER_PORT", enabled: "true", port: "9000", serverPort: "9000", want: "METRICS_PORT must differ from SERVER_PORT"},
+		{name: "metrics off", enabled: "", port: "9464", want: "METRICS_PORT needs METRICS_ENABLED=true"},
+		{name: "metrics explicitly off", enabled: "false", port: "9464", want: "METRICS_PORT needs METRICS_ENABLED=true"},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Setenv("DB_TYPE", "sqlite")
+			t.Setenv("DB_NAME", "peekaping.db")
+			t.Setenv("METRICS_ENABLED", tc.enabled)
+			t.Setenv("METRICS_PORT", tc.port)
+			if tc.serverPort != "" {
+				t.Setenv("SERVER_PORT", tc.serverPort)
+			}
+
+			_, err := LoadAndValidate(t.TempDir())
+
+			assert.ErrorContains(t, err, tc.want)
+		})
+	}
+}

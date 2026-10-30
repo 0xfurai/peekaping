@@ -1689,6 +1689,19 @@ func TestIsStatusAccepted(t *testing.T) {
 		{"404 with 3XX,4XX", 404, []string{"3XX", "4XX"}, true},
 		{"302 with 3XX", 302, []string{"3XX"}, true},
 		{"100 with 2XX", 100, []string{"2XX"}, false},
+		{"199 with 2XX", 199, []string{"2XX"}, false},
+		{"399 with 3XX", 399, []string{"3XX"}, true},
+		{"400 with 3XX", 400, []string{"3XX"}, false},
+		{"299 with 3XX", 299, []string{"3XX"}, false},
+		{"399 with 4XX", 399, []string{"4XX"}, false},
+		{"499 with 4XX", 499, []string{"4XX"}, true},
+		{"500 with 4XX", 500, []string{"4XX"}, false},
+		{"499 with 5XX", 499, []string{"5XX"}, false},
+		{"599 with 5XX", 599, []string{"5XX"}, true},
+		{"600 with 5XX", 600, []string{"5XX"}, false},
+		{"200 with no patterns", 200, nil, false},
+		{"200 with an unknown pattern", 200, []string{"200", "2xx", "6XX"}, false},
+		{"500 with an unknown pattern first", 500, []string{"6XX", "5XX"}, true},
 	}
 
 	for _, tt := range tests {
@@ -2329,6 +2342,59 @@ func TestCheckJsonQuery_Comparisons(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(fmt.Sprintf("%s %s %s", tt.query, tt.condition, tt.expected), func(t *testing.T) {
 			got, err := checkJsonQuery(responseBody, tt.query, tt.condition, tt.expected)
+			assert.NoError(t, err)
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func TestCheckJsonQuery_ConditionEdges(t *testing.T) {
+	tests := []struct {
+		name      string
+		body      string
+		query     string
+		condition string
+		expected  string
+		want      bool
+		wantErr   string
+	}{
+		{name: "nothing to check", body: "anything", want: true},
+		{name: "missing path", body: `{"a": 1}`, query: "b", condition: "==", expected: "1", wantErr: "JSON query path not found: b"},
+		{name: "path only", body: `{"a": 1}`, query: "a", want: true},
+		{name: "path with the default condition, equal", body: `{"a": 1}`, query: "a", expected: "1", want: true},
+		{name: "path with the default condition, different", body: `{"a": 1}`, query: "a", expected: "2", want: false},
+		{name: "path not equal", body: `{"a": 1}`, query: "a", condition: "!=", expected: "2", want: true},
+		{name: "unsupported condition on a path", body: `{"a": 1}`, query: "a", condition: "~=", expected: "1", wantErr: "unsupported condition: ~="},
+		{name: "unsupported condition without a value", body: `{"a": 1}`, query: "a", condition: "~=", wantErr: "unsupported condition: ~="},
+		{name: "full response with the default condition, same JSON", body: `{"a": 1, "b": 2}`, expected: `{"b": 2, "a": 1}`, want: true},
+		{name: "full response with the default condition, different JSON", body: `{"a": 1}`, expected: `{"a": 2}`, want: false},
+		{name: "full response with the default condition, same text", body: "plain", expected: "plain", want: true},
+		{name: "full response with the default condition, different text", body: "plain", expected: "other", want: false},
+		{name: "full response, different text, not equal", body: "plain", condition: "!=", expected: "other", want: true},
+		{name: "full response, same text, not equal", body: "plain", condition: "!=", expected: "plain", want: false},
+		{name: "full response, same JSON, not equal", body: `{"a": 1}`, condition: "!=", expected: `{"a":1}`, want: false},
+		{name: "full response, JSON and text", body: `{"a": 1}`, condition: "==", expected: "text", want: false},
+		{name: "full JSON with an ordering condition", body: `{"a": 1}`, condition: "<", expected: `{"a": 1}`, wantErr: "unsupported condition '<' for full JSON comparison: only '==' and '!=' are supported"},
+		{name: "text with an ordering condition", body: "plain", condition: ">=", expected: "other", wantErr: "unsupported condition '>=' for non-JSON comparison: only '==' and '!=' are supported"},
+		{name: "full response as the actual value, no expected value", body: "plain", condition: "==", want: false},
+		{name: "empty response as the actual value, no expected value", body: "", condition: "==", want: true},
+		{name: "full response not equal to no expected value", body: "plain", condition: "!=", want: true},
+		{name: "ordering a number as a string", body: `{"v": "abc"}`, query: "v", condition: ">", expected: "1", want: true},
+		{name: "ordering a string as a number", body: `{"v": "1"}`, query: "v", condition: "<", expected: "abc", want: true},
+		{name: "ordering equal strings", body: `{"v": "abc"}`, query: "v", condition: ">=", expected: "abc", want: true},
+		{name: "NaN is not less than or equal to anything", body: `{"v": "NaN"}`, query: "v", condition: "<=", expected: "1", want: false},
+		{name: "NaN is not greater than or equal to anything", body: `{"v": "NaN"}`, query: "v", condition: ">=", expected: "1", want: false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := checkJsonQuery(tt.body, tt.query, tt.condition, tt.expected)
+
+			if tt.wantErr != "" {
+				assert.EqualError(t, err, tt.wantErr)
+				assert.False(t, got)
+				return
+			}
 			assert.NoError(t, err)
 			assert.Equal(t, tt.want, got)
 		})

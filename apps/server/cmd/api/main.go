@@ -154,13 +154,23 @@ type parts struct {
 	LocalBus *app.LocalBus
 }
 
-// run starts the API and serves it on the listener until ctx is done, or until serving fails.
-// Then it stops everything that started, in order, within shutdownTimeouts: the HTTP server,
-// the websocket, the background jobs, the event bus and the database. It returns nil when
-// serving ended with ctx and everything stopped in time. It closes the listener.
+// run starts the API and serves it on the listener until ctx is done, or until serving fails. With
+// METRICS_PORT set it binds that port too, and serves /metrics there alone. Then it stops
+// everything that started, in order, within shutdownTimeouts: the HTTP server, the metrics
+// server, the websocket, the background jobs, the event bus and the database. It returns nil when
+// serving ended with ctx and everything stopped in time. It closes the listener and the metrics port.
 func run(ctx context.Context, cfg *Config, logger *zap.SugaredLogger, listener net.Listener) error {
 	// The HTTP server closes the listener once it serves, and a failure before leaves it open
 	defer func() { _ = listener.Close() }()
+
+	// Bound before the container builds anything, so that a port that is taken stops startup with
+	// nothing to close but the listeners. It serves once the jobs have started, like the HTTP
+	// server, and the deferred Close covers every way out before the shutdown stops its server.
+	metricsListener, err := metrics.Listen(cfg.MetricsPort)
+	if err != nil {
+		return err
+	}
+	defer func() { _ = metricsListener.Close() }()
 
 	logger.Infow("Starting the API in cluster mode", "version", version.Version)
 	internalCfg := cfg.ToInternalConfig()
@@ -202,6 +212,8 @@ func run(ctx context.Context, cfg *Config, logger *zap.SugaredLogger, listener n
 	// stop grace period run out
 	httpServer.RegisterOnShutdown(p.ProbeWaker.Close)
 
+	metricsServer := metrics.NewServer(metricsListener, p.Metrics, serverTimeouts)
+
 	// A job that fails to start leaves the ones before it running, and the shutdown stops them
 	j, startErr := startJobs(ctx, p, internalCfg, logger)
 	var failure error
@@ -209,28 +221,41 @@ func run(ctx context.Context, cfg *Config, logger *zap.SugaredLogger, listener n
 		failure = startErr
 		logger.Errorw("Failed to start the API, shutting down", "error", startErr)
 	} else {
-		served := make(chan error, 1)
-		go func() {
-			logger.Infow("Serving the API", "address", listener.Addr().String())
-			served <- httpServer.Serve(listener)
-		}()
-
-		// Serve returns http.ErrServerClosed once the shutdown below has begun, when nothing
-		// reads it any more: here it can only be a failure
-		select {
-		case <-ctx.Done():
-			logger.Info("Shutdown signal received, shutting down")
-		case serveErr := <-served:
-			failure = fmt.Errorf("HTTP server failed: %w", serveErr)
-			logger.Errorw("HTTP server failed, shutting down", "error", failure)
-		}
+		failure = serve(ctx, httpServer, listener, metricsServer, logger)
 	}
 
-	if err := errors.Join(failure, shutdown(httpServer, handlers, websocketClosed, p, j, internalCfg.DBType, logger)); err != nil {
+	if err := errors.Join(failure, shutdown(httpServer, metricsServer, handlers, websocketClosed, p, j, internalCfg.DBType, logger)); err != nil {
 		return err
 	}
 	logger.Info("API stopped")
 	return nil
+}
+
+// serve serves the API on the listener, and the metrics on their own port when there is one, until
+// ctx is done. It returns what failed, if serving failed: the shutdown begins then.
+func serve(ctx context.Context, httpServer *http.Server, listener net.Listener, metricsServer *metrics.Server, logger *zap.SugaredLogger) error {
+	served := make(chan error, 1)
+	go func() {
+		logger.Infow("Serving the API", "address", listener.Addr().String())
+		served <- httpServer.Serve(listener)
+	}()
+	metricsServed := metricsServer.Serve(logger)
+
+	// Serve returns http.ErrServerClosed once the shutdown has begun, when nothing reads it any
+	// more: here it can only be a failure
+	select {
+	case <-ctx.Done():
+		logger.Info("Shutdown signal received, shutting down")
+		return nil
+	case err := <-served:
+		failure := fmt.Errorf("HTTP server failed: %w", err)
+		logger.Errorw("HTTP server failed, shutting down", "error", failure)
+		return failure
+	case err := <-metricsServed:
+		failure := fmt.Errorf("metrics server failed: %w", err)
+		logger.Errorw("Metrics server failed, shutting down", "error", failure)
+		return failure
+	}
 }
 
 // jobs are the background jobs run starts, and how to stop them. A field is nil until its job
@@ -414,11 +439,11 @@ func (j *jobs) stop(ctx context.Context, logger *zap.SugaredLogger) error {
 // shutdown stops everything in order, each step within its share of shutdownTimeouts. The HTTP
 // server stops taking requests and waits for those in flight; once its share is up, it drops
 // their connections. The websocket closes its sessions, from the HTTP server's Shutdown
-// (websocketClosed is closed once it has). The background jobs stop, so nothing publishes events
-// any more, and the HTTP handlers the HTTP server left running return, in the jobs' share. The
-// event bus lets the handlers of the queued events finish. The database closes last, and only
-// once nothing uses it.
-func shutdown(httpServer *http.Server, handlers *graceful.RunningHandlers, websocketClosed <-chan struct{}, p parts, j *jobs, dbType string, logger *zap.SugaredLogger) error {
+// (websocketClosed is closed once it has). The metrics server stops right after, in the same
+// share. The background jobs stop, so nothing publishes events any more, and the HTTP handlers
+// the HTTP server left running return, in the jobs' share. The event bus lets the handlers of the
+// queued events finish. The database closes last, and only once nothing uses it.
+func shutdown(httpServer *http.Server, metricsServer *metrics.Server, handlers *graceful.RunningHandlers, websocketClosed <-chan struct{}, p parts, j *jobs, dbType string, logger *zap.SugaredLogger) error {
 	var errs []error
 
 	httpCtx, cancelHTTP := context.WithTimeout(context.Background(), shutdownTimeouts.HTTP)
@@ -430,6 +455,11 @@ func shutdown(httpServer *http.Server, handlers *graceful.RunningHandlers, webso
 		_ = httpServer.Close()
 	}
 	logger.Info("Stopped the HTTP server")
+	// It reads only the collector's memory, so it needs nothing that stops below, and stops in the
+	// HTTP server's share
+	if err := metricsServer.Stop(httpCtx, logger); err != nil {
+		errs = append(errs, err)
+	}
 
 	<-websocketClosed
 	logger.Info("Closed the websocket server")

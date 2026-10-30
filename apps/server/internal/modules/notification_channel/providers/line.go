@@ -41,6 +41,57 @@ func (s *LineSender) Validate(configJSON string) error {
 	return GenericValidator(cfg.(*LineConfig))
 }
 
+// lineMessageText is the text to send: the message rendered through the template when there is
+// one, and otherwise the message, framed with the monitor's name and the time for a heartbeat that
+// went Down or Up
+func lineMessageText(cfg *LineConfig, message string, m *monitor.Model, hb *heartbeat.Model) (string, error) {
+	if cfg.Template != "" {
+		engine := liquid.NewEngine()
+		bindings := PrepareTemplateBindings(m, hb, message)
+
+		rendered, err := engine.ParseAndRenderString(cfg.Template, bindings)
+		if err != nil {
+			return "", fmt.Errorf("failed to render template: %w", err)
+		}
+		return rendered, nil
+	}
+	if hb == nil {
+		return message, nil
+	}
+
+	// Default message format when template is not used
+	name := unknownMonitorName
+	if m != nil {
+		name = m.Name
+	}
+	var state string
+	switch hb.Status {
+	case 0: // DOWN
+		state = "[🔴 Down]"
+	case 1: // UP
+		state = "[✅ Up]"
+	default:
+		return message, nil
+	}
+	return fmt.Sprintf("Peekaping Alert: %s\nName: %s\n%s\nTime: %s",
+		state,
+		name,
+		message,
+		hb.Time.Format(time.RFC3339)), nil
+}
+
+// lineStatusError is the error for a response that is not a success: the reason the API gives
+// when its body has one
+func lineStatusError(resp *http.Response) error {
+	var errorBody map[string]interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&errorBody); err == nil {
+		if msg, ok := errorBody["message"].(string); ok {
+			return fmt.Errorf("LINE API error: %s (status: %d)", msg, resp.StatusCode)
+		}
+	}
+	return fmt.Errorf("LINE API returned status: %s", resp.Status)
+}
+
 func (s *LineSender) Send(
 	ctx context.Context,
 	configJSON string,
@@ -59,33 +110,9 @@ func (s *LineSender) Send(
 	url := "https://api.line.me/v2/bot/message/push"
 
 	// Prepare message text
-	messageText := message
-	if cfg.Template != "" {
-		engine := liquid.NewEngine()
-		bindings := PrepareTemplateBindings(monitor, heartbeat, message)
-
-		if rendered, err := engine.ParseAndRenderString(cfg.Template, bindings); err == nil {
-			messageText = rendered
-		} else {
-			return fmt.Errorf("failed to render template: %w", err)
-		}
-	} else if heartbeat != nil {
-		// Default message format when template is not used
-		name := unknownMonitorName
-		if monitor != nil {
-			name = monitor.Name
-		}
-		if heartbeat.Status == 0 { // DOWN
-			messageText = fmt.Sprintf("Peekaping Alert: [🔴 Down]\nName: %s\n%s\nTime: %s",
-				name,
-				message,
-				heartbeat.Time.Format(time.RFC3339))
-		} else if heartbeat.Status == 1 { // UP
-			messageText = fmt.Sprintf("Peekaping Alert: [✅ Up]\nName: %s\n%s\nTime: %s",
-				name,
-				message,
-				heartbeat.Time.Format(time.RFC3339))
-		}
+	messageText, err := lineMessageText(cfg, message, monitor, heartbeat)
+	if err != nil {
+		return err
 	}
 
 	// Prepare LINE message payload
@@ -122,13 +149,7 @@ func (s *LineSender) Send(
 	defer resp.Body.Close()
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		var errorBody map[string]interface{}
-		if err := json.NewDecoder(resp.Body).Decode(&errorBody); err == nil {
-			if msg, ok := errorBody["message"].(string); ok {
-				return fmt.Errorf("LINE API error: %s (status: %d)", msg, resp.StatusCode)
-			}
-		}
-		return fmt.Errorf("LINE API returned status: %s", resp.Status)
+		return lineStatusError(resp)
 	}
 
 	s.logger.Infof("LINE message sent successfully")

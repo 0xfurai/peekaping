@@ -132,31 +132,50 @@ func (s *ServiceImpl) inTx(ctx context.Context, fn func(ctx context.Context) err
 // the workspace first, in the caller's transaction, so that two such writes at once count one
 // after the other (limits.LockWorkspace).
 func (s *ServiceImpl) requireRoom(ctx context.Context, workspaceID workspace.ID, l limits.Limits, pages, addedDomains, removedDomains int) error {
-	pagesLimited := pages > 0 && l.StatusPages != nil
-	domainsLimited := addedDomains > 0 && l.CustomDomains != nil
-	if !pagesLimited && !domainsLimited {
+	if !limited(pages, l.StatusPages) && !limited(addedDomains, l.CustomDomains) {
 		return nil
 	}
 	if err := s.repository.LockWorkspace(ctx, workspaceID); err != nil {
 		return fmt.Errorf("lock the workspace: %w", err)
 	}
-	if pagesLimited {
-		have, err := s.repository.CountPages(ctx, workspaceID)
-		if err != nil {
-			return fmt.Errorf("count the status pages: %w", err)
-		}
-		if have+pages > *l.StatusPages {
-			return limits.Reached(limits.StatusPages, *l.StatusPages)
-		}
+	if err := s.requirePageRoom(ctx, workspaceID, l, pages); err != nil {
+		return err
 	}
-	if domainsLimited {
-		have, err := s.repository.CountDomains(ctx, workspaceID)
-		if err != nil {
-			return fmt.Errorf("count the custom domains: %w", err)
-		}
-		if have-removedDomains+addedDomains > *l.CustomDomains {
-			return limits.Reached(limits.CustomDomains, *l.CustomDomains)
-		}
+	return s.requireDomainRoom(ctx, workspaceID, l, addedDomains, removedDomains)
+}
+
+// limited reports whether a write that adds n of something is held to the limit: it adds some, and
+// the workspace has a limit on them
+func limited(n int, limit *int) bool {
+	return n > 0 && limit != nil
+}
+
+// requirePageRoom refuses pages that would go past the workspace's limit of them
+func (s *ServiceImpl) requirePageRoom(ctx context.Context, workspaceID workspace.ID, l limits.Limits, pages int) error {
+	if !limited(pages, l.StatusPages) {
+		return nil
+	}
+	have, err := s.repository.CountPages(ctx, workspaceID)
+	if err != nil {
+		return fmt.Errorf("count the status pages: %w", err)
+	}
+	if have+pages > *l.StatusPages {
+		return limits.Reached(limits.StatusPages, *l.StatusPages)
+	}
+	return nil
+}
+
+// requireDomainRoom refuses domains that would go past the workspace's limit of them
+func (s *ServiceImpl) requireDomainRoom(ctx context.Context, workspaceID workspace.ID, l limits.Limits, addedDomains, removedDomains int) error {
+	if !limited(addedDomains, l.CustomDomains) {
+		return nil
+	}
+	have, err := s.repository.CountDomains(ctx, workspaceID)
+	if err != nil {
+		return fmt.Errorf("count the custom domains: %w", err)
+	}
+	if have-removedDomains+addedDomains > *l.CustomDomains {
+		return limits.Reached(limits.CustomDomains, *l.CustomDomains)
 	}
 	return nil
 }
@@ -285,6 +304,40 @@ func (s *ServiceImpl) validateDomains(ctx context.Context, statusPageID string, 
 
 func (s *ServiceImpl) Create(ctx context.Context, workspaceID workspace.ID, dto *CreateStatusPageDTO) (*Model, error) {
 	dto.MonitorIDs = utils.LowerUUIDs(dto.MonitorIDs)
+	domains, err := s.checkNewPage(ctx, workspaceID, dto)
+	if err != nil {
+		return nil, err
+	}
+
+	model := &Model{
+		Slug:                dto.Slug,
+		Title:               dto.Title,
+		Description:         dto.Description,
+		Icon:                dto.Icon,
+		Theme:               dto.Theme,
+		Published:           dto.Published,
+		ShowLocations:       dto.ShowLocations,
+		FooterText:          dto.FooterText,
+		AutoRefreshInterval: dto.AutoRefreshInterval,
+	}
+
+	workspaceLimits, err := s.limitsOf(ctx, workspaceID)
+	if err != nil {
+		return nil, err
+	}
+	created, err := s.createWithDomains(ctx, workspaceID, model, domains, workspaceLimits)
+	if err != nil {
+		return nil, err
+	}
+
+	s.addMonitors(ctx, created.ID, dto.MonitorIDs)
+
+	return created, nil
+}
+
+// checkNewPage checks what a new page asks for before anything is written, and returns its domains
+// as they are stored
+func (s *ServiceImpl) checkNewPage(ctx context.Context, workspaceID workspace.ID, dto *CreateStatusPageDTO) ([]string, error) {
 	// Every monitor must be in the workspace, and is checked before anything is written
 	if err := s.monitorStatusPageService.RequireMonitors(ctx, workspaceID, dto.MonitorIDs); err != nil {
 		return nil, err
@@ -304,63 +357,55 @@ func (s *ServiceImpl) Create(ctx context.Context, workspaceID workspace.ID, dto 
 			return nil, err
 		}
 	}
+	return domains, nil
+}
 
-	model := &Model{
-		Slug:                dto.Slug,
-		Title:               dto.Title,
-		Description:         dto.Description,
-		Icon:                dto.Icon,
-		Theme:               dto.Theme,
-		Published:           dto.Published,
-		ShowLocations:       dto.ShowLocations,
-		FooterText:          dto.FooterText,
-		AutoRefreshInterval: dto.AutoRefreshInterval,
-	}
-
-	workspaceLimits, err := s.limitsOf(ctx, workspaceID)
-	if err != nil {
-		return nil, err
-	}
-	// The page and its domains are stored together or not at all, after the count against the
-	// workspace's limits in the same transaction
+// createWithDomains stores the page and its domains together or not at all, after the count against
+// the workspace's limits in the same transaction
+func (s *ServiceImpl) createWithDomains(ctx context.Context, workspaceID workspace.ID, model *Model, domains []string, workspaceLimits limits.Limits) (*Model, error) {
 	var created *Model
-	err = s.inTx(ctx, func(ctx context.Context) error {
+	err := s.inTx(ctx, func(ctx context.Context) error {
 		if err := s.requireRoom(ctx, workspaceID, workspaceLimits, 1, len(domains), 0); err != nil {
 			return err
 		}
 		var err error
 		created, err = s.repository.Create(ctx, workspaceID, model)
 		if err != nil {
-			return slugWriteError(err, dto.Slug)
+			return slugWriteError(err, model.Slug)
 		}
 		if len(domains) > 0 {
 			s.logger.Debugw("Adding domains to status page", "statusPageID", created.ID, "domains", domains)
 		}
-		for _, domain := range domains {
-			// Since we pre-validate, reaching here likely means a race. Surface error.
-			if err := s.addDomain(ctx, created.ID, domain); err != nil {
-				return err
-			}
-		}
-		return nil
+		// Since we pre-validate, reaching here likely means a race. Surface error.
+		return s.addDomains(ctx, created.ID, domains)
 	})
 	if err != nil {
 		return nil, err
 	}
+	return created, nil
+}
 
-	// Add monitors if provided
-	s.logger.Debugw("Adding monitors to status page", "statusPageID", created.ID, "monitorIDs", dto.MonitorIDs)
-	if len(dto.MonitorIDs) > 0 {
-		for i, monitorID := range dto.MonitorIDs {
-			_, err := s.monitorStatusPageService.AddMonitorToStatusPage(ctx, created.ID, monitorID, i, true)
-			if err != nil {
-				s.logger.Errorw("Failed to add monitor to status page", "error", err)
-				continue
-			}
+// addDomains gives the status page its domains, until one fails
+func (s *ServiceImpl) addDomains(ctx context.Context, statusPageID string, domains []string) error {
+	for _, domain := range domains {
+		if err := s.addDomain(ctx, statusPageID, domain); err != nil {
+			return err
 		}
 	}
+	return nil
+}
 
-	return created, nil
+// addMonitors puts the monitors on the new page, in order. One that can't be added is logged and
+// left off.
+func (s *ServiceImpl) addMonitors(ctx context.Context, statusPageID string, monitorIDs []string) {
+	s.logger.Debugw("Adding monitors to status page", "statusPageID", statusPageID, "monitorIDs", monitorIDs)
+	for i, monitorID := range monitorIDs {
+		_, err := s.monitorStatusPageService.AddMonitorToStatusPage(ctx, statusPageID, monitorID, i, true)
+		if err != nil {
+			s.logger.Errorw("Failed to add monitor to status page", "error", err)
+			continue
+		}
+	}
 }
 
 func (s *ServiceImpl) FindByID(ctx context.Context, workspaceID workspace.ID, id string) (*Model, error) {
@@ -514,21 +559,8 @@ func (s *ServiceImpl) FindAllAnyWorkspace(ctx context.Context, page int, limit i
 }
 
 func (s *ServiceImpl) Update(ctx context.Context, workspaceID workspace.ID, id string, dto *UpdateStatusPageDTO) (*Model, error) {
-	// The page must be in the workspace, and so must every monitor it is given: they are checked
-	// before anything is written
-	found, err := s.repository.FindByID(ctx, workspaceID, id)
-	if err != nil {
+	if err := s.requirePageAndMonitors(ctx, workspaceID, id, dto); err != nil {
 		return nil, err
-	}
-	if found == nil {
-		return nil, ErrNotFound
-	}
-	if dto.MonitorIDs != nil {
-		lowered := utils.LowerUUIDs(*dto.MonitorIDs)
-		dto.MonitorIDs = &lowered
-		if err := s.monitorStatusPageService.RequireMonitors(ctx, workspaceID, *dto.MonitorIDs); err != nil {
-			return nil, err
-		}
 	}
 
 	if dto.Slug != nil {
@@ -537,27 +569,9 @@ func (s *ServiceImpl) Update(ctx context.Context, workspaceID workspace.ID, id s
 		}
 	}
 
-	// The domains are checked before anything is written, so that a refused list changes nothing:
-	// none another page holds, and none past the workspace's limit
-	var domains []string
-	var workspaceLimits limits.Limits
-	if dto.Domains != nil {
-		// The list as it is stored, so that the page's own domain in another case is kept
-		domains = normalizedDomains(*dto.Domains)
-		if err := s.validateDomains(ctx, id, domains); err != nil {
-			return nil, err
-		}
-		if workspaceLimits, err = s.limitsOf(ctx, workspaceID); err != nil {
-			return nil, err
-		}
-		currentDomains, err := s.domainStatusPageService.GetDomainsForStatusPage(ctx, id)
-		if err != nil {
-			return nil, err
-		}
-		added, removed := domainChange(currentDomains, domains)
-		if err := s.requireRoom(ctx, workspaceID, workspaceLimits, 0, added, removed); err != nil {
-			return nil, err
-		}
+	domains, workspaceLimits, err := s.checkUpdatedDomains(ctx, workspaceID, id, dto.Domains)
+	if err != nil {
+		return nil, err
 	}
 
 	updateModel := &UpdateModel{
@@ -576,88 +590,164 @@ func (s *ServiceImpl) Update(ctx context.Context, workspaceID workspace.ID, id s
 	// the workspace's limit in it, so that a refused update stores nothing of the request: the check
 	// above saw no other write that may have come since
 	err = s.inTx(ctx, func(ctx context.Context) error {
-		var currentDomains []*domain_status_page.Model
-		if dto.Domains != nil {
-			var err error
-			if currentDomains, err = s.domainStatusPageService.GetDomainsForStatusPage(ctx, id); err != nil {
-				return err
-			}
-			added, removed := domainChange(currentDomains, domains)
-			if err := s.requireRoom(ctx, workspaceID, workspaceLimits, 0, added, removed); err != nil {
-				return err
-			}
-		}
-
-		if err := s.repository.Update(ctx, workspaceID, id, updateModel); err != nil {
-			if dto.Slug != nil {
-				err = slugWriteError(err, *dto.Slug)
-			}
-			return err
-		}
-
-		// A failed write of a monitor or a domain fails the update: in a transaction it can't be
-		// stepped over
-		if dto.MonitorIDs != nil {
-			currentMonitors, err := s.monitorStatusPageService.GetMonitorsForStatusPage(ctx, id)
-			if err != nil {
-				return err
-			}
-			currentMonitorIDs := make(map[string]bool)
-			for _, monitor := range currentMonitors {
-				currentMonitorIDs[monitor.MonitorID] = true
-			}
-			newMonitorIDs := make(map[string]bool)
-			for _, monitorID := range *dto.MonitorIDs {
-				newMonitorIDs[monitorID] = true
-			}
-
-			// Remove monitors that are no longer in the list
-			for monitorID := range currentMonitorIDs {
-				if !newMonitorIDs[monitorID] {
-					if err := s.monitorStatusPageService.RemoveMonitorFromStatusPage(ctx, id, monitorID); err != nil {
-						return err
-					}
-				}
-			}
-
-			// Add new monitors
-			for i, monitorID := range *dto.MonitorIDs {
-				if !currentMonitorIDs[monitorID] {
-					if _, err := s.monitorStatusPageService.AddMonitorToStatusPage(ctx, id, monitorID, i, true); err != nil {
-						return err
-					}
-				}
-			}
-		}
-
-		if dto.Domains != nil {
-			for _, domain := range domains {
-				if err := s.addDomain(ctx, id, domain); err != nil {
-					return err
-				}
-			}
-
-			newDomainIDs := make(map[string]bool)
-			for _, domain := range domains {
-				newDomainIDs[domain] = true
-			}
-
-			// Remove domains that are no longer in the list
-			for _, current := range currentDomains {
-				if !newDomainIDs[current.Domain] {
-					if err := s.domainStatusPageService.RemoveDomainFromStatusPage(ctx, id, current.Domain); err != nil {
-						return err
-					}
-				}
-			}
-		}
-		return nil
+		return s.writeUpdate(ctx, workspaceID, id, dto, updateModel, domains, workspaceLimits)
 	})
 	if err != nil {
 		return nil, err
 	}
 
 	return s.repository.FindByID(ctx, workspaceID, id)
+}
+
+// requirePageAndMonitors checks that the page is in the workspace, and so is every monitor it is
+// given, before anything is written
+func (s *ServiceImpl) requirePageAndMonitors(ctx context.Context, workspaceID workspace.ID, id string, dto *UpdateStatusPageDTO) error {
+	found, err := s.repository.FindByID(ctx, workspaceID, id)
+	if err != nil {
+		return err
+	}
+	if found == nil {
+		return ErrNotFound
+	}
+	if dto.MonitorIDs != nil {
+		lowered := utils.LowerUUIDs(*dto.MonitorIDs)
+		dto.MonitorIDs = &lowered
+		if err := s.monitorStatusPageService.RequireMonitors(ctx, workspaceID, *dto.MonitorIDs); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// checkUpdatedDomains checks the domains of an update before anything is written, so that a refused
+// list changes nothing: none another page holds, and none past the workspace's limit. It returns
+// the list as it is stored and the workspace's limits, which are none for an update with no list.
+func (s *ServiceImpl) checkUpdatedDomains(ctx context.Context, workspaceID workspace.ID, id string, requested *[]string) ([]string, limits.Limits, error) {
+	if requested == nil {
+		return nil, limits.Limits{}, nil
+	}
+	// The list as it is stored, so that the page's own domain in another case is kept
+	domains := normalizedDomains(*requested)
+	if err := s.validateDomains(ctx, id, domains); err != nil {
+		return nil, limits.Limits{}, err
+	}
+	workspaceLimits, err := s.limitsOf(ctx, workspaceID)
+	if err != nil {
+		return nil, limits.Limits{}, err
+	}
+	if _, err := s.requireRoomForDomains(ctx, workspaceID, id, domains, workspaceLimits); err != nil {
+		return nil, limits.Limits{}, err
+	}
+	return domains, workspaceLimits, nil
+}
+
+// requireRoomForDomains reads the domains the page has and refuses a list that would take the
+// workspace past its limit of them. It returns the domains the page has.
+func (s *ServiceImpl) requireRoomForDomains(ctx context.Context, workspaceID workspace.ID, id string, domains []string, workspaceLimits limits.Limits) ([]*domain_status_page.Model, error) {
+	currentDomains, err := s.domainStatusPageService.GetDomainsForStatusPage(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	added, removed := domainChange(currentDomains, domains)
+	if err := s.requireRoom(ctx, workspaceID, workspaceLimits, 0, added, removed); err != nil {
+		return nil, err
+	}
+	return currentDomains, nil
+}
+
+// writeUpdate writes the update in the transaction ctx carries
+func (s *ServiceImpl) writeUpdate(ctx context.Context, workspaceID workspace.ID, id string, dto *UpdateStatusPageDTO, updateModel *UpdateModel, domains []string, workspaceLimits limits.Limits) error {
+	var currentDomains []*domain_status_page.Model
+	if dto.Domains != nil {
+		var err error
+		if currentDomains, err = s.requireRoomForDomains(ctx, workspaceID, id, domains, workspaceLimits); err != nil {
+			return err
+		}
+	}
+
+	if err := s.repository.Update(ctx, workspaceID, id, updateModel); err != nil {
+		if dto.Slug != nil {
+			err = slugWriteError(err, *dto.Slug)
+		}
+		return err
+	}
+
+	// A failed write of a monitor or a domain fails the update: in a transaction it can't be
+	// stepped over
+	if err := s.syncMonitors(ctx, id, dto.MonitorIDs); err != nil {
+		return err
+	}
+
+	if dto.Domains != nil {
+		return s.syncDomains(ctx, id, domains, currentDomains)
+	}
+	return nil
+}
+
+// syncMonitors puts the page's monitors as the list says, if there is a list: the ones not in it
+// come off, and the ones it adds go on in its order
+func (s *ServiceImpl) syncMonitors(ctx context.Context, id string, desired *[]string) error {
+	if desired == nil {
+		return nil
+	}
+	currentMonitors, err := s.monitorStatusPageService.GetMonitorsForStatusPage(ctx, id)
+	if err != nil {
+		return err
+	}
+	currentMonitorIDs := make(map[string]bool)
+	for _, monitor := range currentMonitors {
+		currentMonitorIDs[monitor.MonitorID] = true
+	}
+	newMonitorIDs := make(map[string]bool)
+	for _, monitorID := range *desired {
+		newMonitorIDs[monitorID] = true
+	}
+
+	// Remove monitors that are no longer in the list
+	for monitorID := range currentMonitorIDs {
+		if !newMonitorIDs[monitorID] {
+			if err := s.monitorStatusPageService.RemoveMonitorFromStatusPage(ctx, id, monitorID); err != nil {
+				return err
+			}
+		}
+	}
+
+	return s.addNewMonitors(ctx, id, *desired, currentMonitorIDs)
+}
+
+// addNewMonitors puts the monitors of the list that the page doesn't have on it, in the list's order
+func (s *ServiceImpl) addNewMonitors(ctx context.Context, id string, desired []string, currentMonitorIDs map[string]bool) error {
+	for i, monitorID := range desired {
+		if !currentMonitorIDs[monitorID] {
+			if _, err := s.monitorStatusPageService.AddMonitorToStatusPage(ctx, id, monitorID, i, true); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+// syncDomains gives the page the domains of the list, and takes off those of currentDomains that
+// are not in it
+func (s *ServiceImpl) syncDomains(ctx context.Context, id string, domains []string, currentDomains []*domain_status_page.Model) error {
+	if err := s.addDomains(ctx, id, domains); err != nil {
+		return err
+	}
+
+	newDomainIDs := make(map[string]bool)
+	for _, domain := range domains {
+		newDomainIDs[domain] = true
+	}
+
+	// Remove domains that are no longer in the list
+	for _, current := range currentDomains {
+		if !newDomainIDs[current.Domain] {
+			if err := s.domainStatusPageService.RemoveDomainFromStatusPage(ctx, id, current.Domain); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 func (s *ServiceImpl) Delete(ctx context.Context, workspaceID workspace.ID, id string) error {

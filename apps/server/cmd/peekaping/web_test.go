@@ -247,3 +247,41 @@ func TestRun_LeavesTheDatabaseOpenWhenAnAPIHandlerBehindTheWebAppDoesntReturnInT
 	require.Eventually(t, func() bool { return logs.FilterMessage("Failed to create monitor").Len() == 1 },
 		wait, 10*time.Millisecond, "the handler returns")
 }
+
+func TestRun_ServesMetricsOnMetricsPortAndTheWebAppOnTheWebPort(t *testing.T) {
+	webDir := t.TempDir()
+	require.NoError(t, os.WriteFile(filepath.Join(webDir, "index.html"), []byte(webIndex), 0o644))
+	port := freeMetricsPort(t)
+	cfg := loadConfig(t, map[string]string{"WEB_DIR": webDir, "METRICS_ENABLED": "true", "METRICS_PORT": port})
+	logger, logs := observedLogger()
+	in := startPeekaping(t, cfg, logger, logs)
+	metricsURL := "http://127.0.0.1:" + port
+
+	resp, body := get(t, metricsURL+"/metrics")
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	assert.Contains(t, body, "peekaping_build_info", "METRICS_PORT serves the collector")
+
+	resp, body = get(t, in.url+"/metrics")
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	assert.Equal(t, webIndex, body, "the web port answers /metrics like any path of the web app")
+
+	resp, _ = get(t, metricsURL+"/api/v1/version")
+	assert.Equal(t, http.StatusNotFound, resp.StatusCode, "METRICS_PORT serves /metrics alone")
+	resp, _ = get(t, metricsURL+"/")
+	assert.Equal(t, http.StatusNotFound, resp.StatusCode, "METRICS_PORT serves /metrics alone")
+
+	assert.NoError(t, in.stop(t))
+}
+
+func TestRun_ServesNoMetricsOnTheAPIPortWhenMetricsPortIsSet(t *testing.T) {
+	port := freeMetricsPort(t)
+	cfg := loadConfig(t, map[string]string{"METRICS_ENABLED": "true", "METRICS_PORT": port})
+	logger, logs := observedLogger()
+	in := startPeekaping(t, cfg, logger, logs)
+
+	resp, _ := get(t, "http://127.0.0.1:"+port+"/metrics")
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	resp, _ = get(t, in.url+"/metrics")
+	assert.Equal(t, http.StatusNotFound, resp.StatusCode, "the API alone has no /metrics on its port")
+	assert.NoError(t, in.stop(t))
+}

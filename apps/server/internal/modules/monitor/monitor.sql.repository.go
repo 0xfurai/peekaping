@@ -112,36 +112,58 @@ const activeAhead = "(SELECT COUNT(*) FROM monitors AS ahead WHERE ahead.workspa
 // limit: of workspaceIDs, or of the whole install when it is nil. Without a limit of active
 // monitors anywhere it reads nothing.
 func (r *SQLRepositoryImpl) overLimit(ctx context.Context, workspaceIDs []string) (map[workspace.ID]int, error) {
-	if r.limits == nil {
-		return nil, nil
-	}
-	snapshot, err := r.limits.Snapshot(ctx)
+	snapshot, err := r.limitSnapshot(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("read the workspaces' limits: %w", err)
+		return nil, err
 	}
 	lowest := snapshot.Lowest(limits.Monitors)
 	if lowest == nil {
 		return nil, nil
 	}
 	// A transaction reads its own writes, so it counts them itself and keeps nothing
-	inTx := dbtx.DB(ctx, r.db) != bun.IDB(r.db)
-	var generation uint64
-	if !inTx {
-		cached, ok, gen := r.overLimitCache.get(snapshot)
-		if ok {
-			return of(cached, workspaceIDs), nil
-		}
-		generation = gen
+	if dbtx.DB(ctx, r.db) != bun.IDB(r.db) {
+		return r.countOverLimit(ctx, snapshot, *lowest, workspaceIDs)
 	}
-	var counts []struct {
-		WorkspaceID string `bun:"workspace_id"`
-		Active      int    `bun:"active_count"`
+	cached, ok, generation := r.overLimitCache.get(snapshot)
+	if ok {
+		return of(cached, workspaceIDs), nil
 	}
+	over, err := r.countOverLimit(ctx, snapshot, *lowest, workspaceIDs)
+	if err != nil || workspaceIDs != nil {
+		return over, err
+	}
+	r.overLimitCache.put(snapshot, over, generation)
+	return over, nil
+}
+
+// limitSnapshot is every workspace's limits: an empty one without a source
+func (r *SQLRepositoryImpl) limitSnapshot(ctx context.Context) (limits.Snapshot, error) {
+	if r.limits == nil {
+		return limits.Snapshot{}, nil
+	}
+	snapshot, err := r.limits.Snapshot(ctx)
+	if err != nil {
+		return limits.Snapshot{}, fmt.Errorf("read the workspaces' limits: %w", err)
+	}
+	return snapshot, nil
+}
+
+// activeCount is how many active monitors a workspace has
+type activeCount struct {
+	WorkspaceID string `bun:"workspace_id"`
+	Active      int    `bun:"active_count"`
+}
+
+// countOverLimit counts the active monitors of the workspaces that have more than the lowest limit
+// of any workspace, of workspaceIDs or of every workspace when it is nil, and returns those over
+// their own limit
+func (r *SQLRepositoryImpl) countOverLimit(ctx context.Context, snapshot limits.Snapshot, lowest int, workspaceIDs []string) (map[workspace.ID]int, error) {
+	var counts []activeCount
 	query := dbtx.DB(ctx, r.db).NewSelect().Model((*sqlModel)(nil)).
 		ColumnExpr("m.workspace_id AS workspace_id").ColumnExpr("COUNT(*) AS active_count").
 		Where("m.active = ?", true).
 		Group("m.workspace_id").
-		Having("COUNT(*) > ?", *lowest)
+		Having("COUNT(*) > ?", lowest)
 	if workspaceIDs != nil {
 		if len(workspaceIDs) == 0 {
 			return nil, nil
@@ -151,6 +173,11 @@ func (r *SQLRepositoryImpl) overLimit(ctx context.Context, workspaceIDs []string
 	if err := query.Scan(ctx, &counts); err != nil {
 		return nil, err
 	}
+	return workspacesOverLimit(snapshot, counts), nil
+}
+
+// workspacesOverLimit picks the workspaces with more active monitors than their own limit
+func workspacesOverLimit(snapshot limits.Snapshot, counts []activeCount) map[workspace.ID]int {
 	over := map[workspace.ID]int{}
 	for _, count := range counts {
 		id := workspace.ID(count.WorkspaceID)
@@ -158,10 +185,7 @@ func (r *SQLRepositoryImpl) overLimit(ctx context.Context, workspaceIDs []string
 			over[id] = *l.Monitors
 		}
 	}
-	if workspaceIDs == nil && !inTx {
-		r.overLimitCache.put(snapshot, over, generation)
-	}
-	return over, nil
+	return over
 }
 
 // of returns the workspaces of over that are among workspaceIDs, or over when it is nil
@@ -227,6 +251,34 @@ func (r *SQLRepositoryImpl) markOverLimit(ctx context.Context, models []*Model) 
 	if r.limits == nil {
 		return nil
 	}
+	workspaceIDs := activeWorkspaceIDs(models)
+	if len(workspaceIDs) == 0 {
+		return nil
+	}
+	over, err := r.overLimit(ctx, workspaceIDs)
+	if err != nil || len(over) == 0 {
+		return err
+	}
+	ahead, err := r.activePlaces(ctx, activeIDsIn(models, over))
+	if err != nil {
+		return err
+	}
+	setOverLimit(models, over, ahead)
+	return nil
+}
+
+// setOverLimit marks the active monitors that have as many active monitors of their workspace ahead
+// as its limit
+func setOverLimit(models []*Model, over map[workspace.ID]int, ahead map[string]int) {
+	for _, m := range models {
+		if limit, ok := over[m.WorkspaceID]; ok && m.Active {
+			m.OverLimit = ahead[m.ID] >= limit
+		}
+	}
+}
+
+// activeWorkspaceIDs are the workspaces of the active monitors, once each, in the order they come
+func activeWorkspaceIDs(models []*Model) []string {
 	var workspaceIDs []string
 	seen := map[workspace.ID]bool{}
 	for _, m := range models {
@@ -235,19 +287,22 @@ func (r *SQLRepositoryImpl) markOverLimit(ctx context.Context, models []*Model) 
 			workspaceIDs = append(workspaceIDs, string(m.WorkspaceID))
 		}
 	}
-	if len(workspaceIDs) == 0 {
-		return nil
-	}
-	over, err := r.overLimit(ctx, workspaceIDs)
-	if err != nil || len(over) == 0 {
-		return err
-	}
+	return workspaceIDs
+}
+
+// activeIDsIn are the IDs of the active monitors in the workspaces that are over their limit
+func activeIDsIn(models []*Model, over map[workspace.ID]int) []string {
 	var ids []string
 	for _, m := range models {
 		if _, ok := over[m.WorkspaceID]; ok && m.Active {
 			ids = append(ids, m.ID)
 		}
 	}
+	return ids
+}
+
+// activePlaces counts, for each monitor, the active monitors of its workspace that come before it
+func (r *SQLRepositoryImpl) activePlaces(ctx context.Context, ids []string) (map[string]int, error) {
 	var places []struct {
 		ID    string `bun:"id"`
 		Ahead int    `bun:"ahead"`
@@ -256,18 +311,13 @@ func (r *SQLRepositoryImpl) markOverLimit(ctx context.Context, models []*Model) 
 		ColumnExpr("m.id AS id").ColumnExpr(activeAhead+" AS ahead", true).
 		Where("m.id IN (?)", bun.In(ids)).
 		Scan(ctx, &places); err != nil {
-		return err
+		return nil, err
 	}
 	ahead := make(map[string]int, len(places))
 	for _, place := range places {
 		ahead[place.ID] = place.Ahead
 	}
-	for _, m := range models {
-		if limit, ok := over[m.WorkspaceID]; ok && m.Active {
-			m.OverLimit = ahead[m.ID] >= limit
-		}
-	}
-	return nil
+	return ahead, nil
 }
 
 // typeDisabled is whether the install turns the monitor type off
@@ -541,24 +591,10 @@ var errWorkspaceBelowHeld = errors.New("found a workspace to hold below one held
 // an update sets the probes.
 func (r *SQLRepositoryImpl) AddProbeToAllAnyWorkspace(ctx context.Context, probeID string, supportedTypes []string) ([]string, int, error) {
 	db := dbtx.DB(ctx, r.db)
-
-	// This is the one place that decides which monitors a probe is assigned. A probe belongs to the
-	// install, so it is assigned the monitors of every workspace (ADR 0005 section 10).
-	candidates := func() *bun.SelectQuery {
-		query := db.NewSelect().Model((*sqlModel)(nil)).
-			Where("m.type <> ?", pushType).
-			Where("NOT EXISTS (SELECT 1 FROM monitor_probes WHERE monitor_id = m.id AND probe_id = ?)", probeID)
-		if len(supportedTypes) > 0 {
-			query = query.Where("m.type IN (?)", bun.In(supportedTypes))
-		}
-		return query
-	}
-	var snapshot limits.Snapshot
-	if r.limits != nil {
-		var err error
-		if snapshot, err = r.limits.Snapshot(ctx); err != nil {
-			return nil, 0, fmt.Errorf("read the workspaces' limits: %w", err)
-		}
+	candidates := func() *bun.SelectQuery { return assignCandidates(db, probeID, supportedTypes) }
+	snapshot, err := r.limitSnapshot(ctx)
+	if err != nil {
+		return nil, 0, err
 	}
 
 	// The workspaces with a limit on probes are held before their monitors' probes are counted, and
@@ -567,72 +603,112 @@ func (r *SQLRepositoryImpl) AddProbeToAllAnyWorkspace(ctx context.Context, probe
 	// held in id order, so that two assignments at once never each wait for one the other holds.
 	// One found later that sorts above every one held keeps that order and is held then; one that
 	// sorts below ends the assignment with errWorkspaceBelowHeld.
-	held := map[string]bool{}
-	highest := ""
-	hold := func(workspaceIDs []string) error {
-		var limited []string
-		for _, id := range workspaceIDs {
-			if l, _ := snapshot.For(workspace.ID(id)); l.ProbesPerMonitor != nil && !held[id] {
-				limited = append(limited, id)
-			}
-		}
-		slices.Sort(limited)
-		limited = slices.Compact(limited)
-		if len(limited) > 0 && len(held) > 0 && limited[0] < highest {
-			return errWorkspaceBelowHeld
-		}
-		for _, id := range limited {
-			if err := r.LockWorkspace(ctx, workspace.ID(id)); err != nil {
-				return fmt.Errorf("lock the workspace: %w", err)
-			}
-			held[id] = true
-			highest = id
-		}
-		return nil
-	}
+	holds := &workspaceHolds{held: map[string]bool{}}
 	if r.limits != nil {
 		var workspaceIDs []string
 		if err := candidates().ColumnExpr("m.workspace_id").Distinct().Scan(ctx, &workspaceIDs); err != nil {
 			return nil, 0, err
 		}
-		if err := hold(workspaceIDs); err != nil {
+		if err := r.hold(ctx, holds, snapshot, workspaceIDs); err != nil {
 			return nil, 0, err
 		}
 	}
-
-	var rows []struct {
-		ID          string `bun:"id"`
-		WorkspaceID string `bun:"workspace_id"`
-		// Probes is how many probe rows the monitor has. One with none runs on the local probe.
-		Probes int `bun:"probes"`
+	rows, err := r.readAssignable(ctx, holds, snapshot, candidates)
+	if err != nil {
+		return nil, 0, err
 	}
+
+	ids, unlinked, skipped := pickAssignable(snapshot, rows)
+	if err := r.assignProbe(ctx, db, probeID, ids, unlinked); err != nil {
+		return nil, 0, err
+	}
+	return ids, skipped, nil
+}
+
+// assignCandidates picks the monitors a probe is assigned. This is the one place that decides which
+// monitors a probe is assigned. A probe belongs to the install, so it is assigned the monitors of
+// every workspace (ADR 0005 section 10).
+func assignCandidates(db bun.IDB, probeID string, supportedTypes []string) *bun.SelectQuery {
+	query := db.NewSelect().Model((*sqlModel)(nil)).
+		Where("m.type <> ?", pushType).
+		Where("NOT EXISTS (SELECT 1 FROM monitor_probes WHERE monitor_id = m.id AND probe_id = ?)", probeID)
+	if len(supportedTypes) > 0 {
+		query = query.Where("m.type IN (?)", bun.In(supportedTypes))
+	}
+	return query
+}
+
+// workspaceHolds are the workspaces an assignment of a probe holds, and the highest of them
+type workspaceHolds struct {
+	held    map[string]bool
+	highest string
+}
+
+// hold holds the workspaces among workspaceIDs that have a limit on probes and aren't held yet, in
+// id order. It is errWorkspaceBelowHeld when one sorts below a workspace held already.
+func (r *SQLRepositoryImpl) hold(ctx context.Context, holds *workspaceHolds, snapshot limits.Snapshot, workspaceIDs []string) error {
+	var limited []string
+	for _, id := range workspaceIDs {
+		if l, _ := snapshot.For(workspace.ID(id)); l.ProbesPerMonitor != nil && !holds.held[id] {
+			limited = append(limited, id)
+		}
+	}
+	slices.Sort(limited)
+	limited = slices.Compact(limited)
+	if len(limited) > 0 && len(holds.held) > 0 && limited[0] < holds.highest {
+		return errWorkspaceBelowHeld
+	}
+	for _, id := range limited {
+		if err := r.LockWorkspace(ctx, workspace.ID(id)); err != nil {
+			return fmt.Errorf("lock the workspace: %w", err)
+		}
+		holds.held[id] = true
+		holds.highest = id
+	}
+	return nil
+}
+
+// assignRow is a monitor a probe can be assigned
+type assignRow struct {
+	ID          string `bun:"id"`
+	WorkspaceID string `bun:"workspace_id"`
+	// Probes is how many probe rows the monitor has. One with none runs on the local probe.
+	Probes int `bun:"probes"`
+}
+
+// readAssignable reads the monitors the probe can be assigned, in id order, holding the workspaces
+// they are in
+func (r *SQLRepositoryImpl) readAssignable(ctx context.Context, holds *workspaceHolds, snapshot limits.Snapshot, candidates func() *bun.SelectQuery) ([]assignRow, error) {
+	var rows []assignRow
 	for {
 		rows = rows[:0]
 		if err := candidates().
 			ColumnExpr("m.id AS id").ColumnExpr("m.workspace_id AS workspace_id").
 			ColumnExpr("(SELECT COUNT(*) FROM monitor_probes WHERE monitor_id = m.id) AS probes").
 			Order("m.id").Scan(ctx, &rows); err != nil {
-			return nil, 0, err
+			return nil, err
 		}
 		// A monitor created since the read of the workspaces can be of one this doesn't hold yet. It
 		// is held now, and the probes counted again, unless it sorts below one held: then the
 		// assignment ends with errWorkspaceBelowHeld, to be made again.
-		before := len(held)
+		before := len(holds.held)
 		workspaceIDs := make([]string, len(rows))
 		for i, row := range rows {
 			workspaceIDs[i] = row.WorkspaceID
 		}
-		if err := hold(workspaceIDs); err != nil {
-			return nil, 0, err
+		if err := r.hold(ctx, holds, snapshot, workspaceIDs); err != nil {
+			return nil, err
 		}
-		if len(held) == before {
-			break
+		if len(holds.held) == before {
+			return rows, nil
 		}
 	}
+}
 
-	ids := make([]string, 0, len(rows))
-	var unlinked []string
-	skipped := 0
+// pickAssignable picks the monitors that get the probe, those among them that have no probe rows yet,
+// and counts the ones that run on as many probes as their workspace allows, which get none
+func pickAssignable(snapshot limits.Snapshot, rows []assignRow) (ids, unlinked []string, skipped int) {
+	ids = make([]string, 0, len(rows))
 	for _, row := range rows {
 		// A monitor that runs on as many probes as its workspace allows gets no more (PP-160)
 		if l, _ := snapshot.For(workspace.ID(row.WorkspaceID)); l.ProbesPerMonitor != nil && max(row.Probes, 1) >= *l.ProbesPerMonitor {
@@ -644,14 +720,18 @@ func (r *SQLRepositoryImpl) AddProbeToAllAnyWorkspace(ctx context.Context, probe
 			unlinked = append(unlinked, row.ID)
 		}
 	}
+	return ids, unlinked, skipped
+}
 
+// assignProbe links the probe to the monitors, and touches their updated_at
+func (r *SQLRepositoryImpl) assignProbe(ctx context.Context, db bun.IDB, probeID string, ids, unlinked []string) error {
 	// A monitor with no rows keeps running on the local probe: its row is written before the new
 	// probe's, since a monitor with any row runs on those alone (see FindActiveByProbe)
 	if err := r.insertProbeLinks(ctx, db, unlinked, shared.LocalProbeID); err != nil {
-		return nil, 0, err
+		return err
 	}
 	if err := r.insertProbeLinks(ctx, db, ids, probeID); err != nil {
-		return nil, 0, err
+		return err
 	}
 	now := time.Now().UTC()
 	for _, chunk := range chunked(ids, assignChunk) {
@@ -659,10 +739,10 @@ func (r *SQLRepositoryImpl) AddProbeToAllAnyWorkspace(ctx context.Context, probe
 			Set("updated_at = ?", now).
 			Where("id IN (?)", bun.In(chunk)).
 			Exec(ctx); err != nil {
-			return nil, 0, err
+			return err
 		}
 	}
-	return ids, skipped, nil
+	return nil
 }
 
 // insertProbeLinks makes the probe one of the probes of each monitor, in chunks. A monitor that
@@ -716,62 +796,88 @@ func (r *SQLRepositoryImpl) locationsOf(ctx context.Context, db bun.IDB, ids []s
 func (r *SQLRepositoryImpl) RecordLocationAnyWorkspace(ctx context.Context, monitorID string, state shared.LocationState, judge func(shared.LocationJudgement) *shared.MonitorStatus) error {
 	return dbtx.NewSQLTransactor(r.db).WithTx(ctx, func(ctx context.Context) error {
 		db := dbtx.DB(ctx, r.db)
-		// The monitor's own row is what is held, so that a monitor without probe rows is held too
-		if r.db.Dialect().Name() == dialect.PG {
-			var locked []string
-			lock := db.NewSelect().Model((*sqlModel)(nil)).Column("id").Where("id = ?", monitorID).For("UPDATE")
-			if err := lock.Scan(ctx, &locked); err != nil {
-				return err
-			}
-		}
-		var recorded sql.NullInt64
-		var monitorType string
-		var suspended bool
-		// A monitor that is gone has no row: nothing is recorded for it
-		if err := db.NewSelect().Model((*sqlModel)(nil)).Column("locations_status", "type").ColumnExpr(workspaceSuspended+" AS workspace_suspended").
-			Where("m.id = ?", monitorID).Scan(ctx, &recorded, &monitorType, &suspended); err != nil && !errors.Is(err, sql.ErrNoRows) {
+		if err := r.holdMonitorRow(ctx, db, monitorID); err != nil {
 			return err
 		}
-		// A result that was in flight when the workspace was suspended is dropped (PP-155)
-		if suspended {
-			return shared.ErrWorkspaceSuspended
-		}
-		// So is one for a monitor whose type was turned off since the check was dealt (PP-157)
-		if r.typeDisabled(monitorType) {
-			return shared.ErrMonitorTypeDisabled
-		}
-		judgement := shared.LocationJudgement{}
-		if recorded.Valid {
-			status := shared.MonitorStatus(recorded.Int64)
-			judgement.Recorded = &status
-		}
-		rows, err := r.locationsOf(ctx, db, []string{monitorID})
+		recorded, err := r.readRecordable(ctx, db, monitorID)
 		if err != nil {
 			return err
 		}
-		judgement.Before = r.toLocations(rows)
-
-		update := db.NewUpdate().Model((*sqlProbeLink)(nil)).
-			Where("monitor_id = ?", monitorID).Where("probe_id = ?", state.ProbeID).
-			Set("status = ?", statusColumn(state.Status)).
-			Set("last_ping = ?", state.LastPing)
-		if state.LastHeartbeatAt != nil {
-			update = update.Set("last_heartbeat_at = ?", state.LastHeartbeatAt.UTC())
-		} else {
-			update = update.Set("last_heartbeat_at = ?", nil)
-		}
-		if _, err := update.Exec(ctx); err != nil {
+		judgement := shared.LocationJudgement{Recorded: recorded}
+		if judgement.Before, err = r.locationsAt(ctx, db, monitorID); err != nil {
 			return err
 		}
-		rows, err = r.locationsOf(ctx, db, []string{monitorID})
-		if err != nil {
+		if err := writeLocationState(ctx, db, monitorID, state); err != nil {
 			return err
 		}
-		judgement.After = r.toLocations(rows)
+		if judgement.After, err = r.locationsAt(ctx, db, monitorID); err != nil {
+			return err
+		}
 
 		_, err = db.NewUpdate().Model((*sqlModel)(nil)).Set("locations_status = ?", statusColumn(judge(judgement))).Where("id = ?", monitorID).Exec(ctx)
 		return err
 	})
+}
+
+// holdMonitorRow holds the monitor's own row on PostgreSQL, so that a monitor without probe rows is
+// held too
+func (r *SQLRepositoryImpl) holdMonitorRow(ctx context.Context, db bun.IDB, monitorID string) error {
+	if r.db.Dialect().Name() != dialect.PG {
+		return nil
+	}
+	var locked []string
+	return db.NewSelect().Model((*sqlModel)(nil)).Column("id").Where("id = ?", monitorID).For("UPDATE").Scan(ctx, &locked)
+}
+
+// readRecordable reads the status recorded for the monitor, nil when there is none. It is
+// shared.ErrWorkspaceSuspended for a monitor of a suspended workspace, and
+// shared.ErrMonitorTypeDisabled for one whose type is off: nothing is recorded or judged for them.
+func (r *SQLRepositoryImpl) readRecordable(ctx context.Context, db bun.IDB, monitorID string) (*shared.MonitorStatus, error) {
+	var recorded sql.NullInt64
+	var monitorType string
+	var suspended bool
+	// A monitor that is gone has no row: nothing is recorded for it
+	if err := db.NewSelect().Model((*sqlModel)(nil)).Column("locations_status", "type").ColumnExpr(workspaceSuspended+" AS workspace_suspended").
+		Where("m.id = ?", monitorID).Scan(ctx, &recorded, &monitorType, &suspended); err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return nil, err
+	}
+	// A result that was in flight when the workspace was suspended is dropped (PP-155)
+	if suspended {
+		return nil, shared.ErrWorkspaceSuspended
+	}
+	// So is one for a monitor whose type was turned off since the check was dealt (PP-157)
+	if r.typeDisabled(monitorType) {
+		return nil, shared.ErrMonitorTypeDisabled
+	}
+	if !recorded.Valid {
+		return nil, nil
+	}
+	status := shared.MonitorStatus(recorded.Int64)
+	return &status, nil
+}
+
+// locationsAt reads the monitor's locations as they are now
+func (r *SQLRepositoryImpl) locationsAt(ctx context.Context, db bun.IDB, monitorID string) ([]shared.MonitorLocation, error) {
+	rows, err := r.locationsOf(ctx, db, []string{monitorID})
+	if err != nil {
+		return nil, err
+	}
+	return r.toLocations(rows), nil
+}
+
+// writeLocationState stores what a result left on the monitor's row for the probe that ran it
+func writeLocationState(ctx context.Context, db bun.IDB, monitorID string, state shared.LocationState) error {
+	update := db.NewUpdate().Model((*sqlProbeLink)(nil)).
+		Where("monitor_id = ?", monitorID).Where("probe_id = ?", state.ProbeID).
+		Set("status = ?", statusColumn(state.Status)).
+		Set("last_ping = ?", state.LastPing)
+	if state.LastHeartbeatAt != nil {
+		update = update.Set("last_heartbeat_at = ?", state.LastHeartbeatAt.UTC())
+	} else {
+		update = update.Set("last_heartbeat_at = ?", nil)
+	}
+	_, err := update.Exec(ctx)
+	return err
 }
 
 // ResetLocations clears the state of the monitor's rows and its recorded status. The monitor is
@@ -1121,90 +1227,13 @@ func (r *SQLRepositoryImpl) updatePartial(ctx context.Context, workspaceID *work
 		query = query.Where("workspace_id = ?", string(*workspaceID))
 	}
 
-	hasUpdates := false
-
-	if monitor.Type != nil {
-		query = query.Set("type = ?", *monitor.Type)
-		hasUpdates = true
-	}
-	if monitor.Name != nil {
-		query = query.Set("name = ?", *monitor.Name)
-		hasUpdates = true
-	}
-	if monitor.Interval != nil {
-		query = query.Set("interval = ?", *monitor.Interval)
-		hasUpdates = true
-	}
-	if monitor.Timeout != nil {
-		query = query.Set("timeout = ?", *monitor.Timeout)
-		hasUpdates = true
-	}
-	if monitor.MaxRetries != nil {
-		query = query.Set("max_retries = ?", *monitor.MaxRetries)
-		hasUpdates = true
-	}
-	if monitor.RetryInterval != nil {
-		query = query.Set("retry_interval = ?", *monitor.RetryInterval)
-		hasUpdates = true
-	}
-	if monitor.ResendInterval != nil {
-		query = query.Set("resend_interval = ?", *monitor.ResendInterval)
-		hasUpdates = true
-	}
-	if monitor.LocationRule != nil {
-		// The threshold goes with the rule: a rule without one clears it
-		query = query.Set("location_rule = ?", string(*monitor.LocationRule)).Set("location_threshold = ?", monitor.LocationThreshold)
-		hasUpdates = true
-	}
-	if monitor.Active != nil {
-		query = query.Set("active = ?", *monitor.Active)
-		hasUpdates = true
-	}
-	if monitor.Status != nil {
-		query = query.Set("status = ?", *monitor.Status)
-		hasUpdates = true
-	}
-	if monitor.Config != nil {
-		query = query.Set("config = ?", *monitor.Config)
-		hasUpdates = true
-	}
-	if monitor.ProxyId != nil {
-		if *monitor.ProxyId == "" {
-			// Set to NULL when ProxyId is empty string
-			query = query.Set("proxy_id = ?", nil)
-		} else {
-			query = query.Set("proxy_id = ?", *monitor.ProxyId)
-		}
-		hasUpdates = true
-	}
-	if monitor.PushToken != nil {
-		if *monitor.PushToken == "" {
-			// NULL, not an empty string, for a monitor without a token
-			query = query.Set("push_token = ?", nil)
-		} else {
-			query = query.Set("push_token = ?", *monitor.PushToken)
-		}
-		hasUpdates = true
+	sets := partialSets(monitor)
+	for _, set := range sets {
+		query = query.Set(set.column+" = ?", set.value)
 	}
 
-	if monitor.ProbeIDs != nil {
-		hasUpdates = true
-	}
-
-	if !hasUpdates {
-		if workspaceID == nil {
-			return nil
-		}
-		// Nothing to write, but a monitor of another workspace is still not found
-		found, err := dbtx.DB(ctx, r.db).NewSelect().Model((*sqlModel)(nil)).
-			Where("id = ?", id).Where("workspace_id = ?", string(*workspaceID)).Exists(ctx)
-		if err != nil {
-			return err
-		}
-		if !found {
-			return fmt.Errorf("%w: monitor %s", ErrMonitorNotFound, id)
-		}
-		return nil
+	if len(sets) == 0 && monitor.ProbeIDs == nil {
+		return r.requireNothingToWriteFound(ctx, workspaceID, id)
 	}
 
 	// Always set updated_at
@@ -1216,6 +1245,13 @@ func (r *SQLRepositoryImpl) updatePartial(ctx context.Context, workspaceID *work
 	if err != nil {
 		return pushTokenConflict(err)
 	}
+	return r.afterPartialWrite(ctx, workspaceID, id, monitor, result)
+}
+
+// afterPartialWrite forgets the count of monitors over their limit when the update changed one's
+// active setting, finds the monitor in the workspace, and replaces its probes when the update gives
+// them
+func (r *SQLRepositoryImpl) afterPartialWrite(ctx context.Context, workspaceID *workspace.ID, id string, monitor *UpdateModel, result sql.Result) error {
 	if monitor.Active != nil {
 		r.overLimitCache.forget()
 	}
@@ -1228,6 +1264,71 @@ func (r *SQLRepositoryImpl) updatePartial(ctx context.Context, workspaceID *work
 		return r.replaceProbes(ctx, id, monitor.ProbeIDs)
 	}
 	return nil
+}
+
+// requireNothingToWriteFound answers an update with nothing to write: a monitor of another workspace
+// is still not found, and without a workspace there is nothing to look for
+func (r *SQLRepositoryImpl) requireNothingToWriteFound(ctx context.Context, workspaceID *workspace.ID, id string) error {
+	if workspaceID == nil {
+		return nil
+	}
+	found, err := dbtx.DB(ctx, r.db).NewSelect().Model((*sqlModel)(nil)).
+		Where("id = ?", id).Where("workspace_id = ?", string(*workspaceID)).Exists(ctx)
+	if err != nil {
+		return err
+	}
+	if !found {
+		return fmt.Errorf("%w: monitor %s", ErrMonitorNotFound, id)
+	}
+	return nil
+}
+
+// columnSet is a column an update sets, and the value it gets
+type columnSet struct {
+	column string
+	value  any
+}
+
+// partialSets are the columns an update sets, in the order they are written, for the fields it has
+func partialSets(monitor *UpdateModel) []columnSet {
+	var sets []columnSet
+	sets = setIfGiven(sets, "type", monitor.Type)
+	sets = setIfGiven(sets, "name", monitor.Name)
+	sets = setIfGiven(sets, "interval", monitor.Interval)
+	sets = setIfGiven(sets, "timeout", monitor.Timeout)
+	sets = setIfGiven(sets, "max_retries", monitor.MaxRetries)
+	sets = setIfGiven(sets, "retry_interval", monitor.RetryInterval)
+	sets = setIfGiven(sets, "resend_interval", monitor.ResendInterval)
+	if monitor.LocationRule != nil {
+		// The threshold goes with the rule: a rule without one clears it
+		sets = append(sets, columnSet{"location_rule", string(*monitor.LocationRule)}, columnSet{"location_threshold", monitor.LocationThreshold})
+	}
+	sets = setIfGiven(sets, "active", monitor.Active)
+	sets = setIfGiven(sets, "status", monitor.Status)
+	sets = setIfGiven(sets, "config", monitor.Config)
+	// NULL, not an empty string, for a monitor without a proxy or a token
+	sets = setNullIfEmpty(sets, "proxy_id", monitor.ProxyId)
+	sets = setNullIfEmpty(sets, "push_token", monitor.PushToken)
+	return sets
+}
+
+// setIfGiven adds the column with the value, when the update has one
+func setIfGiven[T any](sets []columnSet, column string, value *T) []columnSet {
+	if value == nil {
+		return sets
+	}
+	return append(sets, columnSet{column, *value})
+}
+
+// setNullIfEmpty adds the column with the value, or NULL when the value is empty, if the update has one
+func setNullIfEmpty(sets []columnSet, column string, value *string) []columnSet {
+	if value == nil {
+		return sets
+	}
+	if *value == "" {
+		return append(sets, columnSet{column, nil})
+	}
+	return append(sets, columnSet{column, *value})
 }
 
 // pushTokenConflict is the error for a write of a monitor that the database refused because

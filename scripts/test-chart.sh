@@ -21,7 +21,9 @@
 # image, MongoDB (mongo and mongodb) is refused with the message that says MongoDB
 # storage was removed and links to the guide for moving to PostgreSQL, and the
 # install notes say Peekaping runs in cluster mode and link to the Helm docs page. The Ingress and the Istio VirtualService send the probe
-# protocol (/probe) to the api. The producer, worker and ingester are gone: the
+# protocol (/probe) to the api, and nothing else but /api and /socket.io: with
+# config.env.METRICS_PORT set the api container and Service get a metrics port,
+# and still no route reaches /metrics. The producer, worker and ingester are gone: the
 # probe Deployment runs the probe image, finds the api through its Service and
 # sends the token the api stores on the local probe, from a Secret the chart makes
 # or one named in probe.token.existingSecret, and it holds the pod until /ready
@@ -959,6 +961,81 @@ virtualservice_routes() {
   return 1
 }
 
+# ingress_paths <rendered file>: every path the rendered Ingress routes, one per line
+ingress_paths() {
+  awk '
+    /^---/ { kind = "" }
+    /^kind: / { kind = $2 }
+    kind == "Ingress" && $1 == "-" && $2 == "path:" { print $3 }
+  ' "$1"
+}
+
+# virtualservice_prefixes <rendered file>: every URI prefix the rendered
+# VirtualService matches, one per line
+virtualservice_prefixes() {
+  awk '
+    /^---/ { kind = "" }
+    /^kind: / { kind = $2 }
+    kind == "VirtualService" && $1 == "prefix:" { print $2 }
+  ' "$1"
+}
+
+# only_public_paths <whose routes> <paths, one per line>: the paths are /api,
+# /probe, /socket.io (the three that reach the api) and the web app's /, so
+# /metrics, /docs, /swagger and /health never reach the api from outside
+only_public_paths() {
+  local path unexpected=""
+  while IFS= read -r path; do
+    case ${path%/} in
+      /api | /probe | /socket.io | "") ;;
+      *) unexpected="$unexpected $path" ;;
+    esac
+  done <<<"$2"
+  if [ -z "$2" ] || [ -n "$unexpected" ]; then
+    echo "       the $1 routes${unexpected:- nothing}, expected only /api, /probe, /socket.io and /"
+    return 1
+  fi
+}
+
+# api_container_port <rendered file>: the number of the api container's port
+# named metrics, or nothing when it has none
+api_container_port() {
+  awk '
+    /^# Source: / { in_template = ($0 ~ "/api-deploy\\.yaml$"); next }
+    /^---$/ { in_template = 0 }
+    in_template && $1 == "-" && $2 == "containerPort:" { port = $3; next }
+    in_template && $1 == "name:" && $2 == "metrics" && port != "" { print port; exit }
+  ' "$1"
+}
+
+# api_service_port <rendered file>: "<port>" of the api Service's port named
+# metrics when its targetPort is the same, "<port>:<targetPort>" when it isn't,
+# or nothing when the Service has none
+api_service_port() {
+  awk '
+    /^# Source: / { in_template = ($0 ~ "/api-service\\.yaml$"); next }
+    /^---$/ { in_template = 0 }
+    in_template && $1 == "-" && $2 == "name:" { current = $3; next }
+    in_template && current == "metrics" && $1 == "port:" { port = $2 }
+    in_template && current == "metrics" && $1 == "targetPort:" { target = $2 }
+    END { if (port != "") print (port == target ? port : port ":" target) }
+  ' "$1"
+}
+
+# metrics_port_is <rendered file> <port|none>: the api container and the api
+# Service both have a port named metrics at that number, or neither has one
+# when it is "none"
+metrics_port_is() {
+  local container service want=$2
+  container=$(api_container_port "$1")
+  service=$(api_service_port "$1")
+  [ "$want" = none ] && want=""
+  if [ "$container" != "$want" ] || [ "$service" != "$want" ]; then
+    echo "       the api container has the metrics port '${container:-<none>}' and the api Service '${service:-<none>}', expected '${want:-<none>}'"
+    return 1
+  fi
+}
+
 echo "# Updating the dependencies"
 check "update-chart-deps.sh calls a new major version of a subchart a new major version, and --write refuses it" \
   deps_refuses_new_major_chart || true
@@ -1084,6 +1161,29 @@ if check "helm dependency build fetches PostgreSQL and Redis" run dependency hel
   fi
   check "default values: the probe pod sets the sysctl that lets it send ICMP echo requests as non-root" \
     grep -Fqx "net.ipv4.ping_group_range=0 2147483647" <<<"$(pod_sysctls_of "$work/default.yaml" probe-deploy)" || true
+  # METRICS_PORT moves /metrics to a port of its own. The api container and
+  # Service carry it as "metrics", and the Ingress and the VirtualService, which
+  # route only /api, /probe and /socket.io to the api, never send anything there.
+  check "default values: the api container and Service have no metrics port" \
+    metrics_port_is "$work/default.yaml" none || true
+  if check "config.env.METRICS_PORT=9100 renders" render metrics-port \
+    --set-string config.env.METRICS_ENABLED=true --set-string config.env.METRICS_PORT=9100 \
+    --set ingress.enabled=true --set ingress.host=peekaping.example.com; then
+    check "config.env.METRICS_PORT=9100: the api container and Service have a metrics port 9100" \
+      metrics_port_is "$work/metrics-port.yaml" 9100 || true
+    check "config.env.METRICS_PORT=9100: the ConfigMap sets METRICS_PORT to it" \
+      config_sets "$work/metrics-port.yaml" METRICS_PORT 9100 || true
+    check "config.env.METRICS_PORT=9100: the Ingress routes only /api, /probe, /socket.io and /" \
+      only_public_paths Ingress "$(ingress_paths "$work/metrics-port.yaml")" || true
+  fi
+  if check "config.env.METRICS_PORT=9100 with the VirtualService renders" render metrics-istio \
+    --set-string config.env.METRICS_ENABLED=true --set-string config.env.METRICS_PORT=9100 \
+    --set ingress.enabled=true --set ingress.host=peekaping.example.com --set istio.virtualservice.enabled=true; then
+    check "config.env.METRICS_PORT=9100: the VirtualService matches only /api/, /probe/ and /socket.io/, and sends the rest to the web app" \
+      only_public_paths VirtualService "$(virtualservice_prefixes "$work/metrics-istio.yaml")" || true
+    check "config.env.METRICS_PORT=9100: no VirtualService route points at the metrics port" \
+      test -z "$(awk '$1 == "number:" && $2 == 9100' "$work/metrics-istio.yaml")" || true
+  fi
   # The probe protocol (/probe/v1/) is served by the api, like /api and /socket.io, so
   # the Ingress or the Istio VirtualService has to send it there and not to the web app
   if check "ingress.enabled=true renders" render ingress --set ingress.enabled=true --set ingress.host=peekaping.example.com; then

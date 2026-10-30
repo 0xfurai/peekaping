@@ -1,6 +1,7 @@
 package executor
 
 import (
+	"cmp"
 	"context"
 	"crypto/tls"
 	"encoding/json"
@@ -104,33 +105,63 @@ func (s *SMTPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 	s.logger.Debugf("execute smtp check for %s: %s:%d", m.Name, config.Host, config.Port)
 
 	address := net.JoinHostPort(config.Host, fmt.Sprintf("%d", config.Port))
-	startTime := time.Now().UTC()
+	check := s.newSMTPCheck(ctx, m, config)
 
-	var tlsInfo *shared.TLSInfo
+	// Check for context cancellation before expensive operations
+	select {
+	case <-ctx.Done():
+		return check.down("Health check cancelled")
+	default:
+	}
 
-	down := func(format string, args ...any) *Result {
-		message := fmt.Sprintf(format, args...)
-		s.logger.Debugf("SMTP check failed for %s: %s", m.Name, message)
-		return &Result{
-			Status:    shared.MonitorStatusDown,
-			Message:   message,
-			StartTime: startTime,
-			EndTime:   time.Now().UTC(),
-			TLSInfo:   tlsInfo,
-		}
+	dialer := s.dialer(&net.Dialer{
+		Timeout: time.Duration(m.Timeout) * time.Second,
+	})
+	check.tcpConnection, err = dialer.DialContext(ctx, "tcp", address)
+	if err != nil {
+		return check.down("SMTP connection failed: %v", err)
+	}
+	// Closing the TCP connection also closes any TLS layer and SMTP client on top of it
+	defer check.tcpConnection.Close()
+
+	return check.run()
+}
+
+// smtpCheck is one run of an SMTP check: the connection it makes to the server, and what it has
+// learned of it so far
+type smtpCheck struct {
+	logger        *zap.SugaredLogger
+	ctx           context.Context
+	monitor       *Monitor
+	config        *SMTPConfig
+	startTime     time.Time
+	readTimeout   time.Duration
+	tlsConfig     *tls.Config
+	tcpConnection net.Conn
+	tlsInfo       *shared.TLSInfo
+	authenticated bool
+	relayed       bool
+}
+
+func (s *SMTPExecutor) newSMTPCheck(ctx context.Context, m *Monitor, config *SMTPConfig) *smtpCheck {
+	check := &smtpCheck{
+		logger:    s.logger,
+		ctx:       ctx,
+		monitor:   m,
+		config:    config,
+		startTime: time.Now().UTC(),
 	}
 
 	// readTimeout: Maximum time to wait for each SMTP operation
 	// Defaults to monitor's Timeout if not specified in config
-	readTimeout := time.Duration(m.Timeout) * time.Second
+	check.readTimeout = time.Duration(m.Timeout) * time.Second
 	if config.ReadTimeout > 0 {
-		readTimeout = time.Duration(config.ReadTimeout) * time.Second
+		check.readTimeout = time.Duration(config.ReadTimeout) * time.Second
 	}
 
 	// Create TLS configuration if TLS is enabled
-	var tlsConfig *tls.Config
 	if config.UseDirectTLS || config.UseTLS {
-		tlsConfig = &tls.Config{
+		check.tlsConfig = &tls.Config{
 			ServerName:         config.Host,
 			InsecureSkipVerify: config.IgnoreTlsErrors,
 		}
@@ -141,183 +172,237 @@ func (s *SMTPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 		}
 	}
 
-	// Check for context cancellation before expensive operations
-	select {
-	case <-ctx.Done():
-		return down("Health check cancelled")
-	default:
+	return check
+}
+
+// down is the Down result of the check, with the certificate information the check has so far
+func (c *smtpCheck) down(format string, args ...any) *Result {
+	message := fmt.Sprintf(format, args...)
+	c.logger.Debugf("SMTP check failed for %s: %s", c.monitor.Name, message)
+	return &Result{
+		Status:    shared.MonitorStatusDown,
+		Message:   message,
+		StartTime: c.startTime,
+		EndTime:   time.Now().UTC(),
+		TLSInfo:   c.tlsInfo,
+	}
+}
+
+// setOperationDeadline gives the next SMTP operation readTimeout to finish,
+// but never lets it run past the deadline of the whole check
+func (c *smtpCheck) setOperationDeadline() {
+	var deadline time.Time
+	if c.readTimeout > 0 {
+		deadline = time.Now().Add(c.readTimeout)
+	}
+	if ctxDeadline, ok := c.ctx.Deadline(); ok && (deadline.IsZero() || ctxDeadline.Before(deadline)) {
+		deadline = ctxDeadline
+	}
+	c.tcpConnection.SetDeadline(deadline)
+}
+
+// run talks to the server over the connection, and returns the result of the check
+func (c *smtpCheck) run() *Result {
+	smtpClient, failure := c.openClient()
+	if failure != nil {
+		return failure
 	}
 
-	dialer := s.dialer(&net.Dialer{
-		Timeout: time.Duration(m.Timeout) * time.Second,
-	})
-	tcpConnection, err := dialer.DialContext(ctx, "tcp", address)
-	if err != nil {
-		return down("SMTP connection failed: %v", err)
-	}
-	// Closing the TCP connection also closes any TLS layer and SMTP client on top of it
-	defer tcpConnection.Close()
-
-	// setOperationDeadline gives the next SMTP operation readTimeout to finish,
-	// but never lets it run past the deadline of the whole check
-	setOperationDeadline := func() {
-		var deadline time.Time
-		if readTimeout > 0 {
-			deadline = time.Now().Add(readTimeout)
-		}
-		if ctxDeadline, ok := ctx.Deadline(); ok && (deadline.IsZero() || ctxDeadline.Before(deadline)) {
-			deadline = ctxDeadline
-		}
-		tcpConnection.SetDeadline(deadline)
-	}
-
-	var smtpClient *smtp.Client
-	setOperationDeadline()
-	if config.UseDirectTLS {
-		// Direct TLS (SMTPS - port 465): upgrade to TLS before the SMTP greeting
-		tlsConnection := tls.Client(tcpConnection, tlsConfig)
-		if err := tlsConnection.HandshakeContext(ctx); err != nil {
-			return down("SMTP direct TLS handshake failed: %v", err)
-		}
-		setOperationDeadline()
-		smtpClient, err = smtp.NewClient(tlsConnection, config.Host)
-	} else {
-		// Plain SMTP or STARTTLS: the greeting is read over the TCP connection
-		smtpClient, err = smtp.NewClient(tcpConnection, config.Host)
-	}
-	if err != nil {
-		return down("SMTP client creation failed: %v", err)
-	}
-
-	// Send EHLO/HELO command (required before STARTTLS)
-	setOperationDeadline()
-	if err := smtpClient.Hello(smtpClientName); err != nil {
-		return down("SMTP HELLO failed: %v", err)
-	}
-
-	if config.UseTLS && !config.UseDirectTLS {
-		setOperationDeadline()
-		if err := smtpClient.StartTLS(tlsConfig); err != nil {
-			return down("SMTP STARTTLS failed: %v", err)
+	steps := []func(*smtp.Client) *Result{c.greet, c.testOpenRelay, c.authenticate, c.checkMailFrom}
+	for _, step := range steps {
+		if failure := step(smtpClient); failure != nil {
+			return failure
 		}
 	}
 
-	// Extract TLS certificate information if cert expiry checking is enabled
-	if config.CheckCertExpiry {
-		if state, ok := smtpClient.TLSConnectionState(); ok && len(state.PeerCertificates) > 0 {
-			tlsInfo = shared.ParseCertificateChain(state.PeerCertificates[0], len(state.VerifiedChains) > 0)
-		}
-	}
-
-	// Test for open relay BEFORE authentication
-	// Open relay test checks if server allows relaying WITHOUT authentication (security risk)
-	relayed := false
-	if config.TestOpenRelay {
-		fromEmail := config.FromEmail
-		if fromEmail == "" {
-			fromEmail = defaultTestFromEmail
-		}
-		testRecipient := config.RcptToEmail
-		if testRecipient == "" {
-			testRecipient = defaultTestRelayEmail
-		}
-		s.logger.Debugf("Testing open relay with RCPT TO: %s (before authentication)", testRecipient)
-
-		// A 5xx reply to MAIL FROM or RCPT TO means the server refused to relay.
-		// Any other error (timeout, dropped connection, 4xx) leaves the answer unknown.
-		setOperationDeadline()
-		relayErr := smtpClient.Mail(fromEmail)
-		if relayErr == nil {
-			setOperationDeadline()
-			relayErr = smtpClient.Rcpt(testRecipient)
-		}
-		if relayErr != nil && !isSMTPRejection(relayErr) {
-			return down("SMTP open relay test failed: %v", relayErr)
-		}
-		relayed = relayErr == nil
-		s.logger.Debugf("Open relay test result for %s: relayed=%v, error=%v", m.Name, relayed, relayErr)
-
-		// Reset the connection to not actually send anything
-		setOperationDeadline()
-		if err := smtpClient.Reset(); err != nil {
-			s.logger.Debugf("SMTP RSET failed (non-critical) for %s: %v", m.Name, err)
-		}
-
-		if config.ExpectSecureRelay && relayed {
-			s.logger.Warnf("SECURITY: SMTP server allows open relay for %s (expected rejection)", m.Name)
-			return down("SECURITY: Server allows open relay (expected rejection)")
-		}
-		if !config.ExpectSecureRelay && !relayed {
-			return down("Server rejected relay (expected open relay) - response: %v", relayErr)
-		}
-	}
-
-	// Authenticate if credentials are provided
-	// Authentication happens AFTER open relay test to ensure we test relaying without auth
-	// smtp.PlainAuth refuses to send credentials without TLS, except to localhost
-	authenticated := false
-	if config.Username != "" && config.Password != "" {
-		setOperationDeadline()
-		if err := smtpClient.Auth(smtp.PlainAuth("", config.Username, config.Password, config.Host)); err != nil {
-			return down("SMTP authentication failed: %v", err)
-		}
-		authenticated = true
-	}
-
-	// Send MAIL FROM if FromEmail is configured (but not for open relay test, which is already done)
-	if config.FromEmail != "" && !config.TestOpenRelay {
-		setOperationDeadline()
-		if err := smtpClient.Mail(config.FromEmail); err != nil {
-			return down("SMTP MAIL FROM failed: %v", err)
-		}
-
-		// Reset the connection to not actually send anything
-		setOperationDeadline()
-		if err := smtpClient.Reset(); err != nil {
-			s.logger.Debugf("SMTP RSET failed (non-critical) for %s: %v", m.Name, err)
-		}
-	}
-
-	setOperationDeadline()
+	c.setOperationDeadline()
 	if err := smtpClient.Quit(); err != nil {
 		// QUIT errors are non-critical, just log them
-		s.logger.Debugf("SMTP QUIT failed (non-critical) for %s: %v", m.Name, err)
+		c.logger.Debugf("SMTP QUIT failed (non-critical) for %s: %v", c.monitor.Name, err)
 	}
 
 	endTime := time.Now().UTC()
-	s.logger.Debugf("SMTP connection successful: %s", m.Name)
-
-	message := "SMTP server is reachable"
-	switch {
-	case tlsConfig != nil && authenticated:
-		message += " (TLS + Auth)"
-	case tlsConfig != nil:
-		message += " (TLS)"
-	case authenticated:
-		message += " (Auth)"
-	}
-
-	// Add open relay status to message if testing was enabled
-	if config.TestOpenRelay {
-		if relayed {
-			message += ", Open relay detected"
-		} else {
-			message += ", Open relay rejected (secure)"
-		}
-	}
-
-	// Add certificate info to message if available
-	if tlsInfo != nil && tlsInfo.Valid && tlsInfo.CertInfo != nil {
-		message = fmt.Sprintf("%s, Certificate expires in %d days", message, tlsInfo.CertInfo.DaysRemaining)
-	}
+	c.logger.Debugf("SMTP connection successful: %s", c.monitor.Name)
 
 	return &Result{
 		Status:    shared.MonitorStatusUp,
-		Message:   message,
-		StartTime: startTime,
+		Message:   c.successMessage(),
+		StartTime: c.startTime,
 		EndTime:   endTime,
-		TLSInfo:   tlsInfo,
+		TLSInfo:   c.tlsInfo,
 	}
+}
+
+// openClient creates the SMTP client, which reads the server's greeting. With direct TLS, the
+// connection is upgraded first.
+func (c *smtpCheck) openClient() (*smtp.Client, *Result) {
+	var smtpClient *smtp.Client
+	var err error
+	c.setOperationDeadline()
+	if c.config.UseDirectTLS {
+		// Direct TLS (SMTPS - port 465): upgrade to TLS before the SMTP greeting
+		tlsConnection := tls.Client(c.tcpConnection, c.tlsConfig)
+		if err := tlsConnection.HandshakeContext(c.ctx); err != nil {
+			return nil, c.down("SMTP direct TLS handshake failed: %v", err)
+		}
+		c.setOperationDeadline()
+		smtpClient, err = smtp.NewClient(tlsConnection, c.config.Host)
+	} else {
+		// Plain SMTP or STARTTLS: the greeting is read over the TCP connection
+		smtpClient, err = smtp.NewClient(c.tcpConnection, c.config.Host)
+	}
+	if err != nil {
+		return nil, c.down("SMTP client creation failed: %v", err)
+	}
+	return smtpClient, nil
+}
+
+// greet introduces the client to the server and, when the config asks for it, upgrades the
+// connection with STARTTLS
+func (c *smtpCheck) greet(smtpClient *smtp.Client) *Result {
+	// Send EHLO/HELO command (required before STARTTLS)
+	c.setOperationDeadline()
+	if err := smtpClient.Hello(smtpClientName); err != nil {
+		return c.down("SMTP HELLO failed: %v", err)
+	}
+
+	if c.config.UseTLS && !c.config.UseDirectTLS {
+		c.setOperationDeadline()
+		if err := smtpClient.StartTLS(c.tlsConfig); err != nil {
+			return c.down("SMTP STARTTLS failed: %v", err)
+		}
+	}
+
+	c.captureTLSInfo(smtpClient)
+	return nil
+}
+
+// captureTLSInfo extracts TLS certificate information if cert expiry checking is enabled
+func (c *smtpCheck) captureTLSInfo(smtpClient *smtp.Client) {
+	if c.config.CheckCertExpiry {
+		if state, ok := smtpClient.TLSConnectionState(); ok && len(state.PeerCertificates) > 0 {
+			c.tlsInfo = shared.ParseCertificateChain(state.PeerCertificates[0], len(state.VerifiedChains) > 0)
+		}
+	}
+}
+
+// reset resets the connection to not actually send anything
+func (c *smtpCheck) reset(smtpClient *smtp.Client) {
+	c.setOperationDeadline()
+	if err := smtpClient.Reset(); err != nil {
+		c.logger.Debugf("SMTP RSET failed (non-critical) for %s: %v", c.monitor.Name, err)
+	}
+}
+
+// testOpenRelay tests for open relay BEFORE authentication, if the config asks for it.
+// Open relay test checks if server allows relaying WITHOUT authentication (security risk)
+func (c *smtpCheck) testOpenRelay(smtpClient *smtp.Client) *Result {
+	if !c.config.TestOpenRelay {
+		return nil
+	}
+
+	fromEmail := cmp.Or(c.config.FromEmail, defaultTestFromEmail)
+	testRecipient := cmp.Or(c.config.RcptToEmail, defaultTestRelayEmail)
+	c.logger.Debugf("Testing open relay with RCPT TO: %s (before authentication)", testRecipient)
+
+	// A 5xx reply to MAIL FROM or RCPT TO means the server refused to relay.
+	// Any other error (timeout, dropped connection, 4xx) leaves the answer unknown.
+	c.setOperationDeadline()
+	relayErr := smtpClient.Mail(fromEmail)
+	if relayErr == nil {
+		c.setOperationDeadline()
+		relayErr = smtpClient.Rcpt(testRecipient)
+	}
+	if relayErr != nil && !isSMTPRejection(relayErr) {
+		return c.down("SMTP open relay test failed: %v", relayErr)
+	}
+	c.relayed = relayErr == nil
+	c.logger.Debugf("Open relay test result for %s: relayed=%v, error=%v", c.monitor.Name, c.relayed, relayErr)
+
+	c.reset(smtpClient)
+
+	return c.relayVerdict(relayErr)
+}
+
+// relayVerdict is the Down result for an answer to the open relay test that isn't the one the
+// config expects, and nil for the one it does
+func (c *smtpCheck) relayVerdict(relayErr error) *Result {
+	if c.config.ExpectSecureRelay && c.relayed {
+		c.logger.Warnf("SECURITY: SMTP server allows open relay for %s (expected rejection)", c.monitor.Name)
+		return c.down("SECURITY: Server allows open relay (expected rejection)")
+	}
+	if !c.config.ExpectSecureRelay && !c.relayed {
+		return c.down("Server rejected relay (expected open relay) - response: %v", relayErr)
+	}
+	return nil
+}
+
+// authenticate logs in if credentials are provided.
+// Authentication happens AFTER open relay test to ensure we test relaying without auth
+// smtp.PlainAuth refuses to send credentials without TLS, except to localhost
+func (c *smtpCheck) authenticate(smtpClient *smtp.Client) *Result {
+	if c.config.Username == "" || c.config.Password == "" {
+		return nil
+	}
+
+	c.setOperationDeadline()
+	if err := smtpClient.Auth(smtp.PlainAuth("", c.config.Username, c.config.Password, c.config.Host)); err != nil {
+		return c.down("SMTP authentication failed: %v", err)
+	}
+	c.authenticated = true
+	return nil
+}
+
+// checkMailFrom sends MAIL FROM if FromEmail is configured (but not for open relay test, which is already done)
+func (c *smtpCheck) checkMailFrom(smtpClient *smtp.Client) *Result {
+	if c.config.FromEmail == "" || c.config.TestOpenRelay {
+		return nil
+	}
+
+	c.setOperationDeadline()
+	if err := smtpClient.Mail(c.config.FromEmail); err != nil {
+		return c.down("SMTP MAIL FROM failed: %v", err)
+	}
+
+	c.reset(smtpClient)
+	return nil
+}
+
+// successMessage describes the connection: its TLS and authentication, the open relay test and the
+// certificate's expiry, as far as the check found out
+func (c *smtpCheck) successMessage() string {
+	message := "SMTP server is reachable" + c.securitySuffix() + c.relaySuffix()
+
+	// Add certificate info to message if available
+	if c.tlsInfo != nil && c.tlsInfo.Valid && c.tlsInfo.CertInfo != nil {
+		message = fmt.Sprintf("%s, Certificate expires in %d days", message, c.tlsInfo.CertInfo.DaysRemaining)
+	}
+
+	return message
+}
+
+// securitySuffix says whether the connection used TLS and authentication
+func (c *smtpCheck) securitySuffix() string {
+	switch {
+	case c.tlsConfig != nil && c.authenticated:
+		return " (TLS + Auth)"
+	case c.tlsConfig != nil:
+		return " (TLS)"
+	case c.authenticated:
+		return " (Auth)"
+	}
+	return ""
+}
+
+// relaySuffix gives the open relay status if testing was enabled
+func (c *smtpCheck) relaySuffix() string {
+	if !c.config.TestOpenRelay {
+		return ""
+	}
+	if c.relayed {
+		return ", Open relay detected"
+	}
+	return ", Open relay rejected (secure)"
 }
 
 // isSMTPRejection reports whether err is a permanent (5xx) SMTP reply,

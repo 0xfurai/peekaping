@@ -227,24 +227,38 @@ func (c *copier) copyMonitorStatusPages(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+	c.noteStatusPageGaps(links)
+	return nil
+}
+
+// noteStatusPageGaps says, for each page in the order they were copied, how many of its monitors
+// were hidden and which of its fields SQL does not keep
+func (c *copier) noteStatusPageGaps(links map[primitive.ObjectID]*pageLinks) {
 	for _, page := range c.statusPageOrder {
 		if l := links[page.id]; l != nil && l.hidden > 0 {
-			verb := "is"
-			noun := "monitor"
-			if l.hidden != 1 {
-				verb, noun = "are", "monitors"
-			}
-			c.report.note("status page %q: %d %s %s hidden on the page (active is false) and will show (SQL has no column for it)", page.slug, l.hidden, noun, verb)
+			c.noteHiddenMonitors(page, l.hidden)
 		}
 		if len(page.unused) > 0 {
-			verb := "is"
-			if len(page.unused) > 1 {
-				verb = "are"
-			}
-			c.report.note("status page %q: %s %s not kept (Peekaping does not use them)", page.slug, joinAnd(page.unused), verb)
+			c.noteUnusedFields(page)
 		}
 	}
-	return nil
+}
+
+func (c *copier) noteHiddenMonitors(page *statusPage, hidden int) {
+	verb := "is"
+	noun := "monitor"
+	if hidden != 1 {
+		verb, noun = "are", "monitors"
+	}
+	c.report.note("status page %q: %d %s %s hidden on the page (active is false) and will show (SQL has no column for it)", page.slug, hidden, noun, verb)
+}
+
+func (c *copier) noteUnusedFields(page *statusPage) {
+	verb := "is"
+	if len(page.unused) > 1 {
+		verb = "are"
+	}
+	c.report.note("status page %q: %s %s not kept (Peekaping does not use them)", page.slug, joinAnd(page.unused), verb)
 }
 
 func (c *copier) statusPageIDs() idSet {

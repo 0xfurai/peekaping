@@ -25,92 +25,21 @@ func ProvideSQLDB(
 	cfg *config.Config,
 	logger *zap.SugaredLogger,
 ) (*bun.DB, error) {
-	var sqldb *sql.DB
 	var db *bun.DB
 	var err error
 
 	switch cfg.DBType {
 	case "postgres", "postgresql":
-		// PostgreSQL connection
-		dsn := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable",
-			cfg.DBUser, cfg.DBPass, cfg.DBHost, cfg.DBPort, cfg.DBName)
-
-		sqldb = sql.OpenDB(pgdriver.NewConnector(pgdriver.WithDSN(dsn)))
-		db = bun.NewDB(sqldb, pgdialect.New())
-
-		logger.Infof("Connecting to PostgreSQL database: %s:%s/%s", cfg.DBHost, cfg.DBPort, cfg.DBName)
-
+		db = openPostgres(cfg, logger)
 	case "mysql":
-		// MySQL connection
-		dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true",
-			cfg.DBUser, cfg.DBPass, cfg.DBHost, cfg.DBPort, cfg.DBName)
-
-		sqldb, err = sql.Open("mysql", dsn)
-		if err != nil {
-			return nil, fmt.Errorf("failed to open MySQL connection: %w", err)
-		}
-
-		db = bun.NewDB(sqldb, mysqldialect.New())
-
-		logger.Infof("Connecting to MySQL database: %s:%s/%s", cfg.DBHost, cfg.DBPort, cfg.DBName)
-
+		db, err = openMySQL(cfg, logger)
 	case "sqlite":
-		// SQLite connection
-		dbPath := cfg.DBName
-		if dbPath == "" {
-			dbPath = "./data.db" // Default SQLite file path
-		}
-
-		sqldb, err = sqlitedb.Open(dbPath)
-		if err != nil {
-			return nil, err
-		}
-
-		db = bun.NewDB(sqldb, sqlitedialect.New())
-
-		// The settings of a connection are in its DSN (see sqlitedb.DSN). journal_mode and
-		// auto_vacuum belong to the database file and are set once, in the order they always had.
-		// Check current journal mode before trying to change it
-		var currentJournalMode string
-		if err := db.QueryRow("PRAGMA journal_mode").Scan(&currentJournalMode); err != nil {
-			logger.Warnf("Failed to check journal_mode (non-fatal): %v", err)
-		}
-
-		// Only set WAL mode if it's not already enabled
-		if currentJournalMode != "wal" {
-			if _, err := db.Exec("PRAGMA journal_mode=WAL"); err != nil {
-				// If it fails, log warning but don't fail - database might already be in WAL mode
-				logger.Warnf("Failed to set journal_mode to WAL (non-fatal, current mode: %s): %v", currentJournalMode, err)
-			} else {
-				logger.Infof("SQLite journal mode set to WAL")
-			}
-		} else {
-			logger.Infof("SQLite already in WAL mode")
-		}
-
-		// Enable auto_vacuum to prevent database file fragmentation
-		// INCREMENTAL allows gradual cleanup
-		if _, err := db.Exec("PRAGMA auto_vacuum=INCREMENTAL"); err != nil {
-			logger.Warnf("Failed to set auto_vacuum (non-fatal): %v", err)
-		}
-
-		// Check on startup to detect existing corruption, as SQLITE_STARTUP_CHECK says. The default,
-		// quick, runs quick_check. The full integrity_check reads the whole file: about 30s for
-		// 1.5 GB (24h of 1,000 monitors at 20s), and it grows with the heartbeat history.
-		// quick_check walks the b-tree pages in about 2s. It misses an index that disagrees with
-		// its table, so the full check is one to ask for with "full" or to run by hand (see the
-		// recovery page at sqliteRecoveryDocsURL). "off" runs none.
-		if err := checkSQLiteOnStartup(db, dbPath, cfg.SQLiteStartupCheck, logger); err != nil {
-			// Don't close db: closing SQLite's last connection checkpoints the write-ahead log
-			// into the main file and deletes the -wal and -shm files, which the operator is told
-			// to keep. The process exits right after this error.
-			return nil, err
-		}
-
-		logger.Infof("Connecting to SQLite database: %s (WAL mode enabled, corruption prevention active)", dbPath)
-
+		db, err = openSQLite(cfg, logger)
 	default:
 		return nil, fmt.Errorf("unsupported database type: %s. Supported types: postgres, mysql, sqlite", cfg.DBType)
+	}
+	if err != nil {
+		return nil, err
 	}
 
 	// Test the connection
@@ -126,40 +55,148 @@ func ProvideSQLDB(
 	return db, nil
 }
 
+// openPostgres is the PostgreSQL connection, which connects at the first query
+func openPostgres(cfg *config.Config, logger *zap.SugaredLogger) *bun.DB {
+	dsn := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable",
+		cfg.DBUser, cfg.DBPass, cfg.DBHost, cfg.DBPort, cfg.DBName)
+
+	sqldb := sql.OpenDB(pgdriver.NewConnector(pgdriver.WithDSN(dsn)))
+	db := bun.NewDB(sqldb, pgdialect.New())
+
+	logger.Infof("Connecting to PostgreSQL database: %s:%s/%s", cfg.DBHost, cfg.DBPort, cfg.DBName)
+	return db
+}
+
+// openMySQL is the MySQL connection
+func openMySQL(cfg *config.Config, logger *zap.SugaredLogger) (*bun.DB, error) {
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true",
+		cfg.DBUser, cfg.DBPass, cfg.DBHost, cfg.DBPort, cfg.DBName)
+
+	sqldb, err := sql.Open("mysql", dsn)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open MySQL connection: %w", err)
+	}
+
+	db := bun.NewDB(sqldb, mysqldialect.New())
+
+	logger.Infof("Connecting to MySQL database: %s:%s/%s", cfg.DBHost, cfg.DBPort, cfg.DBName)
+	return db, nil
+}
+
+// openSQLite is the SQLite connection, with its file set up and checked
+func openSQLite(cfg *config.Config, logger *zap.SugaredLogger) (*bun.DB, error) {
+	dbPath := cfg.DBName
+	if dbPath == "" {
+		dbPath = "./data.db" // Default SQLite file path
+	}
+
+	sqldb, err := sqlitedb.Open(dbPath)
+	if err != nil {
+		return nil, err
+	}
+
+	db := bun.NewDB(sqldb, sqlitedialect.New())
+
+	setUpSQLiteFile(db, logger)
+
+	// Check on startup to detect existing corruption, as SQLITE_STARTUP_CHECK says. The default,
+	// quick, runs quick_check. The full integrity_check reads the whole file: about 30s for
+	// 1.5 GB (24h of 1,000 monitors at 20s), and it grows with the heartbeat history.
+	// quick_check walks the b-tree pages in about 2s. It misses an index that disagrees with
+	// its table, so the full check is one to ask for with "full" or to run by hand (see the
+	// recovery page at sqliteRecoveryDocsURL). "off" runs none.
+	if err := checkSQLiteOnStartup(db, dbPath, cfg.SQLiteStartupCheck, logger); err != nil {
+		// Don't close db: closing SQLite's last connection checkpoints the write-ahead log
+		// into the main file and deletes the -wal and -shm files, which the operator is told
+		// to keep. The process exits right after this error.
+		return nil, err
+	}
+
+	logger.Infof("Connecting to SQLite database: %s (WAL mode enabled, corruption prevention active)", dbPath)
+	return db, nil
+}
+
+// setUpSQLiteFile sets the journal mode and auto_vacuum, which belong to the database file. A
+// failure is a warning.
+func setUpSQLiteFile(db *bun.DB, logger *zap.SugaredLogger) {
+	// The settings of a connection are in its DSN (see sqlitedb.DSN). journal_mode and
+	// auto_vacuum belong to the database file and are set once, in the order they always had.
+	// Check current journal mode before trying to change it
+	var currentJournalMode string
+	if err := db.QueryRow("PRAGMA journal_mode").Scan(&currentJournalMode); err != nil {
+		logger.Warnf("Failed to check journal_mode (non-fatal): %v", err)
+	}
+
+	// Only set WAL mode if it's not already enabled
+	if currentJournalMode != "wal" {
+		if _, err := db.Exec("PRAGMA journal_mode=WAL"); err != nil {
+			// If it fails, log warning but don't fail - database might already be in WAL mode
+			logger.Warnf("Failed to set journal_mode to WAL (non-fatal, current mode: %s): %v", currentJournalMode, err)
+		} else {
+			logger.Infof("SQLite journal mode set to WAL")
+		}
+	} else {
+		logger.Infof("SQLite already in WAL mode")
+	}
+
+	// Enable auto_vacuum to prevent database file fragmentation
+	// INCREMENTAL allows gradual cleanup
+	if _, err := db.Exec("PRAGMA auto_vacuum=INCREMENTAL"); err != nil {
+		logger.Warnf("Failed to set auto_vacuum (non-fatal): %v", err)
+	}
+}
+
 // checkSQLiteOnStartup runs the check the mode names and returns an error when SQLite reports
 // anything but a single "ok", so startup stops before a process writes to a damaged database.
 // "quick" runs PRAGMA quick_check, "full" runs PRAGMA integrity_check, and "off" runs nothing.
 // An empty mode is quick, for a config built without one.
 func checkSQLiteOnStartup(db *bun.DB, dbPath, mode string, logger *zap.SugaredLogger) error {
-	var name, pragma string
-	switch mode {
-	case "", "quick":
-		name, pragma = "quick", "quick_check"
-	case "full":
-		name, pragma = "full", "integrity_check"
-	case "off":
+	if mode == "off" {
 		logger.Info("SQLite startup check skipped: SQLITE_STARTUP_CHECK is off")
 		return nil
-	default:
+	}
+	name, pragma, ok := sqliteCheckOf(mode)
+	if !ok {
 		return fmt.Errorf("unsupported SQLITE_STARTUP_CHECK %q. Supported values: quick, full, off", mode)
 	}
 
 	lines, err := readSQLiteCheck(db, pragma)
 	healthy := len(lines) == 1 && lines[0] == "ok"
 	if healthy || len(lines) == 0 {
-		if err == nil && healthy {
-			logger.Infof("SQLite %s check passed", name)
-			return nil
-		}
-		if err == nil {
-			err = errors.New("it returned no result")
-		}
-		// No finding rows: the database may only be locked, or a damaged header or schema page may
-		// fail the query itself. Startup goes on as agreed; its next queries fail on their own.
-		logger.Warnf("Failed to run the SQLite %s check (non-fatal): %v", name, err)
+		logSQLiteCheckWithoutFindings(name, healthy, err, logger)
 		return nil
 	}
+	return sqliteCorruptionError(dbPath, name, pragma, lines, logger)
+}
 
+// sqliteCheckOf is the name and the PRAGMA of the check a mode runs, or not ok for a mode that
+// names none. An empty mode is quick.
+func sqliteCheckOf(mode string) (name, pragma string, ok bool) {
+	switch mode {
+	case "", "quick":
+		return "quick", "quick_check", true
+	case "full":
+		return "full", "integrity_check", true
+	}
+	return "", "", false
+}
+
+// logSQLiteCheckWithoutFindings logs a check that found nothing wrong, or that could not run
+func logSQLiteCheckWithoutFindings(name string, healthy bool, err error, logger *zap.SugaredLogger) {
+	if err == nil && healthy {
+		logger.Infof("SQLite %s check passed", name)
+		return
+	}
+	if err == nil {
+		err = errors.New("it returned no result")
+	}
+	// No finding rows: the database may only be locked, or a damaged header or schema page may
+	// fail the query itself. Startup goes on as agreed; its next queries fail on their own.
+	logger.Warnf("Failed to run the SQLite %s check (non-fatal): %v", name, err)
+}
+
+// sqliteCorruptionError logs what the check found and returns the error that stops startup
+func sqliteCorruptionError(dbPath, name, pragma string, lines []string, logger *zap.SugaredLogger) error {
 	logger.Errorf("SQLite %s check found corruption in %s. Peekaping stops here and doesn't change the file.", name, dbPath)
 	for _, line := range lines {
 		logger.Errorf("%s: %s", pragma, line)

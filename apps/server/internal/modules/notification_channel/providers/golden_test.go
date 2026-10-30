@@ -71,6 +71,15 @@ var (
 		Important: true,
 		Time:      time.Date(2026, 10, 17, 9, 35, 0, 0, time.UTC),
 	}
+	goldenPending = &heartbeat.Model{
+		ID:        "hb-3",
+		MonitorID: "mon-1",
+		ProbeID:   "local",
+		Status:    shared.MonitorStatusPending,
+		Msg:       "slow response",
+		Important: true,
+		Time:      time.Date(2026, 10, 17, 9, 32, 0, 0, time.UTC),
+	}
 	// goldenProbeOffline and goldenProbeOnline are the stand-in monitors the listener sends a
 	// probe's notification with: Down when the probe went offline, Up when it came back online
 	goldenProbeOffline = &monitor.Model{ID: "probe-1", Type: shared.MonitorTypeProbe, Name: "Probe Frankfurt", Status: shared.MonitorStatusDown}
@@ -107,6 +116,10 @@ const (
 	probeOfflineEvent
 	// probeOnlineEvent is a probe coming back online, sent with a stand-in monitor and no heartbeat
 	probeOnlineEvent
+	// pendingEvent is an important heartbeat that puts the monitor in Pending
+	pendingEvent
+	// downWithoutMonitorEvent is a Down heartbeat that comes without its monitor
+	downWithoutMonitorEvent
 )
 
 // goldenSender is the part of a notification channel provider the golden tests use
@@ -121,8 +134,46 @@ type goldenCase struct {
 	sender func(client *http.Client) goldenSender
 	config string
 	event  goldenEvent
+	// notify is the notification of a case that none of the events is, and replaces the event
+	notify goldenNotify
 	// response is the body the fake endpoint answers with
 	response string
+}
+
+// notification returns the message, monitor and heartbeat the case sends
+func (tc goldenCase) notification() (string, *monitor.Model, *heartbeat.Model) {
+	return notificationOf(tc.event, tc.notify)
+}
+
+// goldenNotify returns a notification's message, monitor and heartbeat
+type goldenNotify func() (string, *monitor.Model, *heartbeat.Model)
+
+// notificationOf returns the notification a case sends: notify's when it has one, and otherwise the
+// event's
+func notificationOf(event goldenEvent, notify goldenNotify) (string, *monitor.Model, *heartbeat.Model) {
+	if notify != nil {
+		return notify()
+	}
+	return goldenNotification(event)
+}
+
+// notifying returns the notification of a message, monitor and heartbeat
+func notifying(message string, mon *monitor.Model, hb *heartbeat.Model) goldenNotify {
+	return func() (string, *monitor.Model, *heartbeat.Model) { return message, mon, hb }
+}
+
+// goldenMonitorWith returns the golden monitor, changed by edit
+func goldenMonitorWith(edit func(*monitor.Model)) *monitor.Model {
+	m := *goldenMonitor
+	edit(&m)
+	return &m
+}
+
+// goldenHeartbeatWith returns a copy of hb, changed by edit
+func goldenHeartbeatWith(hb *heartbeat.Model, edit func(*heartbeat.Model)) *heartbeat.Model {
+	copied := *hb
+	edit(&copied)
+	return &copied
 }
 
 func nopLogger() *zap.SugaredLogger {
@@ -133,28 +184,31 @@ func nopLogger() *zap.SugaredLogger {
 var goldenAppConfig = installsettings.Static(&config.Config{ClientURL: "https://peekaping.example.com/"})
 
 var (
-	discord       = func(c *http.Client) goldenSender { return NewDiscordSender(nopLogger(), c) }
-	googleChat    = func(c *http.Client) goldenSender { return NewGoogleChatSender(nopLogger(), goldenAppConfig, c) }
-	gotify        = func(c *http.Client) goldenSender { return NewGotifySender(nopLogger(), c) }
-	grafanaOncall = func(c *http.Client) goldenSender { return NewGrafanaOncallSender(nopLogger(), c) }
-	line          = func(c *http.Client) goldenSender { return NewLineSender(nopLogger(), c) }
-	matrix        = func(c *http.Client) goldenSender { return NewMatrixSender(nopLogger(), c) }
-	mattermost    = func(c *http.Client) goldenSender { return NewMattermostSender(nopLogger(), c) }
-	ntfy          = func(c *http.Client) goldenSender { return NewNTFYSender(nopLogger(), c) }
-	opsgenie      = func(c *http.Client) goldenSender { return NewOpsgenieSender(nopLogger(), c) }
-	pagerDuty     = func(c *http.Client) goldenSender { return NewPagerDutySender(nopLogger(), goldenAppConfig, c) }
-	pagerTree     = func(c *http.Client) goldenSender { return NewPagerTreeSender(nopLogger(), c) }
-	pushbullet    = func(c *http.Client) goldenSender { return NewPushbulletSender(nopLogger(), c) }
-	pushover      = func(c *http.Client) goldenSender { return NewPushoverSender(nopLogger(), c) }
-	sendGrid      = func(c *http.Client) goldenSender { return NewSendGridSender(nopLogger(), c) }
-	signal        = func(c *http.Client) goldenSender { return NewSignalSender(nopLogger(), c) }
-	slack         = func(c *http.Client) goldenSender { return NewSlackSender(nopLogger(), goldenAppConfig, c) }
-	teams         = func(c *http.Client) goldenSender { return NewTeamsSender(nopLogger(), goldenAppConfig, c) }
-	telegram      = func(c *http.Client) goldenSender { return NewTelegramSender(nopLogger(), c) }
-	twilio        = func(c *http.Client) goldenSender { return NewTwilioSender(nopLogger(), c) }
-	webhook       = func(c *http.Client) goldenSender { return NewWebhookSender(nopLogger(), c) }
-	weCom         = func(c *http.Client) goldenSender { return NewWeComSender(nopLogger(), c) }
-	whatsApp      = func(c *http.Client) goldenSender { return NewWhatsAppSender(nopLogger(), c) }
+	discord          = func(c *http.Client) goldenSender { return NewDiscordSender(nopLogger(), c) }
+	googleChat       = func(c *http.Client) goldenSender { return NewGoogleChatSender(nopLogger(), goldenAppConfig, c) }
+	googleChatNoLink = func(c *http.Client) goldenSender { return NewGoogleChatSender(nopLogger(), nil, c) }
+	gotify           = func(c *http.Client) goldenSender { return NewGotifySender(nopLogger(), c) }
+	grafanaOncall    = func(c *http.Client) goldenSender { return NewGrafanaOncallSender(nopLogger(), c) }
+	line             = func(c *http.Client) goldenSender { return NewLineSender(nopLogger(), c) }
+	matrix           = func(c *http.Client) goldenSender { return NewMatrixSender(nopLogger(), c) }
+	mattermost       = func(c *http.Client) goldenSender { return NewMattermostSender(nopLogger(), c) }
+	ntfy             = func(c *http.Client) goldenSender { return NewNTFYSender(nopLogger(), c) }
+	opsgenie         = func(c *http.Client) goldenSender { return NewOpsgenieSender(nopLogger(), c) }
+	pagerDuty        = func(c *http.Client) goldenSender { return NewPagerDutySender(nopLogger(), goldenAppConfig, c) }
+	pagerDutyNoLink  = func(c *http.Client) goldenSender { return NewPagerDutySender(nopLogger(), nil, c) }
+	pagerTree        = func(c *http.Client) goldenSender { return NewPagerTreeSender(nopLogger(), c) }
+	pushbullet       = func(c *http.Client) goldenSender { return NewPushbulletSender(nopLogger(), c) }
+	pushover         = func(c *http.Client) goldenSender { return NewPushoverSender(nopLogger(), c) }
+	sendGrid         = func(c *http.Client) goldenSender { return NewSendGridSender(nopLogger(), c) }
+	signal           = func(c *http.Client) goldenSender { return NewSignalSender(nopLogger(), c) }
+	slackNoLink      = func(c *http.Client) goldenSender { return NewSlackSender(nopLogger(), nil, c) }
+	slack            = func(c *http.Client) goldenSender { return NewSlackSender(nopLogger(), goldenAppConfig, c) }
+	teams            = func(c *http.Client) goldenSender { return NewTeamsSender(nopLogger(), goldenAppConfig, c) }
+	telegram         = func(c *http.Client) goldenSender { return NewTelegramSender(nopLogger(), c) }
+	twilio           = func(c *http.Client) goldenSender { return NewTwilioSender(nopLogger(), c) }
+	webhook          = func(c *http.Client) goldenSender { return NewWebhookSender(nopLogger(), c) }
+	weCom            = func(c *http.Client) goldenSender { return NewWeComSender(nopLogger(), c) }
+	whatsApp         = func(c *http.Client) goldenSender { return NewWhatsAppSender(nopLogger(), c) }
 )
 
 var goldenCases = []goldenCase{
@@ -166,6 +220,9 @@ var goldenCases = []goldenCase{
 		config: `{"webhook_url": "https://discord.com/api/webhooks/123/token", "message_type": "send_to_new_forum_post", "thread_name": "API outage"}`},
 	{name: "discord_certificate_expiry", sender: discord, event: certExpiryEvent,
 		config: `{"webhook_url": "https://discord.com/api/webhooks/123/token"}`},
+	// Without a thread ID the webhook URL stays as it is
+	{name: "discord_thread_without_id_down", sender: discord, event: downEvent,
+		config: `{"webhook_url": "https://discord.com/api/webhooks/123/token", "message_type": "send_to_thread"}`},
 
 	{name: "google_chat_down", sender: googleChat, event: downEvent,
 		config: `{"webhook_url": "https://chat.googleapis.com/v1/spaces/AAA/messages?key=k&token=t"}`},
@@ -176,6 +233,11 @@ var goldenCases = []goldenCase{
 	// A probe's notification links to the Probes page, since the stand-in monitor has no page
 	{name: "google_chat_probe_offline", sender: googleChat, event: probeOfflineEvent,
 		config: `{"webhook_url": "https://chat.googleapis.com/v1/spaces/AAA/messages?key=k&token=t"}`},
+	// Without a public URL the card has no button
+	{name: "google_chat_without_public_url_down", sender: googleChatNoLink, event: downEvent,
+		config: `{"webhook_url": "https://chat.googleapis.com/v1/spaces/AAA/messages?key=k&token=t"}`},
+	{name: "google_chat_without_monitor_down", sender: googleChat, event: downWithoutMonitorEvent,
+		config: `{"webhook_url": "https://chat.googleapis.com/v1/spaces/AAA/messages?key=k&token=t"}`},
 
 	{name: "gotify_down", sender: gotify, event: downEvent,
 		config: `{"server_url": "https://gotify.example.com/", "application_token": "app-token"}`},
@@ -183,6 +245,9 @@ var goldenCases = []goldenCase{
 		config: `{"server_url": "https://gotify.example.com", "application_token": "app-token", "priority": 3, "title": "{{ name }} is {{ status }}", "custom_message": "{{ status_icon }} {{ msg }} in {{ ping }} ms"}`},
 	{name: "gotify_certificate_expiry", sender: gotify, event: certExpiryEvent,
 		config: `{"server_url": "https://gotify.example.com/", "application_token": "app-token"}`},
+	// A template that can't be rendered falls back to the text as it was written
+	{name: "gotify_invalid_templates_down", sender: gotify, event: downEvent,
+		config: `{"server_url": "https://gotify.example.com", "application_token": "app-token", "title": "{{ name | nofilter }}", "custom_message": "{{ msg | nofilter }}"}`},
 
 	{name: "grafana_oncall_down", sender: grafanaOncall, event: downEvent,
 		config: `{"grafana_oncall_url": "https://oncall.example.com/integrations/v1/formatted_webhook/abc/"}`},
@@ -197,6 +262,15 @@ var goldenCases = []goldenCase{
 	{name: "grafana_oncall_certificate_expiry", sender: grafanaOncall, event: certExpiryEvent,
 		config: `{"grafana_oncall_url": "https://oncall.example.com/integrations/v1/formatted_webhook/abc/"}`},
 
+	{name: "grafana_oncall_pending", sender: grafanaOncall, event: pendingEvent,
+		config: `{"grafana_oncall_url": "https://oncall.example.com/integrations/v1/formatted_webhook/abc/"}`},
+	{name: "grafana_oncall_down_without_monitor", sender: grafanaOncall, event: downWithoutMonitorEvent,
+		config: `{"grafana_oncall_url": "https://oncall.example.com/integrations/v1/formatted_webhook/abc/"}`},
+	// A probe that is neither offline nor online sends nothing
+	{name: "grafana_oncall_probe_unknown_status", sender: grafanaOncall,
+		notify: notifying("Probe Frankfurt is slow", &monitor.Model{ID: "probe-1", Type: shared.MonitorTypeProbe, Name: "Probe Frankfurt", Status: shared.MonitorStatusPending}, nil),
+		config: `{"grafana_oncall_url": "https://oncall.example.com/integrations/v1/formatted_webhook/abc/"}`},
+
 	{name: "line_down", sender: line, event: downEvent,
 		config: `{"channel_access_token": "line-token", "user_id": "U123"}`},
 	{name: "line_up", sender: line, event: upEvent,
@@ -204,6 +278,10 @@ var goldenCases = []goldenCase{
 	{name: "line_template_down", sender: line, event: downEvent,
 		config: `{"channel_access_token": "line-token", "user_id": "U123", "template": "{{ status_icon }} {{ name }}: {{ msg }}"}`},
 	{name: "line_certificate_expiry", sender: line, event: certExpiryEvent,
+		config: `{"channel_access_token": "line-token", "user_id": "U123"}`},
+	{name: "line_pending", sender: line, event: pendingEvent,
+		config: `{"channel_access_token": "line-token", "user_id": "U123"}`},
+	{name: "line_down_without_monitor", sender: line, event: downWithoutMonitorEvent,
 		config: `{"channel_access_token": "line-token", "user_id": "U123"}`},
 
 	{name: "matrix_down", sender: matrix, event: downEvent,
@@ -222,12 +300,53 @@ var goldenCases = []goldenCase{
 	{name: "mattermost_certificate_expiry", sender: mattermost, event: certExpiryEvent,
 		config: `{"webhook_url": "https://mattermost.example.com/hooks/abc"}`},
 
+	// The online emoji goes with an Up, and a lone emoji is left as it is
+	{name: "mattermost_up_with_emoji", sender: mattermost, event: upEvent,
+		config: `{"webhook_url": "https://mattermost.example.com/hooks/abc", "icon_emoji": ":white_check_mark: :x:"}`},
+	{name: "mattermost_down_with_one_emoji", sender: mattermost, event: downEvent,
+		config: `{"webhook_url": "https://mattermost.example.com/hooks/abc", "icon_emoji": ":warning:"}`},
+	{name: "mattermost_pending", sender: mattermost, event: pendingEvent,
+		config: `{"webhook_url": "https://mattermost.example.com/hooks/abc", "icon_emoji": ":white_check_mark: :x:"}`},
+	{name: "mattermost_down_without_monitor", sender: mattermost, event: downWithoutMonitorEvent,
+		config: `{"webhook_url": "https://mattermost.example.com/hooks/abc"}`},
+	{name: "mattermost_down_monitor_without_name", sender: mattermost,
+		notify: notifying(goldenDown.Msg, goldenMonitorWith(func(m *monitor.Model) { m.Name = "" }), goldenDown),
+		config: `{"webhook_url": "https://mattermost.example.com/hooks/abc"}`},
+	// The title links to the monitor's URL, when its config has one
+	{name: "mattermost_down_monitor_with_empty_url", sender: mattermost,
+		notify: notifying(goldenDown.Msg, goldenMonitorWith(func(m *monitor.Model) { m.Config = `{"url": ""}` }), goldenDown),
+		config: `{"webhook_url": "https://mattermost.example.com/hooks/abc"}`},
+	{name: "mattermost_down_monitor_without_url", sender: mattermost,
+		notify: notifying(goldenDown.Msg, goldenMonitorWith(func(m *monitor.Model) { m.Config = `{"host": "api.example.com"}` }), goldenDown),
+		config: `{"webhook_url": "https://mattermost.example.com/hooks/abc"}`},
+	{name: "mattermost_down_monitor_with_config_that_is_not_json", sender: mattermost,
+		notify: notifying(goldenDown.Msg, goldenMonitorWith(func(m *monitor.Model) { m.Config = `not json` }), goldenDown),
+		config: `{"webhook_url": "https://mattermost.example.com/hooks/abc"}`},
+	{name: "mattermost_down_monitor_without_config", sender: mattermost,
+		notify: notifying(goldenDown.Msg, goldenMonitorWith(func(m *monitor.Model) { m.Config = "" }), goldenDown),
+		config: `{"webhook_url": "https://mattermost.example.com/hooks/abc"}`},
+	{name: "mattermost_down_with_template_turned_on_and_no_template", sender: mattermost, event: downEvent,
+		config: `{"webhook_url": "https://mattermost.example.com/hooks/abc", "use_template": true}`},
+	// A notification without a heartbeat is a simple message, with the channel's options
+	{name: "mattermost_certificate_expiry_with_options", sender: mattermost, event: certExpiryEvent,
+		config: `{"webhook_url": "https://mattermost.example.com/hooks/abc", "username": "Peekaping", "channel": "Alerts", "icon_url": "https://peekaping.example.com/icon.png", "icon_emoji": ":warning:"}`},
+	{name: "mattermost_certificate_expiry_template", sender: mattermost, event: certExpiryEvent,
+		config: `{"webhook_url": "https://mattermost.example.com/hooks/abc", "use_template": true, "template": "Heads up: {{ msg }}"}`},
+
 	{name: "ntfy_down", sender: ntfy, event: downEvent,
 		config: `{"server_url": "https://ntfy.example.com/", "topic": "peekaping", "authentication_type": "none", "priority": 5}`},
 	{name: "ntfy_basic_auth_up", sender: ntfy, event: upEvent,
 		config: `{"server_url": "https://ntfy.example.com", "topic": "peekaping", "authentication_type": "basic", "username": "ntfy-user", "password": "ntfy-pass", "priority": 3, "title": "{{ name }} is {{ status }}", "tags": "{{ status }}, peekaping"}`},
 	{name: "ntfy_token_certificate_expiry", sender: ntfy, event: certExpiryEvent,
 		config: `{"server_url": "https://ntfy.example.com", "topic": "peekaping", "authentication_type": "token", "token": "tk_ntfy", "priority": 4}`},
+
+	// A template that can't be rendered gives way to the text as it was written, and no tags
+	{name: "ntfy_invalid_templates_down", sender: ntfy, event: downEvent,
+		config: `{"server_url": "https://ntfy.example.com", "topic": "peekaping", "authentication_type": "none", "priority": 2, "title": "{{ name | nofilter }}", "tags": "{{ name | nofilter }}", "custom_message": "{{ msg | nofilter }}"}`},
+	{name: "ntfy_custom_message_down", sender: ntfy, event: downEvent,
+		config: `{"server_url": "https://ntfy.example.com", "topic": "peekaping", "authentication_type": "none", "priority": 2, "custom_message": "{{ name }} is {{ status }}"}`},
+	{name: "ntfy_empty_title_down", sender: ntfy, event: downEvent,
+		config: `{"server_url": "https://ntfy.example.com", "topic": "peekaping", "authentication_type": "none", "priority": 2, "title": "{% if false %}x{% endif %}"}`},
 
 	{name: "opsgenie_down", sender: opsgenie, event: downEvent,
 		config: `{"region": "us", "api_key": "genie-key", "priority": 2}`},
@@ -263,6 +382,14 @@ var goldenCases = []goldenCase{
 	// and the next Up resolves it
 	{name: "pagerduty_certificate_expiry", sender: pagerDuty, event: certExpiryEvent,
 		config: `{"pagerduty_integration_key": "routing-key", "pagerduty_integration_url": "https://events.pagerduty.com/v2/enqueue"}`},
+	{name: "pagerduty_pending", sender: pagerDuty, event: pendingEvent,
+		config: `{"pagerduty_integration_key": "routing-key", "pagerduty_integration_url": "https://events.pagerduty.com/v2/enqueue"}`},
+	// Without a monitor the source is Peekaping, and the alert has no dedup key
+	{name: "pagerduty_down_without_monitor", sender: pagerDuty, event: downWithoutMonitorEvent,
+		config: `{"pagerduty_integration_key": "routing-key", "pagerduty_integration_url": "https://events.pagerduty.com/v2/enqueue"}`},
+	// Without a public URL the alert doesn't link back
+	{name: "pagerduty_down_without_public_url", sender: pagerDutyNoLink, event: downEvent,
+		config: `{"pagerduty_integration_key": "routing-key", "pagerduty_integration_url": "https://events.pagerduty.com/v2/enqueue"}`},
 
 	{name: "pagertree_down", sender: pagerTree, event: downEvent,
 		config: `{"integrationUrl": "https://api.pagertree.com/integration/int_123", "urgency": "high", "authToken": "tree-token"}`},
@@ -279,6 +406,34 @@ var goldenCases = []goldenCase{
 		config: `{"integrationUrl": "https://api.pagertree.com/integration/int_123"}`},
 	{name: "pagertree_certificate_expiry", sender: pagerTree, event: certExpiryEvent,
 		config: `{"integrationUrl": "https://api.pagertree.com/integration/int_123"}`},
+	// Only a Down, or an Up with auto-resolve, sends an alert
+	{name: "pagertree_pending", sender: pagerTree, event: pendingEvent,
+		config: `{"integrationUrl": "https://api.pagertree.com/integration/int_123", "autoResolve": true}`},
+	{name: "pagertree_probe_unknown_status", sender: pagerTree,
+		notify: notifying("Probe Frankfurt is slow", &monitor.Model{ID: "probe-1", Type: shared.MonitorTypeProbe, Name: "Probe Frankfurt", Status: shared.MonitorStatusPending}, nil),
+		config: `{"integrationUrl": "https://api.pagertree.com/integration/int_123", "autoResolve": true}`},
+	{name: "pagertree_down_without_monitor", sender: pagerTree, event: downWithoutMonitorEvent,
+		config: `{"integrationUrl": "https://api.pagertree.com/integration/int_123"}`},
+	// The description is the message, then the heartbeat's, then a default
+	{name: "pagertree_down_without_message", sender: pagerTree,
+		notify: notifying("", goldenMonitor, goldenDown),
+		config: `{"integrationUrl": "https://api.pagertree.com/integration/int_123"}`},
+	{name: "pagertree_down_without_any_message", sender: pagerTree,
+		notify: notifying("", goldenMonitor, goldenHeartbeatWith(goldenDown, func(hb *heartbeat.Model) { hb.Msg = "" })),
+		config: `{"integrationUrl": "https://api.pagertree.com/integration/int_123"}`},
+	{name: "pagertree_down_with_response_time_and_duration", sender: pagerTree,
+		notify: notifying(goldenDown.Msg, goldenMonitor, goldenHeartbeatWith(goldenDown, func(hb *heartbeat.Model) { hb.Ping = 12; hb.Duration = 1500 })),
+		config: `{"integrationUrl": "https://api.pagertree.com/integration/int_123"}`},
+	// The monitor's URL is left out when its config has none, or isn't JSON
+	{name: "pagertree_down_monitor_without_url", sender: pagerTree,
+		notify: notifying(goldenDown.Msg, goldenMonitorWith(func(m *monitor.Model) { m.Config = `{"host": "api.example.com"}` }), goldenDown),
+		config: `{"integrationUrl": "https://api.pagertree.com/integration/int_123"}`},
+	{name: "pagertree_down_monitor_with_config_that_is_not_json", sender: pagerTree,
+		notify: notifying(goldenDown.Msg, goldenMonitorWith(func(m *monitor.Model) { m.Config = `not json` }), goldenDown),
+		config: `{"integrationUrl": "https://api.pagertree.com/integration/int_123"}`},
+	{name: "pagertree_down_monitor_without_config", sender: pagerTree,
+		notify: notifying(goldenDown.Msg, goldenMonitorWith(func(m *monitor.Model) { m.Config = "" }), goldenDown),
+		config: `{"integrationUrl": "https://api.pagertree.com/integration/int_123"}`},
 
 	{name: "pushbullet_down", sender: pushbullet, event: downEvent,
 		config: `{"pushbullet_access_token": "o.pushbullet"}`},
@@ -289,6 +444,27 @@ var goldenCases = []goldenCase{
 	{name: "pushbullet_certificate_expiry", sender: pushbullet, event: certExpiryEvent,
 		config: `{"pushbullet_access_token": "o.pushbullet"}`},
 
+	{name: "pushbullet_pending", sender: pushbullet, event: pendingEvent,
+		config: `{"pushbullet_access_token": "o.pushbullet"}`},
+	{name: "pushbullet_maintenance", sender: pushbullet,
+		notify: notifying("Planned work", goldenMonitor, goldenHeartbeatWith(goldenDown, func(hb *heartbeat.Model) { hb.Status = shared.MonitorStatusMaintenance })),
+		config: `{"pushbullet_access_token": "o.pushbullet"}`},
+	{name: "pushbullet_unknown_status", sender: pushbullet,
+		notify: notifying("Odd status", goldenMonitor, goldenHeartbeatWith(goldenDown, func(hb *heartbeat.Model) { hb.Status = 9 })),
+		config: `{"pushbullet_access_token": "o.pushbullet"}`},
+	{name: "pushbullet_down_without_monitor", sender: pushbullet, event: downWithoutMonitorEvent,
+		config: `{"pushbullet_access_token": "o.pushbullet"}`},
+	{name: "pushbullet_down_without_message", sender: pushbullet,
+		notify: notifying("", goldenMonitor, goldenDown),
+		config: `{"pushbullet_access_token": "o.pushbullet"}`},
+	// A template that can't be rendered gives way to the default body
+	{name: "pushbullet_invalid_template_down", sender: pushbullet, event: downEvent,
+		config: `{"pushbullet_access_token": "o.pushbullet", "pushbullet_custom_template": "{{ name | nofilter }}"}`},
+	{name: "pushbullet_device_only_down", sender: pushbullet, event: downEvent,
+		config: `{"pushbullet_access_token": "o.pushbullet", "pushbullet_device_id": "device-1"}`},
+	{name: "pushbullet_channel_tag_only_down", sender: pushbullet, event: downEvent,
+		config: `{"pushbullet_access_token": "o.pushbullet", "pushbullet_channel_tag": "ops"}`},
+
 	{name: "pushover_down", sender: pushover, event: downEvent,
 		config: `{"pushover_user_key": "user-key", "pushover_app_token": "app-token", "pushover_priority": 1, "pushover_sounds": "siren", "pushover_sounds_up": "magic"}`},
 	{name: "pushover_up", sender: pushover, event: upEvent,
@@ -296,10 +472,25 @@ var goldenCases = []goldenCase{
 	{name: "pushover_certificate_expiry", sender: pushover, event: certExpiryEvent,
 		config: `{"pushover_user_key": "user-key", "pushover_app_token": "app-token"}`},
 
+	{name: "pushover_up_without_sound_for_up", sender: pushover, event: upEvent,
+		config: `{"pushover_user_key": "user-key", "pushover_app_token": "app-token", "pushover_sounds": "siren"}`},
+	{name: "pushover_down_without_monitor", sender: pushover, event: downWithoutMonitorEvent,
+		config: `{"pushover_user_key": "user-key", "pushover_app_token": "app-token"}`},
+	{name: "pushover_down_monitor_without_name", sender: pushover,
+		notify: notifying(goldenDown.Msg, goldenMonitorWith(func(m *monitor.Model) { m.Name = "" }), goldenDown),
+		config: `{"pushover_user_key": "user-key", "pushover_app_token": "app-token"}`},
+
 	{name: "sendgrid_down", sender: sendGrid, event: downEvent,
 		config: `{"api_key": "SG.key", "from_email": "alerts@example.com", "to_email": "oncall@example.com", "cc_email": "a@example.com, b@example.com", "bcc_email": "c@example.com", "subject": "{{ name }} is {{ status }}"}`},
 	{name: "sendgrid_certificate_expiry", sender: sendGrid, event: certExpiryEvent,
 		config: `{"api_key": "SG.key", "from_email": "alerts@example.com", "to_email": "oncall@example.com"}`},
+
+	// A template that can't be rendered gives way to the default subject
+	{name: "sendgrid_invalid_subject_down", sender: sendGrid, event: downEvent,
+		config: `{"api_key": "SG.key", "from_email": "alerts@example.com", "to_email": "oncall@example.com", "subject": "{{ name | nofilter }}"}`},
+	// Blank entries of the recipient lists are left out
+	{name: "sendgrid_blank_recipients_down", sender: sendGrid, event: downEvent,
+		config: `{"api_key": "SG.key", "from_email": "alerts@example.com", "to_email": "oncall@example.com", "cc_email": " , a@example.com,, ", "bcc_email": " , "}`},
 
 	{name: "signal_down", sender: signal, event: downEvent,
 		config: `{"signal_url": "https://signal.example.com/v2/send", "signal_number": "+15550000001", "signal_recipients": "+15550000002, +15550000003"}`},
@@ -323,11 +514,31 @@ var goldenCases = []goldenCase{
 	{name: "slack_bot_rich_probe_online", sender: slack, event: probeOnlineEvent, response: `{"ok": true}`,
 		config: `{"slack_bot_token": "xoxb-token", "slack_channel": "#alerts", "slack_rich_message": true}`},
 
+	{name: "slack_webhook_up", sender: slack, event: upEvent,
+		config: `{"slack_webhook_url": "https://hooks.slack.com/services/T/B/X"}`},
+	{name: "slack_bot_down", sender: slack, event: downEvent, response: `{"ok": true}`,
+		config: `{"slack_bot_token": "xoxb-token", "slack_channel": "#alerts"}`},
+	{name: "slack_webhook_template_channel_notify_up", sender: slack, event: upEvent,
+		config: `{"slack_webhook_url": "https://hooks.slack.com/services/T/B/X", "use_template": true, "template": "{{ name }} is {{ status }}", "slack_channel_notify": true}`},
+	{name: "slack_webhook_with_template_turned_on_and_no_template_up", sender: slack, event: upEvent,
+		config: `{"slack_webhook_url": "https://hooks.slack.com/services/T/B/X", "use_template": true}`},
+	// Without a public URL, or a monitor, the message has no buttons
+	{name: "slack_webhook_rich_up_without_public_url", sender: slackNoLink, event: upEvent,
+		config: `{"slack_webhook_url": "https://hooks.slack.com/services/T/B/X", "slack_rich_message": true}`},
+	{name: "slack_webhook_rich_down_without_monitor", sender: slack, event: downWithoutMonitorEvent,
+		config: `{"slack_webhook_url": "https://hooks.slack.com/services/T/B/X", "slack_rich_message": true}`},
+
 	{name: "teams_down", sender: teams, event: downEvent,
 		config: `{"webhook_url": "https://example.powerplatform.com/workflows/1?sig=s"}`},
 	{name: "teams_certificate_expiry", sender: teams, event: certExpiryEvent,
 		config: `{"webhook_url": "https://example.powerplatform.com/workflows/1?sig=s", "server_url": "https://status.example.com"}`},
 	{name: "teams_probe_offline", sender: teams, event: probeOfflineEvent,
+		config: `{"webhook_url": "https://example.powerplatform.com/workflows/1?sig=s"}`},
+
+	{name: "teams_down_without_monitor", sender: teams, event: downWithoutMonitorEvent,
+		config: `{"webhook_url": "https://example.powerplatform.com/workflows/1?sig=s"}`},
+	{name: "teams_down_monitor_without_name", sender: teams,
+		notify: notifying(goldenDown.Msg, goldenMonitorWith(func(m *monitor.Model) { m.Name = "" }), goldenDown),
 		config: `{"webhook_url": "https://example.powerplatform.com/workflows/1?sig=s"}`},
 
 	{name: "telegram_down", sender: telegram, event: downEvent,
@@ -336,6 +547,16 @@ var goldenCases = []goldenCase{
 		config: `{"bot_token": "123456:bot-token", "chat_id": "-1001234", "message_thread_id": "7", "server_url": "https://telegram.example.com", "use_template": true, "template_parse_mode": "HTML", "template": "<b>{{ name }}</b> is {{ status }}", "send_silently": true, "protect_content": true}`},
 	{name: "telegram_certificate_expiry", sender: telegram, event: certExpiryEvent,
 		config: `{"bot_token": "123456:bot-token", "chat_id": "-1001234"}`},
+
+	// The template and its parse mode apply only with use_template on, and plain is no parse mode
+	{name: "telegram_template_turned_on_without_template_down", sender: telegram, event: downEvent,
+		config: `{"bot_token": "123456:bot-token", "chat_id": "-1001234", "use_template": true, "template_parse_mode": "HTML"}`},
+	{name: "telegram_plain_template_up", sender: telegram, event: upEvent,
+		config: `{"bot_token": "123456:bot-token", "chat_id": "-1001234", "use_template": true, "template_parse_mode": "plain", "template": "{{ name }} is {{ status }}"}`},
+	{name: "telegram_template_without_parse_mode_up", sender: telegram, event: upEvent,
+		config: `{"bot_token": "123456:bot-token", "chat_id": "-1001234", "use_template": true, "template": "{{ name }} is {{ status }}"}`},
+	{name: "telegram_parse_mode_without_template_down", sender: telegram, event: downEvent,
+		config: `{"bot_token": "123456:bot-token", "chat_id": "-1001234", "template_parse_mode": "HTML", "template": "{{ name }} is {{ status }}"}`},
 
 	{name: "twilio_down", sender: twilio, event: downEvent,
 		config: `{"twilio_account_sid": "AC123", "twilio_auth_token": "auth-token", "twilio_from_number": "+15550000001", "twilio_to_number": "+15550000002"}`},
@@ -356,6 +577,10 @@ var goldenCases = []goldenCase{
 	{name: "webhook_json_probe_online", sender: webhook, event: probeOnlineEvent,
 		config: `{"webhook_url": "https://hooks.example.com/peekaping", "webhook_content_type": "json"}`},
 
+	// Additional headers are set on the request
+	{name: "webhook_json_down_with_additional_headers", sender: webhook, event: downEvent,
+		config: `{"webhook_url": "https://hooks.example.com/peekaping", "webhook_content_type": "json", "webhook_additional_headers": "{\"X-Token\": \"abc\", \"X-Retries\": 3}"}`},
+
 	{name: "wecom_down", sender: weCom, event: downEvent,
 		config: `{"webhook_url": "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=k"}`},
 	{name: "wecom_certificate_expiry", sender: weCom, event: certExpiryEvent,
@@ -365,6 +590,19 @@ var goldenCases = []goldenCase{
 		config: `{"server_url": "https://waha.example.com/", "api_key": "waha-key", "phone_number": "+1 (555) 000-0002", "session": "default"}`},
 	{name: "whatsapp_template_up", sender: whatsApp, event: upEvent,
 		config: `{"server_url": "https://waha.example.com", "phone_number": "15550000002", "session": "default", "use_template": true, "template": "{{ status_icon }} {{ name }} is {{ status }}"}`},
+	// A message that can't be rendered is sent as it was written
+	{name: "whatsapp_custom_message_down", sender: whatsApp, event: downEvent,
+		config: `{"server_url": "https://waha.example.com", "phone_number": "15550000002", "session": "default", "custom_message": "{{ name }} is {{ status }}"}`},
+	{name: "whatsapp_invalid_templates_down", sender: whatsApp, event: downEvent,
+		config: `{"server_url": "https://waha.example.com", "phone_number": "15550000002", "session": "default", "custom_message": "{{ name | nofilter }}", "use_template": true, "template": "{{ name | nofilter }}"}`},
+	{name: "whatsapp_template_turned_on_without_template_down", sender: whatsApp, event: downEvent,
+		config: `{"server_url": "https://waha.example.com", "phone_number": "15550000002", "session": "default", "use_template": true}`},
+	// The answer of the server doesn't matter once it is a success, whether or not it is JSON
+	{name: "whatsapp_down_answered_with_success", sender: whatsApp, event: downEvent, response: `{"success": true}`,
+		config: `{"server_url": "https://waha.example.com", "phone_number": "15550000002", "session": "default"}`},
+	{name: "whatsapp_down_answered_with_text", sender: whatsApp, event: downEvent, response: `OK`,
+		config: `{"server_url": "https://waha.example.com", "phone_number": "15550000002", "session": "default"}`},
+
 	{name: "whatsapp_certificate_expiry", sender: whatsApp, event: certExpiryEvent,
 		config: `{"server_url": "https://waha.example.com", "phone_number": "15550000002", "session": "default"}`},
 }
@@ -386,7 +624,7 @@ func TestSendGoldenRequests(t *testing.T) {
 			transport := &recordingTransport{endpoint: endpoint}
 
 			sender := tc.sender(&http.Client{Transport: transport})
-			message, mon, hb := goldenNotification(tc.event)
+			message, mon, hb := tc.notification()
 			require.NoError(t, sender.Validate(tc.config), "the case's config must pass validation, as the listener checks it first")
 			require.NoError(t, sender.Send(context.Background(), tc.config, message, mon, hb))
 
@@ -409,7 +647,7 @@ func TestSendStopsWhenContextIsDone(t *testing.T) {
 			ctx, cancel := context.WithCancel(context.Background())
 			cancel()
 
-			message, mon, hb := goldenNotification(tc.event)
+			message, mon, hb := tc.notification()
 			err := tc.sender(&http.Client{Transport: transport}).Send(ctx, tc.config, message, mon, hb)
 
 			assert.False(t, reached.Load(), "the request must not reach the endpoint once the context is done")
@@ -479,6 +717,10 @@ func goldenNotification(event goldenEvent) (string, *monitor.Model, *heartbeat.M
 		return goldenProbeOfflineMessage, goldenProbeOffline, nil
 	case probeOnlineEvent:
 		return goldenProbeOnlineMessage, goldenProbeOnline, nil
+	case pendingEvent:
+		return goldenPending.Msg, goldenMonitor, goldenPending
+	case downWithoutMonitorEvent:
+		return goldenDown.Msg, nil, goldenDown
 	default:
 		return goldenDown.Msg, goldenMonitor, goldenDown
 	}

@@ -91,28 +91,45 @@ func clientOrigin(clientURL string) (string, error) {
 // port unless it is the scheme's default (80 for http, 443 for https), which a browser leaves out.
 func originOf(u *url.URL) (origin string, ok bool) {
 	scheme := strings.ToLower(u.Scheme)
-	host := strings.ToLower(u.Hostname())
-	if (scheme != "http" && scheme != "https") || host == "" {
+	defaultPort, web := defaultPorts[scheme]
+	host := originHost(u)
+	port, validPort := originPort(u)
+	if !web || host == "" || !validPort {
 		return "", false
 	}
-	if strings.Contains(host, ":") { // an IPv6 address
-		host = "[" + host + "]"
-	}
-	if strings.HasSuffix(u.Host, ":") { // a colon with no port after it
-		return "", false
-	}
-	port := u.Port()
-	if port != "" {
-		n, err := strconv.Atoi(port)
-		if err != nil || n < 1 || n > 65535 {
-			return "", false
-		}
-		port = strconv.Itoa(n) // 080 is 80
-	}
-	if port == "" || (scheme == "http" && port == "80") || (scheme == "https" && port == "443") {
+	if port == "" || port == defaultPort {
 		return scheme + "://" + host, true
 	}
 	return scheme + "://" + host + ":" + port, true
+}
+
+// defaultPorts are the schemes of an origin, with the port a browser leaves out for each
+var defaultPorts = map[string]string{"http": "80", "https": "443"}
+
+// originHost is the host of u in lowercase, an IPv6 address in brackets, or "" for none
+func originHost(u *url.URL) string {
+	host := strings.ToLower(u.Hostname())
+	if strings.Contains(host, ":") { // an IPv6 address
+		host = "[" + host + "]"
+	}
+	return host
+}
+
+// originPort is the port of u without leading zeros, or "" for none. It is not ok for a colon with
+// no port after it, and for a port that isn't from 1 to 65535.
+func originPort(u *url.URL) (port string, ok bool) {
+	if strings.HasSuffix(u.Host, ":") { // a colon with no port after it
+		return "", false
+	}
+	port = u.Port()
+	if port == "" {
+		return "", true
+	}
+	n, err := strconv.Atoi(port)
+	if err != nil || n < 1 || n > 65535 {
+		return "", false
+	}
+	return strconv.Itoa(n), true // 080 is 80
 }
 
 // AllowOrigin returns the Access-Control-Allow-Origin value for a request from origin, or ""

@@ -121,45 +121,68 @@ func (t *redisTransport) Publish(ctx context.Context, msg events.Message) error 
 func (t *redisTransport) Subscribe(topic string) {
 	channel := t.channel(topic)
 
-	t.mu.Lock()
-	if t.closed || t.channels[channel] {
-		t.mu.Unlock()
+	added, ok := t.addChannel(channel)
+	if !ok {
 		return
 	}
-	t.channels[channel] = true
-	pubsub := t.pubsub
-	start := !t.started
-	t.started = true
-	// Waiting only makes sense on the first attempt or on a connection Redis has answered on
-	wait := start || t.connected
-	var confirmed chan struct{}
-	if wait {
-		confirmed = make(chan struct{})
-		t.pending[channel] = confirmed
-	}
-	if start {
-		t.wg.Add(1) // under mu, and Close sets closed under mu before it waits
-	}
-	t.mu.Unlock()
 
 	switch {
-	case start:
+	case added.start:
 		go t.run()
-	case pubsub != nil:
-		// A failed write means the connection is broken, and the next attempt subscribes to it
-		if err := pubsub.Subscribe(t.ctx, channel); err != nil {
-			t.logger.Warnw("Failed to subscribe to a Redis channel on the live connection", "channel", channel, "error", err)
-		}
+	case added.pubsub != nil:
+		t.subscribeLive(added.pubsub, channel)
 	}
-	if !wait {
+	if !added.wait {
 		return
 	}
 
 	select {
-	case <-confirmed:
+	case <-added.confirmed:
 	case <-time.After(t.subscribeWait):
 		t.logger.Warnw("Redis has not confirmed the subscription yet, carrying on", "channel", channel)
 	case <-t.ctx.Done():
+	}
+}
+
+// addedChannel is what Subscribe needs to know of a channel addChannel has recorded
+type addedChannel struct {
+	pubsub *redis.PubSub // the live subscription at that moment, nil between attempts
+	start  bool          // this is the first channel, so Subscribe starts the run loop
+	wait   bool          // Subscribe waits for confirmed
+	// confirmed is closed once Redis has confirmed the channel, or the attempt failed. Nil if wait is false.
+	confirmed chan struct{}
+}
+
+// addChannel records channel to subscribe to. It is not ok when the transport is closed or the
+// channel is already recorded, and then Subscribe has nothing to do.
+func (t *redisTransport) addChannel(channel string) (added addedChannel, ok bool) {
+	t.mu.Lock()
+	if t.closed || t.channels[channel] {
+		t.mu.Unlock()
+		return addedChannel{}, false
+	}
+	t.channels[channel] = true
+	added.pubsub = t.pubsub
+	added.start = !t.started
+	t.started = true
+	// Waiting only makes sense on the first attempt or on a connection Redis has answered on
+	added.wait = added.start || t.connected
+	if added.wait {
+		added.confirmed = make(chan struct{})
+		t.pending[channel] = added.confirmed
+	}
+	if added.start {
+		t.wg.Add(1) // under mu, and Close sets closed under mu before it waits
+	}
+	t.mu.Unlock()
+	return added, true
+}
+
+// subscribeLive subscribes to channel on the live connection
+func (t *redisTransport) subscribeLive(pubsub *redis.PubSub, channel string) {
+	// A failed write means the connection is broken, and the next attempt subscribes to it
+	if err := pubsub.Subscribe(t.ctx, channel); err != nil {
+		t.logger.Warnw("Failed to subscribe to a Redis channel on the live connection", "channel", channel, "error", err)
 	}
 }
 
@@ -227,39 +250,57 @@ func (t *redisTransport) subscribeOnce(retry bool) (subscribed bool, err error) 
 		return false, err
 	}
 
+	return t.receive(pubsub, retry)
+}
+
+// receive delivers the messages of a pub/sub connection until it fails, and reports whether Redis
+// confirmed a subscription. A connection silent for a while is pinged.
+func (t *redisTransport) receive(pubsub *redis.PubSub, retry bool) (subscribed bool, err error) {
 	awaitingPong := false
 	for {
 		received, err := pubsub.ReceiveTimeout(t.ctx, t.healthInterval)
 		if err != nil {
-			var netErr net.Error
-			if errors.As(err, &netErr) && netErr.Timeout() && t.ctx.Err() == nil {
-				// Silent for a while. Redis answers a ping at once, so a second silence is a dead connection.
-				if awaitingPong {
-					return subscribed, errors.New("no answer to a ping")
-				}
-				if err := pubsub.Ping(t.ctx); err != nil {
-					return subscribed, err
-				}
-				awaitingPong = true
-				continue
+			if !t.silent(err) {
+				return subscribed, err
 			}
-			return subscribed, err
+			// Silent for a while. Redis answers a ping at once, so a second silence is a dead connection.
+			if awaitingPong {
+				return subscribed, errors.New("no answer to a ping")
+			}
+			if err := pubsub.Ping(t.ctx); err != nil {
+				return subscribed, err
+			}
+			awaitingPong = true
+			continue
 		}
 		awaitingPong = false
 
-		switch msg := received.(type) {
-		case *redis.Subscription:
-			if msg.Kind == "subscribe" {
-				if !subscribed && retry {
-					t.logger.Infow("Resubscribed to Redis events")
-				}
-				subscribed = true
-				t.confirm(msg.Channel)
-			}
-		case *redis.Message:
-			t.handle(msg)
-		}
+		subscribed = t.onReceive(received, subscribed, retry)
 	}
+}
+
+// silent reports whether err is a receive that timed out on a transport that is still open
+func (t *redisTransport) silent(err error) bool {
+	var netErr net.Error
+	return errors.As(err, &netErr) && netErr.Timeout() && t.ctx.Err() == nil
+}
+
+// onReceive handles what a pub/sub connection received, and returns whether Redis has confirmed a
+// subscription by now
+func (t *redisTransport) onReceive(received any, subscribed, retry bool) bool {
+	switch msg := received.(type) {
+	case *redis.Subscription:
+		if msg.Kind == "subscribe" {
+			if !subscribed && retry {
+				t.logger.Infow("Resubscribed to Redis events")
+			}
+			subscribed = true
+			t.confirm(msg.Channel)
+		}
+	case *redis.Message:
+		t.handle(msg)
+	}
+	return subscribed
 }
 
 // confirm marks the connection up and releases the Subscribe call waiting for channel.
