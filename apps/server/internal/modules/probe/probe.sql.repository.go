@@ -341,15 +341,8 @@ WHERE probe_instances.probe_id = EXCLUDED.probe_id`,
 // MARK: MakeRoomForInstance
 func (r *SQLRepositoryImpl) MakeRoomForInstance(ctx context.Context, probeID string, instanceID string, limit int, quietBefore time.Time) error {
 	db := dbtx.DB(ctx, r.db)
-	if r.db.Dialect().Name() == dialect.PG {
-		// Two hellos at once must not both count 63 rows and each take the last place. The lock
-		// on the probe's row makes the second wait for the first to commit. SQLite needs none:
-		// its transactions begin immediate, on one connection.
-		var locked string
-		err := db.NewSelect().Model((*sqlModel)(nil)).Column("id").Where("id = ?", probeID).For("UPDATE").Scan(ctx, &locked)
-		if err != nil && !errors.Is(err, sql.ErrNoRows) {
-			return err
-		}
+	if err := r.lockProbe(ctx, db, probeID); err != nil {
+		return err
 	}
 	held, err := db.NewSelect().Model((*sqlInstance)(nil)).Where("probe_id = ?", probeID).Count(ctx)
 	if err != nil {
@@ -369,34 +362,57 @@ func (r *SQLRepositoryImpl) MakeRoomForInstance(ctx context.Context, probeID str
 	// picked for the places still missing. When no quiet one is left, the hello is refused: the
 	// transaction then rolls back what was deleted and adds nothing.
 	for needed > 0 {
-		var oldest []string
-		err = db.NewSelect().Model((*sqlInstance)(nil)).Column("id").
-			Where("probe_id = ?", probeID).
-			Where("last_seen_at < ?", quietBefore.UTC()).
-			OrderExpr("last_seen_at ASC, id ASC").
-			Limit(needed).
-			Scan(ctx, &oldest)
+		deleted, err := deleteQuietest(ctx, db, probeID, quietBefore, needed)
 		if err != nil {
 			return err
 		}
-		if len(oldest) < needed {
-			return ErrTooManyInstances
-		}
-		result, err := db.NewDelete().Model((*sqlInstance)(nil)).
-			Where("id IN (?)", bun.In(oldest)).
-			Where("probe_id = ?", probeID).
-			Where("last_seen_at < ?", quietBefore.UTC()).
-			Exec(ctx)
-		if err != nil {
-			return err
-		}
-		deleted, err := result.RowsAffected()
-		if err != nil {
-			return err
-		}
-		needed -= int(deleted)
+		needed -= deleted
 	}
 	return nil
+}
+
+// lockProbe locks the probe's row on PostgreSQL, and does nothing on SQLite
+func (r *SQLRepositoryImpl) lockProbe(ctx context.Context, db bun.IDB, probeID string) error {
+	if r.db.Dialect().Name() != dialect.PG {
+		return nil
+	}
+	// Two hellos at once must not both count 63 rows and each take the last place. The lock
+	// on the probe's row makes the second wait for the first to commit. SQLite needs none:
+	// its transactions begin immediate, on one connection.
+	var locked string
+	err := db.NewSelect().Model((*sqlModel)(nil)).Column("id").Where("id = ?", probeID).For("UPDATE").Scan(ctx, &locked)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return err
+	}
+	return nil
+}
+
+// deleteQuietest deletes the needed oldest instances of the probe that are quiet since quietBefore,
+// and returns how many it did. It returns ErrTooManyInstances when fewer than needed are quiet.
+func deleteQuietest(ctx context.Context, db bun.IDB, probeID string, quietBefore time.Time, needed int) (int, error) {
+	var oldest []string
+	err := db.NewSelect().Model((*sqlInstance)(nil)).Column("id").
+		Where("probe_id = ?", probeID).
+		Where("last_seen_at < ?", quietBefore.UTC()).
+		OrderExpr("last_seen_at ASC, id ASC").
+		Limit(needed).
+		Scan(ctx, &oldest)
+	if err != nil {
+		return 0, err
+	}
+	if len(oldest) < needed {
+		return 0, ErrTooManyInstances
+	}
+	result, err := db.NewDelete().Model((*sqlInstance)(nil)).
+		Where("id IN (?)", bun.In(oldest)).
+		Where("probe_id = ?", probeID).
+		Where("last_seen_at < ?", quietBefore.UTC()).
+		Exec(ctx)
+	if err != nil {
+		return 0, err
+	}
+	deleted, err := result.RowsAffected()
+	return int(deleted), err
 }
 
 // MARK: TouchInstance

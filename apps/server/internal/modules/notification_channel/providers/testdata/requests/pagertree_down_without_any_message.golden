@@ -1,0 +1,21 @@
+POST https://api.pagertree.com/integration/int_123
+Content-Type: application/json
+
+{
+  "event_type": "create",
+  "id": "monitor-mon-1",
+  "title": "Monitor Public API is DOWN",
+  "description": "Monitor Public API status changed - Last checked: 2026-10-17T09:30:00Z",
+  "urgency": "medium",
+  "tags": [
+    "peekaping",
+    "monitor-type:http"
+  ],
+  "meta": {
+    "monitor_id": "mon-1",
+    "monitor_name": "Public API",
+    "monitor_type": "http",
+    "monitor_url": "https://api.example.com/health",
+    "status": 0
+  }
+}

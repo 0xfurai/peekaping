@@ -1,6 +1,7 @@
 package status_page
 
 import (
+	"peekaping/internal/modules/domain_status_page"
 	"peekaping/internal/modules/shared"
 	"time"
 )
@@ -106,4 +107,12 @@ type MonitorWithHeartbeatsAndUptimeDTO struct {
 	// Locations are listed only when the status page shows them and the monitor runs on more than
 	// one probe.
 	Locations []*PublicLocationDTO `json:"locations,omitempty" doc:"One entry for each probe the monitor runs on, local first and then by name. Present only when the status page shows locations and the monitor runs on more than one probe."`
+}
+
+// DomainStatusesDTO is the custom domains of a status page with their verification state (PP-165)
+type DomainStatusesDTO struct {
+	// VerificationRequired is whether the install makes a domain prove it points at Peekaping
+	// before it serves (VERIFY_CUSTOM_DOMAINS). When it is off, a pending domain serves all the same.
+	VerificationRequired bool                         `json:"verificationRequired"`
+	Domains              []*domain_status_page.Status `json:"domains" nullable:"false"`
 }

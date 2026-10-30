@@ -31,56 +31,90 @@ func (e *Elector) RunWhileLeader(ctx context.Context, name string, every time.Du
 // runWhileLeader is RunWhileLeader with a look at each value that comes from looks, which a test
 // sends when it wants one
 func (e *Elector) runWhileLeader(ctx context.Context, name string, looks <-chan time.Time, fn func(ctx context.Context) error) {
-	var (
-		cancel   context.CancelFunc // ends the run of fn; nil while fn isn't running
-		returned chan error         // gets what fn returned; nil while fn isn't running
-		runTerm  uint64             // the term of leadership that fn was last started in
-		done     bool               // fn returned nil in runTerm
-	)
-	// stop ends the run of fn and waits for it
-	stop := func() {
-		cancel()
-		<-returned
-		cancel, returned = nil, nil
-	}
+	job := &leaderJob{elector: e, name: name, fn: fn}
 
 	for {
 		select {
 		case <-ctx.Done():
-			if cancel != nil {
-				e.logger.Infof("Context cancelled, stopping %s", name)
-				stop()
-			}
+			job.onContextDone()
 			return
-		case err := <-returned:
-			cancel()
-			cancel, returned = nil, nil
-			switch {
-			case ctx.Err() != nil:
-				// Stopping, which is why fn failed: the next turn of the loop returns
-			case err != nil:
-				e.logger.Errorw("Failed to run "+name, "error", err)
-			default:
-				done = true
-			}
+		case err := <-job.returned:
+			job.onReturned(ctx, err)
 		case <-looks:
-			leads, term := e.leadership()
-			if cancel != nil && (!leads || term != runTerm) {
-				e.logger.Infof("Lost leadership, stopping %s", name)
-				stop()
-			}
-			if term != runTerm {
-				done = false
-			}
-			if leads && cancel == nil && !done {
-				e.logger.Infof("Starting %s as leader", name)
-				var runCtx context.Context
-				runCtx, cancel = context.WithCancel(ctx)
-				runTerm = term
-				result := make(chan error, 1)
-				returned = result
-				reporting.Go("leader", func() { result <- fn(runCtx) })
-			}
+			job.onLook(ctx)
 		}
 	}
+}
+
+// leaderJob is the state of the job runWhileLeader runs
+type leaderJob struct {
+	elector *Elector
+	name    string
+	fn      func(ctx context.Context) error
+
+	cancel   context.CancelFunc // ends the run of fn; nil while fn isn't running
+	returned chan error         // gets what fn returned; nil while fn isn't running
+	runTerm  uint64             // the term of leadership that fn was last started in
+	done     bool               // fn returned nil in runTerm
+}
+
+// stop ends the run of fn and waits for it
+func (j *leaderJob) stop() {
+	j.cancel()
+	<-j.returned
+	j.cancel, j.returned = nil, nil
+}
+
+// onContextDone ends the run of fn, if there is one, when the caller's context is done
+func (j *leaderJob) onContextDone() {
+	if j.cancel != nil {
+		j.elector.logger.Infof("Context cancelled, stopping %s", j.name)
+		j.stop()
+	}
+}
+
+// onReturned takes what fn returned: an error is logged, and nil makes the job done in its term
+func (j *leaderJob) onReturned(ctx context.Context, err error) {
+	j.cancel()
+	j.cancel, j.returned = nil, nil
+	switch {
+	case ctx.Err() != nil:
+		// Stopping, which is why fn failed: the next turn of the loop returns
+	case err != nil:
+		j.elector.logger.Errorw("Failed to run "+j.name, "error", err)
+	default:
+		j.done = true
+	}
+}
+
+// onLook looks at the node's leadership: it ends a run of fn that the node no longer leads for, and
+// starts fn when the node leads and fn isn't running or done
+func (j *leaderJob) onLook(ctx context.Context) {
+	leads, term := j.elector.leadership()
+	if j.lostLeadership(leads, term) {
+		j.elector.logger.Infof("Lost leadership, stopping %s", j.name)
+		j.stop()
+	}
+	if term != j.runTerm {
+		j.done = false
+	}
+	if leads && j.cancel == nil && !j.done {
+		j.start(ctx, term)
+	}
+}
+
+// lostLeadership is whether fn runs for a term of leadership that is over
+func (j *leaderJob) lostLeadership(leads bool, term uint64) bool {
+	return j.cancel != nil && (!leads || term != j.runTerm)
+}
+
+// start runs fn in a goroutine, for the term, with a context that ends the run
+func (j *leaderJob) start(ctx context.Context, term uint64) {
+	j.elector.logger.Infof("Starting %s as leader", j.name)
+	var runCtx context.Context
+	runCtx, j.cancel = context.WithCancel(ctx)
+	j.runTerm = term
+	result := make(chan error, 1)
+	j.returned = result
+	reporting.Go("leader", func() { result <- j.fn(runCtx) })
 }

@@ -161,19 +161,7 @@ func (s *HostSpacer) Reserve(hosts []string, maxWait time.Duration) Turn {
 	now := s.now()
 	s.sweep(now)
 
-	held := make(map[string]struct{}, len(hosts))
-	names := make([]string, 0, len(hosts))
-	for _, host := range hosts {
-		host = normalizeHost(host)
-		if host == "" {
-			continue
-		}
-		if _, dup := held[host]; dup {
-			continue
-		}
-		held[host] = struct{}{}
-		names = append(names, host)
-	}
+	names, held := distinctHosts(hosts)
 	if len(names) == 0 {
 		return Turn{}
 	}
@@ -190,22 +178,51 @@ func (s *HostSpacer) Reserve(hosts []string, maxWait time.Duration) Turn {
 	}
 
 	if longest > maxWait {
-		// No turn was taken yet, so there is none to give back
-		bucket := buckets[farthest]
-		bucket.skipped++
-		turn := Turn{Denied: true, Host: names[farthest]}
-		if now.Sub(bucket.reportedAt) >= skipReportEvery {
-			turn.ReportSkipped, bucket.skipped, bucket.reportedAt = bucket.skipped, 0, now
-		}
-		return turn
+		return denyTurn(buckets[farthest], names[farthest], now)
 	}
 
-	next := now.Add(longest).Add(intervalOf(s.perMinute))
+	return s.takeTurns(buckets, longest, now)
+}
+
+// distinctHosts normalizes the hosts and leaves out the blank ones and the repeated ones. It
+// returns them in order, and as a set.
+func distinctHosts(hosts []string) ([]string, map[string]struct{}) {
+	held := make(map[string]struct{}, len(hosts))
+	names := make([]string, 0, len(hosts))
+	for _, host := range hosts {
+		host = normalizeHost(host)
+		if host == "" {
+			continue
+		}
+		if _, dup := held[host]; dup {
+			continue
+		}
+		held[host] = struct{}{}
+		names = append(names, host)
+	}
+	return names, held
+}
+
+// denyTurn is the turn of a check that is skipped because the turn on the host, whose bucket it
+// is, is too far away
+func denyTurn(bucket *hostBucket, host string, now time.Time) Turn {
+	// No turn was taken yet, so there is none to give back
+	bucket.skipped++
+	turn := Turn{Denied: true, Host: host}
+	if now.Sub(bucket.reportedAt) >= skipReportEvery {
+		turn.ReportSkipped, bucket.skipped, bucket.reportedAt = bucket.skipped, 0, now
+	}
+	return turn
+}
+
+// takeTurns takes a turn on each bucket, after the wait. The caller holds mu.
+func (s *HostSpacer) takeTurns(buckets []*hostBucket, wait time.Duration, now time.Time) Turn {
+	next := now.Add(wait).Add(intervalOf(s.perMinute))
 	before := make([]time.Time, len(buckets))
 	for i, bucket := range buckets {
 		before[i], bucket.nextTurn = bucket.nextTurn, next
 	}
-	return Turn{Wait: longest, release: func() {
+	return Turn{Wait: wait, release: func() {
 		s.mu.Lock()
 		defer s.mu.Unlock()
 		for i, bucket := range buckets {

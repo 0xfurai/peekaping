@@ -57,6 +57,7 @@ func TestProviderRegistry_CheckTargetsLetsAThroughWhatItCannotJudge(t *testing.T
 		"a link the channel only sends along": {"teams", `{"webhook_url":"https://corp.webhook.office.com/x","server_url":"http://127.0.0.1"}`},
 		"a smtp host that is a name":          {"smtp", `{"smtp_host":"smtp.example.com","smtp_port":587}`},
 		"a config that is not JSON":           {"webhook", `nope`},
+		"a URL that doesn't parse":            {"webhook", `{"webhook_url":"http://[::1","webhook_content_type":"json"}`},
 		"an unknown type":                     {"carrier-pigeon", `{"webhook_url":"http://127.0.0.1"}`},
 		"the install email channel":           {"install_email", `{"to":"a@example.com"}`},
 	} {
@@ -90,4 +91,41 @@ func TestProviderRegistry_EveryEndpointThatIsAddressedByNameIsATarget(t *testing
 			assert.NotEmpty(t, field.Tag.Get("target"), "%s.%s is an endpoint with no target tag", channelType, field.Name)
 		}
 	}
+}
+
+// targetTestProvider is a provider whose config is whatever unmarshal returns
+type targetTestProvider struct {
+	NotificationChannelProvider
+	unmarshal func(config string) (any, error)
+}
+
+func (p targetTestProvider) Unmarshal(config string) (any, error) { return p.unmarshal(config) }
+
+type targetTestConfig struct {
+	Port int    `json:"port" target:"host"`
+	Host string `json:"host" target:"host"`
+}
+
+// What the check cannot read as a struct of strings it lets through, and it goes on to the targets
+// after it
+func TestProviderRegistry_CheckTargetsLetsThroughAConfigItCannotRead(t *testing.T) {
+	provider := targetTestProvider{unmarshal: func(config string) (any, error) {
+		switch config {
+		case "null":
+			return nil, nil
+		case "list":
+			return []string{"127.0.0.1"}, nil
+		default:
+			return &targetTestConfig{Port: 25, Host: "127.0.0.1"}, nil
+		}
+	}}
+	registry := &ProviderRegistry{byType: map[string]NotificationChannelProvider{"test-targets": provider}, guard: netguard.New(true)}
+
+	assert.NoError(t, registry.CheckTargets("test-targets", "null"))
+	assert.NoError(t, registry.CheckTargets("test-targets", "list"))
+
+	// A target that is not a string is skipped, and the host after it is checked
+	var blocked *netguard.TargetError
+	require.True(t, errors.As(registry.CheckTargets("test-targets", "{}"), &blocked))
+	assert.Equal(t, "127.0.0.1", blocked.Host)
 }

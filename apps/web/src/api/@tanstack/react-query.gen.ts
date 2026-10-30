@@ -94,9 +94,12 @@ import {
   getStatusPages,
   postStatusPages,
   getStatusPagesDomainByDomain,
+  getStatusPagesDomainsById,
+  postStatusPagesDomainsByIdByDomainVerify,
   getStatusPagesSlugBySlug,
   getStatusPagesSlugBySlugMonitors,
   getStatusPagesSlugBySlugMonitorsHomepage,
+  getStatusPagesTlsAsk,
   deleteStatusPagesById,
   getStatusPagesById,
   patchStatusPagesById,
@@ -349,9 +352,14 @@ import type {
   PostStatusPagesError,
   PostStatusPagesResponse,
   GetStatusPagesDomainByDomainData,
+  GetStatusPagesDomainsByIdData,
+  PostStatusPagesDomainsByIdByDomainVerifyData,
+  PostStatusPagesDomainsByIdByDomainVerifyError,
+  PostStatusPagesDomainsByIdByDomainVerifyResponse,
   GetStatusPagesSlugBySlugData,
   GetStatusPagesSlugBySlugMonitorsData,
   GetStatusPagesSlugBySlugMonitorsHomepageData,
+  GetStatusPagesTlsAskData,
   DeleteStatusPagesByIdData,
   DeleteStatusPagesByIdError,
   DeleteStatusPagesByIdResponse,
@@ -3874,6 +3882,84 @@ export const getStatusPagesDomainByDomainOptions = (
   });
 };
 
+export const getStatusPagesDomainsByIdQueryKey = (
+  options: Options<GetStatusPagesDomainsByIdData>
+) => createQueryKey("getStatusPagesDomainsById", options);
+
+/**
+ * Get the custom domains of a status page with their verification state
+ * Each domain's state (verified or pending), when it was last checked, when its records went missing (failingSince), when a pending domain is removed from the page (removeAt) and the DNS records that verify it: a TXT record, or a CNAME to the install (null when the install has no host to point at). verificationRequired says whether a pending domain is held back from serving (VERIFY_CUSTOM_DOMAINS). Any member of the workspace may ask.
+ */
+export const getStatusPagesDomainsByIdOptions = (
+  options: Options<GetStatusPagesDomainsByIdData>
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getStatusPagesDomainsById({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getStatusPagesDomainsByIdQueryKey(options),
+  });
+};
+
+export const postStatusPagesDomainsByIdByDomainVerifyQueryKey = (
+  options: Options<PostStatusPagesDomainsByIdByDomainVerifyData>
+) => createQueryKey("postStatusPagesDomainsByIdByDomainVerify", options);
+
+/**
+ * Check a custom domain's DNS records now
+ * Looks up the domain's TXT record and CNAME right away, whether verification is on or not, and answers the domain's state after the check. Answers 404 when the page is not in the workspace or does not list the domain. A check never removes a domain: one that stayed pending for 7 days is removed by the scheduled check.
+ */
+export const postStatusPagesDomainsByIdByDomainVerifyOptions = (
+  options: Options<PostStatusPagesDomainsByIdByDomainVerifyData>
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await postStatusPagesDomainsByIdByDomainVerify({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: postStatusPagesDomainsByIdByDomainVerifyQueryKey(options),
+  });
+};
+
+/**
+ * Check a custom domain's DNS records now
+ * Looks up the domain's TXT record and CNAME right away, whether verification is on or not, and answers the domain's state after the check. Answers 404 when the page is not in the workspace or does not list the domain. A check never removes a domain: one that stayed pending for 7 days is removed by the scheduled check.
+ */
+export const postStatusPagesDomainsByIdByDomainVerifyMutation = (
+  options?: Partial<Options<PostStatusPagesDomainsByIdByDomainVerifyData>>
+): UseMutationOptions<
+  PostStatusPagesDomainsByIdByDomainVerifyResponse,
+  AxiosError<PostStatusPagesDomainsByIdByDomainVerifyError>,
+  Options<PostStatusPagesDomainsByIdByDomainVerifyData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PostStatusPagesDomainsByIdByDomainVerifyResponse,
+    AxiosError<PostStatusPagesDomainsByIdByDomainVerifyError>,
+    Options<PostStatusPagesDomainsByIdByDomainVerifyData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await postStatusPagesDomainsByIdByDomainVerify({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
 export const getStatusPagesSlugBySlugQueryKey = (
   options: Options<GetStatusPagesSlugBySlugData>
 ) => createQueryKey("getStatusPagesSlugBySlug", options);
@@ -3946,6 +4032,31 @@ export const getStatusPagesSlugBySlugMonitorsHomepageOptions = (
       return data;
     },
     queryKey: getStatusPagesSlugBySlugMonitorsHomepageQueryKey(options),
+  });
+};
+
+export const getStatusPagesTlsAskQueryKey = (
+  options: Options<GetStatusPagesTlsAskData>
+) => createQueryKey("getStatusPagesTlsAsk", options);
+
+/**
+ * Ask whether a host may get a certificate
+ * For Caddy's on_demand_tls ask option: 200 with no body when the domain is on a status page's custom domain list, published or not, and 404 when it is not. With VERIFY_CUSTOM_DOMAINS on, a domain on the list must also be verified, and a pending one answers 404. The domain is compared in lower case and without a trailing dot. It reveals nothing beyond yes or no.
+ */
+export const getStatusPagesTlsAskOptions = (
+  options: Options<GetStatusPagesTlsAskData>
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getStatusPagesTlsAsk({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getStatusPagesTlsAskQueryKey(options),
   });
 };
 

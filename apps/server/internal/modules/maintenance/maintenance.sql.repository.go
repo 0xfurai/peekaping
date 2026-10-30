@@ -208,62 +208,11 @@ func (r *SQLRepositoryImpl) UpdatePartial(ctx context.Context, workspaceID works
 
 	hasUpdates := false
 
-	if entity.Title != nil {
-		query = query.Set("title = ?", *entity.Title)
-		hasUpdates = true
-	}
-	if entity.Description != nil {
-		query = query.Set("description = ?", *entity.Description)
-		hasUpdates = true
-	}
-	if entity.Active != nil {
-		query = query.Set("active = ?", *entity.Active)
-		hasUpdates = true
-	}
-	if entity.Strategy != nil {
-		query = query.Set("strategy = ?", *entity.Strategy)
-		hasUpdates = true
-	}
-	if entity.StartDateTime != nil {
-		query = query.Set("start_date_time = ?", *entity.StartDateTime)
-		hasUpdates = true
-	}
-	if entity.EndDateTime != nil {
-		query = query.Set("end_date_time = ?", *entity.EndDateTime)
-		hasUpdates = true
-	}
-	if entity.StartTime != nil {
-		query = query.Set("start_time = ?", *entity.StartTime)
-		hasUpdates = true
-	}
-	if entity.EndTime != nil {
-		query = query.Set("end_time = ?", *entity.EndTime)
-		hasUpdates = true
-	}
-	if entity.Weekdays != nil {
-		weekdaysJSON, _ := json.Marshal(entity.Weekdays)
-		query = query.Set("weekdays = ?", string(weekdaysJSON))
-		hasUpdates = true
-	}
-	if entity.DaysOfMonth != nil {
-		daysOfMonthJSON, _ := json.Marshal(entity.DaysOfMonth)
-		query = query.Set("days_of_month = ?", string(daysOfMonthJSON))
-		hasUpdates = true
-	}
-	if entity.IntervalDay != nil {
-		query = query.Set("interval_day = ?", *entity.IntervalDay)
-		hasUpdates = true
-	}
-	if entity.Cron != nil {
-		query = query.Set("cron = ?", *entity.Cron)
-		hasUpdates = true
-	}
-	if entity.Timezone != nil {
-		query = query.Set("timezone = ?", *entity.Timezone)
-		hasUpdates = true
-	}
-	if entity.Duration != nil {
-		query = query.Set("duration = ?", *entity.Duration)
+	for _, column := range partialColumns(entity) {
+		if column.value == nil {
+			continue
+		}
+		query = query.Set(column.name+" = ?", column.value)
 		hasUpdates = true
 	}
 
@@ -278,6 +227,50 @@ func (r *SQLRepositoryImpl) UpdatePartial(ctx context.Context, workspaceID works
 	}
 
 	return r.requireWindow(ctx, workspaceID, id)
+}
+
+// columnValue is a column of a partial update, with the value the update gives it: nil when the
+// update leaves the column out
+type columnValue struct {
+	name  string
+	value any
+}
+
+// partialColumns are the columns of a partial update, in the order they are set
+func partialColumns(entity *UpdateModel) []columnValue {
+	return []columnValue{
+		{"title", given(entity.Title)},
+		{"description", given(entity.Description)},
+		{"active", given(entity.Active)},
+		{"strategy", given(entity.Strategy)},
+		{"start_date_time", given(entity.StartDateTime)},
+		{"end_date_time", given(entity.EndDateTime)},
+		{"start_time", given(entity.StartTime)},
+		{"end_time", given(entity.EndTime)},
+		{"weekdays", jsonList(entity.Weekdays)},
+		{"days_of_month", jsonList(entity.DaysOfMonth)},
+		{"interval_day", given(entity.IntervalDay)},
+		{"cron", given(entity.Cron)},
+		{"timezone", given(entity.Timezone)},
+		{"duration", given(entity.Duration)},
+	}
+}
+
+// given is the value a pointer points to, nil if it points to none
+func given[T any](p *T) any {
+	if p == nil {
+		return nil
+	}
+	return *p
+}
+
+// jsonList is a list as the JSON string it is stored as, nil if there is no list
+func jsonList(list []int) any {
+	if list == nil {
+		return nil
+	}
+	listJSON, _ := json.Marshal(list)
+	return string(listJSON)
 }
 
 func (r *SQLRepositoryImpl) Delete(ctx context.Context, workspaceID workspace.ID, id string) error {

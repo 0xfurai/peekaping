@@ -82,6 +82,10 @@ type ServiceImpl struct {
 	supportContact string
 	// removal deletes the account of a user who asks for it. nil is an install that can't.
 	removal AccountRemoval
+	// verifyCustomDomains is VERIFY_CUSTOM_DOMAINS, and customDomainCNAMETarget the host a domain
+	// may be a CNAME to now (nil: none), as /me states them
+	verifyCustomDomains     bool
+	customDomainCNAMETarget func(ctx context.Context) string
 }
 
 // ServiceOption changes how the service behaves
@@ -120,6 +124,13 @@ func WithSupportContact(contact string) ServiceOption {
 // WithAccountRemoval lets a user delete their own account. Without it they can't.
 func WithAccountRemoval(removal AccountRemoval) ServiceOption {
 	return func(s *ServiceImpl) { s.removal = removal }
+}
+
+// WithCustomDomainVerification sets what /me tells the app about verifying custom domains
+// (VERIFY_CUSTOM_DOMAINS): whether it is on, and the host a domain may be a CNAME to, read at each
+// request since it follows the public URL. Without it /me says off and no host.
+func WithCustomDomainVerification(verify bool, cnameTarget func(ctx context.Context) string) ServiceOption {
+	return func(s *ServiceImpl) { s.verifyCustomDomains, s.customDomainCNAMETarget = verify, cnameTarget }
 }
 
 func NewService(
@@ -409,6 +420,11 @@ func (s *ServiceImpl) Me(ctx context.Context, userId string) (*MeResponse, error
 		// A list, never null, so that the app can read it without a check
 		DisabledMonitorTypes: append([]string{}, s.disabledMonitorTypes...),
 		MinCheckInterval:     max(s.minCheckInterval, config.AbsoluteMinCheckInterval),
+
+		VerifyCustomDomains: s.verifyCustomDomains,
+	}
+	if s.customDomainCNAMETarget != nil {
+		me.CustomDomainCNAMETarget = s.customDomainCNAMETarget(ctx)
 	}
 	for i, m := range memberships {
 		me.Workspaces[i] = MeWorkspace{ID: string(m.Workspace.ID), Name: m.Workspace.Name, Role: string(m.Role), Suspended: m.Workspace.Suspended(), DeletionScheduledAt: m.Workspace.DeletionScheduledAt}

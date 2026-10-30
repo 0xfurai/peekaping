@@ -59,6 +59,10 @@ func postgresDB(t *testing.T) *bun.DB {
 type fixture struct {
 	svc  domain_status_page.Service
 	page func() string
+	// db is the database under the service, for rows a test needs in a state the service never writes
+	db *bun.DB
+	// with is a service over the same database with options, such as verification on
+	with func(opts ...domain_status_page.Option) domain_status_page.Service
 }
 
 // forEachBackend runs fn against the custom domain service on every database backend.
@@ -71,8 +75,13 @@ func forEachBackend(t *testing.T, fn func(t *testing.T, f fixture)) {
 			require.NoError(t, migrator.Init(ctx))
 			_, err := migrator.Migrate(ctx)
 			require.NoError(t, err)
+			with := func(opts ...domain_status_page.Option) domain_status_page.Service {
+				return domain_status_page.NewService(domain_status_page.NewSQLRepository(db), zap.NewNop().Sugar(), opts...)
+			}
 			fn(t, fixture{
-				svc: domain_status_page.NewService(domain_status_page.NewSQLRepository(db), zap.NewNop().Sugar()),
+				svc:  with(),
+				db:   db,
+				with: with,
 				page: func() string {
 					id := uuid.NewString()
 					workspacetest.InsertStatusPage(t, db, id, "page-"+id)

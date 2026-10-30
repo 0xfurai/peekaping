@@ -1,6 +1,9 @@
 package domain_status_page
 
-import "context"
+import (
+	"context"
+	"time"
+)
 
 type Repository interface {
 	Create(ctx context.Context, entity *Model) (*Model, error)
@@ -17,4 +20,13 @@ type Repository interface {
 	FindByStatusPageAndDomain(ctx context.Context, statusPageID, domain string) (*Model, error)
 	DeleteAllDomainsForStatusPage(ctx context.Context, statusPageID string) error
 	FindByDomain(ctx context.Context, domain string) (*Model, error)
+
+	// SetTokenIfEmpty gives a row without a verification token the one passed, and returns the row
+	// with the token it now has
+	SetTokenIfEmpty(ctx context.Context, id, token string) (*Model, error)
+	// SaveVerification stores a check's result: the four times of the model
+	SaveVerification(ctx context.Context, m *Model) error
+	// FindDueAnyWorkspace lists the domains a check is due for in every workspace: the Pending ones,
+	// and the Verified ones last checked before verifiedBefore or never
+	FindDueAnyWorkspace(ctx context.Context, verifiedBefore time.Time) ([]*Model, error)
 }

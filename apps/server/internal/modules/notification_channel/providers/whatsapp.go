@@ -95,6 +95,9 @@ func (w *WhatsAppSender) Send(
 	return nil
 }
 
+// whatsAppPhoneCleaner removes the spaces, dashes, brackets and plus sign of a phone number
+var whatsAppPhoneCleaner = strings.NewReplacer(" ", "", "-", "", "(", "", ")", "", "+", "")
+
 func (w *WhatsAppSender) sendToPhoneNumber(
 	ctx context.Context,
 	cfg *WhatsAppConfig,
@@ -102,11 +105,7 @@ func (w *WhatsAppSender) sendToPhoneNumber(
 	message string,
 ) error {
 	// Clean phone number (remove spaces, dashes, etc.)
-	cleanPhone := strings.ReplaceAll(phoneNumber, " ", "")
-	cleanPhone = strings.ReplaceAll(cleanPhone, "-", "")
-	cleanPhone = strings.ReplaceAll(cleanPhone, "(", "")
-	cleanPhone = strings.ReplaceAll(cleanPhone, ")", "")
-	cleanPhone = strings.ReplaceAll(cleanPhone, "+", "")
+	cleanPhone := whatsAppPhoneCleaner.Replace(phoneNumber)
 
 	// Prepare the request payload
 	payload := map[string]interface{}{
@@ -149,16 +148,15 @@ func (w *WhatsAppSender) sendToPhoneNumber(
 		w.logger.Errorf("Failed to read response body: %v", err)
 	}
 
+	return w.checkResponse(resp.StatusCode, bodyBytes)
+}
+
+// checkResponse is the error for a response that is not a success, or whose body says that the
+// message failed
+func (w *WhatsAppSender) checkResponse(statusCode int, bodyBytes []byte) error {
 	// Check response status
-	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		// Try to read error response body
-		var errorResponse map[string]interface{}
-		if err := json.Unmarshal(bodyBytes, &errorResponse); err == nil {
-			if errorMsg, ok := errorResponse["message"].(string); ok {
-				return fmt.Errorf("WAHA API error: %s (status: %d)", errorMsg, resp.StatusCode)
-			}
-		}
-		return fmt.Errorf("WAHA API returned status: %d", resp.StatusCode)
+	if statusCode < 200 || statusCode >= 300 {
+		return whatsAppStatusError(statusCode, bodyBytes)
 	}
 
 	// Parse response to check for success
@@ -175,6 +173,18 @@ func (w *WhatsAppSender) sendToPhoneNumber(
 		}
 		return fmt.Errorf("WAHA API reported failure")
 	}
-
 	return nil
+}
+
+// whatsAppStatusError is the error for a response that is not a success: the reason the server
+// gives when its body has one
+func whatsAppStatusError(statusCode int, bodyBytes []byte) error {
+	// Try to read error response body
+	var errorResponse map[string]interface{}
+	if err := json.Unmarshal(bodyBytes, &errorResponse); err == nil {
+		if errorMsg, ok := errorResponse["message"].(string); ok {
+			return fmt.Errorf("WAHA API error: %s (status: %d)", errorMsg, statusCode)
+		}
+	}
+	return fmt.Errorf("WAHA API returned status: %d", statusCode)
 }

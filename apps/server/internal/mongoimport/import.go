@@ -76,32 +76,14 @@ func Run(ctx context.Context, db *bun.DB, opts Options) (*Report, error) {
 		return nil, fmt.Errorf("the target must be a SQLite or PostgreSQL database, not %s", name)
 	}
 
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI(opts.MongoURI))
-	if err != nil {
-		return nil, fmt.Errorf("connect to MongoDB: %w", err)
-	}
-	defer client.Disconnect(context.Background()) //nolint:errcheck
-	if err := client.Ping(ctx, nil); err != nil {
-		return nil, fmt.Errorf("connect to MongoDB: %w", err)
-	}
-	database, err := resolveDatabase(opts)
+	src, disconnect, err := openSource(ctx, opts)
 	if err != nil {
 		return nil, err
 	}
-	src := &source{db: client.Database(database)}
-	if err := src.requirePeekaping(ctx); err != nil {
-		return nil, err
-	}
+	defer disconnect()
 
-	// Look at the target before changing it: the migrations of a database that holds data are not ours to run
-	if err := requireEmpty(ctx, db); err != nil {
+	if err := migrateTarget(ctx, db, opts); err != nil {
 		return nil, err
-	}
-	if opts.Migrate == nil {
-		return nil, errors.New("mongoimport: Options.Migrate is required")
-	}
-	if err := opts.Migrate(ctx, db); err != nil {
-		return nil, fmt.Errorf("apply the SQL migrations: %w", err)
 	}
 
 	report := &Report{}
@@ -115,6 +97,46 @@ func Run(ctx context.Context, db *bun.DB, opts Options) (*Report, error) {
 		return nil, err
 	}
 	return report, nil
+}
+
+// openSource connects to the MongoDB install opts names and checks that it is one. The function it
+// returns disconnects. On an error it has disconnected already, and returns none.
+func openSource(ctx context.Context, opts Options) (*source, func(), error) {
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI(opts.MongoURI))
+	if err != nil {
+		return nil, nil, fmt.Errorf("connect to MongoDB: %w", err)
+	}
+	disconnect := func() { client.Disconnect(context.Background()) } //nolint:errcheck
+	if err := client.Ping(ctx, nil); err != nil {
+		disconnect()
+		return nil, nil, fmt.Errorf("connect to MongoDB: %w", err)
+	}
+	database, err := resolveDatabase(opts)
+	if err != nil {
+		disconnect()
+		return nil, nil, err
+	}
+	src := &source{db: client.Database(database)}
+	if err := src.requirePeekaping(ctx); err != nil {
+		disconnect()
+		return nil, nil, err
+	}
+	return src, disconnect, nil
+}
+
+// migrateTarget applies the SQL migrations to the target, once it is known to hold no data of its own
+func migrateTarget(ctx context.Context, db *bun.DB, opts Options) error {
+	// Look at the target before changing it: the migrations of a database that holds data are not ours to run
+	if err := requireEmpty(ctx, db); err != nil {
+		return err
+	}
+	if opts.Migrate == nil {
+		return errors.New("mongoimport: Options.Migrate is required")
+	}
+	if err := opts.Migrate(ctx, db); err != nil {
+		return fmt.Errorf("apply the SQL migrations: %w", err)
+	}
+	return nil
 }
 
 func resolveDatabase(opts Options) (string, error) {

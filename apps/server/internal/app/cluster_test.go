@@ -177,8 +177,8 @@ func TestRegisterClusterAPI_ResolvesTheLeaderJobsOnSQLStorage(t *testing.T) {
 		for _, job := range jobs.jobs {
 			names = append(names, job.Name)
 		}
-		assert.Equal(t, []string{"the stale-monitor watchdog", "the probe sweep", "the push monitors' checks"}, names,
-			"no process of the cluster's own runs the push monitors' checks any more: the leader does")
+		assert.Equal(t, []string{"the stale-monitor watchdog", "the probe sweep", "the push monitors' checks", "the custom domain checks"}, names,
+			"no process of the cluster's own runs the push monitors' checks or the custom domain checks: the leader does")
 	}))
 }
 

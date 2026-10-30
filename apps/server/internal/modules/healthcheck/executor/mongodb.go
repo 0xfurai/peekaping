@@ -97,16 +97,9 @@ func (m *MongoDBExecutor) Execute(ctx context.Context, monitor *Monitor, proxyMo
 
 	startTime := time.Now().UTC()
 
-	// Parse MongoDB command
-	var command bson.M
-	if cfg.Command != "" {
-		err = json.Unmarshal([]byte(cfg.Command), &command)
-		if err != nil {
-			return DownResult(fmt.Errorf("invalid MongoDB command JSON: %w", err), startTime, time.Now().UTC())
-		}
-	} else {
-		// Default to ping command
-		command = bson.M{"ping": 1}
+	command, err := parseMongoDBCommand(cfg.Command)
+	if err != nil {
+		return DownResult(fmt.Errorf("invalid MongoDB command JSON: %w", err), startTime, time.Now().UTC())
 	}
 
 	// Run MongoDB command
@@ -123,81 +116,78 @@ func (m *MongoDBExecutor) Execute(ctx context.Context, monitor *Monitor, proxyMo
 		}
 	}
 
-	// Check if command was successful
-	if ok, exists := result["ok"]; !exists || !m.isValueEqual(ok, 1) {
-		m.logger.Infof("MongoDB command failed: %s, ok field is not 1", monitor.Name)
+	return m.checkCommandResult(monitor, cfg, result, startTime, endTime)
+}
+
+// parseMongoDBCommand parses the command as JSON. An empty command is a ping.
+func parseMongoDBCommand(commandJSON string) (bson.M, error) {
+	if commandJSON == "" {
+		// Default to ping command
+		return bson.M{"ping": 1}, nil
+	}
+
+	var command bson.M
+	err := json.Unmarshal([]byte(commandJSON), &command)
+	return command, err
+}
+
+// checkCommandResult is the check's result for the command's reply: Down unless the command
+// succeeded and, when the config asks for it, the value at its JSON path exists and is the expected one
+func (m *MongoDBExecutor) checkCommandResult(monitor *Monitor, cfg *MongoDBConfig, result bson.M, startTime, endTime time.Time) *Result {
+	resultOf := func(status shared.MonitorStatus, message string) *Result {
 		return &Result{
-			Status:    shared.MonitorStatusDown,
-			Message:   "MongoDB command failed",
+			Status:    status,
+			Message:   message,
 			StartTime: startTime,
 			EndTime:   endTime,
 		}
+	}
+
+	// Check if command was successful
+	if ok, exists := result["ok"]; !exists || !m.isValueEqual(ok, 1) {
+		m.logger.Infof("MongoDB command failed: %s, ok field is not 1", monitor.Name)
+		return resultOf(shared.MonitorStatusDown, "MongoDB command failed")
 	}
 
 	// If no JSON path is provided, consider it successful
 	if cfg.JsonPath == "" {
 		m.logger.Infof("MongoDB command successful: %s", monitor.Name)
-		return &Result{
-			Status:    shared.MonitorStatusUp,
-			Message:   "Command executed successfully",
-			StartTime: startTime,
-			EndTime:   endTime,
-		}
+		return resultOf(shared.MonitorStatusUp, "Command executed successfully")
 	}
 
 	// Evaluate JSON path
-	var evaluatedResult interface{}
-	evaluatedResult, err = m.evaluateJsonPath(result, cfg.JsonPath)
+	evaluatedResult, err := m.evaluateJsonPath(result, cfg.JsonPath)
 	if err != nil {
 		m.logger.Infof("MongoDB JSON path evaluation failed: %s, %s", monitor.Name, err.Error())
-		return &Result{
-			Status:    shared.MonitorStatusDown,
-			Message:   fmt.Sprintf("JSON path evaluation failed: %v", err),
-			StartTime: startTime,
-			EndTime:   endTime,
-		}
+		return resultOf(shared.MonitorStatusDown, fmt.Sprintf("JSON path evaluation failed: %v", err))
 	}
 
 	if evaluatedResult == nil {
 		m.logger.Infof("MongoDB JSON path returned null: %s", monitor.Name)
-		return &Result{
-			Status:    shared.MonitorStatusDown,
-			Message:   "Queried value not found",
-			StartTime: startTime,
-			EndTime:   endTime,
-		}
+		return resultOf(shared.MonitorStatusDown, "Queried value not found")
 	}
 
 	// Check expected value if provided
 	if cfg.ExpectedValue != "" {
-		if m.isValueEqual(evaluatedResult, cfg.ExpectedValue) {
-			m.logger.Infof("MongoDB expected value matched: %s", monitor.Name)
-			return &Result{
-				Status:    shared.MonitorStatusUp,
-				Message:   "Command executed successfully and expected value was found",
-				StartTime: startTime,
-				EndTime:   endTime,
-			}
-		} else {
-			resultStr := fmt.Sprintf("%v", evaluatedResult)
-			m.logger.Infof("MongoDB expected value mismatch: %s, got %s, expected %s", monitor.Name, resultStr, cfg.ExpectedValue)
-			return &Result{
-				Status:    shared.MonitorStatusDown,
-				Message:   fmt.Sprintf("Query executed, but value is not equal to expected value, value was: [%s]", resultStr),
-				StartTime: startTime,
-				EndTime:   endTime,
-			}
-		}
+		status, message := m.checkExpectedValue(monitor, cfg, evaluatedResult)
+		return resultOf(status, message)
 	}
 
 	// JSON path evaluation successful
 	m.logger.Infof("MongoDB JSON path evaluation successful: %s", monitor.Name)
-	return &Result{
-		Status:    shared.MonitorStatusUp,
-		Message:   "Command executed successfully and the jsonata expression produces a result",
-		StartTime: startTime,
-		EndTime:   endTime,
+	return resultOf(shared.MonitorStatusUp, "Command executed successfully and the jsonata expression produces a result")
+}
+
+// checkExpectedValue is Up when the value at the JSON path is the expected one, and Down otherwise
+func (m *MongoDBExecutor) checkExpectedValue(monitor *Monitor, cfg *MongoDBConfig, evaluatedResult interface{}) (shared.MonitorStatus, string) {
+	if m.isValueEqual(evaluatedResult, cfg.ExpectedValue) {
+		m.logger.Infof("MongoDB expected value matched: %s", monitor.Name)
+		return shared.MonitorStatusUp, "Command executed successfully and expected value was found"
 	}
+
+	resultStr := fmt.Sprintf("%v", evaluatedResult)
+	m.logger.Infof("MongoDB expected value mismatch: %s, got %s, expected %s", monitor.Name, resultStr, cfg.ExpectedValue)
+	return shared.MonitorStatusDown, fmt.Sprintf("Query executed, but value is not equal to expected value, value was: [%s]", resultStr)
 }
 
 // runMongoDBCommand connects to MongoDB and executes the given command

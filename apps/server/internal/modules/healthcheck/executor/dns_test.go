@@ -342,6 +342,32 @@ func TestDNSExecutor_Execute_NoRecords(t *testing.T) {
 	}
 }
 
+func TestDNSExecutor_Execute_ResolveTypeEdges(t *testing.T) {
+	executor := NewDNSExecutor(zap.NewNop().Sugar())
+	port := startDNSServer(t)
+
+	tests := []struct {
+		name        string
+		host        string
+		resolveType string
+		wantStatus  shared.MonitorStatus
+		wantMessage string
+	}{
+		{name: "lower case type", host: "peekaping.test", resolveType: "a", wantStatus: shared.MonitorStatusUp, wantMessage: "A records: 192.0.2.10"},
+		{name: "unsupported type", host: "peekaping.test", resolveType: "HINFO", wantStatus: shared.MonitorStatusDown, wantMessage: "DNS lookup failed: unsupported record type: HINFO"},
+		{name: "no SOA record", host: "mail.peekaping.test", resolveType: "SOA", wantStatus: shared.MonitorStatusDown, wantMessage: "No SOA records found for mail.peekaping.test"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := executor.Execute(context.Background(), dnsMonitor(port, tt.host, tt.resolveType, 2), nil)
+
+			assert.Equal(t, tt.wantStatus, result.Status, result.Message)
+			assert.Equal(t, tt.wantMessage, result.Message)
+		})
+	}
+}
+
 func TestDNSExecutor_Execute_Timeout(t *testing.T) {
 	executor := NewDNSExecutor(zap.NewNop().Sugar())
 	// A UDP socket that is never read from, so no query gets an answer.

@@ -91,32 +91,12 @@ func (twc *TimeWindowChecker) IsInCronMaintenanceWindow(params *TimeWindowParams
 // The schedule starts with the first daily window at or after StartDateTime and repeats every IntervalDay
 // calendar days in loc. A window that crosses midnight belongs to the day it starts.
 func (twc *TimeWindowChecker) IsInRecurringIntervalWindow(params *TimeWindowParams, now time.Time, loc *time.Location) (bool, error) {
-	// Validate required fields for recurring-interval strategy
-	if params.StartDateTime == nil {
-		return false, errors.New("maintenance has no start date time")
-	}
-
-	if params.IntervalDay == nil || *params.IntervalDay <= 0 {
-		return false, errors.New("maintenance has no valid interval day")
-	}
-
-	if params.StartTime == nil || params.EndTime == nil {
-		return false, errors.New("maintenance has no start or end time for daily window")
-	}
-
-	// Parse start and end times from string format (HH:MM)
-	startTime, err := time.Parse("15:04", *params.StartTime)
+	startTime, endTime, err := parseDailyWindow(params)
 	if err != nil {
-		return false, errors.New("invalid start time format")
-	}
-
-	endTime, err := time.Parse("15:04", *params.EndTime)
-	if err != nil {
-		return false, errors.New("invalid end time format")
+		return false, err
 	}
 
 	now = now.In(loc)
-	crossesMidnight := endTime.Before(startTime)
 
 	// Days are counted on calendar dates, not elapsed hours, so a DST change
 	// doesn't shift the schedule.
@@ -132,23 +112,65 @@ func (twc *TimeWindowChecker) IsInRecurringIntervalWindow(params *TimeWindowPara
 	// Only windows that started today or yesterday can contain now.
 	today := calendarDate(now)
 	for _, day := range []time.Time{today, today.AddDate(0, 0, -1)} {
-		daysSinceFirst := int(day.Sub(firstDay) / (24 * time.Hour))
-		if daysSinceFirst < 0 || daysSinceFirst%*params.IntervalDay != 0 {
+		if !isIntervalDay(day, firstDay, *params.IntervalDay) {
 			continue
 		}
 
-		windowStart := wallClock(day, startTime, loc)
-		windowEnd := wallClock(day, endTime, loc)
-		if crossesMidnight {
-			windowEnd = wallClock(day.AddDate(0, 0, 1), endTime, loc)
-		}
-
-		if !now.Before(windowStart) && now.Before(windowEnd) {
+		if inDailyWindow(now, day, startTime, endTime, loc) {
 			return true, nil
 		}
 	}
 
 	return false, nil
+}
+
+// parseDailyWindow checks the fields a recurring interval schedule needs and returns the start and
+// end times of its daily window, parsed from their HH:MM format
+func parseDailyWindow(params *TimeWindowParams) (startTime, endTime time.Time, err error) {
+	// Validate required fields for recurring-interval strategy
+	if params.StartDateTime == nil {
+		return startTime, endTime, errors.New("maintenance has no start date time")
+	}
+
+	if params.IntervalDay == nil || *params.IntervalDay <= 0 {
+		return startTime, endTime, errors.New("maintenance has no valid interval day")
+	}
+
+	if params.StartTime == nil || params.EndTime == nil {
+		return startTime, endTime, errors.New("maintenance has no start or end time for daily window")
+	}
+
+	// Parse start and end times from string format (HH:MM)
+	startTime, err = time.Parse("15:04", *params.StartTime)
+	if err != nil {
+		return startTime, endTime, errors.New("invalid start time format")
+	}
+
+	endTime, err = time.Parse("15:04", *params.EndTime)
+	if err != nil {
+		return startTime, endTime, errors.New("invalid end time format")
+	}
+	return startTime, endTime, nil
+}
+
+// isIntervalDay reports whether day is firstDay or a whole number of intervals after it
+func isIntervalDay(day, firstDay time.Time, intervalDay int) bool {
+	daysSinceFirst := int(day.Sub(firstDay) / (24 * time.Hour))
+	return daysSinceFirst >= 0 && daysSinceFirst%intervalDay == 0
+}
+
+// inDailyWindow reports whether now is in the window that opens on day at startTime and closes at
+// endTime, on the day after if that is earlier
+func inDailyWindow(now, day, startTime, endTime time.Time, loc *time.Location) bool {
+	crossesMidnight := endTime.Before(startTime)
+
+	windowStart := wallClock(day, startTime, loc)
+	windowEnd := wallClock(day, endTime, loc)
+	if crossesMidnight {
+		windowEnd = wallClock(day.AddDate(0, 0, 1), endTime, loc)
+	}
+
+	return !now.Before(windowStart) && now.Before(windowEnd)
 }
 
 // calendarDate returns t's date as midnight UTC, so dates subtract to whole days.
