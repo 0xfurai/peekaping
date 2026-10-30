@@ -533,10 +533,13 @@ func TestWorkspaceImport_ASlugAtTheLongestLengthThatIsTakenIsTrimmedForItsNumber
 		a := newAppWithAdmin(t, backend)
 		longest := strings.Repeat("a", 255)
 		other := a.emptyWorkspace(t, "Other", "other-owner@example.com")
-		a.createStatusPageAs(t, other.owner, statusPage{slug: longest, published: true})
+		// The title is short: the column of the title holds 255 characters too
+		decode[created](t, a.request(t, http.MethodPost, statusPagesPath, map[string]any{"slug": longest, "title": "Taken", "published": true}, other.owner), http.StatusCreated)
 		target := a.emptyWorkspace(t, "Target", "target-owner@example.com")
+		first, second := docPage("p1", longest), docPage("p2", longest)
+		first.Title, second.Title = "First", "Second"
 		doc := docOf()
-		doc.StatusPages = []workspaceport.StatusPage{docPage("p1", longest), docPage("p2", longest)}
+		doc.StatusPages = []workspaceport.StatusPage{first, second}
 
 		result := a.imported(t, doc, target.owner)
 
