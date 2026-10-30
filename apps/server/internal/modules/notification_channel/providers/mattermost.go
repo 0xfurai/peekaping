@@ -114,13 +114,8 @@ func (m *MattermostSender) sendTestMessage(ctx context.Context, cfg *MattermostC
 }
 
 func (m *MattermostSender) sendSimpleMessage(ctx context.Context, cfg *MattermostConfig, message string) error {
-	username := cfg.Username
-	if username == "" {
-		username = "Peekaping"
-	}
-
 	payload := map[string]any{
-		"username": username,
+		"username": mattermostUsername(cfg),
 		"text":     message,
 	}
 
@@ -139,104 +134,75 @@ func (m *MattermostSender) sendSimpleMessage(ctx context.Context, cfg *Mattermos
 	return m.sendMessage(ctx, cfg.WebhookURL, payload)
 }
 
-func (m *MattermostSender) buildRichMessage(cfg *MattermostConfig, message string, monitor *monitor.Model, heartbeat *heartbeat.Model) map[string]any {
-	username := cfg.Username
-	if username == "" {
-		username = "Peekaping"
+// mattermostUsername is the configured user name, or Peekaping
+func mattermostUsername(cfg *MattermostConfig) string {
+	if cfg.Username == "" {
+		return "Peekaping"
 	}
+	return cfg.Username
+}
 
-	if monitor != nil && monitor.Name != "" {
-		username = monitor.Name + " " + username
+// mattermostIconEmoji is the emoji for the notification. The configured emoji is a pair, the online
+// one and the offline one, which go with an Up and a Down. Anything else is used as it is.
+func mattermostIconEmoji(cfg *MattermostConfig, heartbeat *heartbeat.Model) string {
+	emojis := strings.Split(cfg.IconEmoji, " ")
+	if heartbeat == nil || len(emojis) < 2 {
+		return cfg.IconEmoji
 	}
+	iconEmojiOnline, iconEmojiOffline := emojis[0], emojis[1]
 
-	// Extract emoji configuration
-	iconEmojiOnline := ""
-	iconEmojiOffline := ""
-	iconEmoji := cfg.IconEmoji
-
-	if cfg.IconEmoji != "" {
-		emojiArray := strings.Split(cfg.IconEmoji, " ")
-		if len(emojiArray) >= 2 {
-			iconEmojiOnline = emojiArray[0]
-			iconEmojiOffline = emojiArray[1]
+	switch heartbeat.Status {
+	case shared.MonitorStatusDown:
+		if iconEmojiOffline != "" {
+			return iconEmojiOffline
+		}
+	case shared.MonitorStatusUp:
+		if iconEmojiOnline != "" {
+			return iconEmojiOnline
 		}
 	}
+	return cfg.IconEmoji
+}
 
-	// Determine status information
-	var statusField map[string]any
-	statusText := "unknown"
-	color := "#000000"
-
-	if heartbeat != nil {
-		switch heartbeat.Status {
-		case shared.MonitorStatusDown:
-			if iconEmojiOffline != "" {
-				iconEmoji = iconEmojiOffline
-			}
-			statusField = map[string]any{
-				"short": false,
-				"title": "Error",
-				"value": heartbeat.Msg,
-			}
-			statusText = "down"
-			color = "#FF0000"
-		case shared.MonitorStatusUp:
-			if iconEmojiOnline != "" {
-				iconEmoji = iconEmojiOnline
-			}
-			statusField = map[string]any{
-				"short": false,
-				"title": "Ping",
-				"value": fmt.Sprintf("%dms", heartbeat.Ping),
-			}
-			statusText = "up"
-			color = "#32CD32"
-		}
+// mattermostStatus is what the heartbeat says about the status: the field that shows it, if it
+// has one, the word for it and the color of the attachment
+func mattermostStatus(heartbeat *heartbeat.Model) (statusField map[string]any, statusText, color string) {
+	if heartbeat == nil {
+		return nil, "unknown", "#000000"
 	}
-
-	// Build the payload
-	payload := map[string]any{
-		"username": username,
+	switch heartbeat.Status {
+	case shared.MonitorStatusDown:
+		return map[string]any{
+			"short": false,
+			"title": "Error",
+			"value": heartbeat.Msg,
+		}, "down", "#FF0000"
+	case shared.MonitorStatusUp:
+		return map[string]any{
+			"short": false,
+			"title": "Ping",
+			"value": fmt.Sprintf("%dms", heartbeat.Ping),
+		}, "up", "#32CD32"
 	}
+	return nil, "unknown", "#000000"
+}
 
-	if cfg.Channel != "" {
-		payload["channel"] = strings.ToLower(cfg.Channel)
+// mattermostTitleLink is the URL in the monitor's config, if it has one
+func mattermostTitleLink(monitor *monitor.Model) string {
+	if monitor.Config == "" {
+		return ""
 	}
-
-	if iconEmoji != "" {
-		payload["icon_emoji"] = iconEmoji
+	var config map[string]any
+	if err := json.Unmarshal([]byte(monitor.Config), &config); err != nil {
+		return ""
 	}
+	url, _ := config["url"].(string)
+	return url
+}
 
-	if cfg.IconURL != "" {
-		payload["icon_url"] = cfg.IconURL
-	}
-
-	// Build attachment
-	attachment := map[string]any{
-		"color": color,
-	}
-
-	if monitor != nil {
-		monitorName := monitor.Name
-		if monitorName == "" {
-			monitorName = "Monitor"
-		}
-
-		attachment["fallback"] = fmt.Sprintf("Your %s service went %s", monitorName, statusText)
-		attachment["title"] = fmt.Sprintf("%s service went %s", monitorName, statusText)
-
-		// Add title_link if we can extract URL from monitor
-		if monitor.Config != "" {
-			var config map[string]any
-			if err := json.Unmarshal([]byte(monitor.Config), &config); err == nil {
-				if url, ok := config["url"].(string); ok && url != "" {
-					attachment["title_link"] = url
-				}
-			}
-		}
-	}
-
-	// Add fields
+// mattermostFields are the fields of the attachment: the status, if it has a field, and the time of
+// the heartbeat
+func mattermostFields(statusField map[string]any, heartbeat *heartbeat.Model) []map[string]any {
 	fields := []map[string]any{}
 	if statusField != nil {
 		fields = append(fields, statusField)
@@ -251,8 +217,63 @@ func (m *MattermostSender) buildRichMessage(cfg *MattermostConfig, message strin
 		}
 		fields = append(fields, timeField)
 	}
+	return fields
+}
 
-	if len(fields) > 0 {
+// addMattermostMonitor adds to the attachment the title that names the monitor and its status, and
+// a link to the monitor's URL
+func addMattermostMonitor(attachment map[string]any, monitor *monitor.Model, statusText string) {
+	monitorName := monitor.Name
+	if monitorName == "" {
+		monitorName = "Monitor"
+	}
+
+	attachment["fallback"] = fmt.Sprintf("Your %s service went %s", monitorName, statusText)
+	attachment["title"] = fmt.Sprintf("%s service went %s", monitorName, statusText)
+
+	// Add title_link if we can extract URL from monitor
+	if url := mattermostTitleLink(monitor); url != "" {
+		attachment["title_link"] = url
+	}
+}
+
+func (m *MattermostSender) buildRichMessage(cfg *MattermostConfig, message string, monitor *monitor.Model, heartbeat *heartbeat.Model) map[string]any {
+	username := mattermostUsername(cfg)
+	if monitor != nil && monitor.Name != "" {
+		username = monitor.Name + " " + username
+	}
+
+	// Determine status information
+	statusField, statusText, color := mattermostStatus(heartbeat)
+
+	// Build the payload
+	payload := map[string]any{
+		"username": username,
+	}
+
+	if cfg.Channel != "" {
+		payload["channel"] = strings.ToLower(cfg.Channel)
+	}
+
+	if iconEmoji := mattermostIconEmoji(cfg, heartbeat); iconEmoji != "" {
+		payload["icon_emoji"] = iconEmoji
+	}
+
+	if cfg.IconURL != "" {
+		payload["icon_url"] = cfg.IconURL
+	}
+
+	// Build attachment
+	attachment := map[string]any{
+		"color": color,
+	}
+
+	if monitor != nil {
+		addMattermostMonitor(attachment, monitor, statusText)
+	}
+
+	// Add fields
+	if fields := mattermostFields(statusField, heartbeat); len(fields) > 0 {
 		attachment["fields"] = fields
 	}
 
