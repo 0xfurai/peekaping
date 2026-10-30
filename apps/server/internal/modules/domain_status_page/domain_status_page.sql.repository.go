@@ -18,6 +18,12 @@ type sqlModel struct {
 	Domain       string    `bun:"domain,unique,notnull"`
 	CreatedAt    time.Time `bun:"created_at,nullzero,notnull,default:current_timestamp"`
 	UpdatedAt    time.Time `bun:"updated_at,nullzero,notnull,default:current_timestamp"`
+
+	VerificationToken string     `bun:"verification_token,notnull"`
+	VerifiedAt        *time.Time `bun:"verified_at"`
+	PendingSince      *time.Time `bun:"pending_since"`
+	FailingSince      *time.Time `bun:"failing_since"`
+	LastCheckedAt     *time.Time `bun:"last_checked_at"`
 }
 
 func toDomainModel(sm *sqlModel) *Model {
@@ -27,6 +33,12 @@ func toDomainModel(sm *sqlModel) *Model {
 		Domain:       sm.Domain,
 		CreatedAt:    sm.CreatedAt,
 		UpdatedAt:    sm.UpdatedAt,
+
+		VerificationToken: sm.VerificationToken,
+		VerifiedAt:        sm.VerifiedAt,
+		PendingSince:      sm.PendingSince,
+		FailingSince:      sm.FailingSince,
+		LastCheckedAt:     sm.LastCheckedAt,
 	}
 }
 
@@ -45,6 +57,15 @@ func (r *SQLRepositoryImpl) Create(ctx context.Context, entity *Model) (*Model, 
 		Domain:       entity.Domain,
 		CreatedAt:    time.Now(),
 		UpdatedAt:    time.Now(),
+
+		VerificationToken: entity.VerificationToken,
+	}
+	if sm.VerificationToken == "" {
+		token, err := NewToken()
+		if err != nil {
+			return nil, err
+		}
+		sm.VerificationToken = token
 	}
 
 	_, err := dbtx.DB(ctx, r.db).NewInsert().Model(sm).Returning("*").Exec(ctx)
@@ -219,4 +240,51 @@ func (r *SQLRepositoryImpl) FindByDomain(ctx context.Context, domain string) (*M
 		return nil, err
 	}
 	return toDomainModel(sm), nil
+}
+
+// SetTokenIfEmpty gives a row that has no verification token the one passed, and leaves a row that
+// has one alone, so that two callers racing to give a row its token agree on the winner's
+func (r *SQLRepositoryImpl) SetTokenIfEmpty(ctx context.Context, id, token string) (*Model, error) {
+	_, err := dbtx.DB(ctx, r.db).NewUpdate().
+		Model((*sqlModel)(nil)).
+		Set("verification_token = ?", token).
+		Where("id = ? AND verification_token = ''", id).
+		Exec(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return r.FindByID(ctx, id)
+}
+
+// SaveVerification stores the state of a check: the four times, and nothing else of the row. A row
+// that is gone meanwhile matches nothing.
+func (r *SQLRepositoryImpl) SaveVerification(ctx context.Context, m *Model) error {
+	_, err := dbtx.DB(ctx, r.db).NewUpdate().
+		Model((*sqlModel)(nil)).
+		Set("verified_at = ?", m.VerifiedAt).
+		Set("pending_since = ?", m.PendingSince).
+		Set("failing_since = ?", m.FailingSince).
+		Set("last_checked_at = ?", m.LastCheckedAt).
+		Where("id = ?", m.ID).
+		Exec(ctx)
+	return err
+}
+
+// FindDueAnyWorkspace lists the domains of every workspace that a check is due for: each Pending
+// one, and each Verified one last checked before verifiedBefore or never
+func (r *SQLRepositoryImpl) FindDueAnyWorkspace(ctx context.Context, verifiedBefore time.Time) ([]*Model, error) {
+	var sms []*sqlModel
+	err := dbtx.DB(ctx, r.db).NewSelect().
+		Model(&sms).
+		Where("verified_at IS NULL OR last_checked_at IS NULL OR last_checked_at < ?", verifiedBefore).
+		Order("created_at ASC").
+		Scan(ctx)
+	if err != nil {
+		return nil, err
+	}
+	models := make([]*Model, len(sms))
+	for i, sm := range sms {
+		models[i] = toDomainModel(sm)
+	}
+	return models, nil
 }

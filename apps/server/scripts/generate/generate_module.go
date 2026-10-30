@@ -29,6 +29,51 @@ func ToPascalCase(s string) string {
 	return strings.Join(parts, "")
 }
 
+// templateNames are the names of the files of the template directory that are templates
+func templateNames(files []os.DirEntry) []string {
+	var templates []string
+	for _, file := range files {
+		if !file.IsDir() && strings.HasSuffix(file.Name(), ".tmpl") {
+			templates = append(templates, file.Name())
+		}
+	}
+	return templates
+}
+
+// generateFile writes the output of a template, and exits with a message when it can't
+func generateFile(tmpl, outputPath string, funcs template.FuncMap, data ModuleData) {
+	templatePath := filepath.Join("templates", "module", tmpl)
+
+	// Read template
+	tmplContent, err := os.ReadFile(templatePath)
+	if err != nil {
+		fmt.Printf("Error reading template %s: %v\n", tmpl, err)
+		os.Exit(1)
+	}
+
+	// Parse and execute template
+	t, err := template.New(tmpl).Funcs(funcs).Parse(string(tmplContent))
+	if err != nil {
+		fmt.Printf("Error parsing template %s: %v\n", tmpl, err)
+		os.Exit(1)
+	}
+
+	// Create output file
+	f, err := os.Create(outputPath)
+	if err != nil {
+		fmt.Printf("Error creating output file %s: %v\n", outputPath, err)
+		os.Exit(1)
+	}
+
+	// Execute template
+	if err := t.Execute(f, data); err != nil {
+		fmt.Printf("Error executing template %s: %v\n", tmpl, err)
+		os.Exit(1)
+	}
+
+	f.Close()
+}
+
 func main() {
 	if len(os.Args) != 2 {
 		fmt.Println("Usage: go run scripts/generate_module.go <module_name>")
@@ -54,13 +99,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	var templates []string
-	for _, file := range files {
-		if !file.IsDir() && strings.HasSuffix(file.Name(), ".tmpl") {
-			templates = append(templates, file.Name())
-		}
-	}
-
 	funcs := template.FuncMap{
 		"lower":  strings.ToLower,
 		"pascal": ToPascalCase,
@@ -68,38 +106,9 @@ func main() {
 		"plural": inflection.Plural,
 	}
 
-	for _, tmpl := range templates {
-		templatePath := filepath.Join("templates", "module", tmpl)
+	for _, tmpl := range templateNames(files) {
 		outputPath := filepath.Join(moduleDir, moduleName+"."+strings.Replace(tmpl, ".tmpl", "", 1))
-
-		// Read template
-		tmplContent, err := os.ReadFile(templatePath)
-		if err != nil {
-			fmt.Printf("Error reading template %s: %v\n", tmpl, err)
-			os.Exit(1)
-		}
-
-		// Parse and execute template
-		t, err := template.New(tmpl).Funcs(funcs).Parse(string(tmplContent))
-		if err != nil {
-			fmt.Printf("Error parsing template %s: %v\n", tmpl, err)
-			os.Exit(1)
-		}
-
-		// Create output file
-		f, err := os.Create(outputPath)
-		if err != nil {
-			fmt.Printf("Error creating output file %s: %v\n", outputPath, err)
-			os.Exit(1)
-		}
-
-		// Execute template
-		if err := t.Execute(f, data); err != nil {
-			fmt.Printf("Error executing template %s: %v\n", tmpl, err)
-			os.Exit(1)
-		}
-
-		f.Close()
+		generateFile(tmpl, outputPath, funcs, data)
 		fmt.Printf("Generated %s\n", outputPath)
 	}
 

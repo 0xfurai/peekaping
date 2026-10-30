@@ -130,7 +130,7 @@ func CORS(origins *CORSOrigins) Middleware {
 				w.WriteHeader(http.StatusNoContent)
 				return
 			}
-			w.Header().Set("Access-Control-Expose-Headers", "Authorization, X-Request-ID, Retry-After")
+			w.Header().Set("Access-Control-Expose-Headers", "Authorization, X-Request-ID, Retry-After, Content-Disposition")
 			next.ServeHTTP(w, r)
 		})
 	}

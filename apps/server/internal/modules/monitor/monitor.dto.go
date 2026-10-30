@@ -82,20 +82,9 @@ func (dto *CreateUpdateDto) ApplyPushToken() {
 // the config, else a new one. A config that isn't a JSON object with a text token is left as it
 // is, so the validation rejects it.
 func (dto *CreateUpdateDto) applyPushToken() {
-	config := map[string]json.RawMessage{}
-	if strings.TrimSpace(dto.Config) != "" {
-		if err := json.Unmarshal([]byte(dto.Config), &config); err != nil {
-			return
-		}
-		if config == nil {
-			config = map[string]json.RawMessage{}
-		}
-	}
-	var configToken string
-	if raw, ok := config["pushToken"]; ok {
-		if err := json.Unmarshal(raw, &configToken); err != nil {
-			return
-		}
+	config, configToken, ok := dto.pushConfig()
+	if !ok {
+		return
 	}
 
 	token := dto.PushToken
@@ -118,6 +107,26 @@ func (dto *CreateUpdateDto) applyPushToken() {
 	if updated, err := json.Marshal(config); err == nil {
 		dto.Config = string(updated)
 	}
+}
+
+// pushConfig reads the config as a JSON object, and the push token in it. It is false for a config
+// that isn't an object, and for a token that isn't text.
+func (dto *CreateUpdateDto) pushConfig() (config map[string]json.RawMessage, token string, ok bool) {
+	config = map[string]json.RawMessage{}
+	if strings.TrimSpace(dto.Config) != "" {
+		if err := json.Unmarshal([]byte(dto.Config), &config); err != nil {
+			return nil, "", false
+		}
+		if config == nil {
+			config = map[string]json.RawMessage{}
+		}
+	}
+	if raw, found := config["pushToken"]; found {
+		if err := json.Unmarshal(raw, &token); err != nil {
+			return nil, "", false
+		}
+	}
+	return config, token, true
 }
 
 type PartialUpdateDto struct {

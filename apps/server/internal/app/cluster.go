@@ -8,6 +8,7 @@ import (
 	"peekaping/internal/infra"
 	"peekaping/internal/leader"
 	"peekaping/internal/modules/cleanup"
+	"peekaping/internal/modules/domain_status_page"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/ingester"
@@ -127,11 +128,12 @@ func provideClusterWatchdog(p clusterWatchdogParams) *stale.Watchdog {
 }
 
 // provideLeaderJobs provides the jobs that run on the api replica that holds the leader lock
-func provideLeaderJobs(elector *leader.Elector, watchdog *stale.Watchdog, sweep *probe.Sweep, pushChecks *PushChecks) *LeaderJobs {
+func provideLeaderJobs(elector *leader.Elector, watchdog *stale.Watchdog, sweep *probe.Sweep, pushChecks *PushChecks, domains domain_status_page.Service) *LeaderJobs {
 	return NewLeaderJobs(elector, []LeaderJob{
 		{Name: "the stale-monitor watchdog", Run: watchdog.Run},
 		{Name: "the probe sweep", Run: sweep.Run},
 		{Name: "the push monitors' checks", Run: pushChecks.Run},
+		{Name: "the custom domain checks", Run: domains.Run},
 	})
 }
 

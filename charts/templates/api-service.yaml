@@ -10,3 +10,8 @@ spec:
     - name: http
       port: {{ .Values.api.service.port }}
       targetPort: {{ .Values.api.service.port }}
+    {{- with .Values.config.env.METRICS_PORT }}
+    - name: metrics
+      port: {{ . | int }}
+      targetPort: {{ . | int }}
+    {{- end }}

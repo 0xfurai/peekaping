@@ -38,35 +38,40 @@ func Scope(ctx context.Context) (workspace.ID, error) {
 // which the caller maps as it does today.
 func Fail(err error) error {
 	var reached *limits.ReachedError
-	switch {
-	case errors.As(err, &reached):
+	if errors.As(err, &reached) {
 		return limits.Fail(reached)
-	case errors.Is(err, workspace.ErrNotFound):
-		return NotFound()
-	case errors.Is(err, workspace.ErrForbidden):
-		return httpx.Fail(http.StatusForbidden, utils.NewFailResponse("Your role in this workspace doesn't allow this"))
-	case errors.Is(err, workspace.ErrMemberNotFound):
-		return httpx.Fail(http.StatusNotFound, utils.NewFailResponse("Member not found"))
-	case errors.Is(err, workspace.ErrInviteNotFound):
-		return httpx.Fail(http.StatusNotFound, utils.NewFailResponse("Invite not found"))
-	case errors.Is(err, workspace.ErrInviteUnavailable):
+	}
+	// The messages of these two come from the error, or are a body of their own
+	if errors.Is(err, workspace.ErrInviteUnavailable) {
 		return httpx.Fail(http.StatusGone, utils.NewFailResponse(capitalize(err.Error())))
-	case errors.Is(err, workspace.ErrInviteEmailMismatch):
-		return httpx.Fail(http.StatusForbidden, utils.NewFailResponse("This invite is for another email address"))
-	case errors.Is(err, workspace.ErrLastOwner):
-		return httpx.Fail(http.StatusConflict, utils.NewFailResponse("A workspace needs at least one owner"))
-	case errors.Is(err, workspace.ErrAlreadyMember):
-		return httpx.Fail(http.StatusConflict, utils.NewFailResponse("Already a member of this workspace"))
-	case errors.Is(err, workspace.ErrInvalidName):
-		return httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("The workspace needs a name"))
-	case errors.Is(err, workspace.ErrNameMismatch):
+	}
+	if errors.Is(err, workspace.ErrNameMismatch) {
 		return httpx.Fail(http.StatusBadRequest, NameMismatchResponse{Message: capitalize(err.Error()), Error: NameMismatchErrorBody{Code: "WORKSPACE_NAME_MISMATCH"}})
-	case errors.Is(err, workspace.ErrDeletionNotScheduled):
-		return httpx.Fail(http.StatusNotFound, utils.NewFailResponse("No deletion is scheduled for this workspace"))
-	case errors.Is(err, workspace.ErrInvalidRole):
-		return httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("The role must be owner, admin or member"))
+	}
+	for _, failure := range plainFailures {
+		if errors.Is(err, failure.err) {
+			return httpx.Fail(failure.status, utils.NewFailResponse(failure.message))
+		}
 	}
 	return nil
+}
+
+// plainFailures are the errors Fail answers with a fixed message, in the order it tries them
+var plainFailures = []struct {
+	err     error
+	status  int
+	message string
+}{
+	{workspace.ErrNotFound, http.StatusNotFound, "Workspace not found"},
+	{workspace.ErrForbidden, http.StatusForbidden, "Your role in this workspace doesn't allow this"},
+	{workspace.ErrMemberNotFound, http.StatusNotFound, "Member not found"},
+	{workspace.ErrInviteNotFound, http.StatusNotFound, "Invite not found"},
+	{workspace.ErrInviteEmailMismatch, http.StatusForbidden, "This invite is for another email address"},
+	{workspace.ErrLastOwner, http.StatusConflict, "A workspace needs at least one owner"},
+	{workspace.ErrAlreadyMember, http.StatusConflict, "Already a member of this workspace"},
+	{workspace.ErrInvalidName, http.StatusBadRequest, "The workspace needs a name"},
+	{workspace.ErrDeletionNotScheduled, http.StatusNotFound, "No deletion is scheduled for this workspace"},
+	{workspace.ErrInvalidRole, http.StatusBadRequest, "The role must be owner, admin or member"},
 }
 
 func capitalize(s string) string {

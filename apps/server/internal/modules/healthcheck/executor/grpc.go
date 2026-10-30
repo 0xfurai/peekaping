@@ -272,20 +272,8 @@ func (g *GRPCExecutor) tryDirectCall(ctx context.Context, conn *grpc.ClientConn,
 	g.logger.Debugf("Extracted types - Request: %s, Response: %s, Package: %s", requestTypeName, responseTypeName, packageName)
 
 	// If extraction failed, use defaults based on service name
-	if requestTypeName == "" {
-		if cfg.GrpcServiceName == "Health" {
-			requestTypeName = "HealthCheckRequest"
-		} else {
-			requestTypeName = "Request"
-		}
-	}
-	if responseTypeName == "" {
-		if cfg.GrpcServiceName == "Health" {
-			responseTypeName = "HealthCheckResponse"
-		} else {
-			responseTypeName = "Response"
-		}
-	}
+	requestTypeName = messageNameOrDefault(requestTypeName, cfg.GrpcServiceName, "HealthCheckRequest", "Request")
+	responseTypeName = messageNameOrDefault(responseTypeName, cfg.GrpcServiceName, "HealthCheckResponse", "Response")
 
 	// Try to create simplified descriptors for common patterns
 	requestDesc, responseDesc, err := g.createSimpleDescriptors(requestTypeName, responseTypeName, packageName)
@@ -298,16 +286,8 @@ func (g *GRPCExecutor) tryDirectCall(ctx context.Context, conn *grpc.ClientConn,
 	responseMsg := dynamicpb.NewMessage(responseDesc)
 
 	// Parse and populate the request message from JSON body
-	if cfg.GrpcBody != "" {
-		if err := protojson.Unmarshal([]byte(cfg.GrpcBody), requestMsg); err != nil {
-			// If protojson fails, try to parse as regular JSON and set fields manually
-			var jsonData map[string]interface{}
-			if jsonErr := json.Unmarshal([]byte(cfg.GrpcBody), &jsonData); jsonErr == nil {
-				g.setFieldsFromJSON(requestMsg, jsonData)
-			} else {
-				return "", fmt.Errorf("failed to unmarshal request body: %w", err)
-			}
-		}
+	if err := g.populateRequest(requestMsg, cfg.GrpcBody); err != nil {
+		return "", err
 	}
 
 	// Construct the full method name
@@ -325,17 +305,53 @@ func (g *GRPCExecutor) tryDirectCall(ctx context.Context, conn *grpc.ClientConn,
 		return "", err
 	}
 
-	// Convert response to JSON string
+	return g.responseJSON(responseMsg), nil
+}
+
+// messageNameOrDefault returns the message name extracted from the proto. When there is none, it
+// returns the Health service's name for the message, or the generic one for any other service.
+func messageNameOrDefault(extracted, serviceName, healthName, genericName string) string {
+	if extracted != "" {
+		return extracted
+	}
+	if serviceName == "Health" {
+		return healthName
+	}
+	return genericName
+}
+
+// populateRequest fills the request message from the JSON body, if there is one
+func (g *GRPCExecutor) populateRequest(requestMsg *dynamicpb.Message, body string) error {
+	if body == "" {
+		return nil
+	}
+
+	err := protojson.Unmarshal([]byte(body), requestMsg)
+	if err == nil {
+		return nil
+	}
+
+	// If protojson fails, try to parse as regular JSON and set fields manually
+	var jsonData map[string]interface{}
+	if json.Unmarshal([]byte(body), &jsonData) != nil {
+		return fmt.Errorf("failed to unmarshal request body: %w", err)
+	}
+	g.setFieldsFromJSON(requestMsg, jsonData)
+	return nil
+}
+
+// responseJSON converts the response message to a JSON string
+func (g *GRPCExecutor) responseJSON(responseMsg *dynamicpb.Message) string {
 	responseJSON, err := protojson.Marshal(responseMsg)
 	if err != nil {
 		// If protojson fails, try manual conversion
 		responseStr := g.convertMessageToJSON(responseMsg)
 		g.logger.Debugf("gRPC response (manual conversion): %s", responseStr)
-		return responseStr, nil
+		return responseStr
 	}
 
 	g.logger.Debugf("gRPC response: %s", string(responseJSON))
-	return string(responseJSON), nil
+	return string(responseJSON)
 }
 
 // createSimpleDescriptors creates basic message descriptors for common proto patterns

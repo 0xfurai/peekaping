@@ -1,6 +1,8 @@
 package auth
 
 import (
+	"context"
+
 	"peekaping/internal/config"
 	"peekaping/internal/dbtx"
 	"peekaping/internal/installsettings"
@@ -36,7 +38,9 @@ func ProvideService(
 	settings *installsettings.Resolver,
 	logger *zap.SugaredLogger,
 ) Service {
-	return NewService(repo, transactor, workspaces, invites, tokenMaker, verifier, logger, WithSignupMode(settings), WithDisabledMonitorTypes(cfg.DisabledMonitorTypeList()), WithMinCheckInterval(cfg.MinCheckIntervalSeconds()), WithSupportContact(cfg.SupportContact), WithAccountRemoval(remover))
+	return NewService(repo, transactor, workspaces, invites, tokenMaker, verifier, logger, WithSignupMode(settings), WithDisabledMonitorTypes(cfg.DisabledMonitorTypeList()), WithMinCheckInterval(cfg.MinCheckIntervalSeconds()), WithSupportContact(cfg.SupportContact), WithCustomDomainVerification(cfg.VerifyCustomDomains, func(ctx context.Context) string {
+		return config.CustomDomainCNAMETargetFor(cfg.CustomDomainCNAMETarget, settings.PublicURL(ctx))
+	}), WithAccountRemoval(remover))
 }
 
 // ProvideTokenMaker is the token maker of the app: it refuses the tokens of sessions that a

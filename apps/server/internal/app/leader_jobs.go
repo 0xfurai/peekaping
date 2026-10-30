@@ -22,9 +22,9 @@ type LeaderJob struct {
 }
 
 // LeaderJobs runs the jobs that only one api replica may run at a time, on the replica that holds
-// the leader lock in Redis: cluster mode's stale-monitor watchdog, probe sweep and push monitors'
-// checks. When the replica stops, or loses the lock, its jobs stop, and another replica takes the
-// lock within its TTL and starts them.
+// the leader lock in Redis: cluster mode's stale-monitor watchdog, probe sweep, push monitors'
+// checks and custom domain checks. When the replica stops, or loses the lock, its jobs stop, and
+// another replica takes the lock within its TTL and starts them.
 type LeaderJobs struct {
 	elector *leader.Elector
 	jobs    []LeaderJob

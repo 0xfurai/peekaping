@@ -107,37 +107,58 @@ func (s *Sweep) checkSilent(ctx context.Context, p *Model, instances []*Instance
 	if s.silent == nil || p.ID != LocalID {
 		return
 	}
-	announced := s.silent.Announced
 	switch {
 	case p.Status == StatusOnline:
-		if err := announced.Forget(ctx, p.ID); err != nil {
+		if err := s.silent.Announced.Forget(ctx, p.ID); err != nil {
 			s.logger.Warnw("Failed to forget that the local probe was reported offline", "error", err)
 		}
-	case p.Status == StatusOffline && len(instances) == 0 && !s.termStart.IsZero() && now.Sub(s.termStart) >= s.offlineAfter:
-		done, err := announced.Announced(ctx, p.ID)
-		if err != nil || done {
-			if err != nil {
-				s.logger.Warnw("Failed to find out whether the local probe was reported offline", "error", err)
-			}
-			return
-		}
-		monitors, silent, err := s.silent.silent(ctx, s.repo)
-		if err != nil || !silent {
-			if err != nil {
-				s.logger.Warnw("Failed to count the monitors of the local probe", "error", err)
-			}
-			return
-		}
-		first, err := announced.Announce(ctx, p.ID)
-		if err != nil || !first {
-			if err != nil {
-				s.logger.Warnw("Failed to record that the local probe was reported offline", "error", err)
-			}
-			return
-		}
-		s.logger.Warn(SilentWarning(monitors))
-		publish(ctx, s, ProbeOffline, Event{ProbeID: p.ID, ProbeName: p.Name, Since: now.UTC()})
+	case s.neverHeardFrom(p, instances, now):
+		s.reportSilent(ctx, p, now)
 	}
+}
+
+// neverHeardFrom reports whether the probe is offline with no instance, and has been for the
+// OfflineAfter that the instances get from this replica taking the leader lock
+func (s *Sweep) neverHeardFrom(p *Model, instances []*Instance, now time.Time) bool {
+	return p.Status == StatusOffline && len(instances) == 0 && !s.termStart.IsZero() && now.Sub(s.termStart) >= s.offlineAfter
+}
+
+// reportSilent reports the local probe offline, unless it was reported already or has no monitors
+// to run, or another replica reports it first
+func (s *Sweep) reportSilent(ctx context.Context, p *Model, now time.Time) {
+	monitors, ok := s.unreportedMonitors(ctx, p)
+	if !ok {
+		return
+	}
+	first, err := s.silent.Announced.Announce(ctx, p.ID)
+	if err != nil {
+		s.logger.Warnw("Failed to record that the local probe was reported offline", "error", err)
+		return
+	}
+	if !first {
+		return
+	}
+	s.logger.Warn(SilentWarning(monitors))
+	publish(ctx, s, ProbeOffline, Event{ProbeID: p.ID, ProbeName: p.Name, Since: now.UTC()})
+}
+
+// unreportedMonitors counts the monitors of the local probe that need an instance, when it has some
+// and was not reported offline yet. ok is false when there is nothing to report.
+func (s *Sweep) unreportedMonitors(ctx context.Context, p *Model) (monitors int, ok bool) {
+	done, err := s.silent.Announced.Announced(ctx, p.ID)
+	if err != nil {
+		s.logger.Warnw("Failed to find out whether the local probe was reported offline", "error", err)
+		return 0, false
+	}
+	if done {
+		return 0, false
+	}
+	monitors, silent, err := s.silent.silent(ctx, s.repo)
+	if err != nil {
+		s.logger.Warnw("Failed to count the monitors of the local probe", "error", err)
+		return 0, false
+	}
+	return monitors, silent
 }
 
 // markAnnounced records that the probe was reported offline by the sweep, so that having no instance

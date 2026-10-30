@@ -1,0 +1,6 @@
+POST https://ntfy.example.com/peekaping
+Content-Type: text/plain
+User-Agent: Peekaping-NTFY/<version>
+X-Priority: 2
+
+connection refused

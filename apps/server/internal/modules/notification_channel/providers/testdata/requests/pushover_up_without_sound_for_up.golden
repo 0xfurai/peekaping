@@ -1,0 +1,15 @@
+POST https://api.pushover.net/1/messages.json
+Content-Type: application/json
+User-Agent: Peekaping-Pushover/<version>
+
+{
+  "expire": "3600",
+  "html": 1,
+  "message": "\u003cb\u003ePublic API\u003c/b\u003e\n200 - OK\n\n\u003cb\u003eTime:\u003c/b\u003e 2026-10-17 09:35:00",
+  "priority": 0,
+  "retry": "30",
+  "sound": "siren",
+  "title": "Peekaping Notification",
+  "token": "app-token",
+  "user": "user-key"
+}

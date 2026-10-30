@@ -140,17 +140,7 @@ func statFromDocument(report *CollectionReport, d doc, monitor primitive.ObjectI
 func (c *copier) copyStats(ctx context.Context, collection string) error {
 	report := c.report.collection(collection, collection)
 	out := newBatcher[statRow](c.tx, collection, report)
-	var pending *statRow
-	var pendingMonitor primitive.ObjectID
-	var pendingAt time.Time
-	flushPending := func() error {
-		if pending == nil {
-			return nil
-		}
-		row := *pending
-		pending = nil
-		return out.add(ctx, row)
-	}
+	merger := &statMerger{out: out}
 	err := c.src.each(ctx, collection, bson.D{{Key: "monitor_id", Value: 1}, {Key: "timestamp", Value: 1}}, func(d doc) error {
 		report.Read++
 		c.progressf(collection, report.Read)
@@ -165,24 +155,56 @@ func (c *copier) copyStats(ctx context.Context, collection string) error {
 			return nil
 		}
 		row := statFromDocument(report, d, monitor, at)
-		if pending != nil && pendingMonitor == monitor && pendingAt.Equal(at) {
+		if merger.merge(row, monitor, at) {
 			report.skip("a document of the same monitor and time, merged into the one copied")
-			pending.add(row)
 			return nil
 		}
-		if err := flushPending(); err != nil {
-			return err
-		}
-		pending, pendingMonitor, pendingAt = &row, monitor, at
-		return nil
+		return merger.hold(ctx, row, monitor, at)
 	})
 	if err != nil {
 		return err
 	}
-	if err := flushPending(); err != nil {
+	if err := merger.flush(ctx); err != nil {
 		return err
 	}
 	return out.flush(ctx)
+}
+
+// statMerger holds the row last read, until a document of another monitor or time comes: the
+// documents of the same monitor and time that follow it are added to it
+type statMerger struct {
+	out     *batcher[statRow]
+	pending *statRow
+	monitor primitive.ObjectID
+	at      time.Time
+}
+
+// flush hands the held row, if any, to the batcher
+func (m *statMerger) flush(ctx context.Context) error {
+	if m.pending == nil {
+		return nil
+	}
+	row := *m.pending
+	m.pending = nil
+	return m.out.add(ctx, row)
+}
+
+// merge adds row to the held row and reports true when it is of the same monitor and time
+func (m *statMerger) merge(row statRow, monitor primitive.ObjectID, at time.Time) bool {
+	if m.pending != nil && m.monitor == monitor && m.at.Equal(at) {
+		m.pending.add(row)
+		return true
+	}
+	return false
+}
+
+// hold flushes the held row and holds row in its place
+func (m *statMerger) hold(ctx context.Context, row statRow, monitor primitive.ObjectID, at time.Time) error {
+	if err := m.flush(ctx); err != nil {
+		return err
+	}
+	m.pending, m.monitor, m.at = &row, monitor, at
+	return nil
 }
 
 type tlsInfoRow struct {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math"
 	"net/http"
 	"peekaping/internal/httpx"
 	"peekaping/internal/limits"
@@ -121,52 +122,12 @@ func (ic *MonitorController) FindAll(ctx context.Context, input *FindAllInput) (
 	if err != nil {
 		return nil, err
 	}
-	r := input.Request
-	page, err := utils.GetQueryInt(r, "page", 0)
-	if err != nil || page < 0 {
-		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Invalid page parameter"))
-	}
-
-	limit, err := utils.GetQueryInt(r, "limit", 10)
-	if err != nil || limit < 1 || limit > utils.MaxPageSize {
-		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Invalid limit parameter"))
-	}
-
-	q := r.URL.Query().Get("q")
-
-	active, err := utils.GetQueryBool(r, "active")
+	query, err := parseFindAllQuery(input.Request)
 	if err != nil {
-		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Invalid active parameter (must be true or false)"))
+		return nil, err
 	}
 
-	var statusPtr *int
-	if statusStr := r.URL.Query().Get("status"); statusStr != "" {
-		statusVal, err := utils.GetQueryInt(r, "status", 0)
-		if err != nil {
-			return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Invalid status parameter (must be int)"))
-		}
-		statusPtr = &statusVal
-	}
-
-	// Parse tag_ids parameter
-	var tagIds []string
-	if tagIdsStr := r.URL.Query().Get("tag_ids"); tagIdsStr != "" {
-		tagIds = strings.Split(tagIdsStr, ",")
-		// Trim whitespace from each tag ID
-		for i, tagId := range tagIds {
-			tagIds[i] = strings.TrimSpace(tagId)
-		}
-		// Remove empty strings
-		var validTagIds []string
-		for _, tagId := range tagIds {
-			if tagId != "" {
-				validTagIds = append(validTagIds, tagId)
-			}
-		}
-		tagIds = validTagIds
-	}
-
-	response, err := ic.monitorService.FindAll(ctx, workspaceID, page, limit, q, active, statusPtr, tagIds)
+	response, err := ic.monitorService.FindAll(ctx, workspaceID, query.page, query.limit, query.q, query.active, query.status, query.tagIds)
 	if err != nil {
 		ic.logger.Errorw("Failed to fetch monitors", "error", err)
 		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
@@ -187,6 +148,91 @@ func (ic *MonitorController) FindAll(ctx context.Context, input *FindAllInput) (
 
 	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("success", monitors))
 }
+
+// findAllQuery is the query of a monitor listing, as the service takes it.
+type findAllQuery struct {
+	page, limit int
+	q           string
+	active      *bool
+	status      *int
+	tagIds      []string
+}
+
+// parseFindAllQuery reads the query of a listing, and answers 400 for the first parameter it can't
+// read: page, limit, active, then status.
+func parseFindAllQuery(r *http.Request) (findAllQuery, error) {
+	var query findAllQuery
+	var err error
+	if query.page, err = queryIntIn(r, "page", 0, 0, math.MaxInt, "Invalid page parameter"); err != nil {
+		return query, err
+	}
+	if query.limit, err = queryIntIn(r, "limit", 10, 1, utils.MaxPageSize, "Invalid limit parameter"); err != nil {
+		return query, err
+	}
+	query.q = r.URL.Query().Get("q")
+	if query.active, err = queryBool(r, "active", "Invalid active parameter (must be true or false)"); err != nil {
+		return query, err
+	}
+	if query.status, err = queryOptionalInt(r, "status", "Invalid status parameter (must be int)"); err != nil {
+		return query, err
+	}
+	query.tagIds = splitTagIDs(r.URL.Query().Get("tag_ids"))
+	return query, nil
+}
+
+// badRequest is the 400 with the usual message
+func badRequest(message string) error {
+	return httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(message))
+}
+
+// queryIntIn reads an integer query parameter that must be between min and max, and answers 400
+// with the message when it isn't a number or is out of range
+func queryIntIn(r *http.Request, key string, fallback, min, max int, message string) (int, error) {
+	value, err := utils.GetQueryInt(r, key, fallback)
+	if err != nil || value < min || value > max {
+		return 0, badRequest(message)
+	}
+	return value, nil
+}
+
+// queryBool reads an optional boolean query parameter, nil when it is absent, and answers 400 with
+// the message when it isn't true or false
+func queryBool(r *http.Request, key, message string) (*bool, error) {
+	value, err := utils.GetQueryBool(r, key)
+	if err != nil {
+		return nil, badRequest(message)
+	}
+	return value, nil
+}
+
+// queryOptionalInt reads an optional integer query parameter, nil when it is absent, and answers
+// 400 with the message when it isn't a number
+func queryOptionalInt(r *http.Request, key, message string) (*int, error) {
+	if r.URL.Query().Get(key) == "" {
+		return nil, nil
+	}
+	value, err := utils.GetQueryInt(r, key, 0)
+	if err != nil {
+		return nil, badRequest(message)
+	}
+	return &value, nil
+}
+
+// splitTagIDs splits a comma-separated list of tag IDs, trims each and drops the empty ones. It is
+// nil when none is left.
+func splitTagIDs(list string) []string {
+	if list == "" {
+		return nil
+	}
+	var tagIds []string
+	for _, tagId := range strings.Split(list, ",") {
+		if tagId = strings.TrimSpace(tagId); tagId != "" {
+			tagIds = append(tagIds, tagId)
+		}
+	}
+	return tagIds
+}
+
 func (ic *MonitorController) Create(ctx context.Context, input *CreateInput) (*httpx.Output[utils.ApiResponse[*MonitorResponseDto]], error) {
 	workspaceID, err := workspacehttp.Scope(ctx)
 	if err != nil {
@@ -204,40 +250,12 @@ func (ic *MonitorController) Create(ctx context.Context, input *CreateInput) (*h
 
 	// Validate monitor type and config
 	if err := ic.monitorService.ValidateMonitorConfig(monitor.Type, monitor.Config); err != nil {
-		var blocked *netguard.TargetError
-		if errors.As(err, &blocked) {
-			return nil, utils.TargetNotAllowed(blocked)
-		}
-		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(fmt.Sprintf("Invalid monitor configuration: %v", err)))
+		return nil, configRefusalResponse(err)
 	}
 
 	createdMonitor, err := ic.monitorService.Create(ctx, workspaceID, monitor)
 	if err != nil {
-		var invalidProbes *InvalidProbesError
-		var invalidRule *InvalidLocationRuleError
-		var tokenTaken *PushTokenAlreadyUsedError
-		var typeDisabled *MonitorTypeDisabledError
-		var tooShort *IntervalTooShortError
-		var reached *limits.ReachedError
-		switch {
-		case errors.As(err, &typeDisabled):
-			return nil, monitorTypeDisabledResponse(typeDisabled)
-		case errors.As(err, &reached):
-			return nil, limits.Fail(reached)
-		case errors.As(err, &tooShort):
-			return nil, intervalTooShortResponse(tooShort)
-		case errors.As(err, &invalidProbes):
-			return nil, invalidProbesResponse(invalidProbes)
-		case errors.As(err, &invalidRule):
-			return nil, invalidLocationRuleResponse(invalidRule)
-		case errors.As(err, &tokenTaken):
-			return nil, pushTokenTakenResponse(tokenTaken)
-		}
-		if linkErr := linkNotFoundResponse(err); linkErr != nil {
-			return nil, linkErr
-		}
-		ic.logger.Errorw("Failed to create monitor", "error", err)
-		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+		return nil, ic.failCreate(err)
 	}
 	// Only the ID and type: the monitor's config holds credentials, and so does its push token
 	ic.logger.Infof("Created monitor: %s (type: %s)", createdMonitor.ID, createdMonitor.Type)
@@ -306,43 +324,12 @@ func (ic *MonitorController) UpdateFull(ctx context.Context, input *UpdateFullIn
 
 	// Validate monitor type and config
 	if err := ic.monitorService.ValidateMonitorConfig(monitor.Type, monitor.Config); err != nil {
-		var blocked *netguard.TargetError
-		if errors.As(err, &blocked) {
-			return nil, utils.TargetNotAllowed(blocked)
-		}
-		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(fmt.Sprintf("Invalid monitor configuration: %v", err)))
+		return nil, configRefusalResponse(err)
 	}
 
 	updatedMonitor, err := ic.monitorService.UpdateFull(ctx, workspaceID, id, &monitor)
 	if err != nil {
-		var invalidProbes *InvalidProbesError
-		var invalidRule *InvalidLocationRuleError
-		var tokenTaken *PushTokenAlreadyUsedError
-		var typeDisabled *MonitorTypeDisabledError
-		var tooShort *IntervalTooShortError
-		var reached *limits.ReachedError
-		switch {
-		case errors.As(err, &typeDisabled):
-			return nil, monitorTypeDisabledResponse(typeDisabled)
-		case errors.As(err, &reached):
-			return nil, limits.Fail(reached)
-		case errors.As(err, &tooShort):
-			return nil, intervalTooShortResponse(tooShort)
-		case errors.As(err, &invalidProbes):
-			return nil, invalidProbesResponse(invalidProbes)
-		case errors.As(err, &invalidRule):
-			return nil, invalidLocationRuleResponse(invalidRule)
-		case errors.As(err, &tokenTaken):
-			return nil, pushTokenTakenResponse(tokenTaken)
-		}
-		if linkErr := linkNotFoundResponse(err); linkErr != nil {
-			return nil, linkErr
-		}
-		ic.logger.Errorw("Failed to update monitor", "error", err)
-		if errors.Is(err, ErrMonitorNotFound) {
-			return nil, httpx.Fail(http.StatusNotFound, utils.NewFailResponse(err.Error()))
-		}
-		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+		return nil, ic.failUpdate(err)
 	}
 
 	response, err := ic.withLinksOf(ctx, updatedMonitor)
@@ -384,17 +371,90 @@ func (ic *MonitorController) UpdatePartial(ctx context.Context, input *UpdatePar
 	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("Monitor updated successfully", response))
 }
 
+// failCreate maps the error of a create to its response.
+func (ic *MonitorController) failCreate(err error) error {
+	if failure := writeRefusalResponse(err); failure != nil {
+		return failure
+	}
+	ic.logger.Errorw("Failed to create monitor", "error", err)
+	return httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+}
+
+// failUpdate maps the error of a full update to its response. The monitor isn't found as 404 with
+// the error's own message.
+func (ic *MonitorController) failUpdate(err error) error {
+	if failure := writeRefusalResponse(err); failure != nil {
+		return failure
+	}
+	ic.logger.Errorw("Failed to update monitor", "error", err)
+	if errors.Is(err, ErrMonitorNotFound) {
+		return httpx.Fail(http.StatusNotFound, utils.NewFailResponse(err.Error()))
+	}
+	return httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+}
+
+// configRefusalResponse is the 400 for a config the service refuses: the address the install's
+// guard blocks, or any other invalid configuration.
+func configRefusalResponse(err error) error {
+	var blocked *netguard.TargetError
+	if errors.As(err, &blocked) {
+		return utils.TargetNotAllowed(blocked)
+	}
+	return badRequest(fmt.Sprintf("Invalid monitor configuration: %v", err))
+}
+
+// writeRefusalResponse is the response for the error of a create or full update that the client can
+// act on: a refusal of the install's limits, of the probes, location rule or push token, or a
+// link to a record that isn't in the workspace. It is nil for any other error.
+func writeRefusalResponse(err error) error {
+	if failure := limitRefusalResponse(err); failure != nil {
+		return failure
+	}
+	if failure := probeRefusalResponse(err); failure != nil {
+		return failure
+	}
+	return linkNotFoundResponse(err)
+}
+
+// limitRefusalResponse is the response for a monitor type that is turned off, a limit of the
+// workspace that is reached, and an interval below the minimum, and nil for any other error
+func limitRefusalResponse(err error) error {
+	var typeDisabled *MonitorTypeDisabledError
+	var reached *limits.ReachedError
+	var tooShort *IntervalTooShortError
+	switch {
+	case errors.As(err, &typeDisabled):
+		return monitorTypeDisabledResponse(typeDisabled)
+	case errors.As(err, &reached):
+		return limits.Fail(reached)
+	case errors.As(err, &tooShort):
+		return intervalTooShortResponse(tooShort)
+	}
+	return nil
+}
+
+// probeRefusalResponse is the response for probes that don't fit the monitor, a location rule that
+// is invalid and a push token that another monitor holds, and nil for any other error
+func probeRefusalResponse(err error) error {
+	var invalidProbes *InvalidProbesError
+	var invalidRule *InvalidLocationRuleError
+	var tokenTaken *PushTokenAlreadyUsedError
+	switch {
+	case errors.As(err, &invalidProbes):
+		return invalidProbesResponse(invalidProbes)
+	case errors.As(err, &invalidRule):
+		return invalidLocationRuleResponse(invalidRule)
+	case errors.As(err, &tokenTaken):
+		return pushTokenTakenResponse(tokenTaken)
+	}
+	return nil
+}
+
 // failWrite maps the error of a write that looks up the monitor itself to its response.
 func (ic *MonitorController) failWrite(action string, err error) error {
 	var blocked *netguard.TargetError
 	var invalidConfig *InvalidConfigError
 	var invalidTimeout *InvalidTimeoutError
-	var invalidProbes *InvalidProbesError
-	var invalidRule *InvalidLocationRuleError
-	var tokenTaken *PushTokenAlreadyUsedError
-	var typeDisabled *MonitorTypeDisabledError
-	var tooShort *IntervalTooShortError
-	var reached *limits.ReachedError
 	switch {
 	case errors.Is(err, ErrMonitorNotFound):
 		return httpx.Fail(http.StatusNotFound, utils.NewFailResponse("Monitor not found"))
@@ -404,18 +464,12 @@ func (ic *MonitorController) failWrite(action string, err error) error {
 		return httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(fmt.Sprintf("Invalid monitor configuration: %v", invalidConfig.Err)))
 	case errors.As(err, &invalidTimeout):
 		return httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(fmt.Sprintf("Invalid timeout: %v", invalidTimeout)))
-	case errors.As(err, &invalidProbes):
-		return invalidProbesResponse(invalidProbes)
-	case errors.As(err, &invalidRule):
-		return invalidLocationRuleResponse(invalidRule)
-	case errors.As(err, &tokenTaken):
-		return pushTokenTakenResponse(tokenTaken)
-	case errors.As(err, &typeDisabled):
-		return monitorTypeDisabledResponse(typeDisabled)
-	case errors.As(err, &reached):
-		return limits.Fail(reached)
-	case errors.As(err, &tooShort):
-		return intervalTooShortResponse(tooShort)
+	}
+	if failure := probeRefusalResponse(err); failure != nil {
+		return failure
+	}
+	if failure := limitRefusalResponse(err); failure != nil {
+		return failure
 	}
 	if linkErr := linkNotFoundResponse(err); linkErr != nil {
 		return linkErr
@@ -536,34 +590,23 @@ func (ic *MonitorController) FindByMonitorIDPaginated(ctx context.Context, input
 	r := input.Request
 	id := r.PathValue("id")
 
-	limit, err := utils.GetQueryInt(r, "limit", 50)
-	if err != nil || limit < 1 || limit > utils.MaxPageSize {
-		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Invalid limit parameter (1-1000)"))
+	limit, err := queryIntIn(r, "limit", 50, 1, utils.MaxPageSize, "Invalid limit parameter (1-1000)")
+	if err != nil {
+		return nil, err
 	}
-
-	page, err := utils.GetQueryInt(r, "page", 0)
-	if err != nil || page < 0 {
-		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Invalid page parameter (>=0)"))
+	page, err := queryIntIn(r, "page", 0, 0, math.MaxInt, "Invalid page parameter (>=0)")
+	if err != nil {
+		return nil, err
 	}
-
-	var importantPtr *bool
-	if r.URL.Query().Get("important") != "" {
-		importantPtr, err = utils.GetQueryBool(r, "important")
-		if err != nil {
-			return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Invalid important parameter (must be true or false)"))
-		}
+	importantPtr, err := queryBool(r, "important", "Invalid important parameter (must be true or false)")
+	if err != nil {
+		return nil, err
 	}
-
-	reverse := false
-	if r.URL.Query().Get("reverse") != "" {
-		reversePtr, err := utils.GetQueryBool(r, "reverse")
-		if err != nil {
-			return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Invalid reverse parameter (must be true or false)"))
-		}
-		if reversePtr != nil {
-			reverse = *reversePtr
-		}
+	reversePtr, err := queryBool(r, "reverse", "Invalid reverse parameter (must be true or false)")
+	if err != nil {
+		return nil, err
 	}
+	reverse := reversePtr != nil && *reversePtr
 
 	results, err := ic.monitorService.GetHeartbeats(ctx, workspaceID, id, r.URL.Query().Get("probe_id"), limit, page, importantPtr, reverse)
 	if err != nil {
@@ -583,48 +626,9 @@ func (ic *MonitorController) GetStatPoints(ctx context.Context, input *GetStatPo
 	r := input.Request
 	id := r.PathValue("id")
 
-	sinceStr := r.URL.Query().Get("since")
-	if sinceStr == "" {
-		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Missing required 'since' parameter"))
-	}
-	since, err := time.Parse(time.RFC3339, sinceStr)
+	since, until, granularity, err := parseStatRange(r)
 	if err != nil {
-		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Invalid 'since' parameter (must be RFC3339)"))
-	}
-
-	untilStr := r.URL.Query().Get("until")
-	var until time.Time
-	if untilStr == "" {
-		until = time.Now().UTC()
-	} else {
-		until, err = time.Parse(time.RFC3339, untilStr)
-		if err != nil {
-			return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Invalid 'until' parameter (must be RFC3339)"))
-		}
-	}
-
-	granularity := httpx.DefaultQuery(r, "granularity", "minute")
-
-	var interval time.Duration
-	switch granularity {
-	case "minute":
-		interval = time.Minute
-	case "hour":
-		interval = time.Hour
-	case "day":
-		interval = 24 * time.Hour
-	default:
-		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Invalid 'granularity' parameter (must be minute, hour, or day)"))
-	}
-
-	if until.Before(since) {
-		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("'until' must be after 'since'"))
-	}
-
-	diff := until.Sub(since)
-	estPoints := int(diff/interval) + 1
-	if estPoints > 1441 {
-		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(fmt.Sprintf("Too many points requested: %d (max 1441)", estPoints)))
+		return nil, err
 	}
 
 	summary, err := ic.monitorService.GetStatPoints(ctx, workspaceID, id, r.URL.Query().Get("probe_id"), since, until, granularity)
@@ -636,6 +640,69 @@ func (ic *MonitorController) GetStatPoints(ctx context.Context, input *GetStatPo
 	}
 	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("success", summary))
 }
+
+// statGranularities is the length of a point of each granularity the stat points are served in
+var statGranularities = map[string]time.Duration{
+	"minute": time.Minute,
+	"hour":   time.Hour,
+	"day":    24 * time.Hour,
+}
+
+// maxStatPoints is the most points one request for stat points may ask for
+const maxStatPoints = 1441
+
+// parseStatRange reads the range and granularity of a request for stat points, and answers 400 for
+// the first thing that is wrong with it: since, until, granularity, the order of the two times and
+// the number of points.
+func parseStatRange(r *http.Request) (since, until time.Time, granularity string, err error) {
+	if since, err = statSince(r); err != nil {
+		return
+	}
+	if until, err = statUntil(r); err != nil {
+		return
+	}
+	granularity = httpx.DefaultQuery(r, "granularity", "minute")
+	interval, ok := statGranularities[granularity]
+	if !ok {
+		err = badRequest("Invalid 'granularity' parameter (must be minute, hour, or day)")
+		return
+	}
+	if until.Before(since) {
+		err = badRequest("'until' must be after 'since'")
+		return
+	}
+	if estPoints := int(until.Sub(since)/interval) + 1; estPoints > maxStatPoints {
+		err = badRequest(fmt.Sprintf("Too many points requested: %d (max 1441)", estPoints))
+	}
+	return
+}
+
+// statSince reads the required 'since' parameter
+func statSince(r *http.Request) (time.Time, error) {
+	sinceStr := r.URL.Query().Get("since")
+	if sinceStr == "" {
+		return time.Time{}, badRequest("Missing required 'since' parameter")
+	}
+	since, err := time.Parse(time.RFC3339, sinceStr)
+	if err != nil {
+		return time.Time{}, badRequest("Invalid 'since' parameter (must be RFC3339)")
+	}
+	return since, nil
+}
+
+// statUntil reads the 'until' parameter, which is now when it is omitted
+func statUntil(r *http.Request) (time.Time, error) {
+	untilStr := r.URL.Query().Get("until")
+	if untilStr == "" {
+		return time.Now().UTC(), nil
+	}
+	until, err := time.Parse(time.RFC3339, untilStr)
+	if err != nil {
+		return time.Time{}, badRequest("Invalid 'until' parameter (must be RFC3339)")
+	}
+	return until, nil
+}
+
 func (ic *MonitorController) GetUptimeStats(ctx context.Context, input *GetUptimeStatsInput) (*httpx.Output[utils.ApiResponse[*CustomUptimeStatsDto]], error) {
 	workspaceID, err := workspacehttp.Scope(ctx)
 	if err != nil {
