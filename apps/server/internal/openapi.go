@@ -20,6 +20,7 @@ import (
 	"peekaping/internal/modules/tag"
 	"peekaping/internal/modules/telemetry"
 	"peekaping/internal/modules/workspace/workspacehttp"
+	"peekaping/internal/modules/workspaceport"
 
 	"github.com/danielgtaylor/huma/v2"
 	"go.uber.org/zap"
@@ -48,6 +49,7 @@ func OpenAPI() *huma.OpenAPI {
 		probe.NewRoute(nil, nil), nil,
 		protocol.NewRoute(nil, nil), nil,
 		workspacehttp.NewRoute(nil, (*middleware.AuthChain)(nil)), nil,
+		workspaceport.NewRoute(nil, (*middleware.AuthChain)(nil)), nil,
 		admin.NewRoute(nil, (*middleware.AuthChain)(nil)), nil,
 		nil, nil,
 	)

@@ -7,6 +7,12 @@ import (
 	"peekaping/internal/modules/workspace"
 )
 
+// ExportCursor is the heartbeat that a page of FindExportPage resumes after
+type ExportCursor struct {
+	Time time.Time
+	ID   string
+}
+
 type Repository interface {
 	Create(ctx context.Context, heartbeat *Model) (*Model, error)
 	FindByID(ctx context.Context, id string) (*Model, error)
@@ -31,6 +37,11 @@ type Repository interface {
 		periods map[string]time.Duration,
 		now time.Time,
 	) (map[string]*float64, error)
+	// FindExportPage returns up to limit heartbeats of the workspace's monitor, oldest first (by
+	// time, then id), that come after the cursor; nil starts at the oldest. It pages by keyset, so
+	// the cost of a page doesn't grow with the pages before it. A monitor of another workspace has
+	// none.
+	FindExportPage(ctx context.Context, workspaceID workspace.ID, monitorID string, after *ExportCursor, limit int) ([]*Model, error)
 	// DeleteOlderThan deletes the heartbeats of the workspace's monitors that are older than cutoff
 	DeleteOlderThan(ctx context.Context, workspaceID workspace.ID, cutoff time.Time) (int64, error)
 	DeleteByMonitorID(ctx context.Context, monitorID string) error

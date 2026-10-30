@@ -289,25 +289,61 @@ func redactConfig(provider NotificationChannelProvider, config string) string {
 	}
 
 	for key, raw := range fields {
-		if _, isSecret := fieldForKey(secrets, key); isSecret {
-			// stringValue reads null as the empty string
-			if value, isString := stringValue(raw); !isString || value != "" {
-				fields[key] = json.RawMessage(`"` + secretPlaceholder + `"`)
-			}
-			continue
-		}
-		if _, isURL := fieldForKey(urls, key); !isURL {
-			continue
-		}
-		if value, isString := stringValue(raw); isString {
-			if masked := maskURLCredentials(value); masked != value {
-				fields[key] = jsonString(masked)
-			}
-		} else if string(bytes.TrimSpace(raw)) != "null" {
-			fields[key] = json.RawMessage(`"` + secretPlaceholder + `"`)
+		if redacted, changed := redactedValue(secrets, urls, key, raw); changed {
+			fields[key] = redacted
 		}
 	}
 	return encodeConfig(fields)
+}
+
+// redactedValue returns what a response shows for the config value under key, and whether that
+// differs from the value: a secret that is set is the placeholder, and a URL field that holds
+// credentials is the URL with them masked (a value of it that isn't a string or null is the
+// placeholder). Any other field, a secret that is unset included, is left as it is.
+func redactedValue(secrets, urls []configField, key string, raw json.RawMessage) (json.RawMessage, bool) {
+	if _, isSecret := fieldForKey(secrets, key); isSecret {
+		// stringValue reads null as the empty string
+		if value, isString := stringValue(raw); !isString || value != "" {
+			return json.RawMessage(`"` + secretPlaceholder + `"`), true
+		}
+		return raw, false
+	}
+	if _, isURL := fieldForKey(urls, key); !isURL {
+		return raw, false
+	}
+	if value, isString := stringValue(raw); isString {
+		if masked := maskURLCredentials(value); masked != value {
+			return jsonString(masked), true
+		}
+		return raw, false
+	}
+	if string(bytes.TrimSpace(raw)) != "null" {
+		return json.RawMessage(`"` + secretPlaceholder + `"`), true
+	}
+	return raw, false
+}
+
+// SensitiveFields returns, in order, the keys of a channel's config that hold something the API
+// hides from responses: the secrets that are set, and the URL fields whose user info or query
+// values it masks (the same fields redactConfig changes). A channel of a type with no provider
+// can't be told secrets from the rest, so every field that is set counts. A config that isn't a
+// JSON object has none. The keys are those of the config, in the letter case it writes them.
+func SensitiveFields(providers *ProviderRegistry, channelType, config string) []string {
+	keys := []string{}
+	fields, _ := parseConfig(config)
+	provider, _ := providers.Get(channelType)
+	secrets, urls := secretFields(provider), urlCredentialFields(provider)
+	for key, raw := range fields {
+		if provider == nil {
+			if value, isString := stringValue(raw); !isString || value != "" {
+				keys = append(keys, key)
+			}
+		} else if _, changed := redactedValue(secrets, urls, key, raw); changed {
+			keys = append(keys, key)
+		}
+	}
+	sort.Strings(keys)
+	return keys
 }
 
 // resolveSecrets returns incoming with each secret sent as the placeholder replaced by the

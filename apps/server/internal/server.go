@@ -29,6 +29,7 @@ import (
 	"peekaping/internal/modules/telemetry"
 	"peekaping/internal/modules/websocket"
 	"peekaping/internal/modules/workspace/workspacehttp"
+	"peekaping/internal/modules/workspaceport"
 	"peekaping/internal/probeproto"
 	"peekaping/internal/version"
 
@@ -136,6 +137,8 @@ func ProvideServer(
 	probeProtocolController *protocol.Controller,
 	workspaceRoute *workspacehttp.Route,
 	workspaceController *workspacehttp.Controller,
+	workspacePortRoute *workspaceport.Route,
+	workspacePortController *workspaceport.Controller,
 	adminRoute *admin.Route,
 	adminController *admin.Controller,
 	staleStore stale.Store,
@@ -169,6 +172,7 @@ func ProvideServer(
 	badgeRoute.ConnectRoute(router, badgeController)
 	apiKeyRoute.ConnectRoute(router, apiKeyController)
 	workspaceRoute.ConnectRoute(router, workspaceController)
+	workspacePortRoute.ConnectRoute(router, workspacePortController)
 	adminRoute.ConnectRoute(router, adminController)
 	probeRoute.ConnectRoute(router, probeController)
 

@@ -144,7 +144,7 @@ func TestOpenAPI_CompleteAndAccurateContract(t *testing.T) {
 			assert.Contains(t, op.Responses["404"].Content, "application/json")
 		}
 	}
-	assert.Equal(t, 125, count)
+	assert.Equal(t, 127, count)
 	specCount := 0
 	for _, methods := range spec.Paths {
 		specCount += len(methods)
@@ -213,6 +213,8 @@ func TestOpenAPI_ResponsesMatchSchemas(t *testing.T) {
 		{"list", "GET", "/api/v1/monitors", "/api/v1/monitors", nil, 200, a.asAdmin},
 		{"monitor detail", "GET", "/api/v1/monitors/{id}", "/api/v1/monitors/" + id, nil, 200, a.asAdmin},
 		{"missing TLS", "GET", "/api/v1/monitors/{id}/tls", "/api/v1/monitors/" + id + "/tls", nil, 200, a.asAdmin},
+		{"workspace export", "GET", "/api/v1/workspace/export", "/api/v1/workspace/export", nil, 200, a.asAdmin},
+		{"workspace export, no sign-in", "GET", "/api/v1/workspace/export", "/api/v1/workspace/export", nil, 401, nil},
 		{"unauthenticated", "GET", "/api/v1/tags", "/api/v1/tags", nil, 401, nil},
 		{"malformed JSON", "POST", "/api/v1/tags", "/api/v1/tags", "{", 400, a.asAdmin},
 		{"not found", "GET", "/api/v1/tags/{id}", "/api/v1/tags/missing", nil, 404, a.asAdmin},

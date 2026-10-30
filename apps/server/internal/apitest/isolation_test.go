@@ -256,6 +256,15 @@ var isolationCases = map[string]isolationCase{
 		return []isolationRequest{{name: "for A's invitee", body: map[string]any{"email": aliceOnly + "-invitee@example.com", "role": "member"}, status: http.StatusCreated, own: true, sameName: true}}
 	}),
 	"DELETE /api/v1/workspace/invites/{id}": byID("invite", plain),
+
+	"GET /api/v1/workspace/export": byID("", func(isolationIDs) []isolationRequest {
+		// B's file holds B's own records and settings: none of A's IDs, names, secrets or retention period
+		return []isolationRequest{{own: true, status: http.StatusOK, forbid: []string{`"dataRetentionDays": ` + aliceRetention}}}
+	}),
+	"GET /api/v1/workspace/export/heartbeats": byID("", func(isolationIDs) []isolationRequest {
+		// B's file holds the heartbeats of B's monitors: none of A's, which A's monitor IDs would show
+		return []isolationRequest{{own: true, status: http.StatusOK}}
+	}),
 }
 
 // The routes that serve no workspace's records, each with the reason. A route is here only if what
