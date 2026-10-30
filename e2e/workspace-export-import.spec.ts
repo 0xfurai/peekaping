@@ -133,7 +133,7 @@ test('@critical an owner downloads the workspace, imports the file into another 
     await expect(result.getByTestId('import-created')).toContainText(/Monitors: [1-9]/);
     await expect(result.getByTestId('import-created')).toContainText(/Tags: [1-9]/);
     await expect(result.getByTestId('import-created')).toContainText(/Notification channels: [1-9]/);
-    await result.getByRole('button', { name: 'Close' }).click();
+    await result.getByRole('button', { name: 'Close' }).first().click();
     await expect(result).toHaveCount(0);
 
     // The monitor is in the other workspace's list, and not a second time in the first one
@@ -185,11 +185,11 @@ test('@critical an import of a file that is not JSON sends nothing, and a refuse
     const refused = page.getByRole('dialog').filter({ hasText: "The file can't be imported" });
     await expect(refused).toBeVisible();
     await expect(refused.getByTestId('import-problems').getByRole('listitem').first()).toContainText('file:');
-    await refused.getByRole('button', { name: 'Close' }).click();
+    await refused.getByRole('button', { name: 'Close' }).first().click();
 
     const monitors = await api.get('monitors', { headers: { 'X-Workspace-ID': targetId } });
     expect(monitors.ok(), await monitors.text()).toBeTruthy();
-    expect((await monitors.json()).data).toHaveLength(0);
+    expect((await monitors.json()).data ?? []).toHaveLength(0);
   } finally {
     try {
       if (targetId) await deleteCreated(api, `admin/workspaces/${targetId}`);

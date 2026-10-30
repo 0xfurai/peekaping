@@ -64,8 +64,9 @@ export const saveBlob = (blob: Blob, filename: string, page: Page = thisPage()):
 };
 
 /**
- * An API download as saveDownload takes it. The generated client asks for these routes as blobs,
- * but types the answer by the route's JSON schema, so the body is checked rather than trusted.
+ * An API download as saveDownload takes it. The caller asks for the route as a blob, but the
+ * generated client types the answer by the route's JSON schema, so the body is checked rather than
+ * trusted.
  */
 export const asDownload = (response: {
   data: unknown;

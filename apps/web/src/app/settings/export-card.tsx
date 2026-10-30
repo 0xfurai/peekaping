@@ -54,7 +54,8 @@ export function ExportCard() {
   const { t } = useLocalizedTranslation();
   const { role } = useCurrentAccess();
   const workspaceFile = useDownload({
-    fetch: async () => asDownload(await getWorkspaceExport({ throwOnError: true })),
+    // The spec types this route as JSON, so the client would parse the file: ask for it as a blob
+    fetch: async () => asDownload(await getWorkspaceExport({ throwOnError: true, responseType: "blob" })),
     fallbackName: () => downloadName("peekaping-workspace", "json"),
     failed: t("settings.workspace_export.failed"),
   });
