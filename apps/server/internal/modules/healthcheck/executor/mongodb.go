@@ -51,7 +51,7 @@ func (m *MongoDBExecutor) Validate(configJSON string) error {
 
 	mongoCfg := cfg.(*MongoDBConfig)
 
-	if err := ValidateConnectionStringWithOptions(mongoCfg.ConnectionString, []string{"mongodb", "mongodb+srv"}, true); err != nil {
+	if err := validateMongoConnectionString(mongoCfg.ConnectionString); err != nil {
 		return fmt.Errorf("invalid connection string: %w", err)
 	}
 
@@ -66,21 +66,12 @@ func (m *MongoDBExecutor) Targets(configJSON string) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	_, rest, ok := strings.Cut(cfg.ConnectionString, "://")
+	parsed, ok := splitMongoConnectionString(cfg.ConnectionString)
 	if !ok {
 		return nil, nil
 	}
-	// The hosts end at the database or the options. The user and password end at the last "@",
-	// which they escape in themselves.
-	authority := rest
-	if end := strings.IndexAny(authority, "/?"); end >= 0 {
-		authority = authority[:end]
-	}
-	if at := strings.LastIndex(authority, "@"); at >= 0 {
-		authority = authority[at+1:]
-	}
 	var hosts []string
-	for _, entry := range strings.Split(authority, ",") {
+	for _, entry := range parsed.hosts {
 		if host, err := url.PathUnescape(strings.TrimSpace(entry)); err == nil && !strings.HasSuffix(host, ".sock") && host != "" {
 			hosts = append(hosts, hostOf(host))
 		}
@@ -248,42 +239,41 @@ func (m *MongoDBExecutor) runMongoDBCommand(ctx context.Context, connectionStrin
 	return result, nil
 }
 
-// enhanceConnectionString adds necessary authentication parameters if missing
+// enhanceConnectionString adds necessary authentication parameters if missing. The string is
+// kept as written, since the driver reads its seed list and escapes itself.
 func (m *MongoDBExecutor) enhanceConnectionString(connectionString string) (string, error) {
-	parsedURL, err := url.Parse(connectionString)
-	if err != nil {
-		return "", fmt.Errorf("invalid connection string format: %w", err)
+	parsed, ok := splitMongoConnectionString(connectionString)
+	if !ok {
+		return "", fmt.Errorf("invalid connection string format: missing ://")
 	}
-
-	// Get existing query parameters
-	queryParams := parsedURL.Query()
 
 	// If user is provided but no authSource is specified, default to admin database
-	if parsedURL.User != nil && parsedURL.User.Username() != "" {
-		if queryParams.Get("authSource") == "" {
-			queryParams.Set("authSource", "admin")
-		}
+	user, _, _ := strings.Cut(parsed.userinfo, ":")
+	if user == "" {
+		return connectionString, nil
 	}
-
-	// Update the URL with enhanced query parameters
-	parsedURL.RawQuery = queryParams.Encode()
-
-	return parsedURL.String(), nil
+	if options, _ := url.ParseQuery(parsed.query); options.Get("authSource") != "" {
+		return connectionString, nil
+	}
+	switch {
+	case !parsed.hasQuery:
+		return connectionString + "?authSource=admin", nil
+	case parsed.query == "":
+		return connectionString + "authSource=admin", nil
+	}
+	return connectionString + "&authSource=admin", nil
 }
 
 // extractDatabaseName extracts the database name from a MongoDB connection string
 func (m *MongoDBExecutor) extractDatabaseName(connectionString string) (string, error) {
-	parsedURL, err := url.Parse(connectionString)
-	if err != nil {
-		return "", fmt.Errorf("invalid connection string format: %w", err)
+	parsed, ok := splitMongoConnectionString(connectionString)
+	if !ok {
+		return "", fmt.Errorf("invalid connection string format: missing ://")
 	}
 
-	// Extract database name from path (remove leading slash)
-	dbName := strings.TrimPrefix(parsedURL.Path, "/")
-
-	// Remove any additional path segments and query parameters
-	if idx := strings.Index(dbName, "?"); idx != -1 {
-		dbName = dbName[:idx]
+	dbName, err := url.PathUnescape(parsed.database)
+	if err != nil {
+		return "", fmt.Errorf("invalid connection string format: %w", err)
 	}
 
 	if dbName == "" {

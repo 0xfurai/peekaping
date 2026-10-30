@@ -12,6 +12,7 @@ import (
 	"peekaping/internal/testservice"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 )
 
@@ -110,6 +111,15 @@ func TestMongoDBExecutor_ReplicaSet_Integration(t *testing.T) {
 
 	t.Run("is up for the replica set's name", func(t *testing.T) {
 		result := exec.Execute(context.Background(), mongoMonitor(t, 10, MongoDBConfig{ConnectionString: rs.URL("admin", rs.Name)}), nil)
+
+		assert.Equal(t, shared.MonitorStatusUp, result.Status, result.Message)
+	})
+
+	t.Run("is up for a seed list whose first host is down", func(t *testing.T) {
+		connectionString := "mongodb://" + closedAddr(t) + "," + rs.Addr + "/admin?replicaSet=" + rs.Name
+		require.NoError(t, exec.Validate(`{"connectionString": "`+connectionString+`"}`))
+
+		result := exec.Execute(context.Background(), mongoMonitor(t, 10, MongoDBConfig{ConnectionString: connectionString}), nil)
 
 		assert.Equal(t, shared.MonitorStatusUp, result.Status, result.Message)
 	})
