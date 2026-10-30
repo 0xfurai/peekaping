@@ -196,24 +196,43 @@ func (s *ServiceImpl) ValidateKey(ctx context.Context, key string) (*Model, erro
 		return nil, errors.New("invalid API key")
 	}
 
+	if err := s.checkKey(ctx, apiKey, apiKeyID, actualKey); err != nil {
+		return nil, err
+	}
+
+	if err := s.consumeUse(ctx, apiKey); err != nil {
+		return nil, err
+	}
+
+	s.logger.Infow("API key validation successful", "apiKeyId", apiKey.ID, "name", apiKey.Name)
+	return apiKey, nil
+}
+
+// checkKey refuses a key that has expired, whose secret does not match, or whose request names
+// another workspace, in that order
+func (s *ServiceImpl) checkKey(ctx context.Context, apiKey *Model, apiKeyID, actualKey string) error {
 	// Check if the key has expired
 	if apiKey.ExpiresAt != nil && apiKey.ExpiresAt.Before(time.Now()) {
 		s.logger.Warnw("API key has expired", "apiKeyId", apiKey.ID, "expiresAt", apiKey.ExpiresAt)
-		return nil, errors.New("API key has expired")
+		return errors.New("API key has expired")
 	}
 
 	// Verify the actual key against the stored hash
 	if !s.verifyKeyHash(ctx, apiKey, actualKey) {
 		s.logger.Warnw("API key verification failed", "apiKeyId", apiKeyID)
-		return nil, errors.New("invalid API key")
+		return errors.New("invalid API key")
 	}
 
 	// A request that names another workspace is refused before the key is counted: it is not a use
 	if named, ok := ctx.Value(requestedWorkspaceKey{}).(string); ok && !strings.EqualFold(named, string(apiKey.WorkspaceID)) {
 		s.logger.Warnw("API key used with the header of another workspace", "apiKeyId", apiKey.ID)
-		return nil, ErrWorkspaceMismatch
+		return ErrWorkspaceMismatch
 	}
+	return nil
+}
 
+// consumeUse counts one use of the key, and refuses it when it has used up its limit
+func (s *ServiceImpl) consumeUse(ctx context.Context, apiKey *Model) error {
 	// Check the usage limit and count the use in one step, so that concurrent
 	// requests can't go past the limit
 	consumed, err := s.repo.ConsumeUsage(ctx, apiKey.ID)
@@ -221,16 +240,14 @@ func (s *ServiceImpl) ValidateKey(ctx context.Context, key string) (*Model, erro
 		s.logger.Errorw("Error updating last used timestamp and usage count", "apiKeyId", apiKey.ID, "error", err)
 		if apiKey.MaxUsageCount != nil {
 			// Without the count, the limit can't be enforced
-			return nil, err
+			return err
 		}
 		// Without a limit, the count is non-critical: don't fail the validation
 	} else if !consumed {
 		s.logger.Warnw("API key usage limit exceeded", "apiKeyId", apiKey.ID, "maxUsageCount", apiKey.MaxUsageCount)
-		return nil, errors.New("API key usage limit exceeded")
+		return errors.New("API key usage limit exceeded")
 	}
-
-	s.logger.Infow("API key validation successful", "apiKeyId", apiKey.ID, "name", apiKey.Name)
-	return apiKey, nil
+	return nil
 }
 
 // MARK: findForToken

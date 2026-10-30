@@ -71,9 +71,6 @@ jobs:
         with:
           version: v2.15.0
           working-directory: apps/server
-          # Report only issues on the lines a PR changes: older functions are still
-          # above the gocyclo limit
-          only-new-issues: true
 
   # The OpenAPI description, generated from the Go code, and the web client generated from it are
   # committed: this checks both are up to date

@@ -165,6 +165,17 @@ func (s *ServiceImpl) Register(ctx context.Context, dto RegisterDto) (*LoginResp
 	if s.openSignup != nil && s.openSignup(ctx) {
 		return s.registerOpen(ctx, dto)
 	}
+	user, err := s.createFirstAdmin(ctx, dto)
+	if err != nil {
+		return nil, err
+	}
+	s.askToVerify(ctx, user)
+	return s.signedIn(ctx, user)
+}
+
+// createFirstAdmin creates the install's first user, an instance admin and the owner of its first
+// workspace, or returns ErrAdminExists when the install has a user
+func (s *ServiceImpl) createFirstAdmin(ctx context.Context, dto RegisterDto) (*Model, error) {
 	count, err := s.repo.FindAllCount(ctx)
 	if err != nil {
 		return nil, err
@@ -210,26 +221,7 @@ func (s *ServiceImpl) Register(ctx context.Context, dto RegisterDto) (*LoginResp
 	if err != nil {
 		return nil, err
 	}
-	s.askToVerify(ctx, user)
-	s.recordLogin(ctx, user)
-
-	// Generate access token
-	accessToken, err := s.tokenMaker.CreateAccessToken(ctx, user)
-	if err != nil {
-		return nil, err
-	}
-
-	// Generate refresh token
-	refreshToken, err := s.tokenMaker.CreateRefreshToken(ctx, user)
-	if err != nil {
-		return nil, err
-	}
-
-	return &LoginResponse{
-		AccessToken:  accessToken,
-		RefreshToken: refreshToken,
-		User:         user,
-	}, nil
+	return user, nil
 }
 
 // registerOpen creates the account of anyone who signs up when the install is open, with a workspace
@@ -447,10 +439,7 @@ func (s *ServiceImpl) Me(ctx context.Context, userId string) (*MeResponse, error
 func (s *ServiceImpl) Login(ctx context.Context, dto LoginDto) (*LoginResponse, error) {
 	// Find admin by email
 	user, err := s.repo.FindByEmail(ctx, dto.Email)
-	if err != nil {
-		return nil, errors.New("invalid credentials")
-	}
-	if user == nil {
+	if err != nil || user == nil {
 		return nil, errors.New("invalid credentials")
 	}
 
@@ -467,34 +456,25 @@ func (s *ServiceImpl) Login(ctx context.Context, dto LoginDto) (*LoginResponse, 
 	}
 
 	// Enforce 2FA if enabled
-	if user.TwoFASecret != "" && user.TwoFAStatus {
-		if dto.Token == "" {
-			return nil, errors.New("2FA token required")
-		}
-		if !totp.Validate(dto.Token, user.TwoFASecret) {
-			return nil, errors.New("invalid 2FA token")
-		}
-	}
-
-	s.recordLogin(ctx, user)
-
-	// Generate access token
-	accessToken, err := s.tokenMaker.CreateAccessToken(ctx, user)
-	if err != nil {
+	if err := requireSecondFactor(user, dto.Token); err != nil {
 		return nil, err
 	}
 
-	// Generate refresh token
-	refreshToken, err := s.tokenMaker.CreateRefreshToken(ctx, user)
-	if err != nil {
-		return nil, err
-	}
+	return s.signedIn(ctx, user)
+}
 
-	return &LoginResponse{
-		AccessToken:  accessToken,
-		RefreshToken: refreshToken,
-		User:         user,
-	}, nil
+// requireSecondFactor checks the 2FA code of a user who has turned 2FA on
+func requireSecondFactor(user *Model, token string) error {
+	if user.TwoFASecret == "" || !user.TwoFAStatus {
+		return nil
+	}
+	if token == "" {
+		return errors.New("2FA token required")
+	}
+	if !totp.Validate(token, user.TwoFASecret) {
+		return errors.New("invalid 2FA token")
+	}
+	return nil
 }
 
 func (s *ServiceImpl) RefreshToken(ctx context.Context, refreshToken string) (*LoginResponse, error) {

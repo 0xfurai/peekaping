@@ -56,30 +56,8 @@ func (r *SQLRepositoryImpl) Replace(ctx context.Context, probeID string, notific
 	}
 	db := dbtx.DB(ctx, r.db)
 	if len(ids) > 0 {
-		// A channel of a workspace that isn't one of these is not there, whatever workspace it is in
-		if len(workspaces) == 0 {
-			return fmt.Errorf("%w: %s", ErrUnknownChannel, ids[0])
-		}
-		scope := make([]string, len(workspaces))
-		for i, id := range workspaces {
-			scope[i] = string(id)
-		}
-		var found []string
-		err := db.NewSelect().Table("notification_channels").Column("id").
-			Where("id IN (?)", bun.In(ids)).
-			Where("workspace_id IN (?)", bun.In(scope)).
-			Scan(ctx, &found)
-		if err != nil {
+		if err := requireChannelsIn(ctx, db, ids, workspaces); err != nil {
 			return err
-		}
-		exists := make(map[string]bool, len(found))
-		for _, id := range found {
-			exists[id] = true
-		}
-		for _, id := range ids {
-			if !exists[id] {
-				return fmt.Errorf("%w: %s", ErrUnknownChannel, id)
-			}
 		}
 	}
 	if _, err := db.NewDelete().Model((*sqlModel)(nil)).Where("probe_id = ?", probeID).Exec(ctx); err != nil {
@@ -95,6 +73,37 @@ func (r *SQLRepositoryImpl) Replace(ctx context.Context, probeID string, notific
 	}
 	_, err = db.NewInsert().Model(&links).Exec(ctx)
 	return err
+}
+
+// requireChannelsIn fails with ErrUnknownChannel, naming the first of ids that is not a channel of
+// one of the workspaces. A channel of a workspace that isn't one of these is not there, whatever
+// workspace it is in.
+func requireChannelsIn(ctx context.Context, db bun.IDB, ids []string, workspaces []workspace.ID) error {
+	if len(workspaces) == 0 {
+		return fmt.Errorf("%w: %s", ErrUnknownChannel, ids[0])
+	}
+	scope := make([]string, len(workspaces))
+	for i, id := range workspaces {
+		scope[i] = string(id)
+	}
+	var found []string
+	err := db.NewSelect().Table("notification_channels").Column("id").
+		Where("id IN (?)", bun.In(ids)).
+		Where("workspace_id IN (?)", bun.In(scope)).
+		Scan(ctx, &found)
+	if err != nil {
+		return err
+	}
+	exists := make(map[string]bool, len(found))
+	for _, id := range found {
+		exists[id] = true
+	}
+	for _, id := range ids {
+		if !exists[id] {
+			return fmt.Errorf("%w: %s", ErrUnknownChannel, id)
+		}
+	}
+	return nil
 }
 
 func (r *SQLRepositoryImpl) DeleteByNotificationID(ctx context.Context, notificationID string) error {
