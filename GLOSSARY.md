@@ -245,6 +245,10 @@ _Avoid_: Disabled, frozen, paused (that's a monitor switched off by a person)
 A workspace an owner chose to delete, by typing its name. It is held for 7 days as a suspended workspace is: its monitors are kept but none runs, and its public status pages and badges answer "unavailable". An owner can cancel it in that time, which lifts only this hold. After the 7 days the workspace and everything in it are deleted, and its members keep their accounts. A user who is the only owner of a workspace can delete their account only once that workspace is scheduled for deletion or has another owner.
 _Avoid_: Soft delete, trash, pending deletion
 
+**Workspace export**:
+One JSON file with a workspace's setup: its settings, tags, proxies, notification channels, monitors, maintenance windows and status pages, and the links between them. It holds saved secrets in full and lists them as sensitive. Only an owner downloads it, and its heartbeat history is a file of its own. An owner can import it into a workspace on the same install or another one, which adds its records beside the ones there: a tag whose name is there already is reused, and what the target refuses or already holds elsewhere is changed or left out, and listed.
+_Avoid_: Backup (it holds no members, API keys or stats), dump
+
 **Account emails**:
 The emails an account gets: a password reset link, a verification link for its address, and an invite. It is also told, in a notice that carries no link, when an instance admin makes a password reset link for it or turns off its two-step verification. One sender sends them for the whole install, an install setting (`ACCOUNT_SMTP_*`); it is separate from the SMTP settings of an email notification channel, and an install email channel is the one notification channel that sends through it. Without a sender they are off: there is no "Forgot password", nobody is asked to verify and invites are copied. A reset link works once for an hour and ends every session of the user; a verification link works once for 3 days, and the account records when it was verified.
 _Avoid_: Transactional email, system email
