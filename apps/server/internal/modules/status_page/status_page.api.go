@@ -25,6 +25,11 @@ type FindByDomainParams struct {
 }
 type FindByDomainInput = httpx.Input[httpx.NoBody, FindByDomainParams]
 
+type TLSAskParams struct {
+	Domain string `query:"domain" doc:"The host a certificate is asked for" required:"true"`
+}
+type TLSAskInput = httpx.Input[httpx.NoBody, TLSAskParams]
+
 type FindAllParams struct {
 	Q     string `query:"q" doc:"Search query"`
 	Page  int    `query:"page" doc:"Page number" default:"0" minimum:"0"`
@@ -41,6 +46,17 @@ type DeleteParams struct {
 	Id string `path:"id" doc:"Status Page ID" required:"true"`
 }
 type DeleteInput = httpx.Input[httpx.NoBody, DeleteParams]
+
+type FindDomainsParams struct {
+	Id string `path:"id" doc:"Status Page ID" required:"true"`
+}
+type FindDomainsInput = httpx.Input[httpx.NoBody, FindDomainsParams]
+
+type VerifyDomainParams struct {
+	Id     string `path:"id" doc:"Status Page ID" required:"true"`
+	Domain string `path:"domain" doc:"A custom domain of the status page" required:"true"`
+}
+type VerifyDomainInput = httpx.Input[httpx.NoBody, VerifyDomainParams]
 
 type GetMonitorsBySlugParams struct {
 	Slug string `path:"slug" doc:"Status Page Slug" required:"true"`

@@ -125,126 +125,92 @@ func (m *MQTTExecutor) Execute(ctx context.Context, monitor *Monitor, proxyModel
 	}
 
 	// Perform check based on check type
-	if cfg.CheckType == "none" {
+	status, message := checkMQTTMessage(cfg, receivedMessage)
+	return &Result{
+		Status:    status,
+		Message:   message,
+		StartTime: startTime,
+		EndTime:   endTime,
+	}
+}
+
+// checkMQTTMessage judges the received message by the config's check type
+func checkMQTTMessage(cfg *MQTTConfig, receivedMessage string) (shared.MonitorStatus, string) {
+	switch cfg.CheckType {
+	case "none":
 		// For "none" check type, any received message is considered success
 		if receivedMessage != "" {
-			return &Result{
-				Status:    shared.MonitorStatusUp,
-				Message:   fmt.Sprintf("Topic: %s; Message received", cfg.Topic),
-				StartTime: startTime,
-				EndTime:   endTime,
-			}
-		} else {
-			return &Result{
-				Status:    shared.MonitorStatusDown,
-				Message:   fmt.Sprintf("Topic: %s; No message received", cfg.Topic),
-				StartTime: startTime,
-				EndTime:   endTime,
-			}
+			return shared.MonitorStatusUp, fmt.Sprintf("Topic: %s; Message received", cfg.Topic)
 		}
-	} else if cfg.CheckType == "keyword" {
-		// Additional safety check to prevent false positives with empty keywords
-		if strings.TrimSpace(cfg.SuccessKeyword) == "" {
-			return &Result{
-				Status:    shared.MonitorStatusDown,
-				Message:   "Success keyword is empty or invalid",
-				StartTime: startTime,
-				EndTime:   endTime,
-			}
-		}
-
-		if receivedMessage != "" && strings.Contains(receivedMessage, cfg.SuccessKeyword) {
-			return &Result{
-				Status:    shared.MonitorStatusUp,
-				Message:   fmt.Sprintf("Topic: %s; Message: %s", cfg.Topic, receivedMessage),
-				StartTime: startTime,
-				EndTime:   endTime,
-			}
-		} else {
-			return &Result{
-				Status:    shared.MonitorStatusDown,
-				Message:   fmt.Sprintf("Message Mismatch - Topic: %s; Message: %s", cfg.Topic, receivedMessage),
-				StartTime: startTime,
-				EndTime:   endTime,
-			}
-		}
-	} else if cfg.CheckType == "json-query" {
-		// Additional safety checks for json-query
-		if strings.TrimSpace(cfg.JsonPath) == "" {
-			return &Result{
-				Status:    shared.MonitorStatusDown,
-				Message:   "JSON path is empty or invalid",
-				StartTime: startTime,
-				EndTime:   endTime,
-			}
-		}
-
-		if strings.TrimSpace(cfg.ExpectedValue) == "" {
-			return &Result{
-				Status:    shared.MonitorStatusDown,
-				Message:   "Expected value is empty or invalid",
-				StartTime: startTime,
-				EndTime:   endTime,
-			}
-		}
-		var parsedMessage interface{}
-		if err := json.Unmarshal([]byte(receivedMessage), &parsedMessage); err != nil {
-			return &Result{
-				Status:    shared.MonitorStatusDown,
-				Message:   fmt.Sprintf("Failed to parse JSON message: %v", err),
-				StartTime: startTime,
-				EndTime:   endTime,
-			}
-		}
-
-		expr, err := jsonata.Compile(cfg.JsonPath)
-		if err != nil {
-			return &Result{
-				Status:    shared.MonitorStatusDown,
-				Message:   fmt.Sprintf("Invalid JSONata expression: %v", err),
-				StartTime: startTime,
-				EndTime:   endTime,
-			}
-		}
-
-		result, err := expr.Eval(parsedMessage)
-		if err != nil {
-			return &Result{
-				Status:    shared.MonitorStatusDown,
-				Message:   fmt.Sprintf("JSONata evaluation failed: %v", err),
-				StartTime: startTime,
-				EndTime:   endTime,
-			}
-		}
-
-		var resultStr string
-		if result != nil {
-			resultStr = fmt.Sprintf("%v", result)
-		}
-
-		if resultStr == cfg.ExpectedValue {
-			return &Result{
-				Status:    shared.MonitorStatusUp,
-				Message:   "Message received, expected value is found",
-				StartTime: startTime,
-				EndTime:   endTime,
-			}
-		} else {
-			return &Result{
-				Status:    shared.MonitorStatusDown,
-				Message:   fmt.Sprintf("Message received but value is not equal to expected value, value was: [%s]", resultStr),
-				StartTime: startTime,
-				EndTime:   endTime,
-			}
-		}
-	} else {
-		return &Result{
-			Status:    shared.MonitorStatusDown,
-			Message:   "Unknown MQTT Check Type",
-			StartTime: startTime,
-			EndTime:   endTime,
-		}
+		return shared.MonitorStatusDown, fmt.Sprintf("Topic: %s; No message received", cfg.Topic)
+	case "keyword":
+		return checkMQTTKeyword(cfg, receivedMessage)
+	case "json-query":
+		return checkMQTTJSONQuery(cfg, receivedMessage)
+	default:
+		return shared.MonitorStatusDown, "Unknown MQTT Check Type"
 	}
+}
+
+// checkMQTTKeyword is Up when the message holds the success keyword
+func checkMQTTKeyword(cfg *MQTTConfig, receivedMessage string) (shared.MonitorStatus, string) {
+	// Additional safety check to prevent false positives with empty keywords
+	if strings.TrimSpace(cfg.SuccessKeyword) == "" {
+		return shared.MonitorStatusDown, "Success keyword is empty or invalid"
+	}
+
+	if receivedMessage != "" && strings.Contains(receivedMessage, cfg.SuccessKeyword) {
+		return shared.MonitorStatusUp, fmt.Sprintf("Topic: %s; Message: %s", cfg.Topic, receivedMessage)
+	}
+	return shared.MonitorStatusDown, fmt.Sprintf("Message Mismatch - Topic: %s; Message: %s", cfg.Topic, receivedMessage)
+}
+
+// checkMQTTJSONQuery is Up when the JSONata expression, evaluated on the message, gives the
+// expected value
+func checkMQTTJSONQuery(cfg *MQTTConfig, receivedMessage string) (shared.MonitorStatus, string) {
+	// Additional safety checks for json-query
+	if strings.TrimSpace(cfg.JsonPath) == "" {
+		return shared.MonitorStatusDown, "JSON path is empty or invalid"
+	}
+
+	if strings.TrimSpace(cfg.ExpectedValue) == "" {
+		return shared.MonitorStatusDown, "Expected value is empty or invalid"
+	}
+
+	resultStr, failure := evaluateMQTTJSONata(cfg.JsonPath, receivedMessage)
+	if failure != "" {
+		return shared.MonitorStatusDown, failure
+	}
+
+	if resultStr == cfg.ExpectedValue {
+		return shared.MonitorStatusUp, "Message received, expected value is found"
+	}
+	return shared.MonitorStatusDown, fmt.Sprintf("Message received but value is not equal to expected value, value was: [%s]", resultStr)
+}
+
+// evaluateMQTTJSONata evaluates the JSONata expression on the JSON message. It returns the result as
+// a string, which is empty for none, or why the evaluation failed.
+func evaluateMQTTJSONata(expression, receivedMessage string) (string, string) {
+	var parsedMessage interface{}
+	if err := json.Unmarshal([]byte(receivedMessage), &parsedMessage); err != nil {
+		return "", fmt.Sprintf("Failed to parse JSON message: %v", err)
+	}
+
+	expr, err := jsonata.Compile(expression)
+	if err != nil {
+		return "", fmt.Sprintf("Invalid JSONata expression: %v", err)
+	}
+
+	result, err := expr.Eval(parsedMessage)
+	if err != nil {
+		return "", fmt.Sprintf("JSONata evaluation failed: %v", err)
+	}
+
+	var resultStr string
+	if result != nil {
+		resultStr = fmt.Sprintf("%v", result)
+	}
+	return resultStr, ""
 }
 
 // mqttBrokerURL joins hostname and port into a broker URL, adding the mqtt:// scheme when
@@ -301,6 +267,35 @@ func (m *MQTTExecutor) mqttAsync(ctx context.Context, hostname, topic string, op
 	m.logger.Debugf("MQTT connecting to %s with client ID %s", mqttUrl, clientID)
 
 	// Set up MQTT client options
+	opts := m.clientOptions(mqttUrl, clientID, username, password, timeout)
+
+	// Create channel to receive message
+	messageChan := make(chan string, 1)
+	errorChan := make(chan error, 1)
+
+	// Create MQTT client
+	client := mqtt.NewClient(opts)
+
+	// Connect to broker
+	if token := client.Connect(); token.Wait() && token.Error() != nil {
+		return "", fmt.Errorf("MQTT connection failed: %v", token.Error())
+	}
+
+	m.logger.Debugf("MQTT connected successfully")
+
+	// Subscribe to topic
+	if token := client.Subscribe(topic, 0, m.messageHandler(topic, messageChan)); token.Wait() && token.Error() != nil {
+		client.Disconnect(100)
+		return "", fmt.Errorf("MQTT subscription failed: %v", token.Error())
+	}
+
+	m.logger.Debugf("MQTT subscribed to topic %s", topic)
+
+	return waitForMQTTMessage(ctx, client, messageChan, errorChan, timeout)
+}
+
+// clientOptions is the options of the client that connects to the broker at the URL
+func (m *MQTTExecutor) clientOptions(mqttUrl, clientID, username, password string, timeout time.Duration) *mqtt.ClientOptions {
 	opts := mqtt.NewClientOptions()
 	opts.AddBroker(mqttUrl)
 	opts.SetClientID(clientID)
@@ -320,23 +315,12 @@ func (m *MQTTExecutor) mqttAsync(ctx context.Context, hostname, topic string, op
 	if password != "" {
 		opts.SetPassword(password)
 	}
+	return opts
+}
 
-	// Create channel to receive message
-	messageChan := make(chan string, 1)
-	errorChan := make(chan error, 1)
-
-	// Create MQTT client
-	client := mqtt.NewClient(opts)
-
-	// Connect to broker
-	if token := client.Connect(); token.Wait() && token.Error() != nil {
-		return "", fmt.Errorf("MQTT connection failed: %v", token.Error())
-	}
-
-	m.logger.Debugf("MQTT connected successfully")
-
-	// Set up message handler
-	messageHandler := func(client mqtt.Client, msg mqtt.Message) {
+// messageHandler passes the payload of a message on the topic to the channel, unless it is full
+func (m *MQTTExecutor) messageHandler(topic string, messageChan chan string) mqtt.MessageHandler {
+	return func(client mqtt.Client, msg mqtt.Message) {
 		m.logger.Debugf("MQTT message received on topic %s", msg.Topic())
 		if msg.Topic() == topic {
 			select {
@@ -346,15 +330,11 @@ func (m *MQTTExecutor) mqttAsync(ctx context.Context, hostname, topic string, op
 			}
 		}
 	}
+}
 
-	// Subscribe to topic
-	if token := client.Subscribe(topic, 0, messageHandler); token.Wait() && token.Error() != nil {
-		client.Disconnect(100)
-		return "", fmt.Errorf("MQTT subscription failed: %v", token.Error())
-	}
-
-	m.logger.Debugf("MQTT subscribed to topic %s", topic)
-
+// waitForMQTTMessage waits for the message, and disconnects the client once it has it, or when the
+// wait times out or is cancelled
+func waitForMQTTMessage(ctx context.Context, client mqtt.Client, messageChan chan string, errorChan chan error, timeout time.Duration) (string, error) {
 	// Wait for message or timeout
 	timeoutTimer := time.NewTimer(time.Duration(float64(timeout) * 0.8))
 	defer timeoutTimer.Stop()

@@ -481,11 +481,13 @@ export type AuthLoginResponse = {
 
 export type AuthMeResponse = {
   accountEmails: boolean;
+  customDomainCnameTarget: string;
   defaultWorkspaceId: string | null;
   disabledMonitorTypes: Array<string>;
   minCheckInterval: number;
   supportContact: string | null;
   user: AuthMeUser;
+  verifyCustomDomains: boolean;
   workspaces: Array<AuthMeWorkspace> | null;
 };
 
@@ -576,6 +578,31 @@ export type BruteforceBlockResponse = {
   message: string;
   retry_after: number;
   success: boolean;
+};
+
+export type DomainStatusPageCnameRecord = {
+  name: string;
+  target: string;
+};
+
+export type DomainStatusPageRecords = {
+  cname: DomainStatusPageCnameRecord | null;
+  txt: DomainStatusPageTxtRecord;
+};
+
+export type DomainStatusPageStatus = {
+  domain: string;
+  failingSince: string | null;
+  lastCheckedAt: string | null;
+  records: DomainStatusPageRecords;
+  removeAt: string | null;
+  state: "verified" | "pending";
+  verifiedAt: string | null;
+};
+
+export type DomainStatusPageTxtRecord = {
+  name: string;
+  value: string;
 };
 
 export type ErrorReportingStateResponse = {
@@ -1513,6 +1540,11 @@ export type StatusPageDomainErrorResponse = {
   error: StatusPageDomainAlreadyUsedError;
 };
 
+export type StatusPageDomainStatusesDto = {
+  domains: Array<DomainStatusPageStatus>;
+  verificationRequired: boolean;
+};
+
 export type StatusPageModel = {
   auto_refresh_interval: number;
   created_at: string;
@@ -1896,6 +1928,11 @@ export type UtilsApiResponseAuthMeResponse = {
   message: string;
 };
 
+export type UtilsApiResponseDomainStatusPageStatus = {
+  data: DomainStatusPageStatus;
+  message: string;
+};
+
 export type UtilsApiResponseMaintenanceMaintenanceResponseDto = {
   data: MaintenanceMaintenanceResponseDto;
   message: string;
@@ -1958,6 +1995,11 @@ export type UtilsApiResponseProxyModel = {
 
 export type UtilsApiResponseSharedSettingModel = {
   data: SharedSettingModel;
+  message: string;
+};
+
+export type UtilsApiResponseStatusPageDomainStatusesDto = {
+  data: StatusPageDomainStatusesDto;
   message: string;
 };
 
@@ -6991,6 +7033,110 @@ export type GetStatusPagesDomainByDomainResponses = {
 export type GetStatusPagesDomainByDomainResponse =
   GetStatusPagesDomainByDomainResponses[keyof GetStatusPagesDomainByDomainResponses];
 
+export type GetStatusPagesDomainsByIdData = {
+  body?: never;
+  headers?: {
+    /**
+     * The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+     */
+    "X-Workspace-ID"?: string;
+  };
+  path: {
+    /**
+     * Status Page ID
+     */
+    id: string;
+  };
+  query?: never;
+  url: "/api/v1/status-pages/domains/{id}";
+};
+
+export type GetStatusPagesDomainsByIdErrors = {
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
+  /**
+   * Not Found
+   */
+  404: HttpxErrorBody;
+  /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
+  /**
+   * Internal Server Error
+   */
+  500: HttpxErrorBody;
+};
+
+export type GetStatusPagesDomainsByIdError =
+  GetStatusPagesDomainsByIdErrors[keyof GetStatusPagesDomainsByIdErrors];
+
+export type GetStatusPagesDomainsByIdResponses = {
+  /**
+   * OK
+   */
+  200: UtilsApiResponseStatusPageDomainStatusesDto;
+};
+
+export type GetStatusPagesDomainsByIdResponse =
+  GetStatusPagesDomainsByIdResponses[keyof GetStatusPagesDomainsByIdResponses];
+
+export type PostStatusPagesDomainsByIdByDomainVerifyData = {
+  body?: never;
+  headers?: {
+    /**
+     * The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+     */
+    "X-Workspace-ID"?: string;
+  };
+  path: {
+    /**
+     * Status Page ID
+     */
+    id: string;
+    /**
+     * A custom domain of the status page
+     */
+    domain: string;
+  };
+  query?: never;
+  url: "/api/v1/status-pages/domains/{id}/{domain}/verify";
+};
+
+export type PostStatusPagesDomainsByIdByDomainVerifyErrors = {
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
+  /**
+   * Not Found
+   */
+  404: HttpxErrorBody;
+  /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
+  /**
+   * Internal Server Error
+   */
+  500: HttpxErrorBody;
+};
+
+export type PostStatusPagesDomainsByIdByDomainVerifyError =
+  PostStatusPagesDomainsByIdByDomainVerifyErrors[keyof PostStatusPagesDomainsByIdByDomainVerifyErrors];
+
+export type PostStatusPagesDomainsByIdByDomainVerifyResponses = {
+  /**
+   * OK
+   */
+  200: UtilsApiResponseDomainStatusPageStatus;
+};
+
+export type PostStatusPagesDomainsByIdByDomainVerifyResponse =
+  PostStatusPagesDomainsByIdByDomainVerifyResponses[keyof PostStatusPagesDomainsByIdByDomainVerifyResponses];
+
 export type GetStatusPagesSlugBySlugData = {
   body?: never;
   path: {
@@ -7110,6 +7256,39 @@ export type GetStatusPagesSlugBySlugMonitorsHomepageResponses = {
 
 export type GetStatusPagesSlugBySlugMonitorsHomepageResponse =
   GetStatusPagesSlugBySlugMonitorsHomepageResponses[keyof GetStatusPagesSlugBySlugMonitorsHomepageResponses];
+
+export type GetStatusPagesTlsAskData = {
+  body?: never;
+  path?: never;
+  query: {
+    /**
+     * The host a certificate is asked for
+     */
+    domain: string;
+  };
+  url: "/api/v1/status-pages/tls-ask";
+};
+
+export type GetStatusPagesTlsAskErrors = {
+  /**
+   * Not Found
+   */
+  404: HttpxErrorBody;
+  /**
+   * Internal Server Error
+   */
+  500: HttpxErrorBody;
+};
+
+export type GetStatusPagesTlsAskError =
+  GetStatusPagesTlsAskErrors[keyof GetStatusPagesTlsAskErrors];
+
+export type GetStatusPagesTlsAskResponses = {
+  /**
+   * OK
+   */
+  200: unknown;
+};
 
 export type DeleteStatusPagesByIdData = {
   body?: never;

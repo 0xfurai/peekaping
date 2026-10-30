@@ -39,6 +39,8 @@ type stubProbes struct {
 	instanceTypes []string
 	// instanceGone has FindInstance find none, though the instance was stamped by TouchInstance
 	instanceGone bool
+	// instanceErr is what FindInstance fails with, when set
+	instanceErr error
 	// mu guards what the methods record: the results requests of a test may run side by side
 	mu sync.Mutex
 
@@ -67,6 +69,9 @@ func (s *stubProbes) FindByToken(ctx context.Context, token string) (*probe.Mode
 
 // FindInstance is an instance that said hello, with the types its build runs
 func (s *stubProbes) FindInstance(ctx context.Context, probeID, id string) (*probe.Instance, error) {
+	if s.instanceErr != nil {
+		return nil, s.instanceErr
+	}
 	if !s.known[probeID+"/"+id] || s.instanceGone {
 		return nil, nil
 	}

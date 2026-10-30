@@ -1,0 +1,94 @@
+POST https://example.powerplatform.com/workflows/1?sig=s
+Content-Type: application/json
+User-Agent: Peekaping-Teams/<version>
+
+{
+  "attachments": [
+    {
+      "content": {
+        "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+        "actions": [
+          {
+            "title": "View in Peekaping",
+            "type": "Action.OpenUrl",
+            "url": "https://peekaping.example.com/monitors/mon-1"
+          },
+          {
+            "title": "Visit site",
+            "type": "Action.OpenUrl",
+            "url": "https://api.example.com/health"
+          }
+        ],
+        "body": [
+          {
+            "bleed": true,
+            "items": [
+              {
+                "columns": [
+                  {
+                    "items": [
+                      {
+                        "altText": "Peekaping",
+                        "size": "Small",
+                        "style": "Person",
+                        "type": "Image",
+                        "url": "https://peekaping.com/logo-mascot.png"
+                      }
+                    ],
+                    "type": "Column",
+                    "width": "auto"
+                  },
+                  {
+                    "items": [
+                      {
+                        "size": "Medium",
+                        "text": "🔴 Peekaping is down",
+                        "type": "TextBlock",
+                        "weight": "Bolder",
+                        "wrap": true
+                      },
+                      {
+                        "isSubtle": true,
+                        "spacing": "None",
+                        "text": "Peekaping Alert",
+                        "type": "TextBlock"
+                      }
+                    ],
+                    "type": "Column",
+                    "width": "stretch"
+                  }
+                ],
+                "type": "ColumnSet"
+              }
+            ],
+            "style": "attention",
+            "type": "Container"
+          },
+          {
+            "text": "connection refused",
+            "type": "TextBlock",
+            "wrap": true
+          },
+          {
+            "facts": [
+              {
+                "title": "URL",
+                "value": "https://api.example.com/health"
+              },
+              {
+                "title": "Time",
+                "value": "2026-10-17 09:30:00 UTC"
+              }
+            ],
+            "type": "FactSet"
+          }
+        ],
+        "fallbackText": "🔴 Peekaping is down",
+        "type": "AdaptiveCard",
+        "version": "1.4"
+      },
+      "contentType": "application/vnd.microsoft.card.adaptive"
+    }
+  ],
+  "type": "message"
+}

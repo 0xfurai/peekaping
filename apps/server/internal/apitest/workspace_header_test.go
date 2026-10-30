@@ -37,6 +37,7 @@ var publicPaths = map[string]bool{
 	"/api/v1/api-keys/config":                            true,
 	"/api/v1/status-pages/slug/{slug}":                   true,
 	"/api/v1/status-pages/domain/{domain}":               true,
+	"/api/v1/status-pages/tls-ask":                       true,
 	"/api/v1/status-pages/slug/{slug}/monitors":          true,
 	"/api/v1/status-pages/slug/{slug}/monitors/homepage": true,
 }

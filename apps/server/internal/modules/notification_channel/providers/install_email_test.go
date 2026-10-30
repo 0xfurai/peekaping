@@ -86,13 +86,26 @@ var installEmailGoldenCases = []goldenCase{
 	{name: "install_email_up", event: upEvent, config: `{"to": "oncall@example.com"}`},
 	{name: "install_email_certificate_expiry", event: certExpiryEvent, config: `{"to": "oncall@example.com"}`},
 	{name: "install_email_probe_offline", event: probeOfflineEvent, config: `{"to": "oncall@example.com"}`},
+	{name: "install_email_probe_online", event: probeOnlineEvent, config: `{"to": "oncall@example.com"}`},
+	// A probe that is neither offline nor online has no status to name
+	{name: "install_email_probe_unknown_status",
+		notify: notifying("Probe Frankfurt is slow", &monitor.Model{ID: "probe-1", Type: shared.MonitorTypeProbe, Name: "Probe Frankfurt", Status: shared.MonitorStatusPending}, nil),
+		config: `{"to": "oncall@example.com"}`},
+	{name: "install_email_pending", event: pendingEvent, config: `{"to": "oncall@example.com"}`},
+	{name: "install_email_maintenance",
+		notify: notifying("Planned work", goldenMonitor, goldenHeartbeatWith(goldenDown, func(hb *heartbeat.Model) { hb.Status = shared.MonitorStatusMaintenance })),
+		config: `{"to": "oncall@example.com"}`},
+	{name: "install_email_unknown_status",
+		notify: notifying("Odd status", goldenMonitor, goldenHeartbeatWith(goldenDown, func(hb *heartbeat.Model) { hb.Status = 9 })),
+		config: `{"to": "oncall@example.com"}`},
+	{name: "install_email_down_without_monitor", event: downWithoutMonitorEvent, config: `{"to": "oncall@example.com"}`},
 }
 
 func TestInstallEmailChannel_SendsTheNotificationToAMember(t *testing.T) {
 	for _, tc := range installEmailGoldenCases {
 		t.Run(tc.name, func(t *testing.T) {
 			sender, mail, _ := newInstallEmailSender(true, "oncall@example.com")
-			message, mon, hb := goldenNotification(tc.event)
+			message, mon, hb := tc.notification()
 
 			require.NoError(t, sender.Validate(tc.config))
 			require.NoError(t, sender.ValidateInWorkspace(inInstallEmailWorkspace(), tc.config))

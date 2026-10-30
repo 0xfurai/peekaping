@@ -182,45 +182,69 @@ func (s *availabilityService) periods(ctx context.Context, probeID string, rng A
 		return result, nil
 	}
 
-	trackedFrom := changes[0].At.UTC()
-	if trackedFrom.Before(from) {
-		trackedFrom = from
-	}
-	if trackedFrom.After(now) {
-		trackedFrom = now
-	}
+	trackedFrom := trackedFromOf(changes[0].At.UTC(), from, now)
 	result.TrackedFrom = &trackedFrom
 
-	var online time.Duration
-	for i, c := range changes {
-		start, end := c.At.UTC(), now
-		if i+1 < len(changes) {
-			end = changes[i+1].At.UTC()
-		}
-		// A period that crosses the start or the end of what is covered is cut there
-		if start.Before(trackedFrom) {
-			start = trackedFrom
-		}
-		if end.After(now) {
-			end = now
-		}
-		if !end.After(start) {
-			continue
-		}
-		if last := len(result.Periods) - 1; last >= 0 && result.Periods[last].Status == c.Status {
-			result.Periods[last].End = end
-		} else {
-			result.Periods = append(result.Periods, Period{Status: c.Status, Start: start, End: end})
-		}
-		if c.Status == StatusOnline {
-			online += end.Sub(start)
-		}
-	}
+	online := result.addPeriods(changes, trackedFrom, now)
 	if covered := now.Sub(trackedFrom); covered > 0 {
 		uptime := float64(online) / float64(covered) * 100
 		result.UptimePercent = &uptime
 	}
 	return result, nil
+}
+
+// trackedFromOf is the start of what the history covers: the probe's first recorded status, held
+// within [from, now]
+func trackedFromOf(first, from, now time.Time) time.Time {
+	if first.Before(from) {
+		first = from
+	}
+	if first.After(now) {
+		first = now
+	}
+	return first
+}
+
+// addPeriods lays the changes out as periods from trackedFrom to now, and returns how long the
+// probe was online over them
+func (a *Availability) addPeriods(changes []*StatusChange, trackedFrom, now time.Time) time.Duration {
+	var online time.Duration
+	for i, c := range changes {
+		start, end := periodBounds(changes, i, trackedFrom, now)
+		if !end.After(start) {
+			continue
+		}
+		a.appendPeriod(c.Status, start, end)
+		if c.Status == StatusOnline {
+			online += end.Sub(start)
+		}
+	}
+	return online
+}
+
+// periodBounds is when the status of changes[i] lasted: until the next change, or until now for the
+// last. A period that crosses the start or the end of what is covered is cut there.
+func periodBounds(changes []*StatusChange, i int, trackedFrom, now time.Time) (start, end time.Time) {
+	start, end = changes[i].At.UTC(), now
+	if i+1 < len(changes) {
+		end = changes[i+1].At.UTC()
+	}
+	if start.Before(trackedFrom) {
+		start = trackedFrom
+	}
+	if end.After(now) {
+		end = now
+	}
+	return start, end
+}
+
+// appendPeriod adds a period, or lengthens the last one when it is of the same status
+func (a *Availability) appendPeriod(status Status, start, end time.Time) {
+	if last := len(a.Periods) - 1; last >= 0 && a.Periods[last].Status == status {
+		a.Periods[last].End = end
+		return
+	}
+	a.Periods = append(a.Periods, Period{Status: status, Start: start, End: end})
 }
 
 // instances lists the probe's instances with their connections over the last ConnectionsWindow
@@ -230,13 +254,7 @@ func (s *availabilityService) instances(ctx context.Context, p *Model, now time.
 	if err != nil {
 		return nil, err
 	}
-	byInstance := map[string][]Connection{}
-	for _, c := range connections {
-		span, ok := connectionSpan(c, from, now)
-		if ok {
-			byInstance[c.InstanceID] = append(byInstance[c.InstanceID], span)
-		}
-	}
+	byInstance := connectionsByInstance(connections, from, now)
 	instances := make([]InstanceAvailability, 0, len(p.Instances))
 	for _, instance := range p.Instances {
 		spans := byInstance[instance.ID]
@@ -247,21 +265,38 @@ func (s *availabilityService) instances(ctx context.Context, p *Model, now time.
 		instances = append(instances, InstanceAvailability{ID: instance.ID, Hostname: instance.Hostname, Version: instance.Version, Connections: spans})
 	}
 	// The instance that connected first comes first; those with no connection in the window last
-	slices.SortStableFunc(instances, func(a, b InstanceAvailability) int {
-		switch {
-		case len(a.Connections) == 0 && len(b.Connections) == 0:
-			return strings.Compare(a.ID, b.ID)
-		case len(a.Connections) == 0:
-			return 1
-		case len(b.Connections) == 0:
-			return -1
-		}
-		if c := a.Connections[0].Start.Compare(b.Connections[0].Start); c != 0 {
-			return c
-		}
-		return strings.Compare(a.ID, b.ID)
-	})
+	slices.SortStableFunc(instances, compareInstances)
 	return instances, nil
+}
+
+// connectionsByInstance cuts the connections to [from, now], and groups those that fall inside by
+// their instance
+func connectionsByInstance(connections []*InstanceConnection, from, now time.Time) map[string][]Connection {
+	byInstance := map[string][]Connection{}
+	for _, c := range connections {
+		span, ok := connectionSpan(c, from, now)
+		if ok {
+			byInstance[c.InstanceID] = append(byInstance[c.InstanceID], span)
+		}
+	}
+	return byInstance
+}
+
+// compareInstances orders by the start of the first connection, those with none last, and by id
+// where those are alike
+func compareInstances(a, b InstanceAvailability) int {
+	switch {
+	case len(a.Connections) == 0 && len(b.Connections) == 0:
+		return strings.Compare(a.ID, b.ID)
+	case len(a.Connections) == 0:
+		return 1
+	case len(b.Connections) == 0:
+		return -1
+	}
+	if c := a.Connections[0].Start.Compare(b.Connections[0].Start); c != 0 {
+		return c
+	}
+	return strings.Compare(a.ID, b.ID)
 }
 
 // connectionSpan cuts a connection to [from, now]. It reports false for one that falls outside.

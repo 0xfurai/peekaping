@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"peekaping/internal/httpx"
 	"peekaping/internal/limits"
+	"peekaping/internal/modules/domain_status_page"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/monitor_status_page"
@@ -123,6 +124,21 @@ func (c *Controller) FindByDomain(ctx context.Context, input *FindByDomainInput)
 	}
 	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("success", page))
 }
+
+// TLSAsk answers Caddy's on_demand_tls ask: 200 and no body for a host on the custom domain list,
+// 404 for any other. It names no page and says nothing else.
+func (c *Controller) TLSAsk(ctx context.Context, input *TLSAskInput) (*httpx.Output[httpx.EmptyBody], error) {
+	domain := input.Request.URL.Query().Get("domain")
+	served, err := c.service.IsServedAnyWorkspace(ctx, domain)
+	if err != nil {
+		c.logger.Errorw("Failed to check a domain for the TLS ask", "error", err, "domain", domain)
+		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+	}
+	if !served {
+		return nil, httpx.Fail(http.StatusNotFound, utils.NewFailResponse("Not found"))
+	}
+	return httpx.Empty(http.StatusOK)
+}
 func (c *Controller) FindAll(ctx context.Context, input *FindAllInput) (*httpx.Output[utils.ApiResponse[[]*Model]], error) {
 	workspaceID, err := workspacehttp.Scope(ctx)
 	if err != nil {
@@ -210,6 +226,48 @@ func (c *Controller) Delete(ctx context.Context, input *DeleteInput) (*httpx.Out
 	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse[any]("Status page deleted successfully", nil))
 }
 
+// FindDomains answers the custom domains of a page of the request's workspace with their state
+func (c *Controller) FindDomains(ctx context.Context, input *FindDomainsInput) (*httpx.Output[utils.ApiResponse[*DomainStatusesDTO]], error) {
+	workspaceID, err := workspacehttp.Scope(ctx)
+	if err != nil {
+		return nil, err
+	}
+	id := input.Request.PathValue("id")
+	domains, err := c.service.DomainStatuses(ctx, workspaceID, id)
+	if err != nil {
+		return nil, c.domainFailure(err, "Failed to get the custom domains of a status page", id)
+	}
+	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("success", domains))
+}
+
+// VerifyDomain checks one custom domain of a page of the request's workspace now and answers its
+// state after the check
+func (c *Controller) VerifyDomain(ctx context.Context, input *VerifyDomainInput) (*httpx.Output[utils.ApiResponse[*domain_status_page.Status]], error) {
+	workspaceID, err := workspacehttp.Scope(ctx)
+	if err != nil {
+		return nil, err
+	}
+	id, domain := input.Request.PathValue("id"), input.Request.PathValue("domain")
+	status, err := c.service.CheckDomain(ctx, workspaceID, id, domain)
+	if err != nil {
+		return nil, c.domainFailure(err, "Failed to check a custom domain of a status page", id)
+	}
+	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("Custom domain checked", status))
+}
+
+// domainFailure is the answer for a failed domain request: 404 for a page that isn't in the
+// workspace and for a domain the page doesn't list, and otherwise 500
+func (c *Controller) domainFailure(err error, message, id string) error {
+	if errors.Is(err, ErrNotFound) {
+		return statusPageNotFoundResponse()
+	}
+	if errors.Is(err, domain_status_page.ErrDomainNotFound) {
+		return httpx.Fail(http.StatusNotFound, utils.NewFailResponse("Custom domain not found"))
+	}
+	c.logger.Errorw(message, "error", err, "id", id)
+	return httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+}
+
 // findIn is the lookup of a page in the workspace of the request: a page of another workspace is
 // not found, as one that doesn't exist is
 func findIn(service Service, workspaceID workspace.ID) func(context.Context, string) (*Model, error) {
@@ -242,16 +300,9 @@ func (c *Controller) GetMonitorsBySlugForHomepage(ctx context.Context, input *Ge
 // heartbeats, as many as heartbeatLimit, and its 24 hour uptime.
 func (c *Controller) publicMonitors(ctx context.Context, slug string, heartbeatLimit int) (*httpx.Output[utils.ApiResponse[[]*MonitorWithHeartbeatsAndUptimeDTO]], error) {
 	// First get the status page
-	page, err := c.service.FindPublishedBySlugAnyWorkspace(ctx, slug)
-	if errors.Is(err, ErrUnavailable) {
-		return nil, Unavailable()
-	}
+	page, err := c.publishedPage(ctx, slug)
 	if err != nil {
-		c.logger.Errorw("Failed to get status page by slug", "error", err, "slug", slug)
-		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-	}
-	if page == nil {
-		return nil, httpx.Fail(http.StatusNotFound, utils.NewFailResponse("Status page not found"))
+		return nil, err
 	}
 
 	// Get monitors for the status page
@@ -264,65 +315,101 @@ func (c *Controller) publicMonitors(ctx context.Context, slug string, heartbeatL
 	// Convert monitor_status_page models to monitor models with heartbeats and uptime
 	monitorModels := make([]*MonitorWithHeartbeatsAndUptimeDTO, 0, len(monitors))
 	for _, msp := range monitors {
-		// Get the actual monitor data
-		monitorModel, err := c.monitorService.FindByIDAnyWorkspace(ctx, msp.MonitorID)
+		monitorWithData, err := c.publicMonitor(ctx, page, msp.MonitorID, heartbeatLimit)
 		if err != nil {
-			c.logger.Errorw("Failed to get monitor by ID", "error", err, "monitorID", msp.MonitorID)
-			continue
+			return nil, err
 		}
-		if monitorModel == nil {
-			continue
+		if monitorWithData != nil {
+			monitorModels = append(monitorModels, monitorWithData)
 		}
-
-		// Get the latest heartbeats for this monitor
-		heartbeats, err := c.heartbeatService.FindByMonitorIDPaginated(ctx, msp.MonitorID, heartbeatLimit, 0, nil, true)
-		if err != nil {
-			c.logger.Errorw("Failed to get heartbeats for monitor", "error", err, "monitorID", msp.MonitorID)
-			heartbeats = []*heartbeat.Model{} // Empty slice if error
-		}
-
-		// Get 24h uptime for this monitor
-		now := time.Now().UTC()
-		periods := map[string]time.Duration{
-			"24h": 24 * time.Hour,
-		}
-		uptimeStats, err := c.heartbeatService.FindUptimeStatsByMonitorID(ctx, msp.MonitorID, periods, now)
-		if err != nil {
-			c.logger.Errorw("Failed to get uptime stats for monitor", "error", err, "monitorID", msp.MonitorID)
-			return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("failed to get uptime stats for monitor"))
-		}
-
-		// nil when the monitor has no heartbeat in the day: not 0%, which would read as an outage
-		var uptime24h *float64
-		if uptimeStats != nil {
-			uptime24h = uptimeStats["24h"]
-		}
-
-		monitorWithData := &MonitorWithHeartbeatsAndUptimeDTO{
-			PublicMonitorDTO: &PublicMonitorDTO{
-				ID:   monitorModel.ID,
-				Type: monitorModel.Type,
-				Name: monitorModel.Name,
-				// A monitor of a type the install turns off is not checked, so a visitor sees it
-				// paused, whatever its own setting is
-				Active: monitorModel.Active && !monitorModel.TypeDisabled,
-				Status: monitorModel.Status,
-			},
-			Heartbeats: publicHeartbeats(heartbeats),
-			Uptime24h:  uptime24h,
-		}
-		if page.ShowLocations && len(monitorModel.Locations) > 1 {
-			monitorWithData.Locations, err = c.publicLocations(ctx, monitorModel, heartbeatLimit)
-			if err != nil {
-				c.logger.Errorw("Failed to get locations for monitor", "error", err, "monitorID", msp.MonitorID)
-				return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("failed to get locations for monitor"))
-			}
-		}
-
-		monitorModels = append(monitorModels, monitorWithData)
 	}
 
 	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("success", monitorModels))
+}
+
+// publishedPage is the published status page at slug, or the error response for one that is not
+// there: 503 when its workspace is suspended, 404 when it doesn't exist or isn't published
+func (c *Controller) publishedPage(ctx context.Context, slug string) (*Model, error) {
+	page, err := c.service.FindPublishedBySlugAnyWorkspace(ctx, slug)
+	if errors.Is(err, ErrUnavailable) {
+		return nil, Unavailable()
+	}
+	if err != nil {
+		c.logger.Errorw("Failed to get status page by slug", "error", err, "slug", slug)
+		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+	}
+	if page == nil {
+		return nil, httpx.Fail(http.StatusNotFound, utils.NewFailResponse("Status page not found"))
+	}
+	return page, nil
+}
+
+// publicMonitor is a monitor of the page with its latest heartbeats and its uptime. It is nil, with
+// no error, for a monitor that can't be found, which the page leaves out.
+func (c *Controller) publicMonitor(ctx context.Context, page *Model, monitorID string, heartbeatLimit int) (*MonitorWithHeartbeatsAndUptimeDTO, error) {
+	// Get the actual monitor data
+	monitorModel, err := c.monitorService.FindByIDAnyWorkspace(ctx, monitorID)
+	if err != nil {
+		c.logger.Errorw("Failed to get monitor by ID", "error", err, "monitorID", monitorID)
+		return nil, nil
+	}
+	if monitorModel == nil {
+		return nil, nil
+	}
+
+	// Get the latest heartbeats for this monitor
+	heartbeats, err := c.heartbeatService.FindByMonitorIDPaginated(ctx, monitorID, heartbeatLimit, 0, nil, true)
+	if err != nil {
+		c.logger.Errorw("Failed to get heartbeats for monitor", "error", err, "monitorID", monitorID)
+		heartbeats = []*heartbeat.Model{} // Empty slice if error
+	}
+
+	uptime24h, err := c.uptime24h(ctx, monitorID)
+	if err != nil {
+		return nil, err
+	}
+
+	monitorWithData := &MonitorWithHeartbeatsAndUptimeDTO{
+		PublicMonitorDTO: &PublicMonitorDTO{
+			ID:   monitorModel.ID,
+			Type: monitorModel.Type,
+			Name: monitorModel.Name,
+			// A monitor of a type the install turns off is not checked, so a visitor sees it
+			// paused, whatever its own setting is
+			Active: monitorModel.Active && !monitorModel.TypeDisabled,
+			Status: monitorModel.Status,
+		},
+		Heartbeats: publicHeartbeats(heartbeats),
+		Uptime24h:  uptime24h,
+	}
+	if page.ShowLocations && len(monitorModel.Locations) > 1 {
+		monitorWithData.Locations, err = c.publicLocations(ctx, monitorModel, heartbeatLimit)
+		if err != nil {
+			c.logger.Errorw("Failed to get locations for monitor", "error", err, "monitorID", monitorID)
+			return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("failed to get locations for monitor"))
+		}
+	}
+
+	return monitorWithData, nil
+}
+
+// uptime24h is the 24 hour uptime of the monitor, or the error response when it can't be read
+func (c *Controller) uptime24h(ctx context.Context, monitorID string) (*float64, error) {
+	now := time.Now().UTC()
+	periods := map[string]time.Duration{
+		"24h": 24 * time.Hour,
+	}
+	uptimeStats, err := c.heartbeatService.FindUptimeStatsByMonitorID(ctx, monitorID, periods, now)
+	if err != nil {
+		c.logger.Errorw("Failed to get uptime stats for monitor", "error", err, "monitorID", monitorID)
+		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("failed to get uptime stats for monitor"))
+	}
+
+	// nil when the monitor has no heartbeat in the day: not 0%, which would read as an outage
+	if uptimeStats == nil {
+		return nil, nil
+	}
+	return uptimeStats["24h"], nil
 }
 
 // publicLocations lists a monitor's locations for a visitor: the local probe first, then the others

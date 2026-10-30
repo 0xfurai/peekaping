@@ -50,6 +50,64 @@ func (p *PushoverSender) Validate(configJSON string) error {
 	return GenericValidator(cfg.(*PushoverConfig))
 }
 
+// pushoverPayload is the request payload: the message with the monitor's name and the time of the
+// heartbeat if there are any, and the options of the channel
+func pushoverPayload(cfg *PushoverConfig, message string, m *monitor.Model, hb *heartbeat.Model) map[string]interface{} {
+	finalMessage := message
+	if m != nil && m.Name != "" {
+		finalMessage = fmt.Sprintf("<b>%s</b>\n%s", m.Name, message)
+	}
+
+	// Add timestamp if heartbeat is available
+	if hb != nil {
+		finalMessage = fmt.Sprintf("%s\n\n<b>Time:</b> %s", finalMessage, hb.Time.Format("2006-01-02 15:04:05"))
+	}
+
+	// Prepare the request payload
+	payload := map[string]interface{}{
+		"message": finalMessage,
+		"user":    cfg.UserKey,
+		"token":   cfg.AppToken,
+		"html":    1,
+		"retry":   "30",
+		"expire":  "3600",
+		"title":   pushoverTitle(cfg),
+		// Set priority (default to 0 if not specified)
+		"priority": cfg.Priority,
+	}
+
+	// Set optional fields
+	if cfg.Device != "" {
+		payload["device"] = cfg.Device
+	}
+
+	if sound := pushoverSound(cfg, hb); sound != "" {
+		payload["sound"] = sound
+	}
+
+	// Set TTL if specified
+	if cfg.TTL > 0 {
+		payload["ttl"] = cfg.TTL
+	}
+	return payload
+}
+
+// pushoverTitle is the configured title, or a default
+func pushoverTitle(cfg *PushoverConfig) string {
+	if cfg.Title != "" {
+		return cfg.Title
+	}
+	return "Peekaping Notification"
+}
+
+// pushoverSound is the sound for an Up if there is one, and otherwise the sound of the channel
+func pushoverSound(cfg *PushoverConfig, hb *heartbeat.Model) string {
+	if hb != nil && hb.Status == shared.MonitorStatusUp && cfg.SoundsUp != "" {
+		return cfg.SoundsUp
+	}
+	return cfg.Sounds
+}
+
 func (p *PushoverSender) Send(
 	ctx context.Context,
 	configJSON string,
@@ -65,53 +123,7 @@ func (p *PushoverSender) Send(
 
 	p.logger.Infof("Sending Pushover notification")
 
-	finalMessage := message
-	if monitor != nil && monitor.Name != "" {
-		finalMessage = fmt.Sprintf("<b>%s</b>\n%s", monitor.Name, message)
-	}
-
-	// Prepare the request payload
-	payload := map[string]interface{}{
-		"message": finalMessage,
-		"user":    cfg.UserKey,
-		"token":   cfg.AppToken,
-		"html":    1,
-		"retry":   "30",
-		"expire":  "3600",
-	}
-
-	// Set optional fields
-	if cfg.Device != "" {
-		payload["device"] = cfg.Device
-	}
-
-	if cfg.Title != "" {
-		payload["title"] = cfg.Title
-	} else {
-		payload["title"] = "Peekaping Notification"
-	}
-
-	// Set priority (default to 0 if not specified)
-	payload["priority"] = cfg.Priority
-
-	// Set sound
-	sound := cfg.Sounds
-	if heartbeat != nil && heartbeat.Status == shared.MonitorStatusUp && cfg.SoundsUp != "" {
-		sound = cfg.SoundsUp
-	}
-	if sound != "" {
-		payload["sound"] = sound
-	}
-
-	// Set TTL if specified
-	if cfg.TTL > 0 {
-		payload["ttl"] = cfg.TTL
-	}
-
-	// Add timestamp if heartbeat is available
-	if heartbeat != nil {
-		payload["message"] = fmt.Sprintf("%s\n\n<b>Time:</b> %s", finalMessage, heartbeat.Time.Format("2006-01-02 15:04:05"))
-	}
+	payload := pushoverPayload(cfg, message, monitor, heartbeat)
 
 	// Convert payload to JSON
 	jsonPayload, err := json.Marshal(payload)

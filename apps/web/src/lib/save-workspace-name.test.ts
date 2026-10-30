@@ -76,11 +76,13 @@ describe("meWithWorkspaceName", () => {
     message: "OK",
     data: {
       accountEmails: false,
+      customDomainCnameTarget: "",
       defaultWorkspaceId: "w1",
       disabledMonitorTypes: [],
       minCheckInterval: 20,
       supportContact: null,
       user: { id: "u1", email: "user@example.com", emailVerified: true, instanceAdmin: false },
+      verifyCustomDomains: false,
       workspaces: [
         { id: "w1", name: "Main", role: "owner", suspended: false, suspendedReason: null, deletionScheduledAt: null },
         { id: "w2", name: "Other", role: "member", suspended: false, suspendedReason: null, deletionScheduledAt: null },

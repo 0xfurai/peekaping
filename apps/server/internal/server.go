@@ -158,8 +158,9 @@ func ProvideServer(
 	healthHandler := newHealthHandler(staleStore, logger)
 	httpx.Register(server, "GET", "/health", huma.Operation{Summary: "Get server health", Tags: []string{"System"}}, healthHandler)
 
-	// Prometheus metrics endpoint (unauthenticated, like /health and /version)
-	if cfg.MetricsEnabled {
+	// Prometheus metrics endpoint (unauthenticated, like /health and /version). With METRICS_PORT
+	// set, the binary serves it on that port instead, and this router doesn't.
+	if cfg.MetricsEnabled && cfg.MetricsPort == "" {
 		server.Handle("GET", "/metrics", metricsCollector.Handler())
 	}
 

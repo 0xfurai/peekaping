@@ -2,9 +2,11 @@ package apitest
 
 import (
 	"net/http"
+	"net/url"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 type publicMonitor struct {
@@ -143,4 +145,78 @@ func TestStatusPagesAPI_CustomDomainsAreLowerCaseAndFoundByAnyCase(t *testing.T)
 		{"create", http.MethodPost, "/api/v1/status-pages", map[string]any{"slug": "docs", "title": "Docs", "domains": []string{"STATUS.shop.example"}}},
 		{"update", http.MethodPatch, "/api/v1/status-pages/" + blog, map[string]any{"domains": []string{"Status.Shop.Example"}}},
 	})
+}
+
+// Caddy's on_demand_tls asks this before it gets a certificate for a host (PP-332). It has no
+// login, so it is a yes or no and nothing else.
+func TestStatusPagesAPI_TLSAskAnswersForListedDomains(t *testing.T) {
+	a := newAppWithAdmin(t)
+	a.createStatusPage(t, statusPage{slug: "shop", published: true, domains: []string{"status.shop.example"}})
+	a.createStatusPage(t, statusPage{slug: "draft", published: false, domains: []string{"Draft.Shop.Example"}})
+
+	listed := map[string]string{
+		"a published page's domain":                 "status.shop.example",
+		"an unpublished page's domain":              "draft.shop.example",
+		"the domain in upper case":                  "STATUS.Shop.EXAMPLE",
+		"the domain with a trailing dot":            "status.shop.example.",
+		"an unpublished domain with a trailing dot": "DRAFT.shop.example.",
+		"the domain with spaces around it":          " status.shop.example ",
+	}
+	for name, host := range listed {
+		t.Run(name, func(t *testing.T) {
+			w := a.request(t, http.MethodGet, "/api/v1/status-pages/tls-ask?domain="+url.QueryEscape(host), nil)
+			assert.Equal(t, http.StatusOK, w.Code, w.Body.String())
+			assert.Empty(t, w.Body.String())
+		})
+	}
+}
+
+func TestStatusPagesAPI_TLSAskRefusesOtherHosts(t *testing.T) {
+	a := newAppWithAdmin(t)
+	a.createStatusPage(t, statusPage{slug: "shop", published: true, domains: []string{"status.shop.example"}})
+
+	for name, host := range map[string]string{
+		"an unknown host":                     "unknown.example",
+		"a parent of a listed domain":         "shop.example",
+		"a subdomain of a listed domain":      "www.status.shop.example",
+		"two trailing dots":                   "status.shop.example..",
+		"the slug of a page":                  "shop",
+		"an empty host":                       "",
+		"a host that only has a trailing dot": ".",
+	} {
+		t.Run(name, func(t *testing.T) {
+			w := a.request(t, http.MethodGet, "/api/v1/status-pages/tls-ask?domain="+url.QueryEscape(host), nil)
+			assert.Equal(t, http.StatusNotFound, w.Code, w.Body.String())
+			assert.NotContains(t, w.Body.String(), "shop")
+		})
+	}
+
+	t.Run("no domain parameter", func(t *testing.T) {
+		w := a.request(t, http.MethodGet, "/api/v1/status-pages/tls-ask", nil)
+		assert.Equal(t, http.StatusNotFound, w.Code, w.Body.String())
+	})
+}
+
+// A domain is saved as it was written, so one with a trailing dot stays that way (ADR 0006 / PP-335
+// will normalize saves). The ask finds it whether the host is asked with the dot or without.
+func TestStatusPagesAPI_TLSAskFindsADomainSavedWithATrailingDot(t *testing.T) {
+	a := newAppWithAdmin(t)
+	a.createStatusPage(t, statusPage{slug: "shop", published: true, domains: []string{"status.example.com."}})
+
+	for _, host := range []string{"status.example.com", "status.example.com."} {
+		w := a.request(t, http.MethodGet, "/api/v1/status-pages/tls-ask?domain="+url.QueryEscape(host), nil)
+		assert.Equal(t, http.StatusOK, w.Code, host)
+	}
+	w := a.request(t, http.MethodGet, "/api/v1/status-pages/tls-ask?domain="+url.QueryEscape("status.example.com.."), nil)
+	assert.Equal(t, http.StatusNotFound, w.Code)
+}
+
+func TestStatusPagesAPI_TLSAskForgetsARemovedDomain(t *testing.T) {
+	a := newAppWithAdmin(t)
+	id := a.createStatusPage(t, statusPage{slug: "shop", published: true, domains: []string{"status.shop.example"}})
+	ask := "/api/v1/status-pages/tls-ask?domain=status.shop.example"
+	require.Equal(t, http.StatusOK, a.request(t, http.MethodGet, ask, nil).Code)
+
+	a.expectStatus(t, http.StatusOK, []call{{"remove", http.MethodPatch, "/api/v1/status-pages/" + id, map[string]any{"domains": []string{}}}})
+	assert.Equal(t, http.StatusNotFound, a.request(t, http.MethodGet, ask, nil).Code)
 }

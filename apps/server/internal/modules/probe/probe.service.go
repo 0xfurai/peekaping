@@ -239,25 +239,40 @@ func (s *ServiceImpl) Delete(ctx context.Context, id string) error {
 	// assigned to the probe after the count makes the delete fail with ErrProbeHasMonitors, and
 	// nothing is deleted.
 	err := s.transactor.WithTx(ctx, func(ctx context.Context) error {
-		existing, err := s.repo.FindByID(ctx, id)
-		if err != nil {
-			return err
-		}
-		if existing == nil {
-			return ErrNotFound
-		}
-		if id == LocalID {
-			return ErrLocalProbe
-		}
-		monitors, err := s.repo.CountMonitors(ctx, id)
-		if err != nil {
-			return err
-		}
-		if monitors > 0 {
-			return &HasMonitorsError{Monitors: monitors}
-		}
-		return s.repo.Delete(ctx, id)
+		return s.deleteUnused(ctx, id)
 	})
+	if err = s.withMonitorCount(ctx, id, err); err != nil {
+		return err
+	}
+	s.logger.Infow("Probe deleted", "probeId", id)
+	return nil
+}
+
+// deleteUnused deletes the probe, if it exists, is not the local probe and has no monitors
+func (s *ServiceImpl) deleteUnused(ctx context.Context, id string) error {
+	existing, err := s.repo.FindByID(ctx, id)
+	if err != nil {
+		return err
+	}
+	if existing == nil {
+		return ErrNotFound
+	}
+	if id == LocalID {
+		return ErrLocalProbe
+	}
+	monitors, err := s.repo.CountMonitors(ctx, id)
+	if err != nil {
+		return err
+	}
+	if monitors > 0 {
+		return &HasMonitorsError{Monitors: monitors}
+	}
+	return s.repo.Delete(ctx, id)
+}
+
+// withMonitorCount gives the refusal of the database, when err is one, the number of monitors that
+// the message names. Any other err, and a refusal that can't be counted, comes back as it is.
+func (s *ServiceImpl) withMonitorCount(ctx context.Context, id string, err error) error {
 	var hasMonitors *HasMonitorsError
 	if errors.Is(err, ErrProbeHasMonitors) && !errors.As(err, &hasMonitors) {
 		// The refusal came from the database, so it rolled the transaction back, and PostgreSQL
@@ -266,11 +281,7 @@ func (s *ServiceImpl) Delete(ctx context.Context, id string) error {
 			return &HasMonitorsError{Monitors: monitors}
 		}
 	}
-	if err != nil {
-		return err
-	}
-	s.logger.Infow("Probe deleted", "probeId", id)
-	return nil
+	return err
 }
 
 // MARK: RotateToken

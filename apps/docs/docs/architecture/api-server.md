@@ -81,7 +81,7 @@ Only the `peekaping` binary (single mode) reads these. With `WEB_DIR` set, it se
 | `WEB_DIR` | string | No | `""` | Directory of the web app's build, with its `index.html`. Unset, `peekaping` serves the API alone. A directory without `index.html` stops it at startup |
 | `API_URL` | string | No | `""` | Where the web app reaches the API, written to the `/env.js` that `peekaping` generates. Empty means the web app's own origin |
 
-With `WEB_DIR` set, only `/api/*`, `/socket.io/*` and, when `METRICS_ENABLED` is `true`, `/metrics` reach the API. `/docs`, `/swagger/*` and `/health` get the web app instead, so check the health at `/api/v1/health`.
+With `WEB_DIR` set, only `/api/*`, `/socket.io/*` and, when `METRICS_ENABLED` is `true` and `METRICS_PORT` is unset, `/metrics` reach the API. With `METRICS_PORT` set, `/metrics` is served on that port instead. `/docs`, `/swagger/*` and `/health` get the web app instead, so check the health at `/api/v1/health`.
 
 ### Database Configuration
 
@@ -228,6 +228,23 @@ With it on, these addresses are blocked: loopback (`127.0.0.0/8`, `::1`), the pr
 - Notification channels connect to addresses users type, so they are covered too: the webhook, Slack, Discord, Teams, Google Chat, Mattermost, WeCom, ntfy, Gotify, Matrix, Signal, Telegram, WhatsApp, PagerDuty, PagerTree and Grafana OnCall channels send through the same check, and so does the SMTP channel's server. A webhook, a redirect from one, or a host name that resolves to a blocked address sends nothing. Saving or testing a channel whose URL or SMTP host is a blocked IP address answers 400 with the code `TARGET_NOT_ALLOWED`; a name is saved, and a test that dials one that resolves to a blocked address answers 400 with "target address is not allowed". The account emails (`ACCOUNT_SMTP_*`) and the install email channel, which sends through them, are the install's own setting and are not checked. A proxy set in the server's environment (`HTTPS_PROXY`, `HTTP_PROXY`) is the install's too, so the channel connects to it even at a private address. What the proxy would dial is checked before the request goes to it instead: a URL or a redirect whose host is a blocked address, or a name that resolves to one, sends nothing, and the proxy never sees it. The proxy resolves the name again when it dials, though, so split DNS (the proxy's resolver answering differently from the server's) or DNS rebinding can still reach a private address through it. An install that turns `BLOCK_PRIVATE_TARGETS` on and sends notifications through a proxy must enforce the destination rules at the proxy, or leave `HTTPS_PROXY` (and `HTTP_PROXY`) unset for the server.
 - A remote probe blocks private targets when its own `BLOCK_PRIVATE_TARGETS` is on, or when the server it connects to has it on: the server states its setting when the probe says hello, and the probe follows it at each hello. A server from before the setting leaves it out, which means off. A probe from before the setting ignores it, so its hello doesn't say that it blocks private targets (`enforces_private_target_block`): a server with `BLOCK_PRIVATE_TARGETS` on deals such an instance no monitors, logs a warning once for each, and lists it in the probe API with `enforces_private_target_block: false`. Upgrade the probes (in cluster mode, the local probe's `peekaping-probe` instances too) before turning the setting on, or they get no work.
 
+### Verifying custom domains
+
+`VERIFY_CUSTOM_DOMAINS` makes a custom domain prove that it points at this install before it serves its status page or gets a certificate. A self-hosted install trusts its people to add their own domains and leaves it off; turn it on where one workspace must not be able to hold a domain it doesn't own. It applies to the api and to `peekaping`.
+
+| Variable | Type | Required | Default | Description |
+|----------|------|----------|---------|-------------|
+| `VERIFY_CUSTOM_DOMAINS` | bool | No | `false` | `true` serves a custom domain only once it is verified. `false` or unset serves every domain, as before. Any other value, such as `TRUE`, `yes` or `on`, stops startup, so a mistyped value never leaves verification off |
+| `CUSTOM_DOMAIN_CNAME_TARGET` | string | No | empty | The host a domain may be a `CNAME` to. Empty means the host of the public URL (`CLIENT_URL`, or the address an instance admin saved), without its port. A public URL on `localhost` or at an IP address gives no target, and then only the TXT record verifies a domain. A value that isn't a host name stops startup |
+
+With it on:
+
+- A domain is **Pending** when it is added, and **Verified** once either record is found: a `TXT` record at `_peekaping-verify.<domain>` with the value `peekaping-verify=<token>` (the token is the domain's own, shown to the workspace), or a `CNAME` from the domain to the target. A Pending domain answers like an unknown one: `GET /api/v1/status-pages/domain/<domain>` is `404` and the TLS ask endpoint answers `404`, so no certificate is issued. A domain keeps its name while Pending: no other status page can add it.
+- A check runs every 5 minutes, on the leader api replica in cluster mode. It looks up every Pending domain, and every Verified domain not checked for an hour. A lookup that fails counts as the records not being there.
+- A Verified domain whose records have been missing for 24 hours goes back to Pending and stops serving. A Pending domain is removed from its status page after 7 days of checks that found it unverified, which frees the name. Days when no check ran don't count: a domain added while verification was off starts that clock at its first check after verification is turned on, and a pause of more than an hour in the checks (verification turned off, or the server down) starts it again at the first check after.
+- Turning it on leaves Pending every domain that hasn't been verified. Domains that already point at the install are verified by the next check, within 5 minutes. A domain checked with "Check now" while the setting was off, with its records in place, is already Verified, and is re-checked within the hour like any Verified domain.
+- `GET /api/v1/status-pages/domains/{id}` shows each domain of a status page of the workspace with its state, the records to add, the last check and when a Pending domain will be removed. `POST /api/v1/status-pages/domains/{id}/{domain}/verify` runs a check now. Both work with the setting off. `GET /api/v1/me` returns `verifyCustomDomains` and `customDomainCnameTarget`.
+
 ### API rate limits
 
 `API_RATE_LIMIT_PER_WORKSPACE` and `API_RATE_LIMIT_PER_API_KEY` cap how many requests a workspace, and one of its API keys, may make. They apply to the api and to `peekaping`. Both are off by default, so a self-hosted install is unchanged; turn them on where a workspace's scripts should not be able to take the server from the others.
@@ -319,6 +336,7 @@ A default whose variable is unset can be saved under Admin → Settings, "Defaul
 | Variable | Type | Required | Default | Description |
 |----------|------|----------|---------|-------------|
 | `METRICS_ENABLED` | bool | No | `false` | Serve the unauthenticated Prometheus `/metrics` endpoint, see [Prometheus Metrics](#prometheus-metrics) |
+| `METRICS_PORT` | int | No | unset | A TCP port from 1 to 65535. Serve `/metrics` on this port, on a second plain-HTTP listener, and no longer on the main port. It needs `METRICS_ENABLED=true` and can't be `SERVER_PORT`. Startup stops with an error otherwise. Both the API server and `peekaping` read it. See [Prometheus Metrics](#prometheus-metrics) |
 
 ### Cleanup Configuration
 
@@ -422,6 +440,8 @@ Response:
 
 To be told when monitors stop being checked, alert on a `stale_monitors` above `0`, or on a `watchdog_ran_at` that is more than a few minutes old.
 
+`/api/v1/health` stays public on the API port, whatever you set for `METRICS_PORT`. It shows only the install-wide count of stale monitors and when the watchdog last ran, never a monitor name.
+
 ## Prometheus Metrics
 
 The API server can serve the status of your monitors in the Prometheus text format, so a Prometheus and Grafana stack can scrape it without polling the REST API or wiring up notification channels. It is off by default. Set `METRICS_ENABLED=true` to turn it on:
@@ -433,9 +453,18 @@ GET /metrics
 :::warning
 `/metrics` needs no credentials, and it lists the name and type of every active monitor. Scrape it over a private network, and leave `METRICS_ENABLED` off if that information shouldn't be readable by whoever can reach the API port.
 
+Set `METRICS_PORT` on any install whose API port is public. Then `/metrics` is served only on a second listener on that port, and the main port no longer serves it: it answers like any other unknown path (404 on the API, the web app in single mode). Publish the metrics port only to the network Prometheus scrapes from, never to the internet:
+
+```bash
+METRICS_ENABLED=true
+METRICS_PORT=9100
+```
+
+Prometheus then scrapes `api:9100/metrics`, or `<release>-api.<namespace>.svc.cluster.local:9100/metrics` in Kubernetes, where the Helm chart adds a `metrics` port to the API pod and Service. Without `METRICS_PORT`, `/metrics` is on the main port as described below.
+
 In cluster mode, the gateway (nginx in front of the separate web image) doesn't forward `/metrics`, so it isn't served on the web address. Scrape the API port (`8034` by default) directly, for example `api:8034` on the Docker Compose network or `<release>-api:8034` in Kubernetes. The development Compose files publish that port; the production ones don't, so publish it or run Prometheus on the same network.
 
-In single mode, the `peekaping` binary has one port. With `WEB_DIR` set and `METRICS_ENABLED=true`, it serves `/metrics` there beside the web app, so whoever can open the web app can read it. The single-mode image (`0xfurai/peekaping`) runs single mode, so with `METRICS_ENABLED=true` it serves `/metrics` on port 8383.
+In single mode, the `peekaping` binary has one port unless you set `METRICS_PORT`. In Docker or Compose, don't publish the metrics port (leave it out of `ports`), and scrape it from a container on the same network, for example `peekaping:9100/metrics`. Without `METRICS_PORT`, with `WEB_DIR` set and `METRICS_ENABLED=true`, it serves `/metrics` there beside the web app, so whoever can open the web app can read it. The single-mode image (`0xfurai/peekaping`) runs single mode, so with `METRICS_ENABLED=true` it serves `/metrics` on port 8383.
 :::
 
 ### How it works

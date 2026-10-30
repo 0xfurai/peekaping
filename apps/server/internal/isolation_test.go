@@ -36,13 +36,19 @@ var anyWorkspaceCallers = map[string]string{
 	// public status pages and badges
 	"internal/modules/status_page.Controller.FindBySlug":      "a visitor of a public status page is in no workspace; the slug is unique across the install",
 	"internal/modules/status_page.Controller.FindByDomain":    "a visitor of a custom domain is in no workspace; the domain is unique across the install",
-	"internal/modules/status_page.Controller.publicMonitors":  "the monitors of a published page, loaded for the visitor",
+	"internal/modules/status_page.Controller.TLSAsk":          "Caddy asks, with no login, whether a host is on the custom domain list; the domain is unique across the install and only yes or no leaves",
+	"internal/modules/status_page.Controller.publishedPage":   "a visitor finds a published page by its slug, in no workspace",
+	"internal/modules/status_page.Controller.publicMonitor":   "a monitor of a published page, loaded for the visitor",
 	"internal/modules/status_page.Controller.publicLocations": "the heartbeats and uptime of a monitor on a published page",
 	"internal/modules/status_page.ServiceImpl.validateSlug":   "slugs are unique across the install, so a new page checks every workspace's",
 	"internal/modules/badge.ServiceImpl.GetMonitorBadgeData":  "a badge is public for a monitor on a published page, whatever its workspace",
 	"internal/modules/badge.ServiceImpl.IsMonitorPublic":      "a badge is served only for a monitor on a published page",
 	"internal/modules/badge.ServiceImpl.ResolveMonitorID":     "a badge finds its monitor by ID with no workspace",
 	"internal/modules/badge.ServiceImpl.getMonitorBasicInfo":  "a badge shows a published monitor's name and status",
+	// custom domain verification
+
+	"internal/modules/domain_status_page.ServiceImpl.CheckDue": "the background check verifies the custom domains of every workspace, and removes the ones that stay unverified for 7 days (PP-165)",
+
 	// probe protocol
 	"internal/modules/probe/protocol.Controller.assign":            "the probe protocol deals the monitors of every workspace to the probe's instances",
 	"internal/modules/probe/protocol.Controller.dealtMonitors":     "a probe's results are accepted for the monitors it was dealt, whatever their workspace",
@@ -57,7 +63,8 @@ var anyWorkspaceCallers = map[string]string{
 	"internal/modules/check.Loader.Load":                   "a check loads its monitor by ID, whatever its workspace",
 	"internal/modules/check.Loader.isUnderMaintenance":     "a check looks up the maintenance windows of its monitor",
 	"internal/modules/healthcheck.MonitorUnderMaintenance": "a push checks the maintenance windows of its monitor",
-	"internal/modules/stale.Watchdog.checkStaleMonitors":   "the watchdog looks for stale monitors in every workspace",
+	"internal/modules/stale.Watchdog.checkActiveMonitors":  "the watchdog looks for stale monitors in every workspace",
+	"internal/modules/stale.Watchdog.forgetGoneMonitors":   "the watchdog finds out whether a stale monitor is still checked, in any workspace",
 	// ingester
 	"internal/modules/ingester.ServiceImpl.Ingest":          "the ingester stores a probe's result on the monitor, whatever its workspace",
 	"internal/modules/ingester.ServiceImpl.restoreLocation": "the ingester restores a monitor's location state after a failed result",

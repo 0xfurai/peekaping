@@ -179,7 +179,7 @@ Redis, Caddy and supervisord are gone. That changes these things:
 - **`API_URL`.** Your value now reaches the web app. Before, the bundles always gave the web app an empty `API_URL`, which means the API on the web app's own origin. If your environment sets `API_URL`, unset it, unless the web app must call an API on another origin.
 - **The 35-second stop.** `peekaping` takes up to 30 seconds to shut down cleanly. `docker stop` waits 10 seconds by default, so use `docker stop -t 35`, or `stop_grace_period: 35s` in Docker Compose (then `docker compose stop` waits as long as needed, and `docker compose stop -t 35 peekaping` names the service).
 - **Logs.** Everything logs to the container's output, so use `docker logs peekaping`, or `docker compose logs peekaping` in Docker Compose. Nothing writes to `/var/log/supervisor`, so you can drop a volume mounted there.
-- **`/metrics`.** With `METRICS_ENABLED=true`, port 8383 serves `/metrics`. Anyone who can open the web app can read it, and it lists your monitors' names. Before, Caddy didn't forward it. If the web app is public, leave `METRICS_ENABLED` off or block `/metrics` in your proxy. See [Prometheus Metrics](../architecture/api-server.md#prometheus-metrics).
+- **`/metrics`.** With `METRICS_ENABLED=true`, port 8383 serves `/metrics`. Anyone who can open the web app can read it, and it lists your monitors' names. Before, Caddy didn't forward it. If the web app is public, leave `METRICS_ENABLED` off, or set `METRICS_PORT` (for example `9100`) so `/metrics` is served on a second port that port 8383 no longer answers. Don't publish that port, and scrape it from a container on the same network. See [Prometheus Metrics](../architecture/api-server.md#prometheus-metrics).
 
 ## Check that it worked
 
