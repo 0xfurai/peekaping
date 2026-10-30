@@ -240,9 +240,11 @@ func (m *MongoDBExecutor) runMongoDBCommand(ctx context.Context, connectionStrin
 	return result, nil
 }
 
-// enhanceConnectionString adds necessary authentication parameters if missing. The string is
-// kept as written, since the driver reads its seed list and escapes itself.
+// enhanceConnectionString adds necessary authentication parameters if missing. The hosts and
+// options are kept as written, since the driver reads the seed list itself; the user and password
+// are written with their escapes right, which the driver insists on.
 func (m *MongoDBExecutor) enhanceConnectionString(connectionString string) (string, error) {
+	connectionString = encodeMongoUserinfo(connectionString)
 	parsed, ok := splitMongoConnectionString(connectionString)
 	if !ok {
 		return "", fmt.Errorf("invalid connection string format: missing ://")

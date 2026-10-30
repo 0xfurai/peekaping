@@ -169,6 +169,8 @@ func TestMongoDBExecutor_enhanceConnectionString(t *testing.T) {
 		{"keeps an authSource before a semicolon option", "mongodb://u:p@h1/db?authSource=users;retryWrites=true", "mongodb://u:p@h1/db?authSource=users;retryWrites=true"},
 		{"keeps an authSource after a semicolon option", "mongodb://u:p@h1/db?retryWrites=true;authsource=users", "mongodb://u:p@h1/db?retryWrites=true;authsource=users"},
 		{"keeps an authSource after both separators", "mongodb://u:p@h1/db?a=1&b=2;authSource=users&c=3", "mongodb://u:p@h1/db?a=1&b=2;authSource=users&c=3"},
+		{"keeps an authSource whose name is encoded", "mongodb://u:p@h1/db?%61uthSource=users", "mongodb://u:p@h1/db?%61uthSource=users"},
+		{"does not count a name that does not decode", "mongodb://u:p@h1/db?authSource%zz=users", "mongodb://u:p@h1/db?authSource%zz=users&authSource=admin"},
 		{"does not count an authSource with no value", "mongodb://u:p@h1/db?authSource=", "mongodb://u:p@h1/db?authSource=&authSource=admin"},
 		{"does not take a longer name for authSource", "mongodb://u:p@h1/db?authSourceX=y", "mongodb://u:p@h1/db?authSourceX=y&authSource=admin"},
 		{"adds it to options that are empty", "mongodb://u:p@h1/db?", "mongodb://u:p@h1/db?authSource=admin"},
@@ -187,6 +189,45 @@ func TestMongoDBExecutor_enhanceConnectionString(t *testing.T) {
 			assert.Equal(t, tc.want, got)
 		})
 	}
+}
+
+// A password with a bare "@" or ":" is saved by Validate, and the driver refuses it as written. The
+// check has always passed it on re-encoded, so a monitor saved that way keeps connecting.
+func TestMongoDBExecutor_enhanceConnectionString_EncodesTheUserInfo(t *testing.T) {
+	exec := NewMongoDBExecutor(zap.NewNop().Sugar())
+	tests := []struct {
+		name, in, want, wantUser, wantPassword string
+	}{
+		{"a password with an @", "mongodb://user:p@ss@host/db", "mongodb://user:p%40ss@host/db?authSource=admin", "user", "p@ss"},
+		{"a password with a colon", "mongodb://u:p:ss@h/db", "mongodb://u:p%3Ass@h/db?authSource=admin", "u", "p:ss"},
+		{"a password that is encoded already", "mongodb://u:p%40ss@h/db", "mongodb://u:p%40ss@h/db?authSource=admin", "u", "p@ss"},
+		{"a user with an @", "mongodb://us@r:pass@h/db", "mongodb://us%40r:pass@h/db?authSource=admin", "us@r", "pass"},
+		{"a user with no password", "mongodb://us@r@h/db", "mongodb://us%40r@h/db?authSource=admin", "us@r", ""},
+		{"an empty password", "mongodb://u:@h/db", "mongodb://u:@h/db?authSource=admin", "u", ""},
+		{"a password with an @ and an authSource", "mongodb://user:p@ss@h1,h2/db?authSource=users", "mongodb://user:p%40ss@h1,h2/db?authSource=users", "user", "p@ss"},
+		{"a password with an @ and a fragment", "mongodb://user:p@ss@h/db#frag", "mongodb://user:p%40ss@h/db?authSource=admin#frag", "user", "p@ss"},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			got, err := exec.enhanceConnectionString(tc.in)
+
+			require.NoError(t, err)
+			assert.Equal(t, tc.want, got)
+			parsed, err := connstring.ParseAndValidate(got)
+			require.NoError(t, err, "the driver takes it")
+			assert.Equal(t, tc.wantUser, parsed.Username)
+			assert.Equal(t, tc.wantPassword, parsed.Password)
+		})
+	}
+}
+
+func TestMongoDBExecutor_enhanceConnectionString_KeepsAStringWhoseEscapeDoesNotDecode(t *testing.T) {
+	exec := NewMongoDBExecutor(zap.NewNop().Sugar())
+
+	got, err := exec.enhanceConnectionString("mongodb://u:p%zz@h/db")
+
+	require.NoError(t, err)
+	assert.Equal(t, "mongodb://u:p%zz@h/db?authSource=admin", got)
 }
 
 func TestMongoDBExecutor_extractDatabaseName(t *testing.T) {

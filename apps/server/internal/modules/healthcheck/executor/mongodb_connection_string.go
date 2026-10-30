@@ -150,13 +150,41 @@ func validMongoPort(port string) bool {
 	return err == nil && n >= 1 && n <= 65535 && strings.Trim(port, "0123456789") == ""
 }
 
-// mongoHasOption is true when the options set the option to a value, whatever the case of its
-// name: the driver reads them without regard to case. The options are separated by "&" or ";".
+// mongoHasOption is true when the options set the option to a value, whatever the case or the
+// escapes of its name: the driver reads them without regard to either. The options are separated
+// by "&" or ";". A name that doesn't decode is no match.
 func mongoHasOption(query, name string) bool {
 	for _, option := range strings.FieldsFunc(query, func(r rune) bool { return r == '&' || r == ';' }) {
-		if key, value, _ := strings.Cut(option, "="); strings.EqualFold(key, name) && value != "" {
+		key, value, _ := strings.Cut(option, "=")
+		if key, err := url.QueryUnescape(key); err == nil && strings.EqualFold(key, name) && value != "" {
 			return true
 		}
 	}
 	return false
+}
+
+// encodeMongoUserinfo writes the user and password of a connection string with their escapes
+// right, as url.URL.String does: a password written with a bare "@" or ":" (which Validate
+// accepts, and always has) comes out as the driver reads it, and one that is escaped already comes
+// out as it was. A string whose escapes don't decode, or that has no user part, is left alone.
+func encodeMongoUserinfo(connectionString string) string {
+	parsed, ok := splitMongoConnectionString(connectionString)
+	if !ok || parsed.userinfo == "" {
+		return connectionString
+	}
+	rawUser, rawPassword, hasPassword := strings.Cut(parsed.userinfo, ":")
+	user, err := url.PathUnescape(rawUser)
+	if err != nil {
+		return connectionString
+	}
+	encoded := url.User(user)
+	if hasPassword {
+		password, err := url.PathUnescape(rawPassword)
+		if err != nil {
+			return connectionString
+		}
+		encoded = url.UserPassword(user, password)
+	}
+	prefix := parsed.scheme + "://"
+	return prefix + encoded.String() + "@" + connectionString[len(prefix)+len(parsed.userinfo)+1:]
 }
