@@ -386,7 +386,6 @@ func placeholderValue() json.RawMessage {
 //
 // An incoming config that isn't a JSON object is returned as it is, for validation to reject.
 func resolveSecrets(provider NotificationChannelProvider, incoming string, saved *string) (resolved string, unresolved, used []string) {
-	fields := configFields(provider)
 	secrets := secretFields(provider)
 	urls := urlCredentialFields(provider)
 	if len(secrets) == 0 && len(urls) == 0 {
@@ -400,35 +399,95 @@ func resolveSecrets(provider NotificationChannelProvider, incoming string, saved
 	missing := map[string]bool{}
 
 	// A URL that holds the placeholder is the saved URL as shown, or it is unresolved
-	var savedFields map[string]json.RawMessage
-	if saved != nil {
-		savedFields, _ = parseConfig(*saved)
-	}
-	urlsResolved := false
-	for key, raw := range incomingFields {
-		field, isURL := fieldForKey(urls, key)
-		if _, isSecret := fieldForKey(secrets, key); !isURL || isSecret {
-			continue
-		}
-		value, isString := stringValue(raw)
-		if !isString || !strings.Contains(value, secretPlaceholder) {
-			continue
-		}
-		if savedRaw, ok := savedSecret(savedFields, key); ok {
-			if savedValue, _ := stringValue(savedRaw); maskURLCredentials(savedValue) == value {
-				incomingFields[key] = savedRaw
-				used = append(used, savedValue)
-				urlsResolved = true
-				continue
-			}
-		}
-		missing[field.key] = true
-	}
+	used, urlsResolved := resolveURLPlaceholders(incomingFields, parseSavedConfig(saved), secrets, urls, missing)
 	current := incoming
 	if urlsResolved {
 		current = encodeConfig(incomingFields)
 	}
 
+	placeholders := secretPlaceholders(incomingFields, secrets)
+	savedSecretFields := parseSavedSecrets(provider, current, saved, len(placeholders) > 0)
+	used = append(used, resolvePlaceholders(incomingFields, placeholders, savedSecretFields, missing)...)
+	if len(missing) > 0 {
+		return incoming, sortedKeys(missing), nil
+	}
+	if len(placeholders) == 0 && !urlsResolved {
+		return incoming, nil, nil
+	}
+	sort.Strings(used)
+	return encodeConfig(incomingFields), nil, used
+}
+
+// parseSavedConfig reads the saved config as a JSON object, and gives nil when there is none or it
+// isn't one
+func parseSavedConfig(saved *string) map[string]json.RawMessage {
+	if saved == nil {
+		return nil
+	}
+	fields, _ := parseConfig(*saved)
+	return fields
+}
+
+// parseSavedSecrets reads the saved config for the secrets that are sent as the placeholder, which
+// it gives only while the endpoints of the incoming config are as they were saved. It gives nil
+// otherwise.
+func parseSavedSecrets(provider NotificationChannelProvider, incoming string, saved *string, hasPlaceholders bool) map[string]json.RawMessage {
+	if !hasPlaceholders || saved == nil || !endpointsUnchanged(provider, configFields(provider), incoming, *saved) {
+		return nil
+	}
+	return parseSavedConfig(saved)
+}
+
+// resolveURLPlaceholders puts the saved URL in each URL field of incomingFields that holds the
+// placeholder and is exactly the saved URL as the API shows it. A field that holds the placeholder
+// and isn't is added to missing. It returns the saved URLs that were put in.
+func resolveURLPlaceholders(incomingFields, savedFields map[string]json.RawMessage, secrets, urls []configField, missing map[string]bool) (used []string, resolved bool) {
+	for key, raw := range incomingFields {
+		field, shown, ok := urlHoldingPlaceholder(key, raw, secrets, urls)
+		if !ok {
+			continue
+		}
+		if savedRaw, savedValue, ok := savedURLAsShown(savedFields, key, shown); ok {
+			incomingFields[key] = savedRaw
+			used = append(used, savedValue)
+			resolved = true
+			continue
+		}
+		missing[field.key] = true
+	}
+	return used, resolved
+}
+
+// urlHoldingPlaceholder returns the URL field a config key fills and the URL it holds, when the field
+// is not a secret and the URL holds the placeholder
+func urlHoldingPlaceholder(key string, raw json.RawMessage, secrets, urls []configField) (configField, string, bool) {
+	field, isURL := fieldForKey(urls, key)
+	if _, isSecret := fieldForKey(secrets, key); !isURL || isSecret {
+		return configField{}, "", false
+	}
+	value, isString := stringValue(raw)
+	if !isString || !strings.Contains(value, secretPlaceholder) {
+		return configField{}, "", false
+	}
+	return field, value, true
+}
+
+// savedURLAsShown returns the saved URL under key, and its value, when the API shows it as shown
+func savedURLAsShown(savedFields map[string]json.RawMessage, key, shown string) (json.RawMessage, string, bool) {
+	savedRaw, ok := savedSecret(savedFields, key)
+	if !ok {
+		return nil, "", false
+	}
+	savedValue, _ := stringValue(savedRaw)
+	if maskURLCredentials(savedValue) != shown {
+		return nil, "", false
+	}
+	return savedRaw, savedValue, true
+}
+
+// secretPlaceholders returns the secret fields of incomingFields that are sent as the placeholder,
+// by their keys in the config
+func secretPlaceholders(incomingFields map[string]json.RawMessage, secrets []configField) map[string]configField {
 	placeholders := map[string]configField{}
 	for key, raw := range incomingFields {
 		field, isSecret := fieldForKey(secrets, key)
@@ -436,11 +495,13 @@ func resolveSecrets(provider NotificationChannelProvider, incoming string, saved
 			placeholders[key] = field
 		}
 	}
+	return placeholders
+}
 
-	var savedSecretFields map[string]json.RawMessage
-	if len(placeholders) > 0 && saved != nil && endpointsUnchanged(provider, fields, current, *saved) {
-		savedSecretFields, _ = parseConfig(*saved)
-	}
+// resolvePlaceholders puts the saved secret in each field of incomingFields that is sent as the
+// placeholder. A field with no saved secret is added to missing. It returns the saved secrets that
+// were put in.
+func resolvePlaceholders(incomingFields map[string]json.RawMessage, placeholders map[string]configField, savedSecretFields map[string]json.RawMessage, missing map[string]bool) (used []string) {
 	for key, field := range placeholders {
 		secret, ok := savedSecret(savedSecretFields, key)
 		if !ok {
@@ -452,18 +513,17 @@ func resolveSecrets(provider NotificationChannelProvider, incoming string, saved
 			used = append(used, value)
 		}
 	}
-	if len(missing) > 0 {
-		for key := range missing {
-			unresolved = append(unresolved, key)
-		}
-		sort.Strings(unresolved)
-		return incoming, unresolved, nil
+	return used
+}
+
+// sortedKeys returns the keys of the set, sorted
+func sortedKeys(set map[string]bool) []string {
+	keys := make([]string, 0, len(set))
+	for key := range set {
+		keys = append(keys, key)
 	}
-	if len(placeholders) == 0 && !urlsResolved {
-		return incoming, nil, nil
-	}
-	sort.Strings(used)
-	return encodeConfig(incomingFields), nil, used
+	sort.Strings(keys)
+	return keys
 }
 
 // maskSecrets returns text with every occurrence of each secret replaced by the placeholder, for
@@ -561,29 +621,42 @@ func endpointsUnchanged(provider NotificationChannelProvider, fields []configFie
 	if strings.TrimSpace(saved) == "" {
 		saved = "{}"
 	}
-	savedConfig, err := provider.Unmarshal(saved)
-	if err != nil {
+	savedValues, ok := configValues(provider, saved)
+	if !ok {
 		return false
 	}
-	incomingConfig, err := provider.Unmarshal(incoming)
-	if err != nil {
-		return false
-	}
-	savedValues, incomingValues := reflect.Indirect(reflect.ValueOf(savedConfig)), reflect.Indirect(reflect.ValueOf(incomingConfig))
-	if savedValues.Kind() != reflect.Struct || incomingValues.Kind() != reflect.Struct {
+	incomingValues, ok := configValues(provider, incoming)
+	if !ok {
 		return false
 	}
 
 	for _, field := range endpoints {
-		incomingValue, savedValue := incomingValues.Field(field.index), savedValues.Field(field.index)
-		if field.secret && incomingValue.Kind() == reflect.String && incomingValue.String() == secretPlaceholder {
-			continue
-		}
-		if !reflect.DeepEqual(endpointValue(field, incomingValue), endpointValue(field, savedValue)) {
+		if endpointMoved(field, incomingValues, savedValues) {
 			return false
 		}
 	}
 	return true
+}
+
+// configValues returns the struct the provider reads the config into, and false for a config it
+// can't read, or that isn't a struct
+func configValues(provider NotificationChannelProvider, config string) (reflect.Value, bool) {
+	parsed, err := provider.Unmarshal(config)
+	if err != nil {
+		return reflect.Value{}, false
+	}
+	values := reflect.Indirect(reflect.ValueOf(parsed))
+	return values, values.Kind() == reflect.Struct
+}
+
+// endpointMoved reports whether the endpoint field has a different value in the incoming config
+// than in the saved one. A secret endpoint sent as the placeholder has not moved.
+func endpointMoved(field configField, incomingValues, savedValues reflect.Value) bool {
+	incomingValue, savedValue := incomingValues.Field(field.index), savedValues.Field(field.index)
+	if field.secret && incomingValue.Kind() == reflect.String && incomingValue.String() == secretPlaceholder {
+		return false
+	}
+	return !reflect.DeepEqual(endpointValue(field, incomingValue), endpointValue(field, savedValue))
 }
 
 // endpointValue returns the value of an endpoint field as the provider sends with it: an empty
