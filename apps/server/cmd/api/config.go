@@ -135,6 +135,14 @@ type Config struct {
 	// and cloud metadata. Off by default: a self-hosted install monitors its own network.
 	BlockPrivateTargets bool `env:"BLOCK_PRIVATE_TARGETS" default:"false"`
 
+	// VerifyCustomDomains makes a custom domain serve only once its owner has proved, by a TXT
+	// record or a CNAME, that it points at this install. Off by default. A string, so Validate checks
+	// the value from the environment or a .env file alike; ToInternalConfig reads it as a boolean.
+	VerifyCustomDomains string `env:"VERIFY_CUSTOM_DOMAINS" default:"false"`
+	// CustomDomainCNAMETarget is the host a custom domain may be a CNAME to. Empty means the host of
+	// the public URL.
+	CustomDomainCNAMETarget string `env:"CUSTOM_DOMAIN_CNAME_TARGET"`
+
 	// Requests per minute a workspace, and one of its API keys, may make. 0, the default, is off.
 	APIRateLimitPerWorkspace int `env:"API_RATE_LIMIT_PER_WORKSPACE" validate:"min=0" default:"0"`
 	APIRateLimitPerAPIKey    int `env:"API_RATE_LIMIT_PER_API_KEY" validate:"min=0" default:"0"`
@@ -292,7 +300,8 @@ func validateProbe(cfg *Config) error {
 	return nil
 }
 
-// validateAccountsAndMonitors checks the account email, signup and disabled monitor type settings
+// validateAccountsAndMonitors checks the account email, signup, disabled monitor type and custom
+// domain settings
 func validateAccountsAndMonitors(cfg *Config) error {
 	// A sender host without a sender address stops startup, not the first password reset
 	if err := config.ValidateAccountSMTP(cfg.AccountSMTPHost, cfg.AccountSMTPFrom, cfg.AccountSMTPTLS); err != nil {
@@ -306,6 +315,17 @@ func validateAccountsAndMonitors(cfg *Config) error {
 
 	// A mistyped monitor type stops startup, with the types that exist
 	if err := config.ValidateDisabledMonitorTypes(cfg.DisabledMonitorTypes, executor.KnownTypes()); err != nil {
+		return err
+	}
+
+	// A CNAME target that isn't a host name stops startup, not every domain check
+	if err := config.ValidateCustomDomainCNAMETarget(cfg.CustomDomainCNAMETarget); err != nil {
+		return err
+	}
+
+	// A VERIFY_CUSTOM_DOMAINS, from the environment or a .env file, that is not true, 1, false or 0,
+	// such as TRUE, stops startup instead of leaving verification off
+	if err := config.ValidateVerifyCustomDomains(cfg.VerifyCustomDomains); err != nil {
 		return err
 	}
 
@@ -363,6 +383,8 @@ func (c *Config) ToInternalConfig() *config.Config {
 		SignupTurnstileSecret:          c.SignupTurnstileSecret,
 		DisabledMonitorTypes:           c.DisabledMonitorTypes,
 		BlockPrivateTargets:            c.BlockPrivateTargets,
+		VerifyCustomDomains:            config.VerifyCustomDomainsOn(c.VerifyCustomDomains),
+		CustomDomainCNAMETarget:        c.CustomDomainCNAMETarget,
 		APIRateLimitPerWorkspace:       c.APIRateLimitPerWorkspace,
 		APIRateLimitPerAPIKey:          c.APIRateLimitPerAPIKey,
 		ChecksPerHostPerMinute:         c.ChecksPerHostPerMinute,

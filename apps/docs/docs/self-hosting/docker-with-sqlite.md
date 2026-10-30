@@ -145,6 +145,8 @@ status.example.com, status.customer.example {
 
 Caddy gets a certificate when a host is first visited, so a new domain needs no change to the Caddyfile. A visitor could point any name at your server, so Caddy first asks Peekaping whether it should serve the host. `GET /api/v1/status-pages/tls-ask?domain=<host>` answers `200` with no body when the domain is on a status page, and `404` otherwise. It needs no login. A domain of a status page that isn't published yet counts, so its certificate is ready when you publish the page. The host is compared in any case and without a trailing dot.
 
+On an install that sets `VERIFY_CUSTOM_DOMAINS=true`, a domain also has to be verified by DNS before the ask answers `200`. See [Verifying custom domains](../architecture/api-server.md#verifying-custom-domains).
+
 ```
 {
     on_demand_tls {

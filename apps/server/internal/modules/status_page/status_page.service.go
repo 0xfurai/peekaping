@@ -32,12 +32,21 @@ type Service interface {
 	// whose workspace is suspended is ErrUnavailable.
 	FindPublishedBySlugAnyWorkspace(ctx context.Context, slug string) (*Model, error)
 	// FindPublishedByDomainAnyWorkspace serves a visitor of a custom domain, and is ErrUnavailable
-	// like FindPublishedBySlugAnyWorkspace
+	// like FindPublishedBySlugAnyWorkspace. A domain that doesn't serve yet (see
+	// IsServedAnyWorkspace) is nil, as an unknown one is.
 	FindPublishedByDomainAnyWorkspace(ctx context.Context, domain string) (*Model, error)
-	// IsServedAnyWorkspace reports whether domain is on the custom domain list, whatever page holds
-	// it and whether that page is published. It is the one decision about which hosts get a
-	// certificate, for the TLS ask endpoint.
+	// IsServedAnyWorkspace reports whether domain is on the custom domain list and serves, whatever
+	// page holds it and whether that page is published: with VERIFY_CUSTOM_DOMAINS on, a domain
+	// serves once it is verified. It is the one decision about which hosts get a certificate, for
+	// the TLS ask endpoint.
 	IsServedAnyWorkspace(ctx context.Context, domain string) (bool, error)
+	// DomainStatuses are the states of the page's custom domains and the records to verify them
+	// with, or ErrNotFound when the page isn't in the workspace
+	DomainStatuses(ctx context.Context, workspaceID workspace.ID, id string) (*DomainStatusesDTO, error)
+	// CheckDomain looks for the records of one of the page's custom domains and returns its state
+	// after. It is ErrNotFound when the page isn't in the workspace, and
+	// domain_status_page.ErrDomainNotFound when the page doesn't list the domain.
+	CheckDomain(ctx context.Context, workspaceID workspace.ID, id, domain string) (*domain_status_page.Status, error)
 	FindAll(ctx context.Context, workspaceID workspace.ID, page int, limit int, q string) ([]*Model, error)
 	// FindAllAnyWorkspace lists the pages of every workspace: the usage ping describes the install
 	FindAllAnyWorkspace(ctx context.Context, page int, limit int) ([]*Model, error)
@@ -469,8 +478,8 @@ func (s *ServiceImpl) FindPublishedBySlugAnyWorkspace(ctx context.Context, slug 
 // FindPublishedByDomainAnyWorkspace returns the published status page served at a custom
 // domain, or nil like FindPublishedBySlugAnyWorkspace.
 func (s *ServiceImpl) FindPublishedByDomainAnyWorkspace(ctx context.Context, domain string) (*Model, error) {
-	// Find the domain-status page relationship
-	domainStatusPage, err := s.domainStatusPageService.FindByDomain(ctx, domain)
+	// Find the domain-status page relationship. A domain that is not verified yet is not served.
+	domainStatusPage, err := s.domainStatusPageService.FindServedByDomain(ctx, domain)
 	if err != nil {
 		return nil, err
 	}
@@ -482,20 +491,21 @@ func (s *ServiceImpl) FindPublishedByDomainAnyWorkspace(ctx context.Context, dom
 	return s.available(ctx, page, err)
 }
 
-// IsServedAnyWorkspace reports whether domain is a custom domain of any status page, published or
-// not, so a page's certificate is ready when it is published. A host is the same in any case and
-// with one trailing dot, which is how a resolver may write it, and a domain is saved as written, so
-// it matches a stored domain with or without that dot. Only the answer leaves: the page, its
-// workspace and its state do not.
+// IsServedAnyWorkspace reports whether domain is a custom domain of any status page that serves,
+// published or not, so a page's certificate is ready when it is published. With verification on
+// (VERIFY_CUSTOM_DOMAINS) a domain serves once it is verified, so the ask answers no for a pending
+// one. A host is the same in any case and with one trailing dot, which is how a resolver may write
+// it, and a domain is saved as written, so it matches a stored domain with or without that dot.
+// Only the answer leaves: the page, its workspace and its state do not.
 func (s *ServiceImpl) IsServedAnyWorkspace(ctx context.Context, domain string) (bool, error) {
 	host := strings.TrimSuffix(strings.TrimSpace(domain), ".")
 	if host == "" || strings.HasSuffix(host, ".") {
 		return false, nil
 	}
 	for _, form := range []string{host, host + "."} {
-		listed, err := s.domainStatusPageService.FindByDomain(ctx, form)
-		if err != nil || listed != nil {
-			return listed != nil, err
+		served, err := s.domainStatusPageService.FindServedByDomain(ctx, form)
+		if err != nil || served != nil {
+			return served != nil, err
 		}
 	}
 	return false, nil
@@ -516,6 +526,38 @@ func (s *ServiceImpl) available(ctx context.Context, page *Model, err error) (*M
 		return nil, ErrUnavailable
 	}
 	return page, nil
+}
+
+// DomainStatuses loads the page in the workspace first, and then its domains by the page's ID
+func (s *ServiceImpl) DomainStatuses(ctx context.Context, workspaceID workspace.ID, id string) (*DomainStatusesDTO, error) {
+	if err := s.requirePage(ctx, workspaceID, id); err != nil {
+		return nil, err
+	}
+	statuses, err := s.domainStatusPageService.Statuses(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return &DomainStatusesDTO{VerificationRequired: s.domainStatusPageService.VerificationRequired(), Domains: statuses}, nil
+}
+
+// CheckDomain loads the page in the workspace first, and then checks its domain
+func (s *ServiceImpl) CheckDomain(ctx context.Context, workspaceID workspace.ID, id, domain string) (*domain_status_page.Status, error) {
+	if err := s.requirePage(ctx, workspaceID, id); err != nil {
+		return nil, err
+	}
+	return s.domainStatusPageService.CheckNow(ctx, id, domain)
+}
+
+// requirePage is ErrNotFound unless the page is in the workspace
+func (s *ServiceImpl) requirePage(ctx context.Context, workspaceID workspace.ID, id string) error {
+	page, err := s.repository.FindByID(ctx, workspaceID, id)
+	if err != nil {
+		return err
+	}
+	if page == nil {
+		return ErrNotFound
+	}
+	return nil
 }
 
 func (s *ServiceImpl) FindAll(ctx context.Context, workspaceID workspace.ID, page int, limit int, q string) ([]*Model, error) {

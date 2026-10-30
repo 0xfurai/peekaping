@@ -26,6 +26,7 @@ import (
 	"peekaping/internal/mailer"
 	"peekaping/internal/modules/auth"
 	"peekaping/internal/modules/cleanup"
+	"peekaping/internal/modules/domain_status_page"
 	"peekaping/internal/modules/error_reporting"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/heartbeat"
@@ -112,9 +113,11 @@ type parts struct {
 	Watchdog  *stale.Watchdog
 	// ProbeSweep sets the probes whose instances went quiet offline
 	ProbeSweep *probe.Sweep
-	EventBus   events.EventBus
-	Mailer     *mailer.Mailer
-	DB         *bun.DB
+	// Domains verifies the custom domains by DNS when VERIFY_CUSTOM_DOMAINS is on
+	Domains  domain_status_page.Service
+	EventBus events.EventBus
+	Mailer   *mailer.Mailer
+	DB       *bun.DB
 
 	Config               *config.Config
 	Settings             setting.Service
@@ -301,6 +304,8 @@ type jobs struct {
 	watchdogDone  chan struct{}
 	stopSweep     context.CancelFunc
 	sweepDone     chan struct{}
+	stopDomains   context.CancelFunc
+	domainsDone   chan struct{}
 	cleanup       *cron.Cron
 	stopRepair    context.CancelFunc
 	repairDone    chan struct{}
@@ -399,6 +404,10 @@ func startJobs(ctx context.Context, p parts, cfg *Config, logger *zap.SugaredLog
 		p.ProbeSweep.Run(sweepCtx)
 	})
 
+	// The check of custom domains runs once, as the leader api replica runs it in cluster mode. It
+	// returns at once while VERIFY_CUSTOM_DOMAINS is off.
+	j.stopDomains, j.domainsDone = startDomainChecks(p.Domains)
+
 	// The usage ping is sent a few minutes after the start, unless an admin opted out or the
 	// environment forces it off, and a failed one is dropped. It runs once: this process is the
 	// only one, so there is no claim to win.
@@ -407,6 +416,17 @@ func startJobs(ctx context.Context, p parts, cfg *Config, logger *zap.SugaredLog
 	j.usagePingDone = p.UsagePing.Start(usagePingCtx, telemetrySchedule)
 
 	return j, nil
+}
+
+// startDomainChecks starts the check of custom domains, and returns how to stop it and its done channel
+func startDomainChecks(domains domain_status_page.Service) (context.CancelFunc, chan struct{}) {
+	ctx, stop := context.WithCancel(context.Background())
+	done := make(chan struct{})
+	reporting.Go("custom-domain-checks", func() {
+		defer close(done)
+		domains.Run(ctx)
+	})
+	return stop, done
 }
 
 // stop stops the background jobs and waits for them until ctx is done. The usage ping stops
@@ -422,6 +442,9 @@ func (j *jobs) stop(ctx context.Context) error {
 
 	j.stopSweep()
 	errs = append(errs, lifecycle.Await(ctx, "the probe sweep", j.sweepDone))
+
+	j.stopDomains()
+	errs = append(errs, lifecycle.Await(ctx, "the custom domain checks", j.domainsDone))
 
 	schedulerDone := make(chan struct{})
 	go func() {

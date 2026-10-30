@@ -212,6 +212,9 @@ var isolationCases = map[string]isolationCase{
 		}
 	}),
 	"DELETE /api/v1/status-pages/{id}": byID("status page", plain),
+	// the verification state of A's page's domains, and a check of one of them
+	"GET /api/v1/status-pages/domains/{id}":                  byID("status page", plain),
+	"POST /api/v1/status-pages/domains/{id}/{domain}/verify": byID("status page", plain),
 
 	"GET /api/v1/settings/key/{key}": byID("", func(isolationIDs) []isolationRequest {
 		// B has a period of its own, which is not A's
@@ -491,6 +494,7 @@ func (w *isolationWorld) forbidden(withName bool) []string {
 func (w *isolationWorld) build(t *testing.T, key string, c isolationCase, r isolationRequest, ids isolationIDs) call {
 	method, path, _ := strings.Cut(key, " ")
 	path = strings.ReplaceAll(path, "{key}", "KEEP_DATA_PERIOD_DAYS")
+	path = strings.ReplaceAll(path, "{domain}", aliceOnly+".example.com") // the domain of A's status page
 	if c.kind != "" {
 		path = strings.ReplaceAll(strings.ReplaceAll(path, "{id}", ids[c.kind]), "{userId}", ids[c.kind])
 	}

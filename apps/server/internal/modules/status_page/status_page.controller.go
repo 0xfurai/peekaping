@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"peekaping/internal/httpx"
 	"peekaping/internal/limits"
+	"peekaping/internal/modules/domain_status_page"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/monitor_status_page"
@@ -223,6 +224,48 @@ func (c *Controller) Delete(ctx context.Context, input *DeleteInput) (*httpx.Out
 		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 	}
 	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse[any]("Status page deleted successfully", nil))
+}
+
+// FindDomains answers the custom domains of a page of the request's workspace with their state
+func (c *Controller) FindDomains(ctx context.Context, input *FindDomainsInput) (*httpx.Output[utils.ApiResponse[*DomainStatusesDTO]], error) {
+	workspaceID, err := workspacehttp.Scope(ctx)
+	if err != nil {
+		return nil, err
+	}
+	id := input.Request.PathValue("id")
+	domains, err := c.service.DomainStatuses(ctx, workspaceID, id)
+	if err != nil {
+		return nil, c.domainFailure(err, "Failed to get the custom domains of a status page", id)
+	}
+	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("success", domains))
+}
+
+// VerifyDomain checks one custom domain of a page of the request's workspace now and answers its
+// state after the check
+func (c *Controller) VerifyDomain(ctx context.Context, input *VerifyDomainInput) (*httpx.Output[utils.ApiResponse[*domain_status_page.Status]], error) {
+	workspaceID, err := workspacehttp.Scope(ctx)
+	if err != nil {
+		return nil, err
+	}
+	id, domain := input.Request.PathValue("id"), input.Request.PathValue("domain")
+	status, err := c.service.CheckDomain(ctx, workspaceID, id, domain)
+	if err != nil {
+		return nil, c.domainFailure(err, "Failed to check a custom domain of a status page", id)
+	}
+	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("Custom domain checked", status))
+}
+
+// domainFailure is the answer for a failed domain request: 404 for a page that isn't in the
+// workspace and for a domain the page doesn't list, and otherwise 500
+func (c *Controller) domainFailure(err error, message, id string) error {
+	if errors.Is(err, ErrNotFound) {
+		return statusPageNotFoundResponse()
+	}
+	if errors.Is(err, domain_status_page.ErrDomainNotFound) {
+		return httpx.Fail(http.StatusNotFound, utils.NewFailResponse("Custom domain not found"))
+	}
+	c.logger.Errorw(message, "error", err, "id", id)
+	return httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 }
 
 // findIn is the lookup of a page in the workspace of the request: a page of another workspace is
