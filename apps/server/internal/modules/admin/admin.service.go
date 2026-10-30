@@ -174,18 +174,9 @@ func (s *ServiceImpl) UpdateUser(ctx context.Context, actorID, userID string, up
 // applyUserUpdate changes the user in the transaction ctx carries, and returns the user as it is
 // then with the actions to log, in the order they were done
 func (s *ServiceImpl) applyUserUpdate(ctx context.Context, userID string, update UserUpdate) (*User, []string, error) {
-	// The active instance admins are locked first, so that two changes that race for the last
-	// one take the same lock
-	admins, err := s.repo.LockActiveInstanceAdmins(ctx)
+	admins, user, err := s.lockedUser(ctx, userID)
 	if err != nil {
 		return nil, nil, err
-	}
-	user, err := s.repo.FindUser(ctx, userID)
-	if err != nil {
-		return nil, nil, err
-	}
-	if user == nil {
-		return nil, nil, ErrUserNotFound
 	}
 	if stopsBeingActiveAdmin(user, update) && len(admins) <= 1 {
 		return nil, nil, ErrLastInstanceAdmin
@@ -305,9 +296,22 @@ func (s *ServiceImpl) DeleteUser(ctx context.Context, actorID, userID string) er
 	}
 	var left []Membership
 	err := s.transactor.WithTx(ctx, func(ctx context.Context) error {
-		var err error
-		left, err = s.removeUser(ctx, userID)
-		return err
+		admins, user, err := s.lockedUser(ctx, userID)
+		if err != nil {
+			return err
+		}
+		if isLastActiveAdmin(user, admins) {
+			return ErrLastInstanceAdmin
+		}
+		lastOwned, err := s.repo.WorkspacesOwnedAloneAnyWorkspace(ctx, userID)
+		if err != nil {
+			return err
+		}
+		if len(lastOwned) > 0 {
+			return &LastOwnerError{Workspaces: lastOwned}
+		}
+		left = user.Memberships
+		return s.repo.DeleteUser(ctx, userID)
 	})
 	if err != nil {
 		return err
@@ -318,41 +322,28 @@ func (s *ServiceImpl) DeleteUser(ctx context.Context, actorID, userID string) er
 	return nil
 }
 
-// removeUser deletes the user in the transaction ctx carries, and returns the places they had in
-// the workspaces
-func (s *ServiceImpl) removeUser(ctx context.Context, userID string) ([]Membership, error) {
+// isLastActiveAdmin is whether the user is the only instance admin who can sign in. A disabled
+// instance admin is not counted: they can't.
+func isLastActiveAdmin(user *User, admins []string) bool {
+	return user.InstanceAdmin && user.Active && len(admins) <= 1
+}
+
+// lockedUser locks the active instance admins and reads the user, in the transaction ctx carries:
+// ErrUserNotFound for a user that is not there. The admins are locked first, so that two changes
+// that race for the last one take the same lock.
+func (s *ServiceImpl) lockedUser(ctx context.Context, userID string) ([]string, *User, error) {
 	admins, err := s.repo.LockActiveInstanceAdmins(ctx)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	user, err := s.repo.FindUser(ctx, userID)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	if user == nil {
-		return nil, ErrUserNotFound
+		return nil, nil, ErrUserNotFound
 	}
-	if err := s.requireDeletable(ctx, userID, user, admins); err != nil {
-		return nil, err
-	}
-	return user.Memberships, s.repo.DeleteUser(ctx, userID)
-}
-
-// requireDeletable refuses a user who is the last instance admin who can sign in, or the only owner
-// of a workspace
-func (s *ServiceImpl) requireDeletable(ctx context.Context, userID string, user *User, admins []string) error {
-	// A disabled instance admin is not counted: they can't sign in
-	if user.InstanceAdmin && user.Active && len(admins) <= 1 {
-		return ErrLastInstanceAdmin
-	}
-	lastOwned, err := s.repo.WorkspacesOwnedAloneAnyWorkspace(ctx, userID)
-	if err != nil {
-		return err
-	}
-	if len(lastOwned) > 0 {
-		return &LastOwnerError{Workspaces: lastOwned}
-	}
-	return nil
+	return admins, user, nil
 }
 
 // notify emails the user that an instance admin did something that lets the admin act as them. It
