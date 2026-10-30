@@ -1957,6 +1957,7 @@
       "name": "Tên",
       "not_checked": "Chưa được kiểm tra",
       "pending_note": "Tên miền đang chờ không phục vụ trang này và không nhận được chứng chỉ.",
+      "records_load_failed": "Không thể tải các bản ghi DNS",
       "records_missing_note": "Các bản ghi DNS của nó bị thiếu từ {{time}}. Sau 24 giờ, tên miền quay lại trạng thái đang chờ.",
       "removed_on": "Sẽ bị gỡ vào {{date}} nếu không được xác minh",
       "save_to_see_records": "Hãy lưu trang để xem các bản ghi DNS cần thêm",

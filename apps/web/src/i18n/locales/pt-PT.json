@@ -1957,6 +1957,7 @@
       "name": "Nome",
       "not_checked": "Ainda não verificado",
       "pending_note": "Um domínio pendente não serve esta página e não recebe certificado.",
+      "records_load_failed": "Não foi possível carregar os registos DNS",
       "records_missing_note": "Os registos DNS estão em falta desde {{time}}. Passadas 24 horas, o domínio volta a pendente.",
       "removed_on": "Será removido a {{date}} se não for verificado",
       "save_to_see_records": "Guarde a página para ver os registos DNS a adicionar",

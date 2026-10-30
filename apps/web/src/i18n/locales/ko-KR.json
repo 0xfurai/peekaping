@@ -1957,6 +1957,7 @@
       "name": "이름",
       "not_checked": "아직 확인되지 않음",
       "pending_note": "대기 중인 도메인은 이 페이지를 제공하지 않으며 인증서도 받지 못합니다.",
+      "records_load_failed": "DNS 레코드를 불러오지 못했습니다",
       "records_missing_note": "DNS 레코드가 {{time}}부터 없습니다. 24시간 후 도메인은 대기 중으로 돌아갑니다.",
       "removed_on": "확인되지 않으면 {{date}}에 제거됩니다",
       "save_to_see_records": "추가할 DNS 레코드를 보려면 페이지를 저장하세요",

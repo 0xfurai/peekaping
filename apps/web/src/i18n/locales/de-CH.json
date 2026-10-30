@@ -1957,6 +1957,7 @@
       "name": "Name",
       "not_checked": "Noch nicht geprüft",
       "pending_note": "Eine ausstehende Domain liefert diese Seite nicht aus und erhält kein Zertifikat.",
+      "records_load_failed": "Die DNS-Einträge konnten nicht geladen werden",
       "records_missing_note": "Die DNS-Einträge fehlen seit {{time}}. Nach 24 Stunden wird die Domain wieder ausstehend.",
       "removed_on": "Wird am {{date}} entfernt, wenn sie nicht verifiziert wird",
       "save_to_see_records": "Speichern Sie die Seite, um die DNS-Einträge zu sehen, die Sie hinzufügen müssen",

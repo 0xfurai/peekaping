@@ -1957,6 +1957,7 @@
       "name": "Namn",
       "not_checked": "Inte kontrollerad än",
       "pending_note": "En väntande domän visar inte den här sidan och får inget certifikat.",
+      "records_load_failed": "DNS-posterna kunde inte läsas in",
       "records_missing_note": "Dess DNS-poster har saknats sedan {{time}}. Efter 24 timmar blir domänen väntande igen.",
       "removed_on": "Tas bort den {{date}} om den inte verifieras",
       "save_to_see_records": "Spara sidan för att se DNS-posterna som ska läggas till",

@@ -1957,6 +1957,7 @@
       "name": "Nombre",
       "not_checked": "Aún no comprobado",
       "pending_note": "Un dominio pendiente no sirve esta página ni obtiene certificado.",
+      "records_load_failed": "No se pudieron cargar los registros DNS",
       "records_missing_note": "Sus registros DNS faltan desde {{time}}. Pasadas 24 horas, el dominio vuelve a pendiente.",
       "removed_on": "Se eliminará el {{date}} si no se verifica",
       "save_to_see_records": "Guarda la página para ver los registros DNS que debes añadir",

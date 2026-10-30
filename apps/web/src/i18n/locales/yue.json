@@ -1957,6 +1957,7 @@
       "name": "名稱",
       "not_checked": "重未檢查",
       "pending_note": "待驗證嘅網域唔會提供呢個頁面，亦攞唔到憑證。",
+      "records_load_failed": "載入唔到 DNS 記錄",
       "records_missing_note": "由 {{time}} 起已經冇咗佢嘅 DNS 記錄。24 個鐘之後，呢個網域會返回待驗證。",
       "removed_on": "如果未驗證，會喺 {{date}} 移除",
       "save_to_see_records": "儲存頁面就可以睇到要加嘅 DNS 記錄",

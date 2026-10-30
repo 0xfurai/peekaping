@@ -1957,6 +1957,7 @@
       "name": "Name",
       "not_checked": "Not checked yet",
       "pending_note": "A pending domain does not serve this page and gets no certificate.",
+      "records_load_failed": "Could not load the DNS records",
       "records_missing_note": "Its DNS records have been missing since {{time}}. After 24 hours the domain goes back to pending.",
       "removed_on": "Removed on {{date}} unless verified",
       "save_to_see_records": "Save the page to see the DNS records to add",

@@ -1956,6 +1956,7 @@
       "name": "Nomi",
       "not_checked": "Hali tekshirilmagan",
       "pending_note": "Kutilayotgan domen bu sahifani ko'rsatmaydi va sertifikat olmaydi.",
+      "records_load_failed": "DNS yozuvlarini yuklab bo‘lmadi",
       "records_missing_note": "Uning DNS yozuvlari {{time}} dan beri yo'q. 24 soatdan keyin domen yana kutilmoqda holatiga qaytadi.",
       "removed_on": "Tasdiqlanmasa, {{date}} kuni o'chiriladi",
       "save_to_see_records": "Qo'shiladigan DNS yozuvlarini ko'rish uchun sahifani saqlang",

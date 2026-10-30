@@ -1957,6 +1957,7 @@
       "name": "Nimi",
       "not_checked": "Pole veel kontrollitud",
       "pending_note": "Ootel domeen ei serveeri seda lehte ega saa sertifikaati.",
+      "records_load_failed": "DNS-kirjeid ei õnnestunud laadida",
       "records_missing_note": "Selle DNS-kirjed on puudunud alates {{time}}. 24 tunni pärast läheb domeen tagasi ootele.",
       "removed_on": "Eemaldatakse {{date}}, kui seda ei kinnitata",
       "save_to_see_records": "Salvesta leht, et näha lisatavaid DNS-kirjeid",

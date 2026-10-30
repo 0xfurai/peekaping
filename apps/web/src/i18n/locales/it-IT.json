@@ -1957,6 +1957,7 @@
       "name": "Nome",
       "not_checked": "Non ancora controllato",
       "pending_note": "Un dominio in attesa non serve questa pagina e non riceve un certificato.",
+      "records_load_failed": "Impossibile caricare i record DNS",
       "records_missing_note": "I suoi record DNS mancano dal {{time}}. Dopo 24 ore il dominio torna in attesa.",
       "removed_on": "Verrà rimosso il {{date}} se non verificato",
       "save_to_see_records": "Salva la pagina per vedere i record DNS da aggiungere",

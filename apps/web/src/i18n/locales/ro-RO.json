@@ -1956,6 +1956,7 @@
       "name": "Nume",
       "not_checked": "Încă neverificat",
       "pending_note": "Un domeniu în așteptare nu servește această pagină și nu primește certificat.",
+      "records_load_failed": "Înregistrările DNS nu au putut fi încărcate",
       "records_missing_note": "Înregistrările DNS lipsesc din {{time}}. După 24 de ore, domeniul revine în așteptare.",
       "removed_on": "Va fi eliminat pe {{date}} dacă nu este verificat",
       "save_to_see_records": "Salvați pagina pentru a vedea înregistrările DNS de adăugat",

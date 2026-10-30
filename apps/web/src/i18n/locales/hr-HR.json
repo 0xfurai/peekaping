@@ -1957,6 +1957,7 @@
       "name": "Naziv",
       "not_checked": "Još nije provjereno",
       "pending_note": "Domena na čekanju ne poslužuje ovu stranicu i ne dobiva certifikat.",
+      "records_load_failed": "DNS zapise nije moguće učitati",
       "records_missing_note": "Njezini DNS zapisi nedostaju od {{time}}. Nakon 24 sata domena se vraća na čekanje.",
       "removed_on": "Bit će uklonjena {{date}} ako se ne provjeri",
       "save_to_see_records": "Spremite stranicu da vidite DNS zapise koje treba dodati",

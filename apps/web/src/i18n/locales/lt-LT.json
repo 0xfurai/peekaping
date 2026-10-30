@@ -1957,6 +1957,7 @@
       "name": "Pavadinimas",
       "not_checked": "Dar netikrinta",
       "pending_note": "Laukiantis domenas šio puslapio nepateikia ir negauna sertifikato.",
+      "records_load_failed": "Nepavyko įkelti DNS įrašų",
       "records_missing_note": "Jo DNS įrašų trūksta nuo {{time}}. Po 24 valandų domenas vėl taps laukiančiu.",
       "removed_on": "Bus pašalintas {{date}}, jei nebus patvirtintas",
       "save_to_see_records": "Išsaugokite puslapį, kad pamatytumėte pridėtinus DNS įrašus",

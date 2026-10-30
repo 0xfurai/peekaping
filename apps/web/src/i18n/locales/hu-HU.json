@@ -1957,6 +1957,7 @@
       "name": "Név",
       "not_checked": "Még nincs ellenőrizve",
       "pending_note": "A függőben lévő domain nem szolgálja ki ezt az oldalt, és nem kap tanúsítványt.",
+      "records_load_failed": "A DNS-rekordokat nem sikerült betölteni",
       "records_missing_note": "A DNS-rekordjai ekkor óta hiányoznak: {{time}}. 24 óra után a domain újra függőben lesz.",
       "removed_on": "Eltávolításra kerül ekkor: {{date}}, ha nem ellenőrzik",
       "save_to_see_records": "Mentse az oldalt, hogy lássa a hozzáadandó DNS-rekordokat",

@@ -1956,6 +1956,7 @@
       "name": "Ainm",
       "not_checked": "Gan seiceáil go fóill",
       "pending_note": "Ní fhreastalaíonn fearann ar feitheamh ar an leathanach seo agus ní fhaigheann sé teastas.",
+      "records_load_failed": "Níorbh fhéidir na taifid DNS a luchtú",
       "records_missing_note": "Tá a thaifid DNS ar iarraidh ó {{time}}. Tar éis 24 uair an chloig, filleann an fearann ar feitheamh.",
       "removed_on": "Bainfear é ar {{date}} mura bhfíoraítear é",
       "save_to_see_records": "Sábháil an leathanach chun na taifid DNS atá le cur leis a fheiceáil",

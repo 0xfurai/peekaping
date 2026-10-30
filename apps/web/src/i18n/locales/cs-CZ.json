@@ -1957,6 +1957,7 @@
       "name": "Název",
       "not_checked": "Zatím nezkontrolováno",
       "pending_note": "Doména čekající na ověření tuto stránku nezobrazuje a nedostane certifikát.",
+      "records_load_failed": "Záznamy DNS se nepodařilo načíst",
       "records_missing_note": "Její DNS záznamy chybí od {{time}}. Po 24 hodinách se doména vrátí do stavu čekající.",
       "removed_on": "Bude odstraněna {{date}}, pokud nebude ověřena",
       "save_to_see_records": "Uložte stránku, abyste viděli DNS záznamy, které je třeba přidat",

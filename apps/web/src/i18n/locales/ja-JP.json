@@ -1957,6 +1957,7 @@
       "name": "名前",
       "not_checked": "未確認",
       "pending_note": "保留中のドメインはこのページを配信せず、証明書も取得しません。",
+      "records_load_failed": "DNSレコードを読み込めませんでした",
       "records_missing_note": "DNSレコードが{{time}}から見つかりません。24時間後にドメインは保留中に戻ります。",
       "removed_on": "確認されない場合、{{date}}に削除されます",
       "save_to_see_records": "追加するDNSレコードを表示するには、ページを保存してください",

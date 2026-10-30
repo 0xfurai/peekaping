@@ -1957,6 +1957,7 @@
       "name": "Nazwa",
       "not_checked": "Jeszcze nie sprawdzono",
       "pending_note": "Oczekująca domena nie obsługuje tej strony i nie dostaje certyfikatu.",
+      "records_load_failed": "Nie udało się wczytać rekordów DNS",
       "records_missing_note": "Jej rekordów DNS brakuje od {{time}}. Po 24 godzinach domena wraca do stanu oczekującej.",
       "removed_on": "Zostanie usunięta {{date}}, jeśli nie zostanie zweryfikowana",
       "save_to_see_records": "Zapisz stronę, aby zobaczyć rekordy DNS do dodania",

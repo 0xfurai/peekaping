@@ -10,20 +10,54 @@ import DomainStatus from "./domain-status";
 import { findDomainStatus } from "./domain-state";
 import { useDomainStatuses } from "./use-domain-statuses";
 
+// What stands in the place of the records while the saved domains load or can't be read
+const RecordsLoadState = ({
+  isError,
+  onRetry,
+}: {
+  isError: boolean;
+  onRetry: () => void;
+}) => {
+  const { t } = useLocalizedTranslation();
+  if (!isError) {
+    return <p className="text-xs text-muted-foreground">{t("common.loading")}</p>;
+  }
+  return (
+    <div className="flex items-center gap-2 text-xs text-destructive">
+      <span>{t("status_pages.domain_verification.records_load_failed")}</span>
+      <Button type="button" variant="outline" size="sm" onClick={onRetry}>
+        {t("common.retry")}
+      </Button>
+    </div>
+  );
+};
+
+type StatusesLoad = {
+  isLoading: boolean;
+  isError: boolean;
+  refetch: () => unknown;
+};
+
 // The verification of one domain of the list: its state when the page is saved with it, and
-// the way to get there when it isn't. Nothing while the saved domains load or can't be read.
+// the way to get there when it isn't. While the saved domains load, or when they can't be
+// read, a line says so (with a Retry for the failure).
 const DomainVerification = ({
   pageId,
   status,
   known,
+  load,
 }: {
   pageId?: string;
   status?: DomainStatusPageStatus;
   known: boolean;
+  load: StatusesLoad;
 }) => {
   const { t } = useLocalizedTranslation();
   if (pageId && status) return <DomainStatus pageId={pageId} status={status} />;
-  if (pageId && !known) return null;
+  if (pageId && !known) {
+    if (!load.isError && !load.isLoading) return null;
+    return <RecordsLoadState isError={load.isError} onRetry={() => void load.refetch()} />;
+  }
   return (
     <p className="text-xs text-muted-foreground">
       {t("status_pages.domain_verification.save_to_see_records")}
@@ -50,7 +84,7 @@ const DomainsManager = ({
   const [newDomain, setNewDomain] = useState("");
   const currentHost = window.location.hostname;
   const verify = useVerifyCustomDomains();
-  const { domains: saved } = useDomainStatuses(pageId, verify);
+  const { domains: saved, ...load } = useDomainStatuses(pageId, verify);
 
   const addDomain = () => {
     if (newDomain.trim() && !value.includes(newDomain.trim())) {
@@ -106,6 +140,7 @@ const DomainsManager = ({
                       pageId={pageId}
                       status={findDomainStatus(saved, domain)}
                       known={saved !== undefined}
+                      load={load}
                     />
                   )}
                   {isHighlighted && (

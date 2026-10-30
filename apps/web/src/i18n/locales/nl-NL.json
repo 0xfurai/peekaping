@@ -1957,6 +1957,7 @@
       "name": "Naam",
       "not_checked": "Nog niet gecontroleerd",
       "pending_note": "Een domein in afwachting toont deze pagina niet en krijgt geen certificaat.",
+      "records_load_failed": "De DNS-records konden niet worden geladen",
       "records_missing_note": "De DNS-records ontbreken sinds {{time}}. Na 24 uur gaat het domein terug naar in afwachting.",
       "removed_on": "Wordt verwijderd op {{date}} als het niet is geverifieerd",
       "save_to_see_records": "Sla de pagina op om de DNS-records te zien die je moet toevoegen",

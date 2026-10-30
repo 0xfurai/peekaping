@@ -1957,6 +1957,7 @@
       "name": "Nimi",
       "not_checked": "Ei vielä tarkistettu",
       "pending_note": "Odottava verkkotunnus ei näytä tätä sivua eikä saa varmennetta.",
+      "records_load_failed": "DNS-tietueita ei voitu ladata",
       "records_missing_note": "Sen DNS-tietueet ovat puuttuneet {{time}} alkaen. 24 tunnin kuluttua verkkotunnus palaa odottavaksi.",
       "removed_on": "Poistetaan {{date}}, ellei sitä vahvisteta",
       "save_to_see_records": "Tallenna sivu nähdäksesi lisättävät DNS-tietueet",

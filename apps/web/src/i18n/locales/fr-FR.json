@@ -1957,6 +1957,7 @@
       "name": "Nom",
       "not_checked": "Pas encore vérifié",
       "pending_note": "Un domaine en attente ne sert pas cette page et n'obtient pas de certificat.",
+      "records_load_failed": "Impossible de charger les enregistrements DNS",
       "records_missing_note": "Ses enregistrements DNS manquent depuis {{time}}. Au bout de 24 heures, le domaine repasse en attente.",
       "removed_on": "Sera supprimé le {{date}} s'il n'est pas vérifié",
       "save_to_see_records": "Enregistrez la page pour voir les enregistrements DNS à ajouter",

@@ -1957,6 +1957,7 @@
       "name": "Navn",
       "not_checked": "Ikke sjekket ennå",
       "pending_note": "Et ventende domene viser ikke denne siden og får ikke sertifikat.",
+      "records_load_failed": "Kunne ikke laste inn DNS-postene",
       "records_missing_note": "DNS-postene har manglet siden {{time}}. Etter 24 timer blir domenet ventende igjen.",
       "removed_on": "Fjernes {{date}} hvis det ikke verifiseres",
       "save_to_see_records": "Lagre siden for å se DNS-postene som må legges til",

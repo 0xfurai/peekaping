@@ -1957,6 +1957,7 @@
       "name": "名称",
       "not_checked": "尚未检查",
       "pending_note": "待验证的域名不会提供此页面，也不会获得证书。",
+      "records_load_failed": "无法加载 DNS 记录",
       "records_missing_note": "自 {{time}} 起缺少其 DNS 记录。24 小时后该域名将恢复为待验证。",
       "removed_on": "若未验证，将于 {{date}} 移除",
       "save_to_see_records": "保存页面后即可查看需要添加的 DNS 记录",

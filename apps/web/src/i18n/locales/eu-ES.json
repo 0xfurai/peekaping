@@ -1957,6 +1957,7 @@
       "name": "Izena",
       "not_checked": "Oraindik egiaztatu gabe",
       "pending_note": "Zain dagoen domeinu batek ez du orri hau zerbitzatzen eta ez du ziurtagirik jasotzen.",
+      "records_load_failed": "Ezin izan dira DNS erregistroak kargatu",
       "records_missing_note": "Bere DNS erregistroak {{time}}(e)tik falta dira. 24 ordu geroago domeinua berriro zain geratzen da.",
       "removed_on": "{{date}}(e)an kenduko da egiaztatzen ez bada",
       "save_to_see_records": "Gorde orria gehitu beharreko DNS erregistroak ikusteko",

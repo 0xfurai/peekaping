@@ -1957,6 +1957,7 @@
       "name": "Ime",
       "not_checked": "Še ni preverjeno",
       "pending_note": "Domena v čakanju ne streže te strani in ne dobi potrdila.",
+      "records_load_failed": "Zapisov DNS ni bilo mogoče naložiti",
       "records_missing_note": "Njeni DNS-zapisi manjkajo od {{time}}. Po 24 urah se domena vrne v čakanje.",
       "removed_on": "Odstranjena bo {{date}}, če ne bo preverjena",
       "save_to_see_records": "Shranite stran, da vidite DNS-zapise, ki jih je treba dodati",
