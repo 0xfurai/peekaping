@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 	"strings"
 	"time"
 
@@ -147,63 +148,12 @@ func (s *ServiceImpl) UpdateUser(ctx context.Context, actorID, userID string, up
 		return nil, ErrSelf
 	}
 	var (
-		updated    *User
-		actions    []string
-		endedUsers bool
+		updated *User
+		actions []string
 	)
 	err := s.transactor.WithTx(ctx, func(ctx context.Context) error {
-		// The active instance admins are locked first, so that two changes that race for the last
-		// one take the same lock
-		admins, err := s.repo.LockActiveInstanceAdmins(ctx)
-		if err != nil {
-			return err
-		}
-		user, err := s.repo.FindUser(ctx, userID)
-		if err != nil {
-			return err
-		}
-		if user == nil {
-			return ErrUserNotFound
-		}
-		actions, endedUsers = nil, false
-
-		// The user stops being an active instance admin by losing the flag or by being disabled
-		flag, active := user.InstanceAdmin, user.Active
-		if update.InstanceAdmin != nil {
-			flag = *update.InstanceAdmin
-		}
-		if update.Active != nil {
-			active = *update.Active
-		}
-		if user.InstanceAdmin && user.Active && !(flag && active) && len(admins) <= 1 {
-			return ErrLastInstanceAdmin
-		}
-
-		if update.InstanceAdmin != nil && *update.InstanceAdmin != user.InstanceAdmin {
-			if err := s.repo.SetInstanceAdmin(ctx, userID, *update.InstanceAdmin); err != nil {
-				return err
-			}
-			actions = append(actions, ActionSetInstanceAdmin)
-		}
-		if update.Active != nil && *update.Active != user.Active {
-			var endAt *time.Time
-			if !*update.Active {
-				// To the millisecond, as the tokens' issue times are, and rounded up: a token issued in
-				// the same millisecond as the disabling ends with the rest
-				at := s.now().UTC().Add(time.Millisecond).Truncate(time.Millisecond)
-				endAt = &at
-			}
-			if err := s.repo.SetActive(ctx, userID, *update.Active, endAt); err != nil {
-				return err
-			}
-			if *update.Active {
-				actions = append(actions, ActionEnableUser)
-			} else {
-				actions = append(actions, ActionDisableUser)
-				endedUsers = true
-			}
-		}
-		updated, err = s.repo.FindUser(ctx, userID)
+		var err error
+		updated, actions, err = s.applyUserUpdate(ctx, userID, update)
 		return err
 	})
 	if err != nil {
@@ -212,13 +162,91 @@ func (s *ServiceImpl) UpdateUser(ctx context.Context, actorID, userID string, up
 	for _, action := range actions {
 		s.log(actorID, action, userID)
 	}
-	if endedUsers {
+	if slices.Contains(actions, ActionDisableUser) {
 		// Their open sockets close, which ends the workspaces' updates too. The sessions ended and
 		// the memberships did not, so nothing announces MemberLeft: its subscribers take it for a
 		// membership that is gone.
 		s.announceSessionsEnded(ctx, userID)
 	}
 	return updated, nil
+}
+
+// applyUserUpdate changes the user in the transaction ctx carries, and returns the user as it is
+// then with the actions to log, in the order they were done
+func (s *ServiceImpl) applyUserUpdate(ctx context.Context, userID string, update UserUpdate) (*User, []string, error) {
+	// The active instance admins are locked first, so that two changes that race for the last
+	// one take the same lock
+	admins, err := s.repo.LockActiveInstanceAdmins(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+	user, err := s.repo.FindUser(ctx, userID)
+	if err != nil {
+		return nil, nil, err
+	}
+	if user == nil {
+		return nil, nil, ErrUserNotFound
+	}
+	if stopsBeingActiveAdmin(user, update) && len(admins) <= 1 {
+		return nil, nil, ErrLastInstanceAdmin
+	}
+	actions, err := s.storeUserUpdate(ctx, userID, user, update)
+	if err != nil {
+		return nil, nil, err
+	}
+	updated, err := s.repo.FindUser(ctx, userID)
+	return updated, actions, err
+}
+
+// stopsBeingActiveAdmin is whether the update takes the user, an active instance admin, out of the
+// active instance admins: by losing the flag or by being disabled
+func stopsBeingActiveAdmin(user *User, update UserUpdate) bool {
+	flag, active := user.InstanceAdmin, user.Active
+	if update.InstanceAdmin != nil {
+		flag = *update.InstanceAdmin
+	}
+	if update.Active != nil {
+		active = *update.Active
+	}
+	return user.InstanceAdmin && user.Active && !(flag && active)
+}
+
+// storeUserUpdate stores what the update changes about the user, and returns the actions to log
+func (s *ServiceImpl) storeUserUpdate(ctx context.Context, userID string, user *User, update UserUpdate) ([]string, error) {
+	var actions []string
+	if update.InstanceAdmin != nil && *update.InstanceAdmin != user.InstanceAdmin {
+		if err := s.repo.SetInstanceAdmin(ctx, userID, *update.InstanceAdmin); err != nil {
+			return nil, err
+		}
+		actions = append(actions, ActionSetInstanceAdmin)
+	}
+	if update.Active != nil && *update.Active != user.Active {
+		action, err := s.storeActive(ctx, userID, *update.Active)
+		if err != nil {
+			return nil, err
+		}
+		actions = append(actions, action)
+	}
+	return actions, nil
+}
+
+// storeActive enables or disables the user, and returns the action to log. Disabling ends the
+// sessions that began before now.
+func (s *ServiceImpl) storeActive(ctx context.Context, userID string, active bool) (string, error) {
+	var endAt *time.Time
+	if !active {
+		// To the millisecond, as the tokens' issue times are, and rounded up: a token issued in
+		// the same millisecond as the disabling ends with the rest
+		at := s.now().UTC().Add(time.Millisecond).Truncate(time.Millisecond)
+		endAt = &at
+	}
+	if err := s.repo.SetActive(ctx, userID, active, endAt); err != nil {
+		return "", err
+	}
+	if active {
+		return ActionEnableUser, nil
+	}
+	return ActionDisableUser, nil
 }
 
 func (s *ServiceImpl) CreateResetLink(ctx context.Context, actorID, userID string) (*ResetLink, error) {
@@ -277,30 +305,9 @@ func (s *ServiceImpl) DeleteUser(ctx context.Context, actorID, userID string) er
 	}
 	var left []Membership
 	err := s.transactor.WithTx(ctx, func(ctx context.Context) error {
-		admins, err := s.repo.LockActiveInstanceAdmins(ctx)
-		if err != nil {
-			return err
-		}
-		user, err := s.repo.FindUser(ctx, userID)
-		if err != nil {
-			return err
-		}
-		if user == nil {
-			return ErrUserNotFound
-		}
-		// A disabled instance admin is not counted: they can't sign in
-		if user.InstanceAdmin && user.Active && len(admins) <= 1 {
-			return ErrLastInstanceAdmin
-		}
-		lastOwned, err := s.repo.WorkspacesOwnedAloneAnyWorkspace(ctx, userID)
-		if err != nil {
-			return err
-		}
-		if len(lastOwned) > 0 {
-			return &LastOwnerError{Workspaces: lastOwned}
-		}
-		left = user.Memberships
-		return s.repo.DeleteUser(ctx, userID)
+		var err error
+		left, err = s.removeUser(ctx, userID)
+		return err
 	})
 	if err != nil {
 		return err
@@ -308,6 +315,43 @@ func (s *ServiceImpl) DeleteUser(ctx context.Context, actorID, userID string) er
 	s.log(actorID, ActionDeleteUser, userID)
 	s.announceSessionsEnded(ctx, userID)
 	s.announceLeft(ctx, userID, left)
+	return nil
+}
+
+// removeUser deletes the user in the transaction ctx carries, and returns the places they had in
+// the workspaces
+func (s *ServiceImpl) removeUser(ctx context.Context, userID string) ([]Membership, error) {
+	admins, err := s.repo.LockActiveInstanceAdmins(ctx)
+	if err != nil {
+		return nil, err
+	}
+	user, err := s.repo.FindUser(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	if user == nil {
+		return nil, ErrUserNotFound
+	}
+	if err := s.requireDeletable(ctx, userID, user, admins); err != nil {
+		return nil, err
+	}
+	return user.Memberships, s.repo.DeleteUser(ctx, userID)
+}
+
+// requireDeletable refuses a user who is the last instance admin who can sign in, or the only owner
+// of a workspace
+func (s *ServiceImpl) requireDeletable(ctx context.Context, userID string, user *User, admins []string) error {
+	// A disabled instance admin is not counted: they can't sign in
+	if user.InstanceAdmin && user.Active && len(admins) <= 1 {
+		return ErrLastInstanceAdmin
+	}
+	lastOwned, err := s.repo.WorkspacesOwnedAloneAnyWorkspace(ctx, userID)
+	if err != nil {
+		return err
+	}
+	if len(lastOwned) > 0 {
+		return &LastOwnerError{Workspaces: lastOwned}
+	}
 	return nil
 }
 
