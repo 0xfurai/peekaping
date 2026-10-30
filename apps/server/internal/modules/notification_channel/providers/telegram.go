@@ -47,6 +47,52 @@ func (s *TelegramSender) Validate(configJSON string) error {
 	return GenericValidator(cfg.(*TelegramConfig))
 }
 
+// telegramParams are the parameters of the sendMessage call: the message, or the template
+// rendered, with its parse mode
+func telegramParams(cfg *TelegramConfig, message string, monitor *monitor.Model, heartbeat *heartbeat.Model) (map[string]any, error) {
+	params := map[string]any{
+		"chat_id":              cfg.ChatID,
+		"text":                 message,
+		"disable_notification": cfg.SendSilently,
+		"protect_content":      cfg.ProtectContent,
+	}
+	if cfg.MessageThreadID != "" {
+		params["message_thread_id"] = cfg.MessageThreadID
+	}
+
+	if cfg.UseTemplate {
+		if err := addTelegramTemplate(params, cfg, PrepareTemplateBindings(monitor, heartbeat, message)); err != nil {
+			return nil, err
+		}
+	}
+	return params, nil
+}
+
+// addTelegramTemplate renders the template as the text of the message, and sets the parse mode
+func addTelegramTemplate(params map[string]any, cfg *TelegramConfig, bindings map[string]any) error {
+	if cfg.Template != "" {
+		rendered, err := liquid.NewEngine().ParseAndRenderString(cfg.Template, bindings)
+		if err != nil {
+			return fmt.Errorf("failed to render template: %w", err)
+		}
+		params["text"] = rendered
+	}
+
+	if cfg.TemplateParseMode != "plain" && cfg.TemplateParseMode != "" {
+		params["parse_mode"] = cfg.TemplateParseMode
+	}
+	return nil
+}
+
+// telegramStatusError is the error for a response that is not a success, with Telegram's description
+func telegramStatusError(resp *http.Response, botToken string) error {
+	// A bounded read: the error carries Telegram's description, however long the response is
+	body, _ := io.ReadAll(io.LimitReader(resp.Body, 1024))
+	// A self-hosted Bot API server may echo the request path, and the path holds the token
+	text := strings.ReplaceAll(strings.TrimSpace(string(body)), botToken, "[redacted]")
+	return fmt.Errorf("telegram API returned status: %s, body: %s", resp.Status, text)
+}
+
 func (s *TelegramSender) Send(
 	ctx context.Context,
 	configJSON string,
@@ -67,32 +113,9 @@ func (s *TelegramSender) Send(
 		url = "https://api.telegram.org"
 	}
 
-	params := map[string]any{
-		"chat_id":              cfg.ChatID,
-		"text":                 message,
-		"disable_notification": cfg.SendSilently,
-		"protect_content":      cfg.ProtectContent,
-	}
-	if cfg.MessageThreadID != "" {
-		params["message_thread_id"] = cfg.MessageThreadID
-	}
-
-	if cfg.UseTemplate {
-		engine := liquid.NewEngine()
-
-		bindings := PrepareTemplateBindings(monitor, heartbeat, message)
-
-		if cfg.Template != "" {
-			if rendered, err := engine.ParseAndRenderString(cfg.Template, bindings); err == nil {
-				params["text"] = rendered
-			} else {
-				return fmt.Errorf("failed to render template: %w", err)
-			}
-		}
-
-		if cfg.TemplateParseMode != "plain" && cfg.TemplateParseMode != "" {
-			params["parse_mode"] = cfg.TemplateParseMode
-		}
+	params, err := telegramParams(cfg, message, monitor, heartbeat)
+	if err != nil {
+		return err
 	}
 
 	apiUrl := fmt.Sprintf("%s/bot%s/sendMessage", url, cfg.BotToken)
@@ -117,11 +140,7 @@ func (s *TelegramSender) Send(
 	defer resp.Body.Close()
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		// A bounded read: the error carries Telegram's description, however long the response is
-		body, _ := io.ReadAll(io.LimitReader(resp.Body, 1024))
-		// A self-hosted Bot API server may echo the request path, and the path holds the token
-		text := strings.ReplaceAll(strings.TrimSpace(string(body)), cfg.BotToken, "[redacted]")
-		return fmt.Errorf("telegram API returned status: %s, body: %s", resp.Status, text)
+		return telegramStatusError(resp, cfg.BotToken)
 	}
 
 	s.logger.Infof("Telegram notification sent successfully")

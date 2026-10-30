@@ -48,6 +48,17 @@ func (s *SendGridSender) Validate(configJSON string) error {
 	return GenericValidator(cfg.(*SendGridConfig))
 }
 
+// splitEmails splits a comma separated list of addresses, leaving out blank entries
+func splitEmails(list string) []string {
+	var emails []string
+	for _, email := range strings.Split(list, ",") {
+		if email = strings.TrimSpace(email); email != "" {
+			emails = append(emails, email)
+		}
+	}
+	return emails
+}
+
 func (s *SendGridSender) Send(
 	ctx context.Context,
 	configJSON string,
@@ -61,13 +72,12 @@ func (s *SendGridSender) Send(
 	}
 	cfg := cfgAny.(*SendGridConfig)
 
-	engine := liquid.NewEngine()
 	bindings := PrepareTemplateBindings(m, heartbeat, message)
 
 	// Prepare subject with template support
 	finalSubject := "Peekaping Notification"
 	if cfg.Subject != "" {
-		if rendered, err := engine.ParseAndRenderString(cfg.Subject, bindings); err == nil {
+		if rendered, err := liquid.NewEngine().ParseAndRenderString(cfg.Subject, bindings); err == nil {
 			finalSubject = rendered
 		}
 	}
@@ -82,25 +92,13 @@ func (s *SendGridSender) Send(
 	)
 
 	// Add CC recipients if provided
-	if cfg.CCEmail != "" {
-		ccEmails := strings.Split(cfg.CCEmail, ",")
-		for _, email := range ccEmails {
-			email = strings.TrimSpace(email)
-			if email != "" {
-				sgMessage.Personalizations[0].AddCCs(mail.NewEmail("", email))
-			}
-		}
+	for _, email := range splitEmails(cfg.CCEmail) {
+		sgMessage.Personalizations[0].AddCCs(mail.NewEmail("", email))
 	}
 
 	// Add BCC recipients if provided
-	if cfg.BCCEmail != "" {
-		bccEmails := strings.Split(cfg.BCCEmail, ",")
-		for _, email := range bccEmails {
-			email = strings.TrimSpace(email)
-			if email != "" {
-				sgMessage.Personalizations[0].AddBCCs(mail.NewEmail("", email))
-			}
-		}
+	for _, email := range splitEmails(cfg.BCCEmail) {
+		sgMessage.Personalizations[0].AddBCCs(mail.NewEmail("", email))
 	}
 
 	// Send through the shared client; the SDK's own client has no timeout

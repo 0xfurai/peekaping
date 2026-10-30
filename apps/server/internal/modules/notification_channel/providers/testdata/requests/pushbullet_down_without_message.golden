@@ -1,0 +1,9 @@
+POST https://api.pushbullet.com/v2/pushes
+Access-Token: o.pushbullet
+Content-Type: application/json
+
+{
+  "body": "Monitor: Public API\nStatus: DOWN\nTime: 2026-10-17 09:30:00 UTC",
+  "title": "[PeekaPing] Public API is DOWN",
+  "type": "note"
+}

@@ -60,19 +60,19 @@ func NewService(
 	}
 }
 
+// importantBeats are the changes of status that make a beat important, as {previous, current}
+var importantBeats = map[[2]shared.MonitorStatus]bool{
+	{shared.MonitorStatusUp, shared.MonitorStatusDown}:          true,
+	{shared.MonitorStatusDown, shared.MonitorStatusUp}:          true,
+	{shared.MonitorStatusPending, shared.MonitorStatusUp}:       true,
+	{shared.MonitorStatusPending, shared.MonitorStatusDown}:     true,
+	{shared.MonitorStatusMaintenance, shared.MonitorStatusUp}:   true,
+	{shared.MonitorStatusMaintenance, shared.MonitorStatusDown}: true,
+}
+
 // isImportantBeat checks if the beat is important (status changed)
 func (s *ServiceImpl) isImportantBeat(prevBeatStatus, currBeatStatus shared.MonitorStatus) bool {
-	up := shared.MonitorStatusUp
-	down := shared.MonitorStatusDown
-	pending := shared.MonitorStatusPending
-	maintenance := shared.MonitorStatusMaintenance
-
-	return (prevBeatStatus == up && currBeatStatus == down) ||
-		(prevBeatStatus == down && currBeatStatus == up) ||
-		(prevBeatStatus == pending && currBeatStatus == up) ||
-		(prevBeatStatus == pending && currBeatStatus == down) ||
-		(prevBeatStatus == maintenance && currBeatStatus == up) ||
-		(prevBeatStatus == maintenance && currBeatStatus == down)
+	return importantBeats[[2]shared.MonitorStatus{prevBeatStatus, currBeatStatus}]
 }
 
 // isImportantForNotification checks if the beat should trigger notification
@@ -247,9 +247,51 @@ func (s *ServiceImpl) Ingest(ctx context.Context, r *Result) error {
 		probeID = shared.LocalProbeID
 	}
 
-	// Get the previous heartbeat of the monitor on this probe
+	previousBeat := s.previousBeatOf(ctx, r, probeID)
+	hb := newHeartbeat(r, probeID, previousBeat)
+	judgeLocationStatus(hb, r, previousBeat)
+
+	rule := ruleOf(r)
+
+	// Record the location's status, and judge the monitor while it is held: its status before this
+	// result is the one last recorded for it, and its status after is what its locations add up to
+	locationStatus := hb.Status
+	state := shared.LocationState{ProbeID: probeID, Status: &locationStatus, LastPing: &r.PingMs, LastHeartbeatAt: &r.StartTime}
+	var judged monitorJudgement
+	err := s.locations.RecordLocationAnyWorkspace(ctx, r.MonitorID, state, func(j shared.LocationJudgement) *shared.MonitorStatus {
+		judged = judgeMonitor(j, r, probeID, previousBeat, locationStatus, rule)
+		return &judged.currentStatus
+	})
+	if err != nil {
+		return s.recordFailure(err, r, probeID)
+	}
+
+	shouldNotify := s.judgeNotification(hb, r, probeID, judged)
+
+	s.logStatus(r)
+
+	s.updateTLSInfo(ctx, r)
+
+	// Create the heartbeat in the database
+	dbHb, err := s.heartbeatService.Create(ctx, hb)
+	if err != nil {
+		s.logger.Errorw("Failed to create heartbeat",
+			"monitor_id", r.MonitorID,
+			"error", err,
+		)
+		s.restoreLocation(ctx, r.MonitorID, probeID, judged.rowsBefore, judged.recordedBefore)
+		return fmt.Errorf("failed to create heartbeat: %w", err)
+	}
+
+	s.publishEvents(ctx, dbHb, judged, shouldNotify)
+
+	return nil
+}
+
+// previousBeatOf is the previous heartbeat of the monitor on the probe, nil when there is none or it
+// could not be read
+func (s *ServiceImpl) previousBeatOf(ctx context.Context, r *Result, probeID string) *heartbeat.Model {
 	previousBeats, err := s.heartbeatService.FindByMonitorIDAndProbeIDPaginated(ctx, r.MonitorID, probeID, 1, 0, nil, false)
-	var previousBeat *heartbeat.Model = nil
 	if err != nil {
 		s.logger.Errorw("Failed to get previous heartbeat for monitor",
 			"monitor_id", r.MonitorID,
@@ -258,12 +300,14 @@ func (s *ServiceImpl) Ingest(ctx context.Context, r *Result) error {
 		)
 	}
 	if len(previousBeats) > 0 {
-		previousBeat = previousBeats[0]
+		return previousBeats[0]
 	}
+	return nil
+}
 
-	// The probe's first heartbeat of the monitor
-	isFirstOnProbe := previousBeat == nil
-
+// newHeartbeat is the heartbeat of the result before it is judged: it carries the result and the
+// counts of the previous heartbeat of the probe, if there is one
+func newHeartbeat(r *Result, probeID string, previousBeat *heartbeat.Model) *heartbeat.CreateUpdateDto {
 	// A heartbeat that no probe instance made records none
 	var instanceID *string
 	if r.InstanceID != "" {
@@ -286,13 +330,19 @@ func (s *ServiceImpl) Ingest(ctx context.Context, r *Result) error {
 		Notified:   false,
 	}
 
-	if !isFirstOnProbe {
+	// The probe's first heartbeat of the monitor has no counts behind it
+	if previousBeat != nil {
 		hb.DownCount = previousBeat.DownCount
 		hb.Retries = previousBeat.Retries
 	}
+	return hb
+}
 
+// judgeLocationStatus sets the status and the retries of the heartbeat, which are the monitor's
+// location on the probe, from the result and the previous heartbeat of the probe
+func judgeLocationStatus(hb *heartbeat.CreateUpdateDto, r *Result, previousBeat *heartbeat.Model) {
 	// A location whose previous heartbeat is Down stays Down until a result is Up
-	downBefore := !isFirstOnProbe && previousBeat.Status == shared.MonitorStatusDown
+	downBefore := previousBeat != nil && previousBeat.Status == shared.MonitorStatusDown
 
 	switch {
 	case downBefore && (r.Status == shared.MonitorStatusDown || r.Status == shared.MonitorStatusPending):
@@ -315,50 +365,56 @@ func (s *ServiceImpl) Ingest(ctx context.Context, r *Result) error {
 		// No Down heartbeat is counted toward a resend while the location is Up
 		hb.DownCount = 0
 	}
+}
 
-	rule := ruleOf(r)
+// monitorJudgement is what the ingester concludes about the monitor from a result, while the
+// monitor is held
+type monitorJudgement struct {
+	// rowsBefore and recordedBefore are the monitor's rows and recorded status as they were, to put
+	// back if the heartbeat can't be stored
+	rowsBefore     []shared.MonitorLocation
+	recordedBefore *shared.MonitorStatus
+	// isFirstBeat is whether this is the monitor's first heartbeat
+	isFirstBeat    bool
+	previousStatus shared.MonitorStatus
+	currentStatus  shared.MonitorStatus
+	locationsAfter []shared.MonitorLocation
+}
 
-	// Record the location's status, and judge the monitor while it is held: its status before this
-	// result is the one last recorded for it, and its status after is what its locations add up to
-	locationStatus := hb.Status
-	state := shared.LocationState{ProbeID: probeID, Status: &locationStatus, LastPing: &r.PingMs, LastHeartbeatAt: &r.StartTime}
-	var (
-		rowsBefore      []shared.MonitorLocation
-		recordedBefore  *shared.MonitorStatus
-		isFirstBeat     bool
-		previousStatus  shared.MonitorStatus
-		currentStatus   shared.MonitorStatus
-		locationsAfter  []shared.MonitorLocation
-		locationsBefore []shared.MonitorLocation
-	)
-	err = s.locations.RecordLocationAnyWorkspace(ctx, r.MonitorID, state, func(j shared.LocationJudgement) *shared.MonitorStatus {
-		rowsBefore, recordedBefore = j.Before, j.Recorded
-		// A location with no status yet but a heartbeat on the probe has that heartbeat's status: the
-		// row of a monitor from before it kept one
-		locationsBefore = withLocation(j.Before, probeID, func(l *shared.MonitorLocation) {
-			if l.Status == nil && previousBeat != nil {
-				previousStatus := previousBeat.Status
-				l.Status = &previousStatus
-			}
-		})
-		locationsAfter = withLocation(j.After, probeID, func(l *shared.MonitorLocation) {
-			l.Status, l.LastPing, l.LastHeartbeatAt = &locationStatus, &r.PingMs, &r.StartTime
-		})
-		// A monitor with a status recorded is first judged by it, whatever its locations say now:
-		// a probe that went offline since then must not hide a change. One with none recorded goes by
-		// its locations, and is on its first heartbeat when none has a status.
-		isFirstBeat = j.Recorded == nil && !anyStatusKnown(locationsBefore)
-		if j.Recorded != nil {
-			previousStatus = *j.Recorded
-		} else {
-			previousStatus = monitorStatus(locationsBefore, rule)
+// judgeMonitor judges the monitor as a whole, from its locations as j has them before the result
+// and after it
+func judgeMonitor(j shared.LocationJudgement, r *Result, probeID string, previousBeat *heartbeat.Model, locationStatus shared.MonitorStatus, rule locationRule) monitorJudgement {
+	judged := monitorJudgement{rowsBefore: j.Before, recordedBefore: j.Recorded}
+	// A location with no status yet but a heartbeat on the probe has that heartbeat's status: the
+	// row of a monitor from before it kept one
+	locationsBefore := withLocation(j.Before, probeID, func(l *shared.MonitorLocation) {
+		if l.Status == nil && previousBeat != nil {
+			previousStatus := previousBeat.Status
+			l.Status = &previousStatus
 		}
-		currentStatus = monitorStatus(locationsAfter, rule)
-		if !isFirstBeat && !carriesChange(locationStatus, previousStatus, currentStatus) {
-			currentStatus = previousStatus
-		}
-		return &currentStatus
 	})
+	judged.locationsAfter = withLocation(j.After, probeID, func(l *shared.MonitorLocation) {
+		l.Status, l.LastPing, l.LastHeartbeatAt = &locationStatus, &r.PingMs, &r.StartTime
+	})
+	// A monitor with a status recorded is first judged by it, whatever its locations say now:
+	// a probe that went offline since then must not hide a change. One with none recorded goes by
+	// its locations, and is on its first heartbeat when none has a status.
+	judged.isFirstBeat = j.Recorded == nil && !anyStatusKnown(locationsBefore)
+	if j.Recorded != nil {
+		judged.previousStatus = *j.Recorded
+	} else {
+		judged.previousStatus = monitorStatus(locationsBefore, rule)
+	}
+	judged.currentStatus = monitorStatus(judged.locationsAfter, rule)
+	if !judged.isFirstBeat && !carriesChange(locationStatus, judged.previousStatus, judged.currentStatus) {
+		judged.currentStatus = judged.previousStatus
+	}
+	return judged
+}
+
+// recordFailure is the outcome of an Ingest whose location could not be recorded: nil for a result
+// that is dropped, and the error for one that is not
+func (s *ServiceImpl) recordFailure(err error, r *Result, probeID string) error {
 	if errors.Is(err, shared.ErrMonitorTypeDisabled) {
 		// The type was turned off after the check was dealt or while its result was on the way:
 		// the result is dropped like one of a suspended workspace (PP-157)
@@ -371,115 +427,115 @@ func (s *ServiceImpl) Ingest(ctx context.Context, r *Result) error {
 		s.logger.Debugw("Dropping a result for a monitor of a suspended workspace", "monitor_id", r.MonitorID, "probe_id", probeID)
 		return nil
 	}
-	if err != nil {
-		s.logger.Errorw("Failed to record the location of monitor", "monitor_id", r.MonitorID, "probe_id", probeID, "error", err)
-		return fmt.Errorf("failed to record the location: %w", err)
-	}
+	s.logger.Errorw("Failed to record the location of monitor", "monitor_id", r.MonitorID, "probe_id", probeID, "error", err)
+	return fmt.Errorf("failed to record the location: %w", err)
+}
 
-	isImportant := isFirstBeat || s.isImportantBeat(previousStatus, currentStatus)
-	shouldNotify := false
+// judgeNotification sets whether the heartbeat is important and notified, and its down count, from
+// the monitor's status before the result and after it. It reports whether a notification is due.
+func (s *ServiceImpl) judgeNotification(hb *heartbeat.CreateUpdateDto, r *Result, probeID string, judged monitorJudgement) bool {
+	isImportant := judged.isFirstBeat || s.isImportantBeat(judged.previousStatus, judged.currentStatus)
 
 	// If important (the monitor's status changed), send notification
 	if isImportant {
-		hb.Important = true
+		return s.notifyStatusChange(hb, r, judged)
+	}
+	hb.Important = false
 
-		// The monitor's first heartbeat is a notification only when it says Up or Down: a Pending
-		// or Maintenance one has nothing to report yet
-		firstBeatNotifies := isFirstBeat && (currentStatus == shared.MonitorStatusUp || currentStatus == shared.MonitorStatusDown)
-		if firstBeatNotifies || s.isImportantForNotification(previousStatus, currentStatus) {
-			s.logger.Debugw("Marking for notification", "monitor_name", r.MonitorName)
-			shouldNotify = true
-			hb.Notified = true
-		}
+	return resendDue(hb, r, probeID, judged)
+}
 
-		hb.DownCount = 0
-	} else {
-		hb.Important = false
+// notifyStatusChange marks an important heartbeat, and reports whether it is notified
+func (s *ServiceImpl) notifyStatusChange(hb *heartbeat.CreateUpdateDto, r *Result, judged monitorJudgement) bool {
+	shouldNotify := false
+	hb.Important = true
 
-		if countsTowardResend(hb.Status, currentStatus) && r.MonitorResendInt > 0 && countsResends(locationsAfter, probeID) {
-			hb.DownCount += 1
-
-			if hb.DownCount >= r.MonitorResendInt {
-				shouldNotify = true
-				hb.Notified = true
-				hb.DownCount = 0
-			}
-		}
+	// The monitor's first heartbeat is a notification only when it says Up or Down: a Pending
+	// or Maintenance one has nothing to report yet
+	firstBeatNotifies := judged.isFirstBeat && (judged.currentStatus == shared.MonitorStatusUp || judged.currentStatus == shared.MonitorStatusDown)
+	if firstBeatNotifies || s.isImportantForNotification(judged.previousStatus, judged.currentStatus) {
+		s.logger.Debugw("Marking for notification", "monitor_name", r.MonitorName)
+		shouldNotify = true
+		hb.Notified = true
 	}
 
-	// Log status
-	if r.Status == shared.MonitorStatusUp {
-		s.logger.Debugw("Monitor up",
-			"monitor_name", r.MonitorName,
-			"ping_ms", r.PingMs,
-			"interval", r.MonitorInterval,
-			"type", r.MonitorType,
-		)
-	} else if r.Status == shared.MonitorStatusPending {
-		s.logger.Debugw("Monitor pending",
-			"monitor_name", r.MonitorName,
-			"ping_ms", r.PingMs,
-			"interval", r.MonitorInterval,
-			"type", r.MonitorType,
-		)
-	} else if r.Status == shared.MonitorStatusDown {
-		s.logger.Debugw("Monitor down",
-			"monitor_name", r.MonitorName,
-			"ping_ms", r.PingMs,
-			"interval", r.MonitorInterval,
-			"type", r.MonitorType,
-		)
-	} else if r.Status == shared.MonitorStatusMaintenance {
-		s.logger.Debugw("Monitor under maintenance",
-			"monitor_name", r.MonitorName,
-			"ping_ms", r.PingMs,
-			"interval", r.MonitorInterval,
-			"type", r.MonitorType,
-		)
-	}
+	hb.DownCount = 0
+	return shouldNotify
+}
 
-	// Update TLS info and check certificate expiry for HTTPS and SMTP monitors
+// resendDue counts a Down heartbeat toward the resend interval, and reports whether it is due
+func resendDue(hb *heartbeat.CreateUpdateDto, r *Result, probeID string, judged monitorJudgement) bool {
+	if !countsTowardResend(hb.Status, judged.currentStatus) || r.MonitorResendInt <= 0 || !countsResends(judged.locationsAfter, probeID) {
+		return false
+	}
+	hb.DownCount += 1
+
+	if hb.DownCount < r.MonitorResendInt {
+		return false
+	}
+	hb.Notified = true
+	hb.DownCount = 0
+	return true
+}
+
+// statusLogMessages are what is logged for the status of a check
+var statusLogMessages = map[shared.MonitorStatus]string{
+	shared.MonitorStatusUp:          "Monitor up",
+	shared.MonitorStatusPending:     "Monitor pending",
+	shared.MonitorStatusDown:        "Monitor down",
+	shared.MonitorStatusMaintenance: "Monitor under maintenance",
+}
+
+// logStatus logs the status of the check
+func (s *ServiceImpl) logStatus(r *Result) {
+	message, ok := statusLogMessages[r.Status]
+	if !ok {
+		return
+	}
+	s.logger.Debugw(message,
+		"monitor_name", r.MonitorName,
+		"ping_ms", r.PingMs,
+		"interval", r.MonitorInterval,
+		"type", r.MonitorType,
+	)
+}
+
+// updateTLSInfo updates TLS info and checks certificate expiry for HTTPS and SMTP monitors
+func (s *ServiceImpl) updateTLSInfo(ctx context.Context, r *Result) {
 	monitorType := strings.ToLower(r.MonitorType)
 	supportsTLS := strings.HasPrefix(monitorType, "http") || monitorType == "smtp"
-	if r.TLSInfo != nil && supportsTLS {
-		// Update TLS info (this handles certificate change detection and notification history cleanup)
-		if err := s.certificateService.UpdateTLSInfo(ctx, r.MonitorID, r.TLSInfo); err != nil {
-			s.logger.Errorw("Failed to update TLS info for monitor",
-				"monitor_name", r.MonitorName,
-				"error", err,
-			)
-		}
-
-		// Check certificate expiry and send notifications only if enabled (the flag comes from the result)
-		if r.CheckCertExpiry {
-			if err := s.certificateService.CheckCertificateExpiry(ctx, r.WorkspaceID, r.TLSInfo, r.MonitorID, r.MonitorName); err != nil {
-				s.logger.Errorw("Failed to check certificate expiry for monitor",
-					"monitor_name", r.MonitorName,
-					"error", err,
-				)
-			}
-		} else {
-			s.logger.Debugw("Certificate expiry checking disabled for monitor", "monitor_name", r.MonitorName)
-		}
+	if r.TLSInfo == nil || !supportsTLS {
+		return
 	}
-
-	// Create the heartbeat in the database
-	dbHb, err := s.heartbeatService.Create(ctx, hb)
-	if err != nil {
-		s.logger.Errorw("Failed to create heartbeat",
-			"monitor_id", r.MonitorID,
+	// Update TLS info (this handles certificate change detection and notification history cleanup)
+	if err := s.certificateService.UpdateTLSInfo(ctx, r.MonitorID, r.TLSInfo); err != nil {
+		s.logger.Errorw("Failed to update TLS info for monitor",
+			"monitor_name", r.MonitorName,
 			"error", err,
 		)
-		s.restoreLocation(ctx, r.MonitorID, probeID, rowsBefore, recordedBefore)
-		return fmt.Errorf("failed to create heartbeat: %w", err)
 	}
 
-	// Publish events. Both carry the monitor's status, which is not always the heartbeat's: the
-	// status change sets the monitor's status, and the notification tells a provider what the
-	// monitor is now (Up resolves an incident), where the stored heartbeat keeps its location's.
-	if isFirstBeat || previousStatus != currentStatus {
+	// Check certificate expiry and send notifications only if enabled (the flag comes from the result)
+	if !r.CheckCertExpiry {
+		s.logger.Debugw("Certificate expiry checking disabled for monitor", "monitor_name", r.MonitorName)
+		return
+	}
+	if err := s.certificateService.CheckCertificateExpiry(ctx, r.WorkspaceID, r.TLSInfo, r.MonitorID, r.MonitorName); err != nil {
+		s.logger.Errorw("Failed to check certificate expiry for monitor",
+			"monitor_name", r.MonitorName,
+			"error", err,
+		)
+	}
+}
+
+// publishEvents publishes the events that follow from the stored heartbeat. Both carry the
+// monitor's status, which is not always the heartbeat's: the status change sets the monitor's
+// status, and the notification tells a provider what the monitor is now (Up resolves an incident),
+// where the stored heartbeat keeps its location's.
+func (s *ServiceImpl) publishEvents(ctx context.Context, dbHb *heartbeat.Model, judged monitorJudgement, shouldNotify bool) {
+	if judged.isFirstBeat || judged.previousStatus != judged.currentStatus {
 		statusChange := *dbHb
-		statusChange.Status = currentStatus
+		statusChange.Status = judged.currentStatus
 		if err := events.Publish(ctx, s.eventBus, events.MonitorStatusChanged, statusChange); err != nil {
 			s.logger.Errorw("Failed to publish monitor status changed event", "monitor_id", dbHb.MonitorID, "error", err)
 		}
@@ -487,13 +543,11 @@ func (s *ServiceImpl) Ingest(ctx context.Context, r *Result) error {
 
 	if shouldNotify {
 		notification := *dbHb
-		notification.Status = currentStatus
+		notification.Status = judged.currentStatus
 		if err := events.Publish(ctx, s.eventBus, events.ImportantHeartbeat, notification); err != nil {
 			s.logger.Errorw("Failed to publish important heartbeat event", "monitor_id", dbHb.MonitorID, "error", err)
 		}
 	}
-
-	return nil
 }
 
 // restoreLocation puts the probe's row, and the monitor's recorded status, back as they were before

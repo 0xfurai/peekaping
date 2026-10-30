@@ -116,52 +116,30 @@ func (p *PagerDutySender) getSeverity(cfg *PagerDutyConfig) string {
 	return cfg.Priority
 }
 
-func (p *PagerDutySender) Send(
-	ctx context.Context,
-	configJSON string,
-	message string,
-	monitor *monitor.Model,
-	heartbeat *heartbeat.Model,
-) error {
-	cfgAny, err := p.Unmarshal(configJSON)
-	if err != nil {
-		return err
+// getSource returns the source field of the alert: what the monitor checks, or its name. A
+// notification with no monitor has Peekaping as its source, since PagerDuty needs one.
+func (p *PagerDutySender) getSource(monitor *monitor.Model) string {
+	if source := p.getMonitorURL(monitor); source != "" {
+		return source
 	}
-	cfg := cfgAny.(*PagerDutyConfig)
-
-	p.logger.Infof("Sending PagerDuty notification to: %s", cfg.IntegrationURL)
-
-	// Determine event action
-	eventAction := p.getEventAction(monitor, heartbeat, cfg)
-	if eventAction == "" {
-		p.logger.Infof("No action required for PagerDuty notification")
-		return nil
+	if monitor == nil {
+		return "Peekaping"
 	}
+	return monitor.Name
+}
 
-	// Generate title
-	title := p.getTitle(heartbeat)
-
-	// Get monitor URL for source field
-	monitorURL := p.getMonitorURL(monitor)
+// buildPayload is the event to send, without the link back to Peekaping
+func (p *PagerDutySender) buildPayload(message string, monitor *monitor.Model, title, eventAction string, cfg *PagerDutyConfig) map[string]any {
 	monitorName := unknownMonitorName
 	if monitor != nil {
 		monitorName = monitor.Name
 	}
-	if monitorURL == "" {
-		// Fallback to monitor name if URL is not available. A notification with no monitor has
-		// Peekaping as its source, since PagerDuty needs one.
-		monitorURL = "Peekaping"
-		if monitor != nil {
-			monitorURL = monitor.Name
-		}
-	}
 
-	// Prepare PagerDuty payload
 	payload := map[string]any{
 		"payload": map[string]any{
 			"summary":  fmt.Sprintf("[%s] [%s] %s", title, monitorName, message),
 			"severity": p.getSeverity(cfg),
-			"source":   monitorURL,
+			"source":   p.getSource(monitor),
 		},
 		"routing_key":  cfg.IntegrationKey,
 		"event_action": eventAction,
@@ -171,13 +149,11 @@ func (p *PagerDutySender) Send(
 	if monitor != nil {
 		payload["dedup_key"] = fmt.Sprintf("Peekaping/%s", monitor.ID)
 	}
+	return payload
+}
 
-	// Add client information if base URL is available
-	if link := peekapingLink(publicURL(ctx, p.publicURL), monitor); link != "" {
-		payload["client"] = "Peekaping"
-		payload["client_url"] = link
-	}
-
+// post sends the payload to the integration URL
+func (p *PagerDutySender) post(ctx context.Context, cfg *PagerDutyConfig, payload map[string]any) error {
 	// Convert payload to JSON
 	jsonPayload, err := json.Marshal(payload)
 	if err != nil {
@@ -205,6 +181,46 @@ func (p *PagerDutySender) Send(
 	// Check response status
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		return fmt.Errorf("PagerDuty notification failed with status code: %d", resp.StatusCode)
+	}
+	return nil
+}
+
+func (p *PagerDutySender) Send(
+	ctx context.Context,
+	configJSON string,
+	message string,
+	monitor *monitor.Model,
+	heartbeat *heartbeat.Model,
+) error {
+	cfgAny, err := p.Unmarshal(configJSON)
+	if err != nil {
+		return err
+	}
+	cfg := cfgAny.(*PagerDutyConfig)
+
+	p.logger.Infof("Sending PagerDuty notification to: %s", cfg.IntegrationURL)
+
+	// Determine event action
+	eventAction := p.getEventAction(monitor, heartbeat, cfg)
+	if eventAction == "" {
+		p.logger.Infof("No action required for PagerDuty notification")
+		return nil
+	}
+
+	// Generate title
+	title := p.getTitle(heartbeat)
+
+	// Prepare PagerDuty payload
+	payload := p.buildPayload(message, monitor, title, eventAction, cfg)
+
+	// Add client information if base URL is available
+	if link := peekapingLink(publicURL(ctx, p.publicURL), monitor); link != "" {
+		payload["client"] = "Peekaping"
+		payload["client_url"] = link
+	}
+
+	if err := p.post(ctx, cfg, payload); err != nil {
+		return err
 	}
 
 	p.logger.Infof("PagerDuty notification sent successfully")

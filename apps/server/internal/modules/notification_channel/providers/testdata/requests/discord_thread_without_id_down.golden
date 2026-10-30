@@ -1,0 +1,33 @@
+POST https://discord.com/api/webhooks/123/token
+Content-Type: application/json
+
+{
+  "attachments": [],
+  "content": "",
+  "embeds": [
+    {
+      "color": 15680580,
+      "fields": [
+        {
+          "inline": true,
+          "name": "Name",
+          "value": "Public API"
+        },
+        {
+          "inline": true,
+          "name": "Status",
+          "value": "DOWN"
+        },
+        {
+          "name": "Time",
+          "value": "2026-10-17 09:30:00"
+        },
+        {
+          "name": "Message",
+          "value": "connection refused"
+        }
+      ],
+      "title": "❌ Your service Public API is DOWN ❌"
+    }
+  ]
+}

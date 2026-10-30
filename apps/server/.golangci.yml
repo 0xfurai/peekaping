@@ -7,6 +7,10 @@ linters:
   default: none
   enable:
     - govet
+    # A function's cyclomatic complexity stays at 10 or below. Main still has
+    # older functions above it, so CI reports only new issues (only-new-issues in
+    # .github/workflows/test.yml) until they are refactored.
+    - gocyclo
   # Off until the ticket lands (add the linter to `enable` in that ticket's PR):
   #   staticcheck, unused    PP-95 (dead code and debug leftovers; 39 staticcheck
   #                          findings today, mostly ST1005 and ST1016)
@@ -16,6 +20,15 @@ linters:
   #   bodyclose, gosec       PP-52 (secrets) and PP-73 (provider HTTP clients)
   #   revive                 PP-93 (renames; package-naming, var-naming,
   #                          receiver-naming, exported)
+  settings:
+    gocyclo:
+      min-complexity: 10
+  exclusions:
+    rules:
+      # Table-driven tests branch over their cases.
+      - path: _test\.go
+        linters:
+          - gocyclo
 
 formatters:
   enable:

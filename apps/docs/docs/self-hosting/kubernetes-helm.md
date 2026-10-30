@@ -147,6 +147,7 @@ The database settings have no defaults. For PostgreSQL, set `DB_TYPE` (the chart
 | `REDIS_USERNAME` | empty | A Redis ACL user. Leave it empty for password-only authentication. |
 | `REDIS_PASSWORD` | empty | Put it in the secret. |
 | `METRICS_ENABLED` | `false` | See [Metrics](#metrics). |
+| `METRICS_PORT` | unset | Serve `/metrics` on this port instead of the API port. Needs `METRICS_ENABLED`. See [Metrics](#metrics). |
 | `PROBE_OFFLINE_AFTER` | `3m` | How long the local probe's pods, or a remote probe's instances, may go unheard before the probe counts as offline. From `2m` to `24h`. See [When a probe is offline](./remote-probes.md#when-a-probe-is-offline). |
 | `NOTIFICATION_HISTORY_RETENTION_DAYS` | `90` | How many days the hourly cleanup keeps notification history. At least `30`. See [Cleanup Configuration](../architecture/api-server.md#cleanup-configuration). |
 | `TLS_INFO_RETENTION_DAYS` | `30` | How many days the hourly cleanup keeps monitors' TLS information. At least `1`. |
@@ -334,9 +335,12 @@ Peekaping can serve Prometheus metrics at `/metrics` on the API's port. Set `MET
 config:
   env:
     METRICS_ENABLED: "true"
+    METRICS_PORT: "9100"
 ```
 
-The endpoint needs no credentials and lists your monitors' names and types. The Ingress and the Istio VirtualService don't route it: `/metrics` goes to the web app, like every path that isn't `/api` or `/socket.io`. Scrape the API Service from inside the cluster, for example `peekaping-api.peekaping.svc.cluster.local:8034/metrics`. See [Prometheus Metrics](../architecture/api-server.md#prometheus-metrics).
+The endpoint needs no credentials and lists your monitors' names and types. With `METRICS_PORT` set, the API serves `/metrics` only on that port, and the API pod and Service get a `metrics` port. Scrape the Service from inside the cluster, for example `peekaping-api.peekaping.svc.cluster.local:9100/metrics`.
+
+The Ingress and the Istio VirtualService route only `/api`, `/probe` and `/socket.io` to the API, with or without `METRICS_PORT`. So `/metrics`, `/docs`, `/swagger/*` and `/health` never reach the API from outside, and `/metrics` goes to the web app, like every other path. Set `METRICS_PORT` anyway if you also reach the API port some other way, such as a `LoadBalancer` or a port forward. `/api/v1/health` stays public: it shows only the count of stale monitors and when the watchdog last ran, no monitor names. See [Prometheus Metrics](../architecture/api-server.md#prometheus-metrics).
 
 ## Scale and resources
 

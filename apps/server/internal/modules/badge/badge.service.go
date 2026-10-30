@@ -133,48 +133,12 @@ func (s *ServiceImpl) GetMonitorBadgeData(ctx context.Context, monitorID string)
 
 	// Get uptime and response time from the stats service. A badge shows the monitor as a whole,
 	// so it counts the checks of every probe (the empty probe id).
-	since24h := now.Add(-24 * time.Hour)
-	since30d := now.Add(-30 * 24 * time.Hour)
-	since90d := now.Add(-90 * 24 * time.Hour)
-
-	// Get 24h uptime and response time
-	summary24h, err := s.statsService.Summarize(ctx, monitorID, "", since24h, now)
-	if err == nil {
-		if summary24h.AvgPing != nil {
-			data.AvgPing24h = summary24h.AvgPing
-		}
-		if summary24h.Uptime != nil {
-			data.Uptime24h = summary24h.Uptime
-		}
-	}
-
-	// Get 30d uptime and response time
-	summary30d, err := s.statsService.Summarize(ctx, monitorID, "", since30d, now)
-	if err == nil {
-		if summary30d.AvgPing != nil {
-			data.AvgPing30d = summary30d.AvgPing
-		}
-		if summary30d.Uptime != nil {
-			data.Uptime30d = summary30d.Uptime
-		}
-	}
-
-	// Get 90d uptime and response time
-	summary90d, err := s.statsService.Summarize(ctx, monitorID, "", since90d, now)
-	if err == nil {
-		if summary90d.AvgPing != nil {
-			data.AvgPing90d = summary90d.AvgPing
-		}
-		if summary90d.Uptime != nil {
-			data.Uptime90d = summary90d.Uptime
-		}
-	}
+	s.fillStats(ctx, monitorID, 24*time.Hour, now, &data.AvgPing24h, &data.Uptime24h)
+	s.fillStats(ctx, monitorID, 30*24*time.Hour, now, &data.AvgPing30d, &data.Uptime30d)
+	s.fillStats(ctx, monitorID, 90*24*time.Hour, now, &data.AvgPing90d, &data.Uptime90d)
 
 	// Get latest heartbeat for last ping
-	heartbeats, err := s.heartbeatService.FindByMonitorIDPaginated(ctx, monitorID, 1, 0, nil, true)
-	if err == nil && len(heartbeats) > 0 {
-		data.LastPing = &heartbeats[0].Ping
-	}
+	s.fillLastPing(ctx, monitorID, data)
 
 	// Get TLS certificate info
 	tlsInfo, err := s.tlsInfoService.GetTLSInfo(ctx, monitorID)
@@ -183,13 +147,41 @@ func (s *ServiceImpl) GetMonitorBadgeData(ctx context.Context, monitorID string)
 	}
 
 	// Extract certificate expiry information from TLS info
+	fillCertExpiry(tlsInfo, data)
+
+	return data, nil
+}
+
+// fillStats sets the uptime and response time of the window of the given age that ends at now,
+// for the figures the stats have. A window that can't be read leaves them as they are.
+func (s *ServiceImpl) fillStats(ctx context.Context, monitorID string, age time.Duration, now time.Time, avgPing, uptime **float64) {
+	summary, err := s.statsService.Summarize(ctx, monitorID, "", now.Add(-age), now)
+	if err != nil {
+		return
+	}
+	if summary.AvgPing != nil {
+		*avgPing = summary.AvgPing
+	}
+	if summary.Uptime != nil {
+		*uptime = summary.Uptime
+	}
+}
+
+// fillLastPing sets the ping of the latest heartbeat, if it can be read and there is one
+func (s *ServiceImpl) fillLastPing(ctx context.Context, monitorID string, data *MonitorBadgeData) {
+	heartbeats, err := s.heartbeatService.FindByMonitorIDPaginated(ctx, monitorID, 1, 0, nil, true)
+	if err == nil && len(heartbeats) > 0 {
+		data.LastPing = &heartbeats[0].Ping
+	}
+}
+
+// fillCertExpiry sets the certificate expiry of the monitor, if its TLS info has a certificate
+func fillCertExpiry(tlsInfo *monitor_tls_info.TLSInfo, data *MonitorBadgeData) {
 	if tlsInfo != nil && tlsInfo.CertInfo != nil {
 		expiryDate := tlsInfo.CertInfo.ValidTo
 		data.CertExpiryDays = &tlsInfo.CertInfo.DaysRemaining
 		data.CertExpiryDate = &expiryDate
 	}
-
-	return data, nil
 }
 
 // getMonitorBasicInfo gets only basic monitor information (for status badges)
@@ -220,42 +212,16 @@ func (s *ServiceImpl) getMonitorWithStats(ctx context.Context, monitorID string,
 	now := time.Now().UTC()
 
 	// Only fetch the specific duration stats needed
-	if duration <= 24 {
+	switch {
+	case duration <= 24:
 		// Get 24h stats only
-		since24h := now.Add(-24 * time.Hour)
-		summary24h, err := s.statsService.Summarize(ctx, monitorID, "", since24h, now)
-		if err == nil {
-			if summary24h.AvgPing != nil {
-				data.AvgPing24h = summary24h.AvgPing
-			}
-			if summary24h.Uptime != nil {
-				data.Uptime24h = summary24h.Uptime
-			}
-		}
-	} else if duration <= 720 { // 30 days
+		s.fillStats(ctx, monitorID, 24*time.Hour, now, &data.AvgPing24h, &data.Uptime24h)
+	case duration <= 720: // 30 days
 		// Get 30d stats only
-		since30d := now.Add(-30 * 24 * time.Hour)
-		summary30d, err := s.statsService.Summarize(ctx, monitorID, "", since30d, now)
-		if err == nil {
-			if summary30d.AvgPing != nil {
-				data.AvgPing30d = summary30d.AvgPing
-			}
-			if summary30d.Uptime != nil {
-				data.Uptime30d = summary30d.Uptime
-			}
-		}
-	} else {
+		s.fillStats(ctx, monitorID, 30*24*time.Hour, now, &data.AvgPing30d, &data.Uptime30d)
+	default:
 		// Get 90d stats only
-		since90d := now.Add(-90 * 24 * time.Hour)
-		summary90d, err := s.statsService.Summarize(ctx, monitorID, "", since90d, now)
-		if err == nil {
-			if summary90d.AvgPing != nil {
-				data.AvgPing90d = summary90d.AvgPing
-			}
-			if summary90d.Uptime != nil {
-				data.Uptime90d = summary90d.Uptime
-			}
-		}
+		s.fillStats(ctx, monitorID, 90*24*time.Hour, now, &data.AvgPing90d, &data.Uptime90d)
 	}
 
 	return data, nil
@@ -275,11 +241,7 @@ func (s *ServiceImpl) getMonitorWithCertInfo(ctx context.Context, monitorID stri
 	}
 
 	// Extract certificate expiry information from TLS info
-	if tlsInfo != nil && tlsInfo.CertInfo != nil {
-		expiryDate := tlsInfo.CertInfo.ValidTo
-		data.CertExpiryDays = &tlsInfo.CertInfo.DaysRemaining
-		data.CertExpiryDate = &expiryDate
-	}
+	fillCertExpiry(tlsInfo, data)
 
 	return data, nil
 }
@@ -292,10 +254,7 @@ func (s *ServiceImpl) getMonitorWithLastPing(ctx context.Context, monitorID stri
 	}
 
 	// Get latest heartbeat for last ping
-	heartbeats, err := s.heartbeatService.FindByMonitorIDPaginated(ctx, monitorID, 1, 0, nil, true)
-	if err == nil && len(heartbeats) > 0 {
-		data.LastPing = &heartbeats[0].Ping
-	}
+	s.fillLastPing(ctx, monitorID, data)
 
 	return data, nil
 }

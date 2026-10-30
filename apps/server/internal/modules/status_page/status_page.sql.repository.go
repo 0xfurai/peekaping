@@ -169,40 +169,11 @@ func (r *SQLRepositoryImpl) Update(ctx context.Context, workspaceID workspace.ID
 
 	hasUpdates := false
 
-	if statusPage.Title != nil {
-		query = query.Set("title = ?", *statusPage.Title)
-		hasUpdates = true
-	}
-	if statusPage.Description != nil {
-		query = query.Set("description = ?", *statusPage.Description)
-		hasUpdates = true
-	}
-	if statusPage.Slug != nil {
-		query = query.Set("slug = ?", *statusPage.Slug)
-		hasUpdates = true
-	}
-	if statusPage.Icon != nil {
-		query = query.Set("icon = ?", *statusPage.Icon)
-		hasUpdates = true
-	}
-	if statusPage.Theme != nil {
-		query = query.Set("theme = ?", *statusPage.Theme)
-		hasUpdates = true
-	}
-	if statusPage.Published != nil {
-		query = query.Set("published = ?", *statusPage.Published)
-		hasUpdates = true
-	}
-	if statusPage.ShowLocations != nil {
-		query = query.Set("show_locations = ?", *statusPage.ShowLocations)
-		hasUpdates = true
-	}
-	if statusPage.FooterText != nil {
-		query = query.Set("footer_text = ?", *statusPage.FooterText)
-		hasUpdates = true
-	}
-	if statusPage.AutoRefreshInterval != nil {
-		query = query.Set("auto_refresh_interval = ?", *statusPage.AutoRefreshInterval)
+	for _, column := range updatedColumns(statusPage) {
+		if column.value == nil {
+			continue
+		}
+		query = query.Set(column.name+" = ?", column.value)
 		hasUpdates = true
 	}
 
@@ -222,6 +193,36 @@ func (r *SQLRepositoryImpl) Update(ctx context.Context, workspaceID workspace.ID
 
 	result, err := query.Exec(ctx)
 	return requireOneRow(result, err)
+}
+
+// columnValue is a column of an update, with the value the update gives it: nil when the update
+// leaves the column out
+type columnValue struct {
+	name  string
+	value any
+}
+
+// updatedColumns are the columns of an update, in the order they are set
+func updatedColumns(statusPage *UpdateModel) []columnValue {
+	return []columnValue{
+		{"title", given(statusPage.Title)},
+		{"description", given(statusPage.Description)},
+		{"slug", given(statusPage.Slug)},
+		{"icon", given(statusPage.Icon)},
+		{"theme", given(statusPage.Theme)},
+		{"published", given(statusPage.Published)},
+		{"show_locations", given(statusPage.ShowLocations)},
+		{"footer_text", given(statusPage.FooterText)},
+		{"auto_refresh_interval", given(statusPage.AutoRefreshInterval)},
+	}
+}
+
+// given is the value a pointer points to, nil if it points to none
+func given[T any](p *T) any {
+	if p == nil {
+		return nil
+	}
+	return *p
 }
 
 func (r *SQLRepositoryImpl) Delete(ctx context.Context, workspaceID workspace.ID, id string) error {

@@ -89,6 +89,11 @@ spec:
           ports:
             - containerPort: {{ .Values.api.service.port }}
               name: http
+            {{- with .Values.config.env.METRICS_PORT }}
+            # METRICS_PORT moves /metrics off the API port. Only the Service reaches it, the ingress never does.
+            - containerPort: {{ . | int }}
+              name: metrics
+            {{- end }}
 
           # Resource requests/limits to prevent noisy neighbor + OOM loops
           resources:

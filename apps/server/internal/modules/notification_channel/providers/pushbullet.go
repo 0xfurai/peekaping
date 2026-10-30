@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
+	"peekaping/internal/modules/shared"
 
 	liquid "github.com/osteele/liquid"
 	"go.uber.org/zap"
@@ -65,21 +66,7 @@ func (s *PushbulletSender) Send(
 	body := s.buildBody(cfg, message, m, heartbeat)
 
 	// Create the push notification payload
-	payload := map[string]interface{}{
-		"type":  "note",
-		"title": title,
-		"body":  body,
-	}
-
-	// Add optional device ID
-	if cfg.DeviceID != "" {
-		payload["device_iden"] = cfg.DeviceID
-	}
-
-	// Add optional channel tag
-	if cfg.ChannelTag != "" {
-		payload["channel_tag"] = cfg.ChannelTag
-	}
+	payload := pushbulletPayload(cfg, title, body)
 
 	// Marshal payload to JSON
 	jsonPayload, err := json.Marshal(payload)
@@ -106,19 +93,60 @@ func (s *PushbulletSender) Send(
 
 	// Check response status
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		var respBody map[string]interface{}
-		if err := json.NewDecoder(resp.Body).Decode(&respBody); err == nil {
-			if errMsg, ok := respBody["error"].(map[string]interface{}); ok {
-				if msg, ok := errMsg["message"].(string); ok {
-					return fmt.Errorf("pushbullet API error: %s (status: %d)", msg, resp.StatusCode)
-				}
-			}
-		}
-		return fmt.Errorf("pushbullet API returned status: %d", resp.StatusCode)
+		return pushbulletStatusError(resp)
 	}
 
 	s.logger.Infof("Pushbullet notification sent successfully")
 	return nil
+}
+
+// pushbulletPayload creates the push notification payload, with the device and channel if set
+func pushbulletPayload(cfg *PushbulletConfig, title, body string) map[string]interface{} {
+	payload := map[string]interface{}{
+		"type":  "note",
+		"title": title,
+		"body":  body,
+	}
+
+	// Add optional device ID
+	if cfg.DeviceID != "" {
+		payload["device_iden"] = cfg.DeviceID
+	}
+
+	// Add optional channel tag
+	if cfg.ChannelTag != "" {
+		payload["channel_tag"] = cfg.ChannelTag
+	}
+	return payload
+}
+
+// pushbulletStatusError is the error for a response that is not a success: the reason the API
+// gives when its body has one
+func pushbulletStatusError(resp *http.Response) error {
+	var respBody map[string]interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&respBody); err == nil {
+		if errMsg, ok := respBody["error"].(map[string]interface{}); ok {
+			if msg, ok := errMsg["message"].(string); ok {
+				return fmt.Errorf("pushbullet API error: %s (status: %d)", msg, resp.StatusCode)
+			}
+		}
+	}
+	return fmt.Errorf("pushbullet API returned status: %d", resp.StatusCode)
+}
+
+// pushbulletStatusName is the name of a monitor's status, or UNKNOWN
+func pushbulletStatusName(status shared.MonitorStatus) string {
+	switch status {
+	case 0:
+		return "DOWN"
+	case 1:
+		return "UP"
+	case 2:
+		return "PENDING"
+	case 3:
+		return "MAINTENANCE"
+	}
+	return "UNKNOWN"
 }
 
 // buildTitle creates the notification title
@@ -129,16 +157,7 @@ func (s *PushbulletSender) buildTitle(m *monitor.Model, heartbeat *heartbeat.Mod
 
 	status := "UNKNOWN"
 	if heartbeat != nil {
-		switch heartbeat.Status {
-		case 0:
-			status = "DOWN"
-		case 1:
-			status = "UP"
-		case 2:
-			status = "PENDING"
-		case 3:
-			status = "MAINTENANCE"
-		}
+		status = pushbulletStatusName(heartbeat.Status)
 	}
 
 	return fmt.Sprintf("[PeekaPing] %s is %s", m.Name, status)
@@ -166,25 +185,20 @@ func (s *PushbulletSender) buildBody(cfg *PushbulletConfig, message string, m *m
 	}
 
 	if heartbeat != nil {
-		status := "UNKNOWN"
-		switch heartbeat.Status {
-		case 0:
-			status = "DOWN"
-		case 1:
-			status = "UP"
-		case 2:
-			status = "PENDING"
-		case 3:
-			status = "MAINTENANCE"
-		}
-		body += fmt.Sprintf("Status: %s\n", status)
-
-		if heartbeat.Ping > 0 {
-			body += fmt.Sprintf("Response Time: %dms\n", heartbeat.Ping)
-		}
-
-		body += fmt.Sprintf("Time: %s", heartbeat.Time.Format("2006-01-02 15:04:05 MST"))
+		body += pushbulletHeartbeatLines(heartbeat)
 	}
 
 	return body
+}
+
+// pushbulletHeartbeatLines are the lines of the body about the heartbeat: its status, response time
+// if it has one, and time
+func pushbulletHeartbeatLines(heartbeat *heartbeat.Model) string {
+	lines := fmt.Sprintf("Status: %s\n", pushbulletStatusName(heartbeat.Status))
+
+	if heartbeat.Ping > 0 {
+		lines += fmt.Sprintf("Response Time: %dms\n", heartbeat.Ping)
+	}
+
+	return lines + fmt.Sprintf("Time: %s", heartbeat.Time.Format("2006-01-02 15:04:05 MST"))
 }
