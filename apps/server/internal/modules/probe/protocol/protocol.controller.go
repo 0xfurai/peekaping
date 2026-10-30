@@ -174,62 +174,17 @@ func (c *Controller) Hello(ctx context.Context, input *HelloInput) (*httpx.Outpu
 	if !ok {
 		return nil, c.unauthenticated()
 	}
-	var req probeproto.HelloRequest
-	if err := decodeBody(r, &req); err != nil {
+	req, err := decodeHello(r, instanceID)
+	if err != nil {
 		return nil, err
 	}
 
-	if req.ProtocolVersion < MinProtocolVersion {
-		return nil, httpx.Fail(http.StatusUpgradeRequired, utils.NewFailResponse(
-			"protocol version "+strconv.Itoa(req.ProtocolVersion)+" is below the server's minimum "+strconv.Itoa(MinProtocolVersion)+": upgrade the probe"))
-	}
-	if message := validateHello(&req, instanceID); message != "" {
-		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(message))
-	}
-
 	now := c.now().UTC()
-	// What the siblings were dealt among before this hello: the instance as it was, if it was
-	before, err := c.service.FindInstance(r.Context(), owner.ID, instanceID)
-	if err != nil {
-		return nil, c.fail(err)
+	if err := c.recordInstance(r.Context(), owner, instanceID, req, now); err != nil {
+		return nil, err
 	}
-
-	err = c.service.RegisterInstance(r.Context(), owner.ID, &probe.Instance{
-		ID:              instanceID,
-		Hostname:        req.Hostname,
-		OS:              req.OS,
-		Arch:            req.Arch,
-		Version:         req.ProbeVersion,
-		ProtocolVersion: req.ProtocolVersion,
-		SupportedTypes:  req.SupportedTypes,
-		LastSeenAt:      now,
-
-		EnforcesPrivateTargetBlock: req.EnforcesPrivateTargetBlock,
-	})
-	if errors.Is(err, probe.ErrTooManyInstances) {
-		return nil, tooManyInstances(owner)
-	}
-	if err != nil {
-		return nil, c.fail(err)
-	}
-	// The siblings hear of the instance before the assignment is tried: it is on record now, so a
-	// hello sent again after a failed assignment finds nothing changed and wouldn't tell them.
-	if changesAssignments(before, req.SupportedTypes, now) {
-		c.instancesChanged(r.Context(), owner.ID)
-	}
-	// An instance that would ignore the server's block is dealt nothing (see dealtTo), so it doesn't
-	// claim the assign-all flag either: the probe's next instance that can run its monitors does.
-	guarded := !c.guard.Enabled() || req.EnforcesPrivateTargetBlock
-	if !guarded {
-		c.warnUnguarded(owner, instanceID, req.ProbeVersion)
-	}
-	// The flag is read fresh, by the claim, now that the instance is on record, and not from the
-	// token lookup that made owner: an assign-all action that set it after that lookup is still
-	// seen. A probe that isn't waiting costs one conditional update here.
-	if guarded {
-		if err := c.assignAllMonitors(r.Context(), owner.ID, req.SupportedTypes); err != nil {
-			return nil, err
-		}
+	if err := c.assignOnHello(r.Context(), owner, instanceID, req); err != nil {
+		return nil, err
 	}
 	// The instance is on record, so the probe is connected. The middleware's stamp does this for
 	// every other route.
@@ -248,6 +203,75 @@ func (c *Controller) Hello(ctx context.Context, input *HelloInput) (*httpx.Outpu
 		BlockPrivateTargets:    c.guard.Enabled(),
 		ChecksPerHostPerMinute: c.checksPerHost,
 	})
+}
+
+// decodeHello reads the hello of the request and checks it: the 426 for a protocol version that is
+// too old, or the 400 for a hello that is malformed. instanceID is the one the request's header
+// names.
+func decodeHello(r *http.Request, instanceID string) (*probeproto.HelloRequest, error) {
+	var req probeproto.HelloRequest
+	if err := decodeBody(r, &req); err != nil {
+		return nil, err
+	}
+
+	if req.ProtocolVersion < MinProtocolVersion {
+		return nil, httpx.Fail(http.StatusUpgradeRequired, utils.NewFailResponse(
+			"protocol version "+strconv.Itoa(req.ProtocolVersion)+" is below the server's minimum "+strconv.Itoa(MinProtocolVersion)+": upgrade the probe"))
+	}
+	if message := validateHello(&req, instanceID); message != "" {
+		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(message))
+	}
+	return &req, nil
+}
+
+// recordInstance puts the hello's instance on record, and tells the siblings when that changes
+// what they are dealt among
+func (c *Controller) recordInstance(ctx context.Context, owner *probe.Model, instanceID string, req *probeproto.HelloRequest, now time.Time) error {
+	// What the siblings were dealt among before this hello: the instance as it was, if it was
+	before, err := c.service.FindInstance(ctx, owner.ID, instanceID)
+	if err != nil {
+		return c.fail(err)
+	}
+
+	err = c.service.RegisterInstance(ctx, owner.ID, &probe.Instance{
+		ID:              instanceID,
+		Hostname:        req.Hostname,
+		OS:              req.OS,
+		Arch:            req.Arch,
+		Version:         req.ProbeVersion,
+		ProtocolVersion: req.ProtocolVersion,
+		SupportedTypes:  req.SupportedTypes,
+		LastSeenAt:      now,
+
+		EnforcesPrivateTargetBlock: req.EnforcesPrivateTargetBlock,
+	})
+	if errors.Is(err, probe.ErrTooManyInstances) {
+		return tooManyInstances(owner)
+	}
+	if err != nil {
+		return c.fail(err)
+	}
+	// The siblings hear of the instance before the assignment is tried: it is on record now, so a
+	// hello sent again after a failed assignment finds nothing changed and wouldn't tell them.
+	if changesAssignments(before, req.SupportedTypes, now) {
+		c.instancesChanged(ctx, owner.ID)
+	}
+	return nil
+}
+
+// assignOnHello has the probe take over its monitors, if it was waiting to, by the first instance
+// that is dealt monitors
+func (c *Controller) assignOnHello(ctx context.Context, owner *probe.Model, instanceID string, req *probeproto.HelloRequest) error {
+	// An instance that would ignore the server's block is dealt nothing (see dealtTo), so it doesn't
+	// claim the assign-all flag either: the probe's next instance that can run its monitors does.
+	if c.guard.Enabled() && !req.EnforcesPrivateTargetBlock {
+		c.warnUnguarded(owner, instanceID, req.ProbeVersion)
+		return nil
+	}
+	// The flag is read fresh, by the claim, now that the instance is on record, and not from the
+	// token lookup that made owner: an assign-all action that set it after that lookup is still
+	// seen. A probe that isn't waiting costs one conditional update here.
+	return c.assignAllMonitors(ctx, owner.ID, req.SupportedTypes)
 }
 
 // warnUnguarded logs, once for each instance, that the instance is dealt no monitors because its
