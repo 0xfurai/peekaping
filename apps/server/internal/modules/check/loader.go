@@ -97,28 +97,8 @@ func (l *Loader) Load(ctx context.Context, monitorID string) (*Job, error) {
 		return nil, fmt.Errorf("failed to find monitor: %w", err)
 	}
 
-	// The monitor might have been deleted
-	if mon == nil {
-		return nil, ErrMonitorNotFound
-	}
-
-	if !mon.Active {
-		return nil, ErrMonitorPaused
-	}
-
-	// A check queued before the workspace was suspended runs no more
-	if mon.WorkspaceSuspended {
-		return nil, ErrWorkspaceSuspended
-	}
-
-	// So does a check queued before the type was turned off
-	if mon.TypeDisabled {
-		return nil, ErrMonitorTypeDisabled
-	}
-
-	// And one queued before the monitor went past its workspace's limit (PP-160)
-	if mon.OverLimit {
-		return nil, ErrMonitorOverLimit
+	if err := refusal(mon); err != nil {
+		return nil, err
 	}
 
 	isUnderMaintenance, err := l.isUnderMaintenance(ctx, monitorID)
@@ -135,30 +115,65 @@ func (l *Loader) Load(ctx context.Context, monitorID string) (*Job, error) {
 
 	// Fetch proxy if configured
 	if mon.ProxyId != "" {
-		proxyModel, err := l.proxyService.FindByID(ctx, mon.WorkspaceID, mon.ProxyId)
-		if err != nil {
-			l.logger.Warnw("Failed to fetch proxy, continuing without it",
-				"monitor_id", monitorID,
-				"proxy_id", mon.ProxyId,
-				"error", err)
-		} else {
-			loaded.Proxy = proxyModel
-		}
+		l.loadProxy(ctx, loaded, monitorID)
 	}
 
 	// For push monitors, fetch the latest heartbeat
 	if mon.Type == "push" {
-		latestHeartbeats, err := l.heartbeatService.FindByMonitorIDPaginated(ctx, mon.ID, 1, 0, nil, false)
-		if err != nil {
-			l.logger.Warnw("Failed to fetch latest heartbeat for push monitor",
-				"monitor_id", mon.ID,
-				"error", err)
-		} else if len(latestHeartbeats) > 0 {
-			loaded.LastHeartbeat = latestHeartbeats[0]
-		}
+		l.loadLatestHeartbeat(ctx, loaded)
 	}
 
 	return loaded, nil
+}
+
+// refusal is why a check of the monitor must not run, or nil
+func refusal(mon *shared.Monitor) error {
+	switch {
+	// The monitor might have been deleted
+	case mon == nil:
+		return ErrMonitorNotFound
+	case !mon.Active:
+		return ErrMonitorPaused
+	// A check queued before the workspace was suspended runs no more
+	case mon.WorkspaceSuspended:
+		return ErrWorkspaceSuspended
+	// So does a check queued before the type was turned off
+	case mon.TypeDisabled:
+		return ErrMonitorTypeDisabled
+	// And one queued before the monitor went past its workspace's limit (PP-160)
+	case mon.OverLimit:
+		return ErrMonitorOverLimit
+	}
+	return nil
+}
+
+// loadProxy gives the job the proxy its monitor names. A proxy that can't be read is logged and
+// the check goes without it.
+func (l *Loader) loadProxy(ctx context.Context, loaded *Job, monitorID string) {
+	mon := loaded.Monitor
+	proxyModel, err := l.proxyService.FindByID(ctx, mon.WorkspaceID, mon.ProxyId)
+	if err != nil {
+		l.logger.Warnw("Failed to fetch proxy, continuing without it",
+			"monitor_id", monitorID,
+			"proxy_id", mon.ProxyId,
+			"error", err)
+		return
+	}
+	loaded.Proxy = proxyModel
+}
+
+// loadLatestHeartbeat gives the job the latest heartbeat of its push monitor. One that can't be
+// read is logged and the check goes without it.
+func (l *Loader) loadLatestHeartbeat(ctx context.Context, loaded *Job) {
+	mon := loaded.Monitor
+	latestHeartbeats, err := l.heartbeatService.FindByMonitorIDPaginated(ctx, mon.ID, 1, 0, nil, false)
+	if err != nil {
+		l.logger.Warnw("Failed to fetch latest heartbeat for push monitor",
+			"monitor_id", mon.ID,
+			"error", err)
+	} else if len(latestHeartbeats) > 0 {
+		loaded.LastHeartbeat = latestHeartbeats[0]
+	}
 }
 
 func (l *Loader) isUnderMaintenance(ctx context.Context, monitorID string) (bool, error) {
