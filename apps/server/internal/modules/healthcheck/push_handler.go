@@ -35,13 +35,18 @@ func RegisterPushEndpoint(
 	maintenanceService maintenance.Service,
 	logger *zap.SugaredLogger,
 ) {
-	handler := &pushHandler{monitorService: monitorService, ingesterService: ingesterService, maintenanceService: maintenanceService, logger: logger}
+	// The call across workspaces is made here, where this function is listed for it in
+	// internal/isolation_test.go
+	findByToken := func(ctx context.Context, token string) (*monitor.Model, error) {
+		return monitorService.FindOneByPushTokenAnyWorkspace(ctx, token)
+	}
+	handler := &pushHandler{findByToken: findByToken, ingesterService: ingesterService, maintenanceService: maintenanceService, logger: logger}
 	httpx.Register(router, "GET", "/push/{token}", huma.Operation{Summary: "Send a heartbeat to a push monitor", Description: "Stores the push as the monitor's heartbeat. 404 when no monitor has the token, 400 when the monitor is paused, and 403 when the monitor's workspace is suspended (a new account's workspace is, until its owner verifies their email address, and an instance admin can suspend one), when its type is turned off on this install (DISABLED_MONITOR_TYPES), or when it is past its workspace's limit of active monitors: the push is not stored and sends no notification.", Tags: []string{"Push"}, Errors: []int{400, 403, 404, 500}}, handler.handle)
 }
 
 // pushHandler answers the push URL
 type pushHandler struct {
-	monitorService     monitor.Service
+	findByToken        func(ctx context.Context, token string) (*monitor.Model, error)
 	ingesterService    ingester.Service
 	maintenanceService maintenance.Service
 	logger             *zap.SugaredLogger
@@ -51,7 +56,7 @@ func (h *pushHandler) handle(ctx context.Context, input *PushInput) (*httpx.Outp
 	r := input.Request
 	token := r.PathValue("token")
 
-	monitor, err := h.monitorService.FindOneByPushTokenAnyWorkspace(ctx, token)
+	monitor, err := h.findByToken(ctx, token)
 	if err != nil {
 		h.logger.Errorw("Failed to find monitor with push token", "error", err)
 		return nil, httpx.Fail(http.StatusNotFound, utils.NewFailResponse("Monitor not found for pushToken"))
