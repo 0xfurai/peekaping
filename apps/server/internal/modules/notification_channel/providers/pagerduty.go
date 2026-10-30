@@ -169,7 +169,7 @@ func (p *PagerDutySender) post(ctx context.Context, cfg *PagerDutyConfig, payloa
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("User-Agent", "Peekaping-PagerDuty/"+version.Version)
 
-	p.logger.Debugf("Sending PagerDuty request: %s", req.URL.String())
+	p.logger.Debugf("Sending PagerDuty request to: %s", logHost(cfg.IntegrationURL))
 
 	// Send request
 	resp, err := p.client.Do(req)
@@ -198,7 +198,7 @@ func (p *PagerDutySender) Send(
 	}
 	cfg := cfgAny.(*PagerDutyConfig)
 
-	p.logger.Infof("Sending PagerDuty notification to: %s", cfg.IntegrationURL)
+	p.logger.Infof("Sending PagerDuty notification to: %s", logHost(cfg.IntegrationURL))
 
 	// Determine event action
 	eventAction := p.getEventAction(monitor, heartbeat, cfg)

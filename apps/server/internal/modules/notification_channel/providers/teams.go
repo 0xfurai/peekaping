@@ -319,8 +319,6 @@ func (s *TeamsSender) Send(
 		return fmt.Errorf("failed to marshal Teams payload: %w", err)
 	}
 
-	s.logger.Debugf("Teams payload: %s", string(jsonPayload))
-
 	// The webhook URL is a secret, so it is never logged
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, cfg.WebhookURL, bytes.NewReader(jsonPayload))
 	if err != nil {
