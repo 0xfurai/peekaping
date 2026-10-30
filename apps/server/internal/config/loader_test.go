@@ -70,7 +70,7 @@ func TestSetFieldsFromMap_ReadsEachKindFromItsText(t *testing.T) {
 		"BIG":    "9000000000",
 		"WAIT":   "90s",
 		"ON":     "1",
-		"OFF":    "yes",
+		"OFF":    "F",
 		"RATIO":  "2.5",
 		"HIDDEN": "secret",
 		"OTHER":  "unread",
@@ -81,12 +81,23 @@ func TestSetFieldsFromMap_ReadsEachKindFromItsText(t *testing.T) {
 		"an empty value, a float and an unexported field are left alone")
 }
 
-func TestSetFieldsFromMap_ReadsTrueAnd1AsTrue(t *testing.T) {
-	for value, want := range map[string]bool{"true": true, "1": true, "false": false, "0": false, "TRUE": false} {
+func TestSetFieldsFromMap_ReadsABooleanAsParseBoolDoes(t *testing.T) {
+	for value, want := range map[string]bool{"true": true, "1": true, "TRUE": true, "t": true, "false": false, "0": false, "False": false} {
 		cfg := loaded{}
 		require.NoError(t, setFieldsFromMap(&cfg, map[string]string{"ON": value}))
 		assert.Equal(t, want, cfg.On, value)
 	}
+}
+
+func TestSetFieldsFromMap_RefusesABooleanParseBoolDoesNotReadAndKeepsTheField(t *testing.T) {
+	cfg := loaded{On: true}
+
+	err := setFieldsFromMap(&cfg, map[string]string{"ON": "yes"})
+
+	var invalid *InvalidBooleanError
+	require.ErrorAs(t, err, &invalid)
+	assert.Equal(t, InvalidBooleanError{Name: "ON", Value: "yes"}, *invalid)
+	assert.True(t, cfg.On)
 }
 
 func TestSetFieldsFromMap_WarnsAboutANumberThatDoesNotParseAndKeepsTheField(t *testing.T) {

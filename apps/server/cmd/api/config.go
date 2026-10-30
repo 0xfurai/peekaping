@@ -136,9 +136,8 @@ type Config struct {
 	BlockPrivateTargets bool `env:"BLOCK_PRIVATE_TARGETS" default:"false"`
 
 	// VerifyCustomDomains makes a custom domain serve only once its owner has proved, by a TXT
-	// record or a CNAME, that it points at this install. Off by default. A string, so Validate checks
-	// the value from the environment or a .env file alike; ToInternalConfig reads it as a boolean.
-	VerifyCustomDomains string `env:"VERIFY_CUSTOM_DOMAINS" default:"false"`
+	// record or a CNAME, that it points at this install. Off by default.
+	VerifyCustomDomains bool `env:"VERIFY_CUSTOM_DOMAINS" default:"false"`
 	// CustomDomainCNAMETarget is the host a custom domain may be a CNAME to. Empty means the host of
 	// the public URL.
 	CustomDomainCNAMETarget string `env:"CUSTOM_DOMAIN_CNAME_TARGET"`
@@ -323,12 +322,6 @@ func validateAccountsAndMonitors(cfg *Config) error {
 		return err
 	}
 
-	// A VERIFY_CUSTOM_DOMAINS, from the environment or a .env file, that is not true, 1, false or 0,
-	// such as TRUE, stops startup instead of leaving verification off
-	if err := config.ValidateVerifyCustomDomains(cfg.VerifyCustomDomains); err != nil {
-		return err
-	}
-
 	return nil
 }
 
@@ -383,7 +376,7 @@ func (c *Config) ToInternalConfig() *config.Config {
 		SignupTurnstileSecret:          c.SignupTurnstileSecret,
 		DisabledMonitorTypes:           c.DisabledMonitorTypes,
 		BlockPrivateTargets:            c.BlockPrivateTargets,
-		VerifyCustomDomains:            config.VerifyCustomDomainsOn(c.VerifyCustomDomains),
+		VerifyCustomDomains:            c.VerifyCustomDomains,
 		CustomDomainCNAMETarget:        c.CustomDomainCNAMETarget,
 		APIRateLimitPerWorkspace:       c.APIRateLimitPerWorkspace,
 		APIRateLimitPerAPIKey:          c.APIRateLimitPerAPIKey,

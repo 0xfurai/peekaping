@@ -218,7 +218,7 @@ With a type turned off:
 
 | Variable | Type | Required | Default | Description |
 |----------|------|----------|---------|-------------|
-| `BLOCK_PRIVATE_TARGETS` | bool | No | `false` | `true` blocks the addresses listed below. Anything else leaves checks unrestricted |
+| `BLOCK_PRIVATE_TARGETS` | bool | No | `false` | `true` blocks the addresses listed below. `false` or unset leaves checks unrestricted. Any other value that `strconv.ParseBool` doesn't read, such as `yes` or `on`, stops startup |
 
 With it on, these addresses are blocked: loopback (`127.0.0.0/8`, `::1`), the private ranges `10.0.0.0/8`, `172.16.0.0/12` and `192.168.0.0/16`, carrier-grade NAT (`100.64.0.0/10`), `0.0.0.0/8` and the unspecified address, link-local addresses (`169.254.0.0/16`, which holds the metadata service at `169.254.169.254`, and `fe80::/10`), IPv6 unique-local addresses (`fc00::/7`), multicast, and the broadcast address. An IPv4-mapped IPv6 address counts as its IPv4 address. Unix sockets are blocked too.
 
@@ -234,7 +234,7 @@ With it on, these addresses are blocked: loopback (`127.0.0.0/8`, `::1`), the pr
 
 | Variable | Type | Required | Default | Description |
 |----------|------|----------|---------|-------------|
-| `VERIFY_CUSTOM_DOMAINS` | bool | No | `false` | `true` serves a custom domain only once it is verified. `false` or unset serves every domain, as before. Any other value, such as `TRUE`, `yes` or `on`, stops startup, so a mistyped value never leaves verification off |
+| `VERIFY_CUSTOM_DOMAINS` | bool | No | `false` | `true` serves a custom domain only once it is verified. `false` or unset serves every domain, as before. `1`, `t`, `TRUE` and the other forms Go's `strconv.ParseBool` reads count too. Any other value, such as `yes` or `on`, stops startup, so a mistyped value never leaves verification off |
 | `CUSTOM_DOMAIN_CNAME_TARGET` | string | No | empty | The host a domain may be a `CNAME` to. Empty means the host of the public URL (`CLIENT_URL`, or the address an instance admin saved), without its port. A public URL on `localhost` or at an IP address gives no target, and then only the TXT record verifies a domain. A value that isn't a host name stops startup |
 
 With it on:

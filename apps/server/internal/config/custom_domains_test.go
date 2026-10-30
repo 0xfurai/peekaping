@@ -17,17 +17,6 @@ func TestValidateCustomDomainCNAMETarget(t *testing.T) {
 	}
 }
 
-func TestValidateVerifyCustomDomains(t *testing.T) {
-	for _, ok := range []string{"", "true", "1", "false", "0"} {
-		assert.NoError(t, config.ValidateVerifyCustomDomains(ok), ok)
-	}
-	// The shared parser reads each of these as false, which would turn verification off unasked
-	for _, bad := range []string{"TRUE", "True", "yes", "on", "enabled", " true", "true ", "2", "FALSE"} {
-		err := config.ValidateVerifyCustomDomains(bad)
-		assert.ErrorContains(t, err, "VERIFY_CUSTOM_DOMAINS must be true, 1, false or 0", bad)
-	}
-}
-
 func TestCustomDomainCNAMETargetFor(t *testing.T) {
 	for name, tc := range map[string]struct{ configured, publicURL, want string }{
 		"the configured target wins, normalized": {"Status.Example.COM.", "https://app.example.com", "status.example.com"},
