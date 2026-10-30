@@ -1752,6 +1752,20 @@
     "search_placeholder": "Sök proxies efter värd..."
   },
   "security": {
+    "delete_account": {
+      "button": "Ta bort konto",
+      "description": "Tar bort ditt konto och avslutar dina sessioner. Du lämnar alla arbetsytor du tillhör. Det går inte att ångra.",
+      "dialog_description": "Ditt konto tas bort direkt och du loggas ut. Du lämnar alla arbetsytor du tillhör. Det går inte att ångra.",
+      "errors": {
+        "last_instance_admin": "Du är den sista instansadministratören för den här installationen. Det behövs en annan instansadministratör innan du kan ta bort ditt konto.",
+        "last_owner": "Du är den enda ägaren av {{workspaces}}. Gör en annan medlem till ägare, eller ta bort arbetsytan först.",
+        "wrong_password": "Lösenordet är felaktigt"
+      },
+      "failed": "Det gick inte att ta bort kontot",
+      "password_label": "Ditt lösenord",
+      "success": "Ditt konto har tagits bort",
+      "title": "Ta bort konto"
+    },
     "enable_2fa": {
       "form": {
         "authenticator_code_label": "Autentiseringskod",
@@ -1874,6 +1888,15 @@
     "to_email_label": "Till e-post"
   },
   "settings": {
+    "danger_zone": {
+      "button": "Ta bort arbetsyta",
+      "description": "Om du tar bort arbetsytan tas allt i den bort för gott: övervakningar, heartbeats, statussidor och resten. Borttagningen sker 7 dagar efter att du bekräftar. Övervakningarna stoppas direkt, och en ägare kan avbryta borttagningen fram till dess.",
+      "dialog_description": "Det här tar bort {{name}} och allt i den, om 7 dagar. Övervakningarna stoppas direkt, och du kan avbryta borttagningen fram till dess.",
+      "failed": "Det gick inte att schemalägga borttagningen",
+      "name_label": "Skriv arbetsytans namn, {{name}}, för att bekräfta",
+      "scheduled": "Den här arbetsytan tas bort den {{date}}. Dess övervakningar körs inte fram till dess. Avbryt borttagningen för att få tillbaka allt.",
+      "title": "Farozon"
+    },
     "data_retention": {
       "days_label": "Dagar",
       "description": "Ange hur många dagar data ska sparas (KEEP_DATA_PERIOD_DAYS).",
@@ -2040,6 +2063,13 @@
     "create_error": "Det gick inte att skapa arbetsytan",
     "create_first": "Skapa en arbetsyta",
     "creating": "Skapar...",
+    "deletion": {
+      "cancel": "Avbryt borttagningen",
+      "cancel_failed": "Det gick inte att avbryta borttagningen",
+      "cancelled": "Borttagningen avbröts",
+      "member_message": "Den här arbetsytan tas bort den {{date}}. Dess övervakningar körs inte och dess statussidor är inte tillgängliga. En ägare kan avbryta borttagningen fram till dess.",
+      "message": "Den här arbetsytan tas bort den {{date}}. Dess övervakningar körs inte och dess statussidor är inte tillgängliga. Du kan avbryta borttagningen fram till dess."
+    },
     "enter": "Öppna arbetsyta",
     "entering": "Öppnar...",
     "entry_failed": "Arbetsytan skapades, men det gick inte att öppna den. Försök igen.",

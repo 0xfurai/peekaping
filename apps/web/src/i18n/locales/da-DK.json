@@ -1752,6 +1752,20 @@
     "search_placeholder": "Søg proxyer efter vært..."
   },
   "security": {
+    "delete_account": {
+      "button": "Slet konto",
+      "description": "Sletter din konto og afslutter dine sessioner. Du forlader alle arbejdsområder, du er med i. Det kan ikke fortrydes.",
+      "dialog_description": "Din konto slettes med det samme, og du bliver logget ud. Du forlader alle arbejdsområder, du er med i. Det kan ikke fortrydes.",
+      "errors": {
+        "last_instance_admin": "Du er den sidste installationsadministrator i denne installation. Der skal være en anden installationsadministrator, før du kan slette din konto.",
+        "last_owner": "Du er den eneste ejer af {{workspaces}}. Gør et andet medlem til ejer, eller slet arbejdsområdet først.",
+        "wrong_password": "Adgangskoden er forkert"
+      },
+      "failed": "Kontoen kunne ikke slettes",
+      "password_label": "Din adgangskode",
+      "success": "Din konto er slettet",
+      "title": "Slet konto"
+    },
     "enable_2fa": {
       "form": {
         "authenticator_code_label": "Autentikator-kode",
@@ -1874,6 +1888,15 @@
     "to_email_label": "Til e-mail"
   },
   "settings": {
+    "danger_zone": {
+      "button": "Slet arbejdsområde",
+      "description": "Når du sletter dette arbejdsområde, slettes alt i det for altid: monitorer, heartbeats, status-sider og resten. Sletningen sker 7 dage efter, at du bekræfter. Dets monitorer stopper med det samme, og en ejer kan annullere sletningen indtil da.",
+      "dialog_description": "Dette sletter {{name}} og alt i det om 7 dage. Dets monitorer stopper med det samme, og du kan annullere sletningen indtil da.",
+      "failed": "Sletningen kunne ikke planlægges",
+      "name_label": "Skriv arbejdsområdets navn, {{name}}, for at bekræfte",
+      "scheduled": "Dette arbejdsområde slettes den {{date}}. Dets monitorer kører ikke indtil da. Annullér sletningen for at få alt tilbage.",
+      "title": "Farezone"
+    },
     "data_retention": {
       "days_label": "Dage",
       "description": "Indstil, hvor mange dage data skal opbevares (KEEP_DATA_PERIOD_DAYS).",
@@ -2040,6 +2063,13 @@
     "create_error": "Arbejdsområdet kunne ikke oprettes",
     "create_first": "Opret et arbejdsområde",
     "creating": "Opretter...",
+    "deletion": {
+      "cancel": "Annullér sletningen",
+      "cancel_failed": "Sletningen kunne ikke annulleres",
+      "cancelled": "Sletningen er annulleret",
+      "member_message": "Dette arbejdsområde slettes den {{date}}. Dets monitorer kører ikke, og dets status-sider er utilgængelige. En ejer kan annullere sletningen indtil da.",
+      "message": "Dette arbejdsområde slettes den {{date}}. Dets monitorer kører ikke, og dets status-sider er utilgængelige. Du kan annullere sletningen indtil da."
+    },
     "enter": "Åbn arbejdsområde",
     "entering": "Åbner...",
     "entry_failed": "Arbejdsområdet blev oprettet, men det kunne ikke åbnes. Prøv igen.",

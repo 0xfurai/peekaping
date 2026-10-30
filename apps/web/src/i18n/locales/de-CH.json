@@ -1752,6 +1752,20 @@
     "search_placeholder": "Proxies nach Host suchen..."
   },
   "security": {
+    "delete_account": {
+      "button": "Konto löschen",
+      "description": "Löscht dein Konto und beendet deine Sitzungen. Du verlässt alle Arbeitsbereiche, in denen du bist. Das lässt sich nicht rückgängig machen.",
+      "dialog_description": "Dein Konto wird sofort gelöscht, und du wirst abgemeldet. Du verlässt alle Arbeitsbereiche, in denen du bist. Das lässt sich nicht rückgängig machen.",
+      "errors": {
+        "last_instance_admin": "Du bist der letzte Instanz-Admin dieser Installation. Es braucht einen weiteren Instanz-Admin, bevor du dein Konto löschen kannst.",
+        "last_owner": "Du bist der einzige Inhaber von {{workspaces}}. Mache ein anderes Mitglied zum Inhaber oder lösche zuerst den Arbeitsbereich.",
+        "wrong_password": "Das Passwort ist falsch"
+      },
+      "failed": "Das Konto konnte nicht gelöscht werden",
+      "password_label": "Dein Passwort",
+      "success": "Dein Konto wurde gelöscht",
+      "title": "Konto löschen"
+    },
     "enable_2fa": {
       "form": {
         "authenticator_code_label": "Authentifikator-Code",
@@ -1874,6 +1888,15 @@
     "to_email_label": "Empfänger-E-Mail"
   },
   "settings": {
+    "danger_zone": {
+      "button": "Arbeitsbereich löschen",
+      "description": "Wenn du diesen Arbeitsbereich löschst, wird alles darin endgültig gelöscht: seine Monitore, Heartbeats, Statusseiten und der Rest. Die Löschung erfolgt 7 Tage nach deiner Bestätigung. Seine Monitore stoppen sofort, und ein Inhaber kann die Löschung bis dahin abbrechen.",
+      "dialog_description": "Dadurch werden {{name}} und alles darin in 7 Tagen gelöscht. Seine Monitore stoppen sofort, und du kannst die Löschung bis dahin abbrechen.",
+      "failed": "Die Löschung konnte nicht geplant werden",
+      "name_label": "Gib zur Bestätigung den Namen des Arbeitsbereichs ein: {{name}}",
+      "scheduled": "Dieser Arbeitsbereich wird am {{date}} gelöscht. Seine Monitore laufen bis dahin nicht. Brich die Löschung ab, um alles zurückzubekommen.",
+      "title": "Gefahrenzone"
+    },
     "data_retention": {
       "days_label": "Tage",
       "description": "Legen Sie fest, wie viele Tage Daten gespeichert werden (KEEP_DATA_PERIOD_DAYS).",
@@ -2040,6 +2063,13 @@
     "create_error": "Arbeitsbereich konnte nicht erstellt werden",
     "create_first": "Arbeitsbereich erstellen",
     "creating": "Wird erstellt...",
+    "deletion": {
+      "cancel": "Löschung abbrechen",
+      "cancel_failed": "Die Löschung konnte nicht abgebrochen werden",
+      "cancelled": "Löschung abgebrochen",
+      "member_message": "Dieser Arbeitsbereich wird am {{date}} gelöscht. Seine Monitore laufen nicht, und seine Statusseiten sind nicht erreichbar. Ein Inhaber kann die Löschung bis dahin abbrechen.",
+      "message": "Dieser Arbeitsbereich wird am {{date}} gelöscht. Seine Monitore laufen nicht, und seine Statusseiten sind nicht erreichbar. Du kannst die Löschung bis dahin abbrechen."
+    },
     "enter": "Arbeitsbereich öffnen",
     "entering": "Wird geöffnet...",
     "entry_failed": "Der Arbeitsbereich wurde erstellt, konnte aber nicht geöffnet werden. Versuche es erneut.",

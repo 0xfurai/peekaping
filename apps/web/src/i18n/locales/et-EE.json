@@ -1752,6 +1752,20 @@
     "search_placeholder": "Otsi proksid hosti järgi..."
   },
   "security": {
+    "delete_account": {
+      "button": "Kustuta konto",
+      "description": "Kustutab sinu konto ja lõpetab sinu seansid. Lahkud kõigist tööruumidest, kus oled. Seda ei saa tagasi võtta.",
+      "dialog_description": "Sinu konto kustutatakse kohe ja sind logitakse välja. Lahkud kõigist tööruumidest, kus oled. Seda ei saa tagasi võtta.",
+      "errors": {
+        "last_instance_admin": "Oled selle paigalduse viimane paigalduse haldur. Enne konto kustutamist on vaja teist paigalduse haldurit.",
+        "last_owner": "Oled ainus omanik: {{workspaces}}. Tee mõni teine liige omanikuks või kustuta tööruum enne ära.",
+        "wrong_password": "Parool on vale"
+      },
+      "failed": "Konto kustutamine ebaõnnestus",
+      "password_label": "Sinu parool",
+      "success": "Sinu konto on kustutatud",
+      "title": "Kustuta konto"
+    },
     "enable_2fa": {
       "form": {
         "authenticator_code_label": "Autentikaatori kood",
@@ -1874,6 +1888,15 @@
     "to_email_label": "Saaja e-posti aadress"
   },
   "settings": {
+    "danger_zone": {
+      "button": "Kustuta tööruum",
+      "description": "Tööruumi kustutamine kustutab kõik selles oleva jäädavalt: monitoorid, südamelöögid, olekusivud ja ülejäänu. Kustutamine toimub 7 päeva pärast kinnitamist. Selle monitoorid peatuvad kohe ja omanik saab kustutamise selle ajani tühistada.",
+      "dialog_description": "See kustutab tööruumi {{name}} ja kõik selles 7 päeva pärast. Selle monitoorid peatuvad kohe ja saad kustutamise selle ajani tühistada.",
+      "failed": "Kustutamise ajastamine ebaõnnestus",
+      "name_label": "Kinnitamiseks sisesta tööruumi nimi: {{name}}",
+      "scheduled": "See tööruum kustutatakse {{date}}. Selle monitoorid ei tööta selle ajani. Tühista kustutamine, et kõik tagasi saada.",
+      "title": "Ohutsoon"
+    },
     "data_retention": {
       "days_label": "päevad",
       "description": "Määrake, mitu päeva andmeid hoitakse (KEEP_DATA_PERIOD_DAYS).",
@@ -2040,6 +2063,13 @@
     "create_error": "Tööruumi loomine ebaõnnestus",
     "create_first": "Loo tööruum",
     "creating": "Loomine...",
+    "deletion": {
+      "cancel": "Tühista kustutamine",
+      "cancel_failed": "Kustutamise tühistamine ebaõnnestus",
+      "cancelled": "Kustutamine tühistatud",
+      "member_message": "See tööruum kustutatakse {{date}}. Selle monitoorid ei tööta ja olekusivud pole saadaval. Omanik saab kustutamise selle ajani tühistada.",
+      "message": "See tööruum kustutatakse {{date}}. Selle monitoorid ei tööta ja olekusivud pole saadaval. Saad kustutamise selle ajani tühistada."
+    },
     "enter": "Ava tööruum",
     "entering": "Avamine...",
     "entry_failed": "Tööruum loodi, kuid selle avamine ebaõnnestus. Proovi uuesti.",

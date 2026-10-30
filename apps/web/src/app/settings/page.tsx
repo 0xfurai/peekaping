@@ -41,6 +41,7 @@ import { useCurrentWorkspace } from "@/hooks/useCurrentWorkspace";
 import { useSaveWorkspaceName } from "@/hooks/useSaveWorkspaceName";
 import { workspaceErrorMessage } from "@/lib/workspace-errors";
 import { canSeeUsage } from "@/lib/workspace-usage";
+import { DangerZoneCard } from "./danger-zone-card";
 
 // The workspace's name, which an admin or owner changes. A member doesn't get the card: the
 // switcher shows them the name.
@@ -255,6 +256,7 @@ const SettingsPage = () => {
           </CardContent>
         </Card>
         <UsageEntry />
+        <DangerZoneCard />
         {/* The usage ping and error reports belong to the install: they are on Admin → Settings */}
       </div>
     </Layout>

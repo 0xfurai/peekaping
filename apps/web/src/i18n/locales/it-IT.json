@@ -1752,6 +1752,20 @@
     "search_placeholder": "Cerca proxy per host..."
   },
   "security": {
+    "delete_account": {
+      "button": "Elimina account",
+      "description": "Elimina il tuo account e termina le tue sessioni. Lasci tutti gli spazi di lavoro in cui ti trovi. Questa azione non può essere annullata.",
+      "dialog_description": "Il tuo account viene eliminato subito e la tua sessione termina. Lasci tutti gli spazi di lavoro in cui ti trovi. Questa azione non può essere annullata.",
+      "errors": {
+        "last_instance_admin": "Sei l'ultimo amministratore dell'istanza di questa installazione. Serve un altro amministratore dell'istanza prima di poter eliminare il tuo account.",
+        "last_owner": "Sei l'unico proprietario di {{workspaces}}. Rendi proprietario un altro membro, oppure elimina prima lo spazio di lavoro.",
+        "wrong_password": "La password non è corretta"
+      },
+      "failed": "Impossibile eliminare l'account",
+      "password_label": "La tua password",
+      "success": "Il tuo account è stato eliminato",
+      "title": "Elimina account"
+    },
     "enable_2fa": {
       "form": {
         "authenticator_code_label": "Codice di autenticazione",
@@ -1874,6 +1888,15 @@
     "to_email_label": "E-mail destinatario"
   },
   "settings": {
+    "danger_zone": {
+      "button": "Elimina spazio di lavoro",
+      "description": "Eliminare questo spazio di lavoro elimina definitivamente tutto il suo contenuto: i monitor, gli heartbeat, le pagine di stato e il resto. L'eliminazione avviene 7 giorni dopo la tua conferma. I suoi monitor si fermano subito e un proprietario può annullare l'eliminazione fino ad allora.",
+      "dialog_description": "Questa azione elimina {{name}} e tutto il suo contenuto tra 7 giorni. I suoi monitor si fermano subito e puoi annullare l'eliminazione fino ad allora.",
+      "failed": "Impossibile programmare l'eliminazione",
+      "name_label": "Digita il nome dello spazio di lavoro, {{name}}, per confermare",
+      "scheduled": "Questo spazio di lavoro sarà eliminato il {{date}}. I suoi monitor non sono in esecuzione fino ad allora. Annulla l'eliminazione per ripristinare tutto.",
+      "title": "Zona pericolosa"
+    },
     "data_retention": {
       "days_label": "Giorni",
       "description": "Imposta per quanti giorni conservare i dati (KEEP_DATA_PERIOD_DAYS).",
@@ -2040,6 +2063,13 @@
     "create_error": "Impossibile creare lo spazio di lavoro",
     "create_first": "Crea uno spazio di lavoro",
     "creating": "Creazione...",
+    "deletion": {
+      "cancel": "Annulla l'eliminazione",
+      "cancel_failed": "Impossibile annullare l'eliminazione",
+      "cancelled": "Eliminazione annullata",
+      "member_message": "Questo spazio di lavoro sarà eliminato il {{date}}. I suoi monitor non sono in esecuzione e le sue pagine di stato non sono disponibili. Un proprietario può annullare l'eliminazione fino ad allora.",
+      "message": "Questo spazio di lavoro sarà eliminato il {{date}}. I suoi monitor non sono in esecuzione e le sue pagine di stato non sono disponibili. Puoi annullare l'eliminazione fino ad allora."
+    },
     "enter": "Apri spazio di lavoro",
     "entering": "Apertura...",
     "entry_failed": "Lo spazio di lavoro è stato creato, ma non è stato possibile aprirlo. Riprova.",

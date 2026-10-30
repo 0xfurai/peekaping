@@ -1751,6 +1751,20 @@
     "search_placeholder": "Cuardaigh próxyí de réir óstainm…"
   },
   "security": {
+    "delete_account": {
+      "button": "Scrios an cuntas",
+      "description": "Scriosann sé seo do chuntas agus cuireann sé deireadh le do sheisiúin. Fágann tú gach spás oibre a bhfuil tú ann. Ní féidir é seo a chealú.",
+      "dialog_description": "Scriostar do chuntas láithreach agus síníonn tú amach. Fágann tú gach spás oibre a bhfuil tú ann. Ní féidir é seo a chealú.",
+      "errors": {
+        "last_instance_admin": "Is tusa an riarthóir cásanna deireanach den suiteáil seo. Tá riarthóir cásanna eile ag teastáil sula bhféadfaidh tú do chuntas a scriosadh.",
+        "last_owner": "Is tusa an t-aon úinéir ar {{workspaces}}. Déan úinéir de bhall eile, nó scrios an spás oibre ar dtús.",
+        "wrong_password": "Tá an focal faire mícheart"
+      },
+      "failed": "Theip ar an gcuntas a scriosadh",
+      "password_label": "Do phasfhocal",
+      "success": "Scriosadh do chuntas",
+      "title": "Scrios an cuntas"
+    },
     "enable_2fa": {
       "form": {
         "authenticator_code_label": "Cód Údaraithe",
@@ -1873,6 +1887,15 @@
     "to_email_label": "Chuig ríomhphost"
   },
   "settings": {
+    "danger_zone": {
+      "button": "Scrios an spás oibre",
+      "description": "Scriosann scriosadh an spáis oibre seo gach rud ann go buan: a mhonaitiseoirí, a bhíoga croí, a leathanaigh stádais agus an chuid eile. Tarlaíonn an scriosadh 7 lá tar éis duit deimhniú. Stopann a mhonaitiseoirí láithreach, agus féadfaidh úinéir an scriosadh a chealú go dtí sin.",
+      "dialog_description": "Scriosann sé seo {{name}} agus gach rud ann, 7 lá ón lá inniu. Stopann a mhonaitiseoirí láithreach, agus is féidir leat an scriosadh a chealú go dtí sin.",
+      "failed": "Theip ar an scriosadh a sceidealú",
+      "name_label": "Clóscríobh ainm an spáis oibre, {{name}}, le deimhniú",
+      "scheduled": "Scriosfar an spás oibre seo ar {{date}}. Ní ritheann a mhonaitiseoirí go dtí sin. Cealaigh an scriosadh chun gach rud a thabhairt ar ais.",
+      "title": "Crios contúirte"
+    },
     "data_retention": {
       "days_label": "Laethanta",
       "description": "Socraigh líon na lá a choinneálfar sonraí (KEEP_DATA_PERIOD_DAYS).",
@@ -2039,6 +2062,13 @@
     "create_error": "Theip ar an spás oibre a chruthú",
     "create_first": "Cruthaigh spás oibre",
     "creating": "Ag cruthú...",
+    "deletion": {
+      "cancel": "Cealaigh an scriosadh",
+      "cancel_failed": "Theip ar an scriosadh a chealú",
+      "cancelled": "Cealaíodh an scriosadh",
+      "member_message": "Scriosfar an spás oibre seo ar {{date}}. Ní ritheann a mhonaitiseoirí, agus níl a leathanaigh stádais ar fáil. Féadfaidh úinéir an scriosadh a chealú go dtí sin.",
+      "message": "Scriosfar an spás oibre seo ar {{date}}. Ní ritheann a mhonaitiseoirí, agus níl a leathanaigh stádais ar fáil. Is féidir leat an scriosadh a chealú go dtí sin."
+    },
     "enter": "Oscail spás oibre",
     "entering": "Ag oscailt...",
     "entry_failed": "Cruthaíodh an spás oibre, ach theip ar a oscailt. Bain triail eile as.",

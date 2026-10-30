@@ -1752,6 +1752,20 @@
     "search_placeholder": "Zoek proxies op hostnaam..."
   },
   "security": {
+    "delete_account": {
+      "button": "Account verwijderen",
+      "description": "Hiermee wordt je account verwijderd en worden je sessies beëindigd. Je verlaat elke werkruimte waarin je zit. Dit kan niet ongedaan worden gemaakt.",
+      "dialog_description": "Je account wordt meteen verwijderd en je wordt uitgelogd. Je verlaat elke werkruimte waarin je zit. Dit kan niet ongedaan worden gemaakt.",
+      "errors": {
+        "last_instance_admin": "Je bent de laatste instantiebeheerder van deze installatie. Er is een andere instantiebeheerder nodig voordat je je account kunt verwijderen.",
+        "last_owner": "Je bent de enige eigenaar van {{workspaces}}. Maak eerst een ander lid eigenaar of verwijder de werkruimte.",
+        "wrong_password": "Het wachtwoord is onjuist"
+      },
+      "failed": "Het verwijderen van het account is mislukt",
+      "password_label": "Je wachtwoord",
+      "success": "Je account is verwijderd",
+      "title": "Account verwijderen"
+    },
     "enable_2fa": {
       "form": {
         "authenticator_code_label": "Authenticator-code",
@@ -1874,6 +1888,15 @@
     "to_email_label": "E-mailadres ontvanger"
   },
   "settings": {
+    "danger_zone": {
+      "button": "Werkruimte verwijderen",
+      "description": "Als je deze werkruimte verwijdert, wordt alles erin definitief verwijderd: de monitoren, heartbeats, statuspagina's en de rest. De verwijdering vindt plaats 7 dagen nadat je het bevestigt. De monitoren stoppen meteen en een eigenaar kan de verwijdering tot dan annuleren.",
+      "dialog_description": "Hiermee wordt {{name}} met alles erin over 7 dagen verwijderd. De monitoren stoppen meteen en je kunt de verwijdering tot dan annuleren.",
+      "failed": "Het inplannen van de verwijdering is mislukt",
+      "name_label": "Typ de naam van de werkruimte, {{name}}, om te bevestigen",
+      "scheduled": "Deze werkruimte wordt verwijderd op {{date}}. De monitoren draaien tot dan niet. Annuleer de verwijdering om alles terug te halen.",
+      "title": "Gevarenzone"
+    },
     "data_retention": {
       "days_label": "Dagen",
       "description": "Bepaal hoelang gegevens bewaard blijven (KEEP_DATA_PERIOD_DAYS).",
@@ -2040,6 +2063,13 @@
     "create_error": "Werkruimte aanmaken mislukt",
     "create_first": "Een werkruimte maken",
     "creating": "Aanmaken...",
+    "deletion": {
+      "cancel": "Verwijdering annuleren",
+      "cancel_failed": "Het annuleren van de verwijdering is mislukt",
+      "cancelled": "Verwijdering geannuleerd",
+      "member_message": "Deze werkruimte wordt verwijderd op {{date}}. De monitoren draaien niet en de statuspagina's zijn niet beschikbaar. Een eigenaar kan de verwijdering tot dan annuleren.",
+      "message": "Deze werkruimte wordt verwijderd op {{date}}. De monitoren draaien niet en de statuspagina's zijn niet beschikbaar. Je kunt de verwijdering tot dan annuleren."
+    },
     "enter": "Werkruimte openen",
     "entering": "Openen...",
     "entry_failed": "De werkruimte is aangemaakt, maar openen is mislukt. Probeer het opnieuw.",

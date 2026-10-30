@@ -1752,6 +1752,20 @@
     "search_placeholder": "Tìm proxy theo host..."
   },
   "security": {
+    "delete_account": {
+      "button": "Xóa tài khoản",
+      "description": "Xóa tài khoản của bạn và kết thúc các phiên đăng nhập. Bạn sẽ rời mọi không gian làm việc mà bạn tham gia. Không thể hoàn tác.",
+      "dialog_description": "Tài khoản của bạn bị xóa ngay và bạn bị đăng xuất. Bạn sẽ rời mọi không gian làm việc mà bạn tham gia. Không thể hoàn tác.",
+      "errors": {
+        "last_instance_admin": "Bạn là quản trị viên phiên bản cuối cùng của bản cài đặt này. Cần có một quản trị viên phiên bản khác trước khi bạn có thể xóa tài khoản.",
+        "last_owner": "Bạn là chủ sở hữu duy nhất của {{workspaces}}. Hãy đặt thành viên khác làm chủ sở hữu, hoặc xóa không gian làm việc trước.",
+        "wrong_password": "Mật khẩu không đúng"
+      },
+      "failed": "Không thể xóa tài khoản",
+      "password_label": "Mật khẩu của bạn",
+      "success": "Tài khoản của bạn đã được xóa",
+      "title": "Xóa tài khoản"
+    },
     "enable_2fa": {
       "form": {
         "authenticator_code_label": "Mã xác thực",
@@ -1874,6 +1888,15 @@
     "to_email_label": "Đến email"
   },
   "settings": {
+    "danger_zone": {
+      "button": "Xóa không gian làm việc",
+      "description": "Xóa không gian làm việc này sẽ xóa vĩnh viễn mọi thứ trong đó: các giám sát, heartbeat, trang trạng thái và phần còn lại. Việc xóa diễn ra 7 ngày sau khi bạn xác nhận. Các giám sát dừng ngay, và chủ sở hữu có thể hủy việc xóa cho đến lúc đó.",
+      "dialog_description": "Thao tác này xóa {{name}} và mọi thứ trong đó sau 7 ngày. Các giám sát dừng ngay, và bạn có thể hủy việc xóa cho đến lúc đó.",
+      "failed": "Không thể lên lịch xóa",
+      "name_label": "Nhập tên không gian làm việc, {{name}}, để xác nhận",
+      "scheduled": "Không gian làm việc này sẽ bị xóa vào {{date}}. Các giám sát của nó không chạy cho đến lúc đó. Hãy hủy việc xóa để khôi phục mọi thứ.",
+      "title": "Vùng nguy hiểm"
+    },
     "data_retention": {
       "days_label": "Ngày",
       "description": "Đặt số ngày lưu dữ liệu (KEEP_DATA_PERIOD_DAYS).",
@@ -2040,6 +2063,13 @@
     "create_error": "Không thể tạo không gian làm việc",
     "create_first": "Tạo không gian làm việc",
     "creating": "Đang tạo...",
+    "deletion": {
+      "cancel": "Hủy xóa",
+      "cancel_failed": "Không thể hủy việc xóa",
+      "cancelled": "Đã hủy việc xóa",
+      "member_message": "Không gian làm việc này sẽ bị xóa vào {{date}}. Các giám sát của nó không chạy và các trang trạng thái của nó không khả dụng. Chủ sở hữu có thể hủy việc xóa cho đến lúc đó.",
+      "message": "Không gian làm việc này sẽ bị xóa vào {{date}}. Các giám sát của nó không chạy và các trang trạng thái của nó không khả dụng. Bạn có thể hủy việc xóa cho đến lúc đó."
+    },
     "enter": "Mở không gian làm việc",
     "entering": "Đang mở...",
     "entry_failed": "Không gian làm việc đã được tạo nhưng không mở được. Hãy thử lại.",

@@ -1752,6 +1752,20 @@
     "search_placeholder": "Ieškoti proksų pagal hostą..."
   },
   "security": {
+    "delete_account": {
+      "button": "Ištrinti paskyrą",
+      "description": "Jūsų paskyra bus ištrinta, o jūsų sesijos baigtos. Išeisite iš visų darbo erdvių, kuriose esate. Šio veiksmo atšaukti negalima.",
+      "dialog_description": "Jūsų paskyra ištrinama iš karto ir jūs atsijungiate. Išeisite iš visų darbo erdvių, kuriose esate. Šio veiksmo atšaukti negalima.",
+      "errors": {
+        "last_instance_admin": "Esate paskutinis šio diegimo administratorius. Kad galėtumėte ištrinti paskyrą, reikia kito diegimo administratoriaus.",
+        "last_owner": "Esate vienintelis {{workspaces}} savininkas. Pirmiausia paskirkite savininku kitą narį arba ištrinkite darbo erdvę.",
+        "wrong_password": "Slaptažodis neteisingas"
+      },
+      "failed": "Nepavyko ištrinti paskyros",
+      "password_label": "Jūsų slaptažodis",
+      "success": "Jūsų paskyra ištrinta",
+      "title": "Ištrinti paskyrą"
+    },
     "enable_2fa": {
       "form": {
         "authenticator_code_label": "Autentifikatoriaus kodas",
@@ -1874,6 +1888,15 @@
     "to_email_label": "El. pašto adresas"
   },
   "settings": {
+    "danger_zone": {
+      "button": "Ištrinti darbo erdvę",
+      "description": "Ištrynus šią darbo erdvę, viskas, kas joje yra, bus ištrinta visam laikui: monitoriai, širdies ritmai, statuso puslapiai ir kita. Ištrynimas įvyksta praėjus 7 dienoms po patvirtinimo. Jos monitoriai sustoja iš karto, o savininkas gali atšaukti ištrynimą iki tol.",
+      "dialog_description": "Po 7 dienų bus ištrinta darbo erdvė {{name}} ir viskas, kas joje yra. Jos monitoriai sustoja iš karto, o iki tol galite atšaukti ištrynimą.",
+      "failed": "Nepavyko suplanuoti ištrynimo",
+      "name_label": "Kad patvirtintumėte, įveskite darbo erdvės pavadinimą: {{name}}",
+      "scheduled": "Ši darbo erdvė bus ištrinta {{date}}. Iki tol jos monitoriai neveikia. Atšaukite ištrynimą, kad viskas būtų atkurta.",
+      "title": "Pavojaus zona"
+    },
     "data_retention": {
       "days_label": "Dienos",
       "description": "Nustatykite, kiek dienų laikyti duomenis (KEEP_DATA_PERIOD_DAYS).",
@@ -2040,6 +2063,13 @@
     "create_error": "Nepavyko sukurti darbo erdvės",
     "create_first": "Sukurti darbo sritį",
     "creating": "Kuriama...",
+    "deletion": {
+      "cancel": "Atšaukti ištrynimą",
+      "cancel_failed": "Nepavyko atšaukti ištrynimo",
+      "cancelled": "Ištrynimas atšauktas",
+      "member_message": "Ši darbo erdvė bus ištrinta {{date}}. Jos monitoriai neveikia, o statuso puslapiai nepasiekiami. Iki tol savininkas gali atšaukti ištrynimą.",
+      "message": "Ši darbo erdvė bus ištrinta {{date}}. Jos monitoriai neveikia, o statuso puslapiai nepasiekiami. Iki tol galite atšaukti ištrynimą."
+    },
     "enter": "Atidaryti darbo erdvę",
     "entering": "Atidaroma...",
     "entry_failed": "Darbo erdvė sukurta, bet jos atidaryti nepavyko. Bandykite dar kartą.",

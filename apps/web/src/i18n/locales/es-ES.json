@@ -1752,6 +1752,20 @@
     "search_placeholder": "Buscar proxies por host..."
   },
   "security": {
+    "delete_account": {
+      "button": "Eliminar cuenta",
+      "description": "Elimina tu cuenta y cierra tus sesiones. Sales de todos los espacios de trabajo en los que estás. No se puede deshacer.",
+      "dialog_description": "Tu cuenta se elimina de inmediato y se cierra tu sesión. Sales de todos los espacios de trabajo en los que estás. No se puede deshacer.",
+      "errors": {
+        "last_instance_admin": "Eres el último administrador de la instalación. Hace falta otro administrador de la instalación antes de que puedas eliminar tu cuenta.",
+        "last_owner": "Eres el único propietario de {{workspaces}}. Haz propietario a otro miembro o elimina primero el espacio de trabajo.",
+        "wrong_password": "La contraseña es incorrecta"
+      },
+      "failed": "No se pudo eliminar la cuenta",
+      "password_label": "Tu contraseña",
+      "success": "Tu cuenta se eliminó",
+      "title": "Eliminar cuenta"
+    },
     "enable_2fa": {
       "form": {
         "authenticator_code_label": "Código del autenticador",
@@ -1874,6 +1888,15 @@
     "to_email_label": "Correo electrónico del destinatario"
   },
   "settings": {
+    "danger_zone": {
+      "button": "Eliminar espacio de trabajo",
+      "description": "Eliminar este espacio de trabajo borra para siempre todo lo que contiene: sus monitores, latidos, páginas de estado y el resto. La eliminación se produce 7 días después de que la confirmes. Sus monitores se detienen de inmediato y un propietario puede cancelar la eliminación hasta entonces.",
+      "dialog_description": "Esto elimina {{name}} y todo lo que contiene dentro de 7 días. Sus monitores se detienen de inmediato y puedes cancelar la eliminación hasta entonces.",
+      "failed": "No se pudo programar la eliminación",
+      "name_label": "Escribe el nombre del espacio de trabajo, {{name}}, para confirmar",
+      "scheduled": "Este espacio de trabajo se eliminará el {{date}}. Sus monitores no se ejecutan hasta entonces. Cancela la eliminación para recuperarlo todo.",
+      "title": "Zona de peligro"
+    },
     "data_retention": {
       "days_label": "Días",
       "description": "Establecer cuántos días conservar los datos (KEEP_DATA_PERIOD_DAYS).",
@@ -2040,6 +2063,13 @@
     "create_error": "No se pudo crear el espacio de trabajo",
     "create_first": "Crear un espacio de trabajo",
     "creating": "Creando...",
+    "deletion": {
+      "cancel": "Cancelar eliminación",
+      "cancel_failed": "No se pudo cancelar la eliminación",
+      "cancelled": "Eliminación cancelada",
+      "member_message": "Este espacio de trabajo se eliminará el {{date}}. Sus monitores no se ejecutan y sus páginas de estado no están disponibles. Un propietario puede cancelar la eliminación hasta entonces.",
+      "message": "Este espacio de trabajo se eliminará el {{date}}. Sus monitores no se ejecutan y sus páginas de estado no están disponibles. Puedes cancelar la eliminación hasta entonces."
+    },
     "enter": "Abrir espacio de trabajo",
     "entering": "Abriendo...",
     "entry_failed": "El espacio de trabajo se creó, pero no se pudo abrir. Inténtalo de nuevo.",

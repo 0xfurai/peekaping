@@ -1752,6 +1752,20 @@
     "search_placeholder": "Išči posrednike po gostitelju..."
   },
   "security": {
+    "delete_account": {
+      "button": "Izbriši račun",
+      "description": "Izbriše vaš račun in konča vaše seje. Zapustite vse delovne prostore, v katerih ste. Tega ni mogoče razveljaviti.",
+      "dialog_description": "Vaš račun se izbriše takoj, vi pa ste odjavljeni. Zapustite vse delovne prostore, v katerih ste. Tega ni mogoče razveljaviti.",
+      "errors": {
+        "last_instance_admin": "Ste zadnji skrbnik te namestitve. Preden lahko izbrišete račun, je potreben še en skrbnik namestitve.",
+        "last_owner": "Ste edini lastnik: {{workspaces}}. Najprej postavite drugega člana za lastnika ali izbrišite delovni prostor.",
+        "wrong_password": "Geslo je napačno"
+      },
+      "failed": "Računa ni bilo mogoče izbrisati",
+      "password_label": "Vaše geslo",
+      "success": "Vaš račun je izbrisan",
+      "title": "Izbriši račun"
+    },
     "enable_2fa": {
       "form": {
         "authenticator_code_label": "Avtentikacijska koda",
@@ -1874,6 +1888,15 @@
     "to_email_label": "Za e-pošto"
   },
   "settings": {
+    "danger_zone": {
+      "button": "Izbriši delovni prostor",
+      "description": "Če izbrišete ta delovni prostor, se vse v njem trajno izbriše: nadzori, srčni utripi, statusne strani in vse drugo. Brisanje se zgodi 7 dni po potrditvi. Nadzori se ustavijo takoj, lastnik pa lahko brisanje prekliče do takrat.",
+      "dialog_description": "Delovni prostor {{name}} in vse v njem bo izbrisano čez 7 dni. Nadzori se ustavijo takoj, brisanje pa lahko prekličete do takrat.",
+      "failed": "Brisanja ni bilo mogoče načrtovati",
+      "name_label": "Za potrditev vnesite ime delovnega prostora, {{name}}",
+      "scheduled": "Ta delovni prostor bo izbrisan {{date}}. Do takrat njegovi nadzori ne tečejo. Prekličite brisanje, da se vse povrne.",
+      "title": "Nevarno območje"
+    },
     "data_retention": {
       "days_label": "Dnevi",
       "description": "Nastavite, koliko dni naj se shranjujejo podatki (KEEP_DATA_PERIOD_DAYS).",
@@ -2040,6 +2063,13 @@
     "create_error": "Delovnega prostora ni bilo mogoče ustvariti",
     "create_first": "Ustvari delovni prostor",
     "creating": "Ustvarjanje...",
+    "deletion": {
+      "cancel": "Prekliči brisanje",
+      "cancel_failed": "Brisanja ni bilo mogoče preklicati",
+      "cancelled": "Brisanje preklicano",
+      "member_message": "Ta delovni prostor bo izbrisan {{date}}. Njegovi nadzori ne tečejo, statusne strani pa niso na voljo. Lastnik lahko brisanje prekliče do takrat.",
+      "message": "Ta delovni prostor bo izbrisan {{date}}. Njegovi nadzori ne tečejo, statusne strani pa niso na voljo. Brisanje lahko prekličete do takrat."
+    },
     "enter": "Odpri delovni prostor",
     "entering": "Odpiranje...",
     "entry_failed": "Delovni prostor je bil ustvarjen, vendar ga ni bilo mogoče odpreti. Poskusite znova.",

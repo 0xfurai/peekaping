@@ -1752,6 +1752,20 @@
     "search_placeholder": "Pesquisar proxies por host..."
   },
   "security": {
+    "delete_account": {
+      "button": "Excluir conta",
+      "description": "Exclui sua conta e encerra suas sessões. Você sai de todos os espaços de trabalho em que está. Isso não pode ser desfeito.",
+      "dialog_description": "Sua conta é excluída na hora e você é desconectado. Você sai de todos os espaços de trabalho em que está. Isso não pode ser desfeito.",
+      "errors": {
+        "last_instance_admin": "Você é o último administrador da instância desta instalação. É preciso outro administrador da instância antes de você poder excluir sua conta.",
+        "last_owner": "Você é o único proprietário de {{workspaces}}. Torne outro membro proprietário ou exclua o espaço de trabalho antes.",
+        "wrong_password": "A senha está incorreta"
+      },
+      "failed": "Falha ao excluir a conta",
+      "password_label": "Sua senha",
+      "success": "Sua conta foi excluída",
+      "title": "Excluir conta"
+    },
     "enable_2fa": {
       "form": {
         "authenticator_code_label": "Código do autenticador",
@@ -1874,6 +1888,15 @@
     "to_email_label": "Para e-mail"
   },
   "settings": {
+    "danger_zone": {
+      "button": "Excluir espaço de trabalho",
+      "description": "Excluir este espaço de trabalho apaga definitivamente tudo o que há nele: monitores, heartbeats, páginas de status e o resto. A exclusão acontece 7 dias depois de você confirmar. Os monitores param na hora, e um proprietário pode cancelar a exclusão até lá.",
+      "dialog_description": "Isto exclui {{name}} e tudo o que há nele, daqui a 7 dias. Os monitores param na hora, e você pode cancelar a exclusão até lá.",
+      "failed": "Falha ao agendar a exclusão",
+      "name_label": "Digite o nome do espaço de trabalho, {{name}}, para confirmar",
+      "scheduled": "Este espaço de trabalho será excluído em {{date}}. Os monitores não são executados até lá. Cancele a exclusão para restaurar tudo.",
+      "title": "Zona de perigo"
+    },
     "data_retention": {
       "days_label": "Dias",
       "description": "Defina quantos dias manter os dados (KEEP_DATA_PERIOD_DAYS).",
@@ -2040,6 +2063,13 @@
     "create_error": "Falha ao criar o espaço de trabalho",
     "create_first": "Criar um espaço de trabalho",
     "creating": "Criando...",
+    "deletion": {
+      "cancel": "Cancelar exclusão",
+      "cancel_failed": "Falha ao cancelar a exclusão",
+      "cancelled": "Exclusão cancelada",
+      "member_message": "Este espaço de trabalho será excluído em {{date}}. Os monitores não são executados e as páginas de status ficam indisponíveis. Um proprietário pode cancelar a exclusão até lá.",
+      "message": "Este espaço de trabalho será excluído em {{date}}. Os monitores não são executados e as páginas de status ficam indisponíveis. Você pode cancelar a exclusão até lá."
+    },
     "enter": "Abrir espaço de trabalho",
     "entering": "Abrindo...",
     "entry_failed": "O espaço de trabalho foi criado, mas não foi possível abri-lo. Tente novamente.",

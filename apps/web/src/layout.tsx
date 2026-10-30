@@ -11,6 +11,7 @@ import { SiteHeader } from "./components/app-header";
 import { SuspendedWorkspaceBanner } from "./components/suspended-workspace-banner";
 import { TelemetryNotice } from "./components/telemetry-notice";
 import { VerificationBanner } from "./components/verification-banner";
+import { WorkspaceDeletionBanner } from "./components/workspace-deletion-banner";
 import { useLocalizedTranslation } from "./hooks/useTranslation";
 
 export default function Layout({
@@ -41,6 +42,9 @@ export default function Layout({
         <SiteHeader pageName={pageName} onCreate={onCreate} />
         <div className="empty:hidden px-4 pt-4">
           <SuspendedWorkspaceBanner />
+        </div>
+        <div className="empty:hidden px-4 pt-4">
+          <WorkspaceDeletionBanner />
         </div>
         <div className="empty:hidden px-4 pt-4">
           <VerificationBanner />

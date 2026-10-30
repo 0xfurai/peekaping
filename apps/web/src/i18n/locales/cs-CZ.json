@@ -1752,6 +1752,20 @@
     "search_placeholder": "Hledat proxy podle hosta..."
   },
   "security": {
+    "delete_account": {
+      "button": "Smazat účet",
+      "description": "Smaže váš účet a ukončí vaše relace. Opustíte všechny pracovní prostory, ve kterých jste. Tuto akci nelze vrátit zpět.",
+      "dialog_description": "Váš účet bude okamžitě smazán a budete odhlášeni. Opustíte všechny pracovní prostory, ve kterých jste. Tuto akci nelze vrátit zpět.",
+      "errors": {
+        "last_instance_admin": "Jste posledním správcem instalace. Než budete moci smazat svůj účet, je potřeba jiný správce instalace.",
+        "last_owner": "Jste jediným vlastníkem: {{workspaces}}. Nejprve udělte vlastnictví jinému členovi nebo smažte pracovní prostor.",
+        "wrong_password": "Heslo není správné"
+      },
+      "failed": "Účet se nepodařilo smazat",
+      "password_label": "Vaše heslo",
+      "success": "Váš účet byl smazán",
+      "title": "Smazání účtu"
+    },
     "enable_2fa": {
       "form": {
         "authenticator_code_label": "Ověřovací kód",
@@ -1874,6 +1888,15 @@
     "to_email_label": "E-mail příjemce"
   },
   "settings": {
+    "danger_zone": {
+      "button": "Smazat pracovní prostor",
+      "description": "Smazáním tohoto pracovního prostoru se trvale smaže vše, co obsahuje: monitory, pulzy, stránky stavu a další. Smazání proběhne 7 dní po potvrzení. Jeho monitory se zastaví okamžitě a vlastník může smazání do té doby zrušit.",
+      "dialog_description": "Tím se za 7 dní smaže {{name}} a vše, co obsahuje. Jeho monitory se zastaví okamžitě a smazání můžete do té doby zrušit.",
+      "failed": "Smazání se nepodařilo naplánovat",
+      "name_label": "Pro potvrzení zadejte název pracovního prostoru: {{name}}",
+      "scheduled": "Tento pracovní prostor bude smazán {{date}}. Jeho monitory do té doby neběží. Zrušením smazání vše obnovíte.",
+      "title": "Nebezpečná zóna"
+    },
     "data_retention": {
       "days_label": "Dny",
       "description": "Nastavte, na kolik dní se budou data uchovávat (KEEP_DATA_PERIOD_DAYS).",
@@ -2040,6 +2063,13 @@
     "create_error": "Pracovní prostor se nepodařilo vytvořit",
     "create_first": "Vytvořit pracovní prostor",
     "creating": "Vytvářím...",
+    "deletion": {
+      "cancel": "Zrušit smazání",
+      "cancel_failed": "Smazání se nepodařilo zrušit",
+      "cancelled": "Smazání bylo zrušeno",
+      "member_message": "Tento pracovní prostor bude smazán {{date}}. Jeho monitory neběží a jeho stránky stavu jsou nedostupné. Vlastník může smazání do té doby zrušit.",
+      "message": "Tento pracovní prostor bude smazán {{date}}. Jeho monitory neběží a jeho stránky stavu jsou nedostupné. Smazání můžete do té doby zrušit."
+    },
     "enter": "Otevřít pracovní prostor",
     "entering": "Otevírám...",
     "entry_failed": "Pracovní prostor byl vytvořen, ale nepodařilo se ho otevřít. Zkuste to znovu.",

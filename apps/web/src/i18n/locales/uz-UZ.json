@@ -1751,6 +1751,20 @@
     "search_placeholder": "Host orqali proksilarni qidirish..."
   },
   "security": {
+    "delete_account": {
+      "button": "Hisobni o'chirish",
+      "description": "Hisobingizni o'chiradi va seanslaringizni tugatadi. Siz a'zo bo'lgan barcha ish maydonlaridan chiqasiz. Buni bekor qilib bo'lmaydi.",
+      "dialog_description": "Hisobingiz darhol o'chiriladi va tizimdan chiqasiz. Siz a'zo bo'lgan barcha ish maydonlaridan chiqasiz. Buni bekor qilib bo'lmaydi.",
+      "errors": {
+        "last_instance_admin": "Siz ushbu o'rnatishning oxirgi instans adminisiz. Hisobingizni o'chirishdan oldin boshqa instans admini kerak.",
+        "last_owner": "Siz {{workspaces}} ning yagona egasisiz. Avval boshqa a'zoni ega qiling yoki ish maydonini o'chiring.",
+        "wrong_password": "Parol noto'g'ri"
+      },
+      "failed": "Hisobni o'chirib bo'lmadi",
+      "password_label": "Parolingiz",
+      "success": "Hisobingiz o'chirildi",
+      "title": "Hisobni o'chirish"
+    },
     "enable_2fa": {
       "form": {
         "authenticator_code_label": "Autentifikator kodi",
@@ -1873,6 +1887,15 @@
     "to_email_label": "E-pochta"
   },
   "settings": {
+    "danger_zone": {
+      "button": "Ish maydonini o'chirish",
+      "description": "Bu ish maydonini o'chirsangiz, undagi hamma narsa butunlay o'chadi: kuzatishlar, heartbeat'lar, holat sahifalari va boshqalar. O'chirish tasdiqlaganingizdan 7 kun keyin amalga oshadi. Kuzatishlar darhol to'xtaydi, ega esa shu vaqtgacha o'chirishni bekor qilishi mumkin.",
+      "dialog_description": "Bu {{name}} va undagi hamma narsani 7 kundan keyin o'chiradi. Kuzatishlar darhol to'xtaydi, siz esa shu vaqtgacha o'chirishni bekor qilishingiz mumkin.",
+      "failed": "O'chirishni rejalashtirib bo'lmadi",
+      "name_label": "Tasdiqlash uchun ish maydoni nomini, {{name}}, kiriting",
+      "scheduled": "Bu ish maydoni {{date}} kuni o'chiriladi. Shu vaqtgacha uning kuzatishlari ishlamaydi. Hammasini qaytarish uchun o'chirishni bekor qiling.",
+      "title": "Xavfli hudud"
+    },
     "data_retention": {
       "days_label": "Kunlar",
       "description": "Ma'lumotlarni necha kun saqlashni belgilang (KEEP_DATA_PERIOD_DAYS).",
@@ -2039,6 +2062,13 @@
     "create_error": "Ish maydonini yaratib bo'lmadi",
     "create_first": "Ish maydoni yaratish",
     "creating": "Yaratilmoqda...",
+    "deletion": {
+      "cancel": "O'chirishni bekor qilish",
+      "cancel_failed": "O'chirishni bekor qilib bo'lmadi",
+      "cancelled": "O'chirish bekor qilindi",
+      "member_message": "Bu ish maydoni {{date}} kuni o'chiriladi. Uning kuzatishlari ishlamaydi, holat sahifalari esa mavjud bo'lmaydi. Ega shu vaqtgacha o'chirishni bekor qilishi mumkin.",
+      "message": "Bu ish maydoni {{date}} kuni o'chiriladi. Uning kuzatishlari ishlamaydi, holat sahifalari esa mavjud bo'lmaydi. Siz shu vaqtgacha o'chirishni bekor qilishingiz mumkin."
+    },
     "enter": "Ish maydonini ochish",
     "entering": "Ochilmoqda...",
     "entry_failed": "Ish maydoni yaratildi, lekin uni ochib bo‘lmadi. Qayta urinib ko‘ring.",

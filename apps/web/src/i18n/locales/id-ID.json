@@ -1752,6 +1752,20 @@
     "search_placeholder": "Cari proksi berdasarkan host..."
   },
   "security": {
+    "delete_account": {
+      "button": "Hapus akun",
+      "description": "Menghapus akun Anda dan mengakhiri sesi Anda. Anda keluar dari semua ruang kerja yang Anda ikuti. Tindakan ini tidak dapat dibatalkan.",
+      "dialog_description": "Akun Anda langsung dihapus dan Anda keluar. Anda keluar dari semua ruang kerja yang Anda ikuti. Tindakan ini tidak dapat dibatalkan.",
+      "errors": {
+        "last_instance_admin": "Anda adalah admin instans terakhir di instalasi ini. Diperlukan admin instans lain sebelum Anda dapat menghapus akun Anda.",
+        "last_owner": "Anda satu-satunya pemilik {{workspaces}}. Jadikan anggota lain sebagai pemilik, atau hapus ruang kerja terlebih dahulu.",
+        "wrong_password": "Kata sandi salah"
+      },
+      "failed": "Gagal menghapus akun",
+      "password_label": "Kata sandi Anda",
+      "success": "Akun Anda telah dihapus",
+      "title": "Hapus akun"
+    },
     "enable_2fa": {
       "form": {
         "authenticator_code_label": "Kode Authenticator",
@@ -1874,6 +1888,15 @@
     "to_email_label": "Email Tujuan"
   },
   "settings": {
+    "danger_zone": {
+      "button": "Hapus ruang kerja",
+      "description": "Menghapus ruang kerja ini menghapus semua isinya secara permanen: pengawasan, detak jantung, halaman status, dan lainnya. Penghapusan terjadi 7 hari setelah Anda mengonfirmasi. Pengawasannya langsung berhenti, dan pemilik dapat membatalkan penghapusan hingga saat itu.",
+      "dialog_description": "Ini menghapus {{name}} beserta semua isinya, 7 hari dari sekarang. Pengawasannya langsung berhenti, dan Anda dapat membatalkan penghapusan hingga saat itu.",
+      "failed": "Gagal menjadwalkan penghapusan",
+      "name_label": "Ketik nama ruang kerja, {{name}}, untuk mengonfirmasi",
+      "scheduled": "Ruang kerja ini akan dihapus pada {{date}}. Pengawasannya tidak berjalan hingga saat itu. Batalkan penghapusan untuk memulihkan semuanya.",
+      "title": "Zona berbahaya"
+    },
     "data_retention": {
       "days_label": "Hari",
       "description": "Tetapkan berapa hari data akan disimpan (KEEP_DATA_PERIOD_DAYS).",
@@ -2040,6 +2063,13 @@
     "create_error": "Gagal membuat ruang kerja",
     "create_first": "Buat ruang kerja",
     "creating": "Membuat...",
+    "deletion": {
+      "cancel": "Batalkan penghapusan",
+      "cancel_failed": "Gagal membatalkan penghapusan",
+      "cancelled": "Penghapusan dibatalkan",
+      "member_message": "Ruang kerja ini akan dihapus pada {{date}}. Pengawasannya tidak berjalan, dan halaman statusnya tidak tersedia. Pemilik dapat membatalkan penghapusan hingga saat itu.",
+      "message": "Ruang kerja ini akan dihapus pada {{date}}. Pengawasannya tidak berjalan, dan halaman statusnya tidak tersedia. Anda dapat membatalkan penghapusan hingga saat itu."
+    },
     "enter": "Buka ruang kerja",
     "entering": "Membuka...",
     "entry_failed": "Ruang kerja berhasil dibuat, tetapi gagal dibuka. Coba lagi.",
