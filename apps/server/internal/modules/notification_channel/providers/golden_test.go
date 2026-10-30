@@ -535,6 +535,12 @@ var goldenCases = []goldenCase{
 	{name: "teams_probe_offline", sender: teams, event: probeOfflineEvent,
 		config: `{"webhook_url": "https://example.powerplatform.com/workflows/1?sig=s"}`},
 
+	{name: "teams_down_without_monitor", sender: teams, event: downWithoutMonitorEvent,
+		config: `{"webhook_url": "https://example.powerplatform.com/workflows/1?sig=s"}`},
+	{name: "teams_down_monitor_without_name", sender: teams,
+		notify: notifying(goldenDown.Msg, goldenMonitorWith(func(m *monitor.Model) { m.Name = "" }), goldenDown),
+		config: `{"webhook_url": "https://example.powerplatform.com/workflows/1?sig=s"}`},
+
 	{name: "telegram_down", sender: telegram, event: downEvent,
 		config: `{"bot_token": "123456:bot-token", "chat_id": "-1001234"}`},
 	{name: "telegram_template_up", sender: telegram, event: upEvent,
