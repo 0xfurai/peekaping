@@ -261,7 +261,8 @@ func (c *Controller) UpdatePassword(ctx context.Context, input *UpdatePasswordIn
 }
 
 // DeleteAccount deletes the signed-in user's own account after they enter their password: 400 for a
-// wrong one, 409 for the last instance admin and for the last owner of a workspace
+// wrong one, 401 for a user who is gone, 409 for the last instance admin and for the last owner of a
+// workspace
 func (c *Controller) DeleteAccount(ctx context.Context, input *DeleteAccountInput) (*httpx.Output[httpx.NoBody], error) {
 	userId, exists := httpx.Lookup(ctx, "userId")
 	if !exists {
@@ -283,6 +284,10 @@ func (c *Controller) DeleteAccount(ctx context.Context, input *DeleteAccountInpu
 func (c *Controller) failDeleteAccount(err error) error {
 	if errors.Is(err, ErrWrongPassword) {
 		return httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
+	}
+	if errors.Is(err, ErrUserNotFound) {
+		// The signed-in user is gone: as Me and the verification resend answer for such a session
+		return httpx.Fail(http.StatusUnauthorized, utils.NewFailResponse("Unauthorized"))
 	}
 	if answer := FailAccountRemoval(err); answer != nil {
 		return answer

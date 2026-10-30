@@ -86,3 +86,26 @@ func TestController_Register_AnUnexpectedFailureIsStillLoggedAsAnError(t *testin
 	assert.Equal(t, zapcore.ErrorLevel, logs[0].Level)
 	assert.Equal(t, "Failed to register", logs[0].Message)
 }
+
+// deleteFailing is the service whose DeleteAccount fails with err
+type deleteFailing struct {
+	auth.Service
+	err error
+}
+
+func (s deleteFailing) DeleteAccount(context.Context, string, string) error { return s.err }
+
+func TestController_DeleteAccount_AUserWhoIsGoneIsUnauthorizedAsElsewhereInTheModule(t *testing.T) {
+	validation.InitializeValidator()
+	core, recorded := observer.New(zapcore.DebugLevel)
+	controller := auth.NewController(deleteFailing{err: auth.ErrUserNotFound}, nil, nil, nil, zap.New(core).Sugar())
+	req := httptest.NewRequest(http.MethodDelete, "/api/v1/auth/account", strings.NewReader(`{"password":"Correct-horse-1"}`))
+	req = httpx.WithValue(req, "userId", "6f0c9a52-0d37-4d3f-9a0e-4b5d4f1d9c11")
+
+	_, got := controller.DeleteAccount(req.Context(), &auth.DeleteAccountInput{Request: req})
+
+	var failure *httpx.ResponseError
+	require.ErrorAs(t, got, &failure)
+	assert.Equal(t, http.StatusUnauthorized, failure.Status)
+	assert.Empty(t, recorded.All(), "no error of the server")
+}
