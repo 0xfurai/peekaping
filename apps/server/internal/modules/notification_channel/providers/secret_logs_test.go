@@ -1,6 +1,7 @@
 package providers
 
 import (
+	"cmp"
 	"context"
 	"fmt"
 	"io"
@@ -47,6 +48,10 @@ func TestSenders_DoNotLogSecretURLs(t *testing.T) {
 		secrets func(serverURL string) []string
 		// channel is how the logs name the channel
 		channel string
+		// sentLog is what the logs say once the send went through, when it isn't "<channel> notification sent"
+		sentLog string
+		// logsHost is set when the logs must still say which host the send went to
+		logsHost bool
 	}{
 		{
 			name: "telegram",
@@ -110,14 +115,44 @@ func TestSenders_DoNotLogSecretURLs(t *testing.T) {
 			channel: "ntfy",
 		},
 		{
-			// PagerDuty's URL is a public endpoint; its integration key is the credential
+			// PagerDuty's integration URL can carry userinfo and a query, and its key is the credential
 			name: "pagerduty",
 			send: func(logger *zap.SugaredLogger, serverURL string) error {
-				cfg := `{"pagerduty_integration_key": "secret-pd-key", "pagerduty_integration_url": "` + serverURL + `/v2/enqueue"}`
+				cfg := `{"pagerduty_integration_key": "secret-pd-key", "pagerduty_integration_url": "` +
+					withUserinfo(serverURL, "pd-user:secret-pd-pass") + `/v2/enqueue?routing=secret-pd-query"}`
 				return NewPagerDutySender(logger, installsettings.Static(&config.Config{}), NewHTTPClient()).Send(context.Background(), cfg, "Monitor is down", testMonitor(), testHeartbeat())
 			},
-			secrets: func(string) []string { return []string{"secret-pd-key"} },
-			channel: "pagerduty",
+			secrets: func(serverURL string) []string {
+				return []string{"secret-pd-key", "secret-pd-pass", "secret-pd-query", "/v2/enqueue", serverURL}
+			},
+			channel:  "pagerduty",
+			logsHost: true,
+		},
+		{
+			name: "signal",
+			send: func(logger *zap.SugaredLogger, serverURL string) error {
+				cfg := `{"signal_url": "` + withUserinfo(serverURL, "sig-user:secret-signal-pass") + `/v2/send?apikey=secret-signal-query",` +
+					` "signal_number": "+10000000000", "signal_recipients": "+10000000001"}`
+				return NewSignalSender(logger, NewHTTPClient()).Send(context.Background(), cfg, "Monitor is down", testMonitor(), testHeartbeat())
+			},
+			secrets: func(serverURL string) []string {
+				return []string{"secret-signal-pass", "secret-signal-query", "/v2/send", serverURL}
+			},
+			channel:  "signal",
+			sentLog:  "signal message sent",
+			logsHost: true,
+		},
+		{
+			name: "gotify",
+			send: func(logger *zap.SugaredLogger, serverURL string) error {
+				cfg := `{"server_url": "` + withUserinfo(serverURL, "got-user:secret-gotify-pass") + `/secret-gotify-path", "application_token": "secret-gotify-token"}`
+				return NewGotifySender(logger, NewHTTPClient()).Send(context.Background(), cfg, "Monitor is down", testMonitor(), testHeartbeat())
+			},
+			secrets: func(serverURL string) []string {
+				return []string{"secret-gotify-pass", "secret-gotify-path", "secret-gotify-token", serverURL}
+			},
+			channel:  "gotify",
+			logsHost: true,
 		},
 	}
 
@@ -135,9 +170,45 @@ func TestSenders_DoNotLogSecretURLs(t *testing.T) {
 			for _, secret := range tc.secrets(server.URL) {
 				assert.NotContains(t, logged, secret)
 			}
-			assert.Contains(t, strings.ToLower(logged), tc.channel+" notification sent", "the log says which channel the send went to and that it succeeded")
+			sentLog := cmp.Or(tc.sentLog, tc.channel+" notification sent")
+			assert.Contains(t, strings.ToLower(logged), sentLog, "the log says which channel the send went to and that it succeeded")
+			if tc.logsHost {
+				assert.Contains(t, logged, strings.TrimPrefix(server.URL, "http://"), "the log says which host the send went to")
+			}
 		})
 	}
+}
+
+// Opsgenie sends to a fixed endpoint of its region, and an Up alert closes the alert named after
+// the monitor: that URL has a path and a query, and the logs name only its host
+func TestOpsgenieSender_LogsOnlyTheHostOfItsRequests(t *testing.T) {
+	var requested []string
+	client := &http.Client{Transport: urlNotingTransport{urls: &requested}}
+	core, logs := observer.New(zap.DebugLevel)
+	up := &heartbeat.Model{MonitorID: "mon-1", Status: shared.MonitorStatusUp}
+
+	err := NewOpsgenieSender(zap.New(core).Sugar(), client).Send(context.Background(),
+		`{"region": "eu", "api_key": "secret-opsgenie-key", "priority": 3}`, "Monitor is up", testMonitor(), up)
+
+	require.NoError(t, err)
+	require.Len(t, requested, 1)
+	assert.Contains(t, requested[0], "identifierType=alias", "the send still goes to the close URL")
+	logged := loggedText(logs)
+	for _, secret := range []string{"secret-opsgenie-key", "identifierType", "/close", "/v2/alerts"} {
+		assert.NotContains(t, logged, secret)
+	}
+	assert.Contains(t, logged, "api.eu.opsgenie.com", "the log says which host the send went to")
+}
+
+// A URL that does not parse could hold a password anywhere, so the logs show none of it
+func TestSignalSender_UnparsableURLIsNotLogged(t *testing.T) {
+	core, logs := observer.New(zap.DebugLevel)
+	cfg := `{"signal_url": "http://user:secret-bad-pass@bad host/v2/send", "signal_number": "+10000000000", "signal_recipients": "+10000000001"}`
+
+	err := NewSignalSender(zap.New(core).Sugar(), &http.Client{Transport: stubTransport{}}).Send(context.Background(), cfg, "Monitor is down", testMonitor(), testHeartbeat())
+
+	require.Error(t, err)
+	assert.NotContains(t, loggedText(logs), "secret-bad-pass")
 }
 
 // An email send must write nothing to stdout, and must leave the message (recipient, subject and
@@ -176,6 +247,19 @@ func captureStdout(t *testing.T, fn func()) string {
 	out, err := io.ReadAll(reader)
 	require.NoError(t, err)
 	return string(out)
+}
+
+// withUserinfo is serverURL with userinfo (user:password) in front of its host
+func withUserinfo(serverURL, userinfo string) string {
+	return strings.Replace(serverURL, "://", "://"+userinfo+"@", 1)
+}
+
+// urlNotingTransport answers every request with 200 and notes its URL
+type urlNotingTransport struct{ urls *[]string }
+
+func (r urlNotingTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	*r.urls = append(*r.urls, req.URL.String())
+	return stubTransport{}.RoundTrip(req)
 }
 
 // ntfyServerURLWithUserinfo is serverURL with credentials in front of its host

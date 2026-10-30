@@ -131,7 +131,7 @@ func (g *GotifySender) Send(
 	req.Header.Set("User-Agent", "Peekaping-Gotify/"+version.Version)
 
 	// Send request
-	g.logger.Infof("Sending Gotify notification to %s", serverURL)
+	g.logger.Infof("Sending Gotify notification to %s", logHost(serverURL))
 	resp, err := g.client.Do(req)
 	if err != nil {
 		return fmt.Errorf("failed to send Gotify request: %w", err)
@@ -143,6 +143,6 @@ func (g *GotifySender) Send(
 		return fmt.Errorf("Gotify request failed with status %d", resp.StatusCode)
 	}
 
-	g.logger.Infof("Gotify notification sent successfully to %s", serverURL)
+	g.logger.Infof("Gotify notification sent successfully to %s", logHost(serverURL))
 	return nil
 }
