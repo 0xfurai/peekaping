@@ -3,6 +3,7 @@ import { useLocation } from "react-router-dom";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { useCancelWorkspaceDeletion } from "@/hooks/useCancelWorkspaceDeletion";
+import { useTimezone } from "@/context/timezone-context";
 import { useCurrentWorkspace } from "@/hooks/useCurrentWorkspace";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 import { deletionNotice, formatDeletionDate } from "@/lib/workspace-deletion";
@@ -38,7 +39,8 @@ export function WorkspaceDeletionBannerView({
   onCancel: () => void;
 }) {
   const { t, i18n } = useLocalizedTranslation();
-  const date = formatDeletionDate(scheduledAt, i18n.language);
+  const { timezone } = useTimezone();
+  const date = formatDeletionDate(scheduledAt, i18n.language, timezone);
   return (
     <Alert variant="destructive">
       <Trash2 className="h-4 w-4" />
