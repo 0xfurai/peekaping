@@ -197,6 +197,27 @@ func (r *SQLRepositoryImpl) FindByMonitorIDPaginated(
 	return models, nil
 }
 
+func (r *SQLRepositoryImpl) FindExportPage(ctx context.Context, workspaceID workspace.ID, monitorID string, after *ExportCursor, limit int) ([]*Model, error) {
+	var sms []*sqlModel
+	query := dbtx.DB(ctx, r.db).NewSelect().
+		Model(&sms).
+		Where("h.monitor_id = ?", monitorID).
+		Where("EXISTS (SELECT 1 FROM monitors AS m WHERE m.id = h.monitor_id AND m.workspace_id = ?)", string(workspaceID)).
+		OrderExpr("h.time ASC, h.id ASC").
+		Limit(limit)
+	if after != nil {
+		query = query.Where("(h.time > ? OR (h.time = ? AND h.id > ?))", after.Time, after.Time, after.ID)
+	}
+	if err := query.Scan(ctx); err != nil {
+		return nil, err
+	}
+	models := make([]*Model, len(sms))
+	for i, sm := range sms {
+		models[i] = toDomainModelFromSQL(sm)
+	}
+	return models, nil
+}
+
 func (r *SQLRepositoryImpl) FindUptimeStatsByMonitorID(
 	ctx context.Context,
 	monitorID string,

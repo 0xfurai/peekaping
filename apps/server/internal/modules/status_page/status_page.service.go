@@ -50,6 +50,13 @@ type Service interface {
 	FindAll(ctx context.Context, workspaceID workspace.ID, page int, limit int, q string) ([]*Model, error)
 	// FindAllAnyWorkspace lists the pages of every workspace: the usage ping describes the install
 	FindAllAnyWorkspace(ctx context.Context, page int, limit int) ([]*Model, error)
+	// CreateWithLinks is Create for a caller that makes pages inside a transaction of its own
+	// (dbtx), such as an import: the page, its domains and its monitor links are written together,
+	// on that transaction, and a link that can't be written fails the call. Without a transaction
+	// in ctx it opens one.
+	CreateWithLinks(ctx context.Context, workspaceID workspace.ID, dto *CreateStatusPageDTO) (*Model, error)
+	// SlugTaken is whether a page of any workspace has the slug: slugs are unique across the install
+	SlugTaken(ctx context.Context, slug string) (bool, error)
 	// Update changes the page. Like Create, it refuses a monitor that isn't in the workspace before
 	// it writes anything.
 	Update(ctx context.Context, workspaceID workspace.ID, id string, dto *UpdateStatusPageDTO) (*Model, error)
@@ -303,6 +310,51 @@ func (s *ServiceImpl) validateDomains(ctx context.Context, statusPageID string, 
 }
 
 func (s *ServiceImpl) Create(ctx context.Context, workspaceID workspace.ID, dto *CreateStatusPageDTO) (*Model, error) {
+	created, err := s.createPage(ctx, workspaceID, dto)
+	if err != nil {
+		return nil, err
+	}
+
+	s.addMonitors(ctx, created.ID, dto.MonitorIDs)
+
+	return created, nil
+}
+
+// CreateWithLinks is Create for a caller with a transaction of its own: the page, its domains and
+// its monitor links are written together, and a link that can't be written fails the call
+func (s *ServiceImpl) CreateWithLinks(ctx context.Context, workspaceID workspace.ID, dto *CreateStatusPageDTO) (*Model, error) {
+	var created *Model
+	err := s.inTx(ctx, func(ctx context.Context) error {
+		var err error
+		if created, err = s.createPage(ctx, workspaceID, dto); err != nil {
+			return err
+		}
+		for i, monitorID := range dto.MonitorIDs {
+			if _, err := s.monitorStatusPageService.AddMonitorToStatusPage(ctx, created.ID, monitorID, i, true); err != nil {
+				return fmt.Errorf("add monitor %s to the status page: %w", monitorID, err)
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return created, nil
+}
+
+// SlugTaken is whether a page of any workspace has the slug
+func (s *ServiceImpl) SlugTaken(ctx context.Context, slug string) (bool, error) {
+	var taken *SlugAlreadyUsedError
+	err := s.validateSlug(ctx, "", slug)
+	if errors.As(err, &taken) {
+		return true, nil
+	}
+	return false, err
+}
+
+// createPage checks the page and writes it with its domains, in one transaction when the service
+// has a transactor. It writes no monitor links.
+func (s *ServiceImpl) createPage(ctx context.Context, workspaceID workspace.ID, dto *CreateStatusPageDTO) (*Model, error) {
 	dto.MonitorIDs = utils.LowerUUIDs(dto.MonitorIDs)
 	domains, err := s.checkNewPage(ctx, workspaceID, dto)
 	if err != nil {
@@ -325,14 +377,7 @@ func (s *ServiceImpl) Create(ctx context.Context, workspaceID workspace.ID, dto 
 	if err != nil {
 		return nil, err
 	}
-	created, err := s.createWithDomains(ctx, workspaceID, model, domains, workspaceLimits)
-	if err != nil {
-		return nil, err
-	}
-
-	s.addMonitors(ctx, created.ID, dto.MonitorIDs)
-
-	return created, nil
+	return s.createWithDomains(ctx, workspaceID, model, domains, workspaceLimits)
 }
 
 // checkNewPage checks what a new page asks for before anything is written, and returns its domains

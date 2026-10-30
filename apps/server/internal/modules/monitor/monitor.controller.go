@@ -20,7 +20,6 @@ import (
 	"peekaping/internal/validation"
 	"slices"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/go-playground/validator/v10"
@@ -36,11 +35,6 @@ type MonitorController struct {
 	staleStore                 stale.Store
 }
 
-// registerDtoValidation registers the DTO's rule on the shared validator once. The validator's
-// Register methods are not safe while another goroutine validates, and the API tests build many
-// servers in one process while others serve requests.
-var registerDtoValidation sync.Once
-
 func NewMonitorController(
 	monitorService Service,
 	logger *zap.SugaredLogger,
@@ -49,9 +43,7 @@ func NewMonitorController(
 	tlsInfoService monitor_tls_info.Service,
 	staleStore stale.Store,
 ) *MonitorController {
-	registerDtoValidation.Do(func() {
-		validation.Validate.RegisterStructValidation(CreateUpdateDtoStructLevelValidation, CreateUpdateDto{})
-	})
+	registerDtoRules()
 
 	return &MonitorController{
 		monitorService,

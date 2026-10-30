@@ -40,6 +40,13 @@ func (f *monitorFeed) add(m shared.Monitor) {
 	f.seen = append(f.seen, m)
 }
 
+// seenMonitors returns the monitors the subscriber has been told about, oldest first.
+func (f *monitorFeed) seenMonitors() []shared.Monitor {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	return slices.Clone(f.seen)
+}
+
 // names returns the names of the monitors the subscriber has been told about, oldest first.
 func (f *monitorFeed) names() []string {
 	f.mu.Lock()

@@ -73,6 +73,7 @@ var anyWorkspaceCallers = map[string]string{
 	"internal/modules/monitor.MonitorServiceImpl.find":                         "the monitor service's one lookup serves a request (with its workspace) and a background job (without)",
 	"internal/modules/monitor.MonitorServiceImpl.updatePartial":                "a background update (no workspace) changes a status and never links",
 	"internal/modules/monitor.MonitorServiceImpl.repairStoredStatus":           "status repair at startup repairs the monitors of every workspace",
+	"internal/modules/monitor.MonitorServiceImpl.PushTokenTaken":               "a workspace import asks whether a push token of the file is held by a monitor of any workspace, since tokens are unique across the install (PP-170)",
 	"cmd/api.startJobs":       "startup repair of stored statuses covers every workspace",
 	"cmd/peekaping.startJobs": "startup repair of stored statuses covers every workspace",
 	// notification listener

@@ -29,6 +29,7 @@ import (
 	"peekaping/internal/modules/telemetry"
 	"peekaping/internal/modules/websocket"
 	"peekaping/internal/modules/workspace/workspacehttp"
+	"peekaping/internal/modules/workspaceport"
 	"peekaping/internal/probeproto"
 	"peekaping/internal/version"
 
@@ -82,9 +83,18 @@ type Server struct {
 	Cfg    *config.Config
 }
 
-// maxRequestBody is the most a request to the API may send, 1 MiB: no route takes more. A route
-// with a smaller limit of its own keeps it.
+// maxRequestBody is the most a request to the API may send, 1 MiB: no route takes more but the
+// import of a workspace (requestBodyLimit). A route with a smaller limit of its own keeps it.
 const maxRequestBody = 1 << 20
+
+// requestBodyLimit is the most the request may send: maxRequestBody, and more for the import of a
+// workspace, whose body is the whole setup in one file
+func requestBodyLimit(r *http.Request) int64 {
+	if r.Method == http.MethodPost && r.URL.Path == "/api/v1/"+workspaceport.ImportPath {
+		return workspaceport.MaxImportBody
+	}
+	return maxRequestBody
+}
 
 // ProvideTrustedProxies parses TRUSTED_PROXIES, which stops startup when an entry is invalid.
 func ProvideTrustedProxies(cfg *config.Config) (*httpx.TrustedProxies, error) {
@@ -136,12 +146,14 @@ func ProvideServer(
 	probeProtocolController *protocol.Controller,
 	workspaceRoute *workspacehttp.Route,
 	workspaceController *workspacehttp.Controller,
+	workspacePortRoute *workspaceport.Route,
+	workspacePortController *workspaceport.Controller,
 	adminRoute *admin.Route,
 	adminController *admin.Controller,
 	staleStore stale.Store,
 	metricsCollector *metrics.Collector,
 ) *Server {
-	server := httpx.NewRouter(httpx.RequestID, httpx.Logger(logger, trustedProxies), httpx.Recovery(logger), httpx.CORS(corsOrigins), httpx.LimitBody(maxRequestBody))
+	server := httpx.NewRouter(httpx.RequestID, httpx.Logger(logger, trustedProxies), httpx.Recovery(logger), httpx.CORS(corsOrigins), httpx.LimitBodyBy(requestBodyLimit))
 
 	healthHandler := newHealthHandler(staleStore, logger)
 	httpx.Register(server, "GET", "/health", huma.Operation{Summary: "Get server health", Tags: []string{"System"}}, healthHandler)
@@ -170,6 +182,7 @@ func ProvideServer(
 	badgeRoute.ConnectRoute(router, badgeController)
 	apiKeyRoute.ConnectRoute(router, apiKeyController)
 	workspaceRoute.ConnectRoute(router, workspaceController)
+	workspacePortRoute.ConnectRoute(router, workspacePortController)
 	adminRoute.ConnectRoute(router, adminController)
 	probeRoute.ConnectRoute(router, probeController)
 

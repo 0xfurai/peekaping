@@ -126,3 +126,13 @@ func (dto *PartialUpdateDto) toModel() *UpdateModel {
 		Duration:      dto.Duration,
 	}
 }
+
+// dtoOf is the create route's body for a window, to hold it to the rules of the DTO
+func dtoOf(m *Model) *CreateUpdateDto {
+	return &CreateUpdateDto{
+		Title: m.Title, Description: m.Description, Active: m.Active, Strategy: m.Strategy,
+		StartDateTime: m.StartDateTime, EndDateTime: m.EndDateTime, StartTime: m.StartTime, EndTime: m.EndTime,
+		Weekdays: m.Weekdays, DaysOfMonth: m.DaysOfMonth, IntervalDay: m.IntervalDay,
+		Cron: m.Cron, Timezone: m.Timezone, Duration: m.Duration,
+	}
+}

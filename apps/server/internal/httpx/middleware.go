@@ -82,8 +82,15 @@ func Logger(logger *zap.SugaredLogger, proxies *TrustedProxies) Middleware {
 // passes max bytes, so that a handler (or a guard that reads the body before it) never holds
 // more than that.
 func LimitBody(max int64) Middleware {
+	return LimitBodyBy(func(*http.Request) int64 { return max })
+}
+
+// LimitBodyBy is LimitBody with a limit that depends on the request, for the few routes whose body is
+// allowed to be bigger than the rest
+func LimitBodyBy(limit func(*http.Request) int64) Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			max := limit(r)
 			if r.ContentLength > max {
 				JSON(w, http.StatusRequestEntityTooLarge, ErrorBody{Message: "request body too large"})
 				return
@@ -123,7 +130,7 @@ func CORS(origins *CORSOrigins) Middleware {
 				w.WriteHeader(http.StatusNoContent)
 				return
 			}
-			w.Header().Set("Access-Control-Expose-Headers", "Authorization, X-Request-ID, Retry-After")
+			w.Header().Set("Access-Control-Expose-Headers", "Authorization, X-Request-ID, Retry-After, Content-Disposition")
 			next.ServeHTTP(w, r)
 		})
 	}

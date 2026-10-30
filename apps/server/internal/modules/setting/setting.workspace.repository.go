@@ -6,6 +6,7 @@ import (
 	"errors"
 	"time"
 
+	"peekaping/internal/dbtx"
 	"peekaping/internal/modules/workspace"
 
 	"github.com/uptrace/bun"
@@ -45,7 +46,7 @@ func NewSQLWorkspaceRepository(db *bun.DB) WorkspaceRepository {
 
 func (r *SQLWorkspaceRepositoryImpl) GetByKey(ctx context.Context, workspaceID workspace.ID, key string) (*Model, error) {
 	sm := new(sqlWorkspaceModel)
-	err := r.db.NewSelect().Model(sm).Where("workspace_id = ?", string(workspaceID)).Where("key = ?", key).Scan(ctx)
+	err := dbtx.DB(ctx, r.db).NewSelect().Model(sm).Where("workspace_id = ?", string(workspaceID)).Where("key = ?", key).Scan(ctx)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
@@ -59,7 +60,7 @@ func (r *SQLWorkspaceRepositoryImpl) SetByKey(ctx context.Context, workspaceID w
 	now := time.Now().UTC()
 	sm := &sqlWorkspaceModel{WorkspaceID: string(workspaceID), Key: key, Value: entity.Value, Type: entity.Type, CreatedAt: now, UpdatedAt: now}
 	// One statement, so two writers of the same key can't both miss the row and insert it
-	_, err := r.db.NewInsert().Model(sm).
+	_, err := dbtx.DB(ctx, r.db).NewInsert().Model(sm).
 		On("CONFLICT (workspace_id, key) DO UPDATE").
 		Set("value = EXCLUDED.value").
 		Set("type = EXCLUDED.type").
@@ -72,6 +73,6 @@ func (r *SQLWorkspaceRepositoryImpl) SetByKey(ctx context.Context, workspaceID w
 }
 
 func (r *SQLWorkspaceRepositoryImpl) DeleteByKey(ctx context.Context, workspaceID workspace.ID, key string) error {
-	_, err := r.db.NewDelete().Model((*sqlWorkspaceModel)(nil)).Where("workspace_id = ?", string(workspaceID)).Where("key = ?", key).Exec(ctx)
+	_, err := dbtx.DB(ctx, r.db).NewDelete().Model((*sqlWorkspaceModel)(nil)).Where("workspace_id = ?", string(workspaceID)).Where("key = ?", key).Exec(ctx)
 	return err
 }

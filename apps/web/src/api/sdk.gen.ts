@@ -341,6 +341,15 @@ import type {
   PostWorkspaceDeletionData,
   PostWorkspaceDeletionResponses,
   PostWorkspaceDeletionErrors,
+  GetWorkspaceExportData,
+  GetWorkspaceExportResponses,
+  GetWorkspaceExportErrors,
+  GetWorkspaceExportHeartbeatsData,
+  GetWorkspaceExportHeartbeatsResponses,
+  GetWorkspaceExportHeartbeatsErrors,
+  PostWorkspaceImportData,
+  PostWorkspaceImportResponses,
+  PostWorkspaceImportErrors,
   GetWorkspaceInvitesData,
   GetWorkspaceInvitesResponses,
   GetWorkspaceInvitesErrors,
@@ -3349,6 +3358,84 @@ export const postWorkspaceDeletion = <ThrowOnError extends boolean = false>(
       },
     ],
     url: "/api/v1/workspace/deletion",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
+  });
+};
+
+/**
+ * Download the workspace's setup
+ * An owner of the workspace downloads one JSON file (peekaping-workspace-<date>.json) with its settings, tags, proxies, notification channels, monitors, maintenance windows and status pages, and the links between them. Records point to each other by ref, not by database ID. The file holds saved secrets in full (containsSecrets is always true), and each channel and proxy lists which of its fields are sensitive: keep the file as safe as the secrets are. Monitor and channel configs are JSON objects. It holds no members, invites, API keys, stats, probe assignments or heartbeats. Only a signed-in owner may download it: an admin or a member is refused (403), and so is an API key (401), since a download is a user's act.
+ */
+export const getWorkspaceExport = <ThrowOnError extends boolean = false>(
+  options?: Options<GetWorkspaceExportData, ThrowOnError>
+) => {
+  return (options?.client ?? _heyApiClient).get<
+    GetWorkspaceExportResponses,
+    GetWorkspaceExportErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/api/v1/workspace/export",
+    ...options,
+  });
+};
+
+/**
+ * Download the workspace's heartbeat history
+ * An owner of the workspace downloads the heartbeats of its monitors as NDJSON (peekaping-heartbeats-<date>.ndjson): the first line is a header (format peekaping-heartbeats, version, exportedAt), then one line for each heartbeat, ordered by monitor (as in the workspace document) and then by time. The server streams the file in batches, so a large history is never held in memory. A monitorRef is the ref the monitor has in the workspace document. If the server fails part way, the connection is cut, so a file that ends early is not complete. The same rules as the workspace document apply: owner only, 403 for an admin or a member, 401 for an API key.
+ */
+export const getWorkspaceExportHeartbeats = <
+  ThrowOnError extends boolean = false,
+>(
+  options?: Options<GetWorkspaceExportHeartbeatsData, ThrowOnError>
+) => {
+  return (options?.client ?? _heyApiClient).get<
+    GetWorkspaceExportHeartbeatsResponses,
+    GetWorkspaceExportHeartbeatsErrors,
+    ThrowOnError
+  >({
+    responseType: "blob",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/api/v1/workspace/export/heartbeats",
+    ...options,
+  });
+};
+
+/**
+ * Import a workspace's setup
+ * An owner of the workspace uploads a workspace document (the file of the export route) and its records are added to the workspace in one transaction, beside the ones there. Nothing is written if the file is invalid: format must be peekaping-workspace, version one this server reads, every ref set and used once, every link pointing at a record of the file, and every record valid as the API would take it. All problems come back together (400, code INVALID_WORKSPACE_FILE). What the workspace or the install can't take as it is is changed or left out, and listed in changes, never an error: a tag whose name the workspace has is reused; a proxy or a notification channel the install refuses (private target block, install email channel without a sender or a member recipient) and a monitor of a disabled type or at a blocked target are skipped, with their links; a monitor's proxy that is skipped is dropped; an interval below the minimum is raised to it; a push token that another monitor holds is replaced; active monitors past the plan's limit come in paused; a status page past the plan's limit is skipped, a taken slug gets -2, -3 and so on, and a taken custom domain, or one past the plan's limit, is dropped; a data retention period above the plan's cap is capped. Imported monitors run on the install's default probes. The workspace's name is not changed, and saved secrets are stored as the file has them. Monitors are scheduled once the transaction has committed. The body may be up to 16 MiB. Only a signed-in owner may import: an admin or a member is refused (403), and so is an API key (401).
+ */
+export const postWorkspaceImport = <ThrowOnError extends boolean = false>(
+  options: Options<PostWorkspaceImportData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).post<
+    PostWorkspaceImportResponses,
+    PostWorkspaceImportErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/api/v1/workspace/import",
     ...options,
     headers: {
       "Content-Type": "application/json",

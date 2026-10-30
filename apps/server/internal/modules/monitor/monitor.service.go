@@ -31,6 +31,18 @@ import (
 type Service interface {
 	// Create makes the monitor in the workspace, whatever workspace the monitor says
 	Create(ctx context.Context, workspaceID workspace.ID, monitor *CreateUpdateDto) (*Model, error)
+	// CreateWithoutEvent is Create with the same checks and links that publishes nothing, for a
+	// caller that makes monitors inside a transaction of its own (dbtx): it calls PublishCreated
+	// once that has committed, since an event for a monitor that is rolled back would be a lie.
+	CreateWithoutEvent(ctx context.Context, workspaceID workspace.ID, monitor *CreateUpdateDto) (*Model, error)
+	// PublishCreated publishes a monitor-created event for each monitor, so that the scheduler and
+	// the probes pick them up
+	PublishCreated(ctx context.Context, monitors []*Model)
+	// TypeDisabled is whether the install turns the monitor type off (DISABLED_MONITOR_TYPES)
+	TypeDisabled(monitorType string) bool
+	// PushTokenTaken is whether a monitor of any workspace has the push token: push tokens are
+	// unique across the install
+	PushTokenTaken(ctx context.Context, pushToken string) (bool, error)
 	FindByID(ctx context.Context, workspaceID workspace.ID, id string) (*Model, error)
 	// FindByIDAnyWorkspace is for a path that loads the monitor it was told about, whatever its
 	// workspace: a notification, a public status page, a badge, the probe protocol. The AnyWorkspace
@@ -354,6 +366,20 @@ func (mr *MonitorServiceImpl) atMinimumAll(ctx context.Context, monitors []*Mode
 }
 
 func (mr *MonitorServiceImpl) Create(ctx context.Context, workspaceID workspace.ID, monitorCreateDto *CreateUpdateDto) (*Model, error) {
+	createdModel, err := mr.CreateWithoutEvent(ctx, workspaceID, monitorCreateDto)
+	if err != nil {
+		return nil, err
+	}
+
+	// Emit monitor created event
+	mr.publishMonitor(ctx, events.MonitorCreated, createdModel)
+
+	return createdModel, nil
+}
+
+// CreateWithoutEvent is Create without the monitor-created event: the caller publishes it with
+// PublishCreated once its own transaction has committed
+func (mr *MonitorServiceImpl) CreateWithoutEvent(ctx context.Context, workspaceID workspace.ID, monitorCreateDto *CreateUpdateDto) (*Model, error) {
 	if err := mr.requireTypeEnabled(monitorCreateDto.Type); err != nil {
 		return nil, err
 	}
@@ -381,9 +407,6 @@ func (mr *MonitorServiceImpl) Create(ctx context.Context, workspaceID workspace.
 	if err != nil {
 		return nil, err
 	}
-
-	// Emit monitor created event
-	mr.publishMonitor(ctx, events.MonitorCreated, createdModel)
 
 	return createdModel, nil
 }
@@ -479,6 +502,24 @@ func (mr *MonitorServiceImpl) storeCreated(ctx context.Context, workspaceID work
 		return nil, err
 	}
 	return createdModel, mr.createLinks(ctx, createdModel.ID, monitorCreateDto.NotificationIds, monitorCreateDto.TagIds)
+}
+
+func (mr *MonitorServiceImpl) PublishCreated(ctx context.Context, monitors []*Model) {
+	for _, m := range monitors {
+		mr.publishMonitor(ctx, events.MonitorCreated, m)
+	}
+}
+
+func (mr *MonitorServiceImpl) TypeDisabled(monitorType string) bool {
+	return mr.requireTypeEnabled(monitorType) != nil
+}
+
+func (mr *MonitorServiceImpl) PushTokenTaken(ctx context.Context, pushToken string) (bool, error) {
+	found, err := mr.monitorRepository.FindOneByPushTokenAnyWorkspace(ctx, pushToken)
+	if err != nil {
+		return false, err
+	}
+	return found != nil, nil
 }
 
 func (mr *MonitorServiceImpl) FindByID(ctx context.Context, workspaceID workspace.ID, id string) (*Model, error) {

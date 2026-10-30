@@ -9,6 +9,7 @@ import (
 	"peekaping/internal/modules/maintenance/utils"
 	"peekaping/internal/modules/monitor_maintenance"
 	"peekaping/internal/modules/workspace"
+	"peekaping/internal/validation"
 )
 
 // Service works on maintenance windows, which belong to a workspace (docs/adr/0005 section 3).
@@ -20,6 +21,10 @@ import (
 // whose name ends in AnyWorkspace works across workspaces, for the paths that run for the whole
 // install.
 type Service interface {
+	// Check says whether Create would take the window, without writing anything: the rules the
+	// create route holds a body to, and the cron and duration Create works out. It is nil when it
+	// would, and otherwise says why not.
+	Check(entity *Model) error
 	// Create makes the window in the workspace, whatever workspace the window says
 	Create(ctx context.Context, workspaceID workspace.ID, entity *Model, monitorIDs []string) (*Model, error)
 	FindByID(ctx context.Context, workspaceID workspace.ID, id string) (*Model, error)
@@ -116,6 +121,16 @@ func (mr *ServiceImpl) prepareSchedule(entity *Model) error {
 		entity.Duration = &duration
 	}
 	return nil
+}
+
+// Check says whether the controller and Create would take the window, and changes nothing: the
+// rules of the create route's body, then the cron and duration that Create works out
+func (mr *ServiceImpl) Check(entity *Model) error {
+	if err := validation.Validate.Struct(dtoOf(entity)); err != nil {
+		return err
+	}
+	copied := *entity
+	return mr.prepareSchedule(&copied)
 }
 
 // fillCron generates the cron expression of the schedule into cron, if it has none, for the

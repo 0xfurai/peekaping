@@ -63,6 +63,7 @@ import (
 	"peekaping/internal/modules/websocket"
 	"peekaping/internal/modules/workspace"
 	"peekaping/internal/modules/workspace/workspacehttp"
+	"peekaping/internal/modules/workspaceport"
 	"peekaping/internal/utils"
 
 	"go.uber.org/dig"
@@ -125,6 +126,7 @@ func Register(container *dig.Container, cfg *config.Config) error {
 		api_key.RegisterDependencies(container),
 		workspace.RegisterDependencies(container),
 		workspacehttp.RegisterDependencies(container),
+		workspaceport.RegisterDependencies(container),
 		admin.RegisterDependencies(container),
 		middleware.RegisterDependencies(container),
 		metrics.RegisterDependencies(container),

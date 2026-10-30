@@ -364,6 +364,29 @@ func placeholderValue() json.RawMessage {
 	return json.RawMessage(`"` + secretPlaceholder + `"`)
 }
 
+// SensitiveFields returns, in order, the keys of a channel's config that hold something the API
+// hides from responses: the secrets that are set, and the URL fields whose user info or query
+// values it masks (the same fields redactConfig changes). A channel of a type with no provider
+// can't be told secrets from the rest, so every field that is set counts. A config that isn't a
+// JSON object has none. The keys are those of the config, in the letter case it writes them.
+func SensitiveFields(providers *ProviderRegistry, channelType, config string) []string {
+	keys := []string{}
+	fields, _ := parseConfig(config)
+	provider, _ := providers.Get(channelType)
+	secrets, urls := secretFields(provider), urlCredentialFields(provider)
+	for key, raw := range fields {
+		if provider == nil {
+			if value, isString := stringValue(raw); !isString || value != "" {
+				keys = append(keys, key)
+			}
+		} else if _, changed := redactValue(key, raw, secrets, urls); changed {
+			keys = append(keys, key)
+		}
+	}
+	sort.Strings(keys)
+	return keys
+}
+
 // resolveSecrets returns incoming with each secret sent as the placeholder replaced by the
 // secret the saved config holds, so that saving or testing a channel the API showed with
 // placeholders keeps its secrets. saved is nil when there is no saved channel of the same type
