@@ -121,6 +121,90 @@ With `TRUSTED_PROXIES` empty behind a proxy, every login counts as coming from t
 
 Whatever you set, Peekaping also locks an account after `BRUTEFORCE_ACCOUNT_MAX_ATTEMPTS` failed logins (100 by default) from any addresses within `BRUTEFORCE_ACCOUNT_WINDOW` (10 minutes). A lock lasts `BRUTEFORCE_ACCOUNT_LOCKOUT` (1 minute). The count of failures is kept until the window, measured from the first failure, has passed, so until then each further failure after a lock ends locks the account again. So guessing is bounded to the limit per window plus one attempt each time a lock ends, and after an attack stops the owner is back in within the window at most. An attacker who keeps going can keep the account locked. [API Server](../architecture/api-server.md#security-configuration) lists the lockout settings.
 
+### Custom domains and HTTPS
+
+A status page can be served on a domain of its own, such as `status.example.com`. Add the domain to the page in its form (the Domains field). A visitor who isn't signed in sees the status page at `/` of that host. The domain needs a certificate, which Caddy gets for you. These steps are the same for any domain, and are in addition to [Reverse proxy and HTTPS](#reverse-proxy-and-https), which has the dashboard's own address and `TRUSTED_PROXIES`.
+
+1. **Point the domain at the host.** Create a `CNAME` record from the domain to the host's name, or an `A` (and `AAAA`) record to its address. DNS has to answer before Caddy can get a certificate.
+2. **Open ports 80 and 443** on the host's firewall and any cloud security group. Caddy proves that it controls the domain over them (the ACME challenge), and renews the certificate the same way.
+3. **Choose a Caddyfile**, below.
+
+Where Caddy runs decides how it reaches Peekaping. Caddy on the host uses `localhost:8383`. Caddy in a container, as in the Compose file below, can't: `localhost` is the Caddy container itself. Put both on one Compose network and use the service name, `peekaping:8383`.
+
+#### One Caddyfile entry per domain
+
+This works without anything new in Peekaping. List the dashboard's address and each custom domain. Caddy gets a certificate for each at start. Add a line and reload Caddy (`docker compose exec caddy caddy reload --config /etc/caddy/Caddyfile`) each time you add a domain to a status page.
+
+```
+status.example.com, status.customer.example {
+    reverse_proxy peekaping:8383
+}
+```
+
+#### On-demand TLS
+
+Caddy gets a certificate when a host is first visited, so a new domain needs no change to the Caddyfile. A visitor could point any name at your server, so Caddy first asks Peekaping whether it should serve the host. `GET /api/v1/status-pages/tls-ask?domain=<host>` answers `200` with no body when the domain is on a status page, and `404` otherwise. It needs no login. A domain of a status page that isn't published yet counts, so its certificate is ready when you publish the page. The host is compared in any case and without a trailing dot.
+
+```
+{
+    on_demand_tls {
+        ask http://peekaping:8383/api/v1/status-pages/tls-ask
+    }
+}
+
+# The dashboard's own address is not a status page's domain, so give it its own entry
+app.example.com {
+    reverse_proxy peekaping:8383
+}
+
+# Every other host Caddy is asked for; the ask decides which get a certificate
+https:// {
+    tls {
+        on_demand
+    }
+    reverse_proxy peekaping:8383
+}
+```
+
+With Caddy on the host, write `http://localhost:8383/api/v1/status-pages/tls-ask` and `reverse_proxy localhost:8383` instead. Caddy asks when it has no certificate for a host yet. When the answer is `404`, the TLS handshake fails, so a visitor of an unlisted host gets a certificate error and nothing reaches Peekaping.
+
+#### Caddy in a container
+
+```yaml
+services:
+  peekaping:
+    image: 0xfurai/peekaping:latest
+    restart: unless-stopped
+    stop_grace_period: 35s
+    # No published port: only Caddy reaches Peekaping, over the Compose network
+    environment:
+      - TRUSTED_PROXIES=${TRUSTED_PROXIES-}
+      - CLIENT_URL=https://app.example.com
+    volumes:
+      - ./.data/sqlite:/app/data
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      # Keeps the certificates between restarts
+      - caddy_data:/data
+volumes:
+  caddy_data:
+```
+
+Caddy connects to Peekaping from its address on the Compose network, not from the host's gateway. Set `TRUSTED_PROXIES` to that network's range, so Peekaping reads the client's address from `X-Forwarded-For` (see [Reverse proxy and HTTPS](#reverse-proxy-and-https)). Read the range from the network (the name is your project's name and `_default`):
+
+```bash
+docker network inspect -f '{{range .IPAM.Config}}{{.Subnet}}{{end}}' <project>_default
+```
+
+Leave port 8383 unpublished, as above: then only containers on that network can reach Peekaping, and Caddy is the one that sets `X-Forwarded-For`.
+
 ### Upgrading from a bundle with Redis and Caddy
 
 If you run a bundle from 0.0.44 to 0.0.47, which ran Redis and Caddy inside the container, see [Upgrading to single mode](./upgrading-to-single-mode.md).
