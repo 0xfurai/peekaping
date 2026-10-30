@@ -33,83 +33,87 @@ import (
 func HTTPConfigStructLevelValidation(sl validator.StructLevel) {
 	cfg := sl.Current().Interface().(HTTPConfig)
 
-	switch cfg.Encoding {
-	case "json":
-		if cfg.Body != "" {
-			var js json.RawMessage
-			if err := json.Unmarshal([]byte(cfg.Body), &js); err != nil {
-				sl.ReportError(cfg.Body, "Body", "body", "json", "")
-			}
-		}
-	case "form":
-		if cfg.Body != "" {
-			_, err := url.ParseQuery(cfg.Body)
-			if err != nil {
-				sl.ReportError(cfg.Body, "Body", "body", "form", "")
-			}
-		}
-	case "xml":
-		if cfg.Body != "" {
-			if err := xml.Unmarshal([]byte(cfg.Body), new(interface{})); err != nil {
-				sl.ReportError(cfg.Body, "Body", "body", "xml", "")
-			}
-		}
-	case "text":
-		// No validation needed
-	}
+	validateHTTPBody(sl, cfg)
 
 	// Authentication validation
-	switch cfg.AuthMethod {
-	case "none":
-		// No extra fields required
-	case "basic":
-		if cfg.BasicAuthUser == "" {
-			sl.ReportError(cfg.BasicAuthUser, "BasicAuthUser", "basic_auth_user", "required_with_auth_basic", "")
-		}
-		if cfg.BasicAuthPass == "" {
-			sl.ReportError(cfg.BasicAuthPass, "BasicAuthPass", "basic_auth_pass", "required_with_auth_basic", "")
-		}
-	case "ntlm":
-		if cfg.BasicAuthUser == "" {
-			sl.ReportError(cfg.BasicAuthUser, "BasicAuthUser", "basic_auth_user", "required_with_auth_ntlm", "")
-		}
-		if cfg.BasicAuthPass == "" {
-			sl.ReportError(cfg.BasicAuthPass, "BasicAuthPass", "basic_auth_pass", "required_with_auth_ntlm", "")
-		}
-		if cfg.AuthDomain == "" {
-			sl.ReportError(cfg.AuthDomain, "AuthDomain", "authDomain", "required_with_auth_ntlm", "")
-		}
-		if cfg.AuthWorkstation == "" {
-			sl.ReportError(cfg.AuthWorkstation, "AuthWorkstation", "authWorkstation", "required_with_auth_ntlm", "")
-		}
-	case "oauth2-cc":
-		if cfg.OauthAuthMethod != "client_secret_basic" && cfg.OauthAuthMethod != "client_secret_post" {
-			sl.ReportError(cfg.OauthAuthMethod, "OauthAuthMethod", "oauth_auth_method", "oneof=client_secret_basic client_secret_post", "")
-		}
-		if cfg.OauthTokenUrl == "" {
-			sl.ReportError(cfg.OauthTokenUrl, "OauthTokenUrl", "oauth_token_url", "required_with_auth_oauth2cc", "")
-		} else {
-			_, err := url.ParseRequestURI(cfg.OauthTokenUrl)
-			if err != nil {
-				sl.ReportError(cfg.OauthTokenUrl, "OauthTokenUrl", "oauth_token_url", "url", "")
-			}
-		}
-		if cfg.OauthClientId == "" {
-			sl.ReportError(cfg.OauthClientId, "OauthClientId", "oauth_client_id", "required_with_auth_oauth2cc", "")
-		}
-		if cfg.OauthClientSecret == "" {
-			sl.ReportError(cfg.OauthClientSecret, "OauthClientSecret", "oauth_client_secret", "required_with_auth_oauth2cc", "")
-		}
-		// OauthScopes is optional
-	case "mtls":
-		if cfg.TlsCert == "" {
-			sl.ReportError(cfg.TlsCert, "TlsCert", "tlsCert", "required_with_auth_mtls", "")
-		}
-		if cfg.TlsKey == "" {
-			sl.ReportError(cfg.TlsKey, "TlsKey", "tlsKey", "required_with_auth_mtls", "")
-		}
-		// TlsCa is optional
+	if validate, ok := httpAuthValidators[cfg.AuthMethod]; ok {
+		validate(sl, cfg)
 	}
+}
+
+// httpBodyParsers parse a body of each encoding that has a format to check. The "text" encoding
+// needs no validation.
+var httpBodyParsers = map[string]func(body string) error{
+	"json": func(body string) error {
+		var js json.RawMessage
+		return json.Unmarshal([]byte(body), &js)
+	},
+	"form": func(body string) error {
+		_, err := url.ParseQuery(body)
+		return err
+	},
+	"xml": func(body string) error {
+		return xml.Unmarshal([]byte(body), new(interface{}))
+	},
+}
+
+// validateHTTPBody reports a body that isn't in the format of its encoding
+func validateHTTPBody(sl validator.StructLevel, cfg HTTPConfig) {
+	parse, ok := httpBodyParsers[cfg.Encoding]
+	if !ok || cfg.Body == "" {
+		return
+	}
+	if err := parse(cfg.Body); err != nil {
+		sl.ReportError(cfg.Body, "Body", "body", cfg.Encoding, "")
+	}
+}
+
+// httpAuthValidators check the fields each auth method requires. The "none" method requires none.
+var httpAuthValidators = map[string]func(sl validator.StructLevel, cfg HTTPConfig){
+	"none":      func(sl validator.StructLevel, cfg HTTPConfig) {},
+	"basic":     validateBasicAuth,
+	"ntlm":      validateNTLMAuth,
+	"oauth2-cc": validateOAuth2CCAuth,
+	"mtls":      validateMTLSAuth,
+}
+
+// requireHTTPField reports a field that is empty
+func requireHTTPField(sl validator.StructLevel, value, fieldName, jsonName, tag string) {
+	if value == "" {
+		sl.ReportError(value, fieldName, jsonName, tag, "")
+	}
+}
+
+func validateBasicAuth(sl validator.StructLevel, cfg HTTPConfig) {
+	requireHTTPField(sl, cfg.BasicAuthUser, "BasicAuthUser", "basic_auth_user", "required_with_auth_basic")
+	requireHTTPField(sl, cfg.BasicAuthPass, "BasicAuthPass", "basic_auth_pass", "required_with_auth_basic")
+}
+
+func validateNTLMAuth(sl validator.StructLevel, cfg HTTPConfig) {
+	requireHTTPField(sl, cfg.BasicAuthUser, "BasicAuthUser", "basic_auth_user", "required_with_auth_ntlm")
+	requireHTTPField(sl, cfg.BasicAuthPass, "BasicAuthPass", "basic_auth_pass", "required_with_auth_ntlm")
+	requireHTTPField(sl, cfg.AuthDomain, "AuthDomain", "authDomain", "required_with_auth_ntlm")
+	requireHTTPField(sl, cfg.AuthWorkstation, "AuthWorkstation", "authWorkstation", "required_with_auth_ntlm")
+}
+
+func validateOAuth2CCAuth(sl validator.StructLevel, cfg HTTPConfig) {
+	if cfg.OauthAuthMethod != "client_secret_basic" && cfg.OauthAuthMethod != "client_secret_post" {
+		sl.ReportError(cfg.OauthAuthMethod, "OauthAuthMethod", "oauth_auth_method", "oneof=client_secret_basic client_secret_post", "")
+	}
+	if cfg.OauthTokenUrl == "" {
+		sl.ReportError(cfg.OauthTokenUrl, "OauthTokenUrl", "oauth_token_url", "required_with_auth_oauth2cc", "")
+	} else if _, err := url.ParseRequestURI(cfg.OauthTokenUrl); err != nil {
+		sl.ReportError(cfg.OauthTokenUrl, "OauthTokenUrl", "oauth_token_url", "url", "")
+	}
+	requireHTTPField(sl, cfg.OauthClientId, "OauthClientId", "oauth_client_id", "required_with_auth_oauth2cc")
+	requireHTTPField(sl, cfg.OauthClientSecret, "OauthClientSecret", "oauth_client_secret", "required_with_auth_oauth2cc")
+	// OauthScopes is optional
+}
+
+func validateMTLSAuth(sl validator.StructLevel, cfg HTTPConfig) {
+	requireHTTPField(sl, cfg.TlsCert, "TlsCert", "tlsCert", "required_with_auth_mtls")
+	requireHTTPField(sl, cfg.TlsKey, "TlsKey", "tlsKey", "required_with_auth_mtls")
+	// TlsCa is optional
 }
 
 type HTTPConfig struct {
