@@ -330,9 +330,11 @@ func connectToDatabase(cfg *config.DBConfig) (*bun.DB, error) {
 
 		db = bun.NewDB(sqldb, sqlitedialect.New())
 
-		// These two belong to the database file, not to a connection
-		db.Exec("PRAGMA journal_mode=WAL")
+		// These two belong to the database file, not to a connection. auto_vacuum goes first: on
+		// a new file, the switch to WAL writes the first page, and SQLite then ignores a change
+		// of auto_vacuum until the next VACUUM.
 		db.Exec("PRAGMA auto_vacuum=INCREMENTAL")
+		db.Exec("PRAGMA journal_mode=WAL")
 
 		fmt.Printf("Connected to SQLite database: %s (WAL mode enabled)\n", dbPath)
 

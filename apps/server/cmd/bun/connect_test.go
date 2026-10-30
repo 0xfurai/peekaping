@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"path/filepath"
 	"testing"
@@ -10,6 +11,7 @@ import (
 	"peekaping/internal/config"
 
 	"github.com/uptrace/bun"
+	"github.com/uptrace/bun/driver/sqliteshim"
 )
 
 // migrate opens SQLite with the settings the server uses, on every connection: database/sql
@@ -51,6 +53,56 @@ func TestConnectToDatabase_SQLiteSettingsSurviveACancelledQuery(t *testing.T) {
 	}
 
 	assertSQLiteSettings(t, db, "after a cancelled query")
+}
+
+func autoVacuumOf(t *testing.T, db *bun.DB) int {
+	t.Helper()
+	var autoVacuum int
+	if err := db.NewRaw("PRAGMA auto_vacuum").Scan(context.Background(), &autoVacuum); err != nil {
+		t.Fatalf("read auto_vacuum: %v", err)
+	}
+	return autoVacuum
+}
+
+// A database that bun creates (migrate on a first start) is made with auto_vacuum on: once the
+// switch to WAL has written the first page, SQLite ignores a change of it.
+func TestConnectToDatabase_CreatesANewSQLiteDatabaseWithIncrementalAutoVacuum(t *testing.T) {
+	t.Setenv("BUNDEBUG", "0")
+	db, err := connectToDatabase(&config.DBConfig{DBType: "sqlite", DBName: filepath.Join(t.TempDir(), "peekaping.db")})
+	if err != nil {
+		t.Fatalf("connect: %v", err)
+	}
+	t.Cleanup(func() { _ = db.Close() })
+
+	if got := autoVacuumOf(t, db); got != 2 {
+		t.Errorf("auto_vacuum of a new database: got %d, want 2 (incremental)", got)
+	}
+}
+
+// A database made before this change has auto_vacuum off, and bun leaves it that way
+func TestConnectToDatabase_LeavesAnExistingSQLiteDatabaseWithoutAutoVacuumAsItIs(t *testing.T) {
+	t.Setenv("BUNDEBUG", "0")
+	path := filepath.Join(t.TempDir(), "peekaping.db")
+	old, err := sql.Open(sqliteshim.ShimName, "file:"+path+"?mode=rwc")
+	if err != nil {
+		t.Fatalf("open the old database: %v", err)
+	}
+	if _, err := old.Exec("CREATE TABLE heartbeats (id INTEGER PRIMARY KEY)"); err != nil {
+		t.Fatalf("create the old database: %v", err)
+	}
+	if err := old.Close(); err != nil {
+		t.Fatalf("close the old database: %v", err)
+	}
+
+	db, err := connectToDatabase(&config.DBConfig{DBType: "sqlite", DBName: path})
+	if err != nil {
+		t.Fatalf("connect: %v", err)
+	}
+	t.Cleanup(func() { _ = db.Close() })
+
+	if got := autoVacuumOf(t, db); got != 0 {
+		t.Errorf("auto_vacuum of an old database: got %d, want 0", got)
+	}
 }
 
 func assertSQLiteSettings(t *testing.T, db *bun.DB, when string) {
