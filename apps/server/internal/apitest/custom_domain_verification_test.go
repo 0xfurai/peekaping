@@ -177,6 +177,23 @@ func TestCustomDomainVerification_ATXTRecordVerifiesTheDomain(t *testing.T) {
 	assert.Equal(t, http.StatusOK, ask)
 }
 
+// A domain saved with a trailing dot is served once verified, and the ask finds it asked either way
+func TestCustomDomainVerification_ATrailingDotDomainAnswersTheAskOnceVerified(t *testing.T) {
+	a, dns := newAppWithDNS(t, withVerifiedCustomDomains("peek.example"))
+	id := a.createStatusPage(t, statusPage{slug: "shop", published: true, domains: []string{"status.shop.example."}})
+	for _, host := range []string{"status.shop.example", "status.shop.example."} {
+		assert.Equal(t, http.StatusNotFound, a.request(t, http.MethodGet, tlsAsk(host), nil).Code, "pending, asked as "+host)
+	}
+
+	dns.setCNAME("status.shop.example.", "peek.example.")
+	dns.setCNAME("status.shop.example", "peek.example.")
+	got := decode[domainStatusResponse](t, a.request(t, http.MethodPost, domainVerifyPath(id, "status.shop.example."), nil, a.asAdmin), http.StatusOK)
+	require.Equal(t, "verified", got.State)
+	for _, host := range []string{"status.shop.example", "status.shop.example."} {
+		assert.Equal(t, http.StatusOK, a.request(t, http.MethodGet, tlsAsk(host), nil).Code, "verified, asked as "+host)
+	}
+}
+
 type domainStatusResponse = struct {
 	Domain        string     `json:"domain"`
 	State         string     `json:"state"`
