@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math"
 	"slices"
 
 	"peekaping/internal/modules/shared"
@@ -206,6 +207,13 @@ func validateLocationRule(rule shared.LocationRule, threshold *int, probes int) 
 		return &InvalidLocationRuleError{Err: fmt.Errorf("%q is not a rule: use any, all or at_least", rule)}
 	}
 	return nil
+}
+
+// CheckLocationRuleShape checks a location rule and threshold in themselves, without the probes the
+// monitor will run on: the rule exists, and a threshold goes with at_least alone and is 1 or more.
+// An empty rule is any, as it is on a create.
+func CheckLocationRuleShape(rule shared.LocationRule, threshold *int) error {
+	return validateLocationRule(locationRuleOrAny(rule), threshold, math.MaxInt)
 }
 
 // fullLocationRule is the rule a full update leaves the monitor with. One that sends neither a

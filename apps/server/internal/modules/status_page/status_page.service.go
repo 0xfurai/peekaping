@@ -325,27 +325,10 @@ func (s *ServiceImpl) SlugTaken(ctx context.Context, slug string) (bool, error) 
 // createPage checks the page and writes it with its domains, in one transaction when the service
 // has a transactor. It writes no monitor links.
 func (s *ServiceImpl) createPage(ctx context.Context, workspaceID workspace.ID, dto *CreateStatusPageDTO) (*Model, error) {
-	dto.MonitorIDs = utils.LowerUUIDs(dto.MonitorIDs)
-	// Every monitor must be in the workspace, and is checked before anything is written
-	if err := s.monitorStatusPageService.RequireMonitors(ctx, workspaceID, dto.MonitorIDs); err != nil {
+	domains, err := s.checkNewPage(ctx, workspaceID, dto)
+	if err != nil {
 		return nil, err
 	}
-
-	// The slug is checked before the page is written, and again by the database if another page
-	// takes it in between
-	if err := s.validateSlug(ctx, "", dto.Slug); err != nil {
-		return nil, err
-	}
-
-	// Pre-validate domain uniqueness before creating the status page to avoid
-	// partial creation without domains.
-	domains := normalizedDomains(dto.Domains)
-	if len(domains) > 0 {
-		if err := s.validateDomains(ctx, "", domains); err != nil {
-			return nil, err
-		}
-	}
-
 	model := &Model{
 		Slug:                dto.Slug,
 		Title:               dto.Title,
@@ -374,21 +357,52 @@ func (s *ServiceImpl) createPage(ctx context.Context, workspaceID workspace.ID, 
 		if err != nil {
 			return slugWriteError(err, dto.Slug)
 		}
-		if len(domains) > 0 {
-			s.logger.Debugw("Adding domains to status page", "statusPageID", created.ID, "domains", domains)
-		}
-		for _, domain := range domains {
-			// Since we pre-validate, reaching here likely means a race. Surface error.
-			if err := s.addDomain(ctx, created.ID, domain); err != nil {
-				return err
-			}
-		}
-		return nil
+		return s.addDomains(ctx, created.ID, domains)
 	})
 	if err != nil {
 		return nil, err
 	}
 	return created, nil
+}
+
+// checkNewPage checks what a new page names before anything is written, and returns its domains as
+// they are stored
+func (s *ServiceImpl) checkNewPage(ctx context.Context, workspaceID workspace.ID, dto *CreateStatusPageDTO) ([]string, error) {
+	dto.MonitorIDs = utils.LowerUUIDs(dto.MonitorIDs)
+	// Every monitor must be in the workspace, and is checked before anything is written
+	if err := s.monitorStatusPageService.RequireMonitors(ctx, workspaceID, dto.MonitorIDs); err != nil {
+		return nil, err
+	}
+
+	// The slug is checked before the page is written, and again by the database if another page
+	// takes it in between
+	if err := s.validateSlug(ctx, "", dto.Slug); err != nil {
+		return nil, err
+	}
+
+	// Pre-validate domain uniqueness before creating the status page to avoid
+	// partial creation without domains.
+	domains := normalizedDomains(dto.Domains)
+	if len(domains) > 0 {
+		if err := s.validateDomains(ctx, "", domains); err != nil {
+			return nil, err
+		}
+	}
+	return domains, nil
+}
+
+// addDomains gives the page the domains that the check found free
+func (s *ServiceImpl) addDomains(ctx context.Context, statusPageID string, domains []string) error {
+	if len(domains) > 0 {
+		s.logger.Debugw("Adding domains to status page", "statusPageID", statusPageID, "domains", domains)
+	}
+	for _, domain := range domains {
+		// Since we pre-validate, reaching here likely means a race. Surface error.
+		if err := s.addDomain(ctx, statusPageID, domain); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (s *ServiceImpl) FindByID(ctx context.Context, workspaceID workspace.ID, id string) (*Model, error) {
