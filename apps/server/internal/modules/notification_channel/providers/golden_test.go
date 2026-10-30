@@ -548,6 +548,16 @@ var goldenCases = []goldenCase{
 	{name: "telegram_certificate_expiry", sender: telegram, event: certExpiryEvent,
 		config: `{"bot_token": "123456:bot-token", "chat_id": "-1001234"}`},
 
+	// The template and its parse mode apply only with use_template on, and plain is no parse mode
+	{name: "telegram_template_turned_on_without_template_down", sender: telegram, event: downEvent,
+		config: `{"bot_token": "123456:bot-token", "chat_id": "-1001234", "use_template": true, "template_parse_mode": "HTML"}`},
+	{name: "telegram_plain_template_up", sender: telegram, event: upEvent,
+		config: `{"bot_token": "123456:bot-token", "chat_id": "-1001234", "use_template": true, "template_parse_mode": "plain", "template": "{{ name }} is {{ status }}"}`},
+	{name: "telegram_template_without_parse_mode_up", sender: telegram, event: upEvent,
+		config: `{"bot_token": "123456:bot-token", "chat_id": "-1001234", "use_template": true, "template": "{{ name }} is {{ status }}"}`},
+	{name: "telegram_parse_mode_without_template_down", sender: telegram, event: downEvent,
+		config: `{"bot_token": "123456:bot-token", "chat_id": "-1001234", "template_parse_mode": "HTML", "template": "{{ name }} is {{ status }}"}`},
+
 	{name: "twilio_down", sender: twilio, event: downEvent,
 		config: `{"twilio_account_sid": "AC123", "twilio_auth_token": "auth-token", "twilio_from_number": "+15550000001", "twilio_to_number": "+15550000002"}`},
 	{name: "twilio_api_key_up", sender: twilio, event: upEvent,
@@ -567,6 +577,10 @@ var goldenCases = []goldenCase{
 	{name: "webhook_json_probe_online", sender: webhook, event: probeOnlineEvent,
 		config: `{"webhook_url": "https://hooks.example.com/peekaping", "webhook_content_type": "json"}`},
 
+	// Additional headers are set on the request
+	{name: "webhook_json_down_with_additional_headers", sender: webhook, event: downEvent,
+		config: `{"webhook_url": "https://hooks.example.com/peekaping", "webhook_content_type": "json", "webhook_additional_headers": "{\"X-Token\": \"abc\", \"X-Retries\": 3}"}`},
+
 	{name: "wecom_down", sender: weCom, event: downEvent,
 		config: `{"webhook_url": "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=k"}`},
 	{name: "wecom_certificate_expiry", sender: weCom, event: certExpiryEvent,
@@ -576,6 +590,19 @@ var goldenCases = []goldenCase{
 		config: `{"server_url": "https://waha.example.com/", "api_key": "waha-key", "phone_number": "+1 (555) 000-0002", "session": "default"}`},
 	{name: "whatsapp_template_up", sender: whatsApp, event: upEvent,
 		config: `{"server_url": "https://waha.example.com", "phone_number": "15550000002", "session": "default", "use_template": true, "template": "{{ status_icon }} {{ name }} is {{ status }}"}`},
+	// A message that can't be rendered is sent as it was written
+	{name: "whatsapp_custom_message_down", sender: whatsApp, event: downEvent,
+		config: `{"server_url": "https://waha.example.com", "phone_number": "15550000002", "session": "default", "custom_message": "{{ name }} is {{ status }}"}`},
+	{name: "whatsapp_invalid_templates_down", sender: whatsApp, event: downEvent,
+		config: `{"server_url": "https://waha.example.com", "phone_number": "15550000002", "session": "default", "custom_message": "{{ name | nofilter }}", "use_template": true, "template": "{{ name | nofilter }}"}`},
+	{name: "whatsapp_template_turned_on_without_template_down", sender: whatsApp, event: downEvent,
+		config: `{"server_url": "https://waha.example.com", "phone_number": "15550000002", "session": "default", "use_template": true}`},
+	// The answer of the server doesn't matter once it is a success, whether or not it is JSON
+	{name: "whatsapp_down_answered_with_success", sender: whatsApp, event: downEvent, response: `{"success": true}`,
+		config: `{"server_url": "https://waha.example.com", "phone_number": "15550000002", "session": "default"}`},
+	{name: "whatsapp_down_answered_with_text", sender: whatsApp, event: downEvent, response: `OK`,
+		config: `{"server_url": "https://waha.example.com", "phone_number": "15550000002", "session": "default"}`},
+
 	{name: "whatsapp_certificate_expiry", sender: whatsApp, event: certExpiryEvent,
 		config: `{"server_url": "https://waha.example.com", "phone_number": "15550000002", "session": "default"}`},
 }
