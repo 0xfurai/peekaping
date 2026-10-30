@@ -70,7 +70,7 @@ Peekaping is built with modern technologies:
 - **Backend**: Go with strong typing and dependency injection
 - **Frontend**: React with TypeScript
 - **Database**: SQLite or PostgreSQL for data persistence
-- **Real-time**: WebSocket connections for live updates
+- **Real-time**: a socket.io (WebSocket) connection that the server uses to push heartbeats for live updates
 - **API**: RESTful API with OpenAPI documentation
 - **Deployment**: single mode, one process with no Redis, is the default for new installs. Cluster mode, with separate API and probe processes (the API replicas talk through Redis, and the probes run the checks), is for installs that need to scale out, on Kubernetes with Helm or with Docker Compose. See [Deployment modes](./self-hosting/deployment-modes.md)
 

@@ -13,7 +13,7 @@ The API Server handles:
 - **HTTP API**: RESTful endpoints for all CRUD operations
 - **Authentication**: User login, registration, JWT token management, and 2FA
 - **Authorization**: Role-based access control and API key validation
-- **WebSocket Server**: Real-time bidirectional communication with web clients
+- **WebSocket Server**: A socket.io server that pushes heartbeats to web clients in real time
 - **API Documentation**: Auto-generated OpenAPI documentation
 - **Security**: Brute force protection, rate limiting, CORS handling
 - **Push Endpoint**: Receives heartbeats from push-based monitors
@@ -29,7 +29,7 @@ The API Server handles:
 The API server uses Uber's Dig for dependency injection, registering all modules and their dependencies at startup.
 
 ### Event-Driven Communication
-The API server subscribes to Redis pub/sub events and broadcasts them to connected WebSocket clients for real-time updates.
+The API server subscribes to the event bus and sends each heartbeat to the sockets in its rooms for real-time updates (see [WebSocket Connection](#websocket-connection)). In cluster mode the bus is Redis pub/sub, so every API replica gets every event and sends it to its own sockets. In single mode it is in memory, inside the one process, with no Redis.
 
 ### Notifications
 Redis pub/sub gives every API server a copy of an event, so notifications don't travel that way, or each replica would send them all. The API server that stores a heartbeat puts a monitor going Down or Up, or a certificate close to expiring, on the `notification` queue. The leader's watchdog does the same for a stale monitor and for the same monitor checked again. Each API server takes tasks from that queue, and a task goes to one of them, so a notification is sent once to each of the monitor's notification channels however many replicas run. A notification queued while no API server is running is sent when the first one starts.
@@ -398,12 +398,90 @@ http://localhost:8034/docs
 
 ## WebSocket Connection
 
-The API server provides WebSocket endpoints for real-time updates:
+The API server runs a [socket.io](https://socket.io) server for real-time updates. It is not a plain WebSocket endpoint, so a bare WebSocket client can't talk to it: use a socket.io client (`socket.io-client` for JavaScript). The endpoint is the path `/socket.io/` on the server's address, which the client adds itself:
 
 ```
-ws://localhost:8034/api/v1/ws
+http://localhost:8034/socket.io/
 ```
 
+In single mode the same path is on the one port the `peekaping` binary serves, 8383 by default. Connect to the address without the path. By default the client starts with HTTP long polling and upgrades to a WebSocket; the web app passes `transports: ["websocket"]` to use a WebSocket only, and both work. A reverse proxy in front of the server must pass `/socket.io/` with WebSocket upgrades. The web app uses this connection for its live updates.
+
+The connection is one way: **the server pushes heartbeats, and the client never sends data.** The only messages a client sends are the two that choose its rooms, `join_room` and `leave_room`. Anything else a client emits is ignored.
+
+### Authentication
+
+Send an access token (the `accessToken` that `POST /api/v1/auth/login` returns) in the `auth` payload of the socket.io connection:
+
+```js
+import { io } from "socket.io-client";
+
+const socket = io("http://localhost:8034", { auth: { token: accessToken } });
+```
+
+The server checks the token when the socket connects, and then keeps checking that the user's session is still open. A refresh token, an API key or a token in the query string doesn't work, since proxies write query strings to their access logs. The connection is refused with the `connect_error` message `access_token is required` when there is no token, and `Unauthorized` when the token is not a valid access token. When the user's session ends (the account is disabled or deleted, or the sessions are ended, as by a password reset), the server closes the socket, and the client has to connect again with a new token.
+
+### Rooms
+
+A socket receives nothing until it joins a room. There are two kinds, and each takes a UUID in lower case (an ID in capitals is taken as the lower-case one):
+
+| Room | Heartbeats it delivers |
+| --- | --- |
+| `workspace:<workspace id>` | Those of every monitor of the workspace |
+| `monitor:<monitor id>` | Those of that one monitor |
+
+A user may join the rooms of the workspaces they are a member of, and of the monitors in those workspaces. `GET /api/v1/me` lists the user's workspaces and their ids, and the monitors endpoints list the monitors' ids. A heartbeat goes to the room of its monitor and to the room of its workspace, so a socket in both gets it once under each event name. The install-wide room `monitor:all` that older versions had is gone: the server refuses it.
+
+Send `join_room` or `leave_room` with the room name as the first argument. Add an acknowledgement callback to get the answer, which is `{ "status": "ok" }`, or `{ "status": "error", "message": "not allowed" }` when the room is refused:
+
+```js
+socket.on("connect", () => {
+  socket.emit("join_room", `workspace:${workspaceId}`, (answer) => {
+    // answer is { status: "ok" } once the socket is in the room
+  });
+});
+```
+
+`join_room` is refused (`not allowed`) for a name that is not one of the two kinds or has an ID that is not a UUID, for a workspace the user is not a member of, for a monitor that does not exist or is in another workspace, and when the session has ended. `leave_room` is refused only for a name that is not a room or not a string; it answers `ok` for a valid room the socket is not in. A user who leaves a workspace, or whom a workspace removes, is taken out of its rooms at once, with no reconnect. A socket starts outside every room, so join again after each reconnect.
+
+### Events
+
+The only event the server sends is the heartbeat. A room delivers it under the room's name followed by `:heartbeat`:
+
+| Room | Event |
+| --- | --- |
+| `workspace:<workspace id>` | `workspace:<workspace id>:heartbeat` |
+| `monitor:<monitor id>` | `monitor:<monitor id>:heartbeat` |
+
+```js
+socket.on(`workspace:${workspaceId}:heartbeat`, (heartbeat) => {
+  console.log(heartbeat.monitor_id, heartbeat.status, heartbeat.ping);
+});
+```
+
+The payload is one heartbeat, a JSON object:
+
+```json
+{
+  "id": "20b149e6-fe1c-4ca1-898f-8cd8c92cb06b",
+  "monitor_id": "f34e3a03-5d62-4284-898d-f19167d98d3c",
+  "probe_id": "local",
+  "instance_id": null,
+  "status": 1,
+  "msg": "200 - 200 OK",
+  "ping": 1,
+  "duration": 0,
+  "down_count": 0,
+  "retries": 0,
+  "important": false,
+  "time": "2026-10-30T17:29:00.010556Z",
+  "end_time": "2026-10-30T17:29:00.011593Z",
+  "notified": false
+}
+```
+
+`status` is `0` Down, `1` Up, `2` Pending or `3` Maintenance. `probe_id` is `local` for the local probe, otherwise the id of the remote probe that ran the check. `instance_id` is the probe instance that ran it, or `null` for a push, for a check the `peekaping` process ran itself in single mode, and for a heartbeat stored before instances were recorded.
+
+Heartbeats are not replayed: a socket gets the ones that are stored while it is in the room. Read the history with the REST API.
 
 ## Authentication Methods
 
@@ -469,7 +547,7 @@ In single mode, the `peekaping` binary has one port unless you set `METRICS_PORT
 
 ### How it works
 
-The API server keeps the latest heartbeat of each active monitor in memory, fed by the heartbeat and monitor events on the Redis event bus. It sees heartbeats whichever probe ran the check and whichever replica stored it, and a scrape reads that memory only: no database queries and no calls to a probe.
+The API server keeps the latest heartbeat of each active monitor in memory, fed by the heartbeat and monitor events on the event bus (Redis pub/sub in cluster mode, in memory in single mode). It sees heartbeats whichever probe ran the check and whichever replica stored it, and a scrape reads that memory only: no database queries and no calls to a probe.
 
 - After a restart, the metrics come back from each monitor's latest heartbeat without waiting for its next check.
 - Every 5 minutes the API server re-checks the active monitors. A pause, rename or delete whose event was missed is corrected, and a monitor with no metrics gets its latest heartbeat loaded.

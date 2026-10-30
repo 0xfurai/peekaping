@@ -34,7 +34,7 @@ The HTTP API server that handles all client requests, authentication, and WebSoc
 **Key Responsibilities:**
 - RESTful API endpoints
 - User authentication and authorization
-- WebSocket real-time updates
+- socket.io (WebSocket) real-time updates: it pushes heartbeats to the clients
 - The probe protocol: deals each probe's monitors among its instances, and takes their results
 - Storing heartbeats, status change detection, notification triggering, statistics
 - The push URL of push monitors
@@ -77,7 +77,8 @@ A push monitor takes the same path from its push URL: the replica that took the 
 The system uses Redis pub/sub for real-time event communication:
 - Monitor status changes
 - Heartbeat events
-- WebSocket updates
+
+Each API replica sends the heartbeats it gets from the bus to its own connected WebSocket clients (see [WebSocket Connection](./api-server.md#websocket-connection)). They are not a Redis event of their own.
 
 Notification events go through the `notification` queue instead, so one API server sends each notification however many replicas run.
 
@@ -142,7 +143,7 @@ MongoDB storage was removed. [Move to SQLite or PostgreSQL](../self-hosting/dock
 - **HTTP Server and Router**: Go `net/http` and `http.ServeMux`
 - **Database**: Bun ORM (SQL)
 - **Queue**: Asynq (Redis-based), for notifications
-- **Event Bus**: Redis Pub/Sub
+- **Event Bus**: Redis Pub/Sub in cluster mode, in memory in single mode
 - **Logging**: Zap
 - **Dependency Injection**: Uber Dig
 - **Validation**: Go Playground Validator
