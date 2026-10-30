@@ -76,7 +76,7 @@ var refusedMongoStrings = []struct{ name, connectionString, want string }{
 	{"an empty user name and password", "mongodb://:@h1/db", "the user name must not be empty"},
 	{"a password with no user name, SECRET", "mongodb://:SECRET@h1/db", "the user name must not be empty"},
 	{"a host escape that is broken, SECRET", "mongodb://h%SECRET/db", "host 1 has a bad %-escape"},
-	{"no database", "mongodb://h1:27017,h2:27017","connection string must include database name"},
+	{"no database", "mongodb://h1:27017,h2:27017", "connection string must include database name"},
 	{"an empty database", "mongodb://h1:27017,h2:27017/", "connection string must include database name"},
 	{"options without a database", "mongodb://h1:27017/?replicaSet=rs0", "connection string must include database name"},
 	{"a database escape that is broken", "mongodb://h1/my%zzdb", "the database name has a bad %-escape"},
