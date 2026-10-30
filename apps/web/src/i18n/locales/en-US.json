@@ -932,6 +932,7 @@
         },
         "notifications": {
           "add_notifier": "Add Notifier",
+          "load_failed": "Could not load the notification channels",
           "new_notifier": "+ New Notifier",
           "no_channels": "No notification channels found, create one first",
           "no_channels_available": "No channels available",

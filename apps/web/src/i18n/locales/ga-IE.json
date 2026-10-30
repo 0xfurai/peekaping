@@ -932,6 +932,7 @@
         },
         "notifications": {
           "add_notifier": "Cuir Fógraíú",
+          "load_failed": "Níorbh fhéidir na cainéil fógra a lódáil",
           "new_notifier": "+ Fógraí Nua",
           "no_channels": "Níor aimsíodh aon chánálacha fógra; cruthaigh ceann ar dtús.",
           "no_channels_available": "Níl aon chanais ar fáil",

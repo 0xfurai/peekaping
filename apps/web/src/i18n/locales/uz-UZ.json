@@ -932,6 +932,7 @@
         },
         "notifications": {
           "add_notifier": "Bildirishnoma qo'shish",
+          "load_failed": "Bildirishnoma kanallarini yuklab bo'lmadi",
           "new_notifier": "+ Yangi bildirishchi",
           "no_channels": "Hech qanday bildirishkan kanali topilmadi, birini yaratib qo'ying",
           "no_channels_available": "Mavjud kanal yo'q",

@@ -932,6 +932,7 @@
         },
         "notifications": {
           "add_notifier": "新增通知器",
+          "load_failed": "無法載入通知通道",
           "new_notifier": "+ 新增通知者",
           "no_channels": "尚未找到通知通道，請先建立一個",
           "no_channels_available": "尚無可用頻道",

@@ -932,6 +932,7 @@
         },
         "notifications": {
           "add_notifier": "نوٹیفائر شامل کریں",
+          "load_failed": "اطلاعی چینلز لوڈ نہیں ہو سکے",
           "new_notifier": "+ نیا نوٹیفائر",
           "no_channels": "کوئی نوٹیفیکیشن چینل نہیں ملا، پہلے ایک بنائیں",
           "no_channels_available": "کوئی چینل دستیاب نہیں",
