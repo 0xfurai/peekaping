@@ -417,13 +417,13 @@ Response:
 }
 ```
 
-`/api/v1/health` stays public on the API port, whatever you set for `METRICS_PORT`. It shows only the install-wide count of stale monitors and when the watchdog last ran, never a monitor name.
-
 - `status` is always `success`. The endpoint answers `200` whenever the API server is up, so a Docker healthcheck on it only tells you that the API server is running.
 - `stale_monitors` is how many active monitors Peekaping has stopped checking. It is `null` if the API server can't read the count, in cluster mode when it can't reach Redis.
 - `watchdog_ran_at` is when the watchdog last ran. The watchdog looks for stale monitors every minute. It is `null` until the watchdog has run once, and also when the API server can't read it.
 
 To be told when monitors stop being checked, alert on a `stale_monitors` above `0`, or on a `watchdog_ran_at` that is more than a few minutes old.
+
+`/api/v1/health` stays public on the API port, whatever you set for `METRICS_PORT`. It shows only the install-wide count of stale monitors and when the watchdog last ran, never a monitor name.
 
 ## Prometheus Metrics
 
