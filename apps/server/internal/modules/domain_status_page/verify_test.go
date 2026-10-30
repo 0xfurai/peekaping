@@ -11,6 +11,10 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/uptrace/bun"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
+	"go.uber.org/zap/zaptest/observer"
 )
 
 // fakeDNS answers the lookups of a check from a table, and counts them. A name it doesn't know is a
@@ -341,6 +345,41 @@ func TestVerification_APendingDomainKeepsItsWeekWhenChecksWereNotRunning(t *test
 		s := v.status(t, page, "status.example.com")
 		require.NotNil(t, s.RemoveAt)
 		assert.Equal(t, back.Add(7*24*time.Hour), s.RemoveAt.UTC(), "its week starts again")
+	})
+}
+
+// vanishing deletes the rows of a pass's due list once it has been read, as a page edit does while
+// the pass runs
+type vanishing struct {
+	domain_status_page.Repository
+	db *bun.DB
+}
+
+func (r vanishing) FindDueAnyWorkspace(ctx context.Context, before time.Time) ([]*domain_status_page.Model, error) {
+	due, err := r.Repository.FindDueAnyWorkspace(ctx, before)
+	if err == nil {
+		_, err = r.db.ExecContext(ctx, "DELETE FROM domain_status_page")
+	}
+	return due, err
+}
+
+func TestVerification_ADomainThatVanishesDuringAPassIsNotAnError(t *testing.T) {
+	forEachBackend(t, func(t *testing.T, f fixture) {
+		page := f.page()
+		added := add(t, f.svc, page, "status.example.com")
+		_, err := f.db.ExecContext(context.Background(), "UPDATE domain_status_page SET verification_token = '' WHERE id = ?", added.ID)
+		require.NoError(t, err)
+
+		core, logs := observer.New(zapcore.DebugLevel)
+		svc := domain_status_page.NewService(
+			vanishing{Repository: domain_status_page.NewSQLRepository(f.db), db: f.db}, zap.New(core).Sugar(),
+			domain_status_page.WithVerification(true, "peek.example"),
+			domain_status_page.WithResolver(newFakeDNS()),
+		)
+		require.NoError(t, svc.CheckDue(context.Background()))
+		for _, entry := range logs.All() {
+			assert.Less(t, entry.Level, zapcore.WarnLevel, "logged: %s", entry.Message)
+		}
 	})
 }
 

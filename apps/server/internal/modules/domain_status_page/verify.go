@@ -200,8 +200,8 @@ func (dr *ServiceImpl) CheckNow(ctx context.Context, statusPageID, domain string
 
 // CheckDue checks the domains of every workspace that are due, when verification is on: each
 // pending one, and each verified one not checked for an hour. A domain that stays pending for
-// seven days is removed from its page. A domain whose check fails is logged and left for the next
-// pass.
+// seven days of checks is removed from its page. A domain whose check fails is logged and left for
+// the next pass; one that went from its page meanwhile is left alone.
 func (dr *ServiceImpl) CheckDue(ctx context.Context) error {
 	if !dr.verify {
 		return nil
@@ -217,7 +217,10 @@ func (dr *ServiceImpl) CheckDue(ctx context.Context) error {
 		wg.Add(1)
 		go func() {
 			defer func() { <-slots; wg.Done() }()
-			if err := dr.checkDue(ctx, m); err != nil && ctx.Err() == nil {
+			err := dr.checkDue(ctx, m)
+			if errors.Is(err, ErrDomainNotFound) {
+				dr.logger.Debugw("A custom domain went while it was checked", "domain", m.Domain, "statusPageId", m.StatusPageID)
+			} else if err != nil && ctx.Err() == nil {
 				dr.logger.Errorw("Failed to check a custom domain", "domain", m.Domain, "statusPageId", m.StatusPageID, "error", err)
 			}
 		}()
