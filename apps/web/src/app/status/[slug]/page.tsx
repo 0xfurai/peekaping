@@ -63,6 +63,23 @@ const PublicStatusPage = ({ incomingSlug }: { incomingSlug?: string }) => {
     }
   }, [statusPage?.auto_refresh_interval]);
 
+  // Public status pages carry their own title and icon; reflect them in the tab
+  useEffect(() => {
+    if (!statusPage?.published || !statusPage.title) return;
+
+    document.title = statusPage.title;
+
+    if (!statusPage.icon) return;
+
+    let link = document.querySelector<HTMLLinkElement>("link[rel~='icon']");
+    if (!link) {
+      link = document.createElement("link");
+      link.rel = "icon";
+      document.head.appendChild(link);
+    }
+    link.href = statusPage.icon;
+  }, [statusPage?.published, statusPage?.title, statusPage?.icon]);
+
   // Fetch monitors data with heartbeats and uptime for the status page
   const {
     data: monitorsData,
