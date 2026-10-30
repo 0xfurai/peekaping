@@ -51,6 +51,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- fix: an HTTP monitor (HTTP, keyword and JSON query) saved without `max_redirects` now follows up to 10 redirects. Before, a missing value counted as 0 and the first redirect made the check Down with "redirects disabled". With `max_redirects: 0` the check follows none and judges the redirect response itself against the accepted status codes: a 302 is Up when `3XX` is accepted, and Down with "HTTP request failed with status: 302" when it is not. Before, it was Down with "redirects disabled" whatever was accepted. A negative `max_redirects` is still refused (PP-100)
 - fix: a boolean setting (`METRICS_ENABLED`, `BLOCK_PRIVATE_TARGETS`, `VERIFY_CUSTOM_DOMAINS`, `PROBE_ALLOW_INSECURE`) set to `TRUE` or `True` was read as off, without a word. They now read every form Go's `strconv.ParseBool` reads (`1`, `t`, `T`, `TRUE`, `true`, `True` and the false forms). A value that is none of them, such as `yes` or `on`, stops startup with a message that names the variable. Unset or empty keeps the default. A wrong value in a `.env` file stops startup even when the system environment overrides it
 
 ## [0.1.0] - 2026-10-28

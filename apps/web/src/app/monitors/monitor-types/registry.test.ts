@@ -192,6 +192,43 @@ describe("monitor type registry", () => {
     }
   );
 
+  describe.each(["http", "http-keyword", "http-json-query"] as const)("%s max redirects", (type) => {
+    const definition = monitorTypes.find((candidate) => candidate.type === type)!;
+    const withMaxRedirects = (max_redirects?: number) => {
+      const body = definition.serialize(definition.defaultValues as never);
+      const { max_redirects: _dropped, ...config } = JSON.parse(body.config ?? "{}");
+      const saved = { ...body, config: JSON.stringify(max_redirects === undefined ? config : { ...config, max_redirects }) };
+      return savedMonitor(saved);
+    };
+    const sentMaxRedirects = (monitor: MonitorMonitorResponseDto) =>
+      JSON.parse(serializeMonitor(deserializeMonitor(monitor)).config ?? "{}").max_redirects;
+
+    it("keeps a monitor saved with 0 at 0 when it is edited", () => {
+      const edited = deserializeMonitor(withMaxRedirects(0));
+      expect("max_redirects" in edited && edited.max_redirects).toBe(0);
+      expect(sentMaxRedirects(withMaxRedirects(0))).toBe(0);
+    });
+
+    it("keeps the number a monitor was saved with when it is edited", () => {
+      expect(sentMaxRedirects(withMaxRedirects(25))).toBe(25);
+    });
+
+    it("shows 10 for a monitor saved without max redirects", () => {
+      expect(sentMaxRedirects(withMaxRedirects())).toBe(10);
+    });
+
+    it("takes 0 in the form and refuses a negative number", () => {
+      const issues = (max_redirects: unknown) =>
+        definition.schema
+          .safeParse({ ...definition.defaultValues, max_redirects })
+          .error?.issues.filter((issue) => issue.path[0] === "max_redirects") ?? [];
+      expect(issues(0)).toHaveLength(0);
+      // The number input hands the form a string
+      expect(issues("0")).toHaveLength(0);
+      expect(issues(-1)).toHaveLength(1);
+    });
+  });
+
   it("clones a monitor under a copy's name", () => {
     const [http] = monitorTypes;
     const body = http.serialize(http.defaultValues);
