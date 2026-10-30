@@ -1,8 +1,14 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { getMeQueryKey } from "@/api/@tanstack/react-query.gen";
 import { renderAs, text, USER_EMAIL, WORKSPACE_ID } from "@/test-support/render-with-me";
 import { SuspendedWorkspaceBanner } from "./suspended-workspace-banner";
 import { WorkspaceDeletionBanner } from "./workspace-deletion-banner";
+
+// The time zone the user picked in settings; a test sets it before it renders
+let selectedTimezone = "UTC";
+vi.mock("@/context/timezone-context", () => ({
+  useTimezone: () => ({ timezone: selectedTimezone, setTimezone: () => {} }),
+}));
 
 // The banner in the workspace of the address, with /me as the server answers it
 const banner = (
@@ -45,6 +51,17 @@ describe("WorkspaceDeletionBanner", () => {
     const html = banner(<WorkspaceDeletionBanner />, { role: "owner", deletionScheduledAt: AT });
     expect(html).toMatch(new RegExp(escaped("workspaces.deletion.message", { date: DATE })));
     expect(html).toContain(">" + text("workspaces.deletion.cancel") + "<");
+  });
+
+  // 23:30 UTC on Nov 5 is already Nov 6 in Tokyo, whatever zone the browser is in
+  it("tells the date in the time zone the user picked in settings", () => {
+    selectedTimezone = "Asia/Tokyo";
+    try {
+      const html = banner(<WorkspaceDeletionBanner />, { role: "owner", deletionScheduledAt: "2026-11-05T23:30:00Z" });
+      expect(html).toContain("November 6, 2026 at 8:30");
+    } finally {
+      selectedTimezone = "UTC";
+    }
   });
 
   it("tells an admin and a member the date, says an owner can cancel it, and offers no button", () => {
