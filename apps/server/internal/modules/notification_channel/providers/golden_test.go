@@ -201,6 +201,7 @@ var (
 	pushover         = func(c *http.Client) goldenSender { return NewPushoverSender(nopLogger(), c) }
 	sendGrid         = func(c *http.Client) goldenSender { return NewSendGridSender(nopLogger(), c) }
 	signal           = func(c *http.Client) goldenSender { return NewSignalSender(nopLogger(), c) }
+	slackNoLink      = func(c *http.Client) goldenSender { return NewSlackSender(nopLogger(), nil, c) }
 	slack            = func(c *http.Client) goldenSender { return NewSlackSender(nopLogger(), goldenAppConfig, c) }
 	teams            = func(c *http.Client) goldenSender { return NewTeamsSender(nopLogger(), goldenAppConfig, c) }
 	telegram         = func(c *http.Client) goldenSender { return NewTelegramSender(nopLogger(), c) }
@@ -299,12 +300,53 @@ var goldenCases = []goldenCase{
 	{name: "mattermost_certificate_expiry", sender: mattermost, event: certExpiryEvent,
 		config: `{"webhook_url": "https://mattermost.example.com/hooks/abc"}`},
 
+	// The online emoji goes with an Up, and a lone emoji is left as it is
+	{name: "mattermost_up_with_emoji", sender: mattermost, event: upEvent,
+		config: `{"webhook_url": "https://mattermost.example.com/hooks/abc", "icon_emoji": ":white_check_mark: :x:"}`},
+	{name: "mattermost_down_with_one_emoji", sender: mattermost, event: downEvent,
+		config: `{"webhook_url": "https://mattermost.example.com/hooks/abc", "icon_emoji": ":warning:"}`},
+	{name: "mattermost_pending", sender: mattermost, event: pendingEvent,
+		config: `{"webhook_url": "https://mattermost.example.com/hooks/abc", "icon_emoji": ":white_check_mark: :x:"}`},
+	{name: "mattermost_down_without_monitor", sender: mattermost, event: downWithoutMonitorEvent,
+		config: `{"webhook_url": "https://mattermost.example.com/hooks/abc"}`},
+	{name: "mattermost_down_monitor_without_name", sender: mattermost,
+		notify: notifying(goldenDown.Msg, goldenMonitorWith(func(m *monitor.Model) { m.Name = "" }), goldenDown),
+		config: `{"webhook_url": "https://mattermost.example.com/hooks/abc"}`},
+	// The title links to the monitor's URL, when its config has one
+	{name: "mattermost_down_monitor_with_empty_url", sender: mattermost,
+		notify: notifying(goldenDown.Msg, goldenMonitorWith(func(m *monitor.Model) { m.Config = `{"url": ""}` }), goldenDown),
+		config: `{"webhook_url": "https://mattermost.example.com/hooks/abc"}`},
+	{name: "mattermost_down_monitor_without_url", sender: mattermost,
+		notify: notifying(goldenDown.Msg, goldenMonitorWith(func(m *monitor.Model) { m.Config = `{"host": "api.example.com"}` }), goldenDown),
+		config: `{"webhook_url": "https://mattermost.example.com/hooks/abc"}`},
+	{name: "mattermost_down_monitor_with_config_that_is_not_json", sender: mattermost,
+		notify: notifying(goldenDown.Msg, goldenMonitorWith(func(m *monitor.Model) { m.Config = `not json` }), goldenDown),
+		config: `{"webhook_url": "https://mattermost.example.com/hooks/abc"}`},
+	{name: "mattermost_down_monitor_without_config", sender: mattermost,
+		notify: notifying(goldenDown.Msg, goldenMonitorWith(func(m *monitor.Model) { m.Config = "" }), goldenDown),
+		config: `{"webhook_url": "https://mattermost.example.com/hooks/abc"}`},
+	{name: "mattermost_down_with_template_turned_on_and_no_template", sender: mattermost, event: downEvent,
+		config: `{"webhook_url": "https://mattermost.example.com/hooks/abc", "use_template": true}`},
+	// A notification without a heartbeat is a simple message, with the channel's options
+	{name: "mattermost_certificate_expiry_with_options", sender: mattermost, event: certExpiryEvent,
+		config: `{"webhook_url": "https://mattermost.example.com/hooks/abc", "username": "Peekaping", "channel": "Alerts", "icon_url": "https://peekaping.example.com/icon.png", "icon_emoji": ":warning:"}`},
+	{name: "mattermost_certificate_expiry_template", sender: mattermost, event: certExpiryEvent,
+		config: `{"webhook_url": "https://mattermost.example.com/hooks/abc", "use_template": true, "template": "Heads up: {{ msg }}"}`},
+
 	{name: "ntfy_down", sender: ntfy, event: downEvent,
 		config: `{"server_url": "https://ntfy.example.com/", "topic": "peekaping", "authentication_type": "none", "priority": 5}`},
 	{name: "ntfy_basic_auth_up", sender: ntfy, event: upEvent,
 		config: `{"server_url": "https://ntfy.example.com", "topic": "peekaping", "authentication_type": "basic", "username": "ntfy-user", "password": "ntfy-pass", "priority": 3, "title": "{{ name }} is {{ status }}", "tags": "{{ status }}, peekaping"}`},
 	{name: "ntfy_token_certificate_expiry", sender: ntfy, event: certExpiryEvent,
 		config: `{"server_url": "https://ntfy.example.com", "topic": "peekaping", "authentication_type": "token", "token": "tk_ntfy", "priority": 4}`},
+
+	// A template that can't be rendered gives way to the text as it was written, and no tags
+	{name: "ntfy_invalid_templates_down", sender: ntfy, event: downEvent,
+		config: `{"server_url": "https://ntfy.example.com", "topic": "peekaping", "authentication_type": "none", "priority": 2, "title": "{{ name | nofilter }}", "tags": "{{ name | nofilter }}", "custom_message": "{{ msg | nofilter }}"}`},
+	{name: "ntfy_custom_message_down", sender: ntfy, event: downEvent,
+		config: `{"server_url": "https://ntfy.example.com", "topic": "peekaping", "authentication_type": "none", "priority": 2, "custom_message": "{{ name }} is {{ status }}"}`},
+	{name: "ntfy_empty_title_down", sender: ntfy, event: downEvent,
+		config: `{"server_url": "https://ntfy.example.com", "topic": "peekaping", "authentication_type": "none", "priority": 2, "title": "{% if false %}x{% endif %}"}`},
 
 	{name: "opsgenie_down", sender: opsgenie, event: downEvent,
 		config: `{"region": "us", "api_key": "genie-key", "priority": 2}`},
@@ -471,6 +513,20 @@ var goldenCases = []goldenCase{
 		config: `{"slack_webhook_url": "https://hooks.slack.com/services/T/B/X", "slack_rich_message": true}`},
 	{name: "slack_bot_rich_probe_online", sender: slack, event: probeOnlineEvent, response: `{"ok": true}`,
 		config: `{"slack_bot_token": "xoxb-token", "slack_channel": "#alerts", "slack_rich_message": true}`},
+
+	{name: "slack_webhook_up", sender: slack, event: upEvent,
+		config: `{"slack_webhook_url": "https://hooks.slack.com/services/T/B/X"}`},
+	{name: "slack_bot_down", sender: slack, event: downEvent, response: `{"ok": true}`,
+		config: `{"slack_bot_token": "xoxb-token", "slack_channel": "#alerts"}`},
+	{name: "slack_webhook_template_channel_notify_up", sender: slack, event: upEvent,
+		config: `{"slack_webhook_url": "https://hooks.slack.com/services/T/B/X", "use_template": true, "template": "{{ name }} is {{ status }}", "slack_channel_notify": true}`},
+	{name: "slack_webhook_with_template_turned_on_and_no_template_up", sender: slack, event: upEvent,
+		config: `{"slack_webhook_url": "https://hooks.slack.com/services/T/B/X", "use_template": true}`},
+	// Without a public URL, or a monitor, the message has no buttons
+	{name: "slack_webhook_rich_up_without_public_url", sender: slackNoLink, event: upEvent,
+		config: `{"slack_webhook_url": "https://hooks.slack.com/services/T/B/X", "slack_rich_message": true}`},
+	{name: "slack_webhook_rich_down_without_monitor", sender: slack, event: downWithoutMonitorEvent,
+		config: `{"slack_webhook_url": "https://hooks.slack.com/services/T/B/X", "slack_rich_message": true}`},
 
 	{name: "teams_down", sender: teams, event: downEvent,
 		config: `{"webhook_url": "https://example.powerplatform.com/workflows/1?sig=s"}`},
