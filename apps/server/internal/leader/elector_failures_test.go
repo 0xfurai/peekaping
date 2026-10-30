@@ -68,35 +68,8 @@ func TestElector_TryBecomeLeader_ALeaderThatCantReachRedisStopsLeading(t *testin
 	assert.Equal(t, "redis is down", failures[0].ContextMap()["error"])
 }
 
-func TestElector_TryBecomeLeader_ALeaderThatCantReadTheLockStopsLeading(t *testing.T) {
-	le, logs := leaderThatLeads(t, named("get"))
-
-	le.tryBecomeLeader(context.Background())
-
-	assert.False(t, le.IsLeader())
-	failures := logs.FilterMessage("Failed to check current leader").All()
-	require.Len(t, failures, 1)
-	assert.Equal(t, zapcore.ErrorLevel, failures[0].Level)
-	assert.Equal(t, "redis is down", failures[0].ContextMap()["error"])
-}
-
-// The lock can run out between the attempt to take it and the look at who holds it: that is no failure
-func TestElector_TryBecomeLeader_AnExpiredLockBetweenTheTwoCommandsStopsLeadingWithoutAnError(t *testing.T) {
-	le, logs := leaderThatLeads(t, func(cmd redis.Cmder) error {
-		if cmd.Name() == "get" {
-			return redis.Nil
-		}
-		return nil
-	})
-
-	le.tryBecomeLeader(context.Background())
-
-	assert.False(t, le.IsLeader())
-	assert.Empty(t, logs.FilterLevelExact(zapcore.ErrorLevel).All())
-}
-
 func TestElector_TryBecomeLeader_ALeaderThatCantRenewTheLockStopsLeading(t *testing.T) {
-	le, logs := leaderThatLeads(t, named("expire"))
+	le, logs := leaderThatLeads(t, named("eval"))
 
 	le.tryBecomeLeader(context.Background())
 
@@ -110,7 +83,7 @@ func TestElector_TryBecomeLeader_ALeaderThatCantRenewTheLockStopsLeading(t *test
 // A command that fails because the election is stopping says nothing of the leadership: the release
 // that follows needs the status as it was
 func TestElector_TryBecomeLeader_ACommandThatFailsWhileStoppingKeepsTheStatus(t *testing.T) {
-	for _, command := range []string{"set", "get", "expire"} {
+	for _, command := range []string{"set", "eval"} {
 		t.Run(command, func(t *testing.T) {
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
