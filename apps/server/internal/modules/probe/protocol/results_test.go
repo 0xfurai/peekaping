@@ -852,6 +852,8 @@ type inFlight struct {
 	holdFor   time.Duration
 	// waitForAll, when set, has each result wait until this many are being stored, or a second
 	waitForAll int
+	// allBeingStored is set once waitForAll were being stored at the same time
+	allBeingStored bool
 }
 
 func newInFlight(holdFor time.Duration) *inFlight {
@@ -870,6 +872,7 @@ func (f *inFlight) hold(r *ingester.Result) {
 	for f.waitForAll > 0 && time.Now().Before(deadline) {
 		f.mu.Lock()
 		enough := f.now >= f.waitForAll
+		f.allBeingStored = f.allBeingStored || enough
 		f.mu.Unlock()
 		if enough {
 			break
@@ -882,6 +885,13 @@ func (f *inFlight) hold(r *ingester.Result) {
 	f.now--
 	f.byMonitor[r.MonitorID]--
 	f.mu.Unlock()
+}
+
+// reachedAll reports whether waitForAll results were ever being stored at the same time
+func (f *inFlight) reachedAll() bool {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	return f.allBeingStored
 }
 
 // addMonitors gives the probe n more monitors to send results for
