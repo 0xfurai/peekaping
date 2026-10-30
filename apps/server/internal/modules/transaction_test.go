@@ -22,6 +22,8 @@ import (
 	"peekaping/internal/modules/monitor_notification"
 	"peekaping/internal/modules/monitor_tag"
 	"peekaping/internal/modules/notification_channel"
+	"peekaping/internal/modules/proxy"
+	"peekaping/internal/modules/setting"
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/modules/stats"
 	"peekaping/internal/modules/tag"
@@ -518,5 +520,70 @@ func TestMonitorMaintenanceRepository_RunsInTheTransactionInCtx(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, links, 1, "the rollback undid every write")
 		assert.Equal(t, kept.ID, links[0].ID)
+	})
+}
+
+func TestProxyRepository_RunsInTheTransactionInCtx(t *testing.T) {
+	forEachTxBackend(t, func(t *testing.T, ctx context.Context, db *bun.DB) {
+		repo := proxy.NewSQLRepository(db)
+		kept, err := repo.Create(ctx, workspacetest.ID, &proxy.Model{Protocol: "http", Host: "kept.example", Port: 3128})
+		require.NoError(t, err)
+
+		err = inTxWithin(ctx, db, func(ctx context.Context) {
+			added, err := repo.Create(ctx, workspacetest.ID, &proxy.Model{Protocol: "http", Host: "added.example", Port: 3128})
+			require.NoError(t, err)
+			found, err := repo.FindByID(ctx, workspacetest.ID, added.ID)
+			require.NoError(t, err)
+			require.NotNil(t, found, "FindByID sees the proxy Create wrote")
+			all, err := repo.FindAll(ctx, workspacetest.ID, 0, 10, "")
+			require.NoError(t, err)
+			assert.Len(t, all, 2, "FindAll sees both proxies")
+			renamed := *added
+			renamed.Host = "added-renamed.example"
+			_, err = repo.UpdateFull(ctx, workspacetest.ID, added.ID, &renamed)
+			require.NoError(t, err)
+			host := "kept-renamed.example"
+			updated, err := repo.UpdatePartial(ctx, workspacetest.ID, kept.ID, &proxy.UpdateModel{Host: &host})
+			require.NoError(t, err)
+			assert.Equal(t, host, updated.Host, "UpdatePartial updated the committed proxy")
+			require.NoError(t, repo.Delete(ctx, workspacetest.ID, added.ID))
+		})
+
+		require.ErrorIs(t, err, errRollBack)
+		all, err := repo.FindAll(ctx, workspacetest.ID, 0, 10, "")
+		require.NoError(t, err)
+		require.Len(t, all, 1, "the rollback undid the Create")
+		assert.Equal(t, "kept.example", all[0].Host, "the rollback undid UpdatePartial")
+	})
+}
+
+func TestWorkspaceSettingRepository_RunsInTheTransactionInCtx(t *testing.T) {
+	forEachTxBackend(t, func(t *testing.T, ctx context.Context, db *bun.DB) {
+		repo := setting.NewSQLWorkspaceRepository(db)
+		_, err := repo.SetByKey(ctx, workspacetest.ID, "kept", &setting.Model{Value: "1", Type: "int"})
+		require.NoError(t, err)
+
+		err = inTxWithin(ctx, db, func(ctx context.Context) {
+			_, err := repo.SetByKey(ctx, workspacetest.ID, "added", &setting.Model{Value: "2", Type: "int"})
+			require.NoError(t, err)
+			_, err = repo.SetByKey(ctx, workspacetest.ID, "kept", &setting.Model{Value: "3", Type: "int"})
+			require.NoError(t, err)
+			found, err := repo.GetByKey(ctx, workspacetest.ID, "added")
+			require.NoError(t, err)
+			require.NotNil(t, found, "GetByKey sees the setting SetByKey wrote")
+			require.NoError(t, repo.DeleteByKey(ctx, workspacetest.ID, "added"))
+			found, err = repo.GetByKey(ctx, workspacetest.ID, "added")
+			require.NoError(t, err)
+			assert.Nil(t, found, "DeleteByKey removed it")
+		})
+
+		require.ErrorIs(t, err, errRollBack)
+		kept, err := repo.GetByKey(ctx, workspacetest.ID, "kept")
+		require.NoError(t, err)
+		require.NotNil(t, kept)
+		assert.Equal(t, "1", kept.Value, "the rollback undid the second SetByKey")
+		added, err := repo.GetByKey(ctx, workspacetest.ID, "added")
+		require.NoError(t, err)
+		assert.Nil(t, added, "the rollback undid the first")
 	})
 }

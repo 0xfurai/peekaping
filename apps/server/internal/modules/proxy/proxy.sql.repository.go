@@ -74,7 +74,7 @@ func (r *SQLRepositoryImpl) Create(ctx context.Context, workspaceID workspace.ID
 	sm.CreatedAt = time.Now()
 	sm.UpdatedAt = time.Now()
 
-	_, err := r.db.NewInsert().Model(sm).Returning("*").Exec(ctx)
+	_, err := dbtx.DB(ctx, r.db).NewInsert().Model(sm).Returning("*").Exec(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -84,7 +84,7 @@ func (r *SQLRepositoryImpl) Create(ctx context.Context, workspaceID workspace.ID
 
 func (r *SQLRepositoryImpl) FindByID(ctx context.Context, workspaceID workspace.ID, id string) (*Model, error) {
 	sm := new(sqlModel)
-	err := r.db.NewSelect().Model(sm).Where("id = ?", id).Where("workspace_id = ?", string(workspaceID)).Scan(ctx)
+	err := dbtx.DB(ctx, r.db).NewSelect().Model(sm).Where("id = ?", id).Where("workspace_id = ?", string(workspaceID)).Scan(ctx)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
@@ -95,7 +95,7 @@ func (r *SQLRepositoryImpl) FindByID(ctx context.Context, workspaceID workspace.
 }
 
 func (r *SQLRepositoryImpl) FindAll(ctx context.Context, workspaceID workspace.ID, page int, limit int, q string) ([]*Model, error) {
-	query := r.db.NewSelect().Model((*sqlModel)(nil)).Where("workspace_id = ?", string(workspaceID))
+	query := dbtx.DB(ctx, r.db).NewSelect().Model((*sqlModel)(nil)).Where("workspace_id = ?", string(workspaceID))
 
 	if q != "" {
 		query = query.Where("LOWER(host) LIKE ?", "%"+q+"%")
@@ -122,7 +122,7 @@ func (r *SQLRepositoryImpl) UpdateFull(ctx context.Context, workspaceID workspac
 	sm := toSQLModel(entity)
 	sm.UpdatedAt = time.Now()
 
-	result, err := r.db.NewUpdate().
+	result, err := dbtx.DB(ctx, r.db).NewUpdate().
 		Model(sm).
 		Where("id = ?", id).
 		Where("workspace_id = ?", string(workspaceID)).
@@ -137,7 +137,7 @@ func (r *SQLRepositoryImpl) UpdateFull(ctx context.Context, workspaceID workspac
 }
 
 func (r *SQLRepositoryImpl) UpdatePartial(ctx context.Context, workspaceID workspace.ID, id string, entity *UpdateModel) (*Model, error) {
-	query := r.db.NewUpdate().Model((*sqlModel)(nil)).Where("id = ?", id).Where("workspace_id = ?", string(workspaceID))
+	query := dbtx.DB(ctx, r.db).NewUpdate().Model((*sqlModel)(nil)).Where("id = ?", id).Where("workspace_id = ?", string(workspaceID))
 
 	hasUpdates := false
 
