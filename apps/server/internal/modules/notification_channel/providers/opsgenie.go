@@ -186,7 +186,7 @@ func (o *OpsgenieSender) postToOpsgenie(ctx context.Context, cfg *OpsgenieConfig
 	req.Header.Set("Authorization", fmt.Sprintf("GenieKey %s", cfg.ApiKey))
 	req.Header.Set("User-Agent", "Peekaping-Opsgenie/"+version.Version)
 
-	o.logger.Debugf("Sending Opsgenie request to: %s", url)
+	o.logger.Debugf("Sending Opsgenie request to: %s", logHost(url))
 	o.logger.Debugf("Request body: %s", string(jsonData))
 
 	resp, err := o.client.Do(req)

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"peekaping/internal/hostport"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
@@ -13,6 +14,20 @@ import (
 
 func GenericValidator[T any](cfg *T) error {
 	return validation.Validate.Struct(cfg)
+}
+
+// unknownLogHost stands in for the host of a URL that has none or does not parse
+const unknownLogHost = "[unknown host]"
+
+// logHost is the only part of a channel's URL its logs may show: the host and port. The rest can
+// carry a secret: userinfo with a password, a query token, a webhook token in the path. A URL
+// that does not parse gives no host rather than its own text, since the text could hold any of them.
+func logHost(rawURL string) string {
+	parsed, err := url.Parse(rawURL)
+	if err != nil || parsed.Host == "" {
+		return unknownLogHost
+	}
+	return parsed.Host
 }
 
 func GenericUnmarshal[T any](configJSON string) (*T, error) {

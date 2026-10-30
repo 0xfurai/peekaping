@@ -60,7 +60,7 @@ func (s *SignalSender) Send(
 	}
 	cfg := cfgAny.(*SignalConfig)
 
-	s.logger.Infof("Sending Signal message to: %s", cfg.SignalURL)
+	s.logger.Infof("Sending Signal message to: %s", logHost(cfg.SignalURL))
 
 	// Prepare message content
 	finalMessage := message
@@ -113,6 +113,6 @@ func (s *SignalSender) Send(
 		return fmt.Errorf("Signal API returned status code: %d", resp.StatusCode)
 	}
 
-	s.logger.Infof("Signal message sent successfully to %s", cfg.SignalURL)
+	s.logger.Infof("Signal message sent successfully to %s", logHost(cfg.SignalURL))
 	return nil
 }

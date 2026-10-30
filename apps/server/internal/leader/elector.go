@@ -175,40 +175,24 @@ func (e *Elector) tryBecomeLeader(ctx context.Context) {
 		return
 	}
 
-	e.checkCurrentLeader(ctx)
+	e.renewLeadership(ctx)
 }
 
-// checkCurrentLeader renews the lock if this node holds it, and else follows. It runs when the lock
+// renewScript extends the lock's TTL, in milliseconds, only if the lock holds this node's ID. The
+// check and the extension are one command: a lock that expired and was taken by another node
+// between two commands would be extended for that node.
+const renewScript = `
+	if redis.call("get", KEYS[1]) == ARGV[1] then
+		return redis.call("pexpire", KEYS[1], ARGV[2])
+	else
+		return 0
+	end
+`
+
+// renewLeadership extends the lock if this node holds it, and else follows. It runs when the lock
 // was already taken.
-func (e *Elector) checkCurrentLeader(ctx context.Context) {
-	// Key already exists, check if we are the current leader
-	currentLeader, err := e.client.Get(ctx, Key).Result()
-	if err != nil {
-		if ctx.Err() != nil {
-			return
-		}
-		if err != redis.Nil {
-			e.logger.Errorw("Failed to check current leader", "error", err)
-		}
-		e.setLeaderStatus(false)
-		return
-	}
-
-	if currentLeader == e.nodeID {
-		e.renewLeadership(ctx)
-	} else {
-		// Another node is the leader
-		if e.IsLeader() {
-			e.logger.Warnw("Lost leadership", "current_leader", currentLeader)
-		}
-		e.setLeaderStatus(false)
-	}
-}
-
-// renewLeadership extends the lock this node holds
 func (e *Elector) renewLeadership(ctx context.Context) {
-	// We are already the leader, renew the lock
-	err := e.client.Expire(ctx, Key, TTL).Err()
+	renewed, err := e.client.Eval(ctx, renewScript, []string{Key}, e.nodeID, TTL.Milliseconds()).Int()
 	if err != nil {
 		if ctx.Err() != nil {
 			return
@@ -217,7 +201,17 @@ func (e *Elector) renewLeadership(ctx context.Context) {
 		e.setLeaderStatus(false)
 		return
 	}
-	e.setLeaderStatus(true)
+
+	if renewed == 1 {
+		e.setLeaderStatus(true)
+		return
+	}
+
+	// The lock is another node's, or ran out since the attempt to take it
+	if e.IsLeader() {
+		e.logger.Warnw("Lost leadership", "node_id", e.nodeID)
+	}
+	e.setLeaderStatus(false)
 }
 
 // releaseLeadership releases the leadership if this node is the leader
