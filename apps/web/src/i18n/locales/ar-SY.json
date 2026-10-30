@@ -1944,6 +1944,7 @@
     "domain_already_used": "النطاق {{domain}} مستخدم بالفعل من قبل صفحة حالة أخرى",
     "domain_host_warning": "هذا النطاق مطابق لعنوان المضيف الحالي لديك. قد يؤدي ذلك إلى تعارضات.",
     "domains": "النطاقات",
+    "domains_docs_link": "النطاقات المخصصة وHTTPS",
     "domains_info_warning": "لا تنسَ إضافة سجلات CNAME إلى DNS لكل نطاق.",
     "draft_status": "مسودة",
     "edit_page_name": "تعديل صفحة الحالة",

@@ -1944,6 +1944,7 @@
     "domain_already_used": "Το domain {{domain}} χρησιμοποιείται ήδη από άλλη σελίδα κατάστασης",
     "domain_host_warning": "Ο τομέας αυτός είναι ίδιος με τη διεύθυνση URL του τρέχοντος host σας. Αυτό μπορεί να προκαλέσει συγκρούσεις.",
     "domains": "Τομείς",
+    "domains_docs_link": "Προσαρμοσμένα domain και HTTPS",
     "domains_info_warning": "Μην ξεχάσετε να προσθέσετε τις εγγραφές CNAME στο DNS για κάθε τομέα.",
     "draft_status": "Πρόχειρο",
     "edit_page_name": "Επεξεργασία Σελίδας Κατάστασης",

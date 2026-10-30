@@ -1944,6 +1944,7 @@
     "domain_already_used": "Tên miền {{domain}} đã được sử dụng bởi một trang trạng thái khác",
     "domain_host_warning": "Tên miền này giống với URL máy chủ hiện tại của bạn. Điều này có thể gây ra xung đột.",
     "domains": "Tên miền",
+    "domains_docs_link": "Tên miền tùy chỉnh và HTTPS",
     "domains_info_warning": "Đừng quên thêm các bản ghi CNAME vào DNS của bạn cho từng miền.",
     "draft_status": "Nháp",
     "edit_page_name": "Chỉnh sửa trang trạng thái",

@@ -1944,6 +1944,7 @@
     "domain_already_used": "Doména {{domain}} je již používána jinou stavovou stránkou",
     "domain_host_warning": "Tato doména je stejná jako aktuální URL hostitele. To může způsobit konflikty.",
     "domains": "Domény",
+    "domains_docs_link": "Vlastní domény a HTTPS",
     "domains_info_warning": "Nezapomeňte pro každou doménu přidat záznam CNAME do DNS.",
     "draft_status": "Koncept",
     "edit_page_name": "Upravit stránku stavu",

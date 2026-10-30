@@ -1944,6 +1944,7 @@
     "domain_already_used": "Domein {{domain}} is al in gebruik door een andere statuspagina",
     "domain_host_warning": "Dit domein is hetzelfde als de huidige host-URL. Dit kan conflicten veroorzaken.",
     "domains": "Domeinen",
+    "domains_docs_link": "Eigen domeinen en HTTPS",
     "domains_info_warning": "Vergeet niet bij elk domein de CNAME-records aan uw DNS toe te voegen.",
     "draft_status": "Concept",
     "edit_page_name": "Statuspagina bewerken",

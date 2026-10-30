@@ -1944,6 +1944,7 @@
     "domain_already_used": "Домен {{domain}} ужо выкарыстоўваецца іншай старонкай стану",
     "domain_host_warning": "Гэты домен такі ж, як бягучы URL вашага хоста. Гэта можа прывесці да канфліктаў.",
     "domains": "Домены",
+    "domains_docs_link": "Уласныя дамены і HTTPS",
     "domains_info_warning": "Не забудзьце дадаць запісы CNAME у DNS для кожнага дамена.",
     "draft_status": "Чарнавік",
     "edit_page_name": "Рэдагаваць старонку стану",

@@ -1944,6 +1944,7 @@
     "domain_already_used": "Domeen {{domain}} on juba kasutusel teise olekukirjelduse lehe jaoks",
     "domain_host_warning": "See domeen on sama, mis on teie praeguse hosti URL. See võib põhjustada konflikte.",
     "domains": "domeenid",
+    "domains_docs_link": "Kohandatud domeenid ja HTTPS",
     "domains_info_warning": "Ära unusta iga domeeni jaoks CNAME kirjeid oma DNS-s lisada.",
     "draft_status": "Mustand",
     "edit_page_name": "Muuda olekukirja lehte",

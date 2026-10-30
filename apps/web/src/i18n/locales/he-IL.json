@@ -1944,6 +1944,7 @@
     "domain_already_used": "התחום {{domain}} כבר בשימוש על עמוד סטטוס אחר",
     "domain_host_warning": "הדומיין זה זהה לכתובת ה-URL של השרת הנוכחי שלך. זה עשוי לגרום לקונפליקטים.",
     "domains": "דומיינים",
+    "domains_docs_link": "דומיינים מותאמים אישית ו-HTTPS",
     "domains_info_warning": "אל תשכח להוסיף את רשומות CNAME ל‑DNS שלך עבור כל דומיין.",
     "draft_status": "טיוטה",
     "edit_page_name": "ערוך דף סטטוס",

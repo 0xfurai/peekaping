@@ -1943,6 +1943,7 @@
     "domain_already_used": "Domeniul {{domain}} este deja utilizat de o altă pagină de stare",
     "domain_host_warning": "Acest domeniu este același cu URL-ul gazdei curente. Acest lucru ar putea cauza conflicte.",
     "domains": "Domenii",
+    "domains_docs_link": "Domenii personalizate și HTTPS",
     "domains_info_warning": "Nu uita să adaugi înregistrările CNAME în DNS pentru fiecare domeniu.",
     "draft_status": "Ciornă",
     "edit_page_name": "Editează pagina de stare",

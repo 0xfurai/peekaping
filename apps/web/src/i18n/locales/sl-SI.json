@@ -1944,6 +1944,7 @@
     "domain_already_used": "Domena {{domain}} je že uporabljena z drugo statusno stranjo.",
     "domain_host_warning": "Ta domena je enaka trenutni URL-ju strežnika. To lahko povzroči konflikte.",
     "domains": "Domene",
+    "domains_docs_link": "Domene po meri in HTTPS",
     "domains_info_warning": "Ne pozabi dodati zapise CNAME v DNS za vsako domeno.",
     "draft_status": "Osnutek",
     "edit_page_name": "Uredi statusno stran",

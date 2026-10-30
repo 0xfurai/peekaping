@@ -1944,6 +1944,7 @@
     "domain_already_used": "Domenas {{domain}} jau naudojamas kito statuso puslapio.",
     "domain_host_warning": "Šis domenas yra tas pats, kaip jūsų dabartinis hosto URL. Tai gali sukelti konfliktų.",
     "domains": "Domenai",
+    "domains_docs_link": "Pasirinktiniai domenai ir HTTPS",
     "domains_info_warning": "Neužmirškite pridėti CNAME įrašų į savo DNS kiekvienam domenui.",
     "draft_status": "Juodraštis",
     "edit_page_name": "Redaguoti būsenos puslapį",
