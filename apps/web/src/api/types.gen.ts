@@ -2095,6 +2095,128 @@ export type WorkspacehttpWorkspaceResponse = {
   role: "owner" | "admin" | "member";
 };
 
+export type WorkspaceportDocument = {
+  /**
+   * The version of the server that wrote the file
+   */
+  appVersion: string;
+  /**
+   * Always true: the file holds saved secrets in full
+   */
+  containsSecrets: boolean;
+  exportedAt: string;
+  format: string;
+  maintenances: Array<WorkspaceportMaintenance> | null;
+  monitors: Array<WorkspaceportMonitor> | null;
+  notificationChannels: Array<WorkspaceportNotificationChannel> | null;
+  proxies: Array<WorkspaceportProxy> | null;
+  settings: WorkspaceportSettings;
+  statusPages: Array<WorkspaceportStatusPage> | null;
+  tags: Array<WorkspaceportTag> | null;
+  version: number;
+  workspace: WorkspaceportWorkspace;
+};
+
+export type WorkspaceportMaintenance = {
+  active: boolean;
+  cron?: string;
+  daysOfMonth: Array<number> | null;
+  description: string;
+  duration?: number;
+  endDateTime?: string;
+  endTime?: string;
+  intervalDay?: number;
+  monitorRefs: Array<string> | null;
+  ref: string;
+  startDateTime?: string;
+  startTime?: string;
+  strategy: string;
+  timezone?: string;
+  title: string;
+  weekdays: Array<number> | null;
+};
+
+export type WorkspaceportMonitor = {
+  active: boolean;
+  /**
+   * The config of the record as a JSON object; its keys depend on the record's type
+   */
+  config: {
+    [key: string]: unknown;
+  };
+  interval: number;
+  locationRule: string;
+  locationThreshold?: number;
+  maxRetries: number;
+  name: string;
+  notificationChannelRefs: Array<string> | null;
+  proxyRef?: string;
+  pushToken?: string;
+  ref: string;
+  resendInterval: number;
+  retryInterval: number;
+  tagRefs: Array<string> | null;
+  timeout: number;
+  type: string;
+};
+
+export type WorkspaceportNotificationChannel = {
+  active: boolean;
+  /**
+   * The config of the record as a JSON object; its keys depend on the record's type
+   */
+  config: {
+    [key: string]: unknown;
+  };
+  isDefault: boolean;
+  name: string;
+  ref: string;
+  sensitiveFields: Array<string> | null;
+  type: string;
+};
+
+export type WorkspaceportProxy = {
+  auth: boolean;
+  host: string;
+  password?: string;
+  port: number;
+  protocol: string;
+  ref: string;
+  sensitiveFields: Array<string> | null;
+  username?: string;
+};
+
+export type WorkspaceportSettings = {
+  certExpiryNotifyDays: Array<number> | null;
+  dataRetentionDays: number;
+};
+
+export type WorkspaceportStatusPage = {
+  autoRefreshInterval: number;
+  description: string;
+  domains: Array<string> | null;
+  footerText: string;
+  icon: string;
+  monitorRefs: Array<string> | null;
+  published: boolean;
+  ref: string;
+  showLocations: boolean;
+  slug: string;
+  theme: string;
+  title: string;
+};
+
+export type WorkspaceportTag = {
+  color: string;
+  description?: string;
+  name: string;
+  ref: string;
+};
+
+export type WorkspaceportWorkspace = {
+  name: string;
+};
+
 export type GetAdminSettingsData = {
   body?: never;
   path?: never;
@@ -7649,6 +7771,104 @@ export type PostWorkspaceDeletionResponses = {
 
 export type PostWorkspaceDeletionResponse =
   PostWorkspaceDeletionResponses[keyof PostWorkspaceDeletionResponses];
+
+export type GetWorkspaceExportData = {
+  body?: never;
+  headers?: {
+    /**
+     * The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+     */
+    "X-Workspace-ID"?: string;
+  };
+  path?: never;
+  query?: never;
+  url: "/api/v1/workspace/export";
+};
+
+export type GetWorkspaceExportErrors = {
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
+  /**
+   * Forbidden
+   */
+  403: HttpxErrorBody;
+  /**
+   * Not Found
+   */
+  404: HttpxErrorBody;
+  /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
+  /**
+   * Internal Server Error
+   */
+  500: HttpxErrorBody;
+};
+
+export type GetWorkspaceExportError =
+  GetWorkspaceExportErrors[keyof GetWorkspaceExportErrors];
+
+export type GetWorkspaceExportResponses = {
+  /**
+   * The workspace document
+   */
+  200: WorkspaceportDocument;
+};
+
+export type GetWorkspaceExportResponse =
+  GetWorkspaceExportResponses[keyof GetWorkspaceExportResponses];
+
+export type GetWorkspaceExportHeartbeatsData = {
+  body?: never;
+  headers?: {
+    /**
+     * The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+     */
+    "X-Workspace-ID"?: string;
+  };
+  path?: never;
+  query?: never;
+  url: "/api/v1/workspace/export/heartbeats";
+};
+
+export type GetWorkspaceExportHeartbeatsErrors = {
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
+  /**
+   * Forbidden
+   */
+  403: HttpxErrorBody;
+  /**
+   * Not Found
+   */
+  404: HttpxErrorBody;
+  /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
+  /**
+   * Internal Server Error
+   */
+  500: HttpxErrorBody;
+};
+
+export type GetWorkspaceExportHeartbeatsError =
+  GetWorkspaceExportHeartbeatsErrors[keyof GetWorkspaceExportHeartbeatsErrors];
+
+export type GetWorkspaceExportHeartbeatsResponses = {
+  /**
+   * One JSON value per line: a HeartbeatHeader, then HeartbeatLine values
+   */
+  200: string;
+};
+
+export type GetWorkspaceExportHeartbeatsResponse =
+  GetWorkspaceExportHeartbeatsResponses[keyof GetWorkspaceExportHeartbeatsResponses];
 
 export type GetWorkspaceInvitesData = {
   body?: never;

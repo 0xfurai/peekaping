@@ -4704,6 +4704,364 @@ components:
         - name
         - role
       type: object
+    workspaceport.Document:
+      additionalProperties: false
+      properties:
+        appVersion:
+          description: The version of the server that wrote the file
+          type: string
+        containsSecrets:
+          description: "Always true: the file holds saved secrets in full"
+          type: boolean
+        exportedAt:
+          format: date-time
+          type: string
+        format:
+          examples:
+            - peekaping-workspace
+          type: string
+        maintenances:
+          items:
+            $ref: "#/components/schemas/workspaceport.Maintenance"
+          type:
+            - array
+            - "null"
+        monitors:
+          items:
+            $ref: "#/components/schemas/workspaceport.Monitor"
+          type:
+            - array
+            - "null"
+        notificationChannels:
+          items:
+            $ref: "#/components/schemas/workspaceport.NotificationChannel"
+          type:
+            - array
+            - "null"
+        proxies:
+          items:
+            $ref: "#/components/schemas/workspaceport.Proxy"
+          type:
+            - array
+            - "null"
+        settings:
+          $ref: "#/components/schemas/workspaceport.Settings"
+        statusPages:
+          items:
+            $ref: "#/components/schemas/workspaceport.StatusPage"
+          type:
+            - array
+            - "null"
+        tags:
+          items:
+            $ref: "#/components/schemas/workspaceport.Tag"
+          type:
+            - array
+            - "null"
+        version:
+          examples:
+            - 1
+          format: int64
+          type: integer
+        workspace:
+          $ref: "#/components/schemas/workspaceport.Workspace"
+      required:
+        - format
+        - version
+        - exportedAt
+        - appVersion
+        - containsSecrets
+        - workspace
+        - settings
+        - tags
+        - proxies
+        - notificationChannels
+        - monitors
+        - maintenances
+        - statusPages
+      type: object
+    workspaceport.Maintenance:
+      additionalProperties: false
+      properties:
+        active:
+          type: boolean
+        cron:
+          type: string
+        daysOfMonth:
+          items:
+            format: int64
+            type: integer
+          type:
+            - array
+            - "null"
+        description:
+          type: string
+        duration:
+          format: int64
+          type: integer
+        endDateTime:
+          type: string
+        endTime:
+          type: string
+        intervalDay:
+          format: int64
+          type: integer
+        monitorRefs:
+          items:
+            type: string
+          type:
+            - array
+            - "null"
+        ref:
+          type: string
+        startDateTime:
+          type: string
+        startTime:
+          type: string
+        strategy:
+          type: string
+        timezone:
+          type: string
+        title:
+          type: string
+        weekdays:
+          items:
+            format: int64
+            type: integer
+          type:
+            - array
+            - "null"
+      required:
+        - ref
+        - title
+        - description
+        - active
+        - strategy
+        - weekdays
+        - daysOfMonth
+        - monitorRefs
+      type: object
+    workspaceport.Monitor:
+      additionalProperties: false
+      properties:
+        active:
+          type: boolean
+        config:
+          additionalProperties: true
+          description: The config of the record as a JSON object; its keys depend on the record's type
+          type: object
+        interval:
+          format: int64
+          type: integer
+        locationRule:
+          type: string
+        locationThreshold:
+          format: int64
+          type: integer
+        maxRetries:
+          format: int64
+          type: integer
+        name:
+          type: string
+        notificationChannelRefs:
+          items:
+            type: string
+          type:
+            - array
+            - "null"
+        proxyRef:
+          type: string
+        pushToken:
+          type: string
+        ref:
+          type: string
+        resendInterval:
+          format: int64
+          type: integer
+        retryInterval:
+          format: int64
+          type: integer
+        tagRefs:
+          items:
+            type: string
+          type:
+            - array
+            - "null"
+        timeout:
+          format: int64
+          type: integer
+        type:
+          type: string
+      required:
+        - ref
+        - name
+        - type
+        - active
+        - interval
+        - timeout
+        - maxRetries
+        - retryInterval
+        - resendInterval
+        - locationRule
+        - config
+        - notificationChannelRefs
+        - tagRefs
+      type: object
+    workspaceport.NotificationChannel:
+      additionalProperties: false
+      properties:
+        active:
+          type: boolean
+        config:
+          additionalProperties: true
+          description: The config of the record as a JSON object; its keys depend on the record's type
+          type: object
+        isDefault:
+          type: boolean
+        name:
+          type: string
+        ref:
+          type: string
+        sensitiveFields:
+          items:
+            type: string
+          type:
+            - array
+            - "null"
+        type:
+          type: string
+      required:
+        - ref
+        - name
+        - type
+        - active
+        - isDefault
+        - config
+        - sensitiveFields
+      type: object
+    workspaceport.Proxy:
+      additionalProperties: false
+      properties:
+        auth:
+          type: boolean
+        host:
+          type: string
+        password:
+          type: string
+        port:
+          format: int64
+          type: integer
+        protocol:
+          type: string
+        ref:
+          type: string
+        sensitiveFields:
+          items:
+            type: string
+          type:
+            - array
+            - "null"
+        username:
+          type: string
+      required:
+        - ref
+        - protocol
+        - host
+        - port
+        - auth
+        - sensitiveFields
+      type: object
+    workspaceport.Settings:
+      additionalProperties: false
+      properties:
+        certExpiryNotifyDays:
+          items:
+            format: int64
+            type: integer
+          type:
+            - array
+            - "null"
+        dataRetentionDays:
+          format: int64
+          type: integer
+      required:
+        - dataRetentionDays
+        - certExpiryNotifyDays
+      type: object
+    workspaceport.StatusPage:
+      additionalProperties: false
+      properties:
+        autoRefreshInterval:
+          format: int64
+          type: integer
+        description:
+          type: string
+        domains:
+          items:
+            type: string
+          type:
+            - array
+            - "null"
+        footerText:
+          type: string
+        icon:
+          type: string
+        monitorRefs:
+          items:
+            type: string
+          type:
+            - array
+            - "null"
+        published:
+          type: boolean
+        ref:
+          type: string
+        showLocations:
+          type: boolean
+        slug:
+          type: string
+        theme:
+          type: string
+        title:
+          type: string
+      required:
+        - ref
+        - slug
+        - title
+        - description
+        - icon
+        - theme
+        - published
+        - showLocations
+        - footerText
+        - autoRefreshInterval
+        - domains
+        - monitorRefs
+      type: object
+    workspaceport.Tag:
+      additionalProperties: false
+      properties:
+        color:
+          type: string
+        description:
+          type: string
+        name:
+          type: string
+        ref:
+          type: string
+      required:
+        - ref
+        - name
+        - color
+      type: object
+    workspaceport.Workspace:
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+      required:
+        - name
+      type: object
   securitySchemes:
     ApiKeyAuth:
       in: header
@@ -11531,6 +11889,133 @@ paths:
       security:
         - JwtAuth: []
       summary: Schedule the deletion of the workspace
+      tags:
+        - workspace
+  /api/v1/workspace/export:
+    get:
+      description: "An owner of the workspace downloads one JSON file (peekaping-workspace-<date>.json) with its settings, tags, proxies, notification channels, monitors, maintenance windows and status pages, and the links between them. Records point to each other by ref, not by database ID. The file holds saved secrets in full (containsSecrets is always true), and each channel and proxy lists which of its fields are sensitive: keep the file as safe as the secrets are. Monitor and channel configs are JSON objects. It holds no members, invites, API keys, stats, probe assignments or heartbeats. Only a signed-in owner may download it: an admin or a member is refused (403), and so is an API key (401), since a download is a user's act."
+      operationId: getWorkspaceExport
+      parameters:
+        - description: The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+          in: header
+          name: X-Workspace-ID
+          schema:
+            format: uuid
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/workspaceport.Document"
+          description: The workspace document
+          headers:
+            Content-Disposition:
+              description: attachment, with the file's name
+              schema:
+                type: string
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Not Found
+        "429":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Too Many Requests
+          headers:
+            Retry-After:
+              description: Seconds to wait before sending the request again.
+              schema:
+                type: integer
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+      summary: Download the workspace's setup
+      tags:
+        - workspace
+  /api/v1/workspace/export/heartbeats:
+    get:
+      description: "An owner of the workspace downloads the heartbeats of its monitors as NDJSON (peekaping-heartbeats-<date>.ndjson): the first line is a header (format peekaping-heartbeats, version, exportedAt), then one line for each heartbeat, ordered by monitor (as in the workspace document) and then by time. The server streams the file in batches, so a large history is never held in memory. A monitorRef is the ref the monitor has in the workspace document. If the server fails part way, the connection is cut, so a file that ends early is not complete. The same rules as the workspace document apply: owner only, 403 for an admin or a member, 401 for an API key."
+      operationId: getWorkspaceExportHeartbeats
+      parameters:
+        - description: The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+          in: header
+          name: X-Workspace-ID
+          schema:
+            format: uuid
+            type: string
+      responses:
+        "200":
+          content:
+            application/x-ndjson:
+              schema:
+                description: "One JSON value per line: a HeartbeatHeader, then HeartbeatLine values"
+                type: string
+          description: The heartbeat file
+          headers:
+            Content-Disposition:
+              description: attachment, with the file's name
+              schema:
+                type: string
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Not Found
+        "429":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Too Many Requests
+          headers:
+            Retry-After:
+              description: Seconds to wait before sending the request again.
+              schema:
+                type: integer
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+      summary: Download the workspace's heartbeat history
       tags:
         - workspace
   /api/v1/workspace/invites:

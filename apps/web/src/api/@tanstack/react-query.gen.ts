@@ -113,6 +113,8 @@ import {
   patchWorkspace,
   deleteWorkspaceDeletion,
   postWorkspaceDeletion,
+  getWorkspaceExport,
+  getWorkspaceExportHeartbeats,
   getWorkspaceInvites,
   postWorkspaceInvites,
   deleteWorkspaceInvitesById,
@@ -392,6 +394,8 @@ import type {
   PostWorkspaceDeletionData,
   PostWorkspaceDeletionError,
   PostWorkspaceDeletionResponse,
+  GetWorkspaceExportData,
+  GetWorkspaceExportHeartbeatsData,
   GetWorkspaceInvitesData,
   PostWorkspaceInvitesData,
   PostWorkspaceInvitesError,
@@ -4477,6 +4481,56 @@ export const postWorkspaceDeletionMutation = (
     },
   };
   return mutationOptions;
+};
+
+export const getWorkspaceExportQueryKey = (
+  options?: Options<GetWorkspaceExportData>
+) => createQueryKey("getWorkspaceExport", options);
+
+/**
+ * Download the workspace's setup
+ * An owner of the workspace downloads one JSON file (peekaping-workspace-<date>.json) with its settings, tags, proxies, notification channels, monitors, maintenance windows and status pages, and the links between them. Records point to each other by ref, not by database ID. The file holds saved secrets in full (containsSecrets is always true), and each channel and proxy lists which of its fields are sensitive: keep the file as safe as the secrets are. Monitor and channel configs are JSON objects. It holds no members, invites, API keys, stats, probe assignments or heartbeats. Only a signed-in owner may download it: an admin or a member is refused (403), and so is an API key (401), since a download is a user's act.
+ */
+export const getWorkspaceExportOptions = (
+  options?: Options<GetWorkspaceExportData>
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getWorkspaceExport({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getWorkspaceExportQueryKey(options),
+  });
+};
+
+export const getWorkspaceExportHeartbeatsQueryKey = (
+  options?: Options<GetWorkspaceExportHeartbeatsData>
+) => createQueryKey("getWorkspaceExportHeartbeats", options);
+
+/**
+ * Download the workspace's heartbeat history
+ * An owner of the workspace downloads the heartbeats of its monitors as NDJSON (peekaping-heartbeats-<date>.ndjson): the first line is a header (format peekaping-heartbeats, version, exportedAt), then one line for each heartbeat, ordered by monitor (as in the workspace document) and then by time. The server streams the file in batches, so a large history is never held in memory. A monitorRef is the ref the monitor has in the workspace document. If the server fails part way, the connection is cut, so a file that ends early is not complete. The same rules as the workspace document apply: owner only, 403 for an admin or a member, 401 for an API key.
+ */
+export const getWorkspaceExportHeartbeatsOptions = (
+  options?: Options<GetWorkspaceExportHeartbeatsData>
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getWorkspaceExportHeartbeats({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getWorkspaceExportHeartbeatsQueryKey(options),
+  });
 };
 
 export const getWorkspaceInvitesQueryKey = (
