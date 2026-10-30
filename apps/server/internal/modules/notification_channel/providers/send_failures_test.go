@@ -17,6 +17,8 @@ type sendFailure struct {
 	sender func(client *http.Client) goldenSender
 	config string
 	event  goldenEvent
+	// notify is the notification of a case that none of the events is, and replaces the event
+	notify goldenNotify
 	// status and body are what the fake endpoint answers with; the status is 200 when left out
 	status int
 	body   string
@@ -94,6 +96,42 @@ var sendFailures = []sendFailure{
 	{name: "line error with a body that is not JSON", sender: line, status: 502, body: `bad gateway`,
 		config:  `{"channel_access_token": "line-token", "user_id": "U123"}`,
 		wantErr: "LINE API returned status: 502 Bad Gateway"},
+
+	{name: "grafana oncall config that is not JSON", sender: grafanaOncall, config: `{`,
+		wantErr: "failed to parse config: unexpected end of JSON input"},
+	{name: "grafana oncall request that can't be made", sender: grafanaOncall,
+		config:  `{"grafana_oncall_url": "` + badURL + `"}`,
+		wantErr: "failed to create request: parse"},
+	{name: "grafana oncall endpoint that is down", sender: grafanaOncall, transportError: true,
+		config:  `{"grafana_oncall_url": "https://oncall.example.com/hook"}`,
+		wantErr: "failed to send request: Post \"https://oncall.example.com/hook\": connection reset by peer"},
+	{name: "grafana oncall status that is not a success", sender: grafanaOncall, status: 500, body: "boom",
+		config:  `{"grafana_oncall_url": "https://oncall.example.com/hook"}`,
+		wantErr: "grafana OnCall API returned status 500: boom"},
+
+	{name: "pagerduty config that is not JSON", sender: pagerDuty, config: `{`,
+		wantErr: "failed to parse config: unexpected end of JSON input"},
+	{name: "pagerduty request that can't be made", sender: pagerDuty,
+		config:  `{"pagerduty_integration_key": "routing-key", "pagerduty_integration_url": "` + badURL + `"}`,
+		wantErr: "failed to create HTTP request: parse"},
+	{name: "pagerduty endpoint that is down", sender: pagerDuty, transportError: true,
+		config:  `{"pagerduty_integration_key": "routing-key", "pagerduty_integration_url": "https://events.pagerduty.com/v2/enqueue"}`,
+		wantErr: "failed to send PagerDuty notification: Post \"https://events.pagerduty.com/v2/enqueue\": connection reset by peer"},
+	{name: "pagerduty status that is not a success", sender: pagerDuty, status: 400,
+		config:  `{"pagerduty_integration_key": "routing-key", "pagerduty_integration_url": "https://events.pagerduty.com/v2/enqueue"}`,
+		wantErr: "PagerDuty notification failed with status code: 400"},
+
+	{name: "pagertree config that is not JSON", sender: pagerTree, config: `{`,
+		wantErr: "failed to unmarshal config: failed to parse config: unexpected end of JSON input"},
+	{name: "pagertree request that can't be made", sender: pagerTree,
+		config:  `{"integrationUrl": "` + badURL + `"}`,
+		wantErr: "failed to create request: parse"},
+	{name: "pagertree endpoint that is down", sender: pagerTree, transportError: true,
+		config:  `{"integrationUrl": "https://api.pagertree.com/integration/int_123"}`,
+		wantErr: "failed to send PagerTree notification: Post \"https://api.pagertree.com/integration/int_123\": connection reset by peer"},
+	{name: "pagertree status that is not a success", sender: pagerTree, status: 403, body: "denied",
+		config:  `{"integrationUrl": "https://api.pagertree.com/integration/int_123"}`,
+		wantErr: "PagerTree API returned status 403: denied"},
 }
 
 // TestSendFailures checks the error each channel returns when it can't send a notification
@@ -112,7 +150,7 @@ func TestSendFailures(t *testing.T) {
 			if tc.transportError {
 				client = &http.Client{Transport: failingTransport{}}
 			}
-			message, mon, hb := goldenNotification(tc.event)
+			message, mon, hb := notificationOf(tc.event, tc.notify)
 			err := tc.sender(client).Send(context.Background(), tc.config, message, mon, hb)
 
 			require.Error(t, err)

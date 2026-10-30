@@ -134,8 +134,46 @@ type goldenCase struct {
 	sender func(client *http.Client) goldenSender
 	config string
 	event  goldenEvent
+	// notify is the notification of a case that none of the events is, and replaces the event
+	notify goldenNotify
 	// response is the body the fake endpoint answers with
 	response string
+}
+
+// notification returns the message, monitor and heartbeat the case sends
+func (tc goldenCase) notification() (string, *monitor.Model, *heartbeat.Model) {
+	return notificationOf(tc.event, tc.notify)
+}
+
+// goldenNotify returns a notification's message, monitor and heartbeat
+type goldenNotify func() (string, *monitor.Model, *heartbeat.Model)
+
+// notificationOf returns the notification a case sends: notify's when it has one, and otherwise the
+// event's
+func notificationOf(event goldenEvent, notify goldenNotify) (string, *monitor.Model, *heartbeat.Model) {
+	if notify != nil {
+		return notify()
+	}
+	return goldenNotification(event)
+}
+
+// notifying returns the notification of a message, monitor and heartbeat
+func notifying(message string, mon *monitor.Model, hb *heartbeat.Model) goldenNotify {
+	return func() (string, *monitor.Model, *heartbeat.Model) { return message, mon, hb }
+}
+
+// goldenMonitorWith returns the golden monitor, changed by edit
+func goldenMonitorWith(edit func(*monitor.Model)) *monitor.Model {
+	m := *goldenMonitor
+	edit(&m)
+	return &m
+}
+
+// goldenHeartbeatWith returns a copy of hb, changed by edit
+func goldenHeartbeatWith(hb *heartbeat.Model, edit func(*heartbeat.Model)) *heartbeat.Model {
+	copied := *hb
+	edit(&copied)
+	return &copied
 }
 
 func nopLogger() *zap.SugaredLogger {
@@ -157,6 +195,7 @@ var (
 	ntfy             = func(c *http.Client) goldenSender { return NewNTFYSender(nopLogger(), c) }
 	opsgenie         = func(c *http.Client) goldenSender { return NewOpsgenieSender(nopLogger(), c) }
 	pagerDuty        = func(c *http.Client) goldenSender { return NewPagerDutySender(nopLogger(), goldenAppConfig, c) }
+	pagerDutyNoLink  = func(c *http.Client) goldenSender { return NewPagerDutySender(nopLogger(), nil, c) }
 	pagerTree        = func(c *http.Client) goldenSender { return NewPagerTreeSender(nopLogger(), c) }
 	pushbullet       = func(c *http.Client) goldenSender { return NewPushbulletSender(nopLogger(), c) }
 	pushover         = func(c *http.Client) goldenSender { return NewPushoverSender(nopLogger(), c) }
@@ -220,6 +259,15 @@ var goldenCases = []goldenCase{
 		config: `{"grafana_oncall_url": "https://oncall.example.com/integrations/v1/formatted_webhook/abc/"}`},
 	// Known issue: without a heartbeat the alert is titled "General notification"
 	{name: "grafana_oncall_certificate_expiry", sender: grafanaOncall, event: certExpiryEvent,
+		config: `{"grafana_oncall_url": "https://oncall.example.com/integrations/v1/formatted_webhook/abc/"}`},
+
+	{name: "grafana_oncall_pending", sender: grafanaOncall, event: pendingEvent,
+		config: `{"grafana_oncall_url": "https://oncall.example.com/integrations/v1/formatted_webhook/abc/"}`},
+	{name: "grafana_oncall_down_without_monitor", sender: grafanaOncall, event: downWithoutMonitorEvent,
+		config: `{"grafana_oncall_url": "https://oncall.example.com/integrations/v1/formatted_webhook/abc/"}`},
+	// A probe that is neither offline nor online sends nothing
+	{name: "grafana_oncall_probe_unknown_status", sender: grafanaOncall,
+		notify: notifying("Probe Frankfurt is slow", &monitor.Model{ID: "probe-1", Type: shared.MonitorTypeProbe, Name: "Probe Frankfurt", Status: shared.MonitorStatusPending}, nil),
 		config: `{"grafana_oncall_url": "https://oncall.example.com/integrations/v1/formatted_webhook/abc/"}`},
 
 	{name: "line_down", sender: line, event: downEvent,
@@ -292,6 +340,14 @@ var goldenCases = []goldenCase{
 	// and the next Up resolves it
 	{name: "pagerduty_certificate_expiry", sender: pagerDuty, event: certExpiryEvent,
 		config: `{"pagerduty_integration_key": "routing-key", "pagerduty_integration_url": "https://events.pagerduty.com/v2/enqueue"}`},
+	{name: "pagerduty_pending", sender: pagerDuty, event: pendingEvent,
+		config: `{"pagerduty_integration_key": "routing-key", "pagerduty_integration_url": "https://events.pagerduty.com/v2/enqueue"}`},
+	// Without a monitor the source is Peekaping, and the alert has no dedup key
+	{name: "pagerduty_down_without_monitor", sender: pagerDuty, event: downWithoutMonitorEvent,
+		config: `{"pagerduty_integration_key": "routing-key", "pagerduty_integration_url": "https://events.pagerduty.com/v2/enqueue"}`},
+	// Without a public URL the alert doesn't link back
+	{name: "pagerduty_down_without_public_url", sender: pagerDutyNoLink, event: downEvent,
+		config: `{"pagerduty_integration_key": "routing-key", "pagerduty_integration_url": "https://events.pagerduty.com/v2/enqueue"}`},
 
 	{name: "pagertree_down", sender: pagerTree, event: downEvent,
 		config: `{"integrationUrl": "https://api.pagertree.com/integration/int_123", "urgency": "high", "authToken": "tree-token"}`},
@@ -307,6 +363,34 @@ var goldenCases = []goldenCase{
 	{name: "pagertree_probe_online_without_auto_resolve", sender: pagerTree, event: probeOnlineEvent,
 		config: `{"integrationUrl": "https://api.pagertree.com/integration/int_123"}`},
 	{name: "pagertree_certificate_expiry", sender: pagerTree, event: certExpiryEvent,
+		config: `{"integrationUrl": "https://api.pagertree.com/integration/int_123"}`},
+	// Only a Down, or an Up with auto-resolve, sends an alert
+	{name: "pagertree_pending", sender: pagerTree, event: pendingEvent,
+		config: `{"integrationUrl": "https://api.pagertree.com/integration/int_123", "autoResolve": true}`},
+	{name: "pagertree_probe_unknown_status", sender: pagerTree,
+		notify: notifying("Probe Frankfurt is slow", &monitor.Model{ID: "probe-1", Type: shared.MonitorTypeProbe, Name: "Probe Frankfurt", Status: shared.MonitorStatusPending}, nil),
+		config: `{"integrationUrl": "https://api.pagertree.com/integration/int_123", "autoResolve": true}`},
+	{name: "pagertree_down_without_monitor", sender: pagerTree, event: downWithoutMonitorEvent,
+		config: `{"integrationUrl": "https://api.pagertree.com/integration/int_123"}`},
+	// The description is the message, then the heartbeat's, then a default
+	{name: "pagertree_down_without_message", sender: pagerTree,
+		notify: notifying("", goldenMonitor, goldenDown),
+		config: `{"integrationUrl": "https://api.pagertree.com/integration/int_123"}`},
+	{name: "pagertree_down_without_any_message", sender: pagerTree,
+		notify: notifying("", goldenMonitor, goldenHeartbeatWith(goldenDown, func(hb *heartbeat.Model) { hb.Msg = "" })),
+		config: `{"integrationUrl": "https://api.pagertree.com/integration/int_123"}`},
+	{name: "pagertree_down_with_response_time_and_duration", sender: pagerTree,
+		notify: notifying(goldenDown.Msg, goldenMonitor, goldenHeartbeatWith(goldenDown, func(hb *heartbeat.Model) { hb.Ping = 12; hb.Duration = 1500 })),
+		config: `{"integrationUrl": "https://api.pagertree.com/integration/int_123"}`},
+	// The monitor's URL is left out when its config has none, or isn't JSON
+	{name: "pagertree_down_monitor_without_url", sender: pagerTree,
+		notify: notifying(goldenDown.Msg, goldenMonitorWith(func(m *monitor.Model) { m.Config = `{"host": "api.example.com"}` }), goldenDown),
+		config: `{"integrationUrl": "https://api.pagertree.com/integration/int_123"}`},
+	{name: "pagertree_down_monitor_with_config_that_is_not_json", sender: pagerTree,
+		notify: notifying(goldenDown.Msg, goldenMonitorWith(func(m *monitor.Model) { m.Config = `not json` }), goldenDown),
+		config: `{"integrationUrl": "https://api.pagertree.com/integration/int_123"}`},
+	{name: "pagertree_down_monitor_without_config", sender: pagerTree,
+		notify: notifying(goldenDown.Msg, goldenMonitorWith(func(m *monitor.Model) { m.Config = "" }), goldenDown),
 		config: `{"integrationUrl": "https://api.pagertree.com/integration/int_123"}`},
 
 	{name: "pushbullet_down", sender: pushbullet, event: downEvent,
@@ -415,7 +499,7 @@ func TestSendGoldenRequests(t *testing.T) {
 			transport := &recordingTransport{endpoint: endpoint}
 
 			sender := tc.sender(&http.Client{Transport: transport})
-			message, mon, hb := goldenNotification(tc.event)
+			message, mon, hb := tc.notification()
 			require.NoError(t, sender.Validate(tc.config), "the case's config must pass validation, as the listener checks it first")
 			require.NoError(t, sender.Send(context.Background(), tc.config, message, mon, hb))
 
@@ -438,7 +522,7 @@ func TestSendStopsWhenContextIsDone(t *testing.T) {
 			ctx, cancel := context.WithCancel(context.Background())
 			cancel()
 
-			message, mon, hb := goldenNotification(tc.event)
+			message, mon, hb := tc.notification()
 			err := tc.sender(&http.Client{Transport: transport}).Send(ctx, tc.config, message, mon, hb)
 
 			assert.False(t, reached.Load(), "the request must not reach the endpoint once the context is done")
