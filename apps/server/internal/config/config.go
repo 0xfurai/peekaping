@@ -349,7 +349,10 @@ func LoadConfig[T any](path string) (config T, err error) {
 	}
 
 	// Override with environment variables (takes precedence)
-	envVarsFromEnv := loadFromEnv(&config)
+	envVarsFromEnv, err := loadFromEnv(&config)
+	if err != nil {
+		return config, fmt.Errorf("configuration validation failed: %w", err)
+	}
 	// The install settings tell a value the environment set from a default (see Environment)
 	recordEnvironment(&config, envVarsFromFile, envVarsFromEnv)
 
@@ -496,8 +499,8 @@ func applyDefaults[T any](config *T) map[string]string {
 }
 
 // setFieldFromText sets a string, int, int64 (a time.Duration included) or bool field from its
-// text. It reports whether the field's kind is one it reads, and the error of a number that
-// doesn't parse, which leaves the field as it was.
+// text. It reports whether the field's kind is one it reads, and the error of a number or boolean
+// that doesn't parse, which leaves the field as it was.
 func setFieldFromText(field reflect.StructField, fieldValue reflect.Value, value string) (bool, error) {
 	switch fieldValue.Kind() {
 	case reflect.String:
@@ -509,11 +512,35 @@ func setFieldFromText(field reflect.StructField, fieldValue reflect.Value, value
 		}
 		fieldValue.SetInt(intValue)
 	case reflect.Bool:
-		fieldValue.SetBool(value == "true" || value == "1")
+		boolValue, err := parseBool(field, value)
+		if err != nil {
+			return true, err
+		}
+		fieldValue.SetBool(boolValue)
 	default:
 		return false, nil
 	}
 	return true, nil
+}
+
+// InvalidBooleanError is a boolean variable set to text strconv.ParseBool doesn't read, such as yes
+// or on. It would otherwise turn a setting meant to be on into off without a word, so startup stops.
+type InvalidBooleanError struct {
+	Name  string
+	Value string
+}
+
+func (e *InvalidBooleanError) Error() string {
+	return fmt.Sprintf("%s must be a boolean: 1, t, T, TRUE, true, True, 0, f, F, FALSE, false or False, not %q", e.Name, e.Value)
+}
+
+// parseBool reads value as strconv.ParseBool does, and names the field's variable when it can't
+func parseBool(field reflect.StructField, value string) (bool, error) {
+	parsed, err := strconv.ParseBool(value)
+	if err != nil {
+		return false, &InvalidBooleanError{Name: field.Tag.Get("env"), Value: value}
+	}
+	return parsed, nil
 }
 
 // parseInt reads value as a number, or as a duration for a time.Duration
@@ -561,7 +588,7 @@ func loadEnvFile[T any](filePath string, config *T, envVarsFromFile map[string]s
 	return setFieldsFromMap(config, envVarsFromFile)
 }
 
-func loadFromEnv[T any](config *T) map[string]string {
+func loadFromEnv[T any](config *T) (map[string]string, error) {
 	// Get all the relevant environment variables at once
 	envVars := make(map[string]string)
 
@@ -577,8 +604,7 @@ func loadFromEnv[T any](config *T) map[string]string {
 		}
 	}
 
-	setFieldsFromMap(config, envVars)
-	return envVars
+	return envVars, setFieldsFromMap(config, envVars)
 }
 
 func setFieldsFromMap[T any](config *T, values map[string]string) error {
@@ -600,6 +626,10 @@ func setFieldsFromMap[T any](config *T, values map[string]string) error {
 		}
 
 		if _, err := setFieldFromText(field, fieldValue, value); err != nil {
+			var invalid *InvalidBooleanError
+			if errors.As(err, &invalid) {
+				return err
+			}
 			fmt.Printf("Warning: could not parse %s=%s as number: %v\n", envKey, value, err)
 		}
 	}

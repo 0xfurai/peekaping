@@ -1,6 +1,8 @@
 package config
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -257,4 +259,77 @@ func TestRefuseMongoStorage(t *testing.T) {
 	for _, dbType := range []string{"", "sqlite", "postgres", "postgresql", "mysql", "oracle"} {
 		assert.NoError(t, RefuseMongoStorage(dbType), dbType)
 	}
+}
+
+// PP-392: a boolean variable is read the way strconv.ParseBool reads it, and anything else stops
+// startup instead of becoming false
+func TestLoadConfig_ReadsABooleanInEveryFormParseBoolAccepts(t *testing.T) {
+	for value, want := range map[string]bool{
+		"1": true, "t": true, "T": true, "TRUE": true, "true": true, "True": true,
+		"0": false, "f": false, "F": false, "FALSE": false, "false": false, "False": false,
+	} {
+		t.Run(value, func(t *testing.T) {
+			cfg, err := loadTestConfig(t, map[string]string{"VERIFY_CUSTOM_DOMAINS": value, "BLOCK_PRIVATE_TARGETS": value})
+
+			require.NoError(t, err)
+			assert.Equal(t, want, cfg.VerifyCustomDomains)
+			assert.Equal(t, want, cfg.BlockPrivateTargets)
+		})
+	}
+}
+
+func TestLoadConfig_ABooleanThatParseBoolRefusesStopsStartupAndNamesTheVariable(t *testing.T) {
+	for _, name := range []string{"VERIFY_CUSTOM_DOMAINS", "BLOCK_PRIVATE_TARGETS", "METRICS_ENABLED"} {
+		for _, value := range []string{"yes", "on", "enabled", "2", "tru", "no"} {
+			t.Run(name+"="+value, func(t *testing.T) {
+				_, err := loadTestConfig(t, map[string]string{name: value})
+
+				require.Error(t, err)
+				assert.ErrorContains(t, err, name+" must be a boolean")
+				assert.ErrorContains(t, err, `"`+value+`"`)
+			})
+		}
+	}
+}
+
+func TestLoadConfig_ABooleanThatIsUnsetOrEmptyKeepsItsDefault(t *testing.T) {
+	cfg, err := loadTestConfig(t, map[string]string{"VERIFY_CUSTOM_DOMAINS": "", "BLOCK_PRIVATE_TARGETS": ""})
+
+	require.NoError(t, err)
+	assert.False(t, cfg.VerifyCustomDomains)
+	assert.False(t, cfg.BlockPrivateTargets)
+}
+
+func TestLoadConfig_ABooleanInAnEnvFileFollowsTheSameRule(t *testing.T) {
+	t.Setenv("DB_TYPE", "sqlite")
+	t.Setenv("DB_NAME", "peekaping.db")
+	t.Setenv("VERIFY_CUSTOM_DOMAINS", "")
+	for value, want := range map[string]bool{"TRUE": true, "1": true, "False": false} {
+		dir := t.TempDir()
+		require.NoError(t, os.WriteFile(filepath.Join(dir, ".env"), []byte("VERIFY_CUSTOM_DOMAINS="+value+"\n"), 0o600))
+
+		cfg, err := LoadConfig[Config](dir)
+
+		require.NoError(t, err, value)
+		assert.Equal(t, want, cfg.VerifyCustomDomains, value)
+	}
+
+	dir := t.TempDir()
+	require.NoError(t, os.WriteFile(filepath.Join(dir, ".env"), []byte("VERIFY_CUSTOM_DOMAINS=yes\n"), 0o600))
+	_, err := LoadConfig[Config](dir)
+	assert.ErrorContains(t, err, "VERIFY_CUSTOM_DOMAINS must be a boolean")
+}
+
+// A bad boolean in the file stops startup even when the environment overrides it: the file is
+// wrong, and the operator should know
+func TestLoadConfig_ABadBooleanInAnEnvFileStopsStartupEvenWhenTheEnvironmentOverridesIt(t *testing.T) {
+	t.Setenv("DB_TYPE", "sqlite")
+	t.Setenv("DB_NAME", "peekaping.db")
+	t.Setenv("VERIFY_CUSTOM_DOMAINS", "true")
+	dir := t.TempDir()
+	require.NoError(t, os.WriteFile(filepath.Join(dir, ".env"), []byte("VERIFY_CUSTOM_DOMAINS=yes\n"), 0o600))
+
+	_, err := LoadConfig[Config](dir)
+
+	assert.ErrorContains(t, err, `VERIFY_CUSTOM_DOMAINS must be a boolean: 1, t, T, TRUE, true, True, 0, f, F, FALSE, false or False, not "yes"`)
 }

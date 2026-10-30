@@ -270,3 +270,10 @@ func TestNewRuntime_PassesChecksPerHostPerMinuteToTheProbe(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, 90, built.(*probeclient.Probe).ChecksPerHostPerMinute())
 }
+
+func TestConfig_ABooleanThatIsNotOneStopsTheStartAndNamesTheVariable(t *testing.T) {
+	_, err := loadConfig(t, with(minimal(), "PROBE_ALLOW_INSECURE", "yes"))
+
+	assert.ErrorContains(t, err, `PROBE_ALLOW_INSECURE must be a boolean`)
+	assert.ErrorContains(t, err, `not "yes"`)
+}
