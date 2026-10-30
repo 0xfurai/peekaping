@@ -346,8 +346,8 @@ func (s *ServiceImpl) pageDomains(ctx context.Context, pageID string) ([]string,
 	return domains, nil
 }
 
-// pageMonitors returns the refs of the monitors of a status page that the document holds, in the
-// order the page shows them
+// pageMonitors returns the refs of the monitors of a status page that the document holds, sorted:
+// the links carry no stored order, so this is by monitor ID
 func (s *ServiceImpl) pageMonitors(ctx context.Context, pageID string, known map[string]bool) ([]string, error) {
 	links, err := s.deps.MonitorStatusPages.GetMonitorsForStatusPage(ctx, pageID)
 	if err != nil {

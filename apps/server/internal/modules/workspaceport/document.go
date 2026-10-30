@@ -55,8 +55,7 @@ func (c ConfigJSON) String() string {
 
 // Document is a workspace's setup. Every array is ordered by name and then ref, so that two
 // exports of the same data differ in ExportedAt alone. Where a record links to others, the links
-// are refs of records in the same document, sorted; the only exception is a status page's monitors,
-// which are in the order the page shows them.
+// are refs of records in the same document, sorted.
 type Document struct {
 	Format          string    `json:"format" example:"peekaping-workspace"`
 	Version         int       `json:"version" example:"1"`
@@ -156,8 +155,8 @@ type Maintenance struct {
 	MonitorRefs   []string `json:"monitorRefs"`
 }
 
-// StatusPage lists its custom domains and its monitors. MonitorRefs are in the order the page
-// shows its monitors.
+// StatusPage lists its custom domains and its monitors. The server stores no order for a page's
+// monitors, so MonitorRefs are sorted as every other link is.
 type StatusPage struct {
 	Ref                 string   `json:"ref"`
 	Slug                string   `json:"slug"`
