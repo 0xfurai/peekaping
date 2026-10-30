@@ -159,24 +159,15 @@ func run(ctx context.Context, cfg *Config, logger *zap.SugaredLogger, listener n
 	logger.Infow("Starting Peekaping in single mode", "version", version.Version)
 	warnAboutIgnoredSettings(cfg, logger)
 
-	container := dig.New()
-	internalCfg := cfg.ToInternalConfig()
-	if err := app.RegisterSingle(container, internalCfg); err != nil {
-		return fmt.Errorf("failed to register dependencies: %w", err)
+	container, err := newContainer(cfg.ToInternalConfig(), logger)
+	if err != nil {
+		return err
 	}
-	// Every module logs through the caller's logger
-	if err := container.Decorate(func() *zap.SugaredLogger { return logger }); err != nil {
-		return fmt.Errorf("failed to decorate the logger: %w", err)
-	}
-	// Error reports stay off until startJobs applies the admin's choice. The reports still queued
-	// go out as the process ends.
-	if err := app.SetupErrorReporting(container, internalCfg); err != nil {
-		return fmt.Errorf("failed to set up error reporting: %w", err)
-	}
+	// The reports still queued go out as the process ends
 	defer reporting.Flush(errorReportingFlush)
-	var p parts
-	if err := container.Invoke(func(resolved parts) { p = resolved }); err != nil {
-		return fmt.Errorf("failed to build peekaping: %w", err)
+	p, err := resolveParts(container)
+	if err != nil {
+		return err
 	}
 
 	handler, err := apiHandler(cfg, p, logger)
@@ -219,6 +210,32 @@ func run(ctx context.Context, cfg *Config, logger *zap.SugaredLogger, listener n
 	}
 	logger.Info("Peekaping stopped")
 	return nil
+}
+
+// newContainer registers peekaping's dependencies, with error reporting set up but still off
+func newContainer(internalCfg *config.Config, logger *zap.SugaredLogger) (*dig.Container, error) {
+	container := dig.New()
+	if err := app.RegisterSingle(container, internalCfg); err != nil {
+		return nil, fmt.Errorf("failed to register dependencies: %w", err)
+	}
+	// Every module logs through the caller's logger
+	if err := container.Decorate(func() *zap.SugaredLogger { return logger }); err != nil {
+		return nil, fmt.Errorf("failed to decorate the logger: %w", err)
+	}
+	// Error reports stay off until startJobs applies the admin's choice
+	if err := app.SetupErrorReporting(container, internalCfg); err != nil {
+		return nil, fmt.Errorf("failed to set up error reporting: %w", err)
+	}
+	return container, nil
+}
+
+// resolveParts builds everything run starts and stops
+func resolveParts(container *dig.Container) (parts, error) {
+	var p parts
+	if err := container.Invoke(func(resolved parts) { p = resolved }); err != nil {
+		return parts{}, fmt.Errorf("failed to build peekaping: %w", err)
+	}
+	return p, nil
 }
 
 // warnAboutIgnoredSettings says which settings single mode ignores: the Redis settings, and the
