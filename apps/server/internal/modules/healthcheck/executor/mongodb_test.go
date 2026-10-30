@@ -540,9 +540,9 @@ func TestMongoDBExecutor_validateConnectionString(t *testing.T) {
 			expectedError: false,
 		},
 		{
-			name:          "empty username with password (valid for MongoDB)",
+			name:          "empty username with password (the driver refuses it)",
 			connectionStr: "mongodb://:password@localhost:27017/testdb",
-			expectedError: false,
+			expectedError: true,
 		},
 		{
 			name:          "missing database name",
@@ -568,7 +568,7 @@ func TestMongoDBExecutor_validateConnectionString(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := ValidateConnectionStringWithOptions(tt.connectionStr, []string{"mongodb", "mongodb+srv"}, true)
+			err := validateMongoConnectionString(tt.connectionStr)
 			if tt.expectedError {
 				assert.Error(t, err)
 			} else {
