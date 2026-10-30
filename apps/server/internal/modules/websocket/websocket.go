@@ -117,144 +117,20 @@ func NewServer(
 		stopSweep:  make(chan struct{}),
 	}
 
-	io.Use(func(s *socket.Socket, next func(*socket.ExtendedError)) {
-		// The token comes in the auth payload of the socket.io CONNECT packet, not
-		// in the query string, which proxies write to their access logs.
-		auth, _ := s.Handshake().Auth.(map[string]any)
-		access_token, ok := auth["token"].(string)
-		if !ok || access_token == "" {
-			next(socket.NewExtendedError("access_token is required", "test"))
-			return
-		}
-
-		// Create context for token verification
-		ctx := context.Background()
-		claims, err := tokenMaker.VerifyToken(ctx, access_token, "access")
-		if err != nil {
-			next(socket.NewExtendedError("Unauthorized", nil))
-			return
-		}
-
-		data := SocketData{UserId: fmt.Sprint(claims.UserID), SessionStart: claims.SessionStart()}
-
-		s.SetData(data)
-
-		next(nil)
-	})
+	io.Use(server.authenticate)
 
 	// The room handlers go in a middleware of their own, after the auth one, so only an
 	// authenticated socket gets them. The library runs the middlewares before it sends CONNECT to
 	// the client, and emits "connection" after: a handler registered there could miss a join_room
 	// that the client sent as soon as it saw CONNECT.
-	io.Use(func(client *socket.Socket, next func(*socket.ExtendedError)) {
-		data, ok := client.Data().(SocketData)
-		if !ok {
-			next(socket.NewExtendedError("Unauthorized", nil))
-			return
-		}
-		us := server.register(client, data)
-		client.On("disconnect", safe(logger, "disconnect", func(...interface{}) { server.unregister(us) }))
+	io.Use(server.handleRooms)
 
-		client.On("join_room", safe(logger, "join_room", func(args ...interface{}) {
-			ack := ackOf(args)
-			roomName, ok := firstString(args)
-			if !ok {
-				logger.Debugf("join_room: dropped, no room name in %d arguments", len(args))
-				reply(ack, "error", "not allowed")
-				return
-			}
-			if reason := server.join(us, roomName); reason != "" {
-				logger.Debugf("join_room: refused %q for user %s: %s", roomName, us.userID, reason)
-				reply(ack, "error", "not allowed")
-				return
-			}
-			logger.Debugf("join_room: %s", roomName)
-			reply(ack, "ok", "")
-		}))
-
-		client.On("leave_room", safe(logger, "leave_room", func(args ...interface{}) {
-			ack := ackOf(args)
-			roomName, ok := firstString(args)
-			if !ok {
-				logger.Debugf("leave_room: dropped, no room name in %d arguments", len(args))
-				reply(ack, "error", "not allowed")
-				return
-			}
-			// Only the rooms a client joins
-			prefix, id, ok := parseRoom(roomName)
-			if !ok {
-				logger.Debugf("leave_room: ignored %q", roomName)
-				reply(ack, "error", "not allowed")
-				return
-			}
-			logger.Debugf("leave_room: %s", roomName)
-			us.mu.Lock()
-			client.Leave(socket.Room(prefix + id))
-			us.mu.Unlock()
-			reply(ack, "ok", "")
-		}))
-
-		next(nil)
-	})
-
-	io.On("connection", safe(logger, "connection", func(clients ...interface{}) {
-		var client *socket.Socket
-		if len(clients) > 0 {
-			client, _ = clients[0].(*socket.Socket)
-		}
-		if client == nil {
-			logger.Warnf("[WS]connection: dropped, no socket in %d arguments", len(clients))
-			return
-		}
-		if server.onConnected != nil {
-			defer server.onConnected(string(client.Id()))
-		}
-		if server.onConnection != nil {
-			server.onConnection(string(client.Id()))
-		}
-		// The auth middleware sets the data, so a socket without it never authenticated
-		data, ok := client.Data().(SocketData)
-		if !ok {
-			logger.Warn("[WS]connection: disconnecting a socket without user data")
-			client.Disconnect(true)
-			return
-		}
-
-		// The socket was registered in a middleware, before the library marked it connected, and
-		// socket.io v2.4.11's Socket.Disconnect does nothing to a socket that is not connected yet:
-		// a SessionsEnded published in between closed nothing. Now that it is connected, its
-		// session is checked once more.
-		if err := tokenMaker.CheckSession(context.Background(), data.UserId, data.SessionStart); errors.Is(err, auth.ErrInvalidToken) {
-			logger.Debugf("[WS]connection: closing a socket of user %s, whose session ended", data.UserId)
-			client.Disconnect(true)
-			return
-		} else if err != nil {
-			// The join checks the session again, and so does the sweep
-			logger.Warnw("[WS]connection: could not check the session of a socket", "user_id", data.UserId, "error", err)
-		}
-
-		logger.Debugf("[WS]connection: %s", data.UserId)
-	}))
+	io.On("connection", safe(logger, "connection", server.handleConnection))
 
 	subscriber := events.NewSubscriber(eventBus, "websocket")
 
 	// A heartbeat goes to its workspace's room and to its monitor's room, and to no other
-	events.Subscribe(subscriber, events.HeartbeatEvent, func(ctx context.Context, hb heartbeat.Model) {
-		monitorRoom := monitorPrefix + hb.MonitorID
-		server.emitToRoom(monitorRoom, monitorRoom+":heartbeat", &hb)
-
-		workspaceID, found, err := server.workspaceOf(ctx, hb.MonitorID)
-		if err != nil {
-			logger.Warnw("Heartbeat not sent to its workspace: could not read the monitor's workspace", "monitor_id", hb.MonitorID, "error", err)
-			return
-		}
-		if !found {
-			logger.Debugf("Heartbeat not sent to a workspace: monitor %s is gone", hb.MonitorID)
-			return
-		}
-		workspaceRoom := workspacePrefix + string(workspaceID)
-		server.emitToRoom(workspaceRoom, workspaceRoom+":heartbeat", &hb)
-	})
+	events.Subscribe(subscriber, events.HeartbeatEvent, server.routeHeartbeat)
 
 	events.Subscribe(subscriber, events.MonitorDeleted, func(_ context.Context, monitorID string) {
 		server.monitorWorkspaces.Delete(monitorID)
@@ -264,6 +140,156 @@ func NewServer(
 	events.Subscribe(subscriber, auth.SessionsEnded, server.sessionsEnded)
 
 	return server, nil
+}
+
+// authenticate is the middleware that lets a socket in when its CONNECT packet carries an access
+// token, and keeps the user and the start of the session with the socket
+func (s *Server) authenticate(client *socket.Socket, next func(*socket.ExtendedError)) {
+	// The token comes in the auth payload of the socket.io CONNECT packet, not
+	// in the query string, which proxies write to their access logs.
+	handshake, _ := client.Handshake().Auth.(map[string]any)
+	access_token, ok := handshake["token"].(string)
+	if !ok || access_token == "" {
+		next(socket.NewExtendedError("access_token is required", "test"))
+		return
+	}
+
+	// Create context for token verification
+	ctx := context.Background()
+	claims, err := s.tokenMaker.VerifyToken(ctx, access_token, "access")
+	if err != nil {
+		next(socket.NewExtendedError("Unauthorized", nil))
+		return
+	}
+
+	data := SocketData{UserId: fmt.Sprint(claims.UserID), SessionStart: claims.SessionStart()}
+
+	client.SetData(data)
+
+	next(nil)
+}
+
+// handleRooms is the middleware that registers an authenticated socket and gives it the handlers
+// of the rooms
+func (s *Server) handleRooms(client *socket.Socket, next func(*socket.ExtendedError)) {
+	data, ok := client.Data().(SocketData)
+	if !ok {
+		next(socket.NewExtendedError("Unauthorized", nil))
+		return
+	}
+	us := s.register(client, data)
+	client.On("disconnect", safe(s.logger, "disconnect", func(...interface{}) { s.unregister(us) }))
+	client.On("join_room", safe(s.logger, "join_room", func(args ...interface{}) { s.joinRoom(us, args) }))
+	client.On("leave_room", safe(s.logger, "leave_room", func(args ...interface{}) { s.leaveRoom(us, args) }))
+
+	next(nil)
+}
+
+// joinRoom answers a join_room with ok, or with not allowed for a room the user may not enter
+func (s *Server) joinRoom(us *userSocket, args []interface{}) {
+	ack := ackOf(args)
+	roomName, ok := firstString(args)
+	if !ok {
+		s.logger.Debugf("join_room: dropped, no room name in %d arguments", len(args))
+		reply(ack, "error", "not allowed")
+		return
+	}
+	if reason := s.join(us, roomName); reason != "" {
+		s.logger.Debugf("join_room: refused %q for user %s: %s", roomName, us.userID, reason)
+		reply(ack, "error", "not allowed")
+		return
+	}
+	s.logger.Debugf("join_room: %s", roomName)
+	reply(ack, "ok", "")
+}
+
+// leaveRoom answers a leave_room with ok, or with not allowed for a name that is no room
+func (s *Server) leaveRoom(us *userSocket, args []interface{}) {
+	ack := ackOf(args)
+	roomName, ok := firstString(args)
+	if !ok {
+		s.logger.Debugf("leave_room: dropped, no room name in %d arguments", len(args))
+		reply(ack, "error", "not allowed")
+		return
+	}
+	// Only the rooms a client joins
+	prefix, id, ok := parseRoom(roomName)
+	if !ok {
+		s.logger.Debugf("leave_room: ignored %q", roomName)
+		reply(ack, "error", "not allowed")
+		return
+	}
+	s.logger.Debugf("leave_room: %s", roomName)
+	us.mu.Lock()
+	us.client.Leave(socket.Room(prefix + id))
+	us.mu.Unlock()
+	reply(ack, "ok", "")
+}
+
+// handleConnection runs when a socket has connected
+func (s *Server) handleConnection(clients ...interface{}) {
+	var client *socket.Socket
+	if len(clients) > 0 {
+		client, _ = clients[0].(*socket.Socket)
+	}
+	if client == nil {
+		s.logger.Warnf("[WS]connection: dropped, no socket in %d arguments", len(clients))
+		return
+	}
+	if s.onConnected != nil {
+		defer s.onConnected(string(client.Id()))
+	}
+	if s.onConnection != nil {
+		s.onConnection(string(client.Id()))
+	}
+	// The auth middleware sets the data, so a socket without it never authenticated
+	data, ok := client.Data().(SocketData)
+	if !ok {
+		s.logger.Warn("[WS]connection: disconnecting a socket without user data")
+		client.Disconnect(true)
+		return
+	}
+
+	if !s.sessionOpen(client, data) {
+		return
+	}
+
+	s.logger.Debugf("[WS]connection: %s", data.UserId)
+}
+
+// sessionOpen checks the session of a socket that has just connected, and closes the socket when it
+// ended. The socket was registered in a middleware, before the library marked it connected, and
+// socket.io v2.4.11's Socket.Disconnect does nothing to a socket that is not connected yet:
+// a SessionsEnded published in between closed nothing. Now that it is connected, its
+// session is checked once more.
+func (s *Server) sessionOpen(client *socket.Socket, data SocketData) bool {
+	if err := s.tokenMaker.CheckSession(context.Background(), data.UserId, data.SessionStart); errors.Is(err, auth.ErrInvalidToken) {
+		s.logger.Debugf("[WS]connection: closing a socket of user %s, whose session ended", data.UserId)
+		client.Disconnect(true)
+		return false
+	} else if err != nil {
+		// The join checks the session again, and so does the sweep
+		s.logger.Warnw("[WS]connection: could not check the session of a socket", "user_id", data.UserId, "error", err)
+	}
+	return true
+}
+
+// routeHeartbeat sends a heartbeat to the room of its monitor and to the room of its workspace
+func (s *Server) routeHeartbeat(ctx context.Context, hb heartbeat.Model) {
+	monitorRoom := monitorPrefix + hb.MonitorID
+	s.emitToRoom(monitorRoom, monitorRoom+":heartbeat", &hb)
+
+	workspaceID, found, err := s.workspaceOf(ctx, hb.MonitorID)
+	if err != nil {
+		s.logger.Warnw("Heartbeat not sent to its workspace: could not read the monitor's workspace", "monitor_id", hb.MonitorID, "error", err)
+		return
+	}
+	if !found {
+		s.logger.Debugf("Heartbeat not sent to a workspace: monitor %s is gone", hb.MonitorID)
+		return
+	}
+	workspaceRoom := workspacePrefix + string(workspaceID)
+	s.emitToRoom(workspaceRoom, workspaceRoom+":heartbeat", &hb)
 }
 
 // emitToRoom sends an event to each socket in the room, one socket at a time. It is not

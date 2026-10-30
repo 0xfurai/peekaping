@@ -99,7 +99,7 @@ func newHarness(t *testing.T) *harness {
 
 // newHarnessWith is newHarness with the connection delay, and with the server sweeping its open
 // sockets every sweep when it isn't zero.
-func newHarnessWith(t *testing.T, delay, sweep time.Duration) *harness {
+func newHarnessWith(t *testing.T, delay, sweep time.Duration, wrapMonitors ...func(monitor.MonitorRepository) monitor.MonitorRepository) *harness {
 	t.Helper()
 	ctx := context.Background()
 	// The server reads while the tests write; the server's own settings (one connection, a busy
@@ -119,7 +119,11 @@ func newHarnessWith(t *testing.T, delay, sweep time.Duration) *harness {
 	// The cutoffs read the user, as the API's token maker does
 	tokens := auth.NewTokenMaker(settings, logger).WithSessionCutoffs(auth.NewSQLAccountRepository(db))
 	bus := eventstest.NewBus()
-	server, err := websocket.NewServer(&config.Config{}, bus, tokens, workspace.NewSQLRepository(db), monitor.NewSQLRepository(db), logger)
+	monitors := monitor.MonitorRepository(monitor.NewSQLRepository(db))
+	for _, wrap := range wrapMonitors {
+		monitors = wrap(monitors)
+	}
+	server, err := websocket.NewServer(&config.Config{}, bus, tokens, workspace.NewSQLRepository(db), monitors, logger)
 	require.NoError(t, err)
 	// The sweep starts with the first socket and would outlive the test. It stops before the
 	// database closes, since cleanups run last first.

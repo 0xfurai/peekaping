@@ -139,6 +139,30 @@ func (r *SQLRepositoryImpl) UpdateFull(ctx context.Context, workspaceID workspac
 func (r *SQLRepositoryImpl) UpdatePartial(ctx context.Context, workspaceID workspace.ID, id string, entity *UpdateModel) (*Model, error) {
 	query := dbtx.DB(ctx, r.db).NewUpdate().Model((*sqlModel)(nil)).Where("id = ?", id).Where("workspace_id = ?", string(workspaceID))
 
+	query, hasUpdates := setGivenFields(query, entity)
+
+	if hasUpdates {
+		// Always set updated_at
+		query = query.Set("updated_at = ?", time.Now())
+
+		result, err := query.Exec(ctx)
+		if err := requireOneRow(result, err); err != nil {
+			return nil, err
+		}
+	}
+
+	found, err := r.FindByID(ctx, workspaceID, id)
+	if err != nil {
+		return nil, err
+	}
+	if found == nil {
+		return nil, ErrNotFound
+	}
+	return found, nil
+}
+
+// setGivenFields sets the columns of the fields the update gives, and says whether it gave any
+func setGivenFields(query *bun.UpdateQuery, entity *UpdateModel) (*bun.UpdateQuery, bool) {
 	hasUpdates := false
 
 	if entity.Protocol != nil {
@@ -165,25 +189,7 @@ func (r *SQLRepositoryImpl) UpdatePartial(ctx context.Context, workspaceID works
 		query = query.Set("password = ?", *entity.Password)
 		hasUpdates = true
 	}
-
-	if hasUpdates {
-		// Always set updated_at
-		query = query.Set("updated_at = ?", time.Now())
-
-		result, err := query.Exec(ctx)
-		if err := requireOneRow(result, err); err != nil {
-			return nil, err
-		}
-	}
-
-	found, err := r.FindByID(ctx, workspaceID, id)
-	if err != nil {
-		return nil, err
-	}
-	if found == nil {
-		return nil, ErrNotFound
-	}
-	return found, nil
+	return query, hasUpdates
 }
 
 func (r *SQLRepositoryImpl) Delete(ctx context.Context, workspaceID workspace.ID, id string) error {

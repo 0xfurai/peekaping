@@ -83,30 +83,48 @@ func sendOn(conn net.Conn, server Server, from string, to []string, msg []byte) 
 	if err := c.Hello("localhost"); err != nil {
 		return err
 	}
+	if err := secure(c, server); err != nil {
+		return err
+	}
+	if err := login(c, server.Auth); err != nil {
+		return err
+	}
+	if err := deliver(c, from, to, msg); err != nil {
+		return err
+	}
+	return c.Quit()
+}
+
+// secure upgrades the connection with STARTTLS as the server's TLS mode asks
+func secure(c *smtp.Client, server Server) error {
 	switch server.TLS {
 	case StartTLS:
 		if ok, _ := c.Extension("STARTTLS"); !ok {
 			return errors.New("smtp: server doesn't support STARTTLS")
 		}
-		if err := c.StartTLS(&tls.Config{ServerName: server.Host}); err != nil {
-			return err
-		}
+		return c.StartTLS(&tls.Config{ServerName: server.Host})
 	case TLS, None:
 	default:
 		if ok, _ := c.Extension("STARTTLS"); ok {
-			if err := c.StartTLS(&tls.Config{ServerName: server.Host}); err != nil {
-				return err
-			}
+			return c.StartTLS(&tls.Config{ServerName: server.Host})
 		}
 	}
-	if server.Auth != nil {
-		if ok, _ := c.Extension("AUTH"); !ok {
-			return errors.New("smtp: server doesn't support AUTH")
-		}
-		if err := c.Auth(server.Auth); err != nil {
-			return err
-		}
+	return nil
+}
+
+// login logs in with the server's Auth, when it has one
+func login(c *smtp.Client, auth smtp.Auth) error {
+	if auth == nil {
+		return nil
 	}
+	if ok, _ := c.Extension("AUTH"); !ok {
+		return errors.New("smtp: server doesn't support AUTH")
+	}
+	return c.Auth(auth)
+}
+
+// deliver sends the message to the recipients
+func deliver(c *smtp.Client, from string, to []string, msg []byte) error {
 	if err := c.Mail(from); err != nil {
 		return err
 	}
@@ -122,8 +140,5 @@ func sendOn(conn net.Conn, server Server, from string, to []string, msg []byte) 
 	if _, err := w.Write(msg); err != nil {
 		return err
 	}
-	if err := w.Close(); err != nil {
-		return err
-	}
-	return c.Quit()
+	return w.Close()
 }

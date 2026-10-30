@@ -97,9 +97,7 @@ func (s *ServiceImpl) checkSingleCertificate(ctx context.Context, certInfo *Cert
 
 	subjectCN := extractCommonName(certInfo.Subject)
 
-	// Days remaining are truncated toward zero, so a certificate that expired
-	// less than a day ago still has 0. ValidTo catches it when it's known.
-	if certInfo.DaysRemaining < 0 || (!certInfo.ValidTo.IsZero() && !certInfo.ValidTo.After(time.Now())) {
+	if certificateExpired(certInfo) {
 		return nil
 	}
 
@@ -112,36 +110,49 @@ func (s *ServiceImpl) checkSingleCertificate(ctx context.Context, certInfo *Cert
 			continue
 		}
 
-		// Check if we already sent a notification for this threshold or a nearer one
-		alreadySent, err := s.notificationHistoryService.CheckIfNotificationSent(ctx, "certificate", monitorID, targetDays)
-		if err != nil {
-			s.logger.Errorf("Failed to check notification history: %v", err)
-			return nil
-		}
-
-		if alreadySent {
-			s.logger.Debugf("Certificate notification already sent for monitor %s, threshold %d days", monitorID, targetDays)
-			return nil
-		}
-
-		s.logger.Infof("Sending certificate expiry notification: %s expires in %d days (threshold: %d)", subjectCN, certInfo.DaysRemaining, targetDays)
-
-		// Send notification
-		if err := s.notificationService.SendCertificateExpiryNotification(
-			ctx, monitorID, monitorName, certInfo, certInfo.DaysRemaining, targetDays,
-		); err != nil {
-			s.logger.Errorf("Failed to send certificate expiry notification: %v", err)
-			return nil
-		}
-
-		// Record that we sent the notification
-		if err := s.notificationHistoryService.RecordNotificationSent(ctx, "certificate", monitorID, targetDays); err != nil {
-			s.logger.Errorf("Failed to record notification sent: %v", err)
-		}
+		s.notifyThreshold(ctx, certInfo, subjectCN, monitorID, monitorName, targetDays)
 		return nil
 	}
 
 	return nil
+}
+
+// certificateExpired is whether the certificate has expired already
+func certificateExpired(certInfo *CertificateInfo) bool {
+	// Days remaining are truncated toward zero, so a certificate that expired
+	// less than a day ago still has 0. ValidTo catches it when it's known.
+	return certInfo.DaysRemaining < 0 || (!certInfo.ValidTo.IsZero() && !certInfo.ValidTo.After(time.Now()))
+}
+
+// notifyThreshold sends the notification for the threshold unless it was sent for this one or a
+// nearer one, and records that it was sent. A failure is logged and goes no further.
+func (s *ServiceImpl) notifyThreshold(ctx context.Context, certInfo *CertificateInfo, subjectCN, monitorID, monitorName string, targetDays int) {
+	// Check if we already sent a notification for this threshold or a nearer one
+	alreadySent, err := s.notificationHistoryService.CheckIfNotificationSent(ctx, "certificate", monitorID, targetDays)
+	if err != nil {
+		s.logger.Errorf("Failed to check notification history: %v", err)
+		return
+	}
+
+	if alreadySent {
+		s.logger.Debugf("Certificate notification already sent for monitor %s, threshold %d days", monitorID, targetDays)
+		return
+	}
+
+	s.logger.Infof("Sending certificate expiry notification: %s expires in %d days (threshold: %d)", subjectCN, certInfo.DaysRemaining, targetDays)
+
+	// Send notification
+	if err := s.notificationService.SendCertificateExpiryNotification(
+		ctx, monitorID, monitorName, certInfo, certInfo.DaysRemaining, targetDays,
+	); err != nil {
+		s.logger.Errorf("Failed to send certificate expiry notification: %v", err)
+		return
+	}
+
+	// Record that we sent the notification
+	if err := s.notificationHistoryService.RecordNotificationSent(ctx, "certificate", monitorID, targetDays); err != nil {
+		s.logger.Errorf("Failed to record notification sent: %v", err)
+	}
 }
 
 // UpdateTLSInfo updates TLS info and handles certificate changes (clears notification history if cert changed)
