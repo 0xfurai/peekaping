@@ -44,3 +44,29 @@ export const accountDeletionError = (error: unknown, t: Translate, fallback: str
   const key = refusalKey(status, text);
   return key ? t(key) : text || fallback;
 };
+
+/** What the delete-account card holds: the password typed, the open confirmation, the refusal shown. */
+export type DeleteAccountForm = { password: string; confirming: boolean; error: string | null };
+
+export type DeleteAccountAction =
+  | { type: "typed"; password: string }
+  | { type: "ask" }
+  | { type: "cancel" }
+  | { type: "refused"; error: string };
+
+/**
+ * The card's state after an action. A password isn't kept once the confirmation is cancelled or the
+ * server refuses the deletion, so a refusal's message stays shown but the field is empty again.
+ */
+export const deleteAccountReducer = (form: DeleteAccountForm, action: DeleteAccountAction): DeleteAccountForm => {
+  switch (action.type) {
+    case "typed":
+      return { ...form, password: action.password };
+    case "ask":
+      return { ...form, confirming: true, error: null };
+    case "cancel":
+      return { ...form, password: "", confirming: false };
+    case "refused":
+      return { password: "", confirming: false, error: action.error };
+  }
+};

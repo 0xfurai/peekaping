@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useTimezone } from "@/context/timezone-context";
 import { useCancelWorkspaceDeletion } from "@/hooks/useCancelWorkspaceDeletion";
 import { useCurrentWorkspace } from "@/hooks/useCurrentWorkspace";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
@@ -32,13 +33,14 @@ export function DangerZoneCard() {
 
 function ScheduledDeletionCard({ scheduledAt }: { scheduledAt: string }) {
   const { t, i18n } = useLocalizedTranslation();
+  const { timezone } = useTimezone();
   const { cancel, pending } = useCancelWorkspaceDeletion();
   return (
     <Card className="border-destructive/50">
       <CardHeader>
         <CardTitle>{t("settings.danger_zone.title")}</CardTitle>
         <CardDescription>
-          {t("settings.danger_zone.scheduled", { date: formatDeletionDate(scheduledAt, i18n.language) })}
+          {t("settings.danger_zone.scheduled", { date: formatDeletionDate(scheduledAt, i18n.language, timezone) })}
         </CardDescription>
       </CardHeader>
       <CardContent>
