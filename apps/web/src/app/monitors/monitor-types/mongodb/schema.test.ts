@@ -21,6 +21,8 @@ describe("mongodbSchema connection string", () => {
     ["another scheme", "mysql://host:3306/db"],
     ["no scheme", "h1:27017,h2:27017/db"],
     ["no host", "mongodb:///db"],
+    ["an empty user name", "mongodb://@host/db"],
+    ["a password with no user name", "mongodb://:p@host/db"],
     ["an empty host in a seed list", "mongodb://h1:27017,,h2:27017/db"],
     ["a trailing comma", "mongodb://h1:27017,/db"],
     ["a port that is not a number", "mongodb://h1:27017,h2:abc/db"],

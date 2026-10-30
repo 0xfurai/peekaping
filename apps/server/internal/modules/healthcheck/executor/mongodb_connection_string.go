@@ -18,8 +18,10 @@ var mongoSchemes = []string{"mongodb", "mongodb+srv"}
 // the DNS records of a mongodb+srv name. Nothing here touches the network.
 type mongoConnectionString struct {
 	scheme string
-	// userinfo is the user and password as written, escapes included; empty when there are none
-	userinfo string
+	// userinfo is the user and password as written, escapes included. It is empty both when the
+	// string has no "@" and when the user part before it is empty, so hasUserinfo tells which.
+	userinfo    string
+	hasUserinfo bool
 	// hosts are the entries of the seed list as written, each a host with an optional port
 	hosts []string
 	// database is the path after the first "/", as written
@@ -47,7 +49,7 @@ func splitMongoConnectionString(connectionString string) (mongoConnectionString,
 	}
 	parsed := mongoConnectionString{scheme: scheme}
 	if at := strings.LastIndex(authority, "@"); at >= 0 {
-		parsed.userinfo, authority = authority[:at], authority[at+1:]
+		parsed.userinfo, parsed.hasUserinfo, authority = authority[:at], true, authority[at+1:]
 	}
 	parsed.hosts = strings.Split(authority, ",")
 	tail, parsed.fragment, parsed.hasFragment = strings.Cut(tail, "#")
@@ -72,13 +74,25 @@ func validateMongoConnectionString(connectionString string) error {
 	if !slices.Contains(mongoSchemes, parsed.scheme) {
 		return fmt.Errorf("connection string must use mongodb:// or mongodb+srv://")
 	}
-	if _, err := url.PathUnescape(parsed.userinfo); err != nil {
-		return fmt.Errorf("the user name or password has a bad %%-escape")
+	if err := validateMongoUserinfo(parsed); err != nil {
+		return err
 	}
 	if err := validateMongoHosts(parsed.hosts); err != nil {
 		return err
 	}
 	return validateMongoDatabase(parsed.database)
+}
+
+// validateMongoUserinfo checks that a string with a user part, even an empty one, names a user:
+// the driver refuses a password alone.
+func validateMongoUserinfo(parsed mongoConnectionString) error {
+	if _, err := url.PathUnescape(parsed.userinfo); err != nil {
+		return fmt.Errorf("the user name or password has a bad %%-escape")
+	}
+	if user, _, _ := strings.Cut(parsed.userinfo, ":"); parsed.hasUserinfo && user == "" {
+		return fmt.Errorf("the user name must not be empty")
+	}
+	return nil
 }
 
 func validateMongoDatabase(database string) error {
@@ -91,11 +105,14 @@ func validateMongoDatabase(database string) error {
 	return nil
 }
 
-// validateMongoHosts checks the ports and brackets of the seed list, and that it names a host. An
+// validateMongoHosts checks the escapes, ports and brackets of the seed list, and that it names a host. An
 // empty entry (a trailing comma) and an empty port are left alone: the driver takes both.
 func validateMongoHosts(entries []string) error {
 	named := false
 	for i, entry := range entries {
+		if _, err := url.PathUnescape(entry); err != nil {
+			return fmt.Errorf("host %d has a bad %%-escape", i+1)
+		}
 		host, port, ok := splitMongoHostPort(entry)
 		if !ok {
 			return fmt.Errorf("host %d has a [ without a closing ]", i+1)
@@ -133,12 +150,11 @@ func validMongoPort(port string) bool {
 	return err == nil && n >= 1 && n <= 65535 && strings.Trim(port, "0123456789") == ""
 }
 
-// mongoHasOption is true when the options set the option, whatever the case of its name: the
-// driver reads them without regard to case
+// mongoHasOption is true when the options set the option to a value, whatever the case of its
+// name: the driver reads them without regard to case. The options are separated by "&" or ";".
 func mongoHasOption(query, name string) bool {
-	options, _ := url.ParseQuery(query)
-	for key, values := range options {
-		if strings.EqualFold(key, name) && len(values) > 0 && values[0] != "" {
+	for _, option := range strings.FieldsFunc(query, func(r rune) bool { return r == '&' || r == ';' }) {
+		if key, value, _ := strings.Cut(option, "="); strings.EqualFold(key, name) && value != "" {
 			return true
 		}
 	}

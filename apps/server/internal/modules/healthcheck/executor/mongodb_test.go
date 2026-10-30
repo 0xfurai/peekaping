@@ -465,9 +465,9 @@ func TestMongoDBExecutor_validateConnectionString(t *testing.T) {
 			expectedError: false,
 		},
 		{
-			name:          "empty username with password (valid for MongoDB)",
+			name:          "empty username with password (the driver refuses it)",
 			connectionStr: "mongodb://:password@localhost:27017/testdb",
-			expectedError: false,
+			expectedError: true,
 		},
 		{
 			name:          "missing database name",

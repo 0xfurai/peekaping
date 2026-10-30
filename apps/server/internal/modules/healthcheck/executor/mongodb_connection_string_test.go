@@ -36,6 +36,8 @@ func TestMongoDBExecutor_Validate_ConnectionString(t *testing.T) {
 		{"an empty host between two", "mongodb://h1:27017,,h2:27017/db"},
 		{"a space after the comma, which the driver reports", "mongodb://h1:27017, h2:27017/db"},
 		{"a + in a host, which the driver takes", "mongodb://h1+x/db"},
+		{"a user with no password", "mongodb://u@h1/db"},
+		{"a user with an empty password", "mongodb://u:@h1/db"},
 		{"an SRV name that does not resolve", "mongodb+srv://u:p@no-such-cluster.invalid/db"},
 		{"an SRV name with options", "mongodb+srv://cluster0.example.invalid/db?retryWrites=true"},
 		{"an SRV name with a port, which the driver reports", "mongodb+srv://h1:27017/db"},
@@ -68,7 +70,13 @@ var refusedMongoStrings = []struct{ name, connectionString, want string }{
 	{"port 0", "mongodb://h1:0/db", "the port of host 1 must be a number from 1 to 65535"},
 	{"a signed port", "mongodb://h1:+5/db", "the port of host 1 must be a number from 1 to 65535"},
 	{"an unclosed bracket", "mongodb://h0,[fd00::1:27017/db", "host 2 has a [ without a closing ]"},
-	{"no database", "mongodb://h1:27017,h2:27017", "connection string must include database name"},
+	{"a host escape that is broken", "mongodb://h1,h%zz:27017/db", "host 2 has a bad %-escape"},
+	{"an empty user name", "mongodb://@h1/db", "the user name must not be empty"},
+	{"a password with no user name", "mongodb://:p@h1/db", "the user name must not be empty"},
+	{"an empty user name and password", "mongodb://:@h1/db", "the user name must not be empty"},
+	{"a password with no user name, SECRET", "mongodb://:SECRET@h1/db", "the user name must not be empty"},
+	{"a host escape that is broken, SECRET", "mongodb://h%SECRET/db", "host 1 has a bad %-escape"},
+	{"no database", "mongodb://h1:27017,h2:27017","connection string must include database name"},
 	{"an empty database", "mongodb://h1:27017,h2:27017/", "connection string must include database name"},
 	{"options without a database", "mongodb://h1:27017/?replicaSet=rs0", "connection string must include database name"},
 	{"a database escape that is broken", "mongodb://h1/my%zzdb", "the database name has a bad %-escape"},
@@ -88,6 +96,17 @@ func TestMongoDBExecutor_Validate_RefusesMalformedConnectionStrings(t *testing.T
 			require.Error(t, err)
 			assert.Contains(t, err.Error(), "invalid connection string: ")
 			assert.Contains(t, err.Error(), tc.want)
+		})
+	}
+}
+
+func TestMongoDBExecutor_Validate_RefusesWhatTheDriverRefuses(t *testing.T) {
+	for _, connectionString := range []string{"mongodb://h%zz/db", "mongodb://@h1/db", "mongodb://:p@h1/db", "mongodb://:@h1/db"} {
+		t.Run(connectionString, func(t *testing.T) {
+			_, err := connstring.ParseAndValidate(connectionString)
+			require.Error(t, err, "the driver refuses it")
+
+			assert.Error(t, validateMongoString(t, connectionString))
 		})
 	}
 }
@@ -147,6 +166,11 @@ func TestMongoDBExecutor_enhanceConnectionString(t *testing.T) {
 		{"adds it to a seed list's options", "mongodb://u:p@h1:27017,h2:27017/db?replicaSet=rs0", "mongodb://u:p@h1:27017,h2:27017/db?replicaSet=rs0&authSource=admin"},
 		{"keeps the authSource the string has", "mongodb://u:p@h1:27017,h2:27017/db?authSource=test", "mongodb://u:p@h1:27017,h2:27017/db?authSource=test"},
 		{"keeps an authSource written in another case", "mongodb://u:p@h1/db?authsource=test", "mongodb://u:p@h1/db?authsource=test"},
+		{"keeps an authSource before a semicolon option", "mongodb://u:p@h1/db?authSource=users;retryWrites=true", "mongodb://u:p@h1/db?authSource=users;retryWrites=true"},
+		{"keeps an authSource after a semicolon option", "mongodb://u:p@h1/db?retryWrites=true;authsource=users", "mongodb://u:p@h1/db?retryWrites=true;authsource=users"},
+		{"keeps an authSource after both separators", "mongodb://u:p@h1/db?a=1&b=2;authSource=users&c=3", "mongodb://u:p@h1/db?a=1&b=2;authSource=users&c=3"},
+		{"does not count an authSource with no value", "mongodb://u:p@h1/db?authSource=", "mongodb://u:p@h1/db?authSource=&authSource=admin"},
+		{"does not take a longer name for authSource", "mongodb://u:p@h1/db?authSourceX=y", "mongodb://u:p@h1/db?authSourceX=y&authSource=admin"},
 		{"adds it to options that are empty", "mongodb://u:p@h1/db?", "mongodb://u:p@h1/db?authSource=admin"},
 		{"adds it before a fragment", "mongodb://u:p@h1/db#frag", "mongodb://u:p@h1/db?authSource=admin#frag"},
 		{"adds it to options before a fragment", "mongodb://u:p@h1/db?replicaSet=rs0#frag", "mongodb://u:p@h1/db?replicaSet=rs0&authSource=admin#frag"},
