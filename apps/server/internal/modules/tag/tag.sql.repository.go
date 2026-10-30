@@ -67,7 +67,7 @@ func (r *SQLRepositoryImpl) Create(ctx context.Context, workspaceID workspace.ID
 	sm.CreatedAt = time.Now()
 	sm.UpdatedAt = time.Now()
 
-	_, err := r.db.NewInsert().Model(sm).Returning("*").Exec(ctx)
+	_, err := dbtx.DB(ctx, r.db).NewInsert().Model(sm).Returning("*").Exec(ctx)
 	if err != nil {
 		return nil, nameTaken(err)
 	}
@@ -76,11 +76,11 @@ func (r *SQLRepositoryImpl) Create(ctx context.Context, workspaceID workspace.ID
 }
 
 func (r *SQLRepositoryImpl) FindByID(ctx context.Context, workspaceID workspace.ID, id string) (*Model, error) {
-	return r.findOne(ctx, r.db.NewSelect().Where("id = ?", id), workspaceID)
+	return r.findOne(ctx, dbtx.DB(ctx, r.db).NewSelect().Where("id = ?", id), workspaceID)
 }
 
 func (r *SQLRepositoryImpl) FindByName(ctx context.Context, workspaceID workspace.ID, name string) (*Model, error) {
-	return r.findOne(ctx, r.db.NewSelect().Where("name = ?", name), workspaceID)
+	return r.findOne(ctx, dbtx.DB(ctx, r.db).NewSelect().Where("name = ?", name), workspaceID)
 }
 
 func (r *SQLRepositoryImpl) findOne(ctx context.Context, query *bun.SelectQuery, workspaceID workspace.ID) (*Model, error) {
@@ -95,7 +95,7 @@ func (r *SQLRepositoryImpl) findOne(ctx context.Context, query *bun.SelectQuery,
 }
 
 func (r *SQLRepositoryImpl) FindAll(ctx context.Context, workspaceID workspace.ID, page int, limit int, q string) ([]*Model, error) {
-	query := r.db.NewSelect().Model((*sqlModel)(nil)).Where("workspace_id = ?", string(workspaceID))
+	query := dbtx.DB(ctx, r.db).NewSelect().Model((*sqlModel)(nil)).Where("workspace_id = ?", string(workspaceID))
 
 	if q != "" {
 		query = query.Where("LOWER(name) LIKE ?", "%"+q+"%")
@@ -122,7 +122,7 @@ func (r *SQLRepositoryImpl) UpdateFull(ctx context.Context, workspaceID workspac
 	sm := toSQLModel(entity)
 	sm.UpdatedAt = time.Now()
 
-	result, err := r.db.NewUpdate().
+	result, err := dbtx.DB(ctx, r.db).NewUpdate().
 		Model(sm).
 		Where("id = ?", id).
 		Where("workspace_id = ?", string(workspaceID)).
@@ -132,7 +132,7 @@ func (r *SQLRepositoryImpl) UpdateFull(ctx context.Context, workspaceID workspac
 }
 
 func (r *SQLRepositoryImpl) UpdatePartial(ctx context.Context, workspaceID workspace.ID, id string, entity *UpdateModel) error {
-	query := r.db.NewUpdate().Model((*sqlModel)(nil)).Where("id = ?", id).Where("workspace_id = ?", string(workspaceID))
+	query := dbtx.DB(ctx, r.db).NewUpdate().Model((*sqlModel)(nil)).Where("id = ?", id).Where("workspace_id = ?", string(workspaceID))
 
 	hasUpdates := false
 
@@ -168,7 +168,7 @@ func (r *SQLRepositoryImpl) UpdatePartial(ctx context.Context, workspaceID works
 }
 
 func (r *SQLRepositoryImpl) Delete(ctx context.Context, workspaceID workspace.ID, id string) error {
-	result, err := r.db.NewDelete().Model((*sqlModel)(nil)).Where("id = ?", id).Where("workspace_id = ?", string(workspaceID)).Exec(ctx)
+	result, err := dbtx.DB(ctx, r.db).NewDelete().Model((*sqlModel)(nil)).Where("id = ?", id).Where("workspace_id = ?", string(workspaceID)).Exec(ctx)
 	return requireOneRow(result, err)
 }
 

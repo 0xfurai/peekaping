@@ -7,6 +7,7 @@ import (
 	"errors"
 	"time"
 
+	"peekaping/internal/dbtx"
 	"peekaping/internal/modules/workspace"
 
 	"github.com/google/uuid"
@@ -105,7 +106,7 @@ func (r *SQLRepositoryImpl) Create(ctx context.Context, workspaceID workspace.ID
 		UpdatedAt:     time.Now(),
 	}
 
-	_, err := r.db.NewInsert().Model(sm).Returning("*").Exec(ctx)
+	_, err := dbtx.DB(ctx, r.db).NewInsert().Model(sm).Returning("*").Exec(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -115,7 +116,7 @@ func (r *SQLRepositoryImpl) Create(ctx context.Context, workspaceID workspace.ID
 
 func (r *SQLRepositoryImpl) FindByID(ctx context.Context, workspaceID workspace.ID, id string) (*Model, error) {
 	sm := new(sqlModel)
-	err := r.db.NewSelect().Model(sm).Where("id = ?", id).Where("workspace_id = ?", string(workspaceID)).Scan(ctx)
+	err := dbtx.DB(ctx, r.db).NewSelect().Model(sm).Where("id = ?", id).Where("workspace_id = ?", string(workspaceID)).Scan(ctx)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
@@ -134,7 +135,7 @@ func (r *SQLRepositoryImpl) FindAllAnyWorkspace(ctx context.Context, page int, l
 }
 
 func (r *SQLRepositoryImpl) findAll(ctx context.Context, workspaceID *workspace.ID, page int, limit int, q string, strategy string) ([]*Model, error) {
-	query := r.db.NewSelect().Model((*sqlModel)(nil))
+	query := dbtx.DB(ctx, r.db).NewSelect().Model((*sqlModel)(nil))
 
 	if workspaceID != nil {
 		query = query.Where("workspace_id = ?", string(*workspaceID))
@@ -189,7 +190,7 @@ func (r *SQLRepositoryImpl) UpdateFull(ctx context.Context, workspaceID workspac
 		UpdatedAt:     time.Now(),
 	}
 
-	result, err := r.db.NewUpdate().
+	result, err := dbtx.DB(ctx, r.db).NewUpdate().
 		Model(sm).
 		Where("id = ?", id).
 		Where("workspace_id = ?", string(workspaceID)).
@@ -204,7 +205,7 @@ func (r *SQLRepositoryImpl) UpdateFull(ctx context.Context, workspaceID workspac
 }
 
 func (r *SQLRepositoryImpl) UpdatePartial(ctx context.Context, workspaceID workspace.ID, id string, entity *UpdateModel) (*Model, error) {
-	query := r.db.NewUpdate().Model((*sqlModel)(nil)).Where("id = ?", id).Where("workspace_id = ?", string(workspaceID))
+	query := dbtx.DB(ctx, r.db).NewUpdate().Model((*sqlModel)(nil)).Where("id = ?", id).Where("workspace_id = ?", string(workspaceID))
 
 	hasUpdates := false
 
@@ -281,12 +282,12 @@ func (r *SQLRepositoryImpl) UpdatePartial(ctx context.Context, workspaceID works
 }
 
 func (r *SQLRepositoryImpl) Delete(ctx context.Context, workspaceID workspace.ID, id string) error {
-	result, err := r.db.NewDelete().Model((*sqlModel)(nil)).Where("id = ?", id).Where("workspace_id = ?", string(workspaceID)).Exec(ctx)
+	result, err := dbtx.DB(ctx, r.db).NewDelete().Model((*sqlModel)(nil)).Where("id = ?", id).Where("workspace_id = ?", string(workspaceID)).Exec(ctx)
 	return requireOneRow(result, err)
 }
 
 func (r *SQLRepositoryImpl) SetActive(ctx context.Context, workspaceID workspace.ID, id string, active bool) (*Model, error) {
-	result, err := r.db.NewUpdate().
+	result, err := dbtx.DB(ctx, r.db).NewUpdate().
 		Model((*sqlModel)(nil)).
 		Set("active = ?", active).
 		Set("updated_at = ?", time.Now()).
@@ -333,7 +334,7 @@ func (r *SQLRepositoryImpl) GetMaintenancesByMonitorIDAnyWorkspace(ctx context.C
 	var sms []*sqlModel
 
 	// Use JOIN to get maintenances that are associated with the monitor and are active
-	err := r.db.NewSelect().
+	err := dbtx.DB(ctx, r.db).NewSelect().
 		Model(&sms).
 		Join("JOIN monitor_maintenances mm ON mm.maintenance_id = m.id").
 		Where("mm.monitor_id = ? AND m.active = ?", monitorID, true).
