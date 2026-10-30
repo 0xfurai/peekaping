@@ -9,10 +9,10 @@ import (
 )
 
 // Bare returns host without the brackets of an IPv6 address: "[::1]" becomes "::1". Only one
-// matching pair is removed, so a host without brackets, or with an unmatched bracket, is returned
-// as it is.
+// matching pair around something is removed, so a host without brackets, with an unmatched
+// bracket or with nothing between them is returned as it is. An empty host would dial this machine.
 func Bare(host string) string {
-	if len(host) >= 2 && strings.HasPrefix(host, "[") && strings.HasSuffix(host, "]") {
+	if len(host) >= 3 && strings.HasPrefix(host, "[") && strings.HasSuffix(host, "]") {
 		return host[1 : len(host)-1]
 	}
 	return host

@@ -474,6 +474,29 @@ func TestSMTPExecutor_Execute_IPv6Host(t *testing.T) {
 	}
 }
 
+// TestSMTPExecutor_Execute_IPv6HostWithAuth checks that the check logs in to an IPv6 SMTP host
+// typed in brackets: PlainAuth sends the password in the clear only to a host it knows as local
+func TestSMTPExecutor_Execute_IPv6HostWithAuth(t *testing.T) {
+	requireIPv6Loopback(t)
+	listener, cleanup := startMockSMTPServerOn(t, "[::1]:0", func(conn net.Conn) {
+		handleSMTPConnection(conn, nil, true, false, false)
+	})
+	defer cleanup()
+	port := listener.Addr().(*net.TCPAddr).Port
+
+	for _, host := range []string{"::1", "[::1]"} {
+		t.Run(host, func(t *testing.T) {
+			m := &Monitor{Name: "smtp over IPv6", Timeout: 5,
+				Config: fmt.Sprintf(`{"host": %q, "port": %d, "username": "testuser", "password": "testpass"}`, host, port)}
+
+			result := NewSMTPExecutor(zap.NewNop().Sugar()).Execute(context.Background(), m, nil)
+
+			assert.Equal(t, shared.MonitorStatusUp, result.Status, result.Message)
+			assert.Contains(t, result.Message, "Auth")
+		})
+	}
+}
+
 func TestNewSMTPExecutor(t *testing.T) {
 	// Setup
 	logger := zap.NewNop().Sugar()

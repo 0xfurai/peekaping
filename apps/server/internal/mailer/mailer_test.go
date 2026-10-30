@@ -86,6 +86,18 @@ func TestMailer_SendsAMultipartMessageWithTheSenderAndRecipient(t *testing.T) {
 	assert.Equal(t, "<p>HTML</p>", strings.TrimSpace(bodies[1]))
 }
 
+func TestMailer_AuthenticatesToAHostSavedInBrackets(t *testing.T) {
+	server := smtptest.Start(t)
+	m := mailer.New(&config.Config{
+		AccountSMTPHost: "[" + server.Host() + "]", AccountSMTPPort: server.Port(), AccountSMTPUser: "mailer", AccountSMTPPassword: "secret",
+		AccountSMTPFrom: "Peekaping <no-reply@example.com>", AccountSMTPTLS: "none",
+	}, zap.NewNop().Sugar())
+
+	require.NoError(t, m.Send(context.Background(), "alice@example.com", "Hi", "Hello", ""))
+
+	assert.True(t, server.WaitFor(t, 1)[0].Authenticated)
+}
+
 func TestMailer_SendsPlainTextWhenThereIsNoHTML(t *testing.T) {
 	server := smtptest.Start(t)
 
