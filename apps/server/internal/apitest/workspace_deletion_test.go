@@ -10,10 +10,14 @@ import (
 	"peekaping/internal/config"
 	"peekaping/internal/modules/check"
 	"peekaping/internal/modules/cleanup"
+	"peekaping/internal/modules/events"
+	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/scheduler"
+	"peekaping/internal/modules/shared"
 	"peekaping/internal/modules/workspace"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/dig"
@@ -299,6 +303,58 @@ func assertRunning(t *testing.T, a *app, w acme, source *scheduler.DatabaseSourc
 	for path := range badgePaths(w.activeA) {
 		assert.Equal(t, http.StatusOK, a.request(t, http.MethodGet, path, nil).Code, path)
 	}
+}
+
+// workspaceWithAWebhookMonitor makes a workspace whose push monitor notifies the webhook
+func (a *app) workspaceWithAWebhookMonitor(t *testing.T, name, slug, hookURL string) (seededWorkspace, string) {
+	t.Helper()
+	w := a.seedWorkspace(t, name, slug)
+	channel := secretChannelOfType(t, "webhook").withVisible(map[string]any{"webhook_url": hookURL + "/hook"})
+	channelID := decode[created](t, a.request(t, http.MethodPost, "/api/v1/notification-channels", channel.body("Hook"), w.owner), http.StatusCreated).ID
+	body := with(pushMonitorBody(name+" monitor", slug+"-push-token"), "notification_ids", []string{channelID})
+	return w, decode[created](t, a.request(t, http.MethodPost, monitorsPath, body, w.owner), http.StatusCreated).ID
+}
+
+// monitorGoesDown announces, as the heartbeat pipeline does, that the monitor went down
+func (a *app) monitorGoesDown(t *testing.T, monitorID string) {
+	t.Helper()
+	require.NoError(t, a.container.Invoke(func(bus events.EventBus) error {
+		return events.Publish(context.Background(), bus, events.ImportantHeartbeat, heartbeat.Model{
+			ID: uuid.NewString(), MonitorID: monitorID, Status: shared.MonitorStatusDown, Msg: "connection refused", Important: true, Time: time.Now().UTC(),
+		})
+	}))
+}
+
+func (r *requestReceiver) bodies() []string {
+	var out []string
+	for _, request := range r.received() {
+		out = append(out, string(request.body))
+	}
+	return out
+}
+
+func TestWorkspaceDeletion_AHeldWorkspaceSendsNoNotificationAndOneThatIsCancelledDoes(t *testing.T) {
+	blockExternalHTTP(t)
+	// The webhook listens on this machine, which the cloud's run blocks
+	a := newAppWithAdmin(t, withBlockPrivateTargets(false))
+	a.takeNotificationsFromTheQueue(t)
+	hook := startRequestReceiver(t)
+	held, heldMonitor := a.workspaceWithAWebhookMonitor(t, "Held", "held", hook.url)
+	_, runningMonitor := a.workspaceWithAWebhookMonitor(t, "Running", "running", hook.url)
+	require.Equal(t, http.StatusOK, a.scheduleDeletion(t, "Held", held.owner).Code)
+
+	// The running workspace's is sent after the held one's was offered, so that its arrival says
+	// that the held one's would have been
+	a.monitorGoesDown(t, heldMonitor)
+	a.monitorGoesDown(t, runningMonitor)
+	require.Eventually(t, func() bool { return len(hook.received()) >= 1 }, 10*time.Second, 20*time.Millisecond, "the running workspace notifies")
+	require.Len(t, hook.bodies(), 1)
+	assert.Contains(t, hook.bodies()[0], "Running monitor")
+
+	require.Equal(t, http.StatusNoContent, a.cancelDeletion(t, held.owner).Code)
+	a.monitorGoesDown(t, heldMonitor)
+	require.Eventually(t, func() bool { return len(hook.received()) >= 2 }, 10*time.Second, 20*time.Millisecond, "and the held one notifies once cancelled")
+	assert.Contains(t, hook.bodies()[1], "Held monitor")
 }
 
 func TestWorkspaceDeletion_TheWorkspaceIsHeldDuringTheGracePeriodAndEveryMemberSeesTheDate(t *testing.T) {
