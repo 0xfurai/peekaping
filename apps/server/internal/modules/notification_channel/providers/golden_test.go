@@ -71,6 +71,15 @@ var (
 		Important: true,
 		Time:      time.Date(2026, 10, 17, 9, 35, 0, 0, time.UTC),
 	}
+	goldenPending = &heartbeat.Model{
+		ID:        "hb-3",
+		MonitorID: "mon-1",
+		ProbeID:   "local",
+		Status:    shared.MonitorStatusPending,
+		Msg:       "slow response",
+		Important: true,
+		Time:      time.Date(2026, 10, 17, 9, 32, 0, 0, time.UTC),
+	}
 	// goldenProbeOffline and goldenProbeOnline are the stand-in monitors the listener sends a
 	// probe's notification with: Down when the probe went offline, Up when it came back online
 	goldenProbeOffline = &monitor.Model{ID: "probe-1", Type: shared.MonitorTypeProbe, Name: "Probe Frankfurt", Status: shared.MonitorStatusDown}
@@ -107,6 +116,10 @@ const (
 	probeOfflineEvent
 	// probeOnlineEvent is a probe coming back online, sent with a stand-in monitor and no heartbeat
 	probeOnlineEvent
+	// pendingEvent is an important heartbeat that puts the monitor in Pending
+	pendingEvent
+	// downWithoutMonitorEvent is a Down heartbeat that comes without its monitor
+	downWithoutMonitorEvent
 )
 
 // goldenSender is the part of a notification channel provider the golden tests use
@@ -133,28 +146,29 @@ func nopLogger() *zap.SugaredLogger {
 var goldenAppConfig = installsettings.Static(&config.Config{ClientURL: "https://peekaping.example.com/"})
 
 var (
-	discord       = func(c *http.Client) goldenSender { return NewDiscordSender(nopLogger(), c) }
-	googleChat    = func(c *http.Client) goldenSender { return NewGoogleChatSender(nopLogger(), goldenAppConfig, c) }
-	gotify        = func(c *http.Client) goldenSender { return NewGotifySender(nopLogger(), c) }
-	grafanaOncall = func(c *http.Client) goldenSender { return NewGrafanaOncallSender(nopLogger(), c) }
-	line          = func(c *http.Client) goldenSender { return NewLineSender(nopLogger(), c) }
-	matrix        = func(c *http.Client) goldenSender { return NewMatrixSender(nopLogger(), c) }
-	mattermost    = func(c *http.Client) goldenSender { return NewMattermostSender(nopLogger(), c) }
-	ntfy          = func(c *http.Client) goldenSender { return NewNTFYSender(nopLogger(), c) }
-	opsgenie      = func(c *http.Client) goldenSender { return NewOpsgenieSender(nopLogger(), c) }
-	pagerDuty     = func(c *http.Client) goldenSender { return NewPagerDutySender(nopLogger(), goldenAppConfig, c) }
-	pagerTree     = func(c *http.Client) goldenSender { return NewPagerTreeSender(nopLogger(), c) }
-	pushbullet    = func(c *http.Client) goldenSender { return NewPushbulletSender(nopLogger(), c) }
-	pushover      = func(c *http.Client) goldenSender { return NewPushoverSender(nopLogger(), c) }
-	sendGrid      = func(c *http.Client) goldenSender { return NewSendGridSender(nopLogger(), c) }
-	signal        = func(c *http.Client) goldenSender { return NewSignalSender(nopLogger(), c) }
-	slack         = func(c *http.Client) goldenSender { return NewSlackSender(nopLogger(), goldenAppConfig, c) }
-	teams         = func(c *http.Client) goldenSender { return NewTeamsSender(nopLogger(), goldenAppConfig, c) }
-	telegram      = func(c *http.Client) goldenSender { return NewTelegramSender(nopLogger(), c) }
-	twilio        = func(c *http.Client) goldenSender { return NewTwilioSender(nopLogger(), c) }
-	webhook       = func(c *http.Client) goldenSender { return NewWebhookSender(nopLogger(), c) }
-	weCom         = func(c *http.Client) goldenSender { return NewWeComSender(nopLogger(), c) }
-	whatsApp      = func(c *http.Client) goldenSender { return NewWhatsAppSender(nopLogger(), c) }
+	discord          = func(c *http.Client) goldenSender { return NewDiscordSender(nopLogger(), c) }
+	googleChat       = func(c *http.Client) goldenSender { return NewGoogleChatSender(nopLogger(), goldenAppConfig, c) }
+	googleChatNoLink = func(c *http.Client) goldenSender { return NewGoogleChatSender(nopLogger(), nil, c) }
+	gotify           = func(c *http.Client) goldenSender { return NewGotifySender(nopLogger(), c) }
+	grafanaOncall    = func(c *http.Client) goldenSender { return NewGrafanaOncallSender(nopLogger(), c) }
+	line             = func(c *http.Client) goldenSender { return NewLineSender(nopLogger(), c) }
+	matrix           = func(c *http.Client) goldenSender { return NewMatrixSender(nopLogger(), c) }
+	mattermost       = func(c *http.Client) goldenSender { return NewMattermostSender(nopLogger(), c) }
+	ntfy             = func(c *http.Client) goldenSender { return NewNTFYSender(nopLogger(), c) }
+	opsgenie         = func(c *http.Client) goldenSender { return NewOpsgenieSender(nopLogger(), c) }
+	pagerDuty        = func(c *http.Client) goldenSender { return NewPagerDutySender(nopLogger(), goldenAppConfig, c) }
+	pagerTree        = func(c *http.Client) goldenSender { return NewPagerTreeSender(nopLogger(), c) }
+	pushbullet       = func(c *http.Client) goldenSender { return NewPushbulletSender(nopLogger(), c) }
+	pushover         = func(c *http.Client) goldenSender { return NewPushoverSender(nopLogger(), c) }
+	sendGrid         = func(c *http.Client) goldenSender { return NewSendGridSender(nopLogger(), c) }
+	signal           = func(c *http.Client) goldenSender { return NewSignalSender(nopLogger(), c) }
+	slack            = func(c *http.Client) goldenSender { return NewSlackSender(nopLogger(), goldenAppConfig, c) }
+	teams            = func(c *http.Client) goldenSender { return NewTeamsSender(nopLogger(), goldenAppConfig, c) }
+	telegram         = func(c *http.Client) goldenSender { return NewTelegramSender(nopLogger(), c) }
+	twilio           = func(c *http.Client) goldenSender { return NewTwilioSender(nopLogger(), c) }
+	webhook          = func(c *http.Client) goldenSender { return NewWebhookSender(nopLogger(), c) }
+	weCom            = func(c *http.Client) goldenSender { return NewWeComSender(nopLogger(), c) }
+	whatsApp         = func(c *http.Client) goldenSender { return NewWhatsAppSender(nopLogger(), c) }
 )
 
 var goldenCases = []goldenCase{
@@ -166,6 +180,9 @@ var goldenCases = []goldenCase{
 		config: `{"webhook_url": "https://discord.com/api/webhooks/123/token", "message_type": "send_to_new_forum_post", "thread_name": "API outage"}`},
 	{name: "discord_certificate_expiry", sender: discord, event: certExpiryEvent,
 		config: `{"webhook_url": "https://discord.com/api/webhooks/123/token"}`},
+	// Without a thread ID the webhook URL stays as it is
+	{name: "discord_thread_without_id_down", sender: discord, event: downEvent,
+		config: `{"webhook_url": "https://discord.com/api/webhooks/123/token", "message_type": "send_to_thread"}`},
 
 	{name: "google_chat_down", sender: googleChat, event: downEvent,
 		config: `{"webhook_url": "https://chat.googleapis.com/v1/spaces/AAA/messages?key=k&token=t"}`},
@@ -176,6 +193,11 @@ var goldenCases = []goldenCase{
 	// A probe's notification links to the Probes page, since the stand-in monitor has no page
 	{name: "google_chat_probe_offline", sender: googleChat, event: probeOfflineEvent,
 		config: `{"webhook_url": "https://chat.googleapis.com/v1/spaces/AAA/messages?key=k&token=t"}`},
+	// Without a public URL the card has no button
+	{name: "google_chat_without_public_url_down", sender: googleChatNoLink, event: downEvent,
+		config: `{"webhook_url": "https://chat.googleapis.com/v1/spaces/AAA/messages?key=k&token=t"}`},
+	{name: "google_chat_without_monitor_down", sender: googleChat, event: downWithoutMonitorEvent,
+		config: `{"webhook_url": "https://chat.googleapis.com/v1/spaces/AAA/messages?key=k&token=t"}`},
 
 	{name: "gotify_down", sender: gotify, event: downEvent,
 		config: `{"server_url": "https://gotify.example.com/", "application_token": "app-token"}`},
@@ -183,6 +205,9 @@ var goldenCases = []goldenCase{
 		config: `{"server_url": "https://gotify.example.com", "application_token": "app-token", "priority": 3, "title": "{{ name }} is {{ status }}", "custom_message": "{{ status_icon }} {{ msg }} in {{ ping }} ms"}`},
 	{name: "gotify_certificate_expiry", sender: gotify, event: certExpiryEvent,
 		config: `{"server_url": "https://gotify.example.com/", "application_token": "app-token"}`},
+	// A template that can't be rendered falls back to the text as it was written
+	{name: "gotify_invalid_templates_down", sender: gotify, event: downEvent,
+		config: `{"server_url": "https://gotify.example.com", "application_token": "app-token", "title": "{{ name | nofilter }}", "custom_message": "{{ msg | nofilter }}"}`},
 
 	{name: "grafana_oncall_down", sender: grafanaOncall, event: downEvent,
 		config: `{"grafana_oncall_url": "https://oncall.example.com/integrations/v1/formatted_webhook/abc/"}`},
@@ -204,6 +229,10 @@ var goldenCases = []goldenCase{
 	{name: "line_template_down", sender: line, event: downEvent,
 		config: `{"channel_access_token": "line-token", "user_id": "U123", "template": "{{ status_icon }} {{ name }}: {{ msg }}"}`},
 	{name: "line_certificate_expiry", sender: line, event: certExpiryEvent,
+		config: `{"channel_access_token": "line-token", "user_id": "U123"}`},
+	{name: "line_pending", sender: line, event: pendingEvent,
+		config: `{"channel_access_token": "line-token", "user_id": "U123"}`},
+	{name: "line_down_without_monitor", sender: line, event: downWithoutMonitorEvent,
 		config: `{"channel_access_token": "line-token", "user_id": "U123"}`},
 
 	{name: "matrix_down", sender: matrix, event: downEvent,
@@ -479,6 +508,10 @@ func goldenNotification(event goldenEvent) (string, *monitor.Model, *heartbeat.M
 		return goldenProbeOfflineMessage, goldenProbeOffline, nil
 	case probeOnlineEvent:
 		return goldenProbeOnlineMessage, goldenProbeOnline, nil
+	case pendingEvent:
+		return goldenPending.Msg, goldenMonitor, goldenPending
+	case downWithoutMonitorEvent:
+		return goldenDown.Msg, nil, goldenDown
 	default:
 		return goldenDown.Msg, goldenMonitor, goldenDown
 	}
