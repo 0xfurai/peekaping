@@ -479,3 +479,25 @@ func (in *instance) tryWebsocket(t *testing.T) *gorilla.Conn {
 	require.True(t, strings.HasPrefix(string(connect), "40"), "socket.io CONNECT: %s", connect)
 	return conn
 }
+
+// freeMetricsPort is a port nothing listens on, for METRICS_PORT: run opens that listener itself
+func freeMetricsPort(t testing.TB) string {
+	t.Helper()
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	require.NoError(t, err)
+	defer func() { require.NoError(t, listener.Close()) }()
+	_, port, err := net.SplitHostPort(listener.Addr().String())
+	require.NoError(t, err)
+	return port
+}
+
+// get returns the status and body of a GET to the url
+func get(t testing.TB, url string) (int, string) {
+	t.Helper()
+	resp, err := testHTTP.Get(url)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	require.NoError(t, err)
+	return resp.StatusCode, string(body)
+}

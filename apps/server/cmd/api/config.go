@@ -73,6 +73,11 @@ type Config struct {
 	// to scrape. Off by default since it exposes monitor names and status.
 	MetricsEnabled bool `env:"METRICS_ENABLED" default:"false"`
 
+	// A port that serves /metrics alone, on all interfaces, instead of the API port. Unset (the
+	// default), /metrics is on the API port. Needs METRICS_ENABLED=true and must differ from
+	// SERVER_PORT, which config.ValidateMetricsPort checks.
+	MetricsPort string `env:"METRICS_PORT"`
+
 	// How many days the hourly cleanup keeps notification history. The history stops a
 	// certificate expiry notification from being sent twice, so it must outlast the
 	// default thresholds (the largest is 21 days): the minimum is 30. 0 counts as unset
@@ -225,6 +230,11 @@ func Validate(cfg *Config) error {
 		return fmt.Errorf("BRUTEFORCE_ACCOUNT_LOCKOUT must be a positive duration")
 	}
 
+	// A METRICS_PORT that isn't a port, equals SERVER_PORT or has no /metrics to serve stops startup
+	if err := config.ValidateMetricsPort(cfg.MetricsEnabled, cfg.MetricsPort, cfg.Port); err != nil {
+		return err
+	}
+
 	// A mistyped TRUSTED_PROXIES stops startup: ignoring it would hide a setup that doesn't
 	// protect the login lockout the way its operator thinks it does.
 	if _, err := httpx.ParseTrustedProxies(cfg.TrustedProxies); err != nil {
@@ -305,6 +315,7 @@ func (c *Config) ToInternalConfig() *config.Config {
 		CORSOrigins:                    c.CORSOrigins,
 		ServiceName:                    c.ServiceName,
 		MetricsEnabled:                 c.MetricsEnabled,
+		MetricsPort:                    c.MetricsPort,
 		Telemetry:                      c.Telemetry,
 		TelemetryURL:                   c.TelemetryURL,
 		ErrorReporting:                 c.ErrorReporting,

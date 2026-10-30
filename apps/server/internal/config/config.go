@@ -111,6 +111,11 @@ type Config struct {
 	// to scrape. Off by default since it exposes monitor names and status.
 	MetricsEnabled bool `env:"METRICS_ENABLED" default:"false"`
 
+	// A port that serves /metrics alone, on all interfaces, instead of the API port. Unset (the
+	// default), /metrics is on the API port. Needs METRICS_ENABLED=true and must differ from
+	// SERVER_PORT, which config.ValidateMetricsPort checks.
+	MetricsPort string `env:"METRICS_PORT"`
+
 	// How many days the hourly cleanup keeps notification history. The history stops a
 	// certificate expiry notification from being sent twice, so it must outlast the
 	// default thresholds (the largest is 21 days): the minimum is 30. 0 counts as unset
