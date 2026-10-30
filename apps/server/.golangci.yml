@@ -29,6 +29,10 @@ linters:
       - path: _test\.go
         linters:
           - gocyclo
+      # A migration is frozen history: it isn't refactored once it has shipped.
+      - path: cmd/bun/migrations/
+        linters:
+          - gocyclo
 
 formatters:
   enable:

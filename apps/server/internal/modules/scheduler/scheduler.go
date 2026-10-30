@@ -269,22 +269,9 @@ func (s *Scheduler) reconcile(ctx context.Context) error {
 	defer s.syncMu.Unlock()
 
 	var counts reconciled
-	listed := make(map[string]bool)
-	for page := 0; ; page++ {
-		monitors, err := s.source.ListActive(ctx, page, pageSize)
-		if err != nil {
-			return fmt.Errorf("failed to find active monitors (page %d): %w", page, err)
-		}
-		for _, mon := range monitors {
-			if !schedulable(mon) {
-				continue
-			}
-			listed[mon.ID] = true
-			s.reconcileMonitor(mon, &counts)
-		}
-		if len(monitors) < pageSize {
-			break
-		}
+	listed, err := s.reconcileListed(ctx, &counts)
+	if err != nil {
+		return err
 	}
 
 	// A monitor paused or deleted during the scan shifts the pages, so check each scheduled
@@ -299,17 +286,7 @@ func (s *Scheduler) reconcile(ctx context.Context) error {
 		if err := ctx.Err(); err != nil {
 			return err
 		}
-		mon, err := s.source.Find(ctx, id)
-		if err != nil {
-			s.logger.Errorw("Failed to find monitor", "monitor_id", id, "error", err)
-			continue
-		}
-		if schedulable(mon) {
-			s.reconcileMonitor(mon, &counts)
-			continue
-		}
-		s.unschedule(id)
-		counts.removed++
+		s.reconcileMissed(ctx, id, &counts)
 	}
 
 	if counts != (reconciled{}) {
@@ -319,6 +296,45 @@ func (s *Scheduler) reconcile(ctx context.Context) error {
 			"removed", counts.removed)
 	}
 	return nil
+}
+
+// reconcileListed reconciles each schedulable monitor of the source's pages, and returns their
+// IDs. The caller holds syncMu.
+func (s *Scheduler) reconcileListed(ctx context.Context, counts *reconciled) (map[string]bool, error) {
+	listed := make(map[string]bool)
+	for page := 0; ; page++ {
+		monitors, err := s.source.ListActive(ctx, page, pageSize)
+		if err != nil {
+			return nil, fmt.Errorf("failed to find active monitors (page %d): %w", page, err)
+		}
+		for _, mon := range monitors {
+			if !schedulable(mon) {
+				continue
+			}
+			listed[mon.ID] = true
+			s.reconcileMonitor(mon, counts)
+		}
+		if len(monitors) < pageSize {
+			return listed, nil
+		}
+	}
+}
+
+// reconcileMissed reconciles a scheduled monitor the scan did not list: it keeps its timer when
+// the source can't be read, follows the monitor when it is still schedulable, and drops its timer
+// when it is not. The caller holds syncMu.
+func (s *Scheduler) reconcileMissed(ctx context.Context, id string, counts *reconciled) {
+	mon, err := s.source.Find(ctx, id)
+	if err != nil {
+		s.logger.Errorw("Failed to find monitor", "monitor_id", id, "error", err)
+		return
+	}
+	if schedulable(mon) {
+		s.reconcileMonitor(mon, counts)
+		return
+	}
+	s.unschedule(id)
+	counts.removed++
 }
 
 // reconcileMonitor gives an active monitor a timer and checks it right away if it has none,
@@ -544,29 +560,8 @@ func (s *Scheduler) cancelCheck(monitorID string) {
 
 // runCheck loads the monitor's check, runs it and ingests its result
 func (s *Scheduler) runCheck(ctx context.Context, monitorID string) {
-	loaded, err := s.source.Load(ctx, monitorID)
-	switch {
-	case errors.Is(err, job.ErrMonitorNotFound):
-		s.logger.Warnw("Monitor not found, skipping its check", "monitor_id", monitorID)
-		return
-	case errors.Is(err, job.ErrMonitorPaused):
-		s.logger.Infow("Monitor is paused, skipping its check", "monitor_id", monitorID)
-		return
-	case errors.Is(err, job.ErrWorkspaceSuspended):
-		s.logger.Infow("Monitor's workspace is suspended, skipping its check", "monitor_id", monitorID)
-		return
-	case errors.Is(err, job.ErrMonitorTypeDisabled):
-		s.logger.Infow("Monitor's type is turned off on this install, skipping its check", "monitor_id", monitorID)
-		return
-	case errors.Is(err, job.ErrMonitorOverLimit):
-		s.logger.Infow("Monitor is past its workspace's limit of active monitors, skipping its check", "monitor_id", monitorID)
-		return
-	case err != nil && ctx.Err() != nil:
-		// An update, pause, delete or stop cancelled the check while it loaded
-		s.logger.Debugw("Check was cancelled while it loaded", "monitor_id", monitorID)
-		return
-	case err != nil:
-		s.logger.Errorw("Failed to load the monitor's check", "monitor_id", monitorID, "error", err)
+	loaded, ok := s.loadCheck(ctx, monitorID)
+	if !ok {
 		return
 	}
 	mon := loaded.Monitor
@@ -597,11 +592,47 @@ func (s *Scheduler) runCheck(ctx context.Context, monitorID string) {
 	}
 	ingestCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), ingestTimeout)
 	defer cancel()
-	err = s.ingester.Ingest(ingestCtx, result)
+	err := s.ingester.Ingest(ingestCtx, result)
 	if err != nil {
 		s.logger.Errorw("Failed to ingest the result of a check", "monitor_id", monitorID, "error", err)
 	}
 	s.afterCheck(ctx, mon, result.Status, err == nil)
+}
+
+// skippedChecks are the refusals of the source's Load that end a check without an error, with how
+// each is logged
+var skippedChecks = []struct {
+	refusal error
+	log     func(*zap.SugaredLogger, string, ...interface{})
+	message string
+}{
+	{job.ErrMonitorNotFound, (*zap.SugaredLogger).Warnw, "Monitor not found, skipping its check"},
+	{job.ErrMonitorPaused, (*zap.SugaredLogger).Infow, "Monitor is paused, skipping its check"},
+	{job.ErrWorkspaceSuspended, (*zap.SugaredLogger).Infow, "Monitor's workspace is suspended, skipping its check"},
+	{job.ErrMonitorTypeDisabled, (*zap.SugaredLogger).Infow, "Monitor's type is turned off on this install, skipping its check"},
+	{job.ErrMonitorOverLimit, (*zap.SugaredLogger).Infow, "Monitor is past its workspace's limit of active monitors, skipping its check"},
+}
+
+// loadCheck loads the monitor's check. It reports false, having logged why, when there is none to
+// run: the monitor is refused, or the load failed.
+func (s *Scheduler) loadCheck(ctx context.Context, monitorID string) (*job.Job, bool) {
+	loaded, err := s.source.Load(ctx, monitorID)
+	if err == nil {
+		return loaded, true
+	}
+	for _, skipped := range skippedChecks {
+		if errors.Is(err, skipped.refusal) {
+			skipped.log(s.logger, skipped.message, "monitor_id", monitorID)
+			return nil, false
+		}
+	}
+	if ctx.Err() != nil {
+		// An update, pause, delete or stop cancelled the check while it loaded
+		s.logger.Debugw("Check was cancelled while it loaded", "monitor_id", monitorID)
+		return nil, false
+	}
+	s.logger.Errorw("Failed to load the monitor's check", "monitor_id", monitorID, "error", err)
+	return nil, false
 }
 
 // The source's signals reschedule monitors as they are created, changed (pausing is a change)

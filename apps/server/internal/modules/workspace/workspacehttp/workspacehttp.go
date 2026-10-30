@@ -34,39 +34,46 @@ func Scope(ctx context.Context) (workspace.ID, error) {
 // invite for another email, 409 for the last owner and for someone who is a member already, 410
 // for an invite that can't be used, 400 for a role that doesn't exist or a name that is blank, and
 // 403 LIMIT_REACHED for a member or a workspace past a limit, 400 WORKSPACE_NAME_MISMATCH for a
-// deletion scheduled with another name, and 404 for cancelling a deletion that isn't scheduled. It returns nil for any other error,
-// which the caller maps as it does today.
+// deletion scheduled with another name, and 404 for cancelling a deletion that isn't scheduled. It
+// returns nil for any other error, which the caller maps as it does today.
 func Fail(err error) error {
 	var reached *limits.ReachedError
-	switch {
-	case errors.As(err, &reached):
+	if errors.As(err, &reached) {
 		return limits.Fail(reached)
-	case errors.Is(err, workspace.ErrNotFound):
-		return NotFound()
-	case errors.Is(err, workspace.ErrForbidden):
-		return httpx.Fail(http.StatusForbidden, utils.NewFailResponse("Your role in this workspace doesn't allow this"))
-	case errors.Is(err, workspace.ErrMemberNotFound):
-		return httpx.Fail(http.StatusNotFound, utils.NewFailResponse("Member not found"))
-	case errors.Is(err, workspace.ErrInviteNotFound):
-		return httpx.Fail(http.StatusNotFound, utils.NewFailResponse("Invite not found"))
-	case errors.Is(err, workspace.ErrInviteUnavailable):
-		return httpx.Fail(http.StatusGone, utils.NewFailResponse(capitalize(err.Error())))
-	case errors.Is(err, workspace.ErrInviteEmailMismatch):
-		return httpx.Fail(http.StatusForbidden, utils.NewFailResponse("This invite is for another email address"))
-	case errors.Is(err, workspace.ErrLastOwner):
-		return httpx.Fail(http.StatusConflict, utils.NewFailResponse("A workspace needs at least one owner"))
-	case errors.Is(err, workspace.ErrAlreadyMember):
-		return httpx.Fail(http.StatusConflict, utils.NewFailResponse("Already a member of this workspace"))
-	case errors.Is(err, workspace.ErrInvalidName):
-		return httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("The workspace needs a name"))
-	case errors.Is(err, workspace.ErrNameMismatch):
+	}
+	if errors.Is(err, workspace.ErrNameMismatch) {
 		return httpx.Fail(http.StatusBadRequest, NameMismatchResponse{Message: capitalize(err.Error()), Error: NameMismatchErrorBody{Code: "WORKSPACE_NAME_MISMATCH"}})
-	case errors.Is(err, workspace.ErrDeletionNotScheduled):
-		return httpx.Fail(http.StatusNotFound, utils.NewFailResponse("No deletion is scheduled for this workspace"))
-	case errors.Is(err, workspace.ErrInvalidRole):
-		return httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("The role must be owner, admin or member"))
+	}
+	for _, answer := range answers {
+		if errors.Is(err, answer.target) {
+			return httpx.Fail(answer.status, utils.NewFailResponse(answer.message(err)))
+		}
 	}
 	return nil
+}
+
+// answers is what Fail says for each error, the first that err is
+var answers = []struct {
+	target  error
+	status  int
+	message func(err error) string
+}{
+	{workspace.ErrNotFound, http.StatusNotFound, said("Workspace not found")},
+	{workspace.ErrForbidden, http.StatusForbidden, said("Your role in this workspace doesn't allow this")},
+	{workspace.ErrMemberNotFound, http.StatusNotFound, said("Member not found")},
+	{workspace.ErrInviteNotFound, http.StatusNotFound, said("Invite not found")},
+	{workspace.ErrInviteUnavailable, http.StatusGone, func(err error) string { return capitalize(err.Error()) }},
+	{workspace.ErrInviteEmailMismatch, http.StatusForbidden, said("This invite is for another email address")},
+	{workspace.ErrLastOwner, http.StatusConflict, said("A workspace needs at least one owner")},
+	{workspace.ErrAlreadyMember, http.StatusConflict, said("Already a member of this workspace")},
+	{workspace.ErrInvalidName, http.StatusBadRequest, said("The workspace needs a name")},
+	{workspace.ErrDeletionNotScheduled, http.StatusNotFound, said("No deletion is scheduled for this workspace")},
+	{workspace.ErrInvalidRole, http.StatusBadRequest, said("The role must be owner, admin or member")},
+}
+
+// said is the message that does not depend on the error
+func said(message string) func(error) string {
+	return func(error) string { return message }
 }
 
 func capitalize(s string) string {
