@@ -3,8 +3,10 @@
 package executor
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net"
 	"net/url"
@@ -119,16 +121,30 @@ func (m *MongoDBExecutor) Execute(ctx context.Context, monitor *Monitor, proxyMo
 	return m.checkCommandResult(monitor, cfg, result, startTime, endTime)
 }
 
-// parseMongoDBCommand parses the command as JSON. An empty command is a ping.
-func parseMongoDBCommand(commandJSON string) (bson.M, error) {
+// parseMongoDBCommand parses the command as JSON, keeping its keys in the order they are typed: the
+// server takes the first one as the command's name, and the driver refuses a command that is
+// not ordered. An empty command is a ping.
+func parseMongoDBCommand(commandJSON string) (bson.D, error) {
 	if commandJSON == "" {
 		// Default to ping command
-		return bson.M{"ping": 1}, nil
+		return bson.D{{Key: "ping", Value: 1}}, nil
 	}
 
-	var command bson.M
-	err := json.Unmarshal([]byte(commandJSON), &command)
-	return command, err
+	// UnmarshalExtJSON drops what follows the first document and reads null as an empty one, so the
+	// text is checked first.
+	text := []byte(commandJSON)
+	if !json.Valid(text) {
+		return nil, errors.New("not valid JSON")
+	}
+	if !bytes.HasPrefix(bytes.TrimSpace(text), []byte("{")) {
+		return nil, errors.New("not a JSON object")
+	}
+
+	var command bson.D
+	if err := bson.UnmarshalExtJSON([]byte(commandJSON), false, &command); err != nil {
+		return nil, err
+	}
+	return command, nil
 }
 
 // checkCommandResult is the check's result for the command's reply: Down unless the command
@@ -191,7 +207,7 @@ func (m *MongoDBExecutor) checkExpectedValue(monitor *Monitor, cfg *MongoDBConfi
 }
 
 // runMongoDBCommand connects to MongoDB and executes the given command
-func (m *MongoDBExecutor) runMongoDBCommand(ctx context.Context, connectionString string, command bson.M, timeout time.Duration) (bson.M, error) {
+func (m *MongoDBExecutor) runMongoDBCommand(ctx context.Context, connectionString string, command bson.D, timeout time.Duration) (bson.M, error) {
 	// Ensure proper authentication source is set
 	enhancedConnectionString, err := m.enhanceConnectionString(connectionString)
 	if err != nil {
