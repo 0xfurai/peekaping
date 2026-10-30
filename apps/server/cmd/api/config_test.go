@@ -1,6 +1,8 @@
 package main
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 
 	"peekaping/internal/config"
@@ -367,6 +369,25 @@ func TestAVerifyCustomDomainsThatIsNotABooleanStopsStartup(t *testing.T) {
 		_, err := LoadAndValidate(t.TempDir())
 		assert.ErrorContains(t, err, "VERIFY_CUSTOM_DOMAINS must be true, 1, false or 0", value)
 	}
+}
+
+func TestAVerifyCustomDomainsThatIsNotABooleanStopsStartupFromAnEnvFileToo(t *testing.T) {
+	t.Setenv("VERIFY_CUSTOM_DOMAINS", "")
+	for _, value := range []string{"TRUE", "yes"} {
+		dir := t.TempDir()
+		env := "DB_TYPE=sqlite\nDB_NAME=peekaping.db\nVERIFY_CUSTOM_DOMAINS=" + value + "\n"
+		require.NoError(t, os.WriteFile(filepath.Join(dir, ".env"), []byte(env), 0o600))
+
+		_, err := LoadAndValidate(dir)
+		assert.ErrorContains(t, err, "VERIFY_CUSTOM_DOMAINS must be true, 1, false or 0", value)
+	}
+
+	dir := t.TempDir()
+	env := "DB_TYPE=sqlite\nDB_NAME=peekaping.db\nVERIFY_CUSTOM_DOMAINS=1\n"
+	require.NoError(t, os.WriteFile(filepath.Join(dir, ".env"), []byte(env), 0o600))
+	cfg, err := LoadAndValidate(dir)
+	require.NoError(t, err)
+	assert.True(t, cfg.ToInternalConfig().VerifyCustomDomains)
 }
 
 func TestAPIRateLimitsAreOffByDefaultAndLoadedFromTheEnvironment(t *testing.T) {
