@@ -33,11 +33,12 @@ export async function createHTTPMonitor(
     maxRetries = 0,
     probeIds,
     notificationIds = [],
+    tagIds = [],
     active = true,
-  }: { maxRetries?: number; probeIds?: string[]; notificationIds?: string[]; active?: boolean } = {},
+  }: { maxRetries?: number; probeIds?: string[]; notificationIds?: string[]; tagIds?: string[]; active?: boolean } = {},
 ): Promise<{ id: string }> {
   const response = await api.post('monitors', {
-    data: { ...httpMonitorBody(name, url, maxRetries), active, notification_ids: notificationIds, probe_ids: probeIds },
+    data: { ...httpMonitorBody(name, url, maxRetries), active, notification_ids: notificationIds, tag_ids: tagIds, probe_ids: probeIds },
   });
   expect(response.status(), await response.text()).toBe(201);
   return (await response.json()).data;

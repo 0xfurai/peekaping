@@ -144,4 +144,24 @@ describe("SettingsPage", () => {
     expect(html).not.toContain(text("settings.workspace_name.title"));
     expect(html).not.toContain('value="Main"');
   });
+
+  // PP-170: the workspace export and import are for an owner, above the danger zone
+  it("shows an owner the export, with its secrets warning and both downloads, and the import, above the danger zone", () => {
+    const html = settings({ instanceAdmin: false, role: "owner" });
+    expect(html).toContain(text("settings.workspace_export.warning_title"));
+    expect(html).toContain(text("settings.workspace_export.download_workspace"));
+    expect(html).toContain(text("settings.workspace_export.download_heartbeats"));
+    expect(html).toContain(text("settings.workspace_import.title"));
+    expect(html).toMatch(/<input[^>]*type="file"[^>]*accept="\.json,application\/json"/);
+    const danger = html.indexOf(text("settings.danger_zone.title"));
+    expect(html.indexOf(text("settings.workspace_export.title"))).toBeLessThan(danger);
+    expect(html.indexOf(text("settings.workspace_import.title"))).toBeLessThan(danger);
+  });
+
+  it.each(["admin", "member"] as const)("shows %s no export or import, which are an owner's", (role) => {
+    const html = settings({ instanceAdmin: false, role });
+    expect(html).not.toContain(text("settings.workspace_export.download_workspace"));
+    expect(html).not.toContain(text("settings.workspace_export.warning_title"));
+    expect(html).not.toContain(text("settings.workspace_import.file_label"));
+  });
 });
