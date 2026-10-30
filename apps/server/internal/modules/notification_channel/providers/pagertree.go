@@ -70,127 +70,115 @@ func eventTypeForStatus(status shared.MonitorStatus, autoResolve bool) string {
 	}
 }
 
-func (p *PagerTreeSender) Send(ctx context.Context, configJSON, message string, mon *monitor.Model, hb *heartbeat.Model) error {
-	config, err := p.Unmarshal(configJSON)
-	if err != nil {
-		return fmt.Errorf("failed to unmarshal config: %w", err)
-	}
-	cfg := config.(*PagerTreeConfig)
-
-	// Set default urgency if not specified
-	if cfg.Urgency == "" {
-		cfg.Urgency = "medium"
-	}
-
-	// A probe's notification has no heartbeat, so the status of its stand-in monitor says whether
-	// the probe went offline or came back online
-	isProbeEvent := hb == nil && mon.IsProbeEvent()
-
-	// Determine event type based on monitor status
-	eventType := "create"
+// pagerTreeEventType is the event type of a notification, or "" when nothing is sent. A
+// certificate-expiry warning, which has no heartbeat and is not a probe's, creates an alert.
+func pagerTreeEventType(cfg *PagerTreeConfig, mon *monitor.Model, hb *heartbeat.Model, isProbeEvent bool) string {
 	switch {
 	case hb != nil:
-		eventType = eventTypeForStatus(hb.Status, cfg.AutoResolve)
+		return eventTypeForStatus(hb.Status, cfg.AutoResolve)
 	case isProbeEvent:
-		eventType = eventTypeForStatus(mon.Status, cfg.AutoResolve)
+		return eventTypeForStatus(mon.Status, cfg.AutoResolve)
+	default:
+		return "create"
 	}
-	if eventType == "" {
-		// Only send notifications for DOWN status or UP (if auto-resolve is enabled)
-		p.logger.Debugf("Skipping PagerTree notification for non-critical status")
-		return nil
-	}
+}
 
-	// A notification with no monitor is about an unknown one
-	if mon == nil {
-		mon = &monitor.Model{Name: unknownMonitorName}
-	}
-
-	// Build the payload
-	payload := PagerTreePayload{
-		EventType: eventType,
+// pagerTreeAlertID is the ID of the alert a notification creates or resolves
+func pagerTreeAlertID(mon *monitor.Model, hb *heartbeat.Model, isProbeEvent bool) string {
+	switch {
+	case isProbeEvent:
+		// Alerts of one probe are one alert: the same ID, in the form of PagerDuty's dedup key
+		return fmt.Sprintf("Peekaping/%s", mon.ID)
+	case hb == nil:
+		// A certificate-expiry warning gets a new alert each time: PP-136 gives it its own identity
+		return fmt.Sprintf("monitor-%s-%d", mon.ID, time.Now().Unix())
+	default:
 		// One ID per monitor, so its Up resolves the alert its Down created and a resent Down
 		// updates the open alert
-		ID:      fmt.Sprintf("monitor-%s", mon.ID),
-		Urgency: cfg.Urgency,
+		return fmt.Sprintf("monitor-%s", mon.ID)
 	}
-	if hb == nil && !isProbeEvent {
-		// A certificate-expiry warning gets a new alert each time: PP-136 gives it its own identity
-		payload.ID = fmt.Sprintf("monitor-%s-%d", mon.ID, time.Now().Unix())
-	}
-	if isProbeEvent {
-		// Alerts of one probe are one alert: the same ID, in the form of PagerDuty's dedup key
-		payload.ID = fmt.Sprintf("Peekaping/%s", mon.ID)
-	}
+}
 
-	// Prepare template bindings (kept for potential future use)
-	_ = PrepareTemplateBindings(mon, hb, message)
-
-	// Set title based on status
+// pagerTreeTitle is the title of the alert, set by the status
+func pagerTreeTitle(mon *monitor.Model, hb *heartbeat.Model, isProbeEvent bool) string {
 	if isProbeEvent {
 		statusText := "offline"
 		if mon.Status == shared.MonitorStatusUp {
 			statusText = "online"
 		}
-		payload.Title = fmt.Sprintf("%s is %s", mon.Name, statusText)
-	} else if hb != nil {
+		return fmt.Sprintf("%s is %s", mon.Name, statusText)
+	}
+	if hb != nil {
 		statusText := "DOWN"
 		if hb.Status == shared.MonitorStatusUp {
 			statusText = "UP"
 		}
-		payload.Title = fmt.Sprintf("Monitor %s is %s", mon.Name, statusText)
-	} else {
-		payload.Title = fmt.Sprintf("Monitor %s Alert", mon.Name)
+		return fmt.Sprintf("Monitor %s is %s", mon.Name, statusText)
 	}
+	return fmt.Sprintf("Monitor %s Alert", mon.Name)
+}
 
-	// Set description
+// pagerTreeDescription is the message, or the heartbeat's, or a default, followed by when the
+// heartbeat was last checked
+func pagerTreeDescription(message string, mon *monitor.Model, hb *heartbeat.Model) string {
+	var description string
 	if message != "" {
-		payload.Description = message
+		description = message
 	} else if hb != nil && hb.Msg != "" {
-		payload.Description = hb.Msg
+		description = hb.Msg
 	} else {
-		payload.Description = fmt.Sprintf("Monitor %s status changed", mon.Name)
+		description = fmt.Sprintf("Monitor %s status changed", mon.Name)
 	}
 
 	// Add timestamp to description
 	if hb != nil {
-		payload.Description += fmt.Sprintf(" - Last checked: %s", hb.Time.Format(time.RFC3339))
+		description += fmt.Sprintf(" - Last checked: %s", hb.Time.Format(time.RFC3339))
 	}
+	return description
+}
 
-	// Add tags
-	payload.Tags = []string{
-		"peekaping",
-		fmt.Sprintf("monitor-type:%s", mon.Type),
+// pagerTreeMonitorURL is the URL in the monitor's config, if it has one
+func pagerTreeMonitorURL(mon *monitor.Model) (string, bool) {
+	if mon.Config == "" {
+		return "", false
 	}
+	var config map[string]interface{}
+	if err := json.Unmarshal([]byte(mon.Config), &config); err != nil {
+		return "", false
+	}
+	url, ok := config["url"].(string)
+	return url, ok
+}
 
-	// Add metadata
-	payload.Meta = map[string]interface{}{
+// pagerTreeMeta is the metadata of the alert: the monitor, and the heartbeat or the probe's status
+func pagerTreeMeta(mon *monitor.Model, hb *heartbeat.Model, isProbeEvent bool) map[string]interface{} {
+	meta := map[string]interface{}{
 		"monitor_id":   mon.ID,
 		"monitor_name": mon.Name,
 		"monitor_type": mon.Type,
 	}
 
 	// Parse monitor config to get URL if available
-	if mon.Config != "" {
-		var config map[string]interface{}
-		if err := json.Unmarshal([]byte(mon.Config), &config); err == nil {
-			if url, ok := config["url"].(string); ok {
-				payload.Meta["monitor_url"] = url
-			}
-		}
+	if url, ok := pagerTreeMonitorURL(mon); ok {
+		meta["monitor_url"] = url
 	}
 
 	if hb != nil {
-		payload.Meta["status"] = int(hb.Status)
+		meta["status"] = int(hb.Status)
 		if hb.Ping > 0 {
-			payload.Meta["response_time"] = fmt.Sprintf("%dms", hb.Ping)
+			meta["response_time"] = fmt.Sprintf("%dms", hb.Ping)
 		}
 		if hb.Duration > 0 {
-			payload.Meta["duration"] = fmt.Sprintf("%dms", hb.Duration)
+			meta["duration"] = fmt.Sprintf("%dms", hb.Duration)
 		}
 	} else if isProbeEvent {
-		payload.Meta["status"] = int(mon.Status)
+		meta["status"] = int(mon.Status)
 	}
+	return meta
+}
 
+// post sends the payload to the integration URL
+func (p *PagerTreeSender) post(ctx context.Context, cfg *PagerTreeConfig, payload PagerTreePayload) error {
 	// Marshal payload to JSON
 	jsonData, err := json.Marshal(payload)
 	if err != nil {
@@ -221,6 +209,58 @@ func (p *PagerTreeSender) Send(ctx context.Context, configJSON, message string, 
 		var respBody bytes.Buffer
 		respBody.ReadFrom(resp.Body)
 		return fmt.Errorf("PagerTree API returned status %d: %s", resp.StatusCode, respBody.String())
+	}
+	return nil
+}
+
+func (p *PagerTreeSender) Send(ctx context.Context, configJSON, message string, mon *monitor.Model, hb *heartbeat.Model) error {
+	config, err := p.Unmarshal(configJSON)
+	if err != nil {
+		return fmt.Errorf("failed to unmarshal config: %w", err)
+	}
+	cfg := config.(*PagerTreeConfig)
+
+	// Set default urgency if not specified
+	if cfg.Urgency == "" {
+		cfg.Urgency = "medium"
+	}
+
+	// A probe's notification has no heartbeat, so the status of its stand-in monitor says whether
+	// the probe went offline or came back online
+	isProbeEvent := hb == nil && mon.IsProbeEvent()
+
+	// Determine event type based on monitor status
+	eventType := pagerTreeEventType(cfg, mon, hb, isProbeEvent)
+	if eventType == "" {
+		// Only send notifications for DOWN status or UP (if auto-resolve is enabled)
+		p.logger.Debugf("Skipping PagerTree notification for non-critical status")
+		return nil
+	}
+
+	// A notification with no monitor is about an unknown one
+	if mon == nil {
+		mon = &monitor.Model{Name: unknownMonitorName}
+	}
+
+	// Prepare template bindings (kept for potential future use)
+	_ = PrepareTemplateBindings(mon, hb, message)
+
+	// Build the payload
+	payload := PagerTreePayload{
+		EventType:   eventType,
+		ID:          pagerTreeAlertID(mon, hb, isProbeEvent),
+		Urgency:     cfg.Urgency,
+		Title:       pagerTreeTitle(mon, hb, isProbeEvent),
+		Description: pagerTreeDescription(message, mon, hb),
+		Tags: []string{
+			"peekaping",
+			fmt.Sprintf("monitor-type:%s", mon.Type),
+		},
+		Meta: pagerTreeMeta(mon, hb, isProbeEvent),
+	}
+
+	if err := p.post(ctx, cfg, payload); err != nil {
+		return err
 	}
 
 	p.logger.Infof("PagerTree notification sent successfully - event: %s, monitor: %s (%s)",
