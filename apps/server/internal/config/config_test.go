@@ -319,3 +319,17 @@ func TestLoadConfig_ABooleanInAnEnvFileFollowsTheSameRule(t *testing.T) {
 	_, err := LoadConfig[Config](dir)
 	assert.ErrorContains(t, err, "VERIFY_CUSTOM_DOMAINS must be a boolean")
 }
+
+// A bad boolean in the file stops startup even when the environment overrides it: the file is
+// wrong, and the operator should know
+func TestLoadConfig_ABadBooleanInAnEnvFileStopsStartupEvenWhenTheEnvironmentOverridesIt(t *testing.T) {
+	t.Setenv("DB_TYPE", "sqlite")
+	t.Setenv("DB_NAME", "peekaping.db")
+	t.Setenv("VERIFY_CUSTOM_DOMAINS", "true")
+	dir := t.TempDir()
+	require.NoError(t, os.WriteFile(filepath.Join(dir, ".env"), []byte("VERIFY_CUSTOM_DOMAINS=yes\n"), 0o600))
+
+	_, err := LoadConfig[Config](dir)
+
+	assert.ErrorContains(t, err, `VERIFY_CUSTOM_DOMAINS must be a boolean: 1, t, T, TRUE, true, True, 0, f, F, FALSE, false or False, not "yes"`)
+}

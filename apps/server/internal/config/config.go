@@ -531,7 +531,7 @@ type InvalidBooleanError struct {
 }
 
 func (e *InvalidBooleanError) Error() string {
-	return fmt.Sprintf("%s must be a boolean (true, false, 1, 0, t or f, in any case strconv.ParseBool reads), not %q", e.Name, e.Value)
+	return fmt.Sprintf("%s must be a boolean: 1, t, T, TRUE, true, True, 0, f, F, FALSE, false or False, not %q", e.Name, e.Value)
 }
 
 // parseBool reads value as strconv.ParseBool does, and names the field's variable when it can't
