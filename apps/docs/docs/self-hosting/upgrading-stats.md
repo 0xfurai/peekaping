@@ -43,7 +43,7 @@ Minute and hour row counts become bounded once cleanup catches up. Day stats con
 
 ## Reclaiming SQLite disk space
 
-Deleting old rows frees pages for SQLite to reuse, but the database file does not shrink automatically. Reclaiming disk space is optional; future writes can reuse those pages. This procedure also reclaims space freed by heartbeat cleanup or dropped indexes.
+Deleting old rows frees pages for SQLite to reuse. A database created before incremental auto-vacuum was applied does not shrink automatically, while a newer one returns its free pages to the filesystem at a graceful shutdown (see [Convert an existing database to incremental auto-vacuum](#convert-an-existing-database-to-incremental-auto-vacuum)). Reclaiming disk space is optional; future writes can reuse those pages. This procedure also reclaims space freed by heartbeat cleanup or dropped indexes.
 
 1. After upgrading, let the hourly cleanup finish. Check the API logs for a successful `Deleted expired stats` entry. Running `VACUUM` before cleanup finishes will leave the expired rows in the file.
 2. Stop every Peekaping process and replica that accesses this database again, including any migration process. For the single-mode example, use `docker stop peekaping`. For Compose, stop the entire Peekaping deployment with its own Compose file. Keep it stopped until verification finishes. Checks and the API are unavailable during this maintenance.
@@ -67,3 +67,15 @@ Deleting old rows frees pages for SQLite to reuse, but the database file does no
 6. Start the same deployment again (`docker start peekaping` for the single-mode example), then check the API, recent heartbeats and a monitor's chart. Keep the backup until those checks pass.
 
 `VACUUM` does not restore deleted history. It rewrites the live database into fewer pages. Do not add it to the hourly cleanup: it requires a deliberate maintenance window.
+
+### Convert an existing database to incremental auto-vacuum
+
+A database that Peekaping creates is set to `auto_vacuum=INCREMENTAL`, and a graceful shutdown then returns the free pages to the filesystem, so the file shrinks without a manual `VACUUM`. Older releases never applied this setting, so a database created by one of them reports `auto_vacuum` as `0` (none), and Peekaping starts on it as before without changing it. SQLite changes the setting of an existing database only with a `VACUUM`.
+
+To convert, follow the steps above (stop every Peekaping process, check free space, make and verify a backup), and in step 5 run this instead of the plain `VACUUM`:
+
+```bash
+sqlite3 -bail 'file:/path/to/peekaping.db?mode=rw' 'PRAGMA auto_vacuum=INCREMENTAL; VACUUM; PRAGMA wal_checkpoint(TRUNCATE); PRAGMA integrity_check; PRAGMA auto_vacuum;'
+```
+
+The last value must be `2`. Check it again at any time with `sqlite3 'file:/path/to/peekaping.db?mode=ro' 'PRAGMA auto_vacuum;'`: `0` is none, `1` is full and `2` is incremental.
