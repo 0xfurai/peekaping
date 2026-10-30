@@ -84,18 +84,26 @@ func (s *SQLServerExecutor) validateSemicolonFormat(connectionString string) err
 	params := s.parseConnectionStringParams(connectionString)
 
 	// Validate required parameters
-	if params["Server"] == "" {
-		return fmt.Errorf("Server parameter is required")
-	}
-	if params["Database"] == "" {
-		return fmt.Errorf("Database parameter is required")
-	}
-	if params["User Id"] == "" {
-		return fmt.Errorf("User Id parameter is required")
+	for _, required := range []string{"Server", "Database", "User Id"} {
+		if params[required] == "" {
+			return fmt.Errorf("%s parameter is required", required)
+		}
 	}
 
-	// Validate server format (can include port)
-	serverParts := strings.Split(params["Server"], ",")
+	if err := validateSemicolonServer(params["Server"]); err != nil {
+		return err
+	}
+
+	if err := validateSemicolonSettings(params); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// validateSemicolonServer validates the server format (can include port)
+func validateSemicolonServer(server string) error {
+	serverParts := strings.Split(server, ",")
 	if len(serverParts) > 2 {
 		return fmt.Errorf("invalid Server format. Expected: hostname or hostname,port")
 	}
@@ -105,20 +113,17 @@ func (s *SQLServerExecutor) validateSemicolonFormat(connectionString string) err
 			return fmt.Errorf("invalid port number: %s", serverParts[1])
 		}
 	}
+	return nil
+}
 
-	// Validate boolean parameters if present
-	if encrypt := params["Encrypt"]; encrypt != "" {
-		if !isValidBooleanString(encrypt) {
-			return fmt.Errorf("invalid Encrypt value: %s. Expected: true or false", encrypt)
-		}
-	}
-	if trustCert := params["TrustServerCertificate"]; trustCert != "" {
-		if !isValidBooleanString(trustCert) {
-			return fmt.Errorf("invalid TrustServerCertificate value: %s. Expected: true or false", trustCert)
+// validateSemicolonSettings validates the boolean parameters and the Connection Timeout, if present
+func validateSemicolonSettings(params map[string]string) error {
+	for _, key := range []string{"Encrypt", "TrustServerCertificate"} {
+		if value := params[key]; value != "" && !isValidBooleanString(value) {
+			return fmt.Errorf("invalid %s value: %s. Expected: true or false", key, value)
 		}
 	}
 
-	// Validate Connection Timeout if present
 	if timeout := params["Connection Timeout"]; timeout != "" {
 		timeoutVal, err := strconv.Atoi(timeout)
 		if err != nil || timeoutVal < 0 {
@@ -159,22 +164,31 @@ func (s *SQLServerExecutor) validateLegacyURL(connectionString string) error {
 		return fmt.Errorf("invalid scheme: %s, expected sqlserver:// or mssql://", parsedURL.Scheme)
 	}
 
+	if err := validateLegacyURLAuthority(parsedURL); err != nil {
+		return err
+	}
+
+	return validateLegacyURLTarget(parsedURL)
+}
+
+// validateLegacyURLAuthority checks the URL's host and username
+func validateLegacyURLAuthority(parsedURL *url.URL) error {
 	if parsedURL.Host == "" || parsedURL.Hostname() == "" {
 		return fmt.Errorf("connection string must include host")
 	}
 
 	// Username is required for SQL Server
-	if parsedURL.User == nil {
+	if parsedURL.User == nil || parsedURL.User.Username() == "" {
 		return fmt.Errorf("connection string must include username")
 	}
+	return nil
+}
 
-	if parsedURL.User.Username() == "" {
-		return fmt.Errorf("connection string must include username")
-	}
-
+// validateLegacyURLTarget checks the URL's database, which can be in the path or in the query
+// parameters, and its port
+func validateLegacyURLTarget(parsedURL *url.URL) error {
 	// For SQL Server legacy URLs, database can be in query parameters
-	queryParams := parsedURL.Query()
-	database := queryParams.Get("database")
+	database := parsedURL.Query().Get("database")
 
 	// Check if database is in path or query parameters
 	hasPathDatabase := parsedURL.Path != "" && parsedURL.Path != "/"
@@ -185,10 +199,8 @@ func (s *SQLServerExecutor) validateLegacyURL(connectionString string) error {
 	}
 
 	// Validate port if provided
-	if port := parsedURL.Port(); port != "" {
-		if port == "0" {
-			return fmt.Errorf("invalid port: 0")
-		}
+	if parsedURL.Port() == "0" {
+		return fmt.Errorf("invalid port: 0")
 	}
 
 	return nil
@@ -306,24 +318,9 @@ func (s *SQLServerExecutor) Execute(ctx context.Context, m *Monitor, proxyModel 
 
 	startTime := time.Now().UTC()
 
-	// Validate configuration before execution
-	if err := s.validateConnectionString(cfg.DatabaseConnectionString); err != nil {
-		return DownResult(fmt.Errorf("connection string validation failed: %w", err), startTime, time.Now().UTC())
-	}
-
-	// Validate the query before connecting: a query that is refused anyway
-	// doesn't need a server to say so.
-	query := cfg.DatabaseQuery
-	if strings.TrimSpace(query) == "" {
-		query = "SELECT 1"
-	} else if err := s.validateQuery(query); err != nil {
-		return DownResult(fmt.Errorf("query validation failed: %w", err), startTime, time.Now().UTC())
-	}
-
-	// Parse and validate connection string
-	dsn, err := s.parseConnectionString(cfg.DatabaseConnectionString)
+	dsn, query, err := s.prepare(cfg)
 	if err != nil {
-		return DownResult(fmt.Errorf("failed to parse connection string: %w", err), startTime, time.Now().UTC())
+		return DownResult(err, startTime, time.Now().UTC())
 	}
 
 	// Set connection timeout using the monitor's configured timeout
@@ -339,32 +336,15 @@ func (s *SQLServerExecutor) Execute(ctx context.Context, m *Monitor, proxyModel 
 	db := sql.OpenDB(connector)
 	defer db.Close()
 
-	// Test connection
-	if err := db.PingContext(ctx); err != nil {
-		return DownResult(fmt.Errorf("connection failed: %w", err), startTime, time.Now().UTC())
-	}
-
-	rows, err := db.QueryContext(ctx, query)
+	rows, err := queryRows(ctx, db, query)
 	if err != nil {
-		return DownResult(fmt.Errorf("query execution failed: %w", err), startTime, time.Now().UTC())
+		return DownResult(err, startTime, time.Now().UTC())
 	}
 	defer rows.Close()
 
-	// Get column names
-	columns, err := rows.Columns()
+	columns, rowCount, err := countRows(rows)
 	if err != nil {
-		return DownResult(fmt.Errorf("failed to get columns: %w", err), startTime, time.Now().UTC())
-	}
-
-	// Count rows
-	rowCount := 0
-	for rows.Next() {
-		rowCount++
-		// We only need to count, don't need to scan values
-	}
-
-	if err := rows.Err(); err != nil {
-		return DownResult(fmt.Errorf("error iterating rows: %w", err), startTime, time.Now().UTC())
+		return DownResult(err, startTime, time.Now().UTC())
 	}
 
 	endTime := time.Now().UTC()
@@ -373,10 +353,69 @@ func (s *SQLServerExecutor) Execute(ctx context.Context, m *Monitor, proxyModel 
 	s.logger.Infof("SQL Server query successful: %s, ping: %dms", m.Name, ping)
 	return &Result{
 		Status:    shared.MonitorStatusUp,
-		Message:   fmt.Sprintf("Query successful, ping: %dms, columns: %d, rows: %d", ping, len(columns), rowCount),
+		Message:   fmt.Sprintf("Query successful, ping: %dms, columns: %d, rows: %d", ping, columns, rowCount),
 		StartTime: startTime,
 		EndTime:   endTime,
 	}
+}
+
+// prepare validates the config before execution, and returns the DSN to connect with and the query
+// to run
+func (s *SQLServerExecutor) prepare(cfg *SQLServerConfig) (dsn, query string, err error) {
+	// Validate configuration before execution
+	if err := s.validateConnectionString(cfg.DatabaseConnectionString); err != nil {
+		return "", "", fmt.Errorf("connection string validation failed: %w", err)
+	}
+
+	// Validate the query before connecting: a query that is refused anyway
+	// doesn't need a server to say so.
+	query = cfg.DatabaseQuery
+	if strings.TrimSpace(query) == "" {
+		query = "SELECT 1"
+	} else if err := s.validateQuery(query); err != nil {
+		return "", "", fmt.Errorf("query validation failed: %w", err)
+	}
+
+	// Parse and validate connection string
+	dsn, err = s.parseConnectionString(cfg.DatabaseConnectionString)
+	if err != nil {
+		return "", "", fmt.Errorf("failed to parse connection string: %w", err)
+	}
+	return dsn, query, nil
+}
+
+// queryRows tests the connection and runs the query
+func queryRows(ctx context.Context, db *sql.DB, query string) (*sql.Rows, error) {
+	// Test connection
+	if err := db.PingContext(ctx); err != nil {
+		return nil, fmt.Errorf("connection failed: %w", err)
+	}
+
+	rows, err := db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, fmt.Errorf("query execution failed: %w", err)
+	}
+	return rows, nil
+}
+
+// countRows returns the number of columns of the rows, and counts the rows
+func countRows(rows *sql.Rows) (columns, rowCount int, err error) {
+	// Get column names
+	columnNames, err := rows.Columns()
+	if err != nil {
+		return 0, 0, fmt.Errorf("failed to get columns: %w", err)
+	}
+
+	// Count rows
+	for rows.Next() {
+		rowCount++
+		// We only need to count, don't need to scan values
+	}
+
+	if err := rows.Err(); err != nil {
+		return 0, 0, fmt.Errorf("error iterating rows: %w", err)
+	}
+	return len(columnNames), rowCount, nil
 }
 
 // newSQLServerConnector returns the driver's connector for the DSN, with a
@@ -625,6 +664,24 @@ func (s *SQLServerExecutor) parseURLConnectionString(connectionString string) (s
 		return "", fmt.Errorf("invalid scheme: %s, expected sqlserver:// or mssql://", parsedURL.Scheme)
 	}
 
+	t := sqlServerTargetFromURL(parsedURL)
+
+	// Add other query parameters, except those the URL's own parts already set
+	for key, values := range parsedURL.Query() {
+		if len(values) == 0 {
+			continue
+		}
+		key = urlOptionKey(key)
+		if !t.setByURL(key) {
+			t.options[key] = values[0]
+		}
+	}
+
+	return t.dsn(), nil
+}
+
+// sqlServerTargetFromURL is what the URL's own parts say: the host, port, user, password and database
+func sqlServerTargetFromURL(parsedURL *url.URL) sqlServerTarget {
 	t := sqlServerTarget{
 		host:    parsedURL.Hostname(),
 		port:    parsedURL.Port(),
@@ -636,36 +693,36 @@ func (s *SQLServerExecutor) parseURLConnectionString(connectionString string) (s
 	}
 
 	// Extract database from query parameters first, then from path if not found
-	queryParams := parsedURL.Query()
-	t.database = queryParams.Get("database")
+	t.database = parsedURL.Query().Get("database")
 	if t.database == "" {
 		// Try to get database from path
 		if parsedURL.Path != "" && parsedURL.Path != "/" {
 			t.database = strings.TrimPrefix(parsedURL.Path, "/")
 		}
 	}
+	return t
+}
 
-	// Add other query parameters, except those the URL's own parts already set
-	for key, values := range queryParams {
-		if len(values) == 0 {
-			continue
-		}
-		key = strings.ToLower(key)
-		if synonym, ok := adoSynonyms[key]; ok {
-			key = synonym
-		}
-		if key == "timeout" { // the name this form has always accepted
-			key = "connection timeout"
-		}
-		switch {
-		case key == "database",
-			key == "server" && t.host != "",
-			key == "user id" && t.user != "",
-			key == "password" && t.password != "":
-		default:
-			t.options[key] = values[0]
-		}
+// urlOptionKey is the name the driver knows a query parameter of the URL form by
+func urlOptionKey(key string) string {
+	key = strings.ToLower(key)
+	if synonym, ok := adoSynonyms[key]; ok {
+		key = synonym
 	}
+	if key == "timeout" { // the name this form has always accepted
+		key = "connection timeout"
+	}
+	return key
+}
 
-	return t.dsn(), nil
+// setByURL reports whether the URL's own parts already set the parameter
+func (t sqlServerTarget) setByURL(key string) bool {
+	switch {
+	case key == "database",
+		key == "server" && t.host != "",
+		key == "user id" && t.user != "",
+		key == "password" && t.password != "":
+		return true
+	}
+	return false
 }
