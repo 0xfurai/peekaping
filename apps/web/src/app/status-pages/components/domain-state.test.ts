@@ -4,6 +4,8 @@ import {
   domainStateLabel,
   findDomainStatus,
   needsRecords,
+  PENDING_REFETCH_MS,
+  refetchIntervalFor,
   withCheckedDomain,
 } from "./domain-state";
 
@@ -75,5 +77,22 @@ describe("withCheckedDomain", () => {
     expect(next.domains[0].state).toBe("pending");
     expect(next.domains[1].state).toBe("verified");
     expect(next.verificationRequired).toBe(true);
+  });
+});
+
+describe("refetchIntervalFor", () => {
+  it("polls every 60 seconds while a domain is pending", () => {
+    expect(PENDING_REFETCH_MS).toBe(60_000);
+    const domains = [status("a.example.com", { state: "verified" }), status("b.example.com")];
+    expect(refetchIntervalFor(domains)).toBe(60_000);
+  });
+
+  it("stops when every domain is verified, or there are none", () => {
+    expect(refetchIntervalFor([status("a.example.com", { state: "verified" })])).toBe(false);
+    expect(refetchIntervalFor([])).toBe(false);
+  });
+
+  it("does not poll before the list has arrived", () => {
+    expect(refetchIntervalFor(undefined)).toBe(false);
   });
 });

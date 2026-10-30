@@ -160,7 +160,7 @@ const CreateEditForm = ({
       queryClient.removeQueries({
         queryKey: getStatusPagesByIdQueryKey({ path: { id: id! } }),
       });
-      queryClient.removeQueries({
+      queryClient.invalidateQueries({
         queryKey: getStatusPagesDomainsByIdQueryKey({ path: { id: id! } }),
       });
       navigate(workspacePath("/status-pages"));

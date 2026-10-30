@@ -5,14 +5,16 @@ import {
   postStatusPagesDomainsByIdByDomainVerifyMutation,
 } from "@/api/@tanstack/react-query.gen";
 import type { UtilsApiResponseStatusPageDomainStatusesDto } from "@/api/types.gen";
-import { withCheckedDomain } from "./domain-state";
+import { refetchIntervalFor, withCheckedDomain } from "./domain-state";
 
 // The saved domains of a status page with their verification state. Nothing is asked for a
-// page that isn't saved yet, or when `enabled` is false (verification is off).
+// page that isn't saved yet, or when `enabled` is false (verification is off). The list is asked
+// for again every minute while a domain is pending.
 export const useDomainStatuses = (pageId: string | undefined, enabled: boolean) => {
   const query = useQuery({
     ...getStatusPagesDomainsByIdOptions({ path: { id: pageId ?? "" } }),
     enabled: enabled && !!pageId,
+    refetchInterval: (query) => refetchIntervalFor(query.state.data?.data?.domains),
   });
   return { domains: query.data?.data?.domains, isLoading: query.isLoading };
 };

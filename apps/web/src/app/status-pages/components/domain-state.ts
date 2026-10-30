@@ -35,3 +35,12 @@ export const withCheckedDomain = (
     status.domain === checked.domain ? checked : status
   ),
 });
+
+// How often the list is asked for again while a domain is pending, so that its state changes
+// after the background check without a reload
+export const PENDING_REFETCH_MS = 60_000;
+
+export const refetchIntervalFor = (
+  domains: DomainStatusPageStatus[] | undefined
+): number | false =>
+  domains?.some((status) => status.state === "pending") ? PENDING_REFETCH_MS : false;
