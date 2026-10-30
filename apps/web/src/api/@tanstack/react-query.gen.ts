@@ -115,6 +115,7 @@ import {
   postWorkspaceDeletion,
   getWorkspaceExport,
   getWorkspaceExportHeartbeats,
+  postWorkspaceImport,
   getWorkspaceInvites,
   postWorkspaceInvites,
   deleteWorkspaceInvitesById,
@@ -396,6 +397,9 @@ import type {
   PostWorkspaceDeletionResponse,
   GetWorkspaceExportData,
   GetWorkspaceExportHeartbeatsData,
+  PostWorkspaceImportData,
+  PostWorkspaceImportError,
+  PostWorkspaceImportResponse,
   GetWorkspaceInvitesData,
   PostWorkspaceInvitesData,
   PostWorkspaceInvitesError,
@@ -4531,6 +4535,59 @@ export const getWorkspaceExportHeartbeatsOptions = (
     },
     queryKey: getWorkspaceExportHeartbeatsQueryKey(options),
   });
+};
+
+export const postWorkspaceImportQueryKey = (
+  options: Options<PostWorkspaceImportData>
+) => createQueryKey("postWorkspaceImport", options);
+
+/**
+ * Import a workspace's setup
+ * An owner of the workspace uploads a workspace document (the file of the export route) and its records are added to the workspace in one transaction, beside the ones there. Nothing is written if the file is invalid: format must be peekaping-workspace, version one this server reads, every ref set and used once, every link pointing at a record of the file, and every record valid as the API would take it. All problems come back together (400, code INVALID_WORKSPACE_FILE). What the workspace or the install can't take as it is is changed or left out, and listed in changes, never an error: a tag whose name the workspace has is reused; a proxy or a notification channel the install refuses (private target block, install email channel without a sender or a member recipient) and a monitor of a disabled type or at a blocked target are skipped, with their links; a monitor's proxy that is skipped is dropped; an interval below the minimum is raised to it; a push token that another monitor holds is replaced; active monitors past the plan's limit come in paused; a status page past the plan's limit is skipped, a taken slug gets -2, -3 and so on, and a taken custom domain, or one past the plan's limit, is dropped; a data retention period above the plan's cap is capped. Imported monitors run on the install's default probes. The workspace's name is not changed, and saved secrets are stored as the file has them. Monitors are scheduled once the transaction has committed. The body may be up to 16 MiB. Only a signed-in owner may import: an admin or a member is refused (403), and so is an API key (401).
+ */
+export const postWorkspaceImportOptions = (
+  options: Options<PostWorkspaceImportData>
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await postWorkspaceImport({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: postWorkspaceImportQueryKey(options),
+  });
+};
+
+/**
+ * Import a workspace's setup
+ * An owner of the workspace uploads a workspace document (the file of the export route) and its records are added to the workspace in one transaction, beside the ones there. Nothing is written if the file is invalid: format must be peekaping-workspace, version one this server reads, every ref set and used once, every link pointing at a record of the file, and every record valid as the API would take it. All problems come back together (400, code INVALID_WORKSPACE_FILE). What the workspace or the install can't take as it is is changed or left out, and listed in changes, never an error: a tag whose name the workspace has is reused; a proxy or a notification channel the install refuses (private target block, install email channel without a sender or a member recipient) and a monitor of a disabled type or at a blocked target are skipped, with their links; a monitor's proxy that is skipped is dropped; an interval below the minimum is raised to it; a push token that another monitor holds is replaced; active monitors past the plan's limit come in paused; a status page past the plan's limit is skipped, a taken slug gets -2, -3 and so on, and a taken custom domain, or one past the plan's limit, is dropped; a data retention period above the plan's cap is capped. Imported monitors run on the install's default probes. The workspace's name is not changed, and saved secrets are stored as the file has them. Monitors are scheduled once the transaction has committed. The body may be up to 16 MiB. Only a signed-in owner may import: an admin or a member is refused (403), and so is an API key (401).
+ */
+export const postWorkspaceImportMutation = (
+  options?: Partial<Options<PostWorkspaceImportData>>
+): UseMutationOptions<
+  PostWorkspaceImportResponse,
+  AxiosError<PostWorkspaceImportError>,
+  Options<PostWorkspaceImportData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PostWorkspaceImportResponse,
+    AxiosError<PostWorkspaceImportError>,
+    Options<PostWorkspaceImportData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await postWorkspaceImport({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
 };
 
 export const getWorkspaceInvitesQueryKey = (

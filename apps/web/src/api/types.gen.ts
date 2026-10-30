@@ -2095,26 +2095,104 @@ export type WorkspacehttpWorkspaceResponse = {
   role: "owner" | "admin" | "member";
 };
 
+export type WorkspaceportChange = {
+  /**
+   * The value in the file, when a value changed
+   */
+  from?: string;
+  /**
+   * What changed, for example tag_reused or monitor_paused_over_limit
+   */
+  kind: string;
+  /**
+   * The record's name, title, slug, domain or address, to tell it by
+   */
+  name?: string;
+  /**
+   * Why, when the kind doesn't say: the code of the refusal of a skipped channel, or the field whose value was raised (interval or retryInterval)
+   */
+  reason?: string;
+  /**
+   * The kind of record the change is about. A custom domain's ref is its status page's.
+   */
+  record:
+    | "tag"
+    | "proxy"
+    | "notificationChannel"
+    | "monitor"
+    | "maintenance"
+    | "statusPage"
+    | "customDomain"
+    | "settings";
+  /**
+   * The record's ref in the file
+   */
+  ref?: string;
+  /**
+   * The value the import stored, when a value changed
+   */
+  to?: string;
+};
+
+export type WorkspaceportCreated = {
+  maintenances: number;
+  monitors: number;
+  notificationChannels: number;
+  proxies: number;
+  statusPages: number;
+  tags: number;
+};
+
 export type WorkspaceportDocument = {
   /**
    * The version of the server that wrote the file
    */
-  appVersion: string;
+  appVersion?: string;
   /**
    * Always true: the file holds saved secrets in full
    */
-  containsSecrets: boolean;
-  exportedAt: string;
-  format: string;
-  maintenances: Array<WorkspaceportMaintenance> | null;
-  monitors: Array<WorkspaceportMonitor> | null;
-  notificationChannels: Array<WorkspaceportNotificationChannel> | null;
-  proxies: Array<WorkspaceportProxy> | null;
-  settings: WorkspaceportSettings;
-  statusPages: Array<WorkspaceportStatusPage> | null;
-  tags: Array<WorkspaceportTag> | null;
-  version: number;
-  workspace: WorkspaceportWorkspace;
+  containsSecrets?: boolean;
+  exportedAt?: string;
+  format?: string;
+  maintenances?: Array<WorkspaceportMaintenance> | null;
+  monitors?: Array<WorkspaceportMonitor> | null;
+  notificationChannels?: Array<WorkspaceportNotificationChannel> | null;
+  proxies?: Array<WorkspaceportProxy> | null;
+  settings?: WorkspaceportSettings;
+  statusPages?: Array<WorkspaceportStatusPage> | null;
+  tags?: Array<WorkspaceportTag> | null;
+  version?: number;
+  workspace?: WorkspaceportWorkspace;
+  [key: string]:
+    | unknown
+    | string
+    | boolean
+    | (Array<WorkspaceportMaintenance> | null)
+    | (Array<WorkspaceportMonitor> | null)
+    | (Array<WorkspaceportNotificationChannel> | null)
+    | (Array<WorkspaceportProxy> | null)
+    | WorkspaceportSettings
+    | (Array<WorkspaceportStatusPage> | null)
+    | (Array<WorkspaceportTag> | null)
+    | number
+    | WorkspaceportWorkspace
+    | undefined;
+};
+
+export type WorkspaceportImportRejected = {
+  code: string;
+  problems: Array<WorkspaceportProblem> | null;
+};
+
+export type WorkspaceportImportRejectedResponse = {
+  data: null;
+  error: WorkspaceportImportRejected;
+  message: string;
+};
+
+export type WorkspaceportImportResult = {
+  changes: Array<WorkspaceportChange> | null;
+  created: WorkspaceportCreated;
 };
 
 export type WorkspaceportMaintenance = {
@@ -2173,6 +2251,18 @@ export type WorkspaceportNotificationChannel = {
   ref: string;
   sensitiveFields: Array<string> | null;
   type: string;
+};
+
+export type WorkspaceportProblem = {
+  message: string;
+  /**
+   * The kind of record, or file for the file as a whole
+   */
+  record: string;
+  /**
+   * The record's ref in the file
+   */
+  ref?: string;
 };
 
 export type WorkspaceportProxy = {
@@ -7869,6 +7959,63 @@ export type GetWorkspaceExportHeartbeatsResponses = {
 
 export type GetWorkspaceExportHeartbeatsResponse =
   GetWorkspaceExportHeartbeatsResponses[keyof GetWorkspaceExportHeartbeatsResponses];
+
+export type PostWorkspaceImportData = {
+  body: WorkspaceportDocument;
+  headers?: {
+    /**
+     * The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+     */
+    "X-Workspace-ID"?: string;
+  };
+  path?: never;
+  query?: never;
+  url: "/api/v1/workspace/import";
+};
+
+export type PostWorkspaceImportErrors = {
+  /**
+   * Bad Request
+   */
+  400: WorkspaceportImportRejectedResponse;
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
+  /**
+   * Forbidden
+   */
+  403: LimitsReachedResponse | HttpxErrorBody;
+  /**
+   * Not Found
+   */
+  404: HttpxErrorBody;
+  /**
+   * Request Entity Too Large
+   */
+  413: HttpxErrorBody;
+  /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
+  /**
+   * Internal Server Error
+   */
+  500: HttpxErrorBody;
+};
+
+export type PostWorkspaceImportError =
+  PostWorkspaceImportErrors[keyof PostWorkspaceImportErrors];
+
+export type PostWorkspaceImportResponses = {
+  /**
+   * OK
+   */
+  200: WorkspaceportImportResult;
+};
+
+export type PostWorkspaceImportResponse =
+  PostWorkspaceImportResponses[keyof PostWorkspaceImportResponses];
 
 export type GetWorkspaceInvitesData = {
   body?: never;

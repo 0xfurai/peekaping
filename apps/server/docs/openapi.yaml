@@ -4704,8 +4704,76 @@ components:
         - name
         - role
       type: object
-    workspaceport.Document:
+    workspaceport.Change:
       additionalProperties: false
+      properties:
+        from:
+          description: The value in the file, when a value changed
+          type: string
+        kind:
+          description: What changed, for example tag_reused or monitor_paused_over_limit
+          examples:
+            - monitor_interval_raised
+          type: string
+        name:
+          description: The record's name, title, slug, domain or address, to tell it by
+          type: string
+        reason:
+          description: "Why, when the kind doesn't say: the code of the refusal of a skipped channel, or the field whose value was raised (interval or retryInterval)"
+          type: string
+        record:
+          description: The kind of record the change is about. A custom domain's ref is its status page's.
+          enum:
+            - tag
+            - proxy
+            - notificationChannel
+            - monitor
+            - maintenance
+            - statusPage
+            - customDomain
+            - settings
+          type: string
+        ref:
+          description: The record's ref in the file
+          type: string
+        to:
+          description: The value the import stored, when a value changed
+          type: string
+      required:
+        - kind
+        - record
+      type: object
+    workspaceport.Created:
+      additionalProperties: false
+      properties:
+        maintenances:
+          format: int64
+          type: integer
+        monitors:
+          format: int64
+          type: integer
+        notificationChannels:
+          format: int64
+          type: integer
+        proxies:
+          format: int64
+          type: integer
+        statusPages:
+          format: int64
+          type: integer
+        tags:
+          format: int64
+          type: integer
+      required:
+        - tags
+        - proxies
+        - notificationChannels
+        - monitors
+        - maintenances
+        - statusPages
+      type: object
+    workspaceport.Document:
+      additionalProperties: true
       properties:
         appVersion:
           description: The version of the server that wrote the file
@@ -4765,20 +4833,54 @@ components:
           type: integer
         workspace:
           $ref: "#/components/schemas/workspaceport.Workspace"
+      type: object
+    workspaceport.ImportRejected:
+      additionalProperties: false
+      properties:
+        code:
+          examples:
+            - INVALID_WORKSPACE_FILE
+          type: string
+        problems:
+          items:
+            $ref: "#/components/schemas/workspaceport.Problem"
+          type:
+            - array
+            - "null"
       required:
-        - format
-        - version
-        - exportedAt
-        - appVersion
-        - containsSecrets
-        - workspace
-        - settings
-        - tags
-        - proxies
-        - notificationChannels
-        - monitors
-        - maintenances
-        - statusPages
+        - code
+        - problems
+      type: object
+    workspaceport.ImportRejectedResponse:
+      additionalProperties: false
+      properties:
+        data:
+          type: "null"
+        error:
+          $ref: "#/components/schemas/workspaceport.ImportRejected"
+        message:
+          examples:
+            - "The file can't be imported: 2 problems"
+          type: string
+      required:
+        - message
+        - data
+        - error
+      type: object
+    workspaceport.ImportResult:
+      additionalProperties: false
+      properties:
+        changes:
+          items:
+            $ref: "#/components/schemas/workspaceport.Change"
+          type:
+            - array
+            - "null"
+        created:
+          $ref: "#/components/schemas/workspaceport.Created"
+      required:
+        - created
+        - changes
       type: object
     workspaceport.Maintenance:
       additionalProperties: false
@@ -4938,6 +5040,25 @@ components:
         - isDefault
         - config
         - sensitiveFields
+      type: object
+    workspaceport.Problem:
+      additionalProperties: false
+      properties:
+        message:
+          examples:
+            - "config is invalid: url is required"
+          type: string
+        record:
+          description: The kind of record, or file for the file as a whole
+          examples:
+            - monitor
+          type: string
+        ref:
+          description: The record's ref in the file
+          type: string
+      required:
+        - record
+        - message
       type: object
     workspaceport.Proxy:
       additionalProperties: false
@@ -12016,6 +12137,84 @@ paths:
       security:
         - JwtAuth: []
       summary: Download the workspace's heartbeat history
+      tags:
+        - workspace
+  /api/v1/workspace/import:
+    post:
+      description: "An owner of the workspace uploads a workspace document (the file of the export route) and its records are added to the workspace in one transaction, beside the ones there. Nothing is written if the file is invalid: format must be peekaping-workspace, version one this server reads, every ref set and used once, every link pointing at a record of the file, and every record valid as the API would take it. All problems come back together (400, code INVALID_WORKSPACE_FILE). What the workspace or the install can't take as it is is changed or left out, and listed in changes, never an error: a tag whose name the workspace has is reused; a proxy or a notification channel the install refuses (private target block, install email channel without a sender or a member recipient) and a monitor of a disabled type or at a blocked target are skipped, with their links; a monitor's proxy that is skipped is dropped; an interval below the minimum is raised to it; a push token that another monitor holds is replaced; active monitors past the plan's limit come in paused; a status page past the plan's limit is skipped, a taken slug gets -2, -3 and so on, and a taken custom domain, or one past the plan's limit, is dropped; a data retention period above the plan's cap is capped. Imported monitors run on the install's default probes. The workspace's name is not changed, and saved secrets are stored as the file has them. Monitors are scheduled once the transaction has committed. The body may be up to 16 MiB. Only a signed-in owner may import: an admin or a member is refused (403), and so is an API key (401)."
+      operationId: postWorkspaceImport
+      parameters:
+        - description: The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+          in: header
+          name: X-Workspace-ID
+          schema:
+            format: uuid
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/workspaceport.Document"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/workspaceport.ImportResult"
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/workspaceport.ImportRejectedResponse"
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: "#/components/schemas/limits.ReachedResponse"
+                  - $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Not Found
+        "413":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Request Entity Too Large
+        "429":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Too Many Requests
+          headers:
+            Retry-After:
+              description: Seconds to wait before sending the request again.
+              schema:
+                type: integer
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+      summary: Import a workspace's setup
       tags:
         - workspace
   /api/v1/workspace/invites:
