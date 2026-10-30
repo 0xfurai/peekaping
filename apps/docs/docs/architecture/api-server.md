@@ -319,6 +319,7 @@ A default whose variable is unset can be saved under Admin → Settings, "Defaul
 | Variable | Type | Required | Default | Description |
 |----------|------|----------|---------|-------------|
 | `METRICS_ENABLED` | bool | No | `false` | Serve the unauthenticated Prometheus `/metrics` endpoint, see [Prometheus Metrics](#prometheus-metrics) |
+| `METRICS_PORT` | int | No | unset | A TCP port from 1 to 65535. Serve `/metrics` on this port, on a second plain-HTTP listener, and no longer on the main port. It needs `METRICS_ENABLED=true` and can't be `SERVER_PORT`. Startup stops with an error otherwise. Both the API server and `peekaping` read it. See [Prometheus Metrics](#prometheus-metrics) |
 
 ### Cleanup Configuration
 
@@ -422,6 +423,8 @@ Response:
 
 To be told when monitors stop being checked, alert on a `stale_monitors` above `0`, or on a `watchdog_ran_at` that is more than a few minutes old.
 
+`/api/v1/health` stays public on the API port, whatever you set for `METRICS_PORT`. It shows only the install-wide count of stale monitors and when the watchdog last ran, never a monitor name.
+
 ## Prometheus Metrics
 
 The API server can serve the status of your monitors in the Prometheus text format, so a Prometheus and Grafana stack can scrape it without polling the REST API or wiring up notification channels. It is off by default. Set `METRICS_ENABLED=true` to turn it on:
@@ -433,9 +436,18 @@ GET /metrics
 :::warning
 `/metrics` needs no credentials, and it lists the name and type of every active monitor. Scrape it over a private network, and leave `METRICS_ENABLED` off if that information shouldn't be readable by whoever can reach the API port.
 
+Set `METRICS_PORT` on any install whose API port is public. Then `/metrics` is served only on a second listener on that port, and the main port no longer serves it: it answers like any other unknown path (404 on the API, the web app in single mode). Publish the metrics port only to the network Prometheus scrapes from, never to the internet:
+
+```bash
+METRICS_ENABLED=true
+METRICS_PORT=9100
+```
+
+Prometheus then scrapes `api:9100/metrics`, or `<release>-api.<namespace>.svc.cluster.local:9100/metrics` in Kubernetes, where the Helm chart adds a `metrics` port to the API pod and Service. Without `METRICS_PORT`, `/metrics` is on the main port as described below.
+
 In cluster mode, the gateway (nginx in front of the separate web image) doesn't forward `/metrics`, so it isn't served on the web address. Scrape the API port (`8034` by default) directly, for example `api:8034` on the Docker Compose network or `<release>-api:8034` in Kubernetes. The development Compose files publish that port; the production ones don't, so publish it or run Prometheus on the same network.
 
-In single mode, the `peekaping` binary has one port. With `WEB_DIR` set and `METRICS_ENABLED=true`, it serves `/metrics` there beside the web app, so whoever can open the web app can read it. The single-mode image (`0xfurai/peekaping`) runs single mode, so with `METRICS_ENABLED=true` it serves `/metrics` on port 8383.
+In single mode, the `peekaping` binary has one port unless you set `METRICS_PORT`. In Docker or Compose, don't publish the metrics port (leave it out of `ports`), and scrape it from a container on the same network, for example `peekaping:9100/metrics`. Without `METRICS_PORT`, with `WEB_DIR` set and `METRICS_ENABLED=true`, it serves `/metrics` there beside the web app, so whoever can open the web app can read it. The single-mode image (`0xfurai/peekaping`) runs single mode, so with `METRICS_ENABLED=true` it serves `/metrics` on port 8383.
 :::
 
 ### How it works
