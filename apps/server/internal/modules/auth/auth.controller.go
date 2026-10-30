@@ -238,6 +238,37 @@ func (c *Controller) UpdatePassword(ctx context.Context, input *UpdatePasswordIn
 	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse[any]("Password updated successfully", nil))
 }
 
+// DeleteAccount deletes the signed-in user's own account after they enter their password: 400 for a
+// wrong one, 409 for the last instance admin and for the last owner of a workspace
+func (c *Controller) DeleteAccount(ctx context.Context, input *DeleteAccountInput) (*httpx.Output[httpx.NoBody], error) {
+	userId, exists := httpx.Lookup(ctx, "userId")
+	if !exists {
+		return nil, httpx.Fail(http.StatusUnauthorized, utils.NewFailResponse("Unauthorized"))
+	}
+	dto, err := input.Decode()
+	if err == nil {
+		err = c.validateWithDetails(dto)
+	}
+	if err != nil {
+		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
+	}
+	if err := c.service.DeleteAccount(ctx, userId.(string), dto.Password); err != nil {
+		return nil, c.failDeleteAccount(err)
+	}
+	return httpx.Reply(http.StatusNoContent, httpx.NoBody{})
+}
+
+func (c *Controller) failDeleteAccount(err error) error {
+	if errors.Is(err, ErrWrongPassword) {
+		return httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
+	}
+	if answer := FailAccountRemoval(err); answer != nil {
+		return answer
+	}
+	c.logger.Errorw("Failed to delete an account", "error", err)
+	return httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+}
+
 // Me answers with the signed-in user and their workspaces. It needs no workspace: a user in none
 // gets an empty list.
 func (c *Controller) Me(ctx context.Context, _ *MeInput) (*httpx.Output[utils.ApiResponse[*MeResponse]], error) {

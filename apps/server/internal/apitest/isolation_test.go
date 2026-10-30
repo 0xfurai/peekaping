@@ -268,6 +268,7 @@ var (
 		"POST /api/v1/auth/2fa/verify":  "the signed-in user's own two-factor secret",
 		"POST /api/v1/auth/2fa/disable": "the signed-in user's own two-factor secret",
 		"PUT /api/v1/auth/password":     "the signed-in user's own password",
+		"DELETE /api/v1/auth/me":        "the signed-in user deletes their own account after entering their password; it takes no ID and reads no workspace's records (PP-170)",
 
 		"POST /api/v1/auth/verify-email/resend": "the signed-in user's own verification link, sent to their own address",
 

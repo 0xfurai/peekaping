@@ -60,6 +60,7 @@ var jwtOnlyRoutes = map[string]bool{
 	"POST /api/v1/auth/2fa/verify":                 true,
 	"POST /api/v1/auth/2fa/disable":                true,
 	"PUT /api/v1/auth/password":                    true,
+	"DELETE /api/v1/auth/me":                       true,
 	"POST /api/v1/auth/verify-email/resend":        true,
 	"POST /api/v1/workspaces":                      true,
 	"POST /api/v1/workspace/leave":                 true,

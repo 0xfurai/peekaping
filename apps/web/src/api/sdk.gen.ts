@@ -70,6 +70,9 @@ import type {
   PostAuthLoginData,
   PostAuthLoginResponses,
   PostAuthLoginErrors,
+  DeleteAuthMeData,
+  DeleteAuthMeResponses,
+  DeleteAuthMeErrors,
   PutAuthPasswordData,
   PutAuthPasswordResponses,
   PutAuthPasswordErrors,
@@ -947,6 +950,33 @@ export const postAuthLogin = <ThrowOnError extends boolean = false>(
   >({
     responseType: "json",
     url: "/api/v1/auth/login",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
+  });
+};
+
+/**
+ * Delete the signed-in user's own account
+ * The body holds the user's password (400 when it is wrong). The user, their memberships and their sessions are gone at once; the workspaces stay, and so does every other member's account. It is refused (409) for the last instance admin, with a message, and while the user is the only owner of a workspace that is not scheduled for deletion: that answer is {"error":{"code":"LAST_OWNER","workspaces":[{"id","name"}]}}, listing those workspaces. Make another member an owner or schedule the workspace's deletion first. An API key is refused (401).
+ */
+export const deleteAuthMe = <ThrowOnError extends boolean = false>(
+  options: Options<DeleteAuthMeData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).delete<
+    DeleteAuthMeResponses,
+    DeleteAuthMeErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/api/v1/auth/me",
     ...options,
     headers: {
       "Content-Type": "application/json",

@@ -5,11 +5,10 @@ package admin
 
 import (
 	"errors"
-	"fmt"
-	"strings"
 	"time"
 
 	"peekaping/internal/limits"
+	"peekaping/internal/modules/auth"
 	"peekaping/internal/modules/workspace"
 )
 
@@ -19,35 +18,20 @@ var (
 	// ErrSelf is for an admin who tries to disable or delete their own account. It answers 409.
 	ErrSelf = errors.New("you can't do this to your own account")
 	// ErrLastInstanceAdmin is for a change that would leave the install with no instance admin who can sign in (one with the flag and an active account). It
-	// answers 409.
-	ErrLastInstanceAdmin = errors.New("the install needs at least one instance admin")
+	// answers 409. It is auth's, which a user deleting their own account meets too.
+	ErrLastInstanceAdmin = auth.ErrLastInstanceAdmin
 	// ErrWorkspaceNotFound is for a workspace that does not exist. It answers 404.
 	ErrWorkspaceNotFound = errors.New("workspace not found")
 	// ErrLastOwner is for a deletion of a user who is the last owner of a workspace. The error that
 	// wraps it, LastOwnerError, names the workspaces. It answers 409.
-	ErrLastOwner = errors.New("the user is the last owner of a workspace")
+	ErrLastOwner = auth.ErrLastOwner
 )
 
 // LastOwnerError is the ErrLastOwner of a user who is the only owner of the Workspaces
-type LastOwnerError struct {
-	Workspaces []WorkspaceRef
-}
-
-func (e *LastOwnerError) Error() string {
-	names := make([]string, len(e.Workspaces))
-	for i, w := range e.Workspaces {
-		names[i] = fmt.Sprintf("%q", w.Name)
-	}
-	return fmt.Sprintf("%s: %s", ErrLastOwner, strings.Join(names, ", "))
-}
-
-func (e *LastOwnerError) Is(target error) bool { return target == ErrLastOwner }
+type LastOwnerError = auth.LastOwnerError
 
 // WorkspaceRef names a workspace
-type WorkspaceRef struct {
-	ID   workspace.ID
-	Name string
-}
+type WorkspaceRef = auth.WorkspaceRef
 
 // Membership is a user's place in a workspace, with the workspace's name
 type Membership struct {

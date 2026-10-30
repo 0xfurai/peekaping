@@ -75,20 +75,6 @@ export type AdminIntSettingResponse = {
   value: number;
 };
 
-export type AdminLastOwnerErrorBody = {
-  code: string;
-  workspaces: Array<AdminLastOwnerWorkspace> | null;
-};
-
-export type AdminLastOwnerErrorResponse = {
-  error: AdminLastOwnerErrorBody;
-};
-
-export type AdminLastOwnerWorkspace = {
-  id: string;
-  name: string;
-};
-
 export type AdminLimitSettingResponse = {
   /**
    * The environment variable that sets it, and locks it when set.
@@ -456,9 +442,28 @@ export type AuthAuthConfigResponse = {
   turnstileSiteKey: string | null;
 };
 
+export type AuthDeleteAccountDto = {
+  password: string;
+  [key: string]: unknown | string;
+};
+
 export type AuthForgotPasswordDto = {
   email: string;
   [key: string]: unknown | string;
+};
+
+export type AuthLastOwnerErrorBody = {
+  code: string;
+  workspaces: Array<AuthLastOwnerWorkspace> | null;
+};
+
+export type AuthLastOwnerErrorResponse = {
+  error: AuthLastOwnerErrorBody;
+};
+
+export type AuthLastOwnerWorkspace = {
+  id: string;
+  name: string;
 };
 
 export type AuthLoginDto = {
@@ -2290,7 +2295,7 @@ export type DeleteAdminUsersByIdErrors = {
   /**
    * Conflict
    */
-  409: AdminLastOwnerErrorResponse | HttpxErrorBody;
+  409: AuthLastOwnerErrorResponse | HttpxErrorBody;
   /**
    * Internal Server Error
    */
@@ -3043,6 +3048,44 @@ export type PostAuthLoginResponses = {
 
 export type PostAuthLoginResponse =
   PostAuthLoginResponses[keyof PostAuthLoginResponses];
+
+export type DeleteAuthMeData = {
+  body: AuthDeleteAccountDto;
+  path?: never;
+  query?: never;
+  url: "/api/v1/auth/me";
+};
+
+export type DeleteAuthMeErrors = {
+  /**
+   * Bad Request
+   */
+  400: HttpxErrorBody;
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
+  /**
+   * Conflict
+   */
+  409: AuthLastOwnerErrorResponse | HttpxErrorBody;
+  /**
+   * Internal Server Error
+   */
+  500: HttpxErrorBody;
+};
+
+export type DeleteAuthMeError = DeleteAuthMeErrors[keyof DeleteAuthMeErrors];
+
+export type DeleteAuthMeResponses = {
+  /**
+   * No Content
+   */
+  204: void;
+};
+
+export type DeleteAuthMeResponse =
+  DeleteAuthMeResponses[keyof DeleteAuthMeResponses];
 
 export type PutAuthPasswordData = {
   body: AuthUpdatePasswordDto;

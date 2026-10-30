@@ -25,6 +25,7 @@ import {
   getAuthConfig,
   postAuthForgotPassword,
   postAuthLogin,
+  deleteAuthMe,
   putAuthPassword,
   postAuthRefresh,
   postAuthRegister,
@@ -193,6 +194,9 @@ import type {
   PostAuthLoginData,
   PostAuthLoginError,
   PostAuthLoginResponse,
+  DeleteAuthMeData,
+  DeleteAuthMeError,
+  DeleteAuthMeResponse,
   PutAuthPasswordData,
   PutAuthPasswordError,
   PutAuthPasswordResponse,
@@ -1403,6 +1407,34 @@ export const postAuthLoginMutation = (
   > = {
     mutationFn: async (localOptions) => {
       const { data } = await postAuthLogin({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+/**
+ * Delete the signed-in user's own account
+ * The body holds the user's password (400 when it is wrong). The user, their memberships and their sessions are gone at once; the workspaces stay, and so does every other member's account. It is refused (409) for the last instance admin, with a message, and while the user is the only owner of a workspace that is not scheduled for deletion: that answer is {"error":{"code":"LAST_OWNER","workspaces":[{"id","name"}]}}, listing those workspaces. Make another member an owner or schedule the workspace's deletion first. An API key is refused (401).
+ */
+export const deleteAuthMeMutation = (
+  options?: Partial<Options<DeleteAuthMeData>>
+): UseMutationOptions<
+  DeleteAuthMeResponse,
+  AxiosError<DeleteAuthMeError>,
+  Options<DeleteAuthMeData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    DeleteAuthMeResponse,
+    AxiosError<DeleteAuthMeError>,
+    Options<DeleteAuthMeData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await deleteAuthMe({
         ...options,
         ...localOptions,
         throwOnError: true,

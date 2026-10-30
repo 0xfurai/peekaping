@@ -8,11 +8,11 @@ import (
 	"time"
 
 	"peekaping/internal/dbtx"
+	"peekaping/internal/modules/auth"
 	"peekaping/internal/modules/workspace"
 
 	"github.com/google/uuid"
 	"github.com/uptrace/bun"
-	"github.com/uptrace/bun/dialect"
 )
 
 // Repository reads and changes users for the admin area. Every method joins the transaction its ctx
@@ -36,12 +36,6 @@ type Repository interface {
 	SetActive(ctx context.Context, id string, active bool, endSessionsAt *time.Time) error
 	// ClearTwoFA turns the user's 2FA off and forgets its secret
 	ClearTwoFA(ctx context.Context, id string) error
-	// WorkspacesOwnedAloneAnyWorkspace returns the workspaces the user is the only owner of. On PostgreSQL it
-	// first holds the owners of the user's workspaces until the transaction ends, so that two
-	// deletions of the two owners of a workspace can't both pass.
-	WorkspacesOwnedAloneAnyWorkspace(ctx context.Context, userID string) ([]WorkspaceRef, error)
-	// DeleteUser deletes the user. Their memberships and account links go with them.
-	DeleteUser(ctx context.Context, id string) error
 
 	// ListWorkspacesAnyWorkspace returns a page of the install's workspaces, the oldest first, with
 	// how many match: those whose name or whose owner's email contains q, ignoring case, or all of
@@ -169,15 +163,7 @@ func (r *SQLRepository) MembershipsAnyWorkspace(ctx context.Context, users []*Us
 }
 
 func (r *SQLRepository) LockActiveInstanceAdmins(ctx context.Context) ([]string, error) {
-	q := dbtx.DB(ctx, r.db).NewSelect().Table("users").Column("id").Where("instance_admin = ?", true).Where("active = ?", true).Order("id")
-	if r.db.Dialect().Name() == dialect.PG {
-		q = q.For("UPDATE")
-	}
-	var ids []string
-	if err := q.Scan(ctx, &ids); err != nil {
-		return nil, err
-	}
-	return ids, nil
+	return auth.LockActiveInstanceAdmins(ctx, r.db)
 }
 
 func (r *SQLRepository) SetInstanceAdmin(ctx context.Context, id string, on bool) error {
@@ -203,45 +189,6 @@ func (r *SQLRepository) ClearTwoFA(ctx context.Context, id string) error {
 		Set("twofa_secret = ?", "").Set("twofa_status = ?", false).Set("twofa_last_token = ?", "").
 		Set("updated_at = ?", time.Now().UTC()).
 		Where("id = ?", id).Exec(ctx)
-	return err
-}
-
-func (r *SQLRepository) WorkspacesOwnedAloneAnyWorkspace(ctx context.Context, userID string) ([]WorkspaceRef, error) {
-	db := dbtx.DB(ctx, r.db)
-	if r.db.Dialect().Name() == dialect.PG {
-		// Lock the owners of every workspace the user owns, in a fixed order, as the roles of a
-		// workspace's members do (workspace.MemberRepository.LockOwners)
-		_, err := db.ExecContext(ctx, `SELECT o.user_id FROM workspace_members o
-			WHERE o.role = 'owner' AND o.workspace_id IN (SELECT workspace_id FROM workspace_members WHERE user_id = ? AND role = 'owner')
-			ORDER BY o.workspace_id, o.user_id FOR UPDATE`, userID)
-		if err != nil {
-			return nil, err
-		}
-	}
-	var rows []struct {
-		ID   string `bun:"id"`
-		Name string `bun:"name"`
-	}
-	err := db.NewSelect().
-		TableExpr("workspace_members AS m").
-		Join("JOIN workspaces AS w ON w.id = m.workspace_id").
-		ColumnExpr("w.id, w.name").
-		Where("m.user_id = ?", userID).Where("m.role = ?", string(workspace.RoleOwner)).
-		Where("(SELECT COUNT(*) FROM workspace_members o WHERE o.workspace_id = m.workspace_id AND o.role = ?) = 1", string(workspace.RoleOwner)).
-		Order("w.created_at", "w.id").
-		Scan(ctx, &rows)
-	if err != nil {
-		return nil, err
-	}
-	refs := make([]WorkspaceRef, len(rows))
-	for i, row := range rows {
-		refs[i] = WorkspaceRef{ID: workspace.ID(row.ID), Name: row.Name}
-	}
-	return refs, nil
-}
-
-func (r *SQLRepository) DeleteUser(ctx context.Context, id string) error {
-	_, err := dbtx.DB(ctx, r.db).NewDelete().Table("users").Where("id = ?", id).Exec(ctx)
 	return err
 }
 

@@ -19,6 +19,7 @@ type RefreshTokenInput = httpx.Input[RefreshTokenDto, RefreshTokenParams]
 type UpdatePasswordParams struct {
 }
 type UpdatePasswordInput = httpx.Input[UpdatePasswordDto, UpdatePasswordParams]
+type DeleteAccountInput = httpx.Input[DeleteAccountDto, struct{}]
 
 type MeParams struct {
 }

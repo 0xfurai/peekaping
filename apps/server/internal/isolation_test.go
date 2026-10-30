@@ -88,7 +88,7 @@ var anyWorkspaceCallers = map[string]string{
 	// admin area
 	"internal/modules/admin.SQLRepository.FindUser":            "the admin area shows each user's workspaces, by name and role, whichever they are in; an instance admin sees no workspace's records",
 	"internal/modules/admin.ServiceImpl.ListUsers":             "the admin area lists each user with their workspaces, by name and role; an instance admin sees no workspace's records",
-	"internal/modules/admin.ServiceImpl.DeleteUser":            "deleting a user checks whether they are the last owner of any workspace they are in, and refuses naming it",
+	"internal/modules/auth.AccountRemover.check":               "deleting a user, by an instance admin or by themselves, checks whether they are the last owner of any workspace they are in that is not scheduled for deletion, and refuses naming it",
 	"internal/modules/admin.ServiceImpl.ListWorkspaces":        "the admin area lists every workspace of the install with counts and metadata only; an instance admin sees no workspace's records (PP-372)",
 	"internal/modules/admin.ServiceImpl.SetWorkspaceSuspended": "an instance admin suspends or resumes a workspace without joining it, and gets its counts and metadata back; no workspace's records are read (PP-372)",
 	"internal/modules/admin.ServiceImpl.SetWorkspaceLimits":    "an instance admin sets or clears a workspace's own limits without joining it, and gets its counts and metadata back; no workspace's records are read (PP-160)",

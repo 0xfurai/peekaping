@@ -62,6 +62,11 @@ type MeUser struct {
 	EmailVerified bool `json:"emailVerified"`
 }
 
+// DeleteAccountDto is the request to delete the signed-in user's own account
+type DeleteAccountDto struct {
+	Password string `json:"password" validate:"required"`
+}
+
 type MeWorkspace struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`

@@ -112,42 +112,6 @@ components:
         - locked
         - envVar
       type: object
-    admin.LastOwnerErrorBody:
-      additionalProperties: false
-      properties:
-        code:
-          examples:
-            - LAST_OWNER
-          type: string
-        workspaces:
-          items:
-            $ref: "#/components/schemas/admin.LastOwnerWorkspace"
-          type:
-            - array
-            - "null"
-      required:
-        - code
-        - workspaces
-      type: object
-    admin.LastOwnerErrorResponse:
-      additionalProperties: false
-      properties:
-        error:
-          $ref: "#/components/schemas/admin.LastOwnerErrorBody"
-      required:
-        - error
-      type: object
-    admin.LastOwnerWorkspace:
-      additionalProperties: false
-      properties:
-        id:
-          type: string
-        name:
-          type: string
-      required:
-        - id
-        - name
-      type: object
     admin.LimitSettingResponse:
       additionalProperties: false
       properties:
@@ -877,6 +841,15 @@ components:
         - firstSignup
         - turnstileSiteKey
       type: object
+    auth.DeleteAccountDto:
+      additionalProperties: true
+      properties:
+        password:
+          minLength: 1
+          type: string
+      required:
+        - password
+      type: object
     auth.ForgotPasswordDto:
       additionalProperties: true
       properties:
@@ -886,6 +859,42 @@ components:
           type: string
       required:
         - email
+      type: object
+    auth.LastOwnerErrorBody:
+      additionalProperties: false
+      properties:
+        code:
+          examples:
+            - LAST_OWNER
+          type: string
+        workspaces:
+          items:
+            $ref: "#/components/schemas/auth.LastOwnerWorkspace"
+          type:
+            - array
+            - "null"
+      required:
+        - code
+        - workspaces
+      type: object
+    auth.LastOwnerErrorResponse:
+      additionalProperties: false
+      properties:
+        error:
+          $ref: "#/components/schemas/auth.LastOwnerErrorBody"
+      required:
+        - error
+      type: object
+    auth.LastOwnerWorkspace:
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+      required:
+        - id
+        - name
       type: object
     auth.LoginDto:
       additionalProperties: true
@@ -4960,7 +4969,7 @@ paths:
             application/json:
               schema:
                 anyOf:
-                  - $ref: "#/components/schemas/admin.LastOwnerErrorResponse"
+                  - $ref: "#/components/schemas/auth.LastOwnerErrorResponse"
                   - $ref: "#/components/schemas/httpx.ErrorBody"
           description: Conflict
         "500":
@@ -5814,6 +5823,50 @@ paths:
               schema:
                 type: integer
       summary: Login admin
+      tags:
+        - auth
+  /api/v1/auth/me:
+    delete:
+      description: "The body holds the user's password (400 when it is wrong). The user, their memberships and their sessions are gone at once; the workspaces stay, and so does every other member's account. It is refused (409) for the last instance admin, with a message, and while the user is the only owner of a workspace that is not scheduled for deletion: that answer is {\"error\":{\"code\":\"LAST_OWNER\",\"workspaces\":[{\"id\",\"name\"}]}}, listing those workspaces. Make another member an owner or schedule the workspace's deletion first. An API key is refused (401)."
+      operationId: deleteAuthMe
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/auth.DeleteAccountDto"
+        required: true
+      responses:
+        "204":
+          description: No Content
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "409":
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: "#/components/schemas/auth.LastOwnerErrorResponse"
+                  - $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Conflict
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+      summary: Delete the signed-in user's own account
       tags:
         - auth
   /api/v1/auth/password:
