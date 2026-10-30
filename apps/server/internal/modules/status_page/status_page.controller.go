@@ -242,16 +242,9 @@ func (c *Controller) GetMonitorsBySlugForHomepage(ctx context.Context, input *Ge
 // heartbeats, as many as heartbeatLimit, and its 24 hour uptime.
 func (c *Controller) publicMonitors(ctx context.Context, slug string, heartbeatLimit int) (*httpx.Output[utils.ApiResponse[[]*MonitorWithHeartbeatsAndUptimeDTO]], error) {
 	// First get the status page
-	page, err := c.service.FindPublishedBySlugAnyWorkspace(ctx, slug)
-	if errors.Is(err, ErrUnavailable) {
-		return nil, Unavailable()
-	}
+	page, err := c.publishedPage(ctx, slug)
 	if err != nil {
-		c.logger.Errorw("Failed to get status page by slug", "error", err, "slug", slug)
-		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-	}
-	if page == nil {
-		return nil, httpx.Fail(http.StatusNotFound, utils.NewFailResponse("Status page not found"))
+		return nil, err
 	}
 
 	// Get monitors for the status page
@@ -264,65 +257,101 @@ func (c *Controller) publicMonitors(ctx context.Context, slug string, heartbeatL
 	// Convert monitor_status_page models to monitor models with heartbeats and uptime
 	monitorModels := make([]*MonitorWithHeartbeatsAndUptimeDTO, 0, len(monitors))
 	for _, msp := range monitors {
-		// Get the actual monitor data
-		monitorModel, err := c.monitorService.FindByIDAnyWorkspace(ctx, msp.MonitorID)
+		monitorWithData, err := c.publicMonitor(ctx, page, msp.MonitorID, heartbeatLimit)
 		if err != nil {
-			c.logger.Errorw("Failed to get monitor by ID", "error", err, "monitorID", msp.MonitorID)
-			continue
+			return nil, err
 		}
-		if monitorModel == nil {
-			continue
+		if monitorWithData != nil {
+			monitorModels = append(monitorModels, monitorWithData)
 		}
-
-		// Get the latest heartbeats for this monitor
-		heartbeats, err := c.heartbeatService.FindByMonitorIDPaginated(ctx, msp.MonitorID, heartbeatLimit, 0, nil, true)
-		if err != nil {
-			c.logger.Errorw("Failed to get heartbeats for monitor", "error", err, "monitorID", msp.MonitorID)
-			heartbeats = []*heartbeat.Model{} // Empty slice if error
-		}
-
-		// Get 24h uptime for this monitor
-		now := time.Now().UTC()
-		periods := map[string]time.Duration{
-			"24h": 24 * time.Hour,
-		}
-		uptimeStats, err := c.heartbeatService.FindUptimeStatsByMonitorID(ctx, msp.MonitorID, periods, now)
-		if err != nil {
-			c.logger.Errorw("Failed to get uptime stats for monitor", "error", err, "monitorID", msp.MonitorID)
-			return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("failed to get uptime stats for monitor"))
-		}
-
-		// nil when the monitor has no heartbeat in the day: not 0%, which would read as an outage
-		var uptime24h *float64
-		if uptimeStats != nil {
-			uptime24h = uptimeStats["24h"]
-		}
-
-		monitorWithData := &MonitorWithHeartbeatsAndUptimeDTO{
-			PublicMonitorDTO: &PublicMonitorDTO{
-				ID:   monitorModel.ID,
-				Type: monitorModel.Type,
-				Name: monitorModel.Name,
-				// A monitor of a type the install turns off is not checked, so a visitor sees it
-				// paused, whatever its own setting is
-				Active: monitorModel.Active && !monitorModel.TypeDisabled,
-				Status: monitorModel.Status,
-			},
-			Heartbeats: publicHeartbeats(heartbeats),
-			Uptime24h:  uptime24h,
-		}
-		if page.ShowLocations && len(monitorModel.Locations) > 1 {
-			monitorWithData.Locations, err = c.publicLocations(ctx, monitorModel, heartbeatLimit)
-			if err != nil {
-				c.logger.Errorw("Failed to get locations for monitor", "error", err, "monitorID", msp.MonitorID)
-				return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("failed to get locations for monitor"))
-			}
-		}
-
-		monitorModels = append(monitorModels, monitorWithData)
 	}
 
 	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("success", monitorModels))
+}
+
+// publishedPage is the published status page at slug, or the error response for one that is not
+// there: 503 when its workspace is suspended, 404 when it doesn't exist or isn't published
+func (c *Controller) publishedPage(ctx context.Context, slug string) (*Model, error) {
+	page, err := c.service.FindPublishedBySlugAnyWorkspace(ctx, slug)
+	if errors.Is(err, ErrUnavailable) {
+		return nil, Unavailable()
+	}
+	if err != nil {
+		c.logger.Errorw("Failed to get status page by slug", "error", err, "slug", slug)
+		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+	}
+	if page == nil {
+		return nil, httpx.Fail(http.StatusNotFound, utils.NewFailResponse("Status page not found"))
+	}
+	return page, nil
+}
+
+// publicMonitor is a monitor of the page with its latest heartbeats and its uptime. It is nil, with
+// no error, for a monitor that can't be found, which the page leaves out.
+func (c *Controller) publicMonitor(ctx context.Context, page *Model, monitorID string, heartbeatLimit int) (*MonitorWithHeartbeatsAndUptimeDTO, error) {
+	// Get the actual monitor data
+	monitorModel, err := c.monitorService.FindByIDAnyWorkspace(ctx, monitorID)
+	if err != nil {
+		c.logger.Errorw("Failed to get monitor by ID", "error", err, "monitorID", monitorID)
+		return nil, nil
+	}
+	if monitorModel == nil {
+		return nil, nil
+	}
+
+	// Get the latest heartbeats for this monitor
+	heartbeats, err := c.heartbeatService.FindByMonitorIDPaginated(ctx, monitorID, heartbeatLimit, 0, nil, true)
+	if err != nil {
+		c.logger.Errorw("Failed to get heartbeats for monitor", "error", err, "monitorID", monitorID)
+		heartbeats = []*heartbeat.Model{} // Empty slice if error
+	}
+
+	uptime24h, err := c.uptime24h(ctx, monitorID)
+	if err != nil {
+		return nil, err
+	}
+
+	monitorWithData := &MonitorWithHeartbeatsAndUptimeDTO{
+		PublicMonitorDTO: &PublicMonitorDTO{
+			ID:   monitorModel.ID,
+			Type: monitorModel.Type,
+			Name: monitorModel.Name,
+			// A monitor of a type the install turns off is not checked, so a visitor sees it
+			// paused, whatever its own setting is
+			Active: monitorModel.Active && !monitorModel.TypeDisabled,
+			Status: monitorModel.Status,
+		},
+		Heartbeats: publicHeartbeats(heartbeats),
+		Uptime24h:  uptime24h,
+	}
+	if page.ShowLocations && len(monitorModel.Locations) > 1 {
+		monitorWithData.Locations, err = c.publicLocations(ctx, monitorModel, heartbeatLimit)
+		if err != nil {
+			c.logger.Errorw("Failed to get locations for monitor", "error", err, "monitorID", monitorID)
+			return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("failed to get locations for monitor"))
+		}
+	}
+
+	return monitorWithData, nil
+}
+
+// uptime24h is the 24 hour uptime of the monitor, or the error response when it can't be read
+func (c *Controller) uptime24h(ctx context.Context, monitorID string) (*float64, error) {
+	now := time.Now().UTC()
+	periods := map[string]time.Duration{
+		"24h": 24 * time.Hour,
+	}
+	uptimeStats, err := c.heartbeatService.FindUptimeStatsByMonitorID(ctx, monitorID, periods, now)
+	if err != nil {
+		c.logger.Errorw("Failed to get uptime stats for monitor", "error", err, "monitorID", monitorID)
+		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("failed to get uptime stats for monitor"))
+	}
+
+	// nil when the monitor has no heartbeat in the day: not 0%, which would read as an outage
+	if uptimeStats == nil {
+		return nil, nil
+	}
+	return uptimeStats["24h"], nil
 }
 
 // publicLocations lists a monitor's locations for a visitor: the local probe first, then the others
