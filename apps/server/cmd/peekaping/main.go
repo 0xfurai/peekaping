@@ -138,8 +138,9 @@ type parts struct {
 	TrustedProxies       *httpx.TrustedProxies
 }
 
-// run starts Peekaping and serves the API on the listener until ctx is done. Then it stops
-// everything in order, within shutdownTimeouts: the HTTP server, the websocket, the background
+// run starts Peekaping and serves the API on the listener until ctx is done. With METRICS_PORT set
+// it binds that port too, and serves /metrics there alone. Then it stops everything in order,
+// within shutdownTimeouts: the HTTP server, the metrics server, the websocket, the background
 // jobs, the event bus and the database. It returns nil when everything stopped in time.
 func run(ctx context.Context, cfg *Config, logger *zap.SugaredLogger, listener net.Listener) error {
 	logger.Infow("Starting Peekaping in single mode", "version", version.Version)
@@ -179,15 +180,23 @@ func run(ctx context.Context, cfg *Config, logger *zap.SugaredLogger, listener n
 	// through the gateway.
 	handler := http.Handler(p.Server.Router)
 	if cfg.WebDir != "" {
-		gateway, err := web.NewGateway(web.Config{Dir: cfg.WebDir, APIURL: cfg.APIURL, Metrics: cfg.MetricsEnabled}, p.Server.Router, logger)
+		gateway, err := web.NewGateway(web.Config{Dir: cfg.WebDir, APIURL: cfg.APIURL, Metrics: cfg.MetricsEnabled && cfg.MetricsPort == ""}, p.Server.Router, logger)
 		if err != nil {
 			return fmt.Errorf("failed to serve the web app from WEB_DIR: %w", err)
 		}
 		handler = httpx.Chain(gateway, httpx.RequestID, httpx.Logger(logger, p.TrustedProxies))
 	}
 
+	// With METRICS_PORT set, /metrics is served on that port alone: the router and the gateway
+	// leave it out. Bound before anything starts, so that a port that is taken stops startup.
+	metricsServer, err := metrics.NewServer(cfg.MetricsPort, p.Metrics, serverTimeouts)
+	if err != nil {
+		return err
+	}
+
 	jobs, err := startJobs(ctx, p, cfg, logger)
 	if err != nil {
+		_ = metricsServer.Stop(context.Background(), logger)
 		return err
 	}
 
@@ -210,26 +219,40 @@ func run(ctx context.Context, cfg *Config, logger *zap.SugaredLogger, listener n
 	// request in flight: answered now, it doesn't hold the shutdown up, or make the container's
 	// stop grace period run out
 	httpServer.RegisterOnShutdown(p.ProbeWaker.Close)
-	served := make(chan error, 1)
-	go func() {
-		logger.Infow("Serving the API", "address", listener.Addr().String(), "web_dir", cfg.WebDir)
-		served <- httpServer.Serve(listener)
-	}()
+	serveErr := serve(ctx, httpServer, listener, metricsServer, cfg.WebDir, logger)
 
-	var serveErr error
-	select {
-	case <-ctx.Done():
-		logger.Info("Shutdown signal received, shutting down")
-	case serveErr = <-served:
-		serveErr = fmt.Errorf("HTTP server failed: %w", serveErr)
-		logger.Errorw("HTTP server failed, shutting down", "error", serveErr)
-	}
-
-	if err := errors.Join(serveErr, shutdown(httpServer, handlers, websocketClosed, p, jobs, cfg.DBType, logger)); err != nil {
+	if err := errors.Join(serveErr, shutdown(httpServer, metricsServer, handlers, websocketClosed, p, jobs, cfg.DBType, logger)); err != nil {
 		return err
 	}
 	logger.Info("Peekaping stopped")
 	return nil
+}
+
+// serve serves the API on the listener, and the metrics on their own port when there is one, until
+// ctx is done. It returns what failed, if serving failed: the shutdown begins then.
+func serve(ctx context.Context, httpServer *http.Server, listener net.Listener, metricsServer *metrics.Server, webDir string, logger *zap.SugaredLogger) error {
+	served := make(chan error, 1)
+	go func() {
+		logger.Infow("Serving the API", "address", listener.Addr().String(), "web_dir", webDir)
+		served <- httpServer.Serve(listener)
+	}()
+	metricsServed := metricsServer.Serve(logger)
+
+	// Serve returns http.ErrServerClosed once the shutdown has begun, when nothing reads it any
+	// more: here it can only be a failure
+	select {
+	case <-ctx.Done():
+		logger.Info("Shutdown signal received, shutting down")
+		return nil
+	case err := <-served:
+		failure := fmt.Errorf("HTTP server failed: %w", err)
+		logger.Errorw("HTTP server failed, shutting down", "error", failure)
+		return failure
+	case err := <-metricsServed:
+		failure := fmt.Errorf("metrics server failed: %w", err)
+		logger.Errorw("Metrics server failed, shutting down", "error", failure)
+		return failure
+	}
 }
 
 // jobs are the background jobs run starts, and how to stop them
@@ -381,11 +404,11 @@ func (j *jobs) stop(ctx context.Context) error {
 // shutdown stops everything in order, each step within its share of shutdownTimeouts. The HTTP
 // server stops taking requests and waits for those in flight; once its share is up, it drops
 // their connections. The websocket closes its sessions, from the HTTP server's Shutdown
-// (websocketClosed is closed once it has). The background jobs stop, so nothing publishes events
-// any more, and the HTTP handlers the HTTP server left running return, in the jobs' share. The
-// event bus lets the handlers of the queued events finish. The database closes last, and only
-// once nothing uses it.
-func shutdown(httpServer *http.Server, handlers *graceful.RunningHandlers, websocketClosed <-chan struct{}, p parts, j *jobs, dbType string, logger *zap.SugaredLogger) error {
+// (websocketClosed is closed once it has). The metrics server stops right after, in the same
+// share. The background jobs stop, so nothing publishes events any more, and the HTTP handlers
+// the HTTP server left running return, in the jobs' share. The event bus lets the handlers of the
+// queued events finish. The database closes last, and only once nothing uses it.
+func shutdown(httpServer *http.Server, metricsServer *metrics.Server, handlers *graceful.RunningHandlers, websocketClosed <-chan struct{}, p parts, j *jobs, dbType string, logger *zap.SugaredLogger) error {
 	var errs []error
 
 	httpCtx, cancelHTTP := context.WithTimeout(context.Background(), shutdownTimeouts.HTTP)
@@ -397,6 +420,11 @@ func shutdown(httpServer *http.Server, handlers *graceful.RunningHandlers, webso
 		_ = httpServer.Close()
 	}
 	logger.Info("Stopped the HTTP server")
+	// It reads only the collector's memory, so it needs nothing that stops below, and stops in the
+	// HTTP server's share
+	if err := metricsServer.Stop(httpCtx, logger); err != nil {
+		errs = append(errs, err)
+	}
 
 	<-websocketClosed
 	logger.Info("Closed the websocket server")

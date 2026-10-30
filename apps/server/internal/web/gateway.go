@@ -39,7 +39,8 @@ type Config struct {
 	// APIURL is where the web app reaches the API, written to /env.js. Empty means the origin
 	// the web app is served from.
 	APIURL string
-	// Metrics sends /metrics to the API, which serves it when METRICS_ENABLED is true
+	// Metrics sends /metrics to the API, which serves it when METRICS_ENABLED is true. Off, /metrics
+	// is a path of the web app like any other: with METRICS_PORT set, another port serves it.
 	Metrics bool
 }
 

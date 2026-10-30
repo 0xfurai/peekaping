@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -401,6 +402,10 @@ var shutdownOrder = []string{
 	"Peekaping stopped",
 }
 
+// shutdownOrderWithMetricsPort is shutdownOrder with METRICS_PORT, which adds the metrics server,
+// stopped right after the HTTP server
+var shutdownOrderWithMetricsPort = slices.Insert(slices.Clone(shutdownOrder), 2, "Stopped the metrics server")
+
 // logged returns the messages logged that are among messages, in the order they were logged
 func logged(logs *observer.ObservedLogs, messages []string) []string {
 	var got []string
@@ -410,4 +415,41 @@ func logged(logs *observer.ObservedLogs, messages []string) []string {
 		}
 	}
 	return got
+}
+
+func TestRun_StopsTheMetricsServerRightAfterTheHTTPServer(t *testing.T) {
+	port := freeMetricsPort(t)
+	cfg := loadConfig(t, map[string]string{"METRICS_ENABLED": "true", "METRICS_PORT": port})
+	logger, logs := observedLogger()
+	in := startPeekaping(t, cfg, logger, logs)
+
+	require.NoError(t, in.stop(t))
+
+	assert.Equal(t, shutdownOrderWithMetricsPort, logged(logs, shutdownOrderWithMetricsPort), "the shutdown's steps, in the order logged")
+	_, err := testHTTP.Get("http://127.0.0.1:" + port + "/metrics")
+	assert.Error(t, err, "the metrics port is closed")
+}
+
+func TestRun_StopsStartupWhenTheMetricsPortIsTaken(t *testing.T) {
+	taken, err := net.Listen("tcp", ":0")
+	require.NoError(t, err)
+	t.Cleanup(func() { _ = taken.Close() })
+	_, port, err := net.SplitHostPort(taken.Addr().String())
+	require.NoError(t, err)
+	cfg := loadConfig(t, map[string]string{"METRICS_ENABLED": "true", "METRICS_PORT": port})
+	migrateDatabase(t, cfg)
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	require.NoError(t, err)
+	logger, _ := observedLogger()
+	done := make(chan error, 1)
+	go func() { done <- run(context.Background(), cfg, logger, listener) }()
+
+	select {
+	case err = <-done:
+		require.Error(t, err)
+		assert.ErrorContains(t, err, "METRICS_PORT")
+		assert.ErrorContains(t, err, port)
+	case <-time.After(shutdownTimeouts.Total() + 5*time.Second):
+		require.FailNow(t, "run didn't stop")
+	}
 }
