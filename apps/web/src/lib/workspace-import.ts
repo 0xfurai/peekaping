@@ -35,6 +35,20 @@ export const readImportFile = async (file: Pick<File, "size" | "text">): Promise
   return document ? { ok: true, document } : { ok: false, reason: "not_json" };
 };
 
+/**
+ * The work, run so that only the latest call's result is used: a call that a later one overtook
+ * resolves to undefined, however late it finishes. Selecting a second file while the first is still
+ * being read must not let the first one's result replace the second's.
+ */
+export const latestOnly = <A, T>(work: (arg: A) => Promise<T>): ((arg: A) => Promise<T | undefined>) => {
+  let latest = 0;
+  return async (arg) => {
+    const mine = ++latest;
+    const result = await work(arg);
+    return mine === latest ? result : undefined;
+  };
+};
+
 const PREFIX = "settings.workspace_import.changes";
 
 // The sentence of a change: by its kind and reason together where the reason changes the

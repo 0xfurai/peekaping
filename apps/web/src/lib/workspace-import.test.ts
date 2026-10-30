@@ -6,6 +6,7 @@ import {
   createdLines,
   affectedByImport,
   importProblems,
+  latestOnly,
   MAX_IMPORT_BYTES,
   problemLine,
   readImportFile,
@@ -166,5 +167,33 @@ describe("affectedByImport", () => {
     expect(affectedByImport(key("getMe"))).toBe(false);
     expect(affectedByImport([])).toBe(false);
     expect(affectedByImport(["getMonitors"])).toBe(false);
+  });
+});
+
+describe("latestOnly", () => {
+  // A read the test finishes by hand
+  const deferred = <T,>() => {
+    let resolve!: (value: T) => void;
+    const promise = new Promise<T>((done) => (resolve = done));
+    return { promise, resolve };
+  };
+
+  it("keeps the second selection when the first read resolves last", async () => {
+    const reads = { first: deferred<string>(), second: deferred<string>() };
+    const readLatest = latestOnly((name: "first" | "second") => reads[name].promise);
+
+    const first = readLatest("first");
+    const second = readLatest("second");
+    reads.second.resolve("second document");
+    reads.first.resolve("first document");
+
+    expect(await second).toBe("second document");
+    expect(await first).toBeUndefined();
+  });
+
+  it("applies a read that is still the latest", async () => {
+    const readLatest = latestOnly(async (name: string) => name);
+    expect(await readLatest("a")).toBe("a");
+    expect(await readLatest("b")).toBe("b");
   });
 });

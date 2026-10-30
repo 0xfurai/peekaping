@@ -18,6 +18,7 @@ import {
   changeMessage,
   createdLines,
   importProblems,
+  latestOnly,
   problemLine,
   readImportFile,
 } from "@/lib/workspace-import";
@@ -39,6 +40,8 @@ export function ImportCard() {
   const [chosen, setChosen] = useState<Chosen | null>(null);
   const [fileError, setFileError] = useState<string | null>(null);
   const [outcome, setOutcome] = useState<Outcome | null>(null);
+  // Only the latest selection's read is used: a file chosen while another is still being read wins
+  const [readLatest] = useState(() => latestOnly(readImportFile));
 
   const send = useMutation({
     ...postWorkspaceImportMutation(),
@@ -63,7 +66,11 @@ export function ImportCard() {
     // Empty, so that choosing the same file again (after fixing it) fires a change
     event.target.value = "";
     if (!file) return;
-    const read = await readImportFile(file);
+    // The new selection replaces the previous choice and its error at once
+    setChosen(null);
+    setFileError(null);
+    const read = await readLatest(file);
+    if (!read) return;
     setFileError(read.ok ? null : t(`settings.workspace_import.${read.reason}`));
     if (read.ok) setChosen({ name: file.name, document: read.document });
   };
