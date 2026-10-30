@@ -444,6 +444,13 @@ func TestParseMongoDBCommand(t *testing.T) {
 		}, command)
 	})
 
+	t.Run("an empty object parses to an empty command, which the server then refuses", func(t *testing.T) {
+		command, err := parseMongoDBCommand(`{}`)
+
+		require.NoError(t, err)
+		assert.Empty(t, command)
+	})
+
 	t.Run("a nested document keeps its order too", func(t *testing.T) {
 		command, err := parseMongoDBCommand(`{"find": "users", "filter": {"b": 2, "a": 1}}`)
 
@@ -454,10 +461,28 @@ func TestParseMongoDBCommand(t *testing.T) {
 		}, command)
 	})
 
+	t.Run("says why it refuses", func(t *testing.T) {
+		for invalid, want := range map[string]string{
+			"   ":                  "not valid JSON",
+			`{"ping": 1} trailing`: "not valid JSON",
+			`{"ping": 1}{"a": 1}`:  "not valid JSON",
+			"null":                 "not a JSON object",
+			`[{"ping": 1}]`:        "not a JSON object",
+		} {
+			_, err := parseMongoDBCommand(invalid)
+
+			assert.EqualError(t, err, want, invalid)
+		}
+	})
+
 	for name, invalid := range map[string]string{
 		"text that is not JSON":      "invalid json",
 		"JSON that is cut off":       `{"dbStats": 1,`,
 		"JSON that is not an object": `[{"ping": 1}]`,
+		"JSON followed by text":      `{"ping": 1} trailing`,
+		"two JSON documents":         `{"ping": 1}{"a": 1}`,
+		"blank text":                 "   ",
+		"null":                       "null",
 	} {
 		t.Run("is refused for "+name, func(t *testing.T) {
 			command, err := parseMongoDBCommand(invalid)

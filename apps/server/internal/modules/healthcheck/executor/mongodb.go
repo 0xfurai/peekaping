@@ -3,7 +3,10 @@
 package executor
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"net"
 	"net/url"
@@ -125,6 +128,16 @@ func parseMongoDBCommand(commandJSON string) (bson.D, error) {
 	if commandJSON == "" {
 		// Default to ping command
 		return bson.D{{Key: "ping", Value: 1}}, nil
+	}
+
+	// UnmarshalExtJSON drops what follows the first document and reads null as an empty one, so the
+	// text is checked first.
+	text := []byte(commandJSON)
+	if !json.Valid(text) {
+		return nil, errors.New("not valid JSON")
+	}
+	if !bytes.HasPrefix(bytes.TrimSpace(text), []byte("{")) {
+		return nil, errors.New("not a JSON object")
 	}
 
 	var command bson.D
