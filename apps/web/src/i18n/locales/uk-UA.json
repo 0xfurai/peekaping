@@ -2005,6 +2005,7 @@
       "last_updated": "Останнє оновлення",
       "maintenance": "Технічне обслуговування",
       "no_monitors_configured": "Для цієї сторінки статусу не налаштовано моніторів.",
+      "not_monitored": "Не моніториться",
       "operational": "Працює",
       "partial_system_outage": "Частковий збій системи",
       "powered_by": "Працює на",

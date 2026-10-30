@@ -2005,6 +2005,7 @@
       "last_updated": "Laatst bijgewerkt",
       "maintenance": "Onderhoud",
       "no_monitors_configured": "Geen monitors geconfigureerd voor deze statuspagina.",
+      "not_monitored": "Niet bewaakt",
       "operational": "Operationeel",
       "partial_system_outage": "Gedeeltelijke systeemuitval",
       "powered_by": "Aangedreven door",

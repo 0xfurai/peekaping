@@ -2005,6 +2005,7 @@
       "last_updated": "Nazadnje posodobljeno",
       "maintenance": "Vzdrževanje",
       "no_monitors_configured": "Noben monitor ni nastavljen za to statusno stran.",
+      "not_monitored": "Se ne nadzoruje",
       "operational": "Deluje",
       "partial_system_outage": "Delni izpad sistema",
       "powered_by": "Spremljeno z",

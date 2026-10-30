@@ -2005,6 +2005,7 @@
       "last_updated": "Sidst opdateret",
       "maintenance": "Vedligeholdelse",
       "no_monitors_configured": "Ingen overvågninger er konfigureret for denne statusside.",
+      "not_monitored": "Ikke overvåget",
       "operational": "Operativ",
       "partial_system_outage": "Delvis systemnedbrud",
       "powered_by": "Drivet af",

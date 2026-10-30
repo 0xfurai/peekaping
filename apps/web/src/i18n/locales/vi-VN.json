@@ -2005,6 +2005,7 @@
       "last_updated": "Cập nhật lần cuối",
       "maintenance": "Bảo trì",
       "no_monitors_configured": "Không có trình giám sát nào được cấu hình cho trang trạng thái này.",
+      "not_monitored": "Không được giám sát",
       "operational": "Hoạt động",
       "partial_system_outage": "Hệ thống bị gián đoạn một phần",
       "powered_by": "Được cung cấp bởi",

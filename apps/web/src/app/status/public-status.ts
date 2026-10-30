@@ -13,3 +13,19 @@ export const publicMonitorStatus = (
 export const hasPublicLocations = (
   monitor: Pick<StatusPageMonitorWithHeartbeatsAndUptimeDto, "locations">
 ): boolean => (monitor.locations?.length ?? 0) > 0;
+
+// Whether the monitor is being checked. The server sends active: false for a monitor a person paused
+// and for one whose type the install turned off, and the page can't tell the two apart.
+export const isPublicMonitorChecked = (
+  monitor: Pick<StatusPageMonitorWithHeartbeatsAndUptimeDto, "active">
+): boolean => monitor.active !== false;
+
+// The status a card shows for a monitor that isn't checked, in place of the last one it had. It is no
+// monitor status, so it can't be taken for one of the four.
+export const NOT_MONITORED = -1;
+
+// The status to show for the monitor, or for one of its locations, which is checked as the monitor is
+export const statusShownFor = <S extends number | undefined>(
+  monitor: Pick<StatusPageMonitorWithHeartbeatsAndUptimeDto, "active">,
+  status: S
+): S | typeof NOT_MONITORED => (isPublicMonitorChecked(monitor) ? status : NOT_MONITORED);

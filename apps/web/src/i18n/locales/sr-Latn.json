@@ -2005,6 +2005,7 @@
       "last_updated": "Poslednji put ažurirano",
       "maintenance": "Održavanje",
       "no_monitors_configured": "Nema konfigurisanih monitora za ovu statusnu stranicu.",
+      "not_monitored": "Ne nadgleda se",
       "operational": "Operativan",
       "partial_system_outage": "Delimični kvar sistema",
       "powered_by": "Napravilo",

@@ -2004,6 +2004,7 @@
       "last_updated": "Oxirgi yangilangan",
       "maintenance": "Texnik xizmat",
       "no_monitors_configured": "Status sahifasi uchun hech qanday monitorlar sozlanmagan.",
+      "not_monitored": "Monitoring qilinmaydi",
       "operational": "Operatsion",
       "partial_system_outage": "Tizimning qisman uzilishi",
       "powered_by": "Ta'minlagan:",

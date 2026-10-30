@@ -2005,6 +2005,7 @@
       "last_updated": "Viimeksi päivitetty",
       "maintenance": "Huolto",
       "no_monitors_configured": "Tälle tilasivulle ei ole määritetty valvontaa.",
+      "not_monitored": "Ei seurannassa",
       "operational": "Toiminnassa",
       "partial_system_outage": "Osittainen järjestelmäkatko",
       "powered_by": "Palvelun toiminta",

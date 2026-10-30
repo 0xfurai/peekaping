@@ -2005,6 +2005,7 @@
       "last_updated": "마지막 업데이트",
       "maintenance": "유지보수",
       "no_monitors_configured": "이 상태 페이지에는 모니터가 구성되어 있지 않습니다.",
+      "not_monitored": "모니터링 안 함",
       "operational": "운영 중",
       "partial_system_outage": "부분 시스템 장애",
       "powered_by": "제공",

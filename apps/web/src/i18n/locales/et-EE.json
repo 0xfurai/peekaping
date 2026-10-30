@@ -2005,6 +2005,7 @@
       "last_updated": "Viimati uuendatud",
       "maintenance": "Hooldus",
       "no_monitors_configured": "Selle oleku lehe jaoks pole monitoore seadistatud.",
+      "not_monitored": "Ei monitoorita",
       "operational": "Töökorras",
       "partial_system_outage": "Osaline süsteemi katkestus",
       "powered_by": "Põhineb",

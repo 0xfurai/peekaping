@@ -2004,6 +2004,7 @@
       "last_updated": "ბოლო განახლება",
       "maintenance": "მომსახურება",
       "no_monitors_configured": "ამ სტატუს-გვერდისთვის მონიტორები არ არის კონფიგურირებული.",
+      "not_monitored": "მონიტორინგი არ ხორციელდება",
       "operational": "ოპერაციული",
       "partial_system_outage": "სისტემის ნაწილობრივი გათიშვა",
       "powered_by": "მუშაობს",

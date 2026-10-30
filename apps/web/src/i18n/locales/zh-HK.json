@@ -2005,6 +2005,7 @@
       "last_updated": "最近更新",
       "maintenance": "維護中",
       "no_monitors_configured": "此狀態頁面尚未配置任何監控。",
+      "not_monitored": "未監控",
       "operational": "運作正常",
       "partial_system_outage": "部分系統中斷",
       "powered_by": "技術提供者",

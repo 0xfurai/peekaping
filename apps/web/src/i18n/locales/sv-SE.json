@@ -2005,6 +2005,7 @@
       "last_updated": "Senast uppdaterad",
       "maintenance": "Underhåll",
       "no_monitors_configured": "Inga övervakningar är konfigurerade för denna statussida.",
+      "not_monitored": "Övervakas inte",
       "operational": "Operativ",
       "partial_system_outage": "Delvis systemavbrott",
       "powered_by": "Drivs av",

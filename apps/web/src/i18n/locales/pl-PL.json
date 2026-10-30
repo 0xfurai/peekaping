@@ -2005,6 +2005,7 @@
       "last_updated": "Ostatnio zaktualizowano",
       "maintenance": "Konserwacja",
       "no_monitors_configured": "Brak skonfigurowanych monitorów dla tej strony statusu.",
+      "not_monitored": "Niemonitorowany",
       "operational": "Działa",
       "partial_system_outage": "Częściowa awaria systemu",
       "powered_by": "Zasilane przez",

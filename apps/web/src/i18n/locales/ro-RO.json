@@ -2004,6 +2004,7 @@
       "last_updated": "Ultima actualizare",
       "maintenance": "Întreținere",
       "no_monitors_configured": "Niciun monitor configurat pentru această pagină de stare.",
+      "not_monitored": "Nemonitorizat",
       "operational": "Operațional",
       "partial_system_outage": "Întrerupere parțială a sistemului",
       "powered_by": "Propulsat de",

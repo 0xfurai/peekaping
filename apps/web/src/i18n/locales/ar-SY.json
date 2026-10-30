@@ -2005,6 +2005,7 @@
       "last_updated": "آخر تحديث",
       "maintenance": "الصيانة",
       "no_monitors_configured": "لا توجد مراقبات مُكوَّنة لصفحة الحالة هذه.",
+      "not_monitored": "غير مراقَب",
       "operational": "قيد التشغيل",
       "partial_system_outage": "انقطاع جزئي في النظام",
       "powered_by": "مشغّل بواسطة",
