@@ -94,3 +94,39 @@ func TestRepository_ListDeletionDueAnyWorkspaceListsTheWorkspacesWhoseDateHasCom
 		assert.Equal(t, []workspace.ID{ids["Long ago"], ids["Exactly now"]}, due, "the one due first at the front")
 	})
 }
+
+func TestRepository_DeleteDueDeletesOnlyAWorkspaceWhoseDateHasCome(t *testing.T) {
+	forEachBackend(t, func(t *testing.T, db *bun.DB, repo workspace.Repository) {
+		ctx := context.Background()
+		now := time.Now().UTC().Truncate(time.Second)
+		due, err := repo.Create(ctx, "Due")
+		require.NoError(t, err)
+		_, _, err = repo.ScheduleDeletion(ctx, due.ID, now)
+		require.NoError(t, err)
+		later, err := repo.Create(ctx, "Later")
+		require.NoError(t, err)
+		_, _, err = repo.ScheduleDeletion(ctx, later.ID, now.Add(time.Hour))
+		require.NoError(t, err)
+		cancelled, err := repo.Create(ctx, "Cancelled")
+		require.NoError(t, err)
+		_, _, err = repo.ScheduleDeletion(ctx, cancelled.ID, now)
+		require.NoError(t, err)
+		_, _, err = repo.CancelDeletion(ctx, cancelled.ID)
+		require.NoError(t, err)
+
+		for _, kept := range []workspace.ID{later.ID, cancelled.ID} {
+			deleted, err := repo.DeleteDue(ctx, kept, now)
+			require.NoError(t, err)
+			assert.Nil(t, deleted)
+			found, err := repo.FindByID(ctx, kept)
+			require.NoError(t, err)
+			assert.NotNil(t, found, "it is not due")
+		}
+		deleted, err := repo.DeleteDue(ctx, due.ID, now)
+		require.NoError(t, err)
+		assert.NotNil(t, deleted)
+		found, err := repo.FindByID(ctx, due.ID)
+		require.NoError(t, err)
+		assert.Nil(t, found)
+	})
+}

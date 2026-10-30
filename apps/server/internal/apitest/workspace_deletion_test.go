@@ -190,16 +190,64 @@ func TestWorkspaceDeletion_OneWorkspaceThatCantBeDeletedDoesNotStopTheOthers(t *
 	assert.Len(t, logs.FilterMessage("Deleted a workspace scheduled for deletion").All(), 1)
 }
 
+// changedAfterListing runs a change once the purge has listed the workspaces that are due, and
+// before it deletes the first of them: the gap in which an owner can cancel
+type changedAfterListing struct {
+	workspace.Repository
+	change func()
+	listed *[]workspace.ID
+}
+
+func (c changedAfterListing) ListDeletionDueAnyWorkspace(ctx context.Context, now time.Time) ([]workspace.ID, error) {
+	due, err := c.Repository.ListDeletionDueAnyWorkspace(ctx, now)
+	*c.listed = due
+	c.change()
+	return due, err
+}
+
+func TestWorkspaceDeletion_AWorkspaceCancelledAfterTheListingIsNotDeleted(t *testing.T) {
+	parallel(t)
+	forEachBackend(t, func(t *testing.T, backend func(*config.Config)) {
+		cases := map[string]bool{"cancelled": false, "cancelled and scheduled again": true}
+		for name, again := range cases {
+			t.Run(name, func(t *testing.T) {
+				a := newAppWithAdmin(t, backend)
+				saved := a.seedWorkspace(t, "Saved", "saved")
+				due := decode[scheduledDeletion](t, a.scheduleDeletion(t, "Saved", saved.owner), http.StatusOK).DeletionScheduledAt
+				before := a.footprint(t, saved)
+				core, logs := observer.New(zap.InfoLevel)
+				var listed []workspace.ID
+
+				require.NoError(t, a.container.Invoke(func(workspaces workspace.Repository, service workspace.Service) {
+					stale := changedAfterListing{Repository: workspaces, listed: &listed, change: func() {
+						require.Equal(t, http.StatusNoContent, a.cancelDeletion(t, saved.owner).Code)
+						if again {
+							require.Equal(t, http.StatusOK, a.scheduleDeletion(t, "Saved", saved.owner).Code)
+						}
+					}}
+					// At the date itself: the new schedule of the second case is later, so it is not due
+					cleanup.PurgeScheduledWorkspaces(context.Background(), stale, service, due, zap.New(core).Sugar())
+				}))
+
+				assert.Equal(t, []workspace.ID{saved.id}, listed, "it was due when the purge listed it")
+				assert.Equal(t, before, a.footprint(t, saved), "every row is kept")
+				assert.Empty(t, logs.FilterMessage("Deleted a workspace scheduled for deletion").All())
+				assert.Empty(t, logs.FilterMessage("Failed to delete a workspace scheduled for deletion").All(), "a workspace that is no longer due is no error")
+			})
+		}
+	})
+}
+
 type failingFor struct {
 	workspace.Service
 	fail workspace.ID
 }
 
-func (f failingFor) DeleteAnyWorkspace(ctx context.Context, id workspace.ID) error {
+func (f failingFor) DeleteDueAnyWorkspace(ctx context.Context, id workspace.ID, now time.Time) (bool, error) {
 	if id == f.fail {
-		return assert.AnError
+		return false, assert.AnError
 	}
-	return f.Service.DeleteAnyWorkspace(ctx, id)
+	return f.Service.DeleteDueAnyWorkspace(ctx, id, now)
 }
 
 // MARK: The hold
