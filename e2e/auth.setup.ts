@@ -9,7 +9,7 @@ import { linkIn, waitForMail } from './support/mail';
 // in instead. On an install with a sender for account emails (the cloud suite's, with the mail
 // catcher), a new admin's workspace waits for their email to be verified, so the setup opens the
 // link from the catcher before it skips Get started.
-setup('Sign in as the e2e admin', async ({ page }) => {
+setup('@critical Sign in as the e2e admin', async ({ page }) => {
   await page.goto('/login');
   const login = await page.request.post(`${await apiBaseURL(page)}/auth/login`, { data: admin });
 

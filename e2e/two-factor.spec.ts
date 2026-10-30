@@ -13,7 +13,7 @@ test.afterEach(async ({ page }) => {
   await api.dispose();
 });
 
-test('With 2FA on, login asks for the authenticator code', async ({ page, browser }) => {
+test('@critical With 2FA on, login asks for the authenticator code', async ({ page, browser }) => {
   await page.goto('/security');
   await page.getByLabel('Current Password', { exact: true }).fill(admin.password);
   await page.getByRole('button', { name: 'Continue' }).click();

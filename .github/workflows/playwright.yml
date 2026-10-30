@@ -87,22 +87,28 @@ jobs:
         else
           echo "single=false" >> "$GITHUB_OUTPUT"
         fi
-    # Every PR runs the dev SQLite stack, with the default suite and the cloud suite (the
-    # open-signup install of e2e/onboarding.spec.ts: SIGNUP_MODE=open and Mailpit as its mail
-    # server, running only the @cloud specs). The dev PostgreSQL stack runs after the merge, nightly
-    # and by hand; the single stacks also run on a PR that changes them.
+    # Every PR runs the dev SQLite stack, with the critical specs (@critical: sign-in, a monitor's
+    # create, edit and delete, the status page, logout, API keys, members and 2FA) and the cloud suite
+    # (the open-signup install of e2e/onboarding.spec.ts: SIGNUP_MODE=open and Mailpit as its mail
+    # server, running only the @cloud specs). The whole suite and the dev PostgreSQL stack run after
+    # the merge, nightly and by hand; the single stacks also run, with the critical specs, on a PR
+    # that changes them.
     - name: Pick the e2e combinations
       id: e2e
       env:
         EVENT: ${{ github.event_name }}
         SINGLE: ${{ github.event_name != 'pull_request' || steps.diff.outputs.single == 'true' }}
       run: |
-        include='{"config":"dev","database":"sqlite","suite":"default"},{"config":"dev","database":"sqlite","suite":"cloud"}'
+        suite=default
+        if [ "$EVENT" = pull_request ]; then
+          suite=critical
+        fi
+        include='{"config":"dev","database":"sqlite","suite":"'"$suite"'"},{"config":"dev","database":"sqlite","suite":"cloud"}'
         if [ "$EVENT" != pull_request ]; then
           include="$include"',{"config":"dev","database":"postgres","suite":"default"}'
         fi
         if [ "$SINGLE" = true ]; then
-          include="$include"',{"config":"single","database":"sqlite","suite":"default"},{"config":"single","database":"postgres","suite":"default"}'
+          include="$include"',{"config":"single","database":"sqlite","suite":"'"$suite"'"},{"config":"single","database":"postgres","suite":"'"$suite"'"}'
         fi
         echo "matrix={\"include\":[$include]}" | tee -a "$GITHUB_OUTPUT"
 
@@ -193,7 +199,7 @@ jobs:
       run: scripts/test-single-user.sh peekaping-peekaping
 
   playwright-tests:
-    name: E2E ${{ matrix.config }} ${{ matrix.database }}${{ matrix.suite == 'cloud' && ' cloud' || '' }}
+    name: E2E ${{ matrix.config }} ${{ matrix.database }}${{ matrix.suite == 'cloud' && ' cloud' || matrix.suite == 'critical' && ' critical' || '' }}
     needs: [changes, build-images, build-single-images]
     # Run every combination whose images built, even if another image failed or the single images
     # were skipped.
@@ -353,14 +359,14 @@ jobs:
         echo "Mailpit is ready"
 
     - name: Run Playwright tests
-      run: bunx playwright test ${{ matrix.suite == 'cloud' && '--grep @cloud' || '' }}
+      run: bunx playwright test ${{ matrix.suite == 'cloud' && '--grep @cloud' || matrix.suite == 'critical' && '--grep @critical' || '' }}
 
     # The suite must also pass on the database the first run left behind. It
     # doubles the run time, so PRs skip it and main checks it after the merge, nightly and in a
     # run started by hand.
     - name: Run Playwright tests again on the same database
       if: ${{ github.event_name != 'pull_request' }}
-      run: bunx playwright test ${{ matrix.suite == 'cloud' && '--grep @cloud' || '' }}
+      run: bunx playwright test ${{ matrix.suite == 'cloud' && '--grep @cloud' || matrix.suite == 'critical' && '--grep @critical' || '' }}
       env:
         PLAYWRIGHT_HTML_OUTPUT_DIR: playwright-report-rerun
 
@@ -377,7 +383,7 @@ jobs:
     - uses: actions/upload-artifact@v4
       if: ${{ !cancelled() }}
       with:
-        name: playwright-report-${{ matrix.config }}-${{ matrix.database }}${{ matrix.suite == 'cloud' && '-cloud' || '' }}
+        name: playwright-report-${{ matrix.config }}-${{ matrix.database }}${{ matrix.suite == 'cloud' && '-cloud' || matrix.suite == 'critical' && '-critical' || '' }}
         path: |
           playwright-report/
           playwright-report-rerun/

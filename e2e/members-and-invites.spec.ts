@@ -59,7 +59,7 @@ async function removeFromWorkspace(api: APIRequestContext, email: string) {
 
 const switcher = (page: Page) => page.getByRole('button', { name: 'Switch workspace' });
 
-test('an admin invites a member by a link, who works in the workspace, makes their own and is removed', async ({
+test('@critical an admin invites a member by a link, who works in the workspace, makes their own and is removed', async ({
   page,
   browser,
 }) => {

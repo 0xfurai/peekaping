@@ -3,7 +3,7 @@ import { admin } from './support/admin';
 
 // Logging out only clears the browser's session; the tokens are stateless, so signing in
 // again in a fresh context leaves the saved session the other specs share untouched.
-test('After a logout the API client sends no Authorization header, and a new login sends the new token', async ({
+test('@critical After a logout the API client sends no Authorization header, and a new login sends the new token', async ({
   browser,
 }) => {
   const visitor = await browser.newContext({

@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { apiBaseURL } from './support/admin';
 import { adminAPI, deleteCreated, randomID } from './support/api';
 
-test('An API key authorizes API calls until it is deleted', async ({ page, request }) => {
+test('@critical An API key authorizes API calls until it is deleted', async ({ page, request }) => {
   const keyName = `E2E key ${randomID()}`;
 
   await page.goto('/security');
