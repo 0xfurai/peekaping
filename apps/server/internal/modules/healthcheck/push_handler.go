@@ -35,88 +35,111 @@ func RegisterPushEndpoint(
 	maintenanceService maintenance.Service,
 	logger *zap.SugaredLogger,
 ) {
-	httpx.Register(router, "GET", "/push/{token}", huma.Operation{Summary: "Send a heartbeat to a push monitor", Description: "Stores the push as the monitor's heartbeat. 404 when no monitor has the token, 400 when the monitor is paused, and 403 when the monitor's workspace is suspended (a new account's workspace is, until its owner verifies their email address, and an instance admin can suspend one), when its type is turned off on this install (DISABLED_MONITOR_TYPES), or when it is past its workspace's limit of active monitors: the push is not stored and sends no notification.", Tags: []string{"Push"}, Errors: []int{400, 403, 404, 500}}, func(ctx context.Context, input *PushInput) (*httpx.Output[PushResponse], error) {
-		r := input.Request
-		token := r.PathValue("token")
+	handler := &pushHandler{monitorService: monitorService, ingesterService: ingesterService, maintenanceService: maintenanceService, logger: logger}
+	httpx.Register(router, "GET", "/push/{token}", huma.Operation{Summary: "Send a heartbeat to a push monitor", Description: "Stores the push as the monitor's heartbeat. 404 when no monitor has the token, 400 when the monitor is paused, and 403 when the monitor's workspace is suspended (a new account's workspace is, until its owner verifies their email address, and an instance admin can suspend one), when its type is turned off on this install (DISABLED_MONITOR_TYPES), or when it is past its workspace's limit of active monitors: the push is not stored and sends no notification.", Tags: []string{"Push"}, Errors: []int{400, 403, 404, 500}}, handler.handle)
+}
 
-		monitor, err := monitorService.FindOneByPushTokenAnyWorkspace(ctx, token)
-		if err != nil {
-			logger.Errorw("Failed to find monitor with push token", "error", err)
-			return nil, httpx.Fail(http.StatusNotFound, utils.NewFailResponse("Monitor not found for pushToken"))
-		}
-		if monitor == nil {
-			logger.Errorw("Monitor not found for push token")
-			return nil, httpx.Fail(http.StatusNotFound, utils.NewFailResponse("Monitor not found for pushToken"))
-		}
-		if monitor.WorkspaceSuspended {
-			// The token holder is told why their pushes are not counted, as for a paused monitor: the
-			// token is the secret that names the monitor. Nothing is stored and nothing is sent.
-			logger.Infow("Push refused: the monitor's workspace is suspended", "monitor_id", monitor.ID)
-			if monitor.WorkspaceSuspendedByAdmin {
-				return nil, httpx.Fail(http.StatusForbidden, utils.NewFailResponse("The workspace of this monitor is suspended by the install's administrator"))
-			}
-			return nil, httpx.Fail(http.StatusForbidden, utils.NewFailResponse("The workspace of this monitor is suspended until its owner verifies their email address"))
-		}
-		if monitor.TypeDisabled {
-			// Told the same way: the token holder should know why their pushes are not counted
-			logger.Infow("Push refused: the monitor's type is turned off on this install", "monitor_id", monitor.ID)
-			return nil, httpx.Fail(http.StatusForbidden, utils.NewFailResponse("This monitor's type is turned off on this install"))
-		}
-		if monitor.OverLimit {
-			// And when the monitor is past its workspace's limit of active monitors (PP-160)
-			logger.Infow("Push refused: the monitor is past its workspace's limit of active monitors", "monitor_id", monitor.ID)
-			return nil, httpx.Fail(http.StatusForbidden, utils.NewFailResponse("This monitor is past its workspace's limit of active monitors"))
-		}
-		if !monitor.Active {
-			// Only the ID: the monitor's config holds credentials
-			logger.Errorw("Monitor is not active", "monitor_id", monitor.ID)
-			return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Monitor is not active"))
-		}
+// pushHandler answers the push URL
+type pushHandler struct {
+	monitorService     monitor.Service
+	ingesterService    ingester.Service
+	maintenanceService maintenance.Service
+	logger             *zap.SugaredLogger
+}
 
-		status := parsePushStatus(r.URL.Query().Get("status"))
-		msg := r.URL.Query().Get("msg")
-		if msg == "" {
-			msg = defaultPushMessage(status)
+func (h *pushHandler) handle(ctx context.Context, input *PushInput) (*httpx.Output[PushResponse], error) {
+	r := input.Request
+	token := r.PathValue("token")
+
+	monitor, err := h.monitorService.FindOneByPushTokenAnyWorkspace(ctx, token)
+	if err != nil {
+		h.logger.Errorw("Failed to find monitor with push token", "error", err)
+		return nil, httpx.Fail(http.StatusNotFound, utils.NewFailResponse("Monitor not found for pushToken"))
+	}
+	if monitor == nil {
+		h.logger.Errorw("Monitor not found for push token")
+		return nil, httpx.Fail(http.StatusNotFound, utils.NewFailResponse("Monitor not found for pushToken"))
+	}
+	if refusal := h.refusal(monitor); refusal != nil {
+		return nil, refusal
+	}
+
+	status := parsePushStatus(r.URL.Query().Get("status"))
+	msg := r.URL.Query().Get("msg")
+	if msg == "" {
+		msg = defaultPushMessage(status)
+	}
+	ping := 0
+
+	// A push monitor inside an active maintenance window reports
+	// Maintenance, like a scheduled check, so planned downtime neither
+	// shows as Down nor sends notifications.
+	underMaintenance, err := MonitorUnderMaintenance(ctx, h.maintenanceService, monitor.ID)
+	if err != nil {
+		// Keep the heartbeat the service pushed rather than lose it.
+		h.logger.Errorw("Failed to check if push monitor is under maintenance",
+			"monitor_id", monitor.ID,
+			"error", err,
+		)
+	}
+	if !underMaintenance {
+		ping = h.pushedPing(r.URL.Query().Get("ping"), monitor.ID)
+	}
+
+	now := time.Now().UTC()
+
+	// The ingester service stores the push before the request is answered, in order with the
+	// monitor's other results
+	result := ResultFromMonitor(monitor, underMaintenance, status, msg, ping, now, now, nil, h.logger)
+
+	err = h.ingesterService.Ingest(ctx, result)
+	if err != nil {
+		h.logger.Errorw("Failed to ingest push heartbeat",
+			"monitor_id", monitor.ID,
+			"error", err,
+		)
+		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Failed to process push heartbeat"))
+	}
+
+	return httpx.Reply(http.StatusOK, PushResponse{OK: "true"})
+}
+
+// refusal is the error that answers a push to a monitor that takes no pushes now, or nil
+func (h *pushHandler) refusal(monitor *monitor.Model) error {
+	if monitor.WorkspaceSuspended {
+		// The token holder is told why their pushes are not counted, as for a paused monitor: the
+		// token is the secret that names the monitor. Nothing is stored and nothing is sent.
+		h.logger.Infow("Push refused: the monitor's workspace is suspended", "monitor_id", monitor.ID)
+		if monitor.WorkspaceSuspendedByAdmin {
+			return httpx.Fail(http.StatusForbidden, utils.NewFailResponse("The workspace of this monitor is suspended by the install's administrator"))
 		}
-		ping := 0
+		return httpx.Fail(http.StatusForbidden, utils.NewFailResponse("The workspace of this monitor is suspended until its owner verifies their email address"))
+	}
+	if monitor.TypeDisabled {
+		// Told the same way: the token holder should know why their pushes are not counted
+		h.logger.Infow("Push refused: the monitor's type is turned off on this install", "monitor_id", monitor.ID)
+		return httpx.Fail(http.StatusForbidden, utils.NewFailResponse("This monitor's type is turned off on this install"))
+	}
+	if monitor.OverLimit {
+		// And when the monitor is past its workspace's limit of active monitors (PP-160)
+		h.logger.Infow("Push refused: the monitor is past its workspace's limit of active monitors", "monitor_id", monitor.ID)
+		return httpx.Fail(http.StatusForbidden, utils.NewFailResponse("This monitor is past its workspace's limit of active monitors"))
+	}
+	if !monitor.Active {
+		// Only the ID: the monitor's config holds credentials
+		h.logger.Errorw("Monitor is not active", "monitor_id", monitor.ID)
+		return httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Monitor is not active"))
+	}
+	return nil
+}
 
-		// A push monitor inside an active maintenance window reports
-		// Maintenance, like a scheduled check, so planned downtime neither
-		// shows as Down nor sends notifications.
-		underMaintenance, err := MonitorUnderMaintenance(ctx, maintenanceService, monitor.ID)
-		if err != nil {
-			// Keep the heartbeat the service pushed rather than lose it.
-			logger.Errorw("Failed to check if push monitor is under maintenance",
-				"monitor_id", monitor.ID,
-				"error", err,
-			)
-		}
-		if !underMaintenance {
-			pingStr := r.URL.Query().Get("ping")
-			var ok bool
-			ping, ok = parsePushPing(pingStr)
-			if !ok {
-				logger.Warnw("Ignoring invalid push ping", "monitor_id", monitor.ID, "ping", pingStr)
-			}
-		}
-
-		now := time.Now().UTC()
-
-		// The ingester service stores the push before the request is answered, in order with the
-		// monitor's other results
-		result := ResultFromMonitor(monitor, underMaintenance, status, msg, ping, now, now, nil, logger)
-
-		err = ingesterService.Ingest(ctx, result)
-		if err != nil {
-			logger.Errorw("Failed to ingest push heartbeat",
-				"monitor_id", monitor.ID,
-				"error", err,
-			)
-			return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Failed to process push heartbeat"))
-		}
-
-		return httpx.Reply(http.StatusOK, PushResponse{OK: "true"})
-	})
+// pushedPing is the ping the push reports, which is 0 when it is invalid
+func (h *pushHandler) pushedPing(pingStr, monitorID string) int {
+	ping, ok := parsePushPing(pingStr)
+	if !ok {
+		h.logger.Warnw("Ignoring invalid push ping", "monitor_id", monitorID, "ping", pingStr)
+	}
+	return ping
 }
 
 // maintenanceMessage matches the message a scheduled check records while the
