@@ -29,14 +29,24 @@ func CanChange(actor, target Role, newRole *Role, owners int) error {
 	if rank[actor] < rank[RoleAdmin] {
 		return ErrForbidden
 	}
-	touchesOwner := target == RoleOwner || (newRole != nil && *newRole == RoleOwner)
-	if touchesOwner && actor != RoleOwner {
+	if touchesOwner(target, newRole) && actor != RoleOwner {
 		return ErrForbidden
 	}
-	if target == RoleOwner && (newRole == nil || *newRole != RoleOwner) && owners <= 1 {
+	if leavesOwners(target, newRole) && owners <= 1 {
 		return ErrLastOwner
 	}
 	return nil
+}
+
+// touchesOwner is whether the change concerns an owner: it changes one, or makes one
+func touchesOwner(target Role, newRole *Role) bool {
+	return target == RoleOwner || (newRole != nil && *newRole == RoleOwner)
+}
+
+// leavesOwners is whether the change takes an owner out of the owners: it removes one, or makes
+// one something else
+func leavesOwners(target Role, newRole *Role) bool {
+	return target == RoleOwner && (newRole == nil || *newRole != RoleOwner)
 }
 
 // CanLeave decides whether a member with the role may leave their workspace: anyone, unless they
