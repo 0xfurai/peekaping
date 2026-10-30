@@ -40,6 +40,7 @@ import (
 
 	"peekaping/internal/modules/monitor_tls_info"
 	"peekaping/internal/modules/workspace"
+	"peekaping/internal/modules/workspaceport"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -260,6 +261,14 @@ var isolationCases = map[string]isolationCase{
 	"GET /api/v1/workspace/export": byID("", func(isolationIDs) []isolationRequest {
 		// B's file holds B's own records and settings: none of A's IDs, names, secrets or retention period
 		return []isolationRequest{{own: true, status: http.StatusOK, forbid: []string{`"dataRetentionDays": ` + aliceRetention}}}
+	}),
+	"POST /api/v1/workspace/import": byID("", func(isolationIDs) []isolationRequest {
+		// a file whose tag and status page are named and slugged like A's: B's import finds nothing of A's
+		// to reuse or to link to, and its report holds none of A's IDs
+		doc := docOf()
+		doc.Tags = []workspaceport.Tag{docTag("t1", aliceOnly+"-tag")}
+		doc.StatusPages = []workspaceport.StatusPage{docPage("p1", aliceOnly+"-page")}
+		return []isolationRequest{{name: "named like A's", body: doc, status: http.StatusOK, own: true, sameName: true}}
 	}),
 	"GET /api/v1/workspace/export/heartbeats": byID("", func(isolationIDs) []isolationRequest {
 		// B's file holds the heartbeats of B's monitors: none of A's, which A's monitor IDs would show

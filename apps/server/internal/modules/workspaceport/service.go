@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	"peekaping/internal/dbtx"
+	"peekaping/internal/limits"
 	"peekaping/internal/modules/domain_status_page"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/maintenance"
@@ -19,14 +21,15 @@ import (
 	"peekaping/internal/modules/status_page"
 	"peekaping/internal/modules/tag"
 	"peekaping/internal/modules/workspace"
+	"peekaping/internal/netguard"
 
 	"go.uber.org/dig"
 )
 
-// Service exports a workspace. Both methods are for an owner of the workspace the context runs in:
-// workspace.ErrNotFound for a context with no workspace and workspace.ErrForbidden for any other
-// role, an admin and an API key included. They read through the repositories' workspace-scoped
-// methods only.
+// Service exports and imports a workspace. Every method is for an owner of the workspace the
+// context runs in: workspace.ErrNotFound for a context with no workspace and workspace.ErrForbidden
+// for any other role, an admin and an API key included. They go through the repositories' and
+// services' workspace-scoped methods only.
 type Service interface {
 	// Export builds the workspace document of the workspace
 	Export(ctx context.Context) (*Document, error)
@@ -34,11 +37,32 @@ type Service interface {
 	// export then writes the heartbeat file. The check comes first so that a caller who may not
 	// export is refused before a byte of the file is written.
 	PrepareHeartbeatExport(ctx context.Context) (*HeartbeatExport, error)
+	// Import adds the document's records to the workspace in one transaction. A file with anything
+	// wrong in itself is refused with an *InvalidFileError, all its problems together, and nothing
+	// is written. What the workspace or the install can't take as it is gets changed, or left out,
+	// and listed in the result. The monitors are published as created once the transaction has
+	// committed, so that none is scheduled before its row exists.
+	Import(ctx context.Context, doc *Document) (*ImportResult, error)
 }
 
-// Dependencies are the repositories that the export reads
+// Dependencies are the repositories that the export reads, and the services that the import
+// writes through. A service's create is the API's own, so that an import holds a record to the same
+// rules: they run inside the import's transaction (dbtx).
 type Dependencies struct {
 	dig.In
+
+	Transactor dbtx.Transactor
+	// Limits and Guard are the plan and the private target block: an install without them has no
+	// limits and blocks nothing
+	Limits limits.Source   `optional:"true"`
+	Guard  *netguard.Guard `optional:"true"`
+
+	TagService         tag.Service
+	ProxyService       proxy.Service
+	ChannelService     notification_channel.Service
+	MonitorService     monitor.Service
+	MaintenanceService maintenance.Service
+	StatusPageService  status_page.Service
 
 	Workspaces           workspace.Repository
 	Settings             setting.WorkspaceService

@@ -269,6 +269,29 @@ func TestLimitBody_RefusesADeclaredLengthOverTheLimitWithoutRunningTheHandler(t 
 	assert.True(t, ran, "a declared length at the limit goes through")
 }
 
+func TestLimitBodyBy_TheLimitDependsOnTheRequest(t *testing.T) {
+	handler := httpx.LimitBodyBy(func(r *http.Request) int64 {
+		if r.URL.Path == "/big" {
+			return 16
+		}
+		return 8
+	})(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(http.StatusOK) }))
+	for _, tc := range []struct {
+		path string
+		size int
+		want int
+	}{
+		{"/small", 8, http.StatusOK},
+		{"/small", 9, http.StatusRequestEntityTooLarge},
+		{"/big", 16, http.StatusOK},
+		{"/big", 17, http.StatusRequestEntityTooLarge},
+	} {
+		w := httptest.NewRecorder()
+		handler.ServeHTTP(w, httptest.NewRequest("POST", tc.path, strings.NewReader(strings.Repeat("x", tc.size))))
+		assert.Equal(t, tc.want, w.Code, "%d bytes to %s", tc.size, tc.path)
+	}
+}
+
 func TestAccessLogIncludesResponse(t *testing.T) {
 	core, logs := observer.New(zap.DebugLevel)
 	handler := httpx.Logger(zap.New(core).Sugar(), nil)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
