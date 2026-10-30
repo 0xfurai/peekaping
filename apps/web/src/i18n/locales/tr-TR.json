@@ -1752,6 +1752,20 @@
     "search_placeholder": "Sunucuya göre proxy ara..."
   },
   "security": {
+    "delete_account": {
+      "button": "Hesabı sil",
+      "description": "Hesabınızı siler ve oturumlarınızı sonlandırır. Bulunduğunuz tüm çalışma alanlarından ayrılırsınız. Bu işlem geri alınamaz.",
+      "dialog_description": "Hesabınız hemen silinir ve oturumunuz kapatılır. Bulunduğunuz tüm çalışma alanlarından ayrılırsınız. Bu işlem geri alınamaz.",
+      "errors": {
+        "last_instance_admin": "Bu kurulumun son örnek yöneticisisiniz. Hesabınızı silmeden önce başka bir örnek yöneticisi gerekir.",
+        "last_owner": "{{workspaces}} çalışma alanının tek sahibisiniz. Başka bir üyeyi sahip yapın veya önce çalışma alanını silin.",
+        "wrong_password": "Parola yanlış"
+      },
+      "failed": "Hesap silinemedi",
+      "password_label": "Parolanız",
+      "success": "Hesabınız silindi",
+      "title": "Hesabı sil"
+    },
     "enable_2fa": {
       "form": {
         "authenticator_code_label": "Kimlik Doğrulama Kodu",
@@ -1874,6 +1888,15 @@
     "to_email_label": "E-posta"
   },
   "settings": {
+    "danger_zone": {
+      "button": "Çalışma alanını sil",
+      "description": "Bu çalışma alanını silmek, içindeki her şeyi kalıcı olarak siler: izleyicileri, kalp atışlarını, durum sayfalarını ve geri kalanını. Silme, onayınızdan 7 gün sonra gerçekleşir. İzleyicileri hemen durur ve bir sahip, o zamana kadar silmeyi iptal edebilir.",
+      "dialog_description": "Bu işlem {{name}} çalışma alanını ve içindeki her şeyi 7 gün sonra siler. İzleyicileri hemen durur ve o zamana kadar silmeyi iptal edebilirsiniz.",
+      "failed": "Silme zamanlanamadı",
+      "name_label": "Onaylamak için çalışma alanının adını yazın: {{name}}",
+      "scheduled": "Bu çalışma alanı {{date}} tarihinde silinecek. İzleyicileri o zamana kadar çalışmaz. Her şeyi geri getirmek için silmeyi iptal edin.",
+      "title": "Tehlikeli bölge"
+    },
     "data_retention": {
       "days_label": "Gün",
       "description": "Veriyi saklayacağınız gün sayısını ayarlayın (KEEP_DATA_PERIOD_DAYS).",
@@ -2068,6 +2091,13 @@
     "create_error": "Çalışma alanı oluşturulamadı",
     "create_first": "Çalışma alanı oluştur",
     "creating": "Oluşturuluyor...",
+    "deletion": {
+      "cancel": "Silmeyi iptal et",
+      "cancel_failed": "Silme iptal edilemedi",
+      "cancelled": "Silme iptal edildi",
+      "member_message": "Bu çalışma alanı {{date}} tarihinde silinecek. İzleyicileri çalışmaz ve durum sayfaları kullanılamaz. Bir sahip, o zamana kadar silmeyi iptal edebilir.",
+      "message": "Bu çalışma alanı {{date}} tarihinde silinecek. İzleyicileri çalışmaz ve durum sayfaları kullanılamaz. O zamana kadar silmeyi iptal edebilirsiniz."
+    },
     "enter": "Çalışma alanını aç",
     "entering": "Açılıyor...",
     "entry_failed": "Çalışma alanı oluşturuldu ancak açılamadı. Lütfen tekrar deneyin.",

@@ -1752,6 +1752,20 @@
     "search_placeholder": "Etsi proxyt isäntänimen perusteella..."
   },
   "security": {
+    "delete_account": {
+      "button": "Poista tili",
+      "description": "Poistaa tilisi ja päättää istuntosi. Poistut kaikista työtiloista, joissa olet. Tätä ei voi perua.",
+      "dialog_description": "Tilisi poistetaan heti, ja sinut kirjataan ulos. Poistut kaikista työtiloista, joissa olet. Tätä ei voi perua.",
+      "errors": {
+        "last_instance_admin": "Olet tämän asennuksen viimeinen instanssin ylläpitäjä. Tarvitaan toinen instanssin ylläpitäjä, ennen kuin voit poistaa tilisi.",
+        "last_owner": "Olet ainoa omistaja kohteessa {{workspaces}}. Tee toisesta jäsenestä omistaja tai poista työtila ensin.",
+        "wrong_password": "Salasana on väärä"
+      },
+      "failed": "Tilin poistaminen epäonnistui",
+      "password_label": "Salasanasi",
+      "success": "Tilisi poistettiin",
+      "title": "Poista tili"
+    },
     "enable_2fa": {
       "form": {
         "authenticator_code_label": "Todennuskoodi",
@@ -1874,6 +1888,15 @@
     "to_email_label": "Vastaanottajan sähköposti"
   },
   "settings": {
+    "danger_zone": {
+      "button": "Poista työtila",
+      "description": "Työtilan poistaminen poistaa pysyvästi kaiken sen sisällön: valvonnat, sydämenlyönnit, tilasivut ja muun. Poisto tapahtuu 7 päivää vahvistuksen jälkeen. Sen valvonnat pysähtyvät heti, ja omistaja voi perua poiston siihen asti.",
+      "dialog_description": "Tämä poistaa työtilan {{name}} ja kaiken sen sisällön 7 päivän kuluttua. Sen valvonnat pysähtyvät heti, ja voit perua poiston siihen asti.",
+      "failed": "Poiston ajastaminen epäonnistui",
+      "name_label": "Vahvista kirjoittamalla työtilan nimi, {{name}}",
+      "scheduled": "Tämä työtila poistetaan {{date}}. Sen valvonnat eivät ole käynnissä siihen asti. Peru poisto palauttaaksesi kaiken.",
+      "title": "Vaaravyöhyke"
+    },
     "data_retention": {
       "days_label": "Päiviä",
       "description": "Aseta kuinka monta päivää tietoa säilytetään (KEEP_DATA_PERIOD_DAYS).",
@@ -2068,6 +2091,13 @@
     "create_error": "Työtilan luominen epäonnistui",
     "create_first": "Luo työtila",
     "creating": "Luodaan...",
+    "deletion": {
+      "cancel": "Peru poisto",
+      "cancel_failed": "Poiston peruminen epäonnistui",
+      "cancelled": "Poisto peruttu",
+      "member_message": "Tämä työtila poistetaan {{date}}. Sen valvonnat eivät ole käynnissä, eivätkä sen tilasivut ole käytettävissä. Omistaja voi perua poiston siihen asti.",
+      "message": "Tämä työtila poistetaan {{date}}. Sen valvonnat eivät ole käynnissä, eivätkä sen tilasivut ole käytettävissä. Voit perua poiston siihen asti."
+    },
     "enter": "Avaa työtila",
     "entering": "Avataan...",
     "entry_failed": "Työtila luotiin, mutta sen avaaminen epäonnistui. Yritä uudelleen.",

@@ -1752,6 +1752,20 @@
     "search_placeholder": "按主机搜索代理…"
   },
   "security": {
+    "delete_account": {
+      "button": "删除账号",
+      "description": "删除你的账号并结束你的会话。你将退出所在的所有工作区。此操作无法撤销。",
+      "dialog_description": "你的账号将立即删除，你也会退出登录。你将退出所在的所有工作区。此操作无法撤销。",
+      "errors": {
+        "last_instance_admin": "你是此部署的最后一名实例管理员。需要先有另一名实例管理员，才能删除你的账号。",
+        "last_owner": "你是 {{workspaces}} 的唯一所有者。请先指定其他成员为所有者，或先删除该工作区。",
+        "wrong_password": "密码不正确"
+      },
+      "failed": "删除账号失败",
+      "password_label": "你的密码",
+      "success": "你的账号已删除",
+      "title": "删除账号"
+    },
     "enable_2fa": {
       "form": {
         "authenticator_code_label": "身份验证器码",
@@ -1874,6 +1888,15 @@
     "to_email_label": "收件人邮箱"
   },
   "settings": {
+    "danger_zone": {
+      "button": "删除工作区",
+      "description": "删除此工作区会永久删除其中的所有内容：监控、心跳、状态页面等。确认后 7 天才会执行删除。其监控会立即停止，所有者可在此之前取消删除。",
+      "dialog_description": "这将在 7 天后删除 {{name}} 及其中的所有内容。其监控会立即停止，你可在此之前取消删除。",
+      "failed": "安排删除失败",
+      "name_label": "输入工作区名称 {{name}} 以确认",
+      "scheduled": "此工作区将于 {{date}} 删除。在此之前其监控不会运行。取消删除即可恢复所有内容。",
+      "title": "危险区域"
+    },
     "data_retention": {
       "days_label": "天",
       "description": "设置保留数据的天数（KEEP_DATA_PERIOD_DAYS）。",
@@ -2068,6 +2091,13 @@
     "create_error": "创建工作区失败",
     "create_first": "创建工作区",
     "creating": "创建中...",
+    "deletion": {
+      "cancel": "取消删除",
+      "cancel_failed": "取消删除失败",
+      "cancelled": "已取消删除",
+      "member_message": "此工作区将于 {{date}} 删除。其监控将不再运行，状态页面也将无法访问。所有者可在此之前取消删除。",
+      "message": "此工作区将于 {{date}} 删除。其监控将不再运行，状态页面也将无法访问。你可在此之前取消删除。"
+    },
     "enter": "打开工作区",
     "entering": "打开中...",
     "entry_failed": "工作区已创建，但打开失败。请重试。",

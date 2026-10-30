@@ -1751,6 +1751,20 @@
     "search_placeholder": "Caută proxy-uri după gazdă..."
   },
   "security": {
+    "delete_account": {
+      "button": "Șterge contul",
+      "description": "Șterge contul dvs. și încheie sesiunile dvs. Părăsiți toate spațiile de lucru în care vă aflați. Acțiunea nu poate fi anulată.",
+      "dialog_description": "Contul dvs. este șters imediat, iar sesiunea se încheie. Părăsiți toate spațiile de lucru în care vă aflați. Acțiunea nu poate fi anulată.",
+      "errors": {
+        "last_instance_admin": "Sunteți ultimul administrator de instanță al acestei instalări. Aveți nevoie de un alt administrator de instanță înainte de a vă șterge contul.",
+        "last_owner": "Sunteți singurul proprietar al următoarelor: {{workspaces}}. Numiți mai întâi alt membru proprietar sau ștergeți spațiul de lucru.",
+        "wrong_password": "Parola este incorectă"
+      },
+      "failed": "Ștergerea contului a eșuat",
+      "password_label": "Parola dvs.",
+      "success": "Contul dvs. a fost șters",
+      "title": "Șterge contul"
+    },
     "enable_2fa": {
       "form": {
         "authenticator_code_label": "Cod de autentificare",
@@ -1873,6 +1887,15 @@
     "to_email_label": "E-mail destinatar"
   },
   "settings": {
+    "danger_zone": {
+      "button": "Șterge spațiul de lucru",
+      "description": "Ștergerea acestui spațiu de lucru șterge definitiv tot ce conține: monitoarele, heartbeat-urile, paginile de stare și restul. Ștergerea are loc la 7 zile după ce confirmați. Monitoarele se opresc imediat, iar un proprietar poate anula ștergerea până atunci.",
+      "dialog_description": "Aceasta șterge {{name}} și tot ce conține, peste 7 zile. Monitoarele se opresc imediat. Puteți anula ștergerea până atunci.",
+      "failed": "Programarea ștergerii a eșuat",
+      "name_label": "Pentru confirmare, introduceți numele spațiului de lucru, {{name}}",
+      "scheduled": "Acest spațiu de lucru va fi șters la {{date}}. Până atunci, monitoarele lui nu rulează. Anulați ștergerea pentru a readuce totul.",
+      "title": "Zonă periculoasă"
+    },
     "data_retention": {
       "days_label": "Zile",
       "description": "Setează câte zile să păstrezi datele (KEEP_DATA_PERIOD_DAYS).",
@@ -2067,6 +2090,13 @@
     "create_error": "Nu s-a putut crea spațiul de lucru",
     "create_first": "Creează un spațiu de lucru",
     "creating": "Se creează...",
+    "deletion": {
+      "cancel": "Anulează ștergerea",
+      "cancel_failed": "Anularea ștergerii a eșuat",
+      "cancelled": "Ștergerea a fost anulată",
+      "member_message": "Acest spațiu de lucru va fi șters la {{date}}. Monitoarele lui nu rulează, iar paginile de stare sunt indisponibile. Un proprietar poate anula ștergerea până atunci.",
+      "message": "Acest spațiu de lucru va fi șters la {{date}}. Monitoarele lui nu rulează, iar paginile de stare sunt indisponibile. Puteți anula ștergerea până atunci."
+    },
     "enter": "Deschide spațiul de lucru",
     "entering": "Se deschide...",
     "entry_failed": "Spațiul de lucru a fost creat, dar deschiderea lui a eșuat. Încearcă din nou.",

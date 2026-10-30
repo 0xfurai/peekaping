@@ -1752,6 +1752,20 @@
     "search_placeholder": "Rechercher des proxys par hôte..."
   },
   "security": {
+    "delete_account": {
+      "button": "Supprimer le compte",
+      "description": "Supprime votre compte et met fin à vos sessions. Vous quittez tous les espaces de travail dont vous faites partie. Cette action est irréversible.",
+      "dialog_description": "Votre compte est supprimé immédiatement et vous êtes déconnecté. Vous quittez tous les espaces de travail dont vous faites partie. Cette action est irréversible.",
+      "errors": {
+        "last_instance_admin": "Vous êtes le dernier administrateur de l'instance. Un autre administrateur de l'instance est nécessaire avant que vous puissiez supprimer votre compte.",
+        "last_owner": "Vous êtes le seul propriétaire de {{workspaces}}. Nommez un autre membre propriétaire, ou supprimez d'abord l'espace de travail.",
+        "wrong_password": "Le mot de passe est incorrect"
+      },
+      "failed": "Échec de la suppression du compte",
+      "password_label": "Votre mot de passe",
+      "success": "Votre compte a été supprimé",
+      "title": "Supprimer le compte"
+    },
     "enable_2fa": {
       "form": {
         "authenticator_code_label": "Code d'authentification",
@@ -1874,6 +1888,15 @@
     "to_email_label": "E-mail du destinataire"
   },
   "settings": {
+    "danger_zone": {
+      "button": "Supprimer l'espace de travail",
+      "description": "La suppression de cet espace de travail supprime définitivement tout son contenu : ses moniteurs, heartbeats, pages d'état et le reste. La suppression a lieu 7 jours après votre confirmation. Ses moniteurs s'arrêtent immédiatement, et un propriétaire peut annuler la suppression d'ici là.",
+      "dialog_description": "Cette action supprime {{name}} et tout son contenu dans 7 jours. Ses moniteurs s'arrêtent immédiatement, et vous pouvez annuler la suppression d'ici là.",
+      "failed": "Échec de la planification de la suppression",
+      "name_label": "Saisissez le nom de l'espace de travail, {{name}}, pour confirmer",
+      "scheduled": "Cet espace de travail sera supprimé le {{date}}. Ses moniteurs ne s'exécutent pas d'ici là. Annulez la suppression pour tout rétablir.",
+      "title": "Zone de danger"
+    },
     "data_retention": {
       "days_label": "Jours",
       "description": "Définissez le nombre de jours de conservation des données (KEEP_DATA_PERIOD_DAYS).",
@@ -2068,6 +2091,13 @@
     "create_error": "Échec de la création de l'espace de travail",
     "create_first": "Créer un espace de travail",
     "creating": "Création...",
+    "deletion": {
+      "cancel": "Annuler la suppression",
+      "cancel_failed": "Échec de l'annulation de la suppression",
+      "cancelled": "Suppression annulée",
+      "member_message": "Cet espace de travail sera supprimé le {{date}}. Ses moniteurs ne s'exécutent pas et ses pages d'état sont indisponibles. Un propriétaire peut annuler la suppression d'ici là.",
+      "message": "Cet espace de travail sera supprimé le {{date}}. Ses moniteurs ne s'exécutent pas et ses pages d'état sont indisponibles. Vous pouvez annuler la suppression d'ici là."
+    },
     "enter": "Ouvrir l'espace de travail",
     "entering": "Ouverture...",
     "entry_failed": "L'espace de travail a été créé, mais son ouverture a échoué. Réessayez.",

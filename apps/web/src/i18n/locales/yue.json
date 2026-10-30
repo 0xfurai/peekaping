@@ -1752,6 +1752,20 @@
     "search_placeholder": "根據主機搜尋代理…"
   },
   "security": {
+    "delete_account": {
+      "button": "刪除帳戶",
+      "description": "刪除你嘅帳戶，同時結束你所有工作階段。你會退出你所屬嘅所有工作區。呢個操作無法還原。",
+      "dialog_description": "你嘅帳戶會即時被刪除，而且你會登出。你會退出你所屬嘅所有工作區。呢個操作無法還原。",
+      "errors": {
+        "last_instance_admin": "你係呢個部署最後一位實例管理員。要先有另一位實例管理員，你先可以刪除帳戶。",
+        "last_owner": "你係 {{workspaces}} 唯一嘅擁有者。請先指定另一位成員做擁有者，或者先刪除個工作區。",
+        "wrong_password": "密碼唔正確"
+      },
+      "failed": "刪除帳戶失敗",
+      "password_label": "你嘅密碼",
+      "success": "你嘅帳戶已經刪除",
+      "title": "刪除帳戶"
+    },
     "enable_2fa": {
       "form": {
         "authenticator_code_label": "身份驗證碼",
@@ -1874,6 +1888,15 @@
     "to_email_label": "收件人電郵"
   },
   "settings": {
+    "danger_zone": {
+      "button": "刪除工作區",
+      "description": "刪除呢個工作區會永久刪除入面所有嘢：監控、心跳、狀態頁面同其他內容。你確認之後 7 日先會刪除。佢嘅監控會即時停止，擁有者可以喺嗰日之前取消刪除。",
+      "dialog_description": "呢個操作會喺 7 日後刪除 {{name}} 同入面所有嘢。佢嘅監控會即時停止，你可以喺嗰日之前取消刪除。",
+      "failed": "排程刪除失敗",
+      "name_label": "輸入工作區名稱 {{name}} 確認",
+      "scheduled": "呢個工作區會喺 {{date}} 被刪除。喺嗰日之前佢嘅監控唔會運行。取消刪除就可以還原所有嘢。",
+      "title": "危險區域"
+    },
     "data_retention": {
       "days_label": "日",
       "description": "設定保留資料的天數 (KEEP_DATA_PERIOD_DAYS)。",
@@ -2068,6 +2091,13 @@
     "create_error": "建立工作區失敗",
     "create_first": "建立工作區",
     "creating": "建立緊…",
+    "deletion": {
+      "cancel": "取消刪除",
+      "cancel_failed": "取消刪除失敗",
+      "cancelled": "已取消刪除",
+      "member_message": "呢個工作區會喺 {{date}} 被刪除。佢嘅監控唔會運行，狀態頁面亦無法使用。擁有者可以喺嗰日之前取消刪除。",
+      "message": "呢個工作區會喺 {{date}} 被刪除。佢嘅監控唔會運行，狀態頁面亦無法使用。你可以喺嗰日之前取消刪除。"
+    },
     "enter": "打開工作區",
     "entering": "打開緊…",
     "entry_failed": "工作區已經建立咗，但係打開唔到。請再試一次。",

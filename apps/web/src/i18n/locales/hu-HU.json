@@ -1752,6 +1752,20 @@
     "search_placeholder": "Keresés proxy host alapján..."
   },
   "security": {
+    "delete_account": {
+      "button": "Fiók törlése",
+      "description": "Törli a fiókját, és megszünteti a munkameneteit. Kilép minden munkaterületből, amelynek tagja. Ez nem vonható vissza.",
+      "dialog_description": "A fiókja azonnal törlődik, és kijelentkeztetjük. Kilép minden munkaterületből, amelynek tagja. Ez nem vonható vissza.",
+      "errors": {
+        "last_instance_admin": "Ön a telepítés utolsó példány-adminisztrátora. A fiók törléséhez előbb egy másik példány-adminisztrátorra van szükség.",
+        "last_owner": "Ön a(z) {{workspaces}} egyetlen tulajdonosa. Tegyen tulajdonossá egy másik tagot, vagy előbb törölje a munkaterületet.",
+        "wrong_password": "A jelszó helytelen"
+      },
+      "failed": "A fiók törlése sikertelen",
+      "password_label": "Az Ön jelszava",
+      "success": "A fiókja törölve lett",
+      "title": "Fiók törlése"
+    },
     "enable_2fa": {
       "form": {
         "authenticator_code_label": "Hitelesítő kód",
@@ -1874,6 +1888,15 @@
     "to_email_label": "Címzett e-mail"
   },
   "settings": {
+    "danger_zone": {
+      "button": "Munkaterület törlése",
+      "description": "A munkaterület törlésekor minden végleg törlődik benne: a monitorok, a szívverések, az állapotlapok és a többi. A törlés a megerősítés után 7 nappal történik meg. A monitorai azonnal leállnak, a tulajdonos pedig addig visszavonhatja a törlést.",
+      "dialog_description": "Ez törli a(z) {{name}} munkaterületet és minden tartalmát 7 nap múlva. A monitorai azonnal leállnak, a törlést pedig addig visszavonhatja.",
+      "failed": "A törlés ütemezése sikertelen",
+      "name_label": "A megerősítéshez írja be a munkaterület nevét: {{name}}",
+      "scheduled": "Ez a munkaterület {{date}} napon törlődik. A monitorai addig nem futnak. Vonja vissza a törlést, hogy minden visszatérjen.",
+      "title": "Veszélyzóna"
+    },
     "data_retention": {
       "days_label": "Napok",
       "description": "Állítsa be, hogy hány napig tartsuk a adatokat (KEEP_DATA_PERIOD_DAYS).",
@@ -2068,6 +2091,13 @@
     "create_error": "A munkaterület létrehozása sikertelen",
     "create_first": "Munkaterület létrehozása",
     "creating": "Létrehozás...",
+    "deletion": {
+      "cancel": "Törlés visszavonása",
+      "cancel_failed": "A törlés visszavonása sikertelen",
+      "cancelled": "A törlés visszavonva",
+      "member_message": "Ez a munkaterület {{date}} napon törlődik. A monitorai nem futnak, és az állapotlapjai nem érhetők el. A tulajdonos addig visszavonhatja a törlést.",
+      "message": "Ez a munkaterület {{date}} napon törlődik. A monitorai nem futnak, és az állapotlapjai nem érhetők el. A törlést addig visszavonhatja."
+    },
     "enter": "Munkaterület megnyitása",
     "entering": "Megnyitás...",
     "entry_failed": "A munkaterület létrejött, de a megnyitása nem sikerült. Próbálja újra.",

@@ -1752,6 +1752,20 @@
     "search_placeholder": "Pretraži proxyje po hostu..."
   },
   "security": {
+    "delete_account": {
+      "button": "Obriši račun",
+      "description": "Briše vaš račun i završava vaše sesije. Napuštate sve radne prostore u kojima se nalazite. Ovo se ne može poništiti.",
+      "dialog_description": "Vaš je račun odmah obrisan i odjavljeni ste. Napuštate sve radne prostore u kojima se nalazite. Ovo se ne može poništiti.",
+      "errors": {
+        "last_instance_admin": "Vi ste posljednji administrator instance ove instalacije. Prije brisanja računa potreban je drugi administrator instance.",
+        "last_owner": "Vi ste jedini vlasnik: {{workspaces}}. Postavite drugog člana za vlasnika ili prvo obrišite radni prostor.",
+        "wrong_password": "Lozinka nije ispravna"
+      },
+      "failed": "Brisanje računa nije uspjelo",
+      "password_label": "Vaša lozinka",
+      "success": "Vaš je račun obrisan",
+      "title": "Obriši račun"
+    },
     "enable_2fa": {
       "form": {
         "authenticator_code_label": "Kod za autentifikator",
@@ -1874,6 +1888,15 @@
     "to_email_label": "Primatelj e‑maila"
   },
   "settings": {
+    "danger_zone": {
+      "button": "Obriši radni prostor",
+      "description": "Brisanjem ovog radnog prostora trajno se briše sve u njemu: nadzori, otkucaji, statusne stranice i ostalo. Brisanje se događa 7 dana nakon potvrde. Njegovi se nadzori odmah zaustavljaju, a vlasnik može otkazati brisanje do tada.",
+      "dialog_description": "Ovo briše {{name}} i sve u njemu za 7 dana. Njegovi se nadzori odmah zaustavljaju, a brisanje možete otkazati do tada.",
+      "failed": "Zakazivanje brisanja nije uspjelo",
+      "name_label": "Upišite naziv radnog prostora, {{name}}, za potvrdu",
+      "scheduled": "Ovaj radni prostor bit će obrisan {{date}}. Njegovi nadzori do tada ne rade. Otkažite brisanje da sve vratite.",
+      "title": "Opasna zona"
+    },
     "data_retention": {
       "days_label": "Dana",
       "description": "Postavite koliko dana podaci ostaju pohranjeni (KEEP_DATA_PERIOD_DAYS).",
@@ -2068,6 +2091,13 @@
     "create_error": "Izrada radnog prostora nije uspjela",
     "create_first": "Stvori radni prostor",
     "creating": "Izrada...",
+    "deletion": {
+      "cancel": "Otkaži brisanje",
+      "cancel_failed": "Otkazivanje brisanja nije uspjelo",
+      "cancelled": "Brisanje je otkazano",
+      "member_message": "Ovaj radni prostor bit će obrisan {{date}}. Njegovi nadzori ne rade, a njegove statusne stranice nisu dostupne. Vlasnik može otkazati brisanje do tada.",
+      "message": "Ovaj radni prostor bit će obrisan {{date}}. Njegovi nadzori ne rade, a njegove statusne stranice nisu dostupne. Brisanje možete otkazati do tada."
+    },
     "enter": "Otvori radni prostor",
     "entering": "Otvaranje...",
     "entry_failed": "Radni prostor je izrađen, ali otvaranje nije uspjelo. Pokušajte ponovno.",

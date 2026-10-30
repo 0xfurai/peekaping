@@ -1752,6 +1752,20 @@
     "search_placeholder": "Search proxies by host..."
   },
   "security": {
+    "delete_account": {
+      "button": "Delete account",
+      "description": "Deletes your account and ends your sessions. You leave every workspace you are in. This can't be undone.",
+      "dialog_description": "Your account is deleted at once and you are signed out. You leave every workspace you are in. This can't be undone.",
+      "errors": {
+        "last_instance_admin": "You are the last instance admin of this install. Another instance admin is needed before you can delete your account.",
+        "last_owner": "You are the only owner of {{workspaces}}. Make another member an owner, or delete the workspace first.",
+        "wrong_password": "The password is incorrect"
+      },
+      "failed": "Failed to delete the account",
+      "password_label": "Your password",
+      "success": "Your account was deleted",
+      "title": "Delete account"
+    },
     "enable_2fa": {
       "form": {
         "authenticator_code_label": "Authenticator Code",
@@ -1874,6 +1888,15 @@
     "to_email_label": "To Email"
   },
   "settings": {
+    "danger_zone": {
+      "button": "Delete workspace",
+      "description": "Deleting this workspace deletes everything in it for good: its monitors, heartbeats, status pages and the rest. The deletion happens 7 days after you confirm. Its monitors stop at once, and an owner can cancel the deletion until then.",
+      "dialog_description": "This deletes {{name}} and everything in it, 7 days from now. Its monitors stop at once, and you can cancel the deletion until then.",
+      "failed": "Failed to schedule the deletion",
+      "name_label": "Type the workspace name, {{name}}, to confirm",
+      "scheduled": "This workspace will be deleted on {{date}}. Its monitors don't run until then. Cancel the deletion to bring everything back.",
+      "title": "Danger zone"
+    },
     "data_retention": {
       "days_label": "Days",
       "description": "Set how many days to keep data (KEEP_DATA_PERIOD_DAYS).",
@@ -2068,6 +2091,13 @@
     "create_error": "Failed to create the workspace",
     "create_first": "Create a workspace",
     "creating": "Creating...",
+    "deletion": {
+      "cancel": "Cancel deletion",
+      "cancel_failed": "Failed to cancel the deletion",
+      "cancelled": "Deletion cancelled",
+      "member_message": "This workspace will be deleted on {{date}}. Its monitors don't run, and its status pages are unavailable. An owner can cancel the deletion until then.",
+      "message": "This workspace will be deleted on {{date}}. Its monitors don't run, and its status pages are unavailable. You can cancel the deletion until then."
+    },
     "enter": "Open workspace",
     "entering": "Opening...",
     "entry_failed": "The workspace was created, but opening it failed. Try again.",

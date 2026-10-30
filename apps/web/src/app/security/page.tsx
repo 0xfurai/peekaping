@@ -2,6 +2,7 @@ import Layout from "@/layout";
 import UpdatePassword from "./components/update-password";
 import Enable2FA from "./components/enable-2fa";
 import APIKeys from "./components/api-keys";
+import DeleteAccount from "./components/delete-account";
 import { useAuthStore } from "@/store/auth";
 import {
   Card,
@@ -137,6 +138,8 @@ const SecurityPage = () => {
       )}
 
       {canManageWorkspace && <APIKeys />}
+
+      <DeleteAccount />
     </Layout>
   );
 };

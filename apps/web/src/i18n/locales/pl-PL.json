@@ -1752,6 +1752,20 @@
     "search_placeholder": "Szukaj pośredników według hosta..."
   },
   "security": {
+    "delete_account": {
+      "button": "Usuń konto",
+      "description": "Usuwa Twoje konto i kończy Twoje sesje. Opuszczasz wszystkie obszary robocze, w których jesteś. Tej operacji nie można cofnąć.",
+      "dialog_description": "Twoje konto zostaje usunięte od razu i następuje wylogowanie. Opuszczasz wszystkie obszary robocze, w których jesteś. Tej operacji nie można cofnąć.",
+      "errors": {
+        "last_instance_admin": "Jesteś ostatnim administratorem instancji w tej instalacji. Zanim usuniesz konto, potrzebny jest inny administrator instancji.",
+        "last_owner": "Jesteś jedynym właścicielem: {{workspaces}}. Najpierw ustaw innego członka jako właściciela lub usuń obszar roboczy.",
+        "wrong_password": "Hasło jest nieprawidłowe"
+      },
+      "failed": "Nie udało się usunąć konta",
+      "password_label": "Twoje hasło",
+      "success": "Twoje konto zostało usunięte",
+      "title": "Usuń konto"
+    },
     "enable_2fa": {
       "form": {
         "authenticator_code_label": "Kod uwierzytelniający",
@@ -1874,6 +1888,15 @@
     "to_email_label": "Do e‑mailu"
   },
   "settings": {
+    "danger_zone": {
+      "button": "Usuń obszar roboczy",
+      "description": "Usunięcie tego obszaru roboczego trwale usuwa wszystko, co w nim jest: monitory, heartbeaty, strony statusu i resztę. Usunięcie nastąpi 7 dni po potwierdzeniu. Monitory zatrzymają się od razu, a do tego czasu właściciel może anulować usunięcie.",
+      "dialog_description": "Obszar roboczy {{name}} i wszystko, co w nim jest, zostanie usunięte za 7 dni. Monitory zatrzymają się od razu, a do tego czasu możesz anulować usunięcie.",
+      "failed": "Nie udało się zaplanować usunięcia",
+      "name_label": "Aby potwierdzić, wpisz nazwę obszaru roboczego: {{name}}",
+      "scheduled": "Ten obszar roboczy zostanie usunięty {{date}}. Do tego czasu jego monitory nie działają. Anuluj usunięcie, aby przywrócić wszystko.",
+      "title": "Strefa zagrożenia"
+    },
     "data_retention": {
       "days_label": "Dni",
       "description": "Ustaw, ile dni mają być przechowywane dane (KEEP_DATA_PERIOD_DAYS).",
@@ -2068,6 +2091,13 @@
     "create_error": "Nie udało się utworzyć obszaru roboczego",
     "create_first": "Utwórz przestrzeń roboczą",
     "creating": "Tworzenie...",
+    "deletion": {
+      "cancel": "Anuluj usunięcie",
+      "cancel_failed": "Nie udało się anulować usunięcia",
+      "cancelled": "Usunięcie zostało anulowane",
+      "member_message": "Ten obszar roboczy zostanie usunięty {{date}}. Jego monitory nie działają, a strony statusu są niedostępne. Do tego czasu właściciel może anulować usunięcie.",
+      "message": "Ten obszar roboczy zostanie usunięty {{date}}. Jego monitory nie działają, a strony statusu są niedostępne. Do tego czasu możesz anulować usunięcie."
+    },
     "enter": "Otwórz obszar roboczy",
     "entering": "Otwieranie...",
     "entry_failed": "Obszar roboczy został utworzony, ale nie udało się go otworzyć. Spróbuj ponownie.",

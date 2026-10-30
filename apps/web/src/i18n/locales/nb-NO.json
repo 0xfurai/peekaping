@@ -1752,6 +1752,20 @@
     "search_placeholder": "Søk proxyer etter vert..."
   },
   "security": {
+    "delete_account": {
+      "button": "Slett konto",
+      "description": "Sletter kontoen din og avslutter øktene dine. Du forlater alle arbeidsområder du er med i. Dette kan ikke angres.",
+      "dialog_description": "Kontoen din slettes med en gang, og du blir logget ut. Du forlater alle arbeidsområder du er med i. Dette kan ikke angres.",
+      "errors": {
+        "last_instance_admin": "Du er den siste instansadministratoren på denne installasjonen. Det må finnes en annen instansadministrator før du kan slette kontoen din.",
+        "last_owner": "Du er eneste eier av {{workspaces}}. Gjør et annet medlem til eier, eller slett arbeidsområdet først.",
+        "wrong_password": "Passordet er feil"
+      },
+      "failed": "Kunne ikke slette kontoen",
+      "password_label": "Passordet ditt",
+      "success": "Kontoen din ble slettet",
+      "title": "Slett konto"
+    },
     "enable_2fa": {
       "form": {
         "authenticator_code_label": "Autentiseringskode",
@@ -1874,6 +1888,15 @@
     "to_email_label": "Til e-post"
   },
   "settings": {
+    "danger_zone": {
+      "button": "Slett arbeidsområde",
+      "description": "Når du sletter dette arbeidsområdet, slettes alt i det for godt: overvåkninger, heartbeats, statussider og resten. Slettingen skjer 7 dager etter at du bekrefter. Overvåkningene stopper med en gang, og en eier kan avbryte slettingen fram til da.",
+      "dialog_description": "Dette sletter {{name}} og alt i det, 7 dager fra nå. Overvåkningene stopper med en gang, og du kan avbryte slettingen fram til da.",
+      "failed": "Kunne ikke planlegge slettingen",
+      "name_label": "Skriv inn navnet på arbeidsområdet, {{name}}, for å bekrefte",
+      "scheduled": "Dette arbeidsområdet slettes {{date}}. Overvåkningene kjører ikke før da. Avbryt slettingen for å få alt tilbake.",
+      "title": "Faresone"
+    },
     "data_retention": {
       "days_label": "Dager",
       "description": "Angi hvor mange dager data skal beholdes (KEEP_DATA_PERIOD_DAYS).",
@@ -2068,6 +2091,13 @@
     "create_error": "Kunne ikke opprette arbeidsområdet",
     "create_first": "Opprett et arbeidsområde",
     "creating": "Oppretter...",
+    "deletion": {
+      "cancel": "Avbryt sletting",
+      "cancel_failed": "Kunne ikke avbryte slettingen",
+      "cancelled": "Slettingen er avbrutt",
+      "member_message": "Dette arbeidsområdet slettes {{date}}. Overvåkningene kjører ikke, og statussidene er utilgjengelige. En eier kan avbryte slettingen fram til da.",
+      "message": "Dette arbeidsområdet slettes {{date}}. Overvåkningene kjører ikke, og statussidene er utilgjengelige. Du kan avbryte slettingen fram til da."
+    },
     "enter": "Åpne arbeidsområde",
     "entering": "Åpner...",
     "entry_failed": "Arbeidsområdet ble opprettet, men det kunne ikke åpnes. Prøv igjen.",

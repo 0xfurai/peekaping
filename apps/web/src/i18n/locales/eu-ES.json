@@ -1752,6 +1752,20 @@
     "search_placeholder": "Bilatu proxieak hostean..."
   },
   "security": {
+    "delete_account": {
+      "button": "Ezabatu kontua",
+      "description": "Zure kontua ezabatzen du eta zure saioak amaitzen ditu. Zauden lan-eremu guztietatik irteten zara. Ezin da desegin.",
+      "dialog_description": "Zure kontua berehala ezabatzen da eta saioa amaitzen da. Zauden lan-eremu guztietatik irteten zara. Ezin da desegin.",
+      "errors": {
+        "last_instance_admin": "Zu zara instalazio honen azken administratzailea. Beste instalazio-administratzaile bat behar da zure kontua ezabatu aurretik.",
+        "last_owner": "Zu zara hauen jabe bakarra: {{workspaces}}. Egin jabe beste kide bat, edo ezabatu lehenengo lan-eremua.",
+        "wrong_password": "Pasahitza okerra da"
+      },
+      "failed": "Ezin izan da kontua ezabatu",
+      "password_label": "Zure pasahitza",
+      "success": "Zure kontua ezabatu da",
+      "title": "Ezabatu kontua"
+    },
     "enable_2fa": {
       "form": {
         "authenticator_code_label": "Autentifikatzaile kodea",
@@ -1874,6 +1888,15 @@
     "to_email_label": "Helbide elektronikoa"
   },
   "settings": {
+    "danger_zone": {
+      "button": "Ezabatu lan-eremua",
+      "description": "Lan-eremu hau ezabatzean, barruko guztia betiko ezabatzen da: monitoreak, taupadak, egoera orriak eta gainerakoa. Ezabaketa baieztatu eta 7 egunera gertatzen da. Bere monitoreak berehala gelditzen dira, eta jabe batek ordura arte ezeztatu dezake ezabaketa.",
+      "dialog_description": "Honek {{name}} eta barruko guztia ezabatzen ditu, hemendik 7 egunera. Bere monitoreak berehala gelditzen dira, eta ezabaketa ordura arte ezeztatu dezakezu.",
+      "failed": "Ezin izan da ezabaketa programatu",
+      "name_label": "Baieztatzeko, idatzi lan-eremuaren izena: {{name}}",
+      "scheduled": "Lan-eremu hau ezabatuko da: {{date}}. Ordura arte, bere monitoreak ez dira exekutatzen. Ezeztatu ezabaketa dena berreskuratzeko.",
+      "title": "Arrisku-eremua"
+    },
     "data_retention": {
       "days_label": "Egunak",
       "description": "Ezarri zenbat egun data mantendu (KEEP_DATA_PERIOD_DAYS).",
@@ -2068,6 +2091,13 @@
     "create_error": "Ezin izan da lan-eremua sortu",
     "create_first": "Sortu lan-eremu bat",
     "creating": "Sortzen...",
+    "deletion": {
+      "cancel": "Ezeztatu ezabaketa",
+      "cancel_failed": "Ezin izan da ezabaketa ezeztatu",
+      "cancelled": "Ezabaketa ezeztatu da",
+      "member_message": "Lan-eremu hau ezabatuko da: {{date}}. Bere monitoreak ez dira exekutatzen eta bere egoera orriak ez daude erabilgarri. Jabe batek ordura arte ezeztatu dezake ezabaketa.",
+      "message": "Lan-eremu hau ezabatuko da: {{date}}. Bere monitoreak ez dira exekutatzen eta bere egoera orriak ez daude erabilgarri. Ezabaketa ordura arte ezeztatu dezakezu."
+    },
     "enter": "Ireki lan-eremua",
     "entering": "Irekitzen...",
     "entry_failed": "Lan-eremua sortu da, baina ezin izan da ireki. Saiatu berriro.",
