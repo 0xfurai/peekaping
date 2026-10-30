@@ -131,14 +131,29 @@ func (ac *AuthChain) resolveWorkspace(w http.ResponseWriter, r *http.Request) (w
 	named = strings.ToLower(named)
 
 	if httpx.Value(r.Context(), "authType") == "api_key" {
-		own, _ := httpx.Value(r.Context(), "apiKeyWorkspaceId").(workspace.ID)
-		if own == "" || (hasHeader && named != strings.ToLower(string(own))) {
+		own, ok := apiKeyWorkspace(r, hasHeader, named)
+		if !ok {
 			ac.notFound(w, r)
 			return "", "", false
 		}
 		return own, workspace.RoleAdmin, true
 	}
 
+	return ac.memberWorkspace(w, r, hasHeader, named)
+}
+
+// apiKeyWorkspace is the workspace an API key runs in: its own, unless the request names another
+func apiKeyWorkspace(r *http.Request, hasHeader bool, named string) (workspace.ID, bool) {
+	own, _ := httpx.Value(r.Context(), "apiKeyWorkspaceId").(workspace.ID)
+	if own == "" || (hasHeader && named != strings.ToLower(string(own))) {
+		return "", false
+	}
+	return own, true
+}
+
+// memberWorkspace is the workspace a signed-in user runs in, with their role there: the one the
+// header names, or their first. It answers the request itself and returns false when there is none.
+func (ac *AuthChain) memberWorkspace(w http.ResponseWriter, r *http.Request, hasHeader bool, named string) (workspace.ID, workspace.Role, bool) {
 	userID, _ := httpx.Value(r.Context(), "userId").(string)
 	places, err := ac.workspaces.ListMemberships(r.Context(), userID)
 	if err != nil {
