@@ -100,6 +100,25 @@ func TestTrySystemPing_PassesThePacketSizeAndTimeout(t *testing.T) {
 	assert.Equal(t, want, string(args))
 }
 
+func TestSystemPingArgs(t *testing.T) {
+	timeout := 2500 * time.Millisecond
+
+	tests := []struct {
+		goos string
+		want []string
+	}{
+		{"windows", []string{"-n", "1", "-l", "56", "-w", "2500", "192.0.2.1"}},
+		{"darwin", []string{"-c", "1", "-s", "56", "-W", "2500", "192.0.2.1"}},
+		{"linux", []string{"-c", "1", "-s", "56", "-W", "2", "192.0.2.1"}},
+		{"freebsd", []string{"-c", "1", "-s", "56", "-W", "2", "192.0.2.1"}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.goos, func(t *testing.T) {
+			assert.Equal(t, tt.want, systemPingArgs(tt.goos, "192.0.2.1", 56, timeout))
+		})
+	}
+}
+
 func TestPingExecutor_Execute_UnresolvableHost(t *testing.T) {
 	result := NewPingExecutor(zap.NewNop().Sugar()).Execute(context.Background(), pingMonitor("no-such-host.invalid", 2), nil)
 
