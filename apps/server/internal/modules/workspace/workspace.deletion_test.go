@@ -130,3 +130,32 @@ func TestRepository_DeleteDueDeletesOnlyAWorkspaceWhoseDateHasCome(t *testing.T)
 		assert.Nil(t, found)
 	})
 }
+
+// cancelledMidSchedule is a workspace repository on which an owner's cancel commits between the
+// scheduling UPDATE and the read that follows it: ScheduleDeletion answers a workspace with no date.
+type cancelledMidSchedule struct{ workspace.Repository }
+
+func (r cancelledMidSchedule) ScheduleDeletion(ctx context.Context, id workspace.ID, at time.Time) (*workspace.Workspace, bool, error) {
+	_, changed, err := r.Repository.ScheduleDeletion(ctx, id, at)
+	if err != nil {
+		return nil, false, err
+	}
+	if _, _, err := r.Repository.CancelDeletion(ctx, id); err != nil {
+		return nil, false, err
+	}
+	found, err := r.Repository.FindByID(ctx, id)
+	return found, changed, err
+}
+
+func TestService_ScheduleDeletion_ACancelAtTheSameMomentAnswersNotScheduledNotACrash(t *testing.T) {
+	forEachBackend(t, func(t *testing.T, db *bun.DB, repo workspace.Repository) {
+		created, err := repo.Create(context.Background(), "Acme")
+		require.NoError(t, err)
+		service := newServiceOver(db, cancelledMidSchedule{Repository: repo}, workspace.NewSQLMemberRepository(db), workspace.NewSQLInviteRepository(db), "")
+
+		at, err := service.ScheduleDeletion(workspace.WithContext(context.Background(), created.ID, workspace.RoleOwner), "", "Acme")
+
+		assert.ErrorIs(t, err, workspace.ErrDeletionNotScheduled)
+		assert.True(t, at.IsZero())
+	})
+}
