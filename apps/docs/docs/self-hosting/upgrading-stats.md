@@ -43,7 +43,7 @@ Minute and hour row counts become bounded once cleanup catches up. Day stats con
 
 ## Reclaiming SQLite disk space
 
-Deleting old rows frees pages for SQLite to reuse, but the database file does not shrink automatically. Reclaiming disk space is optional; future writes can reuse those pages. This procedure also reclaims space freed by heartbeat cleanup or dropped indexes.
+Deleting old rows frees pages for SQLite to reuse. A database created before incremental auto-vacuum was applied does not shrink automatically, while a newer one returns its free pages to the filesystem at a graceful shutdown (see [Convert an existing database to incremental auto-vacuum](#convert-an-existing-database-to-incremental-auto-vacuum)). Reclaiming disk space is optional; future writes can reuse those pages. This procedure also reclaims space freed by heartbeat cleanup or dropped indexes.
 
 1. After upgrading, let the hourly cleanup finish. Check the API logs for a successful `Deleted expired stats` entry. Running `VACUUM` before cleanup finishes will leave the expired rows in the file.
 2. Stop every Peekaping process and replica that accesses this database again, including any migration process. For the single-mode example, use `docker stop peekaping`. For Compose, stop the entire Peekaping deployment with its own Compose file. Keep it stopped until verification finishes. Checks and the API are unavailable during this maintenance.
