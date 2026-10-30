@@ -402,6 +402,27 @@ var goldenCases = []goldenCase{
 	{name: "pushbullet_certificate_expiry", sender: pushbullet, event: certExpiryEvent,
 		config: `{"pushbullet_access_token": "o.pushbullet"}`},
 
+	{name: "pushbullet_pending", sender: pushbullet, event: pendingEvent,
+		config: `{"pushbullet_access_token": "o.pushbullet"}`},
+	{name: "pushbullet_maintenance", sender: pushbullet,
+		notify: notifying("Planned work", goldenMonitor, goldenHeartbeatWith(goldenDown, func(hb *heartbeat.Model) { hb.Status = shared.MonitorStatusMaintenance })),
+		config: `{"pushbullet_access_token": "o.pushbullet"}`},
+	{name: "pushbullet_unknown_status", sender: pushbullet,
+		notify: notifying("Odd status", goldenMonitor, goldenHeartbeatWith(goldenDown, func(hb *heartbeat.Model) { hb.Status = 9 })),
+		config: `{"pushbullet_access_token": "o.pushbullet"}`},
+	{name: "pushbullet_down_without_monitor", sender: pushbullet, event: downWithoutMonitorEvent,
+		config: `{"pushbullet_access_token": "o.pushbullet"}`},
+	{name: "pushbullet_down_without_message", sender: pushbullet,
+		notify: notifying("", goldenMonitor, goldenDown),
+		config: `{"pushbullet_access_token": "o.pushbullet"}`},
+	// A template that can't be rendered gives way to the default body
+	{name: "pushbullet_invalid_template_down", sender: pushbullet, event: downEvent,
+		config: `{"pushbullet_access_token": "o.pushbullet", "pushbullet_custom_template": "{{ name | nofilter }}"}`},
+	{name: "pushbullet_device_only_down", sender: pushbullet, event: downEvent,
+		config: `{"pushbullet_access_token": "o.pushbullet", "pushbullet_device_id": "device-1"}`},
+	{name: "pushbullet_channel_tag_only_down", sender: pushbullet, event: downEvent,
+		config: `{"pushbullet_access_token": "o.pushbullet", "pushbullet_channel_tag": "ops"}`},
+
 	{name: "pushover_down", sender: pushover, event: downEvent,
 		config: `{"pushover_user_key": "user-key", "pushover_app_token": "app-token", "pushover_priority": 1, "pushover_sounds": "siren", "pushover_sounds_up": "magic"}`},
 	{name: "pushover_up", sender: pushover, event: upEvent,
@@ -409,10 +430,25 @@ var goldenCases = []goldenCase{
 	{name: "pushover_certificate_expiry", sender: pushover, event: certExpiryEvent,
 		config: `{"pushover_user_key": "user-key", "pushover_app_token": "app-token"}`},
 
+	{name: "pushover_up_without_sound_for_up", sender: pushover, event: upEvent,
+		config: `{"pushover_user_key": "user-key", "pushover_app_token": "app-token", "pushover_sounds": "siren"}`},
+	{name: "pushover_down_without_monitor", sender: pushover, event: downWithoutMonitorEvent,
+		config: `{"pushover_user_key": "user-key", "pushover_app_token": "app-token"}`},
+	{name: "pushover_down_monitor_without_name", sender: pushover,
+		notify: notifying(goldenDown.Msg, goldenMonitorWith(func(m *monitor.Model) { m.Name = "" }), goldenDown),
+		config: `{"pushover_user_key": "user-key", "pushover_app_token": "app-token"}`},
+
 	{name: "sendgrid_down", sender: sendGrid, event: downEvent,
 		config: `{"api_key": "SG.key", "from_email": "alerts@example.com", "to_email": "oncall@example.com", "cc_email": "a@example.com, b@example.com", "bcc_email": "c@example.com", "subject": "{{ name }} is {{ status }}"}`},
 	{name: "sendgrid_certificate_expiry", sender: sendGrid, event: certExpiryEvent,
 		config: `{"api_key": "SG.key", "from_email": "alerts@example.com", "to_email": "oncall@example.com"}`},
+
+	// A template that can't be rendered gives way to the default subject
+	{name: "sendgrid_invalid_subject_down", sender: sendGrid, event: downEvent,
+		config: `{"api_key": "SG.key", "from_email": "alerts@example.com", "to_email": "oncall@example.com", "subject": "{{ name | nofilter }}"}`},
+	// Blank entries of the recipient lists are left out
+	{name: "sendgrid_blank_recipients_down", sender: sendGrid, event: downEvent,
+		config: `{"api_key": "SG.key", "from_email": "alerts@example.com", "to_email": "oncall@example.com", "cc_email": " , a@example.com,, ", "bcc_email": " , "}`},
 
 	{name: "signal_down", sender: signal, event: downEvent,
 		config: `{"signal_url": "https://signal.example.com/v2/send", "signal_number": "+15550000001", "signal_recipients": "+15550000002, +15550000003"}`},
