@@ -2,6 +2,7 @@ package executor
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"net"
 	"peekaping/internal/modules/shared"
@@ -86,4 +87,20 @@ func TestSMTPExecutor_Execute_ResultMessages(t *testing.T) {
 			assert.False(t, result.EndTime.Before(result.StartTime))
 		})
 	}
+}
+
+// The mock server's certificate is self-signed, so no check here ends with a verified chain: the
+// certificate's expiry is added to the message only for one.
+func TestSMTPCheck_SuccessMessage_CertificateExpiry(t *testing.T) {
+	verified := &shared.TLSInfo{Valid: true, CertInfo: &shared.CertificateInfo{DaysRemaining: 12}}
+	unverified := &shared.TLSInfo{Valid: false, CertInfo: &shared.CertificateInfo{DaysRemaining: 12}}
+
+	assert.Equal(t, "SMTP server is reachable, Certificate expires in 12 days",
+		(&smtpCheck{config: &SMTPConfig{}, tlsInfo: verified}).successMessage())
+	assert.Equal(t, "SMTP server is reachable (TLS + Auth), Open relay rejected (secure), Certificate expires in 12 days",
+		(&smtpCheck{config: &SMTPConfig{TestOpenRelay: true}, tlsConfig: &tls.Config{}, authenticated: true, tlsInfo: verified}).successMessage())
+	assert.Equal(t, "SMTP server is reachable (TLS)",
+		(&smtpCheck{config: &SMTPConfig{}, tlsConfig: &tls.Config{}, tlsInfo: unverified}).successMessage())
+	assert.Equal(t, "SMTP server is reachable",
+		(&smtpCheck{config: &SMTPConfig{}, tlsInfo: &shared.TLSInfo{Valid: true}}).successMessage())
 }
