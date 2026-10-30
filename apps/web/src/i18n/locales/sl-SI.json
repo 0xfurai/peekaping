@@ -1952,6 +1952,7 @@
       "choose": "Izberi datoteko",
       "not_json": "Ta datoteka ni veljaven JSON, zato ni bilo poslano nič.",
       "too_large": "Ta datoteka je večja od 16 MB, kolikor uvoz največ sprejme, zato ni bilo poslano nič.",
+      "unreadable": "Te datoteke ni mogoče prebrati. Izberite jo znova ali preverite, ali še obstaja.",
       "confirm_title": "Želite uvoziti {{file}}?",
       "confirm_description": "Njeni zapisi se dodajo ob že obstoječih v tem delovnem prostoru. Nič se ne zamenja, če pa isto datoteko uvozite dvakrat, se zapisi dodajo dvakrat. Monitorji začnejo delovati takoj, ko so dodani.",
       "confirm_button": "Uvozi",

@@ -1952,6 +1952,7 @@
       "choose": "Pilih file",
       "not_json": "File ini bukan JSON yang valid, jadi tidak ada yang dikirim.",
       "too_large": "File ini lebih besar dari 16 MB, batas maksimum untuk impor, jadi tidak ada yang dikirim.",
+      "unreadable": "File ini tidak dapat dibaca. Pilih lagi, atau pastikan file tersebut masih ada.",
       "confirm_title": "Impor {{file}}?",
       "confirm_description": "Datanya ditambahkan berdampingan dengan yang sudah ada di ruang kerja ini. Tidak ada yang diganti, dan mengimpor file yang sama dua kali akan menambahkannya dua kali. Monitor mulai berjalan segera setelah ditambahkan.",
       "confirm_button": "Impor",

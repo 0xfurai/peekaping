@@ -1952,6 +1952,7 @@
       "choose": "Fájl kiválasztása",
       "not_json": "A fájl nem érvényes JSON, ezért semmi sem lett elküldve.",
       "too_large": "A fájl nagyobb 16 MB-nál, ez az importálás felső határa, ezért semmi sem lett elküldve.",
+      "unreadable": "Ez a fájl nem olvasható. Válassza ki újra, vagy ellenőrizze, hogy még létezik-e.",
       "confirm_title": "Importálja a(z) {{file}} fájlt?",
       "confirm_description": "A rekordjai a munkaterületen már meglévők mellé kerülnek. Semmi sem cserélődik le, és ugyanazt a fájlt kétszer importálva kétszer kerülnek be. A monitorok a hozzáadásuk után azonnal futni kezdenek.",
       "confirm_button": "Importálás",

@@ -1952,6 +1952,7 @@
       "choose": "Wybierz plik",
       "not_json": "Ten plik nie jest prawidłowym plikiem JSON, więc nic nie zostało wysłane.",
       "too_large": "Ten plik jest większy niż 16 MB, czyli maksimum dla importu, więc nic nie zostało wysłane.",
+      "unreadable": "Nie można odczytać tego pliku. Wybierz go ponownie lub sprawdź, czy nadal istnieje.",
       "confirm_title": "Zaimportować {{file}}?",
       "confirm_description": "Jego rekordy zostaną dodane obok tych, które już są w tym obszarze roboczym. Nic nie jest zastępowane, a dwukrotny import tego samego pliku doda je dwa razy. Monitory zaczynają działać, gdy tylko zostaną dodane.",
       "confirm_button": "Importuj",

@@ -1952,6 +1952,7 @@
       "choose": "Chọn tệp",
       "not_json": "Tệp này không phải JSON hợp lệ nên chưa có gì được gửi.",
       "too_large": "Tệp này lớn hơn 16 MB, mức tối đa mà việc nhập chấp nhận, nên chưa có gì được gửi.",
+      "unreadable": "Không thể đọc tệp này. Hãy chọn lại, hoặc kiểm tra xem tệp còn tồn tại không.",
       "confirm_title": "Nhập {{file}}?",
       "confirm_description": "Các bản ghi của tệp được thêm cạnh những bản ghi đã có trong không gian làm việc này. Không có gì bị thay thế, và nhập cùng một tệp hai lần sẽ thêm chúng hai lần. Các giám sát bắt đầu chạy ngay khi được thêm.",
       "confirm_button": "Nhập",

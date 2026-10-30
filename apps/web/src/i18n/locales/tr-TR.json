@@ -1952,6 +1952,7 @@
       "choose": "Dosya seç",
       "not_json": "Bu dosya geçerli bir JSON değil, bu yüzden hiçbir şey gönderilmedi.",
       "too_large": "Bu dosya, bir içe aktarmanın kabul ettiği en yüksek boyut olan 16 MB'tan büyük, bu yüzden hiçbir şey gönderilmedi.",
+      "unreadable": "Bu dosya okunamıyor. Yeniden seçin veya hâlâ var olup olmadığını kontrol edin.",
       "confirm_title": "{{file}} içe aktarılsın mı?",
       "confirm_description": "Dosyadaki kayıtlar bu çalışma alanındakilerin yanına eklenir. Hiçbir şey değiştirilmez ve aynı dosyayı iki kez içe aktarırsanız kayıtlar iki kez eklenir. İzleyiciler eklenir eklenmez çalışmaya başlar.",
       "confirm_button": "İçe aktar",

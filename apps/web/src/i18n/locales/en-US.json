@@ -1952,6 +1952,7 @@
       "choose": "Choose a file",
       "not_json": "This file is not valid JSON, so nothing was sent.",
       "too_large": "This file is larger than 16 MB, the most an import takes, so nothing was sent.",
+      "unreadable": "This file can't be read. Choose it again, or check that it still exists.",
       "confirm_title": "Import {{file}}?",
       "confirm_description": "Its records are added beside the ones already in this workspace. Nothing is replaced, and importing the same file twice adds them twice. Monitors start running as soon as they are added.",
       "confirm_button": "Import",

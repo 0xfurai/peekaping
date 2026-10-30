@@ -1952,6 +1952,7 @@
       "choose": "Aukeratu fitxategi bat",
       "not_json": "Fitxategi hau ez da baliozko JSON bat, beraz ez da ezer bidali.",
       "too_large": "Fitxategi hau 16 MB baino handiagoa da, inportazioak onartzen duen gehienekoa, beraz ez da ezer bidali.",
+      "unreadable": "Fitxategi hau ezin da irakurri. Aukeratu berriro, edo egiaztatu oraindik badagoela.",
       "confirm_title": "{{file}} inportatu?",
       "confirm_description": "Bere erregistroak lan-eremu honetan dauden erregistroen ondoan gehitzen dira. Ez da ezer ordezkatzen, eta fitxategi bera bi aldiz inportatzeak bi aldiz gehitzen ditu. Monitoreak gehitu bezain laster hasten dira exekutatzen.",
       "confirm_button": "Inportatu",

@@ -1952,6 +1952,7 @@
       "choose": "Välj en fil",
       "not_json": "Filen är inte giltig JSON, så inget skickades.",
       "too_large": "Filen är större än 16 MB, det mesta en import tar emot, så inget skickades.",
+      "unreadable": "Filen kan inte läsas. Välj den igen eller kontrollera att den fortfarande finns.",
       "confirm_title": "Importera {{file}}?",
       "confirm_description": "Dess poster läggs till vid sidan av de som redan finns i den här arbetsytan. Inget ersätts, och om du importerar samma fil två gånger läggs de till två gånger. Övervakningar börjar köras så fort de läggs till.",
       "confirm_button": "Importera",

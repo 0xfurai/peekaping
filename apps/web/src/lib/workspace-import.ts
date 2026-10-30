@@ -11,7 +11,7 @@ export const MAX_IMPORT_BYTES = 16 * 1024 * 1024;
 
 export type ReadImportFile =
   | { ok: true; document: WorkspaceportDocument }
-  | { ok: false; reason: "too_large" | "not_json" };
+  | { ok: false; reason: "too_large" | "not_json" | "unreadable" };
 
 const isObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
@@ -31,7 +31,9 @@ const parseObject = (text: string): Record<string, unknown> | undefined => {
  */
 export const readImportFile = async (file: Pick<File, "size" | "text">): Promise<ReadImportFile> => {
   if (file.size > MAX_IMPORT_BYTES) return { ok: false, reason: "too_large" };
-  const document = parseObject(await file.text());
+  const text = await file.text().catch(() => undefined);
+  if (text === undefined) return { ok: false, reason: "unreadable" };
+  const document = parseObject(text);
   return document ? { ok: true, document } : { ok: false, reason: "not_json" };
 };
 

@@ -1952,6 +1952,7 @@
       "choose": "Datei auswählen",
       "not_json": "Diese Datei ist kein gültiges JSON, daher wurde nichts gesendet.",
       "too_large": "Diese Datei ist grösser als 16 MB, dem Maximum für einen Import, daher wurde nichts gesendet.",
+      "unreadable": "Diese Datei kann nicht gelesen werden. Wähle sie erneut aus oder prüfe, ob sie noch vorhanden ist.",
       "confirm_title": "{{file}} importieren?",
       "confirm_description": "Die Datensätze der Datei werden neben die bereits in diesem Arbeitsbereich vorhandenen eingefügt. Nichts wird ersetzt, und wenn du dieselbe Datei zweimal importierst, werden sie zweimal hinzugefügt. Monitore laufen los, sobald sie hinzugefügt sind.",
       "confirm_button": "Importieren",

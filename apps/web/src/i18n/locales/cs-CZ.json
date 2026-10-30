@@ -1952,6 +1952,7 @@
       "choose": "Vybrat soubor",
       "not_json": "Tento soubor není platný JSON, proto se nic neodeslalo.",
       "too_large": "Tento soubor je větší než 16 MB, což je maximum, které import přijme, proto se nic neodeslalo.",
+      "unreadable": "Tento soubor nelze přečíst. Vyberte ho znovu nebo zkontrolujte, zda stále existuje.",
       "confirm_title": "Importovat {{file}}?",
       "confirm_description": "Jeho záznamy se přidají vedle těch, které už v tomto pracovním prostoru jsou. Nic se nenahrazuje a import téhož souboru dvakrát je přidá dvakrát. Monitory se spustí, jakmile jsou přidány.",
       "confirm_button": "Importovat",

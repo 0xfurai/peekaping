@@ -1951,6 +1951,7 @@
       "choose": "Roghnaigh comhad",
       "not_json": "Ní JSON bailí é an comhad seo, mar sin níor seoladh aon rud.",
       "too_large": "Tá an comhad seo níos mó ná 16 MB, an t-uasmhéid a ghlacann iompórtáil, mar sin níor seoladh aon rud.",
+      "unreadable": "Ní féidir an comhad seo a léamh. Roghnaigh arís é, nó seiceáil go bhfuil sé ann fós.",
       "confirm_title": "An bhfuil tú ag iompórtáil {{file}}?",
       "confirm_description": "Cuirtear a thaifid taobh leo siúd atá sa spás oibre seo cheana. Ní chuirtear aon rud in ionad rud ar bith, agus má iompórtálann tú an comhad céanna faoi dhó, cuirtear faoi dhó iad. Tosaíonn na monatóirí ag rith chomh luath agus a chuirtear leis iad.",
       "confirm_button": "Iompórtáil",

@@ -1952,6 +1952,7 @@
       "choose": "Vælg en fil",
       "not_json": "Filen er ikke gyldig JSON, så intet blev sendt.",
       "too_large": "Filen er større end 16 MB, det mest en import tager, så intet blev sendt.",
+      "unreadable": "Filen kan ikke læses. Vælg den igen, eller kontroller, at den stadig findes.",
       "confirm_title": "Importér {{file}}?",
       "confirm_description": "Dens poster tilføjes ved siden af dem, der allerede er i dette arbejdsområde. Intet bliver erstattet, og hvis du importerer den samme fil to gange, tilføjes de to gange. Monitorer begynder at køre, så snart de er tilføjet.",
       "confirm_button": "Importér",

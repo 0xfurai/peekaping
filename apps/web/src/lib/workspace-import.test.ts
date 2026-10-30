@@ -134,6 +134,11 @@ describe("readImportFile", () => {
     expect(await readImportFile(file('"text"'))).toEqual({ ok: false, reason: "not_json" });
   });
 
+  it("refuses a file the browser can't read", async () => {
+    const gone = { size: 10, text: async () => Promise.reject(new DOMException("gone", "NotReadableError")) };
+    expect(await readImportFile(gone)).toEqual({ ok: false, reason: "unreadable" });
+  });
+
   it("refuses a file over the server's limit without reading it", async () => {
     let read = false;
     const big = { size: MAX_IMPORT_BYTES + 1, text: async () => ((read = true), "{}") };

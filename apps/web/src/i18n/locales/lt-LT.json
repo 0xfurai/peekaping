@@ -1952,6 +1952,7 @@
       "choose": "Pasirinkti failą",
       "not_json": "Šis failas nėra tinkamas JSON, todėl nieko nesiųsta.",
       "too_large": "Šis failas didesnis nei 16 MB – tiek daugiausia priima importas, todėl nieko nesiųsta.",
+      "unreadable": "Šio failo nepavyksta perskaityti. Pasirinkite jį iš naujo arba patikrinkite, ar jis vis dar yra.",
       "confirm_title": "Importuoti {{file}}?",
       "confirm_description": "Jo įrašai pridedami šalia jau esančių šioje darbo erdvėje. Niekas nepakeičiama, o importavus tą patį failą du kartus, jie pridedami du kartus. Monitoriai pradeda veikti iškart, kai tik pridedami.",
       "confirm_button": "Importuoti",

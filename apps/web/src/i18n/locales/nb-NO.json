@@ -1952,6 +1952,7 @@
       "choose": "Velg en fil",
       "not_json": "Filen er ikke gyldig JSON, så ingenting ble sendt.",
       "too_large": "Filen er større enn 16 MB, som er det meste en import tar imot, så ingenting ble sendt.",
+      "unreadable": "Filen kan ikke leses. Velg den på nytt, eller sjekk at den fortsatt finnes.",
       "confirm_title": "Importere {{file}}?",
       "confirm_description": "Postene legges til ved siden av de som allerede er i dette arbeidsområdet. Ingenting erstattes, og importerer du samme fil to ganger, legges de til to ganger. Monitorer begynner å kjøre så snart de er lagt til.",
       "confirm_button": "Importer",

@@ -1952,6 +1952,7 @@
       "choose": "Valitse tiedosto",
       "not_json": "Tiedosto ei ole kelvollista JSONia, joten mitään ei lähetetty.",
       "too_large": "Tiedosto on suurempi kuin 16 MB, joka on tuonnin enimmäiskoko, joten mitään ei lähetetty.",
+      "unreadable": "Tiedostoa ei voi lukea. Valitse se uudelleen tai tarkista, että se on yhä olemassa.",
       "confirm_title": "Tuodaanko {{file}}?",
       "confirm_description": "Sen tietueet lisätään tässä työtilassa jo olevien rinnalle. Mitään ei korvata, ja saman tiedoston tuominen kahdesti lisää ne kahdesti. Valvonnat alkavat toimia heti, kun ne on lisätty.",
       "confirm_button": "Tuo",

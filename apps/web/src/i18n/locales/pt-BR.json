@@ -1952,6 +1952,7 @@
       "choose": "Escolher um arquivo",
       "not_json": "Este arquivo não é um JSON válido, então nada foi enviado.",
       "too_large": "Este arquivo é maior que 16 MB, o máximo que uma importação aceita, então nada foi enviado.",
+      "unreadable": "Não foi possível ler este arquivo. Escolha-o novamente ou verifique se ele ainda existe.",
       "confirm_title": "Importar {{file}}?",
       "confirm_description": "Os registros dele são adicionados ao lado dos que já estão neste espaço de trabalho. Nada é substituído, e importar o mesmo arquivo duas vezes os adiciona duas vezes. Os monitores começam a rodar assim que são adicionados.",
       "confirm_button": "Importar",

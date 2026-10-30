@@ -1952,6 +1952,7 @@
       "choose": "Kies een bestand",
       "not_json": "Dit bestand is geen geldige JSON, dus er is niets verzonden.",
       "too_large": "Dit bestand is groter dan 16 MB, het maximum voor een import, dus er is niets verzonden.",
+      "unreadable": "Dit bestand kan niet worden gelezen. Kies het opnieuw of controleer of het nog bestaat.",
       "confirm_title": "{{file}} importeren?",
       "confirm_description": "De records worden toegevoegd naast de records die al in deze werkruimte staan. Er wordt niets vervangen, en als je hetzelfde bestand twee keer importeert, worden ze twee keer toegevoegd. Monitors gaan draaien zodra ze zijn toegevoegd.",
       "confirm_button": "Importeren",

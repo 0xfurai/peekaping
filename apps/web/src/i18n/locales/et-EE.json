@@ -1952,6 +1952,7 @@
       "choose": "Vali fail",
       "not_json": "See fail ei ole kehtiv JSON, seega ei saadetud midagi.",
       "too_large": "See fail on suurem kui 16 MB, mis on impordi lubatud maksimum, seega ei saadetud midagi.",
+      "unreadable": "Seda faili ei saa lugeda. Valige see uuesti või kontrollige, et see on veel olemas.",
       "confirm_title": "Kas importida {{file}}?",
       "confirm_description": "Selle kirjed lisatakse selles tööruumis juba olemasolevate kõrvale. Midagi ei asendata ja sama faili kaks korda importimine lisab need kaks korda. Monitoorid hakkavad tööle kohe, kui need on lisatud.",
       "confirm_button": "Impordi",

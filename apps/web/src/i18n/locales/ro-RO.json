@@ -1951,6 +1951,7 @@
       "choose": "Alege un fișier",
       "not_json": "Acest fișier nu este un JSON valid, așa că nu s-a trimis nimic.",
       "too_large": "Acest fișier este mai mare de 16 MB, maximul pe care îl acceptă un import, așa că nu s-a trimis nimic.",
+      "unreadable": "Acest fișier nu poate fi citit. Alegeți-l din nou sau verificați dacă mai există.",
       "confirm_title": "Importați {{file}}?",
       "confirm_description": "Înregistrările lui sunt adăugate lângă cele deja existente în acest spațiu de lucru. Nimic nu este înlocuit, iar importul aceluiași fișier de două ori le adaugă de două ori. Monitoarele încep să ruleze imediat ce sunt adăugate.",
       "confirm_button": "Importă",
