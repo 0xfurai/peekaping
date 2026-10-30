@@ -43,6 +43,11 @@ type Repository interface {
 	// PostgreSQL it holds the workspace's row first, so that a monitor or a member added at the same
 	// time is not missed in what it returns: the insert waits, and is refused once the row is gone.
 	Delete(ctx context.Context, id ID) (*Deleted, error)
+	// DeleteDue is Delete for a workspace whose scheduled deletion is due at now: the workspace is
+	// deleted only if DeletionScheduledAt is set and not after now when its row is locked, so that
+	// an owner's cancellation (or a new schedule) since the cleanup job listed it is respected. It
+	// returns nil when the workspace is gone or not due.
+	DeleteDue(ctx context.Context, id ID, now time.Time) (*Deleted, error)
 	// ScheduleDeletion holds the workspace for deletion at the time: it sets DeletionScheduledAt
 	// unless a deletion is scheduled already, and then keeps its date. It returns the workspace as it
 	// is now, nil when there is none with the ID, and whether this call scheduled it. The hold is
