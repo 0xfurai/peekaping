@@ -38,44 +38,59 @@ type configField struct {
 // the struct the provider's Unmarshal returns. It returns nothing for a nil provider (an unknown
 // channel type) or a provider that has no config struct.
 func configFields(provider NotificationChannelProvider) []configField {
-	if provider == nil {
-		return nil
-	}
-	cfg, err := provider.Unmarshal("{}")
-	if err != nil || cfg == nil {
-		return nil
-	}
-	t := reflect.TypeOf(cfg)
-	for t.Kind() == reflect.Pointer {
-		t = t.Elem()
-	}
-	if t.Kind() != reflect.Struct {
+	t, ok := configType(provider)
+	if !ok {
 		return nil
 	}
 
 	var fields []configField
 	for i := 0; i < t.NumField(); i++ {
-		field := t.Field(i)
-		secret := field.Tag.Get("secret") == "true"
-		endpoint := field.Tag.Get("endpoint") == "true"
-		urlCredentials := field.Tag.Get("urlCredentials") == "true"
-		target := field.Tag.Get("target")
-		if !field.IsExported() || (!secret && !endpoint && !urlCredentials && target == "") {
-			continue
+		if field, ok := configFieldOf(t.Field(i), i); ok {
+			fields = append(fields, field)
 		}
-		name, _, _ := strings.Cut(field.Tag.Get("json"), ",")
-		if name == "-" {
-			continue
-		}
-		if name == "" {
-			name = field.Name
-		}
-		fields = append(fields, configField{
-			key: name, index: i, secret: secret, endpoint: endpoint, urlCredentials: urlCredentials, target: target,
-			endpointDefault: field.Tag.Get("endpointDefault"),
-		})
 	}
 	return fields
+}
+
+// configType returns the struct type of a provider's config, and false for a nil provider or a
+// config that isn't a struct
+func configType(provider NotificationChannelProvider) (reflect.Type, bool) {
+	if provider == nil {
+		return nil, false
+	}
+	cfg, err := provider.Unmarshal("{}")
+	if err != nil || cfg == nil {
+		return nil, false
+	}
+	t := reflect.TypeOf(cfg)
+	for t.Kind() == reflect.Pointer {
+		t = t.Elem()
+	}
+	return t, t.Kind() == reflect.Struct
+}
+
+// configFieldOf reads the tags of a field of the config struct at index. It is false for a field
+// that is not exported, has no key in the config, or has none of the tags.
+func configFieldOf(field reflect.StructField, index int) (configField, bool) {
+	secret := field.Tag.Get("secret") == "true"
+	endpoint := field.Tag.Get("endpoint") == "true"
+	urlCredentials := field.Tag.Get("urlCredentials") == "true"
+	target := field.Tag.Get("target")
+	tagged := secret || endpoint || urlCredentials || target != ""
+	if !field.IsExported() || !tagged {
+		return configField{}, false
+	}
+	name, _, _ := strings.Cut(field.Tag.Get("json"), ",")
+	if name == "-" {
+		return configField{}, false
+	}
+	if name == "" {
+		name = field.Name
+	}
+	return configField{
+		key: name, index: index, secret: secret, endpoint: endpoint, urlCredentials: urlCredentials, target: target,
+		endpointDefault: field.Tag.Get("endpointDefault"),
+	}, true
 }
 
 // secretFields returns the fields that hold secrets
@@ -205,48 +220,65 @@ func maskURLCredentials(value string) string {
 		return secretPlaceholder
 	}
 
-	// The authority runs from after "://" up to the first "/", "?" or "#"
 	authorityStart := schemeEnd + len("://")
-	authorityEnd := len(value)
-	if i := strings.IndexAny(value[authorityStart:], "/?#"); i >= 0 {
-		authorityEnd = authorityStart + i
-	}
-	authority, rest := value[authorityStart:authorityEnd], value[authorityEnd:]
-
-	// url.Parse ends the user info at the last "@" of the authority
-	if at := strings.LastIndex(authority, "@"); at >= 0 {
-		userinfo := authority[:at]
-		// A user name with an empty password ("sk_live_abc:@") stands alone too
-		if user, password, _ := strings.Cut(userinfo, ":"); password != "" {
-			userinfo = user + ":" + secretPlaceholder
-		} else if user != "" {
-			userinfo = secretPlaceholder
-		}
-		authority = userinfo + authority[at:]
-	}
+	authority, rest := splitAuthority(value[authorityStart:])
+	authority = maskUserInfo(authority)
 
 	// The query runs from the first "?" to the "#" that starts the fragment
 	beforeFragment, fragment, hasFragment := strings.Cut(rest, "#")
 	path, query, hasQuery := strings.Cut(beforeFragment, "?")
 	if hasQuery {
-		segments := strings.Split(query, "&")
-		for i, segment := range segments {
-			if segment == "" {
-				continue
-			}
-			if key, queryValue, hasValue := strings.Cut(segment, "="); !hasValue {
-				segments[i] = secretPlaceholder
-			} else if queryValue != "" {
-				segments[i] = key + "=" + secretPlaceholder
-			}
-		}
-		query = "?" + strings.Join(segments, "&")
+		query = "?" + maskQuery(query)
 	}
 	masked := value[:authorityStart] + authority + path + query
 	if hasFragment {
 		masked += "#" + fragment
 	}
 	return masked
+}
+
+// splitAuthority splits what follows "://" into the authority and the rest. The authority runs up
+// to the first "/", "?" or "#".
+func splitAuthority(afterScheme string) (authority, rest string) {
+	authorityEnd := len(afterScheme)
+	if i := strings.IndexAny(afterScheme, "/?#"); i >= 0 {
+		authorityEnd = i
+	}
+	return afterScheme[:authorityEnd], afterScheme[authorityEnd:]
+}
+
+// maskUserInfo returns the authority with the password of its user info masked, and a user name that
+// stands alone
+func maskUserInfo(authority string) string {
+	// url.Parse ends the user info at the last "@" of the authority
+	at := strings.LastIndex(authority, "@")
+	if at < 0 {
+		return authority
+	}
+	userinfo := authority[:at]
+	// A user name with an empty password ("sk_live_abc:@") stands alone too
+	if user, password, _ := strings.Cut(userinfo, ":"); password != "" {
+		userinfo = user + ":" + secretPlaceholder
+	} else if user != "" {
+		userinfo = secretPlaceholder
+	}
+	return userinfo + authority[at:]
+}
+
+// maskQuery returns the query with each value masked, and each key that has no value
+func maskQuery(query string) string {
+	segments := strings.Split(query, "&")
+	for i, segment := range segments {
+		if segment == "" {
+			continue
+		}
+		if key, queryValue, hasValue := strings.Cut(segment, "="); !hasValue {
+			segments[i] = secretPlaceholder
+		} else if queryValue != "" {
+			segments[i] = key + "=" + secretPlaceholder
+		}
+	}
+	return strings.Join(segments, "&")
 }
 
 // jsonString returns s as a JSON string, without escaping HTML so that it stays as written
@@ -289,25 +321,47 @@ func redactConfig(provider NotificationChannelProvider, config string) string {
 	}
 
 	for key, raw := range fields {
-		if _, isSecret := fieldForKey(secrets, key); isSecret {
-			// stringValue reads null as the empty string
-			if value, isString := stringValue(raw); !isString || value != "" {
-				fields[key] = json.RawMessage(`"` + secretPlaceholder + `"`)
-			}
-			continue
-		}
-		if _, isURL := fieldForKey(urls, key); !isURL {
-			continue
-		}
-		if value, isString := stringValue(raw); isString {
-			if masked := maskURLCredentials(value); masked != value {
-				fields[key] = jsonString(masked)
-			}
-		} else if string(bytes.TrimSpace(raw)) != "null" {
-			fields[key] = json.RawMessage(`"` + secretPlaceholder + `"`)
+		if redacted, ok := redactValue(key, raw, secrets, urls); ok {
+			fields[key] = redacted
 		}
 	}
 	return encodeConfig(fields)
+}
+
+// redactValue returns what replaces the value of a config key, and false when it stays: a secret
+// that is set, or a URL that holds credentials
+func redactValue(key string, raw json.RawMessage, secrets, urls []configField) (json.RawMessage, bool) {
+	if _, isSecret := fieldForKey(secrets, key); isSecret {
+		// stringValue reads null as the empty string
+		if value, isString := stringValue(raw); !isString || value != "" {
+			return placeholderValue(), true
+		}
+		return nil, false
+	}
+	if _, isURL := fieldForKey(urls, key); !isURL {
+		return nil, false
+	}
+	return redactURLValue(raw)
+}
+
+// redactURLValue returns what replaces the value of a URL field: the URL with its credentials
+// masked, or the placeholder for a value that isn't a string (or null)
+func redactURLValue(raw json.RawMessage) (json.RawMessage, bool) {
+	if value, isString := stringValue(raw); isString {
+		if masked := maskURLCredentials(value); masked != value {
+			return jsonString(masked), true
+		}
+		return nil, false
+	}
+	if string(bytes.TrimSpace(raw)) != "null" {
+		return placeholderValue(), true
+	}
+	return nil, false
+}
+
+// placeholderValue is the placeholder as a JSON string
+func placeholderValue() json.RawMessage {
+	return json.RawMessage(`"` + secretPlaceholder + `"`)
 }
 
 // resolveSecrets returns incoming with each secret sent as the placeholder replaced by the
