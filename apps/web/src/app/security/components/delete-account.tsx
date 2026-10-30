@@ -1,4 +1,4 @@
-import { useId, useState } from "react";
+import { useId, useReducer } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/ui/password-input";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 import { dismissWhileIdle } from "@/lib/admin-users";
-import { accountDeletionError } from "@/lib/account-deletion";
+import { accountDeletionError, deleteAccountReducer } from "@/lib/account-deletion";
 import { useAuthStore } from "@/store/auth";
 
 // The signed-in user deletes their own account after entering their password. The server refuses
@@ -23,9 +23,11 @@ export default function DeleteAccount() {
   const navigate = useNavigate();
   const clearTokens = useAuthStore((state) => state.clearTokens);
   const inputId = useId();
-  const [password, setPassword] = useState("");
-  const [confirming, setConfirming] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [{ password, confirming, error }, dispatch] = useReducer(deleteAccountReducer, {
+    password: "",
+    confirming: false,
+    error: null,
+  });
 
   const remove = useMutation({
     ...deleteAuthMeMutation(),
@@ -34,20 +36,17 @@ export default function DeleteAccount() {
       clearTokens();
       navigate("/login");
     },
-    onError: (failure) => {
-      setConfirming(false);
-      setError(accountDeletionError(failure, t, t("security.delete_account.failed")));
-    },
+    onError: (failure) =>
+      dispatch({ type: "refused", error: accountDeletionError(failure, t, t("security.delete_account.failed")) }),
   });
   // A pending request can't be dismissed: the dialog stays until its answer
   const { onOpenChange, onEscapeKeyDown, onPointerDownOutside } = dismissWhileIdle(remove.isPending, () =>
-    setConfirming(false)
+    dispatch({ type: "cancel" })
   );
 
   const ask = (event: React.FormEvent) => {
     event.preventDefault();
-    setError(null);
-    setConfirming(true);
+    dispatch({ type: "ask" });
   };
 
   return (
@@ -64,7 +63,7 @@ export default function DeleteAccount() {
               id={inputId}
               autoComplete="current-password"
               value={password}
-              onChange={(event) => setPassword(event.target.value)}
+              onChange={(event) => dispatch({ type: "typed", password: event.target.value })}
             />
           </div>
           {error && (
@@ -89,7 +88,7 @@ export default function DeleteAccount() {
             <DialogDescription>{t("security.delete_account.dialog_description")}</DialogDescription>
           </DialogHeader>
           <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" disabled={remove.isPending} onClick={() => setConfirming(false)}>
+            <Button type="button" variant="outline" disabled={remove.isPending} onClick={() => dispatch({ type: "cancel" })}>
               {t("common.cancel")}
             </Button>
             <Button

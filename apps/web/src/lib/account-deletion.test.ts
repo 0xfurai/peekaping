@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { AxiosError, AxiosHeaders } from "axios";
-import { accountDeletionError } from "./account-deletion";
+import { accountDeletionError, deleteAccountReducer, type DeleteAccountForm } from "./account-deletion";
 
 const refusalWith = (status: number, data: unknown) => {
   const config = { headers: new AxiosHeaders() };
@@ -49,5 +49,32 @@ describe("accountDeletionError", () => {
     );
     expect(accountDeletionError(refusalWith(409, {}), t, FALLBACK)).toBe(FALLBACK);
     expect(accountDeletionError(new Error("offline"), t, FALLBACK)).toBe(FALLBACK);
+  });
+});
+
+describe("deleteAccountReducer", () => {
+  const typed: DeleteAccountForm = { password: "hunter2", confirming: false, error: null };
+  const asking = deleteAccountReducer(typed, { type: "ask" });
+
+  it("keeps the password while the confirmation is open", () => {
+    expect(asking).toEqual({ password: "hunter2", confirming: true, error: null });
+  });
+
+  it("clears the password when the user cancels the confirmation", () => {
+    expect(deleteAccountReducer(asking, { type: "cancel" })).toEqual({ password: "", confirming: false, error: null });
+  });
+
+  it("clears the password when the server refuses, and keeps the refusal shown", () => {
+    expect(deleteAccountReducer(asking, { type: "refused", error: "Password is incorrect" })).toEqual({
+      password: "",
+      confirming: false,
+      error: "Password is incorrect",
+    });
+  });
+
+  it("clears the previous refusal when the user asks again", () => {
+    const refused = deleteAccountReducer(asking, { type: "refused", error: "no" });
+    const again = deleteAccountReducer(deleteAccountReducer(refused, { type: "typed", password: "x" }), { type: "ask" });
+    expect(again).toEqual({ password: "x", confirming: true, error: null });
   });
 });
