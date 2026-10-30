@@ -572,14 +572,9 @@ func (r *Resolver) save(ctx context.Context, current, next map[string]string) er
 	if err != nil {
 		return err
 	}
-	// Open signup needs a sender, so a save that opens it writes the mode last: one that fails
-	// partway leaves signup as it was, not open with no sender. Closing it stays first.
-	if differs(current, next, KeySignupMode) && r.resolve(next, signupMode).Value == config.SignupModeOpen {
-		order = append(slices.DeleteFunc(slices.Clone(order), func(s setting) bool { return s.key == KeySignupMode }), signupMode)
-	}
+	order = r.openSignupLast(order, current, next)
 	for _, s := range order {
-		_, has := next[s.key]
-		if !differs(current, next, s.key) || (s.key == KeySMTPPassword && cleared && !has) {
+		if skipsWrite(current, next, s, cleared) {
 			continue
 		}
 		if err := r.writeKey(ctx, next, s); err != nil {
@@ -588,6 +583,23 @@ func (r *Resolver) save(ctx context.Context, current, next map[string]string) er
 		}
 	}
 	return nil
+}
+
+// openSignupLast moves the signup mode to the end of order when the save opens signup
+func (r *Resolver) openSignupLast(order []setting, current, next map[string]string) []setting {
+	// Open signup needs a sender, so a save that opens it writes the mode last: one that fails
+	// partway leaves signup as it was, not open with no sender. Closing it stays first.
+	if differs(current, next, KeySignupMode) && r.resolve(next, signupMode).Value == config.SignupModeOpen {
+		order = append(slices.DeleteFunc(slices.Clone(order), func(s setting) bool { return s.key == KeySignupMode }), signupMode)
+	}
+	return order
+}
+
+// skipsWrite is whether s needs no write: it is the same in current and next, or it is the
+// password that clearPasswordFirst deleted and next holds none
+func skipsWrite(current, next map[string]string, s setting, cleared bool) bool {
+	_, has := next[s.key]
+	return !differs(current, next, s.key) || (s.key == KeySMTPPassword && cleared && !has)
 }
 
 // clearPasswordFirst deletes the saved password when the endpoint changes, before anything is
