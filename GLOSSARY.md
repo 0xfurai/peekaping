@@ -187,6 +187,10 @@ _Avoid_: Dashboard, public page
 A domain name that serves a status page, such as `status.example.com`.
 _Avoid_: Domain status page, CNAME
 
+**Verified domain**:
+A custom domain that has proved it points at the install, when `VERIFY_CUSTOM_DOMAINS` is on (off by default). It serves its status page and gets a certificate. A **Pending** domain, which is every new one, does neither: it answers like an unknown host and the TLS ask says no, but it keeps its name, so no other page can add it. A domain is verified when a TXT record at `_peekaping-verify.<domain>` holds `peekaping-verify=<its token>`, or the domain is a CNAME to the install's status page host (`CUSTOM_DOMAIN_CNAME_TARGET`, the public URL's host by default; on `localhost` or an IP address only the TXT record verifies). A check runs every 5 minutes. A Verified domain whose records are missing for 24 hours is Pending again. A Pending domain is removed from its page 7 days after the first check that found it unverified, which frees the name. Turning verification on puts every existing domain in Pending, and the ones already pointing at the install verify on the next check.
+_Avoid_: Confirmed domain, active domain
+
 **Badge**:
 An embeddable image showing one live figure about a monitor: its status, uptime, response time or certificate expiry.
 _Avoid_: Shield, widget
