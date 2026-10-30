@@ -11,6 +11,10 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/uptrace/bun"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
+	"go.uber.org/zap/zaptest/observer"
 )
 
 // fakeDNS answers the lookups of a check from a table, and counts them. A name it doesn't know is a
@@ -305,6 +309,11 @@ func TestVerification_APendingDomainIsRemovedSevenDaysAfterItsFirstCheck(t *test
 		require.NotNil(t, s.RemoveAt)
 		assert.Equal(t, t0.Add(7*24*time.Hour), s.RemoveAt.UTC())
 
+		// The background check runs every few minutes; hourly passes are the longest gap that counts
+		for hour := 1; hour < 7*24; hour++ {
+			v.clock.now = t0.Add(time.Duration(hour) * time.Hour)
+			require.NoError(t, v.svc.CheckDue(ctx))
+		}
 		v.clock.now = t0.Add(7*24*time.Hour - time.Minute)
 		require.NoError(t, v.svc.CheckDue(ctx))
 		assert.Equal(t, []string{"status.example.com"}, domainsOf(t, f.svc, page), "7 days minus a minute")
@@ -315,6 +324,62 @@ func TestVerification_APendingDomainIsRemovedSevenDaysAfterItsFirstCheck(t *test
 		assert.Equal(t, []string{"kept.example.com"}, domainsOf(t, f.svc, other), "a verified domain stays")
 		_, err := f.svc.AddDomainToStatusPage(ctx, other, "status.example.com")
 		assert.NoError(t, err, "another page can hold the freed name")
+	})
+}
+
+// Checks that did not run, because verification was off or the server was down, are not days the
+// domain was unverified (PP-165, AC7/AC8).
+func TestVerification_APendingDomainKeepsItsWeekWhenChecksWereNotRunning(t *testing.T) {
+	forEachBackend(t, func(t *testing.T, f fixture) {
+		v := f.verifying("peek.example")
+		page := f.page()
+		ctx := context.Background()
+		add(t, f.svc, page, "status.example.com")
+		require.NoError(t, v.svc.CheckDue(ctx))
+
+		// Nothing checks for 30 days
+		back := t0.Add(30 * 24 * time.Hour)
+		v.clock.now = back
+		require.NoError(t, v.svc.CheckDue(ctx))
+		assert.Equal(t, []string{"status.example.com"}, domainsOf(t, f.svc, page), "not removed at the first check after the pause")
+		s := v.status(t, page, "status.example.com")
+		require.NotNil(t, s.RemoveAt)
+		assert.Equal(t, back.Add(7*24*time.Hour), s.RemoveAt.UTC(), "its week starts again")
+	})
+}
+
+// vanishing deletes the rows of a pass's due list once it has been read, as a page edit does while
+// the pass runs
+type vanishing struct {
+	domain_status_page.Repository
+	db *bun.DB
+}
+
+func (r vanishing) FindDueAnyWorkspace(ctx context.Context, before time.Time) ([]*domain_status_page.Model, error) {
+	due, err := r.Repository.FindDueAnyWorkspace(ctx, before)
+	if err == nil {
+		_, err = r.db.ExecContext(ctx, "DELETE FROM domain_status_page")
+	}
+	return due, err
+}
+
+func TestVerification_ADomainThatVanishesDuringAPassIsNotAnError(t *testing.T) {
+	forEachBackend(t, func(t *testing.T, f fixture) {
+		page := f.page()
+		added := add(t, f.svc, page, "status.example.com")
+		_, err := f.db.ExecContext(context.Background(), "UPDATE domain_status_page SET verification_token = '' WHERE id = ?", added.ID)
+		require.NoError(t, err)
+
+		core, logs := observer.New(zapcore.DebugLevel)
+		svc := domain_status_page.NewService(
+			vanishing{Repository: domain_status_page.NewSQLRepository(f.db), db: f.db}, zap.New(core).Sugar(),
+			domain_status_page.WithVerification(true, "peek.example"),
+			domain_status_page.WithResolver(newFakeDNS()),
+		)
+		require.NoError(t, svc.CheckDue(context.Background()))
+		for _, entry := range logs.All() {
+			assert.Less(t, entry.Level, zapcore.WarnLevel, "logged: %s", entry.Message)
+		}
 	})
 }
 

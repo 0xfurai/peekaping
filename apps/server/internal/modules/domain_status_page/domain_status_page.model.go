@@ -20,7 +20,9 @@ type Model struct {
 	VerifiedAt *time.Time `json:"verified_at"`
 	// PendingSince is when a check first found the Pending domain unverified with verification on:
 	// its days to verify count from here, so a domain that was added while verification was off
-	// doesn't run out before it was ever asked for. Nil until then, and once the domain is Verified.
+	// doesn't run out before it was ever asked for. A pause in the checks (verification off, the
+	// server down) starts it again at the first check after. Nil until then, and once the domain
+	// is Verified.
 	PendingSince *time.Time `json:"pending_since"`
 	// FailingSince is when a check first found a Verified domain's records missing, nil while they
 	// are there

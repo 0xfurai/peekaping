@@ -84,9 +84,10 @@ type Status struct {
 	// FailingSince is when a check first missed a verified domain's records: the domain goes back
 	// to pending when they have been missing for 24 hours. Null while they are there.
 	FailingSince *time.Time `json:"failingSince" nullable:"true"`
-	// RemoveAt is when a pending domain is removed from its page, 7 days after the first check
-	// with verification on found it unverified. Null for a verified domain, while verification is
-	// off, and until that first check.
+	// RemoveAt is when a pending domain is removed from its page: 7 days of checks after the first
+	// one with verification on found it unverified. A pause in the checks (verification off, the
+	// server down) restarts the 7 days. Null for a verified domain, while verification is off, and
+	// until that first check.
 	RemoveAt *time.Time `json:"removeAt" nullable:"true"`
 	Records  Records    `json:"records"`
 }
@@ -199,8 +200,8 @@ func (dr *ServiceImpl) CheckNow(ctx context.Context, statusPageID, domain string
 
 // CheckDue checks the domains of every workspace that are due, when verification is on: each
 // pending one, and each verified one not checked for an hour. A domain that stays pending for
-// seven days is removed from its page. A domain whose check fails is logged and left for the next
-// pass.
+// seven days of checks is removed from its page. A domain whose check fails is logged and left for
+// the next pass; one that went from its page meanwhile is left alone.
 func (dr *ServiceImpl) CheckDue(ctx context.Context) error {
 	if !dr.verify {
 		return nil
@@ -216,7 +217,10 @@ func (dr *ServiceImpl) CheckDue(ctx context.Context) error {
 		wg.Add(1)
 		go func() {
 			defer func() { <-slots; wg.Done() }()
-			if err := dr.checkDue(ctx, m); err != nil && ctx.Err() == nil {
+			err := dr.checkDue(ctx, m)
+			if errors.Is(err, ErrDomainNotFound) {
+				dr.logger.Debugw("A custom domain went while it was checked", "domain", m.Domain, "statusPageId", m.StatusPageID)
+			} else if err != nil && ctx.Err() == nil {
 				dr.logger.Errorw("Failed to check a custom domain", "domain", m.Domain, "statusPageId", m.StatusPageID, "error", err)
 			}
 		}()
