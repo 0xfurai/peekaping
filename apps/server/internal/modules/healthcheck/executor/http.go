@@ -11,6 +11,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"peekaping/internal/hostport"
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/netguard"
 	"peekaping/internal/validation"
@@ -501,7 +502,7 @@ func hasProxyCredentials(proxyModel *Proxy) bool {
 func httpProxyTransport(base *http.Transport, proxyModel *Proxy, protocol string) http.RoundTripper {
 	proxyURL := &url.URL{
 		Scheme: protocol,
-		Host:   net.JoinHostPort(proxyModel.Host, strconv.Itoa(proxyModel.Port)),
+		Host:   hostport.Join(proxyModel.Host, proxyModel.Port),
 	}
 	if hasProxyCredentials(proxyModel) {
 		proxyURL.User = url.UserPassword(proxyModel.Username, proxyModel.Password)
@@ -519,7 +520,7 @@ func socksProxyTransport(base *http.Transport, proxyModel *Proxy, guard *netguar
 			Password: proxyModel.Password,
 		}
 	}
-	address := net.JoinHostPort(proxyModel.Host, strconv.Itoa(proxyModel.Port))
+	address := hostport.Join(proxyModel.Host, proxyModel.Port)
 	var forward proxy.Dialer = proxy.Direct
 	if guard != nil {
 		forward = guardedDirect{guard}

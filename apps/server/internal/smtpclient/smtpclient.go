@@ -9,7 +9,8 @@ import (
 	"fmt"
 	"net"
 	"net/smtp"
-	"strconv"
+
+	"peekaping/internal/hostport"
 )
 
 // TLSMode is how the connection to the server is secured
@@ -45,7 +46,10 @@ type Server struct {
 // recipients, and stops when ctx is done. smtp.SendMail has no context or timeout, so a server
 // that never answers would hold the send forever.
 func Send(ctx context.Context, server Server, from string, to []string, msg []byte) error {
-	addr := net.JoinHostPort(server.Host, strconv.Itoa(server.Port))
+	// The host may be saved with brackets. Neither the address nor the name the server's
+	// certificate is checked for, nor the one the client gives its auth, takes them.
+	server.Host = hostport.Bare(server.Host)
+	addr := hostport.Join(server.Host, server.Port)
 	dialer := server.Dialer
 	if dialer == nil {
 		dialer = &net.Dialer{}
