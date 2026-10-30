@@ -14,7 +14,7 @@ func ValidateMetricsPort(metricsEnabled bool, metricsPort, serverPort string) er
 		return nil
 	}
 	port, err := strconv.Atoi(metricsPort)
-	if err != nil || port < 1 || port > 65535 {
+	if err != nil || !onlyDigits(metricsPort) || port < 1 || port > 65535 {
 		return fmt.Errorf("METRICS_PORT must be a port from 1 to 65535, got %q", metricsPort)
 	}
 	if serverPort, err := strconv.Atoi(serverPort); err == nil && serverPort == port {
@@ -24,4 +24,15 @@ func ValidateMetricsPort(metricsEnabled bool, metricsPort, serverPort string) er
 		return fmt.Errorf("METRICS_PORT needs METRICS_ENABLED=true: /metrics is off, so nothing would listen on port %d", port)
 	}
 	return nil
+}
+
+// onlyDigits reports whether s is ASCII digits alone: Atoi also takes a sign, which the bind
+// would refuse later with another message
+func onlyDigits(s string) bool {
+	for _, r := range s {
+		if r < '0' || r > '9' {
+			return false
+		}
+	}
+	return true
 }

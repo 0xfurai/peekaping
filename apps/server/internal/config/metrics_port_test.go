@@ -20,6 +20,8 @@ func TestValidateMetricsPort(t *testing.T) {
 		{name: "the highest port", enabled: true, port: "65535", serverPort: "8034"},
 		{name: "not a number", enabled: true, port: "prometheus", wantErrorContaining: `METRICS_PORT must be a port from 1 to 65535, got "prometheus"`},
 		{name: "with a colon", enabled: true, port: ":9464", wantErrorContaining: "METRICS_PORT must be a port from 1 to 65535"},
+		{name: "with a plus sign", enabled: true, port: "+9100", wantErrorContaining: `METRICS_PORT must be a port from 1 to 65535, got "+9100"`},
+		{name: "with a space", enabled: true, port: " 9100", wantErrorContaining: "METRICS_PORT must be a port from 1 to 65535"},
 		{name: "zero", enabled: true, port: "0", wantErrorContaining: "METRICS_PORT must be a port from 1 to 65535"},
 		{name: "negative", enabled: true, port: "-1", wantErrorContaining: "METRICS_PORT must be a port from 1 to 65535"},
 		{name: "above 65535", enabled: true, port: "65536", wantErrorContaining: "METRICS_PORT must be a port from 1 to 65535"},
