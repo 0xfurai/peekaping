@@ -81,7 +81,7 @@ Only the `peekaping` binary (single mode) reads these. With `WEB_DIR` set, it se
 | `WEB_DIR` | string | No | `""` | Directory of the web app's build, with its `index.html`. Unset, `peekaping` serves the API alone. A directory without `index.html` stops it at startup |
 | `API_URL` | string | No | `""` | Where the web app reaches the API, written to the `/env.js` that `peekaping` generates. Empty means the web app's own origin |
 
-With `WEB_DIR` set, only `/api/*`, `/socket.io/*` and, when `METRICS_ENABLED` is `true`, `/metrics` reach the API. `/docs`, `/swagger/*` and `/health` get the web app instead, so check the health at `/api/v1/health`.
+With `WEB_DIR` set, only `/api/*`, `/socket.io/*` and, when `METRICS_ENABLED` is `true` and `METRICS_PORT` is unset, `/metrics` reach the API. With `METRICS_PORT` set, `/metrics` is served on that port instead. `/docs`, `/swagger/*` and `/health` get the web app instead, so check the health at `/api/v1/health`.
 
 ### Database Configuration
 
