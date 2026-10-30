@@ -72,7 +72,8 @@ func (m *MongoDBExecutor) Targets(configJSON string) ([]string, error) {
 	}
 	var hosts []string
 	for _, entry := range parsed.hosts {
-		if host, err := url.PathUnescape(strings.TrimSpace(entry)); err == nil && !strings.HasSuffix(host, ".sock") && host != "" {
+		// An empty entry, as a trailing comma leaves, and an entry with a port only name no host
+		if host, err := url.PathUnescape(strings.TrimSpace(entry)); err == nil && !strings.HasSuffix(host, ".sock") && hostOf(host) != "" {
 			hosts = append(hosts, hostOf(host))
 		}
 	}
@@ -252,16 +253,24 @@ func (m *MongoDBExecutor) enhanceConnectionString(connectionString string) (stri
 	if user == "" {
 		return connectionString, nil
 	}
-	if options, _ := url.ParseQuery(parsed.query); options.Get("authSource") != "" {
+	if mongoHasOption(parsed.query, "authSource") {
 		return connectionString, nil
+	}
+	// The option goes before the fragment, which ends the string
+	withoutFragment, fragment := connectionString, ""
+	if parsed.hasFragment {
+		withoutFragment = strings.TrimSuffix(connectionString, "#"+parsed.fragment)
+		fragment = "#" + parsed.fragment
 	}
 	switch {
 	case !parsed.hasQuery:
-		return connectionString + "?authSource=admin", nil
+		withoutFragment += "?authSource=admin"
 	case parsed.query == "":
-		return connectionString + "authSource=admin", nil
+		withoutFragment += "authSource=admin"
+	default:
+		withoutFragment += "&authSource=admin"
 	}
-	return connectionString + "&authSource=admin", nil
+	return withoutFragment + fragment, nil
 }
 
 // extractDatabaseName extracts the database name from a MongoDB connection string

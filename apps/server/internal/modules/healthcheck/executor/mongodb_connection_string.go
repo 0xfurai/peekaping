@@ -13,9 +13,9 @@ import (
 var mongoSchemes = []string{"mongodb", "mongodb+srv"}
 
 // mongoConnectionString is a MongoDB connection string cut into its parts. It is read by hand
-// rather than with url.Parse, which refuses the seed list of a replica set
-// (mongodb://h1:27017,h2:27017/db), and rather than with the driver's parser, which looks up the
-// DNS records of a mongodb+srv name. Nothing here touches the network.
+// rather than with url.Parse, which refuses some seed lists of a replica set (the last host
+// without a port, a host in brackets), and rather than with the driver's parser, which looks up
+// the DNS records of a mongodb+srv name. Nothing here touches the network.
 type mongoConnectionString struct {
 	scheme string
 	// userinfo is the user and password as written, escapes included; empty when there are none
@@ -27,6 +27,9 @@ type mongoConnectionString struct {
 	// query is the options after the "?", as written
 	query    string
 	hasQuery bool
+	// fragment is the text after the "#" that ends the string
+	fragment    string
+	hasFragment bool
 }
 
 // splitMongoConnectionString cuts the string into its parts without judging them. It reports false
@@ -47,15 +50,17 @@ func splitMongoConnectionString(connectionString string) (mongoConnectionString,
 		parsed.userinfo, authority = authority[:at], authority[at+1:]
 	}
 	parsed.hosts = strings.Split(authority, ",")
+	tail, parsed.fragment, parsed.hasFragment = strings.Cut(tail, "#")
 	path, query, hasQuery := strings.Cut(tail, "?")
 	parsed.database = strings.TrimPrefix(path, "/")
 	parsed.query, parsed.hasQuery = query, hasQuery
 	return parsed, true
 }
 
-// validateMongoConnectionString refuses a connection string the driver would not take: a scheme
-// other than mongodb and mongodb+srv, a missing or malformed host, a port that is no port, no
-// database. A seed list of several hosts is valid.
+// validateMongoConnectionString refuses a connection string that is malformed: a scheme other than
+// mongodb and mongodb+srv, no host, a port that is no port, a broken escape, no database. A seed
+// list of several hosts is valid. The errors never quote the string, which holds a password: they
+// say what is wrong, and which host by its place in the list.
 func validateMongoConnectionString(connectionString string) error {
 	if connectionString == "" {
 		return fmt.Errorf("connection string cannot be empty")
@@ -65,12 +70,12 @@ func validateMongoConnectionString(connectionString string) error {
 		return fmt.Errorf("connection string must start with mongodb:// or mongodb+srv://")
 	}
 	if !slices.Contains(mongoSchemes, parsed.scheme) {
-		return fmt.Errorf("connection string must use one of %v schemes, got: %s", mongoSchemes, parsed.scheme)
+		return fmt.Errorf("connection string must use mongodb:// or mongodb+srv://")
 	}
 	if _, err := url.PathUnescape(parsed.userinfo); err != nil {
-		return fmt.Errorf("invalid credentials: %w", err)
+		return fmt.Errorf("the user name or password has a bad %%-escape")
 	}
-	if err := validateMongoHosts(parsed); err != nil {
+	if err := validateMongoHosts(parsed.hosts); err != nil {
 		return err
 	}
 	return validateMongoDatabase(parsed.database)
@@ -81,83 +86,61 @@ func validateMongoDatabase(database string) error {
 		return fmt.Errorf("connection string must include database name")
 	}
 	if _, err := url.PathUnescape(database); err != nil {
-		return fmt.Errorf("invalid database name: %w", err)
+		return fmt.Errorf("the database name has a bad %%-escape")
 	}
 	return nil
 }
 
-// validateMongoHosts checks every entry of the seed list, and that a mongodb+srv name is one host
-// with no port: the driver takes the servers and their ports from the SRV record.
-func validateMongoHosts(parsed mongoConnectionString) error {
-	srv := parsed.scheme == "mongodb+srv"
-	if srv && len(parsed.hosts) > 1 {
-		return fmt.Errorf("a mongodb+srv connection string takes one host")
+// validateMongoHosts checks the ports and brackets of the seed list, and that it names a host. An
+// empty entry (a trailing comma) and an empty port are left alone: the driver takes both.
+func validateMongoHosts(entries []string) error {
+	named := false
+	for i, entry := range entries {
+		host, port, ok := splitMongoHostPort(entry)
+		if !ok {
+			return fmt.Errorf("host %d has a [ without a closing ]", i+1)
+		}
+		if port != "" && !validMongoPort(port) {
+			return fmt.Errorf("the port of host %d must be a number from 1 to 65535", i+1)
+		}
+		named = named || host != ""
 	}
-	for _, entry := range parsed.hosts {
-		hasPort, err := validateMongoHost(entry)
-		if err != nil {
-			return err
-		}
-		if srv && hasPort {
-			return fmt.Errorf("a mongodb+srv connection string takes no port")
-		}
+	if !named {
+		return fmt.Errorf("connection string must include host")
 	}
 	return nil
 }
 
-// validateMongoHost checks one entry of the seed list: a name, an IPv4 address or an IPv6 address
-// in brackets, with an optional port, or an escaped Unix socket path. It reports whether the
-// entry has a port.
-func validateMongoHost(entry string) (hasPort bool, err error) {
-	if strings.ContainsAny(entry, " \t\r\n") {
-		return false, fmt.Errorf("invalid host %s: it holds a space", entry)
-	}
-	decoded, err := url.PathUnescape(entry)
-	if err != nil {
-		return false, fmt.Errorf("invalid host %s: %w", entry, err)
-	}
-	if strings.HasSuffix(decoded, ".sock") {
-		return false, nil
-	}
-	host, port, hasPort, err := splitMongoHostPort(entry)
-	if err != nil {
-		return false, err
-	}
-	if host == "" {
-		return false, fmt.Errorf("connection string must include host")
-	}
-	if hasPort && !validPort(port) {
-		return false, fmt.Errorf("invalid port %q for host %s", port, host)
-	}
-	return hasPort, nil
-}
-
-// splitMongoHostPort cuts an entry of the seed list into its host and port. An IPv6 address is
-// written in brackets, since its colons would be taken for the port's.
-func splitMongoHostPort(entry string) (host, port string, hasPort bool, err error) {
-	if !strings.HasPrefix(entry, "[") {
-		if strings.Count(entry, ":") > 1 {
-			return "", "", false, fmt.Errorf("invalid host %s: write an IPv6 address in brackets", entry)
+// splitMongoHostPort cuts an entry of the seed list into its host and port, at the last colon. An
+// IPv6 address is written in brackets. It reports false for a bracket that is not closed.
+func splitMongoHostPort(entry string) (host, port string, ok bool) {
+	if strings.HasPrefix(entry, "[") {
+		end := strings.Index(entry, "]")
+		if end < 0 {
+			return "", "", false
 		}
-		host, port, hasPort = strings.Cut(entry, ":")
-		return host, port, hasPort, nil
+		return entry[1:end], strings.TrimPrefix(entry[end+1:], ":"), true
 	}
-	end := strings.Index(entry, "]")
-	if end < 0 {
-		return "", "", false, fmt.Errorf("invalid host %s: missing ]", entry)
+	if colon := strings.LastIndex(entry, ":"); colon >= 0 {
+		return entry[:colon], entry[colon+1:], true
 	}
-	host, after := entry[1:end], entry[end+1:]
-	if after == "" {
-		return host, "", false, nil
-	}
-	if !strings.HasPrefix(after, ":") {
-		return "", "", false, fmt.Errorf("invalid host %s: text after ]", entry)
-	}
-	return host, after[1:], true, nil
+	return entry, "", true
 }
 
-// validPort is true for a decimal number from 1 to 65535
-func validPort(port string) bool {
+// validMongoPort is true for a decimal number from 1 to 65535
+func validMongoPort(port string) bool {
 	n, err := strconv.Atoi(port)
 	return err == nil && n >= 1 && n <= 65535 && strings.Trim(port, "0123456789") == ""
+}
+
+// mongoHasOption is true when the options set the option, whatever the case of its name: the
+// driver reads them without regard to case
+func mongoHasOption(query, name string) bool {
+	options, _ := url.ParseQuery(query)
+	for key, values := range options {
+		if strings.EqualFold(key, name) && len(values) > 0 && values[0] != "" {
+			return true
+		}
+	}
+	return false
 }
