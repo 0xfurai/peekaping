@@ -197,6 +197,20 @@ func TestStatusPagesAPI_TLSAskRefusesOtherHosts(t *testing.T) {
 	})
 }
 
+// A domain is saved as it was written, so one with a trailing dot stays that way (ADR 0006 / PP-335
+// will normalize saves). The ask finds it whether the host is asked with the dot or without.
+func TestStatusPagesAPI_TLSAskFindsADomainSavedWithATrailingDot(t *testing.T) {
+	a := newAppWithAdmin(t)
+	a.createStatusPage(t, statusPage{slug: "shop", published: true, domains: []string{"status.example.com."}})
+
+	for _, host := range []string{"status.example.com", "status.example.com."} {
+		w := a.request(t, http.MethodGet, "/api/v1/status-pages/tls-ask?domain="+url.QueryEscape(host), nil)
+		assert.Equal(t, http.StatusOK, w.Code, host)
+	}
+	w := a.request(t, http.MethodGet, "/api/v1/status-pages/tls-ask?domain="+url.QueryEscape("status.example.com.."), nil)
+	assert.Equal(t, http.StatusNotFound, w.Code)
+}
+
 func TestStatusPagesAPI_TLSAskForgetsARemovedDomain(t *testing.T) {
 	a := newAppWithAdmin(t)
 	id := a.createStatusPage(t, statusPage{slug: "shop", published: true, domains: []string{"status.shop.example"}})

@@ -495,10 +495,20 @@ func (s *ServiceImpl) FindPublishedByDomainAnyWorkspace(ctx context.Context, dom
 // published or not, so a page's certificate is ready when it is published. With verification on
 // (VERIFY_CUSTOM_DOMAINS) a domain serves once it is verified, so the ask answers no for a pending
 // one. A host is the same in any case and with one trailing dot, which is how a resolver may write
-// it. Only the answer leaves: the page, its workspace and its state do not.
+// it, and a domain is saved as written, so it matches a stored domain with or without that dot.
+// Only the answer leaves: the page, its workspace and its state do not.
 func (s *ServiceImpl) IsServedAnyWorkspace(ctx context.Context, domain string) (bool, error) {
-	served, err := s.domainStatusPageService.FindServedByDomain(ctx, strings.TrimSuffix(strings.TrimSpace(domain), "."))
-	return served != nil, err
+	host := strings.TrimSuffix(strings.TrimSpace(domain), ".")
+	if host == "" || strings.HasSuffix(host, ".") {
+		return false, nil
+	}
+	for _, form := range []string{host, host + "."} {
+		served, err := s.domainStatusPageService.FindServedByDomain(ctx, form)
+		if err != nil || served != nil {
+			return served != nil, err
+		}
+	}
+	return false, nil
 }
 
 // available is the page when it is published and its workspace is not suspended: nil when it is not
