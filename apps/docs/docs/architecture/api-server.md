@@ -404,7 +404,7 @@ The API server runs a [socket.io](https://socket.io) server for real-time update
 http://localhost:8034/socket.io/
 ```
 
-In single mode the same path is on the one port the `peekaping` binary serves, 8383 by default. Connect to the address without the path. By default the client starts with HTTP long polling and upgrades to a WebSocket; the web app passes `transports: ["websocket"]` to use a WebSocket only, and both work. A reverse proxy in front of the server must pass `/socket.io/` with WebSocket upgrades. The web app uses this connection for its live updates.
+In single mode the same path is on the one port the `peekaping` binary serves, 8383 by default. Connect to the address without the path. By default the client starts with HTTP long polling and upgrades to a WebSocket; the web app passes `transports: ["websocket"]` to use a WebSocket only, and both work. With more than one API replica, the long-polling requests of one socket.io session must all reach the same replica, so the default client can fail to connect without session affinity at the proxy. For several replicas, pass `transports: ["websocket"]`, as the web app does, or configure session affinity at the proxy. A reverse proxy in front of the server must pass `/socket.io/` with WebSocket upgrades. The web app uses this connection for its live updates.
 
 The connection is one way: **the server pushes heartbeats, and the client never sends data.** The only messages a client sends are the two that choose its rooms, `join_room` and `leave_room`. Anything else a client emits is ignored.
 
@@ -441,7 +441,7 @@ socket.on("connect", () => {
 });
 ```
 
-`join_room` is refused (`not allowed`) for a name that is not one of the two kinds or has an ID that is not a UUID, for a workspace the user is not a member of, for a monitor that does not exist or is in another workspace, and when the session has ended. `leave_room` is refused only for a name that is not a room or not a string; it answers `ok` for a valid room the socket is not in. A user who leaves a workspace, or whom a workspace removes, is taken out of its rooms at once, with no reconnect. A socket starts outside every room, so join again after each reconnect.
+`join_room` is refused (`not allowed`) for a name that is not one of the two kinds or has an ID that is not a UUID, for a workspace the user is not a member of, for a monitor that does not exist or is in another workspace, and when the session has ended. `leave_room` is refused only for a name that is not a room or not a string; it answers `ok` for a valid room the socket is not in. A user who leaves a workspace, or whom a workspace removes, is taken out of its rooms when the server gets the event that they left, with no reconnect. In cluster mode that event travels over Redis, so a replica that is disconnected from Redis can miss it and leave the socket in the room. A socket starts outside every room, so join again after each reconnect.
 
 ### Events
 
@@ -481,7 +481,7 @@ The payload is one heartbeat, a JSON object:
 
 `status` is `0` Down, `1` Up, `2` Pending or `3` Maintenance. `probe_id` is `local` for the local probe, otherwise the id of the remote probe that ran the check. `instance_id` is the probe instance that ran it, or `null` for a push, for a check the `peekaping` process ran itself in single mode, and for a heartbeat stored before instances were recorded.
 
-Heartbeats are not replayed: a socket gets the ones that are stored while it is in the room. Read the history with the REST API.
+Heartbeats are not replayed, and delivery is best effort: a socket gets the ones that are stored while it is in the room, and a connected socket can still miss one. A client reads the REST API to fill gaps and to get the history.
 
 ## Authentication Methods
 
