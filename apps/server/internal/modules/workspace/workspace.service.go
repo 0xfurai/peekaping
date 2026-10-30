@@ -74,9 +74,10 @@ type Service interface {
 	// membership it returns holds the caller's role there; its JoinedAt is not read.
 	RenameWorkspace(ctx context.Context, name string) (*Membership, error)
 	// ScheduleDeletion holds the workspace the context runs in for deletion, for an owner who types
-	// its exact name (PP-170): ErrNotFound, ErrForbidden or ErrNameMismatch. It returns when the
-	// workspace will be deleted, 7 days from now (DeletionGracePeriod); scheduling again keeps the
-	// first date. userID is the owner, for the log.
+	// its exact name (PP-170): ErrNotFound, ErrForbidden, ErrNameMismatch or ErrDeletionNotScheduled
+	// (a cancel committed at the same moment). It returns when the workspace will be deleted, 7 days
+	// from now (DeletionGracePeriod); scheduling again keeps the first date. userID is the owner, for
+	// the log.
 	ScheduleDeletion(ctx context.Context, userID, name string) (time.Time, error)
 	// CancelDeletion lifts the deletion hold of the workspace the context runs in, for an owner:
 	// ErrNotFound, ErrForbidden or ErrDeletionNotScheduled. Another hold on the workspace stays, and
@@ -433,6 +434,10 @@ func (s *ServiceImpl) ScheduleDeletion(ctx context.Context, userID, name string)
 	}
 	if changed {
 		s.logAction(userID, ActionScheduleDeletion, id)
+	}
+	// An owner's cancel may have committed between the repository's update and its read
+	if scheduled.DeletionScheduledAt == nil {
+		return time.Time{}, ErrDeletionNotScheduled
 	}
 	// The workspace's monitors need no event to stop: each check is loaded as it is due, and a
 	// suspended workspace's is dropped, as when an instance admin suspends it
