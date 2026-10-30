@@ -40,6 +40,12 @@ func ValidateVerifyCustomDomains(raw string) error {
 	return fmt.Errorf("VERIFY_CUSTOM_DOMAINS must be true, 1, false or 0, not %q: any other value would leave verification off", raw)
 }
 
+// VerifyCustomDomainsOn reads VERIFY_CUSTOM_DOMAINS as a validated string, from the process
+// environment or a .env file: true for "true" and "1", false for anything else.
+func VerifyCustomDomainsOn(raw string) bool {
+	return raw == "true" || raw == "1"
+}
+
 // isHostName reports whether s is a DNS name: dot-separated labels of letters, digits and hyphens,
 // none starting or ending with a hyphen, and not an IP address.
 func isHostName(s string) bool {
