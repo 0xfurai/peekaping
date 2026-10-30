@@ -38,9 +38,9 @@ func TestProvideSQLDB_SaysEachStepItCouldNotTakeOnADatabaseThatCantBeOpened(t *t
 	assert.Nil(t, db)
 	assert.EqualError(t, err, "failed to ping database: unable to open database file (14)")
 	assert.Equal(t, []string{
+		"warn: Failed to set auto_vacuum (non-fatal): unable to open database file (14)",
 		"warn: Failed to check journal_mode (non-fatal): unable to open database file (14)",
 		"warn: Failed to set journal_mode to WAL (non-fatal, current mode: ): unable to open database file (14)",
-		"warn: Failed to set auto_vacuum (non-fatal): unable to open database file (14)",
 		"warn: Failed to run the SQLite quick check (non-fatal): unable to open database file (14)",
 		"info: Connecting to SQLite database: " + path + " (WAL mode enabled, corruption prevention active)",
 	}, messages(logs), "each step that fails is a warning, and the ping is what stops startup")

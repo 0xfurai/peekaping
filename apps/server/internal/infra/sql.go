@@ -116,11 +116,20 @@ func openSQLite(cfg *config.Config, logger *zap.SugaredLogger) (*bun.DB, error) 
 	return db, nil
 }
 
-// setUpSQLiteFile sets the journal mode and auto_vacuum, which belong to the database file. A
-// failure is a warning.
+// setUpSQLiteFile sets the auto_vacuum and the journal mode, which belong to the database file.
+// A failure is a warning.
 func setUpSQLiteFile(db *bun.DB, logger *zap.SugaredLogger) {
-	// The settings of a connection are in its DSN (see sqlitedb.DSN). journal_mode and
-	// auto_vacuum belong to the database file and are set once, in the order they always had.
+	// The settings of a connection are in its DSN (see sqlitedb.DSN). auto_vacuum and
+	// journal_mode belong to the database file and are set once.
+	//
+	// auto_vacuum goes first: on a new file, the switch to WAL writes the first page, and from
+	// then on SQLite ignores a change of auto_vacuum until the next VACUUM. A file that already
+	// has a setting keeps it, so a database made with auto_vacuum off stays as it is.
+	// INCREMENTAL lets the shutdown return free pages to the filesystem.
+	if _, err := db.Exec("PRAGMA auto_vacuum=INCREMENTAL"); err != nil {
+		logger.Warnf("Failed to set auto_vacuum (non-fatal): %v", err)
+	}
+
 	// Check current journal mode before trying to change it
 	var currentJournalMode string
 	if err := db.QueryRow("PRAGMA journal_mode").Scan(&currentJournalMode); err != nil {
@@ -137,12 +146,6 @@ func setUpSQLiteFile(db *bun.DB, logger *zap.SugaredLogger) {
 		}
 	} else {
 		logger.Infof("SQLite already in WAL mode")
-	}
-
-	// Enable auto_vacuum to prevent database file fragmentation
-	// INCREMENTAL allows gradual cleanup
-	if _, err := db.Exec("PRAGMA auto_vacuum=INCREMENTAL"); err != nil {
-		logger.Warnf("Failed to set auto_vacuum (non-fatal): %v", err)
 	}
 }
 

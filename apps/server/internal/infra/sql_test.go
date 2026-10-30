@@ -120,8 +120,9 @@ func TestGracefulSQLiteShutdown_CheckpointsAndClosesWithoutAFullIntegrityCheck(t
 
 // writeCorruptSQLiteDatabase builds a heartbeat-sized database at path with ProvideSQLDB and then
 // damages it: the start of one table page is overwritten with 0xFF, which `PRAGMA quick_check`
-// reports as findings. Page 1 is the schema and page 4 is a data page of the heartbeats table,
-// whose b-tree SQLite can no longer read.
+// reports as findings. Page 1 is the schema, page 2 the pointer map that auto_vacuum adds, page 3
+// the root of the heartbeats table and page 4 a data page of it, whose b-tree SQLite can no longer
+// read.
 func writeCorruptSQLiteDatabase(t *testing.T, path string) {
 	t.Helper()
 	db, err := ProvideSQLDB(&config.Config{DBType: "sqlite", DBName: path}, zap.NewNop().Sugar())
@@ -186,7 +187,7 @@ func TestProvideSQLDB_StopsOnACorruptDatabase(t *testing.T) {
 			require.ErrorContains(t, err, "is corrupt")
 			// the first finding, on one line: SQLite's first row is two lines, "*** in database main ***"
 			// and the finding
-			require.ErrorContains(t, err, "Tree 2 page 4: btreeInitPage() returns error code 11")
+			require.ErrorContains(t, err, "Tree 3 page 4: btreeInitPage() returns error code 11")
 			require.NotContains(t, err.Error(), "\n")
 			require.ErrorContains(t, err, "https://docs.peekaping.com/self-hosting/sqlite-recovery")
 			require.Equal(t, before, sha256OfFile(t, path), "the database file was changed")
