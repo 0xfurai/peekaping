@@ -132,6 +132,11 @@ func TestRun_ShutsDownInOrderOnceTheRequestsInFlightAreAnswered(t *testing.T) {
 	assert.Equal(t, shutdownOrderWithMetrics, logged(logs, shutdownOrderWithMetrics), "the shutdown's steps, in the order logged")
 }
 
+// shutdownBound is under Docker's default stop grace of 10 seconds. It leaves room for the 5 to 6
+// seconds that http.Server.Shutdown waits on a connection that hasn't sent a request: the test
+// client's Transport can leave a spare one open.
+const shutdownBound = 8 * time.Second
+
 func TestRun_ShutsDownWithinSecondsWhileAWebsocketClientLongPolls(t *testing.T) {
 	cfg := loadConfig(t, nil)
 	logger, logs := observedLogger()
@@ -147,7 +152,7 @@ func TestRun_ShutsDownWithinSecondsWhileAWebsocketClientLongPolls(t *testing.T) 
 	took := time.Since(startedAt)
 	t.Logf("shut down in %s", took.Round(time.Millisecond))
 
-	assert.Less(t, took, 5*time.Second, "the long poll doesn't hold up the shutdown")
+	assert.Less(t, took, shutdownBound, "the long poll doesn't hold up the shutdown")
 	select {
 	case _, open := <-socket.packets:
 		assert.False(t, open, "the websocket server ended the client's session")
@@ -170,7 +175,7 @@ func TestRun_ShutsDownWithinSecondsWhileAWebsocketClientIsConnected(t *testing.T
 	took := time.Since(startedAt)
 	t.Logf("shut down in %s", took.Round(time.Millisecond))
 
-	assert.Less(t, took, 5*time.Second, "the websocket doesn't hold up the shutdown")
+	assert.Less(t, took, shutdownBound, "the websocket doesn't hold up the shutdown")
 	// The websocket server closes the client's session and its connection
 	require.NoError(t, conn.SetReadDeadline(time.Now().Add(wait)))
 	for {
