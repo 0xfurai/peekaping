@@ -89,6 +89,11 @@ type Service interface {
 	// the workspace's monitors, so that they stop at once, and MemberLeft for each member, so that
 	// their open sockets leave its rooms. Call it outside a transaction, or the events go before the commit.
 	DeleteAnyWorkspace(ctx context.Context, id ID) error
+	// DeleteDueAnyWorkspace is DeleteAnyWorkspace for the cleanup job: it deletes the workspace only
+	// if its scheduled deletion is due at now when the delete runs, and says whether it did. A
+	// workspace that is gone, or whose deletion was cancelled or scheduled again since the job
+	// listed it, is no error: it returns false, deletes nothing and publishes nothing.
+	DeleteDueAnyWorkspace(ctx context.Context, id ID, now time.Time) (bool, error)
 }
 
 // MonitorWaker makes the scheduler and the probes pick up the monitors of a workspace whose
@@ -368,27 +373,40 @@ func (s *ServiceImpl) announceLeft(ctx context.Context, id ID, userID string) {
 }
 
 func (s *ServiceImpl) DeleteAnyWorkspace(ctx context.Context, id ID) error {
+	deleted, err := s.deleteAndAnnounce(ctx, id, s.workspaces.Delete)
+	if err != nil {
+		return err
+	}
+	if !deleted {
+		return ErrNotFound
+	}
+	return nil
+}
+
+func (s *ServiceImpl) DeleteDueAnyWorkspace(ctx context.Context, id ID, now time.Time) (bool, error) {
+	return s.deleteAndAnnounce(ctx, id, func(ctx context.Context, id ID) (*Deleted, error) {
+		return s.workspaces.DeleteDue(ctx, id, now)
+	})
+}
+
+// deleteAndAnnounce runs the delete in a transaction and, once it is committed and deleted
+// something, announces it. It says whether the workspace was deleted.
+func (s *ServiceImpl) deleteAndAnnounce(ctx context.Context, id ID, del func(context.Context, ID) (*Deleted, error)) (bool, error) {
 	// An ID that is no UUID names no workspace, and PostgreSQL refuses to compare it with one
 	if _, err := uuid.Parse(string(id)); err != nil {
-		return ErrNotFound
+		return false, nil
 	}
 	var deleted *Deleted
 	err := s.transactor.WithTx(ctx, func(ctx context.Context) error {
 		var err error
-		deleted, err = s.workspaces.Delete(ctx, id)
-		if err != nil {
-			return err
-		}
-		if deleted == nil {
-			return ErrNotFound
-		}
-		return nil
-	})
-	if err != nil {
+		deleted, err = del(ctx, id)
 		return err
+	})
+	if err != nil || deleted == nil {
+		return false, err
 	}
 	s.announceDeleted(ctx, id, deleted)
-	return nil
+	return true, nil
 }
 
 func (s *ServiceImpl) ScheduleDeletion(ctx context.Context, userID, name string) (time.Time, error) {

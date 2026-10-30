@@ -96,13 +96,27 @@ func (f *fitter) freeSlug(ctx context.Context, env *pageEnv, p StatusPage) (stri
 		if !taken {
 			break
 		}
-		slug = p.Slug + "-" + strconv.Itoa(n)
+		slug = numbered(p.Slug, n)
 	}
 	env.slugs[slug] = true
 	if slug != p.Slug {
 		f.plan.add(Change{Kind: ChangeStatusPageSlugChanged, Record: RecordStatusPage, Ref: p.Ref, Name: p.Title, From: p.Slug, To: slug})
 	}
 	return slug, nil
+}
+
+// maxSlugLength is what the slug column holds (VARCHAR(255)); the status page DTO sets a minimum
+// and no maximum
+const maxSlugLength = 255
+
+// numbered is slug-n, with the slug cut short so that the whole fits in the column
+func numbered(slug string, n int) string {
+	suffix := "-" + strconv.Itoa(n)
+	runes := []rune(slug)
+	if room := maxSlugLength - len([]rune(suffix)); len(runes) > room {
+		runes = runes[:room]
+	}
+	return string(runes) + suffix
 }
 
 // keptDomains are the page's custom domains, normalized as the service stores them, without those
