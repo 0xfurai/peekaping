@@ -1,0 +1,34 @@
+POST https://hooks.slack.com/services/T/B/X
+Content-Type: application/json
+User-Agent: Peekaping-Slack/<version>
+
+{
+  "attachments": [
+    {
+      "blocks": [
+        {
+          "text": {
+            "text": "Peekaping Alert",
+            "type": "plain_text"
+          },
+          "type": "header"
+        },
+        {
+          "fields": [
+            {
+              "text": "*Message*\n200 - OK",
+              "type": "mrkdwn"
+            },
+            {
+              "text": "*Time*\n2026-10-17 09:35:00",
+              "type": "mrkdwn"
+            }
+          ],
+          "type": "section"
+        }
+      ],
+      "color": "#2eb886"
+    }
+  ],
+  "text": "Peekaping Alert"
+}

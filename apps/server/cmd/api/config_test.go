@@ -1,6 +1,8 @@
 package main
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 
 	"peekaping/internal/config"
@@ -330,6 +332,64 @@ func TestBlockPrivateTargetsIsOffByDefaultAndLoadedFromTheEnvironment(t *testing
 	assert.True(t, cfg.ToInternalConfig().BlockPrivateTargets)
 }
 
+func TestCustomDomainVerificationIsOffByDefaultAndLoadedFromTheEnvironment(t *testing.T) {
+	t.Setenv("DB_TYPE", "sqlite")
+	t.Setenv("DB_NAME", "peekaping.db")
+	t.Setenv("VERIFY_CUSTOM_DOMAINS", "")
+	t.Setenv("CUSTOM_DOMAIN_CNAME_TARGET", "")
+
+	cfg, err := LoadAndValidate(t.TempDir())
+	require.NoError(t, err)
+	assert.False(t, cfg.ToInternalConfig().VerifyCustomDomains)
+	assert.Empty(t, cfg.ToInternalConfig().CustomDomainCNAMETarget)
+
+	t.Setenv("VERIFY_CUSTOM_DOMAINS", "true")
+	t.Setenv("CUSTOM_DOMAIN_CNAME_TARGET", "Status.Example.com.")
+	cfg, err = LoadAndValidate(t.TempDir())
+	require.NoError(t, err)
+	assert.True(t, cfg.ToInternalConfig().VerifyCustomDomains)
+	assert.Equal(t, "Status.Example.com.", cfg.ToInternalConfig().CustomDomainCNAMETarget)
+}
+
+func TestACNAMETargetThatIsNotAHostNameStopsStartup(t *testing.T) {
+	t.Setenv("DB_TYPE", "sqlite")
+	t.Setenv("DB_NAME", "peekaping.db")
+	t.Setenv("CUSTOM_DOMAIN_CNAME_TARGET", "https://status.example.com")
+
+	_, err := LoadAndValidate(t.TempDir())
+	assert.ErrorContains(t, err, "CUSTOM_DOMAIN_CNAME_TARGET must be a host name")
+}
+
+func TestAVerifyCustomDomainsThatIsNotABooleanStopsStartup(t *testing.T) {
+	for _, value := range []string{"TRUE", "yes", "on"} {
+		t.Setenv("DB_TYPE", "sqlite")
+		t.Setenv("DB_NAME", "peekaping.db")
+		t.Setenv("VERIFY_CUSTOM_DOMAINS", value)
+
+		_, err := LoadAndValidate(t.TempDir())
+		assert.ErrorContains(t, err, "VERIFY_CUSTOM_DOMAINS must be true, 1, false or 0", value)
+	}
+}
+
+func TestAVerifyCustomDomainsThatIsNotABooleanStopsStartupFromAnEnvFileToo(t *testing.T) {
+	t.Setenv("VERIFY_CUSTOM_DOMAINS", "")
+	for _, value := range []string{"TRUE", "yes"} {
+		dir := t.TempDir()
+		env := "DB_TYPE=sqlite\nDB_NAME=peekaping.db\nVERIFY_CUSTOM_DOMAINS=" + value + "\n"
+		require.NoError(t, os.WriteFile(filepath.Join(dir, ".env"), []byte(env), 0o600))
+
+		_, err := LoadAndValidate(dir)
+		assert.ErrorContains(t, err, "VERIFY_CUSTOM_DOMAINS must be true, 1, false or 0", value)
+	}
+
+	dir := t.TempDir()
+	env := "DB_TYPE=sqlite\nDB_NAME=peekaping.db\nVERIFY_CUSTOM_DOMAINS=1\n"
+	require.NoError(t, os.WriteFile(filepath.Join(dir, ".env"), []byte(env), 0o600))
+	cfg, err := LoadAndValidate(dir)
+	require.NoError(t, err)
+	assert.True(t, cfg.ToInternalConfig().VerifyCustomDomains)
+}
+
 func TestAPIRateLimitsAreOffByDefaultAndLoadedFromTheEnvironment(t *testing.T) {
 	t.Setenv("DB_TYPE", "sqlite")
 	t.Setenv("DB_NAME", "peekaping.db")
@@ -442,4 +502,48 @@ func TestTheInternalConfigKnowsWhichVariablesTheEnvironmentSet(t *testing.T) {
 	internal := cfg.ToInternalConfig()
 	assert.True(t, internal.FromEnvironment("CLIENT_URL"))
 	assert.False(t, internal.FromEnvironment("SIGNUP_MODE"))
+}
+
+func TestMetricsPortIsUnsetByDefaultAndLoadedFromTheEnvironment(t *testing.T) {
+	t.Setenv("DB_TYPE", "sqlite")
+	t.Setenv("DB_NAME", "peekaping.db")
+
+	cfg, err := LoadAndValidate(t.TempDir())
+	require.NoError(t, err)
+	assert.Empty(t, cfg.ToInternalConfig().MetricsPort)
+
+	t.Setenv("METRICS_ENABLED", "true")
+	t.Setenv("METRICS_PORT", "9464")
+	cfg, err = LoadAndValidate(t.TempDir())
+	require.NoError(t, err)
+	assert.Equal(t, "9464", cfg.ToInternalConfig().MetricsPort)
+}
+
+func TestMetricsPortThatCantBeServedStopsStartup(t *testing.T) {
+	tests := []struct {
+		name, enabled, port, serverPort, want string
+	}{
+		{name: "not a number", enabled: "true", port: "prometheus", want: "METRICS_PORT must be a port from 1 to 65535"},
+		{name: "above 65535", enabled: "true", port: "65536", want: "METRICS_PORT must be a port from 1 to 65535"},
+		{name: "zero", enabled: "true", port: "0", want: "METRICS_PORT must be a port from 1 to 65535"},
+		{name: "the same as SERVER_PORT", enabled: "true", port: "8034", want: "METRICS_PORT must differ from SERVER_PORT"},
+		{name: "the same as a set SERVER_PORT", enabled: "true", port: "9000", serverPort: "9000", want: "METRICS_PORT must differ from SERVER_PORT"},
+		{name: "metrics off", enabled: "", port: "9464", want: "METRICS_PORT needs METRICS_ENABLED=true"},
+		{name: "metrics explicitly off", enabled: "false", port: "9464", want: "METRICS_PORT needs METRICS_ENABLED=true"},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Setenv("DB_TYPE", "sqlite")
+			t.Setenv("DB_NAME", "peekaping.db")
+			t.Setenv("METRICS_ENABLED", tc.enabled)
+			t.Setenv("METRICS_PORT", tc.port)
+			if tc.serverPort != "" {
+				t.Setenv("SERVER_PORT", tc.serverPort)
+			}
+
+			_, err := LoadAndValidate(t.TempDir())
+
+			assert.ErrorContains(t, err, tc.want)
+		})
+	}
 }

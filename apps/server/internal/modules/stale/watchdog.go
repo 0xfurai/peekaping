@@ -157,33 +157,59 @@ func (w *Watchdog) checkStaleMonitors(ctx context.Context) error {
 		return err
 	}
 
+	seen, err := w.checkActiveMonitors(ctx, now, known)
+	if err != nil {
+		return err
+	}
+
+	if err := w.forgetGoneMonitors(ctx, known, seen); err != nil {
+		return err
+	}
+
+	return w.store.SetRanAt(ctx, now)
+}
+
+// checkActiveMonitors checks every active monitor, page by page, and returns the ones it saw
+func (w *Watchdog) checkActiveMonitors(ctx context.Context, now time.Time, known map[string]Entry) (map[string]bool, error) {
 	const pageSize = 100
 	seen := make(map[string]bool)
 	for page := 0; ; page++ {
 		monitors, err := w.monitors.FindActivePaginatedAnyWorkspace(ctx, page, pageSize)
 		if err != nil {
-			return fmt.Errorf("failed to find active monitors (page %d): %w", page, err)
+			return nil, fmt.Errorf("failed to find active monitors (page %d): %w", page, err)
 		}
 		if len(monitors) == 0 {
-			break
+			return seen, nil
 		}
-		for _, mon := range monitors {
-			if !mon.Active || mon.Interval <= 0 {
-				continue
-			}
-			seen[mon.ID] = true
-			entry, wasStale := known[mon.ID]
-			if err := w.checkStaleMonitor(ctx, mon, now, entry, wasStale); err != nil {
-				if ctx.Err() != nil {
-					return err // the rest would fail the same way
-				}
-				w.logger.Errorw("Failed to check whether monitor is stale", "monitor_id", mon.ID, "error", err)
-			}
+		if err := w.checkPage(ctx, monitors, now, known, seen); err != nil {
+			return nil, err
 		}
 	}
+}
 
-	// Paused and deleted monitors aren't stale. A monitor paused during the scan shifts
-	// the pages, so check each unseen one before forgetting it.
+// checkPage checks the monitors of a page and adds them to seen. A check that fails is logged,
+// unless the context is done: the rest would fail the same way.
+func (w *Watchdog) checkPage(ctx context.Context, monitors []*shared.Monitor, now time.Time, known map[string]Entry, seen map[string]bool) error {
+	for _, mon := range monitors {
+		if !mon.Active || mon.Interval <= 0 {
+			continue
+		}
+		seen[mon.ID] = true
+		entry, wasStale := known[mon.ID]
+		if err := w.checkStaleMonitor(ctx, mon, now, entry, wasStale); err != nil {
+			if ctx.Err() != nil {
+				return err // the rest would fail the same way
+			}
+			w.logger.Errorw("Failed to check whether monitor is stale", "monitor_id", mon.ID, "error", err)
+		}
+	}
+	return nil
+}
+
+// forgetGoneMonitors deletes the records of the monitors that were not seen and are no longer
+// checked. Paused and deleted monitors aren't stale. A monitor paused during the scan shifts
+// the pages, so each unseen one is checked before it is forgotten.
+func (w *Watchdog) forgetGoneMonitors(ctx context.Context, known map[string]Entry, seen map[string]bool) error {
 	var gone []string
 	for id := range known {
 		if seen[id] {
@@ -197,38 +223,23 @@ func (w *Watchdog) checkStaleMonitors(ctx context.Context) error {
 			w.logger.Errorw("Failed to find stale monitor", "monitor_id", id, "error", err)
 			continue
 		}
-		// A monitor whose workspace was suspended, whose type was turned off, or that went past its
-		// workspace's limit, is no longer checked, so it is not stale either
-		if mon == nil || !mon.Active || mon.WorkspaceSuspended || mon.TypeDisabled || mon.OverLimit {
+		if noLongerChecked(mon) {
 			gone = append(gone, id)
 		}
 	}
-	if err := w.store.Delete(ctx, gone...); err != nil {
-		return err
-	}
+	return w.store.Delete(ctx, gone...)
+}
 
-	return w.store.SetRanAt(ctx, now)
+// noLongerChecked reports whether the monitor is not checked any more, so it is not stale either:
+// it is deleted or paused, its workspace was suspended, its type was turned off, or it went past
+// its workspace's limit
+func noLongerChecked(mon *shared.Monitor) bool {
+	return mon == nil || !mon.Active || mon.WorkspaceSuspended || mon.TypeDisabled || mon.OverLimit
 }
 
 func (w *Watchdog) checkStaleMonitor(ctx context.Context, mon *shared.Monitor, now time.Time, entry Entry, wasStale bool) error {
-	// A monitor whose probe is offline has no checks to be late: the probe's own notification
-	// says so. A record of a notification stays, so the monitor's recovery is still reported
-	// once it is checked again. A record of a recheck that wasn't notified yet is forgotten:
-	// that recheck can't run while the probe is offline, and the time it was given would run out
-	// by the time the probe is back, which would notify with no recheck made. The monitor is
-	// found stale afresh then, with a new recheck and a new time to be checked in.
-	if w.probeOffline != nil {
-		offline, err := w.probeOffline(ctx, mon)
-		if err != nil {
-			return fmt.Errorf("failed to find out whether the monitor's probe is offline: %w", err)
-		}
-		if offline {
-			w.logger.Debugw("Skipping a monitor whose probe is offline", "monitor_id", mon.ID, "monitor_name", mon.Name)
-			if wasStale && !entry.Notified {
-				return w.store.Delete(ctx, mon.ID)
-			}
-			return nil
-		}
+	if skip, err := w.skipOfflineProbe(ctx, mon, entry, wasStale); skip || err != nil {
+		return err
 	}
 
 	heartbeatAt, err := w.latestHeartbeatAt(ctx, mon.ID)
@@ -242,49 +253,89 @@ func (w *Watchdog) checkStaleMonitor(ctx context.Context, mon *shared.Monitor, n
 	}
 
 	if now.Sub(since) <= Threshold(mon.Interval, mon.Timeout) {
-		if !wasStale {
-			return nil
-		}
-		if !heartbeatAt.After(entry.Since) {
-			// Saved or resumed, but still not checked. After a notification it's the
-			// same stale period; before one, the save starts the wait over.
-			if entry.Notified {
-				return nil
-			}
-			return w.store.Delete(ctx, mon.ID)
-		}
-		w.logger.Infow("Monitor is being checked again", "monitor_id", mon.ID, "monitor_name", mon.Name)
-		if err := w.store.Delete(ctx, mon.ID); err != nil {
-			return err
-		}
-		if entry.Notified {
-			w.publishStale(ctx, MonitorStaleRecovered, Event{MonitorID: mon.ID, MonitorName: mon.Name, Since: entry.Since})
-		}
+		return w.checkedInTime(ctx, mon, entry, wasStale, heartbeatAt)
+	}
+	if !wasStale {
+		return w.recheckNewlyStale(ctx, mon, now, since)
+	}
+	return w.notifyStillStale(ctx, mon, now, entry)
+}
+
+// skipOfflineProbe reports whether the monitor is left alone because its probe is offline. A
+// monitor whose probe is offline has no checks to be late: the probe's own notification
+// says so. A record of a notification stays, so the monitor's recovery is still reported
+// once it is checked again. A record of a recheck that wasn't notified yet is forgotten:
+// that recheck can't run while the probe is offline, and the time it was given would run out
+// by the time the probe is back, which would notify with no recheck made. The monitor is
+// found stale afresh then, with a new recheck and a new time to be checked in.
+func (w *Watchdog) skipOfflineProbe(ctx context.Context, mon *shared.Monitor, entry Entry, wasStale bool) (bool, error) {
+	if w.probeOffline == nil {
+		return false, nil
+	}
+	offline, err := w.probeOffline(ctx, mon)
+	if err != nil {
+		return false, fmt.Errorf("failed to find out whether the monitor's probe is offline: %w", err)
+	}
+	if !offline {
+		return false, nil
+	}
+	w.logger.Debugw("Skipping a monitor whose probe is offline", "monitor_id", mon.ID, "monitor_name", mon.Name)
+	if wasStale && !entry.Notified {
+		return true, w.store.Delete(ctx, mon.ID)
+	}
+	return true, nil
+}
+
+// checkedInTime deals with a monitor that is not stale: if it was, its record is forgotten once it
+// is checked again, and a recovery is reported if it was notified
+func (w *Watchdog) checkedInTime(ctx context.Context, mon *shared.Monitor, entry Entry, wasStale bool, heartbeatAt time.Time) error {
+	if !wasStale {
 		return nil
 	}
-
-	if !wasStale {
-		// The rechecker checks the monitors of the local probe only, and cluster mode has none: no
-		// process of its own runs checks there. A monitor with no recheck to make gets none from
-		// here, but the time a recheck is given still runs, so that its channels are notified if
-		// it stays unchecked.
-		if w.rechecker == nil || !mon.RunsOn(shared.LocalProbeID) {
-			w.logger.Warnw("Monitor on a probe has not been checked in too long",
-				"monitor_id", mon.ID,
-				"monitor_name", mon.Name,
-				"last_checked_at", since)
-			return w.store.Put(ctx, Entry{MonitorID: mon.ID, Since: since, DetectedAt: now})
+	if !heartbeatAt.After(entry.Since) {
+		// Saved or resumed, but still not checked. After a notification it's the
+		// same stale period; before one, the save starts the wait over.
+		if entry.Notified {
+			return nil
 		}
-		w.logger.Warnw("Monitor has not been checked in too long, checking it again",
+		return w.store.Delete(ctx, mon.ID)
+	}
+	w.logger.Infow("Monitor is being checked again", "monitor_id", mon.ID, "monitor_name", mon.Name)
+	if err := w.store.Delete(ctx, mon.ID); err != nil {
+		return err
+	}
+	if entry.Notified {
+		w.publishStale(ctx, MonitorStaleRecovered, Event{MonitorID: mon.ID, MonitorName: mon.Name, Since: entry.Since})
+	}
+	return nil
+}
+
+// recheckNewlyStale records a monitor that has just gone stale, and gets it checked again
+func (w *Watchdog) recheckNewlyStale(ctx context.Context, mon *shared.Monitor, now, since time.Time) error {
+	// The rechecker checks the monitors of the local probe only, and cluster mode has none: no
+	// process of its own runs checks there. A monitor with no recheck to make gets none from
+	// here, but the time a recheck is given still runs, so that its channels are notified if
+	// it stays unchecked.
+	if w.rechecker == nil || !mon.RunsOn(shared.LocalProbeID) {
+		w.logger.Warnw("Monitor on a probe has not been checked in too long",
 			"monitor_id", mon.ID,
 			"monitor_name", mon.Name,
 			"last_checked_at", since)
-		if err := w.rechecker.RunNow(ctx, mon.ID); err != nil {
-			return err
-		}
 		return w.store.Put(ctx, Entry{MonitorID: mon.ID, Since: since, DetectedAt: now})
 	}
+	w.logger.Warnw("Monitor has not been checked in too long, checking it again",
+		"monitor_id", mon.ID,
+		"monitor_name", mon.Name,
+		"last_checked_at", since)
+	if err := w.rechecker.RunNow(ctx, mon.ID); err != nil {
+		return err
+	}
+	return w.store.Put(ctx, Entry{MonitorID: mon.ID, Since: since, DetectedAt: now})
+}
 
+// notifyStillStale notifies, once, a stale monitor that is still not checked after the time its
+// recheck was given
+func (w *Watchdog) notifyStillStale(ctx context.Context, mon *shared.Monitor, now time.Time, entry Entry) error {
 	// Give that check the time it's allowed before notifying
 	if entry.Notified || now.Sub(entry.DetectedAt) < w.checkTimeout(mon.Timeout) {
 		return nil

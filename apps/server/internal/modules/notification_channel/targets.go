@@ -31,33 +31,46 @@ func (r *ProviderRegistry) CheckTargets(channelType, config string) error {
 	if !ok {
 		return nil
 	}
+	value, ok := configStruct(provider, config)
+	if !ok {
+		return nil
+	}
+	for _, field := range targetFields(provider) {
+		if err := r.checkTarget(field, value); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// configStruct returns the struct the provider reads the config into, and false for a config it
+// can't read, or that isn't a struct
+func configStruct(provider NotificationChannelProvider, config string) (reflect.Value, bool) {
 	parsed, err := provider.Unmarshal(config)
 	if err != nil || parsed == nil {
-		return nil
+		return reflect.Value{}, false
 	}
 	value := reflect.ValueOf(parsed)
 	for value.Kind() == reflect.Pointer {
 		value = value.Elem()
 	}
-	if value.Kind() != reflect.Struct {
+	return value, value.Kind() == reflect.Struct
+}
+
+// checkTarget refuses a field that is a blocked IP address, or a URL of one. A field that isn't a
+// string, or a URL, passes.
+func (r *ProviderRegistry) checkTarget(field configField, config reflect.Value) error {
+	text, ok := config.Field(field.index).Interface().(string)
+	if !ok {
 		return nil
 	}
-	for _, field := range targetFields(provider) {
-		text, ok := value.Field(field.index).Interface().(string)
-		if !ok {
-			continue
+	host := text
+	if field.target == "url" {
+		u, err := url.Parse(text)
+		if err != nil {
+			return nil
 		}
-		host := text
-		if field.target == "url" {
-			u, err := url.Parse(text)
-			if err != nil {
-				continue
-			}
-			host = u.Hostname()
-		}
-		if err := r.guard.CheckLiteral(host); err != nil {
-			return err
-		}
+		host = u.Hostname()
 	}
-	return nil
+	return r.guard.CheckLiteral(host)
 }

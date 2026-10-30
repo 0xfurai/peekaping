@@ -1,0 +1,13 @@
+POST https://oncall.example.com/integrations/v1/formatted_webhook/abc/
+Content-Type: application/json
+User-Agent: Peekaping/<version>
+
+{
+  "message": "connection refused",
+  "ping_ms": 0,
+  "retries": 0,
+  "state": "alerting",
+  "status": "DOWN",
+  "time": "2026-10-17T09:30:00Z",
+  "title": "Unknown Monitor is down"
+}

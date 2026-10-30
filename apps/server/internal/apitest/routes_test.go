@@ -36,6 +36,7 @@ var publicRoutes = map[string]string{
 
 	"GET /api/v1/status-pages/slug/{slug}":                   "published status page",
 	"GET /api/v1/status-pages/domain/{domain}":               "published status page on a custom domain",
+	"GET /api/v1/status-pages/tls-ask":                       "Caddy's on_demand_tls ask: whether a domain is on a status page's custom domain list, yes or no",
 	"GET /api/v1/status-pages/slug/{slug}/monitors":          "monitors on a published status page",
 	"GET /api/v1/status-pages/slug/{slug}/monitors/homepage": "monitors on a published status page",
 

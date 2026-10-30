@@ -622,3 +622,14 @@ func (c *socketClient) until(t *testing.T, timeout time.Duration, match func(soc
 		}
 	}
 }
+
+// freeMetricsPort is a port nothing listens on, for METRICS_PORT: run opens that listener itself
+func freeMetricsPort(t testing.TB) string {
+	t.Helper()
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	require.NoError(t, err)
+	defer func() { require.NoError(t, listener.Close()) }()
+	_, port, err := net.SplitHostPort(listener.Addr().String())
+	require.NoError(t, err)
+	return port
+}
