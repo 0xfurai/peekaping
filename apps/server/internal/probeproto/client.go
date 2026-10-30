@@ -104,17 +104,34 @@ func (c *Client) Bye(ctx context.Context) error {
 // do makes one call and decodes a 2xx reply into out. A reply with no body (204, 304) leaves out
 // as it is. It returns the reply's status.
 func (c *Client) do(ctx context.Context, method, path string, in, out any) (int, error) {
+	req, err := c.newRequest(ctx, method, path, in)
+	if err != nil {
+		return 0, err
+	}
+
+	resp, err := c.HTTP.Do(req)
+	if err != nil {
+		return 0, err
+	}
+	defer resp.Body.Close()
+
+	return readReply(resp, method, path, out)
+}
+
+// newRequest makes the request of a call, with the bearer token and the instance id, and in as its
+// gzipped JSON body when there is one
+func (c *Client) newRequest(ctx context.Context, method, path string, in any) (*http.Request, error) {
 	var body io.Reader
 	if in != nil {
 		compressed, err := gzipJSON(in)
 		if err != nil {
-			return 0, err
+			return nil, err
 		}
 		body = compressed
 	}
 	req, err := http.NewRequestWithContext(ctx, method, c.BaseURL+PathPrefix+path, body)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 	req.Header.Set("Authorization", "Bearer "+c.Token)
 	req.Header.Set(HeaderInstanceID, c.InstanceID)
@@ -124,13 +141,11 @@ func (c *Client) do(ctx context.Context, method, path string, in, out any) (int,
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Content-Encoding", "gzip")
 	}
+	return req, nil
+}
 
-	resp, err := c.HTTP.Do(req)
-	if err != nil {
-		return 0, err
-	}
-	defer resp.Body.Close()
-
+// readReply turns the reply into the status and, for a 2xx reply with a body, the decoded out
+func readReply(resp *http.Response, method, path string, out any) (int, error) {
 	// Only the long poll can be answered with 304, which means "unchanged"
 	notModified := resp.StatusCode == http.StatusNotModified && method == http.MethodGet
 	if (resp.StatusCode < 200 || resp.StatusCode > 299) && !notModified {
@@ -140,14 +155,19 @@ func (c *Client) do(ctx context.Context, method, path string, in, out any) (int,
 		_, _ = io.Copy(io.Discard, resp.Body)
 		return resp.StatusCode, nil
 	}
+	return resp.StatusCode, decodeReply(resp, method, path, out)
+}
+
+// decodeReply decodes the body of a 2xx reply into out
+func decodeReply(resp *http.Response, method, path string, out any) error {
 	reader, err := replyReader(resp)
 	if err != nil {
-		return resp.StatusCode, err
+		return err
 	}
 	if err := json.NewDecoder(reader).Decode(out); err != nil {
-		return resp.StatusCode, fmt.Errorf("probeproto: decoding the reply of %s %s: %w", method, PathPrefix+path, err)
+		return fmt.Errorf("probeproto: decoding the reply of %s %s: %w", method, PathPrefix+path, err)
 	}
-	return resp.StatusCode, nil
+	return nil
 }
 
 // gzipJSON marshals value and gzips it
