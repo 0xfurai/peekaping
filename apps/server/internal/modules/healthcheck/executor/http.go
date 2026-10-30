@@ -484,44 +484,59 @@ func buildGuardedTransport(base *http.Transport, proxyModel *Proxy, guard *netgu
 
 	switch protocol {
 	case "http", "https":
-		proxyURL := &url.URL{
-			Scheme: protocol,
-			Host:   net.JoinHostPort(proxyModel.Host, strconv.Itoa(proxyModel.Port)),
-		}
-		if proxyModel.Auth && proxyModel.Username != "" && proxyModel.Password != "" {
-			proxyURL.User = url.UserPassword(proxyModel.Username, proxyModel.Password)
-		}
-		base.Proxy = http.ProxyURL(proxyURL)
-		return base
+		return httpProxyTransport(base, proxyModel, protocol)
 	case "socks", "socks5", "socks5h", "socks4":
-		var auth *proxy.Auth
-		if proxyModel.Auth && proxyModel.Username != "" && proxyModel.Password != "" {
-			auth = &proxy.Auth{
-				User:     proxyModel.Username,
-				Password: proxyModel.Password,
-			}
-		}
-		address := net.JoinHostPort(proxyModel.Host, strconv.Itoa(proxyModel.Port))
-		var forward proxy.Dialer = proxy.Direct
-		if guard != nil {
-			forward = guardedDirect{guard}
-		}
-		dialer, err := proxy.SOCKS5("tcp", address, auth, forward)
-		if err != nil {
-			// fallback to default transport if dialer fails
-			return base
-		}
-		base.DialContext = func(ctx context.Context, network, addr string) (conn net.Conn, e error) {
-			if contextDialer, ok := dialer.(proxy.ContextDialer); ok {
-				return contextDialer.DialContext(ctx, network, addr)
-			}
-			return dialer.Dial(network, addr)
-		}
-		base.Proxy = nil // No HTTP proxy
-		return base
+		return socksProxyTransport(base, proxyModel, guard)
 	default:
 		return base
 	}
+}
+
+// hasProxyCredentials reports whether the proxy needs a username and password
+func hasProxyCredentials(proxyModel *Proxy) bool {
+	return proxyModel.Auth && proxyModel.Username != "" && proxyModel.Password != ""
+}
+
+// httpProxyTransport sends the transport's requests through an HTTP or HTTPS proxy
+func httpProxyTransport(base *http.Transport, proxyModel *Proxy, protocol string) http.RoundTripper {
+	proxyURL := &url.URL{
+		Scheme: protocol,
+		Host:   net.JoinHostPort(proxyModel.Host, strconv.Itoa(proxyModel.Port)),
+	}
+	if hasProxyCredentials(proxyModel) {
+		proxyURL.User = url.UserPassword(proxyModel.Username, proxyModel.Password)
+	}
+	base.Proxy = http.ProxyURL(proxyURL)
+	return base
+}
+
+// socksProxyTransport has the transport dial through a SOCKS proxy
+func socksProxyTransport(base *http.Transport, proxyModel *Proxy, guard *netguard.Guard) http.RoundTripper {
+	var auth *proxy.Auth
+	if hasProxyCredentials(proxyModel) {
+		auth = &proxy.Auth{
+			User:     proxyModel.Username,
+			Password: proxyModel.Password,
+		}
+	}
+	address := net.JoinHostPort(proxyModel.Host, strconv.Itoa(proxyModel.Port))
+	var forward proxy.Dialer = proxy.Direct
+	if guard != nil {
+		forward = guardedDirect{guard}
+	}
+	dialer, err := proxy.SOCKS5("tcp", address, auth, forward)
+	if err != nil {
+		// fallback to default transport if dialer fails
+		return base
+	}
+	base.DialContext = func(ctx context.Context, network, addr string) (conn net.Conn, e error) {
+		if contextDialer, ok := dialer.(proxy.ContextDialer); ok {
+			return contextDialer.DialContext(ctx, network, addr)
+		}
+		return dialer.Dial(network, addr)
+	}
+	base.Proxy = nil // No HTTP proxy
+	return base
 }
 
 func setDefaultHeaders(req *http.Request) {
