@@ -124,6 +124,24 @@ Put it under initContainers with: include "peekaping.waitForMigrations" . | nind
 {{- end }}
 
 {{/*
+The api's preStop sleep in seconds, as a number: api.preStopSleepSeconds when it
+is a whole number of 0 or more, however it arrives (a number in a values file or
+with --set, a string with --set-string). Anything else fails the render: a
+negative value would shorten the pod's grace period below the api's shutdown
+time, and a fraction or text such as 10s would otherwise turn into 0 and drop
+the hook without a word.
+
+Use it as: include "peekaping.preStopSleepSeconds" . | atoi
+*/}}
+{{- define "peekaping.preStopSleepSeconds" -}}
+{{- $seconds := toString .Values.api.preStopSleepSeconds -}}
+{{- if not (regexMatch "^[0-9]{1,6}$" $seconds) -}}
+{{- fail (printf "api.preStopSleepSeconds is %q, but it must be a whole number of seconds, 0 or more (at most 999999): the api container sleeps that long in a preStop hook, and 0 means no hook" $seconds) -}}
+{{- end -}}
+{{- $seconds -}}
+{{- end }}
+
+{{/*
 Fails the render when config.env.DB_TYPE is sqlite, mongo or mongodb, in any
 case. The chart runs Peekaping in cluster mode, and it has no volume for a SQLite
 file: each pod and the migrate Job would get an empty file of its own, so the

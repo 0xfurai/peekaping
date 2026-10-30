@@ -355,7 +355,7 @@ api:
   preStopSleepSeconds: 10   # 0 removes the hook; the grace period is then 35
 ```
 
-Raise it if your ingress controller or load balancer is slow to drop a pod. The hook runs `sleep`, which the API image has, so it also works under `api.apparmor.enabled`.
+It must be a whole number of 0 or more; the chart refuses anything else, such as `-5`, `7.5` or `10s`. Raise it if your ingress controller or load balancer is slow to drop a pod. The hook runs `sleep`, which the API image has, so it also works under `api.apparmor.enabled`.
 
 ## Upgrading
 

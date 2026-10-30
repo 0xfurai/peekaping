@@ -1,3 +1,4 @@
+{{- $preStopSleep := include "peekaping.preStopSleepSeconds" . | atoi -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -42,7 +43,7 @@ spec:
       automountServiceAccountToken: false
 
       # The api takes up to 30 seconds to shut down cleanly, and starts only after the preStop sleep
-      terminationGracePeriodSeconds: {{ add 35 (int .Values.api.preStopSleepSeconds) }}
+      terminationGracePeriodSeconds: {{ add 35 $preStopSleep }}
 
       # Spread replicas across nodes/azs if possible
       topologySpreadConstraints:
@@ -104,13 +105,13 @@ spec:
               cpu: {{ .Values.api.resources.limits.cpu }}
               memory: {{ .Values.api.resources.limits.memory }}
 
-          {{- if gt (int .Values.api.preStopSleepSeconds) 0 }}
+          {{- if gt $preStopSleep 0 }}
           # Keep serving while the Service and the ingress drop this pod from their endpoints, so a
           # rollout refuses no connection. The api gets SIGTERM after the sleep.
           lifecycle:
             preStop:
               exec:
-                command: ["sleep", "{{ int .Values.api.preStopSleepSeconds }}"]
+                command: ["sleep", "{{ $preStopSleep }}"]
           {{- end }}
 
           securityContext:
