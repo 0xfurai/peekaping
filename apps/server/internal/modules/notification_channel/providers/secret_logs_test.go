@@ -129,6 +129,19 @@ func TestSenders_DoNotLogSecretURLs(t *testing.T) {
 			logsHost: true,
 		},
 		{
+			// The card's "View in Peekaping" button holds server_url, which can carry userinfo and a query
+			name: "teams",
+			send: func(logger *zap.SugaredLogger, serverURL string) error {
+				cfg := `{"webhook_url": "` + serverURL + `/webhook/secret-teams-path", "server_url": "https://teams-user:secret-teams-pass@peekaping.example/base?key=secret-teams-query"}`
+				return NewTeamsSender(logger, installsettings.Static(&config.Config{}), NewHTTPClient()).Send(context.Background(), cfg, "Monitor is down", testMonitor(), testHeartbeat())
+			},
+			secrets: func(serverURL string) []string {
+				return []string{"secret-teams-pass", "secret-teams-query", "secret-teams-path", "peekaping.example/base", serverURL}
+			},
+			channel: "teams",
+			sentLog: "teams message sent",
+		},
+		{
 			name: "signal",
 			send: func(logger *zap.SugaredLogger, serverURL string) error {
 				cfg := `{"signal_url": "` + withUserinfo(serverURL, "sig-user:secret-signal-pass") + `/v2/send?apikey=secret-signal-query",` +
