@@ -394,19 +394,7 @@ func normalizeField(schema *huma.Schema, name string, f reflect.StructField, pro
 	rules := strings.Split(f.Tag.Get("validate"), ",")
 	reader := newRuleReader(property, f.Type, rules)
 	for _, rule := range rules {
-		key, value, _ := strings.Cut(rule, "=")
-		switch key {
-		case "dive":
-			reader.dive()
-		case "oneof":
-			reader.oneOf(value)
-		case "email":
-			reader.property.Format = "email"
-		case "hexcolor":
-			reader.property.Pattern = "^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$"
-		case "min", "max":
-			reader.limit(key, value)
-		}
+		reader.read(rule)
 	}
 	if reader.required {
 		markRequired(schema, name, f)
@@ -440,6 +428,23 @@ func newRuleReader(property *huma.Schema, fieldType reflect.Type, rules []string
 		}
 	}
 	return reader
+}
+
+// read documents one rule of the tag
+func (r *ruleReader) read(rule string) {
+	key, value, _ := strings.Cut(rule, "=")
+	switch key {
+	case "dive":
+		r.dive()
+	case "oneof":
+		r.oneOf(value)
+	case "email":
+		r.property.Format = "email"
+	case "hexcolor":
+		r.property.Pattern = "^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$"
+	case "min", "max":
+		r.limit(key, value)
+	}
 }
 
 // dive moves to the items of a list, for the rules after it
