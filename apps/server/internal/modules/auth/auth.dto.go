@@ -1,5 +1,7 @@
 package auth
 
+import "time"
+
 type RegisterDto struct {
 	Email    string `json:"email" validate:"required,email"`
 	Password string `json:"password" validate:"required,password"`
@@ -69,10 +71,15 @@ type MeWorkspace struct {
 	// runs (PP-155)
 	Suspended bool `json:"suspended"`
 	// SuspendedReason says why a suspended workspace is: "admin" is a workspace an instance admin
-	// suspended, which runs once they resume it; "unverified" is a new account's workspace, which
-	// runs once its owner has verified their email address. "admin" is told first when both hold.
-	// Null when the workspace runs.
+	// suspended, which runs once they resume it; "deleting" is a workspace whose owner scheduled its
+	// deletion (deletionScheduledAt says when); "unverified" is a new account's workspace, which
+	// runs once its owner has verified their email address. "deleting" is told first, then "admin",
+	// when more than one holds. Null when the workspace runs.
 	SuspendedReason *string `json:"suspendedReason"`
+	// DeletionScheduledAt is when the workspace and everything in it will be deleted, because an owner
+	// scheduled its deletion (PP-170): the workspace is suspended with the reason "deleting" until
+	// then, and an owner can cancel. Null when no deletion is scheduled.
+	DeletionScheduledAt *time.Time `json:"deletionScheduledAt" nullable:"true"`
 }
 
 type LoginResponse struct {

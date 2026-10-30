@@ -171,8 +171,8 @@ var hourlySpec = "0 * * * *"
 
 // StartCleanupCron schedules the hourly cleanup: the heartbeats past the data retention period of
 // their workspace, capped by its limits (caps, nil for none), the probes' status changes past the longest of those periods, the expired
-// stats, the old notification history, the old TLS info and the account tokens spent for more than
-// a day. It returns an error if the cleanup
+// stats, the old notification history, the old TLS info, the account tokens spent for more than
+// a day and the workspaces whose scheduled deletion is due. It returns an error if the cleanup
 // can't be scheduled, and then nothing runs.
 //
 // Every process that calls it fires at the top of the hour, so in cluster mode, where several
@@ -191,6 +191,7 @@ func StartCleanupCron(
 	tlsInfoService monitor_tls_info.Service,
 	probeService probe.Service,
 	accountTokens AccountTokens,
+	workspaceDeleter WorkspaceDeleter,
 	lock RunLock,
 	retention Retention,
 	logger *zap.SugaredLogger,
@@ -205,6 +206,7 @@ func StartCleanupCron(
 		tlsInfo:             tlsInfoService,
 		probes:              probeService,
 		accountTokens:       accountTokens,
+		workspaceDeleter:    workspaceDeleter,
 		lock:                lock,
 		retention:           retention,
 		logger:              logger,
@@ -225,4 +227,27 @@ func StartCleanupCron(
 
 	c.Start()
 	return c, nil
+}
+
+// WorkspaceDeleter deletes a workspace and everything in it. workspace.Service is one.
+type WorkspaceDeleter interface {
+	DeleteAnyWorkspace(ctx context.Context, id workspace.ID) error
+}
+
+// PurgeScheduledWorkspaces deletes the workspaces whose scheduled deletion is due at now (PP-170),
+// each with everything in it. A workspace that can't be deleted is logged and left for the next
+// hour, and the others go on. It is exported so that a test can run it at a time of its own.
+func PurgeScheduledWorkspaces(ctx context.Context, workspaces workspace.Repository, deleter WorkspaceDeleter, now time.Time, logger *zap.SugaredLogger) {
+	due, err := workspaces.ListDeletionDueAnyWorkspace(ctx, now)
+	if err != nil {
+		logger.Errorw("Failed to list the workspaces scheduled for deletion, not deleting any", "error", err)
+		return
+	}
+	for _, id := range due {
+		if err := deleter.DeleteAnyWorkspace(ctx, id); err != nil {
+			logger.Errorw("Failed to delete a workspace scheduled for deletion", "workspace", id, "error", err)
+			continue
+		}
+		logger.Infow("Deleted a workspace scheduled for deletion", "workspace", id)
+	}
 }

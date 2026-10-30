@@ -73,6 +73,15 @@ type Service interface {
 	// ErrNotFound, ErrForbidden or ErrInvalidName (a name that is blank once trimmed). The
 	// membership it returns holds the caller's role there; its JoinedAt is not read.
 	RenameWorkspace(ctx context.Context, name string) (*Membership, error)
+	// ScheduleDeletion holds the workspace the context runs in for deletion, for an owner who types
+	// its exact name (PP-170): ErrNotFound, ErrForbidden or ErrNameMismatch. It returns when the
+	// workspace will be deleted, 7 days from now (DeletionGracePeriod); scheduling again keeps the
+	// first date. userID is the owner, for the log.
+	ScheduleDeletion(ctx context.Context, userID, name string) (time.Time, error)
+	// CancelDeletion lifts the deletion hold of the workspace the context runs in, for an owner:
+	// ErrNotFound, ErrForbidden or ErrDeletionNotScheduled. Another hold on the workspace stays, and
+	// its monitors run again at once when none does.
+	CancelDeletion(ctx context.Context, userID string) error
 	// DeleteAnyWorkspace deletes the workspace with the ID and everything in it by cascade, and
 	// returns ErrNotFound for one that does not exist. It checks no role and reads no workspace
 	// from the context: the caller decides who may delete which workspace (an instance admin any,
@@ -380,6 +389,67 @@ func (s *ServiceImpl) DeleteAnyWorkspace(ctx context.Context, id ID) error {
 	}
 	s.announceDeleted(ctx, id, deleted)
 	return nil
+}
+
+func (s *ServiceImpl) ScheduleDeletion(ctx context.Context, userID, name string) (time.Time, error) {
+	id, _, err := scope(ctx, RoleOwner)
+	if err != nil {
+		return time.Time{}, err
+	}
+	found, err := s.workspaces.FindByID(ctx, id)
+	if err != nil {
+		return time.Time{}, err
+	}
+	if found == nil {
+		return time.Time{}, ErrNotFound
+	}
+	if name != found.Name {
+		return time.Time{}, ErrNameMismatch
+	}
+	scheduled, changed, err := s.workspaces.ScheduleDeletion(ctx, id, s.now().UTC().Add(DeletionGracePeriod))
+	if err != nil {
+		return time.Time{}, err
+	}
+	if scheduled == nil {
+		return time.Time{}, ErrNotFound
+	}
+	if changed {
+		s.logAction(userID, ActionScheduleDeletion, id)
+	}
+	// The workspace's monitors need no event to stop: each check is loaded as it is due, and a
+	// suspended workspace's is dropped, as when an instance admin suspends it
+	return *scheduled.DeletionScheduledAt, nil
+}
+
+func (s *ServiceImpl) CancelDeletion(ctx context.Context, userID string) error {
+	id, _, err := scope(ctx, RoleOwner)
+	if err != nil {
+		return err
+	}
+	cancelled, remaining, err := s.workspaces.CancelDeletion(ctx, id)
+	if err != nil {
+		return err
+	}
+	if !cancelled {
+		return ErrDeletionNotScheduled
+	}
+	s.logAction(userID, ActionCancelDeletion, id)
+	if !remaining {
+		s.wake(ctx, []ID{id})
+	}
+	return nil
+}
+
+// The names of the actions of an owner that are logged, as the log says them
+const (
+	ActionScheduleDeletion = "schedule_deletion"
+	ActionCancelDeletion   = "cancel_deletion"
+)
+
+// logAction writes the one line an owner's action on their workspace leaves, as the admin area's
+// actions do: who did what to which workspace
+func (s *ServiceImpl) logAction(userID, action string, id ID) {
+	s.logger.Infow("Workspace action", "actorUserId", userID, "action", action, "targetWorkspaceId", string(id))
 }
 
 // announceDeleted tells the rest of the install that the workspace is gone, once that is stored:

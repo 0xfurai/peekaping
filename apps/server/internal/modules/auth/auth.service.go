@@ -391,7 +391,7 @@ func (s *ServiceImpl) Me(ctx context.Context, userId string) (*MeResponse, error
 		MinCheckInterval:     max(s.minCheckInterval, config.AbsoluteMinCheckInterval),
 	}
 	for i, m := range memberships {
-		me.Workspaces[i] = MeWorkspace{ID: string(m.Workspace.ID), Name: m.Workspace.Name, Role: string(m.Role), Suspended: m.Workspace.Suspended()}
+		me.Workspaces[i] = MeWorkspace{ID: string(m.Workspace.ID), Name: m.Workspace.Name, Role: string(m.Role), Suspended: m.Workspace.Suspended(), DeletionScheduledAt: m.Workspace.DeletionScheduledAt}
 		if m.Workspace.Suspended() {
 			reason := m.Workspace.ShownReason()
 			me.Workspaces[i].SuspendedReason = &reason

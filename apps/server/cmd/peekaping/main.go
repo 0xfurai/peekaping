@@ -122,6 +122,7 @@ type parts struct {
 	ProbeWaker           *protocol.Waker
 	Heartbeats           heartbeat.Service
 	Workspaces           workspace.Repository
+	WorkspaceService     workspace.Service
 	WorkspaceSettings    setting.WorkspaceService
 	Limits               limits.Source
 	Stats                stats.Service
@@ -268,7 +269,7 @@ func startJobs(ctx context.Context, p parts, cfg *Config, logger *zap.SugaredLog
 		TLSInfoDays:             cfg.TLSInfoRetentionDays,
 	}
 	var err error
-	j.cleanup, err = cleanup.StartCleanupCron(p.Heartbeats, p.Workspaces, p.WorkspaceSettings, p.Limits, p.Stats, p.NotificationHistory, p.TLSInfo, p.Probes, p.AccountTokens, p.CleanupLock, retention, logger)
+	j.cleanup, err = cleanup.StartCleanupCron(p.Heartbeats, p.Workspaces, p.WorkspaceSettings, p.Limits, p.Stats, p.NotificationHistory, p.TLSInfo, p.Probes, p.AccountTokens, p.WorkspaceService, p.CleanupLock, retention, logger)
 	if err != nil {
 		return nil, fmt.Errorf("failed to start the hourly cleanup: %w", err)
 	}

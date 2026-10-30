@@ -41,6 +41,7 @@ func RegisterDependencies(container *dig.Container) error {
 //   - PATCH /workspace, /workspace/members, /workspace/invites, /workspace/limits and
 //     /workspace/leave: the name, the people and the limits of the workspace the request runs in
 //     (X-Workspace-ID, else the user's default one)
+//   - POST and DELETE /workspace/deletion: an owner schedules the workspace's deletion, or cancels it
 //   - POST /workspaces: a new workspace for the signed-in user
 //   - /invites/{token}: what a holder of an invite link sees, and accepting it
 func (r *Route) ConnectRoute(router *httpx.Router, controller *Controller) {
@@ -63,6 +64,10 @@ func (r *Route) ConnectRoute(router *httpx.Router, controller *Controller) {
 	leaving.Use(r.middleware.WorkspaceJWTAuth())
 	leaving.DocumentWorkspace()
 	httpx.Register(leaving, "POST", "leave", huma.Operation{Summary: "Leave the workspace", Description: "The signed-in user leaves the workspace and loses access to it at once. The last owner can't leave (409).", Tags: []string{"workspace"}, DefaultStatus: http.StatusNoContent, Security: httpx.JWTOnly, Errors: []int{http.StatusUnauthorized, http.StatusNotFound, http.StatusConflict, http.StatusInternalServerError}}, controller.Leave)
+
+	// Deleting is a user's own act too, and an owner's: it is logged with the user's ID
+	httpx.Register(leaving, "POST", "deletion", huma.Operation{Summary: "Schedule the deletion of the workspace", Description: "An owner of the workspace schedules its deletion by typing its exact name in the body (400 WORKSPACE_NAME_MISMATCH otherwise). The workspace is held for 7 days as a suspended one is: its monitors are kept but none runs, no notification is sent, a push to one answers 403, and its public status pages and badges answer 503. After the 7 days the workspace and everything in it is deleted; its members keep their accounts. The answer is the date it will be deleted. Scheduling again keeps the first date. An admin or a member is refused (403), and so is an API key (401), since a deletion is a user's act. Every member sees the date on GET /me (deletionScheduledAt).", Tags: []string{"workspace"}, DefaultStatus: http.StatusOK, Security: httpx.JWTOnly, Responses: map[string]*huma.Response{"400": httpx.ErrorVariants[NameMismatchResponse](leaving, 400)}, Errors: []int{http.StatusBadRequest, http.StatusUnauthorized, http.StatusForbidden, http.StatusNotFound, http.StatusInternalServerError}}, controller.ScheduleDeletion)
+	httpx.Register(leaving, "DELETE", "deletion", huma.Operation{Summary: "Cancel the deletion of the workspace", Description: "An owner cancels the scheduled deletion, which lifts that hold and brings the workspace back as it was: its monitors run again, and its status pages answer. A hold of an instance admin or the email verification stays. 404 when no deletion is scheduled.", Tags: []string{"workspace"}, DefaultStatus: http.StatusNoContent, Security: httpx.JWTOnly, Errors: []int{http.StatusUnauthorized, http.StatusForbidden, http.StatusNotFound, http.StatusInternalServerError}}, controller.CancelDeletion)
 
 	// A new workspace belongs to the user, not to a workspace they are in
 	workspaces := router.Group("workspaces")

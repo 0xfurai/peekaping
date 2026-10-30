@@ -33,7 +33,8 @@ func Scope(ctx context.Context) (workspace.ID, error) {
 // no workspace, a member or an invite that isn't there, 403 for a role that is too low or an
 // invite for another email, 409 for the last owner and for someone who is a member already, 410
 // for an invite that can't be used, 400 for a role that doesn't exist or a name that is blank, and
-// 403 LIMIT_REACHED for a member or a workspace past a limit. It returns nil for any other error,
+// 403 LIMIT_REACHED for a member or a workspace past a limit, 400 WORKSPACE_NAME_MISMATCH for a
+// deletion scheduled with another name, and 404 for cancelling a deletion that isn't scheduled. It returns nil for any other error,
 // which the caller maps as it does today.
 func Fail(err error) error {
 	var reached *limits.ReachedError
@@ -58,6 +59,10 @@ func Fail(err error) error {
 		return httpx.Fail(http.StatusConflict, utils.NewFailResponse("Already a member of this workspace"))
 	case errors.Is(err, workspace.ErrInvalidName):
 		return httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("The workspace needs a name"))
+	case errors.Is(err, workspace.ErrNameMismatch):
+		return httpx.Fail(http.StatusBadRequest, NameMismatchResponse{Message: capitalize(err.Error()), Error: NameMismatchErrorBody{Code: "WORKSPACE_NAME_MISMATCH"}})
+	case errors.Is(err, workspace.ErrDeletionNotScheduled):
+		return httpx.Fail(http.StatusNotFound, utils.NewFailResponse("No deletion is scheduled for this workspace"))
 	case errors.Is(err, workspace.ErrInvalidRole):
 		return httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("The role must be owner, admin or member"))
 	}

@@ -80,6 +80,7 @@ var anyWorkspaceCallers = map[string]string{
 	// cleanup
 	"internal/modules/cleanup.cleanupHeartbeats":         "the cleanup job goes workspace by workspace, each with its own retention period",
 	"internal/modules/cleanup.cleanupProbeStatusChanges": "the cleanup job lists every workspace to find the longest retention period",
+	"internal/modules/cleanup.PurgeScheduledWorkspaces":  "the cleanup job deletes every workspace whose scheduled deletion is due, whichever it is (PP-170)",
 	// websocket
 	"internal/modules/websocket.Server.workspaceOf": "a heartbeat goes to the room of its monitor's workspace",
 	// API keys

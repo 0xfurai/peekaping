@@ -152,6 +152,35 @@ func (c *Controller) Leave(ctx context.Context, _ *LeaveInput) (*httpx.Output[ht
 	return httpx.Reply(http.StatusNoContent, httpx.NoBody{})
 }
 
+// MARK: Deletion
+
+func (c *Controller) ScheduleDeletion(ctx context.Context, input *ScheduleDeletionInput) (*httpx.Output[utils.ApiResponse[*ScheduledDeletionResponse]], error) {
+	userID, err := signedInUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+	body, err := decode(input)
+	if err != nil {
+		return nil, err
+	}
+	at, err := c.service.ScheduleDeletion(ctx, userID, body.Name)
+	if err != nil {
+		return nil, c.fail(err)
+	}
+	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("Workspace deletion scheduled successfully", &ScheduledDeletionResponse{DeletionScheduledAt: at}))
+}
+
+func (c *Controller) CancelDeletion(ctx context.Context, _ *CancelDeletionInput) (*httpx.Output[httpx.NoBody], error) {
+	userID, err := signedInUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err := c.service.CancelDeletion(ctx, userID); err != nil {
+		return nil, c.fail(err)
+	}
+	return httpx.Reply(http.StatusNoContent, httpx.NoBody{})
+}
+
 // MARK: Invites
 
 func (c *Controller) ListInvites(ctx context.Context, _ *ListInvitesInput) (*httpx.Output[utils.ApiResponse[[]InviteResponse]], error) {

@@ -13,6 +13,12 @@ var (
 	ErrForbidden = errors.New("your role in the workspace doesn't allow this")
 	// ErrInvalidName is for a workspace name that is blank. It answers 400.
 	ErrInvalidName = errors.New("the workspace needs a name")
+	// ErrNameMismatch is for a deletion scheduled with a name that is not the workspace's. It
+	// answers 400.
+	ErrNameMismatch = errors.New("the name typed is not the workspace's name")
+	// ErrDeletionNotScheduled is for cancelling a deletion that is not scheduled. It answers 404, as
+	// revoking an invite that is not pending does.
+	ErrDeletionNotScheduled = errors.New("no deletion is scheduled for the workspace")
 )
 
 type contextKey struct{}
