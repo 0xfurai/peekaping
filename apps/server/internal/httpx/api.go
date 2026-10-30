@@ -166,25 +166,48 @@ func (a operationAPI) DocumentOperation(op *huma.Operation) {
 			"application/json": {Schema: schema},
 		}}
 	}
+	a.documentParameters(op, registry)
+	documentResponses(op)
+	for _, schema := range registry.Map() {
+		documentNull(schema)
+	}
+	a.OpenAPI().AddOperation(op)
+}
+
+// documentParameters adds the parameters of the handler's params struct, then the ones the router
+// documents on every operation
+func (a operationAPI) documentParameters(op *huma.Operation, registry huma.Registry) {
 	params := a.input.paramsType()
 	for n := 0; n < params.NumField(); n++ {
-		f := params.Field(n)
-		location, name := "query", f.Tag.Get("query")
-		if path := f.Tag.Get("path"); path != "" {
-			location, name = "path", path
+		if parameter, ok := parameterOf(params.Field(n), op, registry); ok {
+			op.Parameters = append(op.Parameters, parameter)
 		}
-		// A handler may also serve an alias without its optional path segment.
-		if name == "" || (location == "path" && !strings.Contains(op.Path, "{"+name+"}")) {
-			continue
-		}
-		op.Parameters = append(op.Parameters, &huma.Param{Name: name, In: location,
-			Required: location == "path" || f.Tag.Get("required") == "true", Description: f.Tag.Get("doc"),
-			Schema: huma.SchemaFromField(registry, f, op.OperationID+f.Name)})
 	}
 	for _, parameter := range a.parameters {
 		documented := *parameter
 		op.Parameters = append(op.Parameters, &documented)
 	}
+}
+
+// parameterOf documents a field of the params struct: a path parameter by its path tag, any other
+// by its query tag. A field with neither is not a parameter.
+func parameterOf(f reflect.StructField, op *huma.Operation, registry huma.Registry) (*huma.Param, bool) {
+	location, name := "query", f.Tag.Get("query")
+	if path := f.Tag.Get("path"); path != "" {
+		location, name = "path", path
+	}
+	// A handler may also serve an alias without its optional path segment.
+	if name == "" || (location == "path" && !strings.Contains(op.Path, "{"+name+"}")) {
+		return nil, false
+	}
+	return &huma.Param{Name: name, In: location,
+		Required: location == "path" || f.Tag.Get("required") == "true", Description: f.Tag.Get("doc"),
+		Schema: huma.SchemaFromField(registry, f, op.OperationID+f.Name)}, true
+}
+
+// documentResponses drops the default response, the bodies of the responses that have none, and
+// the headers Huma adds to a success response
+func documentResponses(op *huma.Operation) {
 	delete(op.Responses, "default")
 	for code, response := range op.Responses {
 		if code == "204" || code == "304" {
@@ -199,10 +222,6 @@ func (a operationAPI) DocumentOperation(op *huma.Operation) {
 			}
 		}
 	}
-	for _, schema := range registry.Map() {
-		documentNull(schema)
-	}
-	a.OpenAPI().AddOperation(op)
 }
 
 // documentNull finishes schema and every schema in it, properties and list items alike, when they
@@ -335,9 +354,7 @@ func ErrorVariants4[T, U, V, W any](router *Router, status int) *huma.Response {
 // Huma validation. In particular, untagged fields are optional and unknown JSON
 // fields are accepted. Runtime validators and their messages remain unchanged.
 func normalizeRequest(registry huma.Registry, t reflect.Type) {
-	for t.Kind() == reflect.Pointer {
-		t = t.Elem()
-	}
+	t = derefType(t)
 	if t.Kind() != reflect.Struct {
 		return
 	}
@@ -355,99 +372,144 @@ func normalizeRequest(registry huma.Registry, t reflect.Type) {
 		if property == nil {
 			continue
 		}
-		// A pointer field accepts null, as the validator treats it as unset. A field the validator
-		// requires rejects null, so it opts out with `nullable:"false"`.
-		if f.Type.Kind() == reflect.Pointer && f.Tag.Get("nullable") != "false" {
-			allowNull(property)
+		normalizeField(schema, name, f, property)
+	}
+}
+
+// derefType is t, or what t points to, however many pointers deep
+func derefType(t reflect.Type) reflect.Type {
+	for t.Kind() == reflect.Pointer {
+		t = t.Elem()
+	}
+	return t
+}
+
+// normalizeField documents the rules of one field of a request, named name in schema
+func normalizeField(schema *huma.Schema, name string, f reflect.StructField, property *huma.Schema) {
+	// A pointer field accepts null, as the validator treats it as unset. A field the validator
+	// requires rejects null, so it opts out with `nullable:"false"`.
+	if f.Type.Kind() == reflect.Pointer && f.Tag.Get("nullable") != "false" {
+		allowNull(property)
+	}
+	rules := strings.Split(f.Tag.Get("validate"), ",")
+	reader := newRuleReader(property, f.Type, rules)
+	for _, rule := range rules {
+		key, value, _ := strings.Cut(rule, "=")
+		switch key {
+		case "dive":
+			reader.dive()
+		case "oneof":
+			reader.oneOf(value)
+		case "email":
+			reader.property.Format = "email"
+		case "hexcolor":
+			reader.property.Pattern = "^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$"
+		case "min", "max":
+			reader.limit(key, value)
 		}
-		rules := strings.Split(f.Tag.Get("validate"), ",")
-		optional, required := false, false
-		for _, rule := range rules {
-			if rule == "dive" {
-				break
-			}
-			if rule == "omitempty" {
-				optional = true
-			}
-			if rule == "required" {
-				required = true
-			}
+	}
+	if reader.required {
+		markRequired(schema, name, f)
+	}
+}
+
+// ruleReader reads the rules of a validate tag onto the schema of the field, or of the items of
+// the field's list after a dive
+type ruleReader struct {
+	property  *huma.Schema
+	valueType reflect.Type
+	kind      reflect.Kind
+	// optional and required are what the rules before a dive say of the field itself
+	optional, required bool
+	// diving is whether the rules now read are the items'
+	diving bool
+}
+
+func newRuleReader(property *huma.Schema, fieldType reflect.Type, rules []string) *ruleReader {
+	reader := &ruleReader{property: property, valueType: derefType(fieldType)}
+	reader.kind = reader.valueType.Kind()
+	for _, rule := range rules {
+		if rule == "dive" {
+			break
 		}
-		valueType := f.Type
-		for valueType.Kind() == reflect.Pointer {
-			valueType = valueType.Elem()
+		if rule == "omitempty" {
+			reader.optional = true
 		}
-		kind := valueType.Kind()
-		diving := false
-		for _, rule := range rules {
-			key, value, _ := strings.Cut(rule, "=")
-			switch key {
-			case "dive":
-				if property.Items != nil && (kind == reflect.Slice || kind == reflect.Array) {
-					property = property.Items
-					valueType = valueType.Elem()
-					for valueType.Kind() == reflect.Pointer {
-						valueType = valueType.Elem()
-					}
-					kind, diving = valueType.Kind(), true
-				}
-			case "oneof":
-				property.Enum = nil
-				for _, choice := range strings.Fields(value) {
-					property.Enum = append(property.Enum, choice)
-				}
-				if property.Nullable {
-					property.Enum = append(property.Enum, nil)
-				}
-			case "email":
-				property.Format = "email"
-			case "hexcolor":
-				property.Pattern = "^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$"
-			case "min", "max":
-				limit, err := strconv.ParseFloat(value, 64)
-				if err != nil {
-					continue
-				}
-				if key == "min" && limit > 0 && !optional && !diving {
-					required = true
-				}
-				if kind == reflect.String {
-					v := int(limit)
-					if key == "min" {
-						property.MinLength = &v
-					} else {
-						property.MaxLength = &v
-					}
-				} else if kind == reflect.Slice {
-					v := int(limit)
-					if key == "min" {
-						property.MinItems = &v
-					} else {
-						property.MaxItems = &v
-					}
-				} else {
-					v := limit
-					if key == "min" {
-						property.Minimum = &v
-					} else {
-						property.Maximum = &v
-					}
-				}
-			}
+		if rule == "required" {
+			reader.required = true
 		}
-		if required {
-			schema.Required = append(schema.Required, name)
-			// Validator's required rejects nil slices and empty value strings,
-			// but permits allocated empty slices and non-nil string pointers.
-			parent := schema.Properties[name]
-			if f.Type.Kind() == reflect.Slice {
-				parent.Nullable = false
-			}
-			if f.Type.Kind() == reflect.String && (parent.MinLength == nil || *parent.MinLength < 1) {
-				minimum := 1
-				parent.MinLength = &minimum
-			}
-		}
+	}
+	return reader
+}
+
+// dive moves to the items of a list, for the rules after it
+func (r *ruleReader) dive() {
+	if r.property.Items != nil && (r.kind == reflect.Slice || r.kind == reflect.Array) {
+		r.property = r.property.Items
+		r.valueType = derefType(r.valueType.Elem())
+		r.kind, r.diving = r.valueType.Kind(), true
+	}
+}
+
+// oneOf documents the choices of a oneof rule as an enum, with null when the value may be null
+func (r *ruleReader) oneOf(choices string) {
+	r.property.Enum = nil
+	for _, choice := range strings.Fields(choices) {
+		r.property.Enum = append(r.property.Enum, choice)
+	}
+	if r.property.Nullable {
+		r.property.Enum = append(r.property.Enum, nil)
+	}
+}
+
+// limit documents a min or max rule as the length of a string, the size of a list or the value of
+// a number. A limit that isn't a number is left out.
+func (r *ruleReader) limit(key, value string) {
+	limit, err := strconv.ParseFloat(value, 64)
+	if err != nil {
+		return
+	}
+	isMin := key == "min"
+	if isMin && r.minRequires(limit) {
+		r.required = true
+	}
+	switch r.kind {
+	case reflect.String:
+		setBound(isMin, &r.property.MinLength, &r.property.MaxLength, int(limit))
+	case reflect.Slice:
+		setBound(isMin, &r.property.MinItems, &r.property.MaxItems, int(limit))
+	default:
+		setBound(isMin, &r.property.Minimum, &r.property.Maximum, limit)
+	}
+}
+
+// minRequires is whether a min rule of limit makes the field required: a positive minimum does,
+// unless the field is optional or the rule is an item's
+func (r *ruleReader) minRequires(limit float64) bool {
+	return limit > 0 && !r.optional && !r.diving
+}
+
+// setBound points lower at v for a min rule and upper at v for a max rule
+func setBound[T any](isMin bool, lower, upper **T, v T) {
+	if isMin {
+		*lower = &v
+	} else {
+		*upper = &v
+	}
+}
+
+// markRequired lists the field as required in schema
+func markRequired(schema *huma.Schema, name string, f reflect.StructField) {
+	schema.Required = append(schema.Required, name)
+	// Validator's required rejects nil slices and empty value strings,
+	// but permits allocated empty slices and non-nil string pointers.
+	parent := schema.Properties[name]
+	if f.Type.Kind() == reflect.Slice {
+		parent.Nullable = false
+	}
+	if f.Type.Kind() == reflect.String && (parent.MinLength == nil || *parent.MinLength < 1) {
+		minimum := 1
+		parent.MinLength = &minimum
 	}
 }
 
