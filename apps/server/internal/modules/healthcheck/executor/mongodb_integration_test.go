@@ -57,6 +57,18 @@ func TestMongoDBExecutor_Integration(t *testing.T) {
 		assert.Equal(t, "Command executed successfully and the jsonata expression produces a result", result.Message)
 	})
 
+	t.Run("is up for a command with more than one key, and its JSON path reads the answer", func(t *testing.T) {
+		result := run(t, MongoDBConfig{
+			ConnectionString: good,
+			Command:          `{"dbStats": 1, "scale": 1024}`,
+			JsonPath:         "scaleFactor",
+			ExpectedValue:    "1024",
+		})
+
+		assert.Equal(t, shared.MonitorStatusUp, result.Status, result.Message)
+		assert.Equal(t, "Command executed successfully and expected value was found", result.Message)
+	})
+
 	t.Run("is down for a wrong password", func(t *testing.T) {
 		result := run(t, MongoDBConfig{ConnectionString: srv.URL(srv.Username, "not-"+srv.Password, "admin", nil)})
 
