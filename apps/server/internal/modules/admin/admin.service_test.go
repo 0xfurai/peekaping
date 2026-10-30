@@ -79,13 +79,11 @@ func forEachBackend(t *testing.T, fn func(t *testing.T, db *bun.DB)) {
 // numbers, from 1, of the FindUser calls that fail.
 type brokenRepo struct {
 	admin.Repository
-	lock       error
-	findFails  map[int]bool
-	finds      int
-	setAdmin   error
-	setActive  error
-	ownedAlone error
-	del        error
+	lock      error
+	findFails map[int]bool
+	finds     int
+	setAdmin  error
+	setActive error
 	// setActiveEnds are the times SetActive was given to end sessions at
 	setActiveEnds []*time.Time
 }
@@ -120,20 +118,6 @@ func (r *brokenRepo) SetActive(ctx context.Context, id string, active bool, endA
 	return r.Repository.SetActive(ctx, id, active, endAt)
 }
 
-func (r *brokenRepo) WorkspacesOwnedAloneAnyWorkspace(ctx context.Context, userID string) ([]admin.WorkspaceRef, error) {
-	if r.ownedAlone != nil {
-		return nil, r.ownedAlone
-	}
-	return r.Repository.WorkspacesOwnedAloneAnyWorkspace(ctx, userID)
-}
-
-func (r *brokenRepo) DeleteUser(ctx context.Context, id string) error {
-	if r.del != nil {
-		return r.del
-	}
-	return r.Repository.DeleteUser(ctx, id)
-}
-
 type harness struct {
 	db   *bun.DB
 	repo *brokenRepo
@@ -148,7 +132,10 @@ func newHarness(t *testing.T, db *bun.DB) *harness {
 	logger := zap.New(core).Sugar()
 	repo := &brokenRepo{Repository: admin.NewSQLRepository(db), findFails: map[int]bool{}}
 	bus := eventstest.NewBus()
-	svc := admin.NewService(repo, dbtx.NewSQLTransactor(db), nil, nil, nil, bus, mailer.New(&config.Config{}, logger),
+	transactor := dbtx.NewSQLTransactor(db)
+	// DeleteUser leaves the checks and the delete to the remover, which a user deleting their own account uses too
+	accounts := auth.NewAccountRemover(db, transactor, bus, logger)
+	svc := admin.NewService(repo, transactor, nil, nil, nil, accounts, bus, mailer.New(&config.Config{}, logger),
 		installsettings.Static(&config.Config{ClientURL: "http://localhost:3000"}), nil, logger)
 	return &harness{db: db, repo: repo, svc: svc, bus: bus, logs: logs}
 }
@@ -406,32 +393,4 @@ func TestService_DeleteUser_LogsAndAnnouncesOnceTheUserIsGone(t *testing.T) {
 		assert.Equal(t, []auth.SessionsEndedEvent{{UserID: leaver}}, eventstest.Published(h.bus, auth.SessionsEnded))
 		assert.Equal(t, []workspace.MemberLeftEvent{{WorkspaceID: first, UserID: leaver}, {WorkspaceID: second, UserID: leaver}}, eventstest.Published(h.bus, workspace.MemberLeft))
 	})
-}
-
-func TestService_DeleteUser_AFailureAtAnyStepDeletesNothingAndAnnouncesNothing(t *testing.T) {
-	steps := map[string]func(r *brokenRepo){
-		"the admins can't be locked": func(r *brokenRepo) { r.lock = errors.New("lock failed") },
-		"the user can't be read":     func(r *brokenRepo) { r.findFails[1] = true },
-		"the workspaces can't be read": func(r *brokenRepo) {
-			r.ownedAlone = errors.New("owned failed")
-		},
-		"the user can't be deleted": func(r *brokenRepo) { r.del = errors.New("delete failed") },
-	}
-	for name, fail := range steps {
-		t.Run(name, func(t *testing.T) {
-			forEachBackend(t, func(t *testing.T, db *bun.DB) {
-				h := newHarness(t, db)
-				h.addUser(t, "keeper@example.com", true, true)
-				target := h.addUser(t, "target@example.com", false, true)
-				fail(h.repo)
-
-				err := h.svc.DeleteUser(context.Background(), "actor", target)
-
-				require.Error(t, err)
-				assert.Empty(t, h.actions())
-				assert.Empty(t, h.bus.Topics())
-				assert.NotNil(t, h.user(t, target))
-			})
-		})
-	}
 }

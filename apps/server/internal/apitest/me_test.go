@@ -22,6 +22,8 @@ type meResponse struct {
 		Role            string  `json:"role"`
 		Suspended       bool    `json:"suspended"`
 		SuspendedReason *string `json:"suspendedReason"`
+		// DeletionScheduledAt is when the workspace will be deleted, null when it is not scheduled (PP-170)
+		DeletionScheduledAt *string `json:"deletionScheduledAt"`
 	} `json:"workspaces"`
 	DefaultWorkspaceID   *string  `json:"defaultWorkspaceId"`
 	DisabledMonitorTypes []string `json:"disabledMonitorTypes"`

@@ -115,10 +115,7 @@ func (h *pushHandler) refusal(monitor *monitor.Model) error {
 		// The token holder is told why their pushes are not counted, as for a paused monitor: the
 		// token is the secret that names the monitor. Nothing is stored and nothing is sent.
 		h.logger.Infow("Push refused: the monitor's workspace is suspended", "monitor_id", monitor.ID)
-		if monitor.WorkspaceSuspendedByAdmin {
-			return httpx.Fail(http.StatusForbidden, utils.NewFailResponse("The workspace of this monitor is suspended by the install's administrator"))
-		}
-		return httpx.Fail(http.StatusForbidden, utils.NewFailResponse("The workspace of this monitor is suspended until its owner verifies their email address"))
+		return httpx.Fail(http.StatusForbidden, utils.NewFailResponse(suspendedMessage(monitor)))
 	}
 	if monitor.TypeDisabled {
 		// Told the same way: the token holder should know why their pushes are not counted
@@ -136,6 +133,19 @@ func (h *pushHandler) refusal(monitor *monitor.Model) error {
 		return httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Monitor is not active"))
 	}
 	return nil
+}
+
+// suspendedMessage tells the token holder which hold keeps their monitor's workspace from running:
+// an owner's scheduled deletion, an instance admin's suspension, or the email verification
+func suspendedMessage(monitor *monitor.Model) string {
+	switch {
+	case monitor.WorkspaceDeleting:
+		return "The workspace of this monitor is scheduled for deletion"
+	case monitor.WorkspaceSuspendedByAdmin:
+		return "The workspace of this monitor is suspended by the install's administrator"
+	default:
+		return "The workspace of this monitor is suspended until its owner verifies their email address"
+	}
 }
 
 // pushedPing is the ping the push reports, which is 0 when it is invalid

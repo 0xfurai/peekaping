@@ -26,13 +26,15 @@ type sqlModel struct {
 	SuspendedReason *string    `bun:"suspended_reason"`
 	// AdminSuspendedAt is NULL unless an instance admin holds the workspace
 	AdminSuspendedAt *time.Time `bun:"admin_suspended_at"`
+	// DeletionScheduledAt is NULL unless an owner scheduled the workspace's deletion
+	DeletionScheduledAt *time.Time `bun:"deletion_scheduled_at"`
 }
 
 func (m *sqlModel) toDomain() *Workspace {
 	return &Workspace{
 		ID: ID(m.ID), Name: m.Name, CreatedAt: m.CreatedAt, UpdatedAt: m.UpdatedAt,
 		SuspendedAt: utcOrNil(m.SuspendedAt), SuspendedReason: reasonOrEmpty(m.SuspendedReason),
-		AdminSuspendedAt: utcOrNil(m.AdminSuspendedAt),
+		AdminSuspendedAt: utcOrNil(m.AdminSuspendedAt), DeletionScheduledAt: utcOrNil(m.DeletionScheduledAt),
 	}
 }
 
@@ -72,6 +74,8 @@ type membershipRow struct {
 	SuspendedAt      *time.Time `bun:"suspended_at"`
 	SuspendedReason  *string    `bun:"suspended_reason"`
 	AdminSuspendedAt *time.Time `bun:"admin_suspended_at"`
+
+	DeletionScheduledAt *time.Time `bun:"deletion_scheduled_at"`
 }
 
 type SQLRepositoryImpl struct {
@@ -142,7 +146,7 @@ func (r *SQLRepositoryImpl) ListMemberships(ctx context.Context, userID string) 
 	err := dbtx.DB(ctx, r.db).NewSelect().
 		TableExpr("workspace_members AS m").
 		Join("JOIN workspaces AS w ON w.id = m.workspace_id").
-		ColumnExpr("w.id AS workspace_id, w.name, w.created_at, w.updated_at, w.suspended_at, w.suspended_reason, w.admin_suspended_at, m.role, m.joined_at").
+		ColumnExpr("w.id AS workspace_id, w.name, w.created_at, w.updated_at, w.suspended_at, w.suspended_reason, w.admin_suspended_at, w.deletion_scheduled_at, m.role, m.joined_at").
 		Where("m.user_id = ?", userID).
 		Order("m.joined_at", "w.id").
 		Scan(ctx, &rows)
@@ -155,7 +159,7 @@ func (r *SQLRepositoryImpl) ListMemberships(ctx context.Context, userID string) 
 			Workspace: Workspace{
 				ID: ID(row.WorkspaceID), Name: row.Name, CreatedAt: row.CreatedAt, UpdatedAt: row.UpdatedAt,
 				SuspendedAt: utcOrNil(row.SuspendedAt), SuspendedReason: reasonOrEmpty(row.SuspendedReason),
-				AdminSuspendedAt: utcOrNil(row.AdminSuspendedAt),
+				AdminSuspendedAt: utcOrNil(row.AdminSuspendedAt), DeletionScheduledAt: utcOrNil(row.DeletionScheduledAt),
 			},
 			Role:     Role(row.Role),
 			JoinedAt: row.JoinedAt,
@@ -189,8 +193,22 @@ func (r *SQLRepositoryImpl) FindOldest(ctx context.Context) (*Workspace, error) 
 }
 
 func (r *SQLRepositoryImpl) Delete(ctx context.Context, id ID) (*Deleted, error) {
+	return r.deleteWhere(ctx, id, nil)
+}
+
+func (r *SQLRepositoryImpl) DeleteDue(ctx context.Context, id ID, now time.Time) (*Deleted, error) {
+	return r.deleteWhere(ctx, id, &now)
+}
+
+// deleteWhere deletes the workspace; when dueAt is given, only if its deletion is scheduled and due
+// by then. The condition is part of the locking read, so that on PostgreSQL a cancellation that
+// commits while the delete waits for the row is seen once the lock is held.
+func (r *SQLRepositoryImpl) deleteWhere(ctx context.Context, id ID, dueAt *time.Time) (*Deleted, error) {
 	db := dbtx.DB(ctx, r.db)
 	lock := db.NewSelect().Table("workspaces").Column("id").Where("id = ?", string(id))
+	if dueAt != nil {
+		lock = lock.Where("deletion_scheduled_at IS NOT NULL AND deletion_scheduled_at <= ?", dueAt.UTC())
+	}
 	if r.db.Dialect().Name() == dialect.PG {
 		lock = lock.For("UPDATE")
 	}
@@ -218,6 +236,66 @@ func (r *SQLRepositoryImpl) Delete(ctx context.Context, id ID) (*Deleted, error)
 func (r *SQLRepositoryImpl) ListIDsAnyWorkspace(ctx context.Context) ([]ID, error) {
 	var ids []string
 	if err := dbtx.DB(ctx, r.db).NewSelect().Table("workspaces").Column("id").Order("created_at", "id").Scan(ctx, &ids); err != nil {
+		return nil, err
+	}
+	out := make([]ID, len(ids))
+	for i, id := range ids {
+		out[i] = ID(id)
+	}
+	return out, nil
+}
+
+func (r *SQLRepositoryImpl) ScheduleDeletion(ctx context.Context, id ID, at time.Time) (*Workspace, bool, error) {
+	db := dbtx.DB(ctx, r.db)
+	// A deletion that is scheduled keeps its date
+	res, err := db.NewUpdate().Table("workspaces").
+		Set("deletion_scheduled_at = ?", at.UTC()).
+		Set("updated_at = ?", time.Now().UTC()).
+		Where("id = ?", string(id)).Where("deletion_scheduled_at IS NULL").Exec(ctx)
+	if err != nil {
+		return nil, false, err
+	}
+	affected, err := res.RowsAffected()
+	if err != nil {
+		return nil, false, err
+	}
+	found, err := r.FindByID(ctx, id)
+	return found, affected > 0, err
+}
+
+func (r *SQLRepositoryImpl) CancelDeletion(ctx context.Context, id ID) (bool, bool, error) {
+	db := dbtx.DB(ctx, r.db)
+	now := time.Now().UTC()
+	res, err := db.NewUpdate().Table("workspaces").
+		Set("deletion_scheduled_at = NULL").Set("updated_at = ?", now).
+		Where("id = ?", string(id)).Where("deletion_scheduled_at IS NOT NULL").Exec(ctx)
+	if err != nil {
+		return false, false, err
+	}
+	affected, err := res.RowsAffected()
+	if err != nil || affected == 0 {
+		return false, false, err
+	}
+	var remaining bool
+	if err := db.NewSelect().Table("workspaces").ColumnExpr("(suspended_at IS NOT NULL OR admin_suspended_at IS NOT NULL)").Where("id = ?", string(id)).Scan(ctx, &remaining); err != nil {
+		return false, false, err
+	}
+	if !remaining {
+		// The monitors start to run now, as a monitor that was just saved or resumed does
+		if _, err := db.NewUpdate().Table("monitors").Set("updated_at = ?", now).Where("workspace_id = ?", string(id)).Exec(ctx); err != nil {
+			return false, false, err
+		}
+	}
+	return true, remaining, nil
+}
+
+func (r *SQLRepositoryImpl) ListDeletionDueAnyWorkspace(ctx context.Context, now time.Time) ([]ID, error) {
+	var ids []string
+	err := dbtx.DB(ctx, r.db).NewSelect().Table("workspaces").Column("id").
+		Where("deletion_scheduled_at <= ?", now.UTC()).
+		Order("deletion_scheduled_at", "id").
+		Scan(ctx, &ids)
+	if err != nil {
 		return nil, err
 	}
 	out := make([]ID, len(ids))

@@ -151,59 +151,6 @@
         ],
         "type": "object"
       },
-      "admin.LastOwnerErrorBody": {
-        "additionalProperties": false,
-        "properties": {
-          "code": {
-            "examples": [
-              "LAST_OWNER"
-            ],
-            "type": "string"
-          },
-          "workspaces": {
-            "items": {
-              "$ref": "#/components/schemas/admin.LastOwnerWorkspace"
-            },
-            "type": [
-              "array",
-              "null"
-            ]
-          }
-        },
-        "required": [
-          "code",
-          "workspaces"
-        ],
-        "type": "object"
-      },
-      "admin.LastOwnerErrorResponse": {
-        "additionalProperties": false,
-        "properties": {
-          "error": {
-            "$ref": "#/components/schemas/admin.LastOwnerErrorBody"
-          }
-        },
-        "required": [
-          "error"
-        ],
-        "type": "object"
-      },
-      "admin.LastOwnerWorkspace": {
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "name"
-        ],
-        "type": "object"
-      },
       "admin.LimitSettingResponse": {
         "additionalProperties": false,
         "properties": {
@@ -868,6 +815,13 @@
             "format": "int64",
             "type": "integer"
           },
+          "deletionScheduledAt": {
+            "format": "date-time",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "id": {
             "type": "string"
           },
@@ -906,6 +860,7 @@
           },
           "suspendedReason": {
             "enum": [
+              "deleting",
               "admin",
               "unverified",
               null
@@ -928,6 +883,7 @@
           "suspended",
           "suspendedReason",
           "suspendedAt",
+          "deletionScheduledAt",
           "limits"
         ],
         "type": "object"
@@ -1189,6 +1145,19 @@
         ],
         "type": "object"
       },
+      "auth.DeleteAccountDto": {
+        "additionalProperties": true,
+        "properties": {
+          "password": {
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "password"
+        ],
+        "type": "object"
+      },
       "auth.ForgotPasswordDto": {
         "additionalProperties": true,
         "properties": {
@@ -1200,6 +1169,59 @@
         },
         "required": [
           "email"
+        ],
+        "type": "object"
+      },
+      "auth.LastOwnerErrorBody": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "examples": [
+              "LAST_OWNER"
+            ],
+            "type": "string"
+          },
+          "workspaces": {
+            "items": {
+              "$ref": "#/components/schemas/auth.LastOwnerWorkspace"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "code",
+          "workspaces"
+        ],
+        "type": "object"
+      },
+      "auth.LastOwnerErrorResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "error": {
+            "$ref": "#/components/schemas/auth.LastOwnerErrorBody"
+          }
+        },
+        "required": [
+          "error"
+        ],
+        "type": "object"
+      },
+      "auth.LastOwnerWorkspace": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
         ],
         "type": "object"
       },
@@ -1341,6 +1363,13 @@
       "auth.MeWorkspace": {
         "additionalProperties": false,
         "properties": {
+          "deletionScheduledAt": {
+            "format": "date-time",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "id": {
             "type": "string"
           },
@@ -1365,7 +1394,8 @@
           "name",
           "role",
           "suspended",
-          "suspendedReason"
+          "suspendedReason",
+          "deletionScheduledAt"
         ],
         "type": "object"
       },
@@ -6330,6 +6360,22 @@
         ],
         "type": "object"
       },
+      "utils.ApiResponse_workspace_workspacehttp.ScheduledDeletionResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/workspacehttp.ScheduledDeletionResponse"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "message",
+          "data"
+        ],
+        "type": "object"
+      },
       "utils.ApiResponse_workspace_workspacehttp.WorkspaceResponse": {
         "additionalProperties": false,
         "properties": {
@@ -6626,6 +6672,44 @@
         ],
         "type": "object"
       },
+      "workspacehttp.NameMismatchErrorBody": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "examples": [
+              "WORKSPACE_NAME_MISMATCH"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "code"
+        ],
+        "type": "object"
+      },
+      "workspacehttp.NameMismatchResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "type": "null"
+          },
+          "error": {
+            "$ref": "#/components/schemas/workspacehttp.NameMismatchErrorBody"
+          },
+          "message": {
+            "examples": [
+              "The name typed is not the workspace's name"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "message",
+          "data",
+          "error"
+        ],
+        "type": "object"
+      },
       "workspacehttp.RenameWorkspaceDto": {
         "additionalProperties": true,
         "properties": {
@@ -6637,6 +6721,28 @@
         },
         "required": [
           "name"
+        ],
+        "type": "object"
+      },
+      "workspacehttp.ScheduleDeletionDto": {
+        "additionalProperties": true,
+        "properties": {
+          "name": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "workspacehttp.ScheduledDeletionResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "deletionScheduledAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "deletionScheduledAt"
         ],
         "type": "object"
       },
@@ -7099,7 +7205,7 @@
                 "schema": {
                   "anyOf": [
                     {
-                      "$ref": "#/components/schemas/admin.LastOwnerErrorResponse"
+                      "$ref": "#/components/schemas/auth.LastOwnerErrorResponse"
                     },
                     {
                       "$ref": "#/components/schemas/httpx.ErrorBody"
@@ -8513,6 +8619,83 @@
           }
         },
         "summary": "Login admin",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/v1/auth/me": {
+      "delete": {
+        "description": "The body holds the user's password (400 when it is wrong). The user, their memberships and their sessions are gone at once; the workspaces stay, and so does every other member's account. It is refused (409) for the last instance admin, with a message, and while the user is the only owner of a workspace that is not scheduled for deletion: that answer is {\"error\":{\"code\":\"LAST_OWNER\",\"workspaces\":[{\"id\",\"name\"}]}}, listing those workspaces. Make another member an owner or schedule the workspace's deletion first. An API key is refused (401).",
+        "operationId": "deleteAuthMe",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/auth.DeleteAccountDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/auth.LastOwnerErrorResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/httpx.ErrorBody"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "JwtAuth": []
+          }
+        ],
+        "summary": "Delete the signed-in user's own account",
         "tags": [
           "auth"
         ]
@@ -16032,7 +16215,7 @@
     },
     "/api/v1/status-pages/domain/{domain}": {
       "get": {
-        "description": "Answers 503 with the code STATUS_PAGE_UNAVAILABLE and the message \"This status page is unavailable\" when the page is published and its workspace is suspended, whether by an instance admin or while it waits for its owner to verify their email address. It does not say which, and a page that is not published is still 404.",
+        "description": "Answers 503 with the code STATUS_PAGE_UNAVAILABLE and the message \"This status page is unavailable\" when the page is published and its workspace is suspended, whether by an instance admin, while it waits for its owner to verify their email address, or because its owner scheduled its deletion. It does not say which, and a page that is not published is still 404.",
         "operationId": "getStatusPagesDomainByDomain",
         "parameters": [
           {
@@ -16304,7 +16487,7 @@
     },
     "/api/v1/status-pages/slug/{slug}": {
       "get": {
-        "description": "Answers 503 with the code STATUS_PAGE_UNAVAILABLE and the message \"This status page is unavailable\" when the page is published and its workspace is suspended, whether by an instance admin or while it waits for its owner to verify their email address. It does not say which, and a page that is not published is still 404.",
+        "description": "Answers 503 with the code STATUS_PAGE_UNAVAILABLE and the message \"This status page is unavailable\" when the page is published and its workspace is suspended, whether by an instance admin, while it waits for its owner to verify their email address, or because its owner scheduled its deletion. It does not say which, and a page that is not published is still 404.",
         "operationId": "getStatusPagesSlugBySlug",
         "parameters": [
           {
@@ -16368,7 +16551,7 @@
     },
     "/api/v1/status-pages/slug/{slug}/monitors": {
       "get": {
-        "description": "Answers 503 with the code STATUS_PAGE_UNAVAILABLE and the message \"This status page is unavailable\" when the page is published and its workspace is suspended, whether by an instance admin or while it waits for its owner to verify their email address. It does not say which, and a page that is not published is still 404.",
+        "description": "Answers 503 with the code STATUS_PAGE_UNAVAILABLE and the message \"This status page is unavailable\" when the page is published and its workspace is suspended, whether by an instance admin, while it waits for its owner to verify their email address, or because its owner scheduled its deletion. It does not say which, and a page that is not published is still 404.",
         "operationId": "getStatusPagesSlugBySlugMonitors",
         "parameters": [
           {
@@ -16432,7 +16615,7 @@
     },
     "/api/v1/status-pages/slug/{slug}/monitors/homepage": {
       "get": {
-        "description": "Answers 503 with the code STATUS_PAGE_UNAVAILABLE and the message \"This status page is unavailable\" when the page is published and its workspace is suspended, whether by an instance admin or while it waits for its owner to verify their email address. It does not say which, and a page that is not published is still 404.",
+        "description": "Answers 503 with the code STATUS_PAGE_UNAVAILABLE and the message \"This status page is unavailable\" when the page is published and its workspace is suspended, whether by an instance admin, while it waits for its owner to verify their email address, or because its owner scheduled its deletion. It does not say which, and a page that is not published is still 404.",
         "operationId": "getStatusPagesSlugBySlugMonitorsHomepage",
         "parameters": [
           {
@@ -17869,6 +18052,216 @@
           }
         ],
         "summary": "Rename the workspace",
+        "tags": [
+          "workspace"
+        ]
+      }
+    },
+    "/api/v1/workspace/deletion": {
+      "delete": {
+        "description": "An owner cancels the scheduled deletion, which lifts that hold and brings the workspace back as it was: its monitors run again, and its status pages answer. A hold of an instance admin or the email verification stays. 404 when no deletion is scheduled.",
+        "operationId": "deleteWorkspaceDeletion",
+        "parameters": [
+          {
+            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before sending the request again.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "JwtAuth": []
+          }
+        ],
+        "summary": "Cancel the deletion of the workspace",
+        "tags": [
+          "workspace"
+        ]
+      },
+      "post": {
+        "description": "An owner of the workspace schedules its deletion by typing its exact name in the body (400 WORKSPACE_NAME_MISMATCH otherwise). The workspace is held for 7 days as a suspended one is: its monitors are kept but none runs, no notification is sent, a push to one answers 403, and its public status pages and badges answer 503. After the 7 days the workspace and everything in it is deleted; its members keep their accounts. The answer is the date it will be deleted. Scheduling again keeps the first date. An admin or a member is refused (403), and so is an API key (401), since a deletion is a user's act. Every member sees the date on GET /me (deletionScheduledAt).",
+        "operationId": "postWorkspaceDeletion",
+        "parameters": [
+          {
+            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/workspacehttp.ScheduleDeletionDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.ApiResponse_workspace_workspacehttp.ScheduledDeletionResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/workspacehttp.NameMismatchResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/httpx.ErrorBody"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before sending the request again.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "JwtAuth": []
+          }
+        ],
+        "summary": "Schedule the deletion of the workspace",
         "tags": [
           "workspace"
         ]

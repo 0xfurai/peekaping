@@ -54,21 +54,29 @@ type sqlModel struct {
 	WorkspaceSuspended bool `bun:"workspace_suspended,scanonly"`
 	// WorkspaceSuspendedByAdmin is whether an instance admin holds the workspace (PP-372), read with it
 	WorkspaceSuspendedByAdmin bool `bun:"workspace_suspended_by_admin,scanonly"`
+	// WorkspaceDeleting is whether an owner scheduled the workspace's deletion (PP-170), read with it
+	WorkspaceDeleting bool `bun:"workspace_deleting,scanonly"`
 }
 
 // workspaceSuspended is true for a monitor whose workspace is suspended (PP-155), by the email
-// verification or by an instance admin (PP-372): either hold keeps the monitor from running. It is a
-// primary-key lookup on workspaces for each monitor row.
-const workspaceSuspended = "EXISTS (SELECT 1 FROM workspaces AS ws WHERE ws.id = m.workspace_id AND (ws.suspended_at IS NOT NULL OR ws.admin_suspended_at IS NOT NULL))"
+// verification, by an instance admin (PP-372) or by an owner's scheduled deletion (PP-170): any hold
+// keeps the monitor from running. It is a primary-key lookup on workspaces for each monitor row.
+const workspaceSuspended = "EXISTS (SELECT 1 FROM workspaces AS ws WHERE ws.id = m.workspace_id AND (ws.suspended_at IS NOT NULL OR ws.admin_suspended_at IS NOT NULL OR ws.deletion_scheduled_at IS NOT NULL))"
 
 // workspaceSuspendedByAdmin is true for a monitor whose workspace an instance admin holds, which a
 // push says in its refusal
 const workspaceSuspendedByAdmin = "EXISTS (SELECT 1 FROM workspaces AS ws WHERE ws.id = m.workspace_id AND ws.admin_suspended_at IS NOT NULL)"
 
-// withSuspension reads the monitor's own columns and whether its workspace is suspended, and
-// whether an instance admin holds it
+// workspaceDeleting is true for a monitor whose workspace has a deletion scheduled, which a push
+// says in its refusal
+const workspaceDeleting = "EXISTS (SELECT 1 FROM workspaces AS ws WHERE ws.id = m.workspace_id AND ws.deletion_scheduled_at IS NOT NULL)"
+
+// withSuspension reads the monitor's own columns and whether its workspace is suspended, whether an
+// instance admin holds it, and whether its deletion is scheduled
 func withSuspension(q *bun.SelectQuery) *bun.SelectQuery {
-	return q.ColumnExpr("m.*").ColumnExpr(workspaceSuspended + " AS workspace_suspended").ColumnExpr(workspaceSuspendedByAdmin + " AS workspace_suspended_by_admin")
+	return q.ColumnExpr("m.*").ColumnExpr(workspaceSuspended + " AS workspace_suspended").
+		ColumnExpr(workspaceSuspendedByAdmin + " AS workspace_suspended_by_admin").
+		ColumnExpr(workspaceDeleting + " AS workspace_deleting")
 }
 
 // inRunningWorkspace keeps the monitors whose workspace is not suspended: the filter of every query
@@ -417,6 +425,7 @@ func toDomainModelFromSQL(sm *sqlModel) *Model {
 
 		WorkspaceSuspended:        sm.WorkspaceSuspended,
 		WorkspaceSuspendedByAdmin: sm.WorkspaceSuspendedByAdmin,
+		WorkspaceDeleting:         sm.WorkspaceDeleting,
 	}
 }
 

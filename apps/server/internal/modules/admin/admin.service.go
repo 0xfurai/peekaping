@@ -70,6 +70,11 @@ type MonitorWaker interface {
 	PublishActiveUpdated(ctx context.Context, workspaceID workspace.ID) error
 }
 
+// AccountRemover deletes a user's account with the checks of the install. auth.AccountRemover is one.
+type AccountRemover interface {
+	Remove(ctx context.Context, userID string) error
+}
+
 // ResetLinks makes password reset links. auth.AccountService is one.
 type ResetLinks interface {
 	CreateResetLink(ctx context.Context, userID string) (link string, expiresAt time.Time, err error)
@@ -81,6 +86,7 @@ type ServiceImpl struct {
 	links      ResetLinks
 	monitors   MonitorWaker
 	workspaces WorkspaceDeleter
+	accounts   AccountRemover
 	bus        events.EventBus
 	mailer     *mailer.Mailer
 	settings   *installsettings.Resolver
@@ -96,6 +102,7 @@ func NewService(
 	links ResetLinks,
 	monitors MonitorWaker,
 	workspaces WorkspaceDeleter,
+	accounts AccountRemover,
 	bus events.EventBus,
 	mailer *mailer.Mailer,
 	settings *installsettings.Resolver,
@@ -108,6 +115,7 @@ func NewService(
 		links:      links,
 		monitors:   monitors,
 		workspaces: workspaces,
+		accounts:   accounts,
 		bus:        bus,
 		mailer:     mailer,
 		settings:   settings,
@@ -294,31 +302,14 @@ func (s *ServiceImpl) DeleteUser(ctx context.Context, actorID, userID string) er
 	if userID == actorID {
 		return ErrSelf
 	}
-	var left []Membership
-	err := s.transactor.WithTx(ctx, func(ctx context.Context) error {
-		admins, user, err := s.lockedUser(ctx, userID)
-		if err != nil {
-			return err
+	// The checks, the delete and the announcements are the ones of a user deleting their own account
+	if err := s.accounts.Remove(ctx, userID); err != nil {
+		if errors.Is(err, auth.ErrUserNotFound) {
+			return ErrUserNotFound
 		}
-		if isLastActiveAdmin(user, admins) {
-			return ErrLastInstanceAdmin
-		}
-		lastOwned, err := s.repo.WorkspacesOwnedAloneAnyWorkspace(ctx, userID)
-		if err != nil {
-			return err
-		}
-		if len(lastOwned) > 0 {
-			return &LastOwnerError{Workspaces: lastOwned}
-		}
-		left = user.Memberships
-		return s.repo.DeleteUser(ctx, userID)
-	})
-	if err != nil {
 		return err
 	}
 	s.log(actorID, ActionDeleteUser, userID)
-	s.announceSessionsEnded(ctx, userID)
-	s.announceLeft(ctx, userID, left)
 	return nil
 }
 
@@ -359,17 +350,6 @@ func (s *ServiceImpl) notify(to string, message mailer.Message) {
 func (s *ServiceImpl) announceSessionsEnded(ctx context.Context, userID string) {
 	if err := events.Publish(ctx, s.bus, auth.SessionsEnded, auth.SessionsEndedEvent{UserID: userID}); err != nil {
 		s.logger.Errorw("Failed to publish that the sessions of a user ended", "userId", userID, "error", err)
-	}
-}
-
-// announceLeft tells the rest of the install that the user's places in the workspaces are gone,
-// once that is stored. A bus that fails is logged and not returned: the change
-// stands.
-func (s *ServiceImpl) announceLeft(ctx context.Context, userID string, memberships []Membership) {
-	for _, m := range memberships {
-		if err := events.Publish(ctx, s.bus, workspace.MemberLeft, workspace.MemberLeftEvent{WorkspaceID: m.WorkspaceID, UserID: userID}); err != nil {
-			s.logger.Errorw("Failed to publish that a member left a workspace", "workspaceId", m.WorkspaceID, "userId", userID, "error", err)
-		}
 	}
 }
 

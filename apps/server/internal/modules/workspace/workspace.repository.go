@@ -1,6 +1,9 @@
 package workspace
 
-import "context"
+import (
+	"context"
+	"time"
+)
 
 // Repository stores workspaces and their members. Every method joins the transaction its ctx
 // carries (see internal/dbtx), so that a service can create a workspace and its first member
@@ -40,6 +43,24 @@ type Repository interface {
 	// PostgreSQL it holds the workspace's row first, so that a monitor or a member added at the same
 	// time is not missed in what it returns: the insert waits, and is refused once the row is gone.
 	Delete(ctx context.Context, id ID) (*Deleted, error)
+	// DeleteDue is Delete for a workspace whose scheduled deletion is due at now: the workspace is
+	// deleted only if DeletionScheduledAt is set and not after now when its row is locked, so that
+	// an owner's cancellation (or a new schedule) since the cleanup job listed it is respected. It
+	// returns nil when the workspace is gone or not due.
+	DeleteDue(ctx context.Context, id ID, now time.Time) (*Deleted, error)
+	// ScheduleDeletion holds the workspace for deletion at the time: it sets DeletionScheduledAt
+	// unless a deletion is scheduled already, and then keeps its date. It returns the workspace as it
+	// is now, nil when there is none with the ID, and whether this call scheduled it. The hold is
+	// independent of the other two, which it leaves as they are.
+	ScheduleDeletion(ctx context.Context, id ID, at time.Time) (scheduled *Workspace, changed bool, err error)
+	// CancelDeletion clears DeletionScheduledAt and says whether there was one to clear. remaining
+	// is whether the workspace is still suspended, by one of the other two holds; when it is not, the
+	// workspace's monitors get a new updated_at, as lifting the verification hold does, so that none
+	// counts as stale for the days it was held back. The other holds are not touched.
+	CancelDeletion(ctx context.Context, id ID) (cancelled, remaining bool, err error)
+	// ListDeletionDueAnyWorkspace returns the ID of every workspace whose scheduled deletion is due
+	// at now, the one due first at the front. It is for the cleanup job, which deletes them.
+	ListDeletionDueAnyWorkspace(ctx context.Context, now time.Time) ([]ID, error)
 	// ListIDsAnyWorkspace returns the ID of every workspace of the install, the oldest first. It
 	// is for the background work that goes through the workspaces one by one, such as the cleanup
 	// job.

@@ -38,7 +38,7 @@ const spentTokenRetention = 24 * time.Hour
 
 // hourlyCleanup is the job that runs every hour: it deletes the heartbeats past the data retention
 // period of their workspace, the probes' status changes past the longest of those periods, the expired stats, the old notification history and the
-// old TLS info.
+// old TLS info, and the workspaces whose scheduled deletion is due.
 // In cluster mode every api replica has one, and the run lock lets one of them run each hour.
 type hourlyCleanup struct {
 	heartbeats          heartbeat.Service
@@ -49,6 +49,7 @@ type hourlyCleanup struct {
 	tlsInfo             monitor_tls_info.Service
 	probes              probe.Service
 	accountTokens       AccountTokens
+	workspaceDeleter    WorkspaceDeleter
 	lock                RunLock
 	retention           Retention
 	logger              *zap.SugaredLogger
@@ -94,4 +95,5 @@ func (h *hourlyCleanup) runHourly(ctx context.Context, now time.Time) {
 	cleanupMonitorTLSInfo(h.tlsInfo, h.retention.TLSInfoDays, h.logger)
 	cleanupProbeStatusChanges(h.probes, h.workspaces, h.workspaceSettings, caps, h.logger)
 	cleanupAccountTokens(h.accountTokens, now, h.logger)
+	PurgeScheduledWorkspaces(ctx, h.workspaces, h.workspaceDeleter, now, h.logger)
 }

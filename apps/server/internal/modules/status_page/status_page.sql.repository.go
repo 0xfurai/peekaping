@@ -107,7 +107,7 @@ func (r *SQLRepositoryImpl) FindBySlugAnyWorkspace(ctx context.Context, slug str
 func (r *SQLRepositoryImpl) WorkspaceSuspended(ctx context.Context, workspaceID workspace.ID) (bool, error) {
 	var suspended bool
 	err := dbtx.DB(ctx, r.db).NewSelect().Table("workspaces").
-		ColumnExpr("(suspended_at IS NOT NULL OR admin_suspended_at IS NOT NULL)").
+		ColumnExpr("(suspended_at IS NOT NULL OR admin_suspended_at IS NOT NULL OR deletion_scheduled_at IS NOT NULL)").
 		Where("id = ?", string(workspaceID)).Scan(ctx, &suspended)
 	if errors.Is(err, sql.ErrNoRows) {
 		return false, nil

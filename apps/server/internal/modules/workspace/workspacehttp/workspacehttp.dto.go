@@ -38,6 +38,31 @@ type RenameWorkspaceDto struct {
 // normalize trims the name, so that one of only spaces is refused as empty
 func (d *RenameWorkspaceDto) normalize() { d.Name = strings.TrimSpace(d.Name) }
 
+// ScheduleDeletionDto is the request to schedule the deletion of the workspace. The name is not
+// trimmed or lower-cased: the owner types it exactly as it is.
+type ScheduleDeletionDto struct {
+	Name string `json:"name"`
+}
+
+// ScheduledDeletionResponse says when the workspace will be deleted
+type ScheduledDeletionResponse struct {
+	// DeletionScheduledAt is when the workspace and everything in it will be deleted, 7 days after the
+	// owner scheduled it
+	DeletionScheduledAt time.Time `json:"deletionScheduledAt"`
+}
+
+// NameMismatchResponse is the 400 for a deletion scheduled with a name that is not the workspace's
+type NameMismatchResponse struct {
+	Message string                `json:"message" example:"The name typed is not the workspace's name"`
+	Data    httpx.Null            `json:"data"`
+	Error   NameMismatchErrorBody `json:"error"`
+}
+
+// NameMismatchErrorBody holds the code of a NameMismatchResponse
+type NameMismatchErrorBody struct {
+	Code string `json:"code" example:"WORKSPACE_NAME_MISMATCH"`
+}
+
 // MemberResponse is a member of the workspace
 type MemberResponse struct {
 	UserID   string    `json:"userId"`
@@ -115,6 +140,9 @@ type ChangeRoleInput = httpx.Input[ChangeRoleDto, MemberParams]
 type RemoveMemberInput = httpx.Input[httpx.NoBody, MemberParams]
 
 type LeaveInput = httpx.Input[httpx.NoBody, struct{}]
+
+type ScheduleDeletionInput = httpx.Input[ScheduleDeletionDto, struct{}]
+type CancelDeletionInput = httpx.Input[httpx.NoBody, struct{}]
 
 type ListInvitesInput = httpx.Input[httpx.NoBody, struct{}]
 type CreateInviteInput = httpx.Input[CreateInviteDto, struct{}]

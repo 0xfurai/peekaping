@@ -21,7 +21,7 @@ func RegisterDependencies(container *dig.Container) error {
 	if err := utils.Provide(container, func(accounts *AccountService) Verifier { return accounts }); err != nil {
 		return err
 	}
-	return utils.Provide(container, NewSQLRepository, NewSQLAccountRepository, NewAccountService, ProvideTokenMaker, NewRoute, ProvideService, NewSignupGate, NewController, NewMiddlewareProvider)
+	return utils.Provide(container, NewSQLRepository, NewSQLAccountRepository, NewAccountRemover, NewAccountService, ProvideTokenMaker, NewRoute, ProvideService, NewSignupGate, NewController, NewMiddlewareProvider)
 }
 
 // ProvideService is the service of the app: it lets anyone register when the install's signup mode
@@ -33,13 +33,14 @@ func ProvideService(
 	invites Invites,
 	tokenMaker *TokenMaker,
 	verifier Verifier,
+	remover *AccountRemover,
 	cfg *config.Config,
 	settings *installsettings.Resolver,
 	logger *zap.SugaredLogger,
 ) Service {
 	return NewService(repo, transactor, workspaces, invites, tokenMaker, verifier, logger, WithSignupMode(settings), WithDisabledMonitorTypes(cfg.DisabledMonitorTypeList()), WithMinCheckInterval(cfg.MinCheckIntervalSeconds()), WithSupportContact(cfg.SupportContact), WithCustomDomainVerification(cfg.VerifyCustomDomains, func(ctx context.Context) string {
 		return config.CustomDomainCNAMETargetFor(cfg.CustomDomainCNAMETarget, settings.PublicURL(ctx))
-	}))
+	}), WithAccountRemoval(remover))
 }
 
 // ProvideTokenMaker is the token maker of the app: it refuses the tokens of sessions that a

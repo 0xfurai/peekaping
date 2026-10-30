@@ -34,6 +34,10 @@ type cleanups struct {
 	// accountTokens counts the account token cleanups, and cutoff holds the latest one's cutoff
 	accountTokens atomic.Int32
 	cutoff        atomic.Int64
+
+	// deleted holds the IDs of the workspaces the purge deleted (PP-170)
+	deleted atomic.Pointer[[]workspace.ID]
+	purges  atomic.Int32
 }
 
 // all returns how many times each cleanup ran, in the order of runHourly
@@ -108,6 +112,19 @@ func (oneWorkspace) ListIDsAnyWorkspace(context.Context) ([]workspace.ID, error)
 	return []workspace.ID{"w-1"}, nil
 }
 
+func (oneWorkspace) ListDeletionDueAnyWorkspace(context.Context, time.Time) ([]workspace.ID, error) {
+	return []workspace.ID{"w-due"}, nil
+}
+
+// countingDeleter counts the workspaces the purge deletes
+type countingDeleter struct{ c *cleanups }
+
+func (d countingDeleter) DeleteDueAnyWorkspace(_ context.Context, id workspace.ID, _ time.Time) (bool, error) {
+	d.c.purges.Add(1)
+	d.c.deleted.Store(&[]workspace.ID{id})
+	return true, nil
+}
+
 // thirtyDays is a workspace setting service whose workspaces keep 30 days
 type thirtyDays struct{ setting.WorkspaceService }
 
@@ -129,6 +146,7 @@ func newReplica(c *cleanups, lock RunLock, logger *zap.SugaredLogger) *hourlyCle
 		tlsInfo:             countingTLSInfo{c: c},
 		probes:              countingProbes{c: c},
 		accountTokens:       countingAccountTokens{c: c},
+		workspaceDeleter:    countingDeleter{c: c},
 		lock:                lock,
 		retention:           testRetention,
 		logger:              logger,
@@ -190,6 +208,24 @@ func TestHourlyCleanupRunsOnceAcrossTheReplicas(t *testing.T) {
 	running = logs.FilterMessage("Running the hourly cleanup").All()
 	require.Len(t, running, 2)
 	assert.Equal(t, "2026-10-22T13:00:00Z", running[1].ContextMap()["hour"])
+}
+
+// The workspaces whose scheduled deletion is due are deleted by the hour's run, once across the
+// replicas (PP-170)
+func TestHourlyCleanupDeletesTheWorkspacesWhoseDeletionIsDue(t *testing.T) {
+	redis := miniredis.RunT(t)
+	c := &cleanups{}
+	replicas := []*hourlyCleanup{
+		newReplica(c, redisLock(t, redis.Addr()), zap.NewNop().Sugar()),
+		newReplica(c, redisLock(t, redis.Addr()), zap.NewNop().Sugar()),
+	}
+
+	for _, replica := range replicas {
+		replica.runHourly(context.Background(), noon)
+	}
+
+	assert.EqualValues(t, 1, c.purges.Load(), "the replica that claimed the hour deleted it, the other did not")
+	assert.Equal(t, []workspace.ID{"w-due"}, *c.deleted.Load())
 }
 
 // A timer wakes a little early, or a run starts late. Either way it claims the hour it was

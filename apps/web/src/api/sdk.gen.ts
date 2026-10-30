@@ -70,6 +70,9 @@ import type {
   PostAuthLoginData,
   PostAuthLoginResponses,
   PostAuthLoginErrors,
+  DeleteAuthMeData,
+  DeleteAuthMeResponses,
+  DeleteAuthMeErrors,
   PutAuthPasswordData,
   PutAuthPasswordResponses,
   PutAuthPasswordErrors,
@@ -332,6 +335,12 @@ import type {
   PatchWorkspaceData,
   PatchWorkspaceResponses,
   PatchWorkspaceErrors,
+  DeleteWorkspaceDeletionData,
+  DeleteWorkspaceDeletionResponses,
+  DeleteWorkspaceDeletionErrors,
+  PostWorkspaceDeletionData,
+  PostWorkspaceDeletionResponses,
+  PostWorkspaceDeletionErrors,
   GetWorkspaceInvitesData,
   GetWorkspaceInvitesResponses,
   GetWorkspaceInvitesErrors,
@@ -950,6 +959,33 @@ export const postAuthLogin = <ThrowOnError extends boolean = false>(
   >({
     responseType: "json",
     url: "/api/v1/auth/login",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
+  });
+};
+
+/**
+ * Delete the signed-in user's own account
+ * The body holds the user's password (400 when it is wrong). The user, their memberships and their sessions are gone at once; the workspaces stay, and so does every other member's account. It is refused (409) for the last instance admin, with a message, and while the user is the only owner of a workspace that is not scheduled for deletion: that answer is {"error":{"code":"LAST_OWNER","workspaces":[{"id","name"}]}}, listing those workspaces. Make another member an owner or schedule the workspace's deletion first. An API key is refused (401).
+ */
+export const deleteAuthMe = <ThrowOnError extends boolean = false>(
+  options: Options<DeleteAuthMeData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).delete<
+    DeleteAuthMeResponses,
+    DeleteAuthMeErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/api/v1/auth/me",
     ...options,
     headers: {
       "Content-Type": "application/json",
@@ -2731,7 +2767,7 @@ export const postStatusPages = <ThrowOnError extends boolean = false>(
 
 /**
  * Get a status page by domain name
- * Answers 503 with the code STATUS_PAGE_UNAVAILABLE and the message "This status page is unavailable" when the page is published and its workspace is suspended, whether by an instance admin or while it waits for its owner to verify their email address. It does not say which, and a page that is not published is still 404.
+ * Answers 503 with the code STATUS_PAGE_UNAVAILABLE and the message "This status page is unavailable" when the page is published and its workspace is suspended, whether by an instance admin, while it waits for its owner to verify their email address, or because its owner scheduled its deletion. It does not say which, and a page that is not published is still 404.
  */
 export const getStatusPagesDomainByDomain = <
   ThrowOnError extends boolean = false,
@@ -2809,7 +2845,7 @@ export const postStatusPagesDomainsByIdByDomainVerify = <
 
 /**
  * Get a status page by slug
- * Answers 503 with the code STATUS_PAGE_UNAVAILABLE and the message "This status page is unavailable" when the page is published and its workspace is suspended, whether by an instance admin or while it waits for its owner to verify their email address. It does not say which, and a page that is not published is still 404.
+ * Answers 503 with the code STATUS_PAGE_UNAVAILABLE and the message "This status page is unavailable" when the page is published and its workspace is suspended, whether by an instance admin, while it waits for its owner to verify their email address, or because its owner scheduled its deletion. It does not say which, and a page that is not published is still 404.
  */
 export const getStatusPagesSlugBySlug = <ThrowOnError extends boolean = false>(
   options: Options<GetStatusPagesSlugBySlugData, ThrowOnError>
@@ -2827,7 +2863,7 @@ export const getStatusPagesSlugBySlug = <ThrowOnError extends boolean = false>(
 
 /**
  * Get monitors for a status page by slug with heartbeats and uptime
- * Answers 503 with the code STATUS_PAGE_UNAVAILABLE and the message "This status page is unavailable" when the page is published and its workspace is suspended, whether by an instance admin or while it waits for its owner to verify their email address. It does not say which, and a page that is not published is still 404.
+ * Answers 503 with the code STATUS_PAGE_UNAVAILABLE and the message "This status page is unavailable" when the page is published and its workspace is suspended, whether by an instance admin, while it waits for its owner to verify their email address, or because its owner scheduled its deletion. It does not say which, and a page that is not published is still 404.
  */
 export const getStatusPagesSlugBySlugMonitors = <
   ThrowOnError extends boolean = false,
@@ -2847,7 +2883,7 @@ export const getStatusPagesSlugBySlugMonitors = <
 
 /**
  * Get monitors for a status page by slug for homepage
- * Answers 503 with the code STATUS_PAGE_UNAVAILABLE and the message "This status page is unavailable" when the page is published and its workspace is suspended, whether by an instance admin or while it waits for its owner to verify their email address. It does not say which, and a page that is not published is still 404.
+ * Answers 503 with the code STATUS_PAGE_UNAVAILABLE and the message "This status page is unavailable" when the page is published and its workspace is suspended, whether by an instance admin, while it waits for its owner to verify their email address, or because its owner scheduled its deletion. It does not say which, and a page that is not published is still 404.
  */
 export const getStatusPagesSlugBySlugMonitorsHomepage = <
   ThrowOnError extends boolean = false,
@@ -3262,6 +3298,57 @@ export const patchWorkspace = <ThrowOnError extends boolean = false>(
       },
     ],
     url: "/api/v1/workspace",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
+  });
+};
+
+/**
+ * Cancel the deletion of the workspace
+ * An owner cancels the scheduled deletion, which lifts that hold and brings the workspace back as it was: its monitors run again, and its status pages answer. A hold of an instance admin or the email verification stays. 404 when no deletion is scheduled.
+ */
+export const deleteWorkspaceDeletion = <ThrowOnError extends boolean = false>(
+  options?: Options<DeleteWorkspaceDeletionData, ThrowOnError>
+) => {
+  return (options?.client ?? _heyApiClient).delete<
+    DeleteWorkspaceDeletionResponses,
+    DeleteWorkspaceDeletionErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/api/v1/workspace/deletion",
+    ...options,
+  });
+};
+
+/**
+ * Schedule the deletion of the workspace
+ * An owner of the workspace schedules its deletion by typing its exact name in the body (400 WORKSPACE_NAME_MISMATCH otherwise). The workspace is held for 7 days as a suspended one is: its monitors are kept but none runs, no notification is sent, a push to one answers 403, and its public status pages and badges answer 503. After the 7 days the workspace and everything in it is deleted; its members keep their accounts. The answer is the date it will be deleted. Scheduling again keeps the first date. An admin or a member is refused (403), and so is an API key (401), since a deletion is a user's act. Every member sees the date on GET /me (deletionScheduledAt).
+ */
+export const postWorkspaceDeletion = <ThrowOnError extends boolean = false>(
+  options: Options<PostWorkspaceDeletionData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).post<
+    PostWorkspaceDeletionResponses,
+    PostWorkspaceDeletionErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/api/v1/workspace/deletion",
     ...options,
     headers: {
       "Content-Type": "application/json",

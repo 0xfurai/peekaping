@@ -7,6 +7,7 @@ import (
 
 	"peekaping/internal/httpx"
 	"peekaping/internal/limits"
+	"peekaping/internal/modules/auth"
 	"peekaping/internal/utils"
 
 	"go.uber.org/zap"
@@ -39,7 +40,6 @@ func actor(ctx context.Context) (string, error) {
 // the rules (not oneself, the last instance admin, the last owner of a workspace), and 500 for
 // anything else
 func (c *Controller) fail(err error) error {
-	var lastOwner *LastOwnerError
 	switch {
 	case errors.Is(err, ErrUserNotFound):
 		return httpx.Fail(http.StatusNotFound, utils.NewFailResponse("User not found"))
@@ -47,14 +47,9 @@ func (c *Controller) fail(err error) error {
 		return httpx.Fail(http.StatusNotFound, utils.NewFailResponse("Workspace not found"))
 	case errors.Is(err, ErrSelf):
 		return httpx.Fail(http.StatusConflict, utils.NewFailResponse("You can't do this to your own account"))
-	case errors.Is(err, ErrLastInstanceAdmin):
-		return httpx.Fail(http.StatusConflict, utils.NewFailResponse("The install needs at least one instance admin"))
-	case errors.As(err, &lastOwner):
-		workspaces := make([]LastOwnerWorkspace, len(lastOwner.Workspaces))
-		for i, ref := range lastOwner.Workspaces {
-			workspaces[i] = LastOwnerWorkspace{ID: string(ref.ID), Name: ref.Name}
-		}
-		return httpx.Fail(http.StatusConflict, LastOwnerErrorResponse{Error: LastOwnerErrorBody{Code: "LAST_OWNER", Workspaces: workspaces}})
+	}
+	if answer := auth.FailAccountRemoval(err); answer != nil {
+		return answer
 	}
 	c.logger.Errorw("An admin request failed", "error", err)
 	return httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))

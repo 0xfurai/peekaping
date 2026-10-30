@@ -27,6 +27,10 @@ type Service interface {
 	Login(ctx context.Context, dto LoginDto) (*LoginResponse, error)
 	RefreshToken(ctx context.Context, refreshToken string) (*LoginResponse, error)
 	UpdatePassword(ctx context.Context, userId string, dto UpdatePasswordDto) error
+	// DeleteAccount deletes the user's own account after they enter their password: ErrWrongPassword,
+	// ErrLastInstanceAdmin, or a LastOwnerError naming the workspaces they are the only owner of (one
+	// scheduled for deletion does not count). Their memberships and sessions end.
+	DeleteAccount(ctx context.Context, userId, password string) error
 	// Me returns the user with their workspaces, or nil for a user that doesn't exist
 	Me(ctx context.Context, userId string) (*MeResponse, error)
 
@@ -49,6 +53,15 @@ type Verifier interface {
 	SendVerification(ctx context.Context, user *Model) error
 }
 
+// ErrWrongPassword is for a password that is not the user's, when they change it or delete their
+// account. It answers 400.
+var ErrWrongPassword = errors.New("current password is incorrect")
+
+// AccountRemoval deletes a user's account with the install's checks. *AccountRemover is one.
+type AccountRemoval interface {
+	Remove(ctx context.Context, userID string) error
+}
+
 type ServiceImpl struct {
 	repo       Repository
 	transactor dbtx.Transactor
@@ -67,6 +80,8 @@ type ServiceImpl struct {
 	minCheckInterval int
 	// supportContact is SUPPORT_CONTACT, as /me states it: empty when unset
 	supportContact string
+	// removal deletes the account of a user who asks for it. nil is an install that can't.
+	removal AccountRemoval
 	// verifyCustomDomains is VERIFY_CUSTOM_DOMAINS, and customDomainCNAMETarget the host a domain
 	// may be a CNAME to now (nil: none), as /me states them
 	verifyCustomDomains     bool
@@ -104,6 +119,11 @@ func WithMinCheckInterval(seconds int) ServiceOption {
 // does. Without it /me says null.
 func WithSupportContact(contact string) ServiceOption {
 	return func(s *ServiceImpl) { s.supportContact = strings.TrimSpace(contact) }
+}
+
+// WithAccountRemoval lets a user delete their own account. Without it they can't.
+func WithAccountRemoval(removal AccountRemoval) ServiceOption {
+	return func(s *ServiceImpl) { s.removal = removal }
 }
 
 // WithCustomDomainVerification sets what /me tells the app about verifying custom domains
@@ -399,7 +419,7 @@ func (s *ServiceImpl) Me(ctx context.Context, userId string) (*MeResponse, error
 		me.CustomDomainCNAMETarget = s.customDomainCNAMETarget(ctx)
 	}
 	for i, m := range memberships {
-		me.Workspaces[i] = MeWorkspace{ID: string(m.Workspace.ID), Name: m.Workspace.Name, Role: string(m.Role), Suspended: m.Workspace.Suspended()}
+		me.Workspaces[i] = MeWorkspace{ID: string(m.Workspace.ID), Name: m.Workspace.Name, Role: string(m.Role), Suspended: m.Workspace.Suspended(), DeletionScheduledAt: m.Workspace.DeletionScheduledAt}
 		if m.Workspace.Suspended() {
 			reason := m.Workspace.ShownReason()
 			me.Workspaces[i].SuspendedReason = &reason
@@ -523,7 +543,7 @@ func (s *ServiceImpl) UpdatePassword(ctx context.Context, userId string, dto Upd
 	// Verify current password
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(dto.CurrentPassword))
 	if err != nil {
-		return errors.New("current password is incorrect")
+		return ErrWrongPassword
 	}
 
 	// Hash new password
@@ -543,6 +563,27 @@ func (s *ServiceImpl) UpdatePassword(ctx context.Context, userId string, dto Upd
 		return errors.New("failed to update password")
 	}
 
+	return nil
+}
+
+func (s *ServiceImpl) DeleteAccount(ctx context.Context, userId, password string) error {
+	if s.removal == nil {
+		return errors.New("deleting an account is not available")
+	}
+	user, err := s.repo.FindByID(ctx, userId)
+	if err != nil {
+		return err
+	}
+	if user == nil {
+		return ErrUserNotFound
+	}
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
+		return ErrWrongPassword
+	}
+	if err := s.removal.Remove(ctx, userId); err != nil {
+		return err
+	}
+	s.logger.Infow("Account action", "actorUserId", userId, "action", "delete_account")
 	return nil
 }
 

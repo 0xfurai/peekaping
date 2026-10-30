@@ -73,6 +73,16 @@ type Service interface {
 	// ErrNotFound, ErrForbidden or ErrInvalidName (a name that is blank once trimmed). The
 	// membership it returns holds the caller's role there; its JoinedAt is not read.
 	RenameWorkspace(ctx context.Context, name string) (*Membership, error)
+	// ScheduleDeletion holds the workspace the context runs in for deletion, for an owner who types
+	// its exact name (PP-170): ErrNotFound, ErrForbidden, ErrNameMismatch or ErrDeletionNotScheduled
+	// (a cancel committed at the same moment). It returns when the workspace will be deleted, 7 days
+	// from now (DeletionGracePeriod); scheduling again keeps the first date. userID is the owner, for
+	// the log.
+	ScheduleDeletion(ctx context.Context, userID, name string) (time.Time, error)
+	// CancelDeletion lifts the deletion hold of the workspace the context runs in, for an owner:
+	// ErrNotFound, ErrForbidden or ErrDeletionNotScheduled. Another hold on the workspace stays, and
+	// its monitors run again at once when none does.
+	CancelDeletion(ctx context.Context, userID string) error
 	// DeleteAnyWorkspace deletes the workspace with the ID and everything in it by cascade, and
 	// returns ErrNotFound for one that does not exist. It checks no role and reads no workspace
 	// from the context: the caller decides who may delete which workspace (an instance admin any,
@@ -80,6 +90,11 @@ type Service interface {
 	// the workspace's monitors, so that they stop at once, and MemberLeft for each member, so that
 	// their open sockets leave its rooms. Call it outside a transaction, or the events go before the commit.
 	DeleteAnyWorkspace(ctx context.Context, id ID) error
+	// DeleteDueAnyWorkspace is DeleteAnyWorkspace for the cleanup job: it deletes the workspace only
+	// if its scheduled deletion is due at now when the delete runs, and says whether it did. A
+	// workspace that is gone, or whose deletion was cancelled or scheduled again since the job
+	// listed it, is no error: it returns false, deletes nothing and publishes nothing.
+	DeleteDueAnyWorkspace(ctx context.Context, id ID, now time.Time) (bool, error)
 }
 
 // MonitorWaker makes the scheduler and the probes pick up the monitors of a workspace whose
@@ -359,27 +374,105 @@ func (s *ServiceImpl) announceLeft(ctx context.Context, id ID, userID string) {
 }
 
 func (s *ServiceImpl) DeleteAnyWorkspace(ctx context.Context, id ID) error {
+	deleted, err := s.deleteAndAnnounce(ctx, id, s.workspaces.Delete)
+	if err != nil {
+		return err
+	}
+	if !deleted {
+		return ErrNotFound
+	}
+	return nil
+}
+
+func (s *ServiceImpl) DeleteDueAnyWorkspace(ctx context.Context, id ID, now time.Time) (bool, error) {
+	return s.deleteAndAnnounce(ctx, id, func(ctx context.Context, id ID) (*Deleted, error) {
+		return s.workspaces.DeleteDue(ctx, id, now)
+	})
+}
+
+// deleteAndAnnounce runs the delete in a transaction and, once it is committed and deleted
+// something, announces it. It says whether the workspace was deleted.
+func (s *ServiceImpl) deleteAndAnnounce(ctx context.Context, id ID, del func(context.Context, ID) (*Deleted, error)) (bool, error) {
 	// An ID that is no UUID names no workspace, and PostgreSQL refuses to compare it with one
 	if _, err := uuid.Parse(string(id)); err != nil {
-		return ErrNotFound
+		return false, nil
 	}
 	var deleted *Deleted
 	err := s.transactor.WithTx(ctx, func(ctx context.Context) error {
 		var err error
-		deleted, err = s.workspaces.Delete(ctx, id)
-		if err != nil {
-			return err
-		}
-		if deleted == nil {
-			return ErrNotFound
-		}
-		return nil
+		deleted, err = del(ctx, id)
+		return err
 	})
+	if err != nil || deleted == nil {
+		return false, err
+	}
+	s.announceDeleted(ctx, id, deleted)
+	return true, nil
+}
+
+func (s *ServiceImpl) ScheduleDeletion(ctx context.Context, userID, name string) (time.Time, error) {
+	id, _, err := scope(ctx, RoleOwner)
+	if err != nil {
+		return time.Time{}, err
+	}
+	found, err := s.workspaces.FindByID(ctx, id)
+	if err != nil {
+		return time.Time{}, err
+	}
+	if found == nil {
+		return time.Time{}, ErrNotFound
+	}
+	if name != found.Name {
+		return time.Time{}, ErrNameMismatch
+	}
+	scheduled, changed, err := s.workspaces.ScheduleDeletion(ctx, id, s.now().UTC().Add(DeletionGracePeriod))
+	if err != nil {
+		return time.Time{}, err
+	}
+	if scheduled == nil {
+		return time.Time{}, ErrNotFound
+	}
+	if changed {
+		s.logAction(userID, ActionScheduleDeletion, id)
+	}
+	// An owner's cancel may have committed between the repository's update and its read
+	if scheduled.DeletionScheduledAt == nil {
+		return time.Time{}, ErrDeletionNotScheduled
+	}
+	// The workspace's monitors need no event to stop: each check is loaded as it is due, and a
+	// suspended workspace's is dropped, as when an instance admin suspends it
+	return *scheduled.DeletionScheduledAt, nil
+}
+
+func (s *ServiceImpl) CancelDeletion(ctx context.Context, userID string) error {
+	id, _, err := scope(ctx, RoleOwner)
 	if err != nil {
 		return err
 	}
-	s.announceDeleted(ctx, id, deleted)
+	cancelled, remaining, err := s.workspaces.CancelDeletion(ctx, id)
+	if err != nil {
+		return err
+	}
+	if !cancelled {
+		return ErrDeletionNotScheduled
+	}
+	s.logAction(userID, ActionCancelDeletion, id)
+	if !remaining {
+		s.wake(ctx, []ID{id})
+	}
 	return nil
+}
+
+// The names of the actions of an owner that are logged, as the log says them
+const (
+	ActionScheduleDeletion = "schedule_deletion"
+	ActionCancelDeletion   = "cancel_deletion"
+)
+
+// logAction writes the one line an owner's action on their workspace leaves, as the admin area's
+// actions do: who did what to which workspace
+func (s *ServiceImpl) logAction(userID, action string, id ID) {
+	s.logger.Infow("Workspace action", "actorUserId", userID, "action", action, "targetWorkspaceId", string(id))
 }
 
 // announceDeleted tells the rest of the install that the workspace is gone, once that is stored:

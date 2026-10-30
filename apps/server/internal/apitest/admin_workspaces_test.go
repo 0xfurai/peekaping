@@ -230,7 +230,7 @@ func TestAdminWorkspaces_AnItemCarriesExactlyTheseKeys(t *testing.T) {
 	var items []map[string]json.RawMessage
 	require.NoError(t, json.Unmarshal(envelope.Data["workspaces"], &items))
 	require.NotEmpty(t, items)
-	wantItem := []string{"id", "name", "createdAt", "owners", "memberCount", "monitors", "statusPages", "customDomains", "suspended", "suspendedReason", "suspendedAt", "limits"}
+	wantItem := []string{"id", "name", "createdAt", "owners", "memberCount", "monitors", "statusPages", "customDomains", "suspended", "suspendedReason", "suspendedAt", "deletionScheduledAt", "limits"}
 	for _, item := range items {
 		assert.ElementsMatch(t, wantItem, keys(item))
 		var monitors map[string]json.RawMessage

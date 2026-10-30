@@ -31,6 +31,14 @@ const SuspendedUnverified = "unverified"
 // and each ends on its own.
 const SuspendedByAdmin = "admin"
 
+// SuspendedDeleting is the reason shown for a workspace whose owner scheduled its deletion (PP-170).
+// It is a hold of its own, stored as DeletionScheduledAt, and it is told before the other two.
+const SuspendedDeleting = "deleting"
+
+// DeletionGracePeriod is how long a workspace is held between the moment its owner schedules its
+// deletion and the moment it is deleted
+const DeletionGracePeriod = 7 * 24 * time.Hour
+
 // Workspace owns monitors and everything around them.
 type Workspace struct {
 	ID        ID        `json:"id"`
@@ -47,15 +55,23 @@ type Workspace struct {
 	// AdminSuspendedAt is when an instance admin suspended the workspace, nil when no admin holds
 	// it. It is independent of SuspendedAt: the workspace is suspended while either is set.
 	AdminSuspendedAt *time.Time `json:"adminSuspendedAt,omitempty"`
+	// DeletionScheduledAt is when the workspace will be deleted, nil when no deletion is scheduled.
+	// It is a third hold, independent of the other two: the workspace is suspended while any is set.
+	DeletionScheduledAt *time.Time `json:"deletionScheduledAt,omitempty"`
 }
 
-// Suspended is whether the workspace's monitors are held back, by either hold
-func (w Workspace) Suspended() bool { return w.SuspendedAt != nil || w.AdminSuspendedAt != nil }
+// Suspended is whether the workspace's monitors are held back, by any of the three holds
+func (w Workspace) Suspended() bool {
+	return w.SuspendedAt != nil || w.AdminSuspendedAt != nil || w.DeletionScheduledAt != nil
+}
 
-// ShownReason is the reason to tell the workspace's members: SuspendedByAdmin when an instance
-// admin holds it, else SuspendedUnverified, else empty when it runs.
+// ShownReason is the reason to tell the workspace's members: SuspendedDeleting when its deletion is
+// scheduled, else SuspendedByAdmin when an instance admin holds it, else SuspendedUnverified, else
+// empty when it runs.
 func (w Workspace) ShownReason() string {
 	switch {
+	case w.DeletionScheduledAt != nil:
+		return SuspendedDeleting
 	case w.AdminSuspendedAt != nil:
 		return SuspendedByAdmin
 	case w.SuspendedAt != nil:

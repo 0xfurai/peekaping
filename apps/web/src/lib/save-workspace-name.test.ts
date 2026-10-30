@@ -84,8 +84,8 @@ describe("meWithWorkspaceName", () => {
       user: { id: "u1", email: "user@example.com", emailVerified: true, instanceAdmin: false },
       verifyCustomDomains: false,
       workspaces: [
-        { id: "w1", name: "Main", role: "owner", suspended: false, suspendedReason: null },
-        { id: "w2", name: "Other", role: "member", suspended: false, suspendedReason: null },
+        { id: "w1", name: "Main", role: "owner", suspended: false, suspendedReason: null, deletionScheduledAt: null },
+        { id: "w2", name: "Other", role: "member", suspended: false, suspendedReason: null, deletionScheduledAt: null },
       ],
     },
   };

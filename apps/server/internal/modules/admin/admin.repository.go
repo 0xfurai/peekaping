@@ -8,11 +8,11 @@ import (
 	"time"
 
 	"peekaping/internal/dbtx"
+	"peekaping/internal/modules/auth"
 	"peekaping/internal/modules/workspace"
 
 	"github.com/google/uuid"
 	"github.com/uptrace/bun"
-	"github.com/uptrace/bun/dialect"
 )
 
 // Repository reads and changes users for the admin area. Every method joins the transaction its ctx
@@ -36,12 +36,6 @@ type Repository interface {
 	SetActive(ctx context.Context, id string, active bool, endSessionsAt *time.Time) error
 	// ClearTwoFA turns the user's 2FA off and forgets its secret
 	ClearTwoFA(ctx context.Context, id string) error
-	// WorkspacesOwnedAloneAnyWorkspace returns the workspaces the user is the only owner of. On PostgreSQL it
-	// first holds the owners of the user's workspaces until the transaction ends, so that two
-	// deletions of the two owners of a workspace can't both pass.
-	WorkspacesOwnedAloneAnyWorkspace(ctx context.Context, userID string) ([]WorkspaceRef, error)
-	// DeleteUser deletes the user. Their memberships and account links go with them.
-	DeleteUser(ctx context.Context, id string) error
 
 	// ListWorkspacesAnyWorkspace returns a page of the install's workspaces, the oldest first, with
 	// how many match: those whose name or whose owner's email contains q, ignoring case, or all of
@@ -53,7 +47,7 @@ type Repository interface {
 	FindWorkspaceAnyWorkspace(ctx context.Context, id string) (*Workspace, error)
 	// SetAdminSuspended puts the admin's hold on the workspace, or takes it off, and says whether
 	// that changed anything: a hold that is on keeps its time. Taking it off while no other hold
-	// remains gives the workspace's monitors a new updated_at, as lifting the verification hold does,
+	// remains (the verification's or a scheduled deletion) gives the workspace's monitors a new updated_at, as lifting the verification hold does,
 	// so that none counts as stale for the time it was held back. The verification hold is not
 	// touched. remaining is whether the workspace is still suspended, by the other hold.
 	SetAdminSuspended(ctx context.Context, id string, on bool) (changed, remaining bool, err error)
@@ -169,15 +163,7 @@ func (r *SQLRepository) MembershipsAnyWorkspace(ctx context.Context, users []*Us
 }
 
 func (r *SQLRepository) LockActiveInstanceAdmins(ctx context.Context) ([]string, error) {
-	q := dbtx.DB(ctx, r.db).NewSelect().Table("users").Column("id").Where("instance_admin = ?", true).Where("active = ?", true).Order("id")
-	if r.db.Dialect().Name() == dialect.PG {
-		q = q.For("UPDATE")
-	}
-	var ids []string
-	if err := q.Scan(ctx, &ids); err != nil {
-		return nil, err
-	}
-	return ids, nil
+	return auth.LockActiveInstanceAdmins(ctx, r.db)
 }
 
 func (r *SQLRepository) SetInstanceAdmin(ctx context.Context, id string, on bool) error {
@@ -206,68 +192,32 @@ func (r *SQLRepository) ClearTwoFA(ctx context.Context, id string) error {
 	return err
 }
 
-func (r *SQLRepository) WorkspacesOwnedAloneAnyWorkspace(ctx context.Context, userID string) ([]WorkspaceRef, error) {
-	db := dbtx.DB(ctx, r.db)
-	if r.db.Dialect().Name() == dialect.PG {
-		// Lock the owners of every workspace the user owns, in a fixed order, as the roles of a
-		// workspace's members do (workspace.MemberRepository.LockOwners)
-		_, err := db.ExecContext(ctx, `SELECT o.user_id FROM workspace_members o
-			WHERE o.role = 'owner' AND o.workspace_id IN (SELECT workspace_id FROM workspace_members WHERE user_id = ? AND role = 'owner')
-			ORDER BY o.workspace_id, o.user_id FOR UPDATE`, userID)
-		if err != nil {
-			return nil, err
-		}
-	}
-	var rows []struct {
-		ID   string `bun:"id"`
-		Name string `bun:"name"`
-	}
-	err := db.NewSelect().
-		TableExpr("workspace_members AS m").
-		Join("JOIN workspaces AS w ON w.id = m.workspace_id").
-		ColumnExpr("w.id, w.name").
-		Where("m.user_id = ?", userID).Where("m.role = ?", string(workspace.RoleOwner)).
-		Where("(SELECT COUNT(*) FROM workspace_members o WHERE o.workspace_id = m.workspace_id AND o.role = ?) = 1", string(workspace.RoleOwner)).
-		Order("w.created_at", "w.id").
-		Scan(ctx, &rows)
-	if err != nil {
-		return nil, err
-	}
-	refs := make([]WorkspaceRef, len(rows))
-	for i, row := range rows {
-		refs[i] = WorkspaceRef{ID: workspace.ID(row.ID), Name: row.Name}
-	}
-	return refs, nil
-}
-
-func (r *SQLRepository) DeleteUser(ctx context.Context, id string) error {
-	_, err := dbtx.DB(ctx, r.db).NewDelete().Table("users").Where("id = ?", id).Exec(ctx)
-	return err
-}
-
 // workspaceRow is a workspace with its counts
 type workspaceRow struct {
-	ID               string     `bun:"id"`
-	Name             string     `bun:"name"`
-	CreatedAt        time.Time  `bun:"created_at"`
-	SuspendedAt      *time.Time `bun:"suspended_at"`
-	SuspendedReason  *string    `bun:"suspended_reason"`
-	AdminSuspendedAt *time.Time `bun:"admin_suspended_at"`
-	MemberCount      int        `bun:"member_count"`
-	ActiveMonitors   int        `bun:"active_monitors"`
-	PausedMonitors   int        `bun:"paused_monitors"`
-	StatusPages      int        `bun:"status_pages"`
-	CustomDomains    int        `bun:"custom_domains"`
+	ID                  string     `bun:"id"`
+	Name                string     `bun:"name"`
+	CreatedAt           time.Time  `bun:"created_at"`
+	SuspendedAt         *time.Time `bun:"suspended_at"`
+	SuspendedReason     *string    `bun:"suspended_reason"`
+	AdminSuspendedAt    *time.Time `bun:"admin_suspended_at"`
+	DeletionScheduledAt *time.Time `bun:"deletion_scheduled_at"`
+	MemberCount         int        `bun:"member_count"`
+	ActiveMonitors      int        `bun:"active_monitors"`
+	PausedMonitors      int        `bun:"paused_monitors"`
+	StatusPages         int        `bun:"status_pages"`
+	CustomDomains       int        `bun:"custom_domains"`
 }
 
-// toDomain shows the admin's hold before the verification one, as workspace.Workspace.ShownReason does
+// toDomain shows the scheduled deletion first, then the admin's hold, then the verification one, as
+// workspace.Workspace.ShownReason does. SuspendedAt is when the hold of the admin or the verification
+// began, whichever is shown of those two: the deletion has its own date.
 func (r workspaceRow) toDomain() *Workspace {
 	w := &Workspace{
 		ID: workspace.ID(r.ID), Name: r.Name, CreatedAt: r.CreatedAt.UTC(), Owners: []string{},
 		MemberCount: r.MemberCount, ActiveMonitors: r.ActiveMonitors, PausedMonitors: r.PausedMonitors,
 		StatusPages: r.StatusPages, CustomDomains: r.CustomDomains,
 	}
-	shown := workspace.Workspace{SuspendedAt: r.SuspendedAt, AdminSuspendedAt: r.AdminSuspendedAt}
+	shown := workspace.Workspace{SuspendedAt: r.SuspendedAt, AdminSuspendedAt: r.AdminSuspendedAt, DeletionScheduledAt: r.DeletionScheduledAt}
 	if r.SuspendedReason != nil {
 		shown.SuspendedReason = *r.SuspendedReason
 	}
@@ -280,12 +230,16 @@ func (r workspaceRow) toDomain() *Workspace {
 		at := r.SuspendedAt.UTC()
 		w.SuspendedAt = &at
 	}
+	if r.DeletionScheduledAt != nil {
+		at := r.DeletionScheduledAt.UTC()
+		w.DeletionScheduledAt = &at
+	}
 	return w
 }
 
 // workspaceColumns are the columns of a workspace and its counts, each count a subquery of its own
 // so that none multiplies another
-const workspaceColumns = `w.id, w.name, w.created_at, w.suspended_at, w.suspended_reason, w.admin_suspended_at,
+const workspaceColumns = `w.id, w.name, w.created_at, w.suspended_at, w.suspended_reason, w.admin_suspended_at, w.deletion_scheduled_at,
 	(SELECT COUNT(*) FROM workspace_members AS wm WHERE wm.workspace_id = w.id) AS member_count,
 	(SELECT COUNT(*) FROM monitors AS mo WHERE mo.workspace_id = w.id AND mo.active = ?) AS active_monitors,
 	(SELECT COUNT(*) FROM monitors AS mo WHERE mo.workspace_id = w.id AND mo.active = ?) AS paused_monitors,
@@ -389,7 +343,7 @@ func (r *SQLRepository) SetAdminSuspended(ctx context.Context, id string, on boo
 		return false, false, err
 	}
 	var held bool
-	if err := db.NewSelect().Table("workspaces").ColumnExpr("(suspended_at IS NOT NULL OR admin_suspended_at IS NOT NULL)").Where("id = ?", id).Scan(ctx, &held); err != nil {
+	if err := db.NewSelect().Table("workspaces").ColumnExpr("(suspended_at IS NOT NULL OR admin_suspended_at IS NOT NULL OR deletion_scheduled_at IS NOT NULL)").Where("id = ?", id).Scan(ctx, &held); err != nil {
 		return false, false, err
 	}
 	if !on && affected > 0 && !held {

@@ -128,6 +128,7 @@ type parts struct {
 	Settings             setting.Service
 	Heartbeats           heartbeat.Service
 	Workspaces           workspace.Repository
+	WorkspaceService     workspace.Service
 	WorkspaceSettings    setting.WorkspaceService
 	Limits               limits.Source
 	Stats                stats.Service
@@ -286,7 +287,7 @@ func startJobs(ctx context.Context, p parts, cfg *config.Config, logger *zap.Sug
 		NotificationHistoryDays: cfg.NotificationHistoryRetentionDays,
 		TLSInfoDays:             cfg.TLSInfoRetentionDays,
 	}
-	hourly, err := cleanup.StartCleanupCron(p.Heartbeats, p.Workspaces, p.WorkspaceSettings, p.Limits, p.Stats, p.NotificationHistory, p.TLSInfo, p.Probes, p.AccountTokens, p.CleanupLock, retention, logger)
+	hourly, err := cleanup.StartCleanupCron(p.Heartbeats, p.Workspaces, p.WorkspaceSettings, p.Limits, p.Stats, p.NotificationHistory, p.TLSInfo, p.Probes, p.AccountTokens, p.WorkspaceService, p.CleanupLock, retention, logger)
 	if err != nil {
 		return j, fmt.Errorf("failed to start the hourly cleanup: %w", err)
 	}
