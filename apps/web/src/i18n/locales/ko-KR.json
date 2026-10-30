@@ -1932,6 +1932,68 @@
     "workspace_name": {
       "description": "워크스페이스 전환기와 멤버에게 표시되는 이름입니다.",
       "title": "워크스페이스 이름"
+    },
+    "workspace_export": {
+      "title": "내보내기",
+      "description": "이 워크스페이스의 설정을 JSON 파일 하나로 내려받습니다. 설정, 태그, 프록시, 알림 채널, 모니터, 유지보수 창, 상태 페이지가 들어 있습니다. 소유자는 이 파일을 다른 워크스페이스로 가져올 수 있습니다.",
+      "warning_title": "파일에 저장된 비밀 정보가 들어 있습니다",
+      "warning": "알림 채널과 프록시의 봇 토큰, 비밀번호, 웹훅 URL이 숨겨지지 않고 그대로 들어 있습니다. 파일을 비밀번호처럼 보관하고, 이를 알아서는 안 되는 사람과 공유하지 마세요.",
+      "download_workspace": "워크스페이스 다운로드",
+      "download_heartbeats": "하트비트 기록 다운로드",
+      "heartbeats_note": "하트비트 기록은 별도의 파일이며 용량이 클 수 있습니다. 각 모니터의 확인마다 한 줄씩 들어 있습니다.",
+      "downloading": "다운로드하는 중...",
+      "failed": "워크스페이스를 다운로드하지 못했습니다",
+      "heartbeats_failed": "하트비트 기록을 다운로드하지 못했습니다"
+    },
+    "workspace_import": {
+      "title": "가져오기",
+      "description": "워크스페이스 내보내기 파일의 항목을 이 워크스페이스에 추가합니다. 아무것도 대체되지 않으며, 이미 있는 항목 옆에 추가됩니다.",
+      "file_label": "워크스페이스 내보내기 파일 (.json)",
+      "choose": "파일 선택",
+      "not_json": "이 파일은 올바른 JSON이 아니므로 아무것도 전송되지 않았습니다.",
+      "too_large": "이 파일은 가져오기가 받을 수 있는 최대 크기인 16 MB보다 커서 아무것도 전송되지 않았습니다.",
+      "confirm_title": "{{file}}을(를) 가져올까요?",
+      "confirm_description": "파일의 항목이 이 워크스페이스에 이미 있는 항목 옆에 추가됩니다. 아무것도 대체되지 않으며, 같은 파일을 두 번 가져오면 항목이 두 번 추가됩니다. 모니터는 추가되는 즉시 실행되기 시작합니다.",
+      "confirm_button": "가져오기",
+      "importing": "가져오는 중...",
+      "failed": "파일을 가져오지 못했습니다",
+      "problems_title": "파일을 가져올 수 없습니다",
+      "problems_description": "이 워크스페이스에는 아무것도 추가되지 않았습니다. 파일에서 다음 문제를 수정한 후 다시 가져오세요:",
+      "result_title": "가져오기 완료",
+      "created_title": "이 워크스페이스에 추가됨",
+      "nothing_created": "추가된 항목이 없습니다.",
+      "changes_title": "이 워크스페이스에 맞게 변경됨",
+      "no_changes": "모든 항목이 파일에 있는 그대로 들어왔습니다.",
+      "close": "닫기",
+      "created": {
+        "tags": "태그",
+        "proxies": "프록시",
+        "notificationChannels": "알림 채널",
+        "monitors": "모니터",
+        "maintenances": "유지보수 창",
+        "statusPages": "상태 페이지"
+      },
+      "changes": {
+        "tag_reused": "태그 \"{{name}}\"이(가) 이 워크스페이스에 이미 있으므로 해당 모니터가 기존 태그를 사용합니다.",
+        "proxy_skipped_target_not_allowed": "프록시 {{name}}이(가) 제외되었습니다. 이 설치에서 해당 주소를 차단합니다.",
+        "monitor_proxy_dropped": "모니터 \"{{name}}\"은(는) 제외된 프록시 {{from}} 없이 들어옵니다.",
+        "channel_skipped": "알림 채널 \"{{name}}\"이(가) 제외되었습니다. 이 설치 또는 워크스페이스에서 사용할 수 없습니다.",
+        "channel_skipped_target_not_allowed": "알림 채널 \"{{name}}\"이(가) 제외되었습니다. 이 설치에서 알림을 보내는 주소를 차단합니다.",
+        "channel_skipped_no_install_sender": "알림 채널 \"{{name}}\"이(가) 제외되었습니다. 이 설치에는 이메일 발신 기능이 없습니다.",
+        "channel_skipped_recipient_not_member": "알림 채널 \"{{name}}\"이(가) 제외되었습니다. 이메일 수신자가 이 워크스페이스의 구성원이 아닙니다.",
+        "monitor_skipped_type_disabled": "모니터 \"{{name}}\"이(가) 제외되었습니다. 이 설치에서 {{reason}} 유형의 모니터를 사용하지 않도록 설정했습니다.",
+        "monitor_skipped_target_not_allowed": "모니터 \"{{name}}\"이(가) 제외되었습니다. 이 설치에서 대상 {{reason}}을(를) 차단합니다.",
+        "monitor_interval_raised": "모니터 \"{{name}}\"은(는) {{from}}초 대신 {{to}}초마다 확인합니다. 이 설치에서 허용하는 가장 짧은 간격입니다.",
+        "monitor_retry_interval_raised": "모니터 \"{{name}}\"은(는) 실패한 확인을 {{from}}초 대신 {{to}}초마다 다시 시도합니다. 이 설치에서 허용하는 가장 짧은 간격입니다.",
+        "push_token_replaced": "파일에 있는 푸시 토큰을 다른 모니터가 사용 중이어서 모니터 \"{{name}}\"에 새 푸시 토큰이 발급되었습니다. 작업이 요청을 보내는 주소를 업데이트하세요.",
+        "monitor_paused_over_limit": "모니터 \"{{name}}\"은(는) 일시 중지된 상태로 들어옵니다. 이 워크스페이스의 요금제에는 실행 중인 모니터를 더 둘 여유가 없습니다.",
+        "status_page_slug_changed": "상태 페이지 \"{{name}}\"의 주소는 {{from}}이(가) 이미 사용 중이어서 {{to}}입니다.",
+        "status_page_skipped_over_limit": "상태 페이지 \"{{name}}\"이(가) 제외되었습니다. 이 워크스페이스의 요금제에는 상태 페이지를 더 둘 여유가 없습니다.",
+        "custom_domain_dropped": "사용자 지정 도메인 {{name}}이(가) 제외되었습니다. 다른 상태 페이지가 사용 중입니다.",
+        "custom_domain_dropped_over_limit": "사용자 지정 도메인 {{name}}이(가) 제외되었습니다. 이 워크스페이스의 요금제에는 사용자 지정 도메인을 더 둘 여유가 없습니다.",
+        "retention_capped": "데이터 보존 기간이 {{from}}일 대신 {{to}}일입니다. 이 워크스페이스의 요금제에서 허용하는 최댓값입니다.",
+        "unknown": "가져오기에서 {{subject}}({{kind}})이(가) 변경되었습니다."
+      }
     }
   },
   "status": {

@@ -1932,6 +1932,68 @@
     "workspace_name": {
       "description": "Tên hiển thị trong bộ chuyển không gian làm việc và cho các thành viên.",
       "title": "Tên không gian làm việc"
+    },
+    "workspace_export": {
+      "title": "Xuất",
+      "description": "Tải xuống thiết lập của không gian làm việc này thành một tệp JSON: cài đặt, thẻ, proxy, kênh thông báo, giám sát, lịch bảo trì và trang trạng thái. Chủ sở hữu có thể nhập tệp này vào một không gian làm việc khác.",
+      "warning_title": "Tệp chứa các bí mật đã lưu",
+      "warning": "Token bot, mật khẩu và URL webhook của các kênh thông báo và proxy của bạn nằm trong tệp đầy đủ, không bị ẩn. Hãy cất tệp như một mật khẩu và đừng chia sẻ cho người không nên có chúng.",
+      "download_workspace": "Tải xuống không gian làm việc",
+      "download_heartbeats": "Tải xuống lịch sử heartbeat",
+      "heartbeats_note": "Lịch sử heartbeat là một tệp riêng và có thể rất lớn. Tệp có một dòng cho mỗi lần kiểm tra của mỗi giám sát.",
+      "downloading": "Đang tải xuống...",
+      "failed": "Không thể tải xuống không gian làm việc",
+      "heartbeats_failed": "Không thể tải xuống lịch sử heartbeat"
+    },
+    "workspace_import": {
+      "title": "Nhập",
+      "description": "Thêm các bản ghi của tệp xuất không gian làm việc vào không gian làm việc này. Không có gì bị thay thế: chúng được thêm cạnh những bản ghi đã có ở đây.",
+      "file_label": "Tệp xuất không gian làm việc (.json)",
+      "choose": "Chọn tệp",
+      "not_json": "Tệp này không phải JSON hợp lệ nên chưa có gì được gửi.",
+      "too_large": "Tệp này lớn hơn 16 MB, mức tối đa mà việc nhập chấp nhận, nên chưa có gì được gửi.",
+      "confirm_title": "Nhập {{file}}?",
+      "confirm_description": "Các bản ghi của tệp được thêm cạnh những bản ghi đã có trong không gian làm việc này. Không có gì bị thay thế, và nhập cùng một tệp hai lần sẽ thêm chúng hai lần. Các giám sát bắt đầu chạy ngay khi được thêm.",
+      "confirm_button": "Nhập",
+      "importing": "Đang nhập...",
+      "failed": "Không thể nhập tệp",
+      "problems_title": "Không thể nhập tệp này",
+      "problems_description": "Chưa có gì được thêm vào không gian làm việc này. Hãy sửa các vấn đề sau trong tệp rồi nhập lại:",
+      "result_title": "Đã nhập xong",
+      "created_title": "Đã thêm vào không gian làm việc này",
+      "nothing_created": "Chưa có gì được thêm.",
+      "changes_title": "Đã thay đổi để phù hợp với không gian làm việc này",
+      "no_changes": "Mọi thứ được nhập đúng như trong tệp.",
+      "close": "Đóng",
+      "created": {
+        "tags": "Thẻ",
+        "proxies": "Proxy",
+        "notificationChannels": "Kênh thông báo",
+        "monitors": "Giám sát",
+        "maintenances": "Lịch bảo trì",
+        "statusPages": "Trang trạng thái"
+      },
+      "changes": {
+        "tag_reused": "Thẻ \"{{name}}\" đã có trong không gian làm việc này, nên các giám sát của nó dùng thẻ đó.",
+        "proxy_skipped_target_not_allowed": "Proxy {{name}} đã bị bỏ qua: bản cài đặt này chặn địa chỉ của nó.",
+        "monitor_proxy_dropped": "Giám sát \"{{name}}\" được nhập mà không có proxy {{from}}, vốn đã bị bỏ qua.",
+        "channel_skipped": "Kênh thông báo \"{{name}}\" đã bị bỏ qua: bản cài đặt hoặc không gian làm việc này không thể tiếp nhận nó.",
+        "channel_skipped_target_not_allowed": "Kênh thông báo \"{{name}}\" đã bị bỏ qua: bản cài đặt này chặn địa chỉ mà nó gửi tới.",
+        "channel_skipped_no_install_sender": "Kênh thông báo \"{{name}}\" đã bị bỏ qua: bản cài đặt này không có bên gửi email.",
+        "channel_skipped_recipient_not_member": "Kênh thông báo \"{{name}}\" đã bị bỏ qua: người nhận email của nó không phải là thành viên của không gian làm việc này.",
+        "monitor_skipped_type_disabled": "Giám sát \"{{name}}\" đã bị bỏ qua: bản cài đặt này tắt các giám sát loại {{reason}}.",
+        "monitor_skipped_target_not_allowed": "Giám sát \"{{name}}\" đã bị bỏ qua: bản cài đặt này chặn đích {{reason}} của nó.",
+        "monitor_interval_raised": "Giám sát \"{{name}}\" kiểm tra mỗi {{to}} giây thay vì {{from}}, mức ngắn nhất mà bản cài đặt này cho phép.",
+        "monitor_retry_interval_raised": "Giám sát \"{{name}}\" thử lại lần kiểm tra thất bại mỗi {{to}} giây thay vì {{from}}, mức ngắn nhất mà bản cài đặt này cho phép.",
+        "push_token_replaced": "Giám sát \"{{name}}\" nhận token đẩy mới, vì một giám sát khác đang giữ token trong tệp. Hãy cập nhật địa chỉ mà tác vụ của bạn gửi tới.",
+        "monitor_paused_over_limit": "Giám sát \"{{name}}\" được nhập ở trạng thái tạm dừng: gói của không gian làm việc này không còn chỗ cho thêm một giám sát đang chạy.",
+        "status_page_slug_changed": "Trang trạng thái \"{{name}}\" có địa chỉ {{to}} thay vì {{from}}, vì địa chỉ đó đã được dùng.",
+        "status_page_skipped_over_limit": "Trang trạng thái \"{{name}}\" đã bị bỏ qua: gói của không gian làm việc này không còn chỗ cho thêm một trang nữa.",
+        "custom_domain_dropped": "Tên miền tùy chỉnh {{name}} đã bị bỏ qua: một trang trạng thái khác đang giữ nó.",
+        "custom_domain_dropped_over_limit": "Tên miền tùy chỉnh {{name}} đã bị bỏ qua: gói của không gian làm việc này không còn chỗ cho thêm một tên miền nữa.",
+        "retention_capped": "Thời gian lưu trữ dữ liệu là {{to}} ngày thay vì {{from}}, mức tối đa mà gói của không gian làm việc này cho phép.",
+        "unknown": "Việc nhập đã thay đổi {{subject}} ({{kind}})."
+      }
     }
   },
   "status": {

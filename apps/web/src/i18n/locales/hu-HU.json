@@ -1932,6 +1932,68 @@
     "workspace_name": {
       "description": "A munkaterület-váltóban és a tagoknak megjelenő név.",
       "title": "A munkaterület neve"
+    },
+    "workspace_export": {
+      "title": "Exportálás",
+      "description": "Töltse le a munkaterület beállításait egyetlen JSON-fájlként: a beállításokat, címkéket, proxykat, értesítési csatornákat, monitorokat, karbantartási ablakokat és állapotlapokat. A tulajdonos importálhatja a fájlt egy másik munkaterületre.",
+      "warning_title": "A fájl mentett titkokat tartalmaz",
+      "warning": "Az értesítési csatornák és proxyk bot-tokenjei, jelszavai és webhook URL-jei teljes egészében, elrejtés nélkül benne vannak. Kezelje a fájlt jelszóként, és ne ossza meg olyannal, akinek nem szabadna hozzáférnie.",
+      "download_workspace": "Munkaterület letöltése",
+      "download_heartbeats": "Szívverés-előzmények letöltése",
+      "heartbeats_note": "A szívverés-előzmények külön fájlban vannak, és nagyok lehetnek. Minden monitor minden ellenőrzéséhez egy sort tartalmaz.",
+      "downloading": "Letöltés...",
+      "failed": "A munkaterület letöltése sikertelen",
+      "heartbeats_failed": "A szívverés-előzmények letöltése sikertelen"
+    },
+    "workspace_import": {
+      "title": "Importálás",
+      "description": "Adja hozzá egy munkaterület-exportfájl rekordjait ehhez a munkaterülethez. Semmi sem cserélődik le: a már meglévők mellé kerülnek.",
+      "file_label": "Munkaterület-exportfájl (.json)",
+      "choose": "Fájl kiválasztása",
+      "not_json": "A fájl nem érvényes JSON, ezért semmi sem lett elküldve.",
+      "too_large": "A fájl nagyobb 16 MB-nál, ez az importálás felső határa, ezért semmi sem lett elküldve.",
+      "confirm_title": "Importálja a(z) {{file}} fájlt?",
+      "confirm_description": "A rekordjai a munkaterületen már meglévők mellé kerülnek. Semmi sem cserélődik le, és ugyanazt a fájlt kétszer importálva kétszer kerülnek be. A monitorok a hozzáadásuk után azonnal futni kezdenek.",
+      "confirm_button": "Importálás",
+      "importing": "Importálás...",
+      "failed": "A fájl importálása sikertelen",
+      "problems_title": "A fájl nem importálható",
+      "problems_description": "Semmi sem került be a munkaterületre. Javítsa ezeket a hibákat a fájlban, majd importálja újra:",
+      "result_title": "Az importálás befejeződött",
+      "created_title": "Hozzáadva a munkaterülethez",
+      "nothing_created": "Semmi sem lett hozzáadva.",
+      "changes_title": "A munkaterülethez igazítva módosítva",
+      "no_changes": "Minden úgy érkezett, ahogy a fájlban szerepel.",
+      "close": "Bezárás",
+      "created": {
+        "tags": "Címkék",
+        "proxies": "Proxyk",
+        "notificationChannels": "Értesítési csatornák",
+        "monitors": "Monitorok",
+        "maintenances": "Karbantartási ablakok",
+        "statusPages": "Állapotlapok"
+      },
+      "changes": {
+        "tag_reused": "A(z) \"{{name}}\" címke már megvan ezen a munkaterületen, ezért a monitorai azt használják.",
+        "proxy_skipped_target_not_allowed": "A(z) {{name}} proxy kimaradt: ez a telepítés blokkolja a címét.",
+        "monitor_proxy_dropped": "A(z) \"{{name}}\" monitor a(z) {{from}} proxy nélkül érkezik, mert az kimaradt.",
+        "channel_skipped": "A(z) \"{{name}}\" értesítési csatorna kimaradt: ez a telepítés vagy munkaterület nem tudja fogadni.",
+        "channel_skipped_target_not_allowed": "A(z) \"{{name}}\" értesítési csatorna kimaradt: ez a telepítés blokkolja a címet, ahová küld.",
+        "channel_skipped_no_install_sender": "A(z) \"{{name}}\" értesítési csatorna kimaradt: ennek a telepítésnek nincs e-mail-feladója.",
+        "channel_skipped_recipient_not_member": "A(z) \"{{name}}\" értesítési csatorna kimaradt: az e-mail címzettje nem tagja ennek a munkaterületnek.",
+        "monitor_skipped_type_disabled": "A(z) \"{{name}}\" monitor kimaradt: ez a telepítés kikapcsolja a(z) {{reason}} típusú monitorokat.",
+        "monitor_skipped_target_not_allowed": "A(z) \"{{name}}\" monitor kimaradt: ez a telepítés blokkolja a célját: {{reason}}.",
+        "monitor_interval_raised": "A(z) \"{{name}}\" monitor {{to}} másodpercenként ellenőriz {{from}} helyett, ez a telepítés által engedett legrövidebb.",
+        "monitor_retry_interval_raised": "A(z) \"{{name}}\" monitor a sikertelen ellenőrzést {{to}} másodpercenként próbálja újra {{from}} helyett, ez a telepítés által engedett legrövidebb.",
+        "push_token_replaced": "A(z) \"{{name}}\" monitor új push tokent kapott, mert egy másik monitoré a fájlban lévő. Frissítse a címet, ahová a feladata küld.",
+        "monitor_paused_over_limit": "A(z) \"{{name}}\" monitor szüneteltetve érkezik: ennek a munkaterületnek a csomagjában nincs hely egy újabb futó monitornak.",
+        "status_page_slug_changed": "A(z) \"{{name}}\" állapotlap címe {{to}} lett {{from}} helyett, mert az foglalt.",
+        "status_page_skipped_over_limit": "A(z) \"{{name}}\" állapotlap kimaradt: ennek a munkaterületnek a csomagjában nincs hely még egynek.",
+        "custom_domain_dropped": "A(z) {{name}} egyéni domain kimaradt: egy másik állapotlap használja.",
+        "custom_domain_dropped_over_limit": "A(z) {{name}} egyéni domain kimaradt: ennek a munkaterületnek a csomagjában nincs hely még egynek.",
+        "retention_capped": "Az adattartási időszak {{to}} nap {{from}} helyett, ez a munkaterület csomagja által engedett legtöbb.",
+        "unknown": "Az importálás módosította: {{subject}} ({{kind}})."
+      }
     }
   },
   "status": {

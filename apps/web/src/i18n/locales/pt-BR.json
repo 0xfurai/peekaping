@@ -1932,6 +1932,68 @@
     "workspace_name": {
       "description": "O nome exibido no seletor de espaços de trabalho e para os membros.",
       "title": "Nome do espaço de trabalho"
+    },
+    "workspace_export": {
+      "title": "Exportar",
+      "description": "Baixe a configuração deste espaço de trabalho em um único arquivo JSON: as configurações, tags, proxies, canais de notificação, monitores, janelas de manutenção e páginas de status. Um proprietário pode importar o arquivo em outro espaço de trabalho.",
+      "warning_title": "O arquivo contém segredos salvos",
+      "warning": "Tokens de bot, senhas e URLs de webhook dos seus canais de notificação e proxies estão nele por completo, sem ocultação. Guarde o arquivo como uma senha e não o compartilhe com quem não deveria ter acesso a eles.",
+      "download_workspace": "Baixar espaço de trabalho",
+      "download_heartbeats": "Baixar histórico de heartbeats",
+      "heartbeats_note": "O histórico de heartbeats é um arquivo separado e pode ser grande. Ele tem uma linha para cada verificação de cada monitor.",
+      "downloading": "Baixando...",
+      "failed": "Falha ao baixar o espaço de trabalho",
+      "heartbeats_failed": "Falha ao baixar o histórico de heartbeats"
+    },
+    "workspace_import": {
+      "title": "Importar",
+      "description": "Adicione os registros de um arquivo de exportação de espaço de trabalho a este espaço de trabalho. Nada é substituído: eles entram ao lado dos que já estão aqui.",
+      "file_label": "Arquivo de exportação do espaço de trabalho (.json)",
+      "choose": "Escolher um arquivo",
+      "not_json": "Este arquivo não é um JSON válido, então nada foi enviado.",
+      "too_large": "Este arquivo é maior que 16 MB, o máximo que uma importação aceita, então nada foi enviado.",
+      "confirm_title": "Importar {{file}}?",
+      "confirm_description": "Os registros dele são adicionados ao lado dos que já estão neste espaço de trabalho. Nada é substituído, e importar o mesmo arquivo duas vezes os adiciona duas vezes. Os monitores começam a rodar assim que são adicionados.",
+      "confirm_button": "Importar",
+      "importing": "Importando...",
+      "failed": "Falha ao importar o arquivo",
+      "problems_title": "Não foi possível importar o arquivo",
+      "problems_description": "Nada foi adicionado a este espaço de trabalho. Corrija estes problemas no arquivo e importe-o novamente:",
+      "result_title": "Importação concluída",
+      "created_title": "Adicionado a este espaço de trabalho",
+      "nothing_created": "Nada foi adicionado.",
+      "changes_title": "Alterado para se adequar a este espaço de trabalho",
+      "no_changes": "Tudo entrou como está no arquivo.",
+      "close": "Fechar",
+      "created": {
+        "tags": "Tags",
+        "proxies": "Proxies",
+        "notificationChannels": "Canais de notificação",
+        "monitors": "Monitores",
+        "maintenances": "Janelas de manutenção",
+        "statusPages": "Páginas de status"
+      },
+      "changes": {
+        "tag_reused": "A tag \"{{name}}\" já existe neste espaço de trabalho, então os monitores dela a usam.",
+        "proxy_skipped_target_not_allowed": "O proxy {{name}} foi deixado de fora: esta instalação bloqueia o endereço dele.",
+        "monitor_proxy_dropped": "O monitor \"{{name}}\" entra sem o proxy {{from}}, que foi deixado de fora.",
+        "channel_skipped": "O canal de notificação \"{{name}}\" foi deixado de fora: esta instalação ou espaço de trabalho não pode aceitá-lo.",
+        "channel_skipped_target_not_allowed": "O canal de notificação \"{{name}}\" foi deixado de fora: esta instalação bloqueia o endereço para onde ele envia.",
+        "channel_skipped_no_install_sender": "O canal de notificação \"{{name}}\" foi deixado de fora: esta instalação não tem remetente para e-mails.",
+        "channel_skipped_recipient_not_member": "O canal de notificação \"{{name}}\" foi deixado de fora: o destinatário do e-mail não é membro deste espaço de trabalho.",
+        "monitor_skipped_type_disabled": "O monitor \"{{name}}\" foi deixado de fora: esta instalação desativa monitores do tipo {{reason}}.",
+        "monitor_skipped_target_not_allowed": "O monitor \"{{name}}\" foi deixado de fora: esta instalação bloqueia o destino dele, {{reason}}.",
+        "monitor_interval_raised": "O monitor \"{{name}}\" verifica a cada {{to}} segundos em vez de {{from}}, o menor intervalo que esta instalação permite.",
+        "monitor_retry_interval_raised": "O monitor \"{{name}}\" tenta de novo uma verificação com falha a cada {{to}} segundos em vez de {{from}}, o menor intervalo que esta instalação permite.",
+        "push_token_replaced": "O monitor \"{{name}}\" recebeu um novo token de push, já que outro monitor tem o que está no arquivo. Atualize o endereço para o qual seu job envia.",
+        "monitor_paused_over_limit": "O monitor \"{{name}}\" entra pausado: o plano deste espaço de trabalho não tem espaço para mais um monitor em execução.",
+        "status_page_slug_changed": "A página de status \"{{name}}\" tem o endereço {{to}} em vez de {{from}}, já que esse está em uso.",
+        "status_page_skipped_over_limit": "A página de status \"{{name}}\" foi deixada de fora: o plano deste espaço de trabalho não tem espaço para mais uma.",
+        "custom_domain_dropped": "O domínio personalizado {{name}} foi deixado de fora: outra página de status o utiliza.",
+        "custom_domain_dropped_over_limit": "O domínio personalizado {{name}} foi deixado de fora: o plano deste espaço de trabalho não tem espaço para mais um.",
+        "retention_capped": "O período de retenção de dados é de {{to}} dias em vez de {{from}}, o máximo que o plano deste espaço de trabalho permite.",
+        "unknown": "A importação alterou {{subject}} ({{kind}})."
+      }
     }
   },
   "status": {

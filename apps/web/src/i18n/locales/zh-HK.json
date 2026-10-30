@@ -1932,6 +1932,68 @@
     "workspace_name": {
       "description": "顯示在工作區切換器中以及對成員顯示的名稱。",
       "title": "工作區名稱"
+    },
+    "workspace_export": {
+      "title": "匯出",
+      "description": "將此工作區的設定下載為一個 JSON 檔案：包括其設定、標籤、代理伺服器、通知頻道、監控、維護時段和狀態頁面。擁有者可以把該檔案匯入至另一個工作區。",
+      "warning_title": "檔案包含已儲存的機密資料",
+      "warning": "你的通知頻道和代理伺服器的機械人權杖、密碼和 Webhook URL 會完整寫在檔案內，不會被隱藏。請像保管密碼一樣保管該檔案，不要分享給不應擁有這些資料的人。",
+      "download_workspace": "下載工作區",
+      "download_heartbeats": "下載心跳記錄",
+      "heartbeats_note": "心跳記錄是獨立的檔案，可能很大。其中每個監控的每次檢查佔一行。",
+      "downloading": "正在下載...",
+      "failed": "下載工作區失敗",
+      "heartbeats_failed": "下載心跳記錄失敗"
+    },
+    "workspace_import": {
+      "title": "匯入",
+      "description": "將工作區匯出檔案中的記錄加入此工作區。不會取代任何內容：它們會與此處已有的記錄並存。",
+      "file_label": "工作區匯出檔案（.json）",
+      "choose": "選擇檔案",
+      "not_json": "此檔案不是有效的 JSON，因此沒有傳送任何內容。",
+      "too_large": "此檔案大於 16 MB（匯入可接受的上限），因此沒有傳送任何內容。",
+      "confirm_title": "匯入 {{file}}？",
+      "confirm_description": "其中的記錄會加在此工作區已有的記錄旁邊。不會取代任何內容，而且重複匯入同一檔案會重複加入。監控一加入就會開始運行。",
+      "confirm_button": "匯入",
+      "importing": "正在匯入...",
+      "failed": "匯入檔案失敗",
+      "problems_title": "無法匯入該檔案",
+      "problems_description": "沒有任何內容加入此工作區。請修正檔案中的這些問題後再匯入：",
+      "result_title": "匯入完成",
+      "created_title": "已加入此工作區",
+      "nothing_created": "沒有加入任何內容。",
+      "changes_title": "為配合此工作區而更改",
+      "no_changes": "所有內容都已按檔案原樣匯入。",
+      "close": "關閉",
+      "created": {
+        "tags": "標籤",
+        "proxies": "代理伺服器",
+        "notificationChannels": "通知頻道",
+        "monitors": "監控",
+        "maintenances": "維護時段",
+        "statusPages": "狀態頁面"
+      },
+      "changes": {
+        "tag_reused": "標籤「{{name}}」已存在於此工作區，因此其監控會使用它。",
+        "proxy_skipped_target_not_allowed": "代理伺服器 {{name}} 已被略過：此部署封鎖了它的地址。",
+        "monitor_proxy_dropped": "監控「{{name}}」匯入時沒有帶上代理伺服器 {{from}}，該代理伺服器已被略過。",
+        "channel_skipped": "通知頻道「{{name}}」已被略過：此部署或工作區無法接收它。",
+        "channel_skipped_target_not_allowed": "通知頻道「{{name}}」已被略過：此部署封鎖了它發送的目標地址。",
+        "channel_skipped_no_install_sender": "通知頻道「{{name}}」已被略過：此部署沒有電郵寄件者。",
+        "channel_skipped_recipient_not_member": "通知頻道「{{name}}」已被略過：其電郵收件人不是此工作區的成員。",
+        "monitor_skipped_type_disabled": "監控「{{name}}」已被略過：此部署已停用 {{reason}} 類型的監控。",
+        "monitor_skipped_target_not_allowed": "監控「{{name}}」已被略過：此部署封鎖了它的目標 {{reason}}。",
+        "monitor_interval_raised": "監控「{{name}}」每 {{to}} 秒檢查一次，而不是 {{from}} 秒，這是此部署允許的最短間隔。",
+        "monitor_retry_interval_raised": "監控「{{name}}」每 {{to}} 秒重試一次失敗的檢查，而不是 {{from}} 秒，這是此部署允許的最短間隔。",
+        "push_token_replaced": "監控「{{name}}」獲得了新的推送權杖，因為檔案中的權杖已被另一個監控佔用。請更新你的工作傳送到的地址。",
+        "monitor_paused_over_limit": "監控「{{name}}」匯入時處於暫停狀態：此工作區的方案已沒有空間再運行一個監控。",
+        "status_page_slug_changed": "狀態頁面「{{name}}」的地址是 {{to}}，而不是 {{from}}，因為該地址已被佔用。",
+        "status_page_skipped_over_limit": "狀態頁面「{{name}}」已被略過：此工作區的方案已沒有空間再加入一個。",
+        "custom_domain_dropped": "自訂網域 {{name}} 已被略過：另一個狀態頁面正在使用它。",
+        "custom_domain_dropped_over_limit": "自訂網域 {{name}} 已被略過：此工作區的方案已沒有空間再加入一個。",
+        "retention_capped": "資料保留期限為 {{to}} 日，而不是 {{from}} 日，這是此工作區的方案允許的最長期限。",
+        "unknown": "匯入更改了 {{subject}}（{{kind}}）。"
+      }
     }
   },
   "status": {

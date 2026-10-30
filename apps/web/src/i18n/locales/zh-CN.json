@@ -1932,6 +1932,68 @@
     "workspace_name": {
       "description": "显示在工作区切换器中以及对成员显示的名称。",
       "title": "工作区名称"
+    },
+    "workspace_export": {
+      "title": "导出",
+      "description": "将此工作区的配置下载为一个 JSON 文件：包含其设置、标签、代理、通知渠道、监控、维护窗口和状态页面。所有者可以把该文件导入到另一个工作区。",
+      "warning_title": "文件包含已保存的密钥",
+      "warning": "你的通知渠道和代理的机器人令牌、密码和 Webhook URL 会完整地写在文件里，不会被隐藏。请像保管密码一样保管该文件，不要分享给不该拥有这些信息的人。",
+      "download_workspace": "下载工作区",
+      "download_heartbeats": "下载心跳历史",
+      "heartbeats_note": "心跳历史是单独的文件，可能很大。其中每个监控的每次检查占一行。",
+      "downloading": "正在下载...",
+      "failed": "下载工作区失败",
+      "heartbeats_failed": "下载心跳历史失败"
+    },
+    "workspace_import": {
+      "title": "导入",
+      "description": "将工作区导出文件中的记录添加到此工作区。不会替换任何内容：它们会与此处已有的记录并存。",
+      "file_label": "工作区导出文件（.json）",
+      "choose": "选择文件",
+      "not_json": "此文件不是有效的 JSON，因此没有发送任何内容。",
+      "too_large": "此文件大于 16 MB（导入可接受的上限），因此没有发送任何内容。",
+      "confirm_title": "导入 {{file}}？",
+      "confirm_description": "其中的记录会添加到此工作区已有的记录旁边。不会替换任何内容，并且重复导入同一文件会重复添加。监控一旦添加就会开始运行。",
+      "confirm_button": "导入",
+      "importing": "正在导入...",
+      "failed": "导入文件失败",
+      "problems_title": "无法导入该文件",
+      "problems_description": "没有向此工作区添加任何内容。请修复文件中的这些问题后重新导入：",
+      "result_title": "导入完成",
+      "created_title": "已添加到此工作区",
+      "nothing_created": "没有添加任何内容。",
+      "changes_title": "为适配此工作区而更改",
+      "no_changes": "所有内容都已按文件原样导入。",
+      "close": "关闭",
+      "created": {
+        "tags": "标签",
+        "proxies": "代理",
+        "notificationChannels": "通知渠道",
+        "monitors": "监控",
+        "maintenances": "维护窗口",
+        "statusPages": "状态页面"
+      },
+      "changes": {
+        "tag_reused": "标签“{{name}}”已存在于此工作区，因此其监控会使用它。",
+        "proxy_skipped_target_not_allowed": "代理 {{name}} 已被跳过：此部署屏蔽了它的地址。",
+        "monitor_proxy_dropped": "监控“{{name}}”导入时没有带上代理 {{from}}，该代理已被跳过。",
+        "channel_skipped": "通知渠道“{{name}}”已被跳过：此部署或工作区无法接收它。",
+        "channel_skipped_target_not_allowed": "通知渠道“{{name}}”已被跳过：此部署屏蔽了它发送的目标地址。",
+        "channel_skipped_no_install_sender": "通知渠道“{{name}}”已被跳过：此部署没有邮件发件方。",
+        "channel_skipped_recipient_not_member": "通知渠道“{{name}}”已被跳过：其邮件收件人不是此工作区的成员。",
+        "monitor_skipped_type_disabled": "监控“{{name}}”已被跳过：此部署已关闭 {{reason}} 类型的监控。",
+        "monitor_skipped_target_not_allowed": "监控“{{name}}”已被跳过：此部署屏蔽了它的目标 {{reason}}。",
+        "monitor_interval_raised": "监控“{{name}}”每 {{to}} 秒检查一次，而不是 {{from}} 秒，这是此部署允许的最短间隔。",
+        "monitor_retry_interval_raised": "监控“{{name}}”每 {{to}} 秒重试一次失败的检查，而不是 {{from}} 秒，这是此部署允许的最短间隔。",
+        "push_token_replaced": "监控“{{name}}”获得了新的推送令牌，因为文件中的令牌已被另一个监控占用。请更新你的任务发送到的地址。",
+        "monitor_paused_over_limit": "监控“{{name}}”导入时处于暂停状态：此工作区的套餐已没有空间再运行一个监控。",
+        "status_page_slug_changed": "状态页面“{{name}}”的地址是 {{to}}，而不是 {{from}}，因为该地址已被占用。",
+        "status_page_skipped_over_limit": "状态页面“{{name}}”已被跳过：此工作区的套餐已没有空间再添加一个。",
+        "custom_domain_dropped": "自定义域名 {{name}} 已被跳过：另一个状态页面正在使用它。",
+        "custom_domain_dropped_over_limit": "自定义域名 {{name}} 已被跳过：此工作区的套餐已没有空间再添加一个。",
+        "retention_capped": "数据保留期限为 {{to}} 天，而不是 {{from}} 天，这是此工作区的套餐允许的最长期限。",
+        "unknown": "导入更改了 {{subject}}（{{kind}}）。"
+      }
     }
   },
   "status": {

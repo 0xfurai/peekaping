@@ -1932,6 +1932,68 @@
     "workspace_name": {
       "description": "Le nom affiché dans le sélecteur d'espace de travail et pour ses membres.",
       "title": "Nom de l'espace de travail"
+    },
+    "workspace_export": {
+      "title": "Exporter",
+      "description": "Téléchargez la configuration de cet espace de travail dans un seul fichier JSON : ses paramètres, tags, proxys, canaux de notification, moniteurs, fenêtres de maintenance et pages d'état. Un propriétaire peut importer le fichier dans un autre espace de travail.",
+      "warning_title": "Le fichier contient des secrets enregistrés",
+      "warning": "Les jetons de bot, mots de passe et URL de webhook de vos canaux de notification et proxys y figurent en entier, sans être masqués. Conservez le fichier comme un mot de passe et ne le partagez avec personne qui ne devrait pas y avoir accès.",
+      "download_workspace": "Télécharger l'espace de travail",
+      "download_heartbeats": "Télécharger l'historique des heartbeats",
+      "heartbeats_note": "L'historique des heartbeats est un fichier distinct et peut être volumineux. Il contient une ligne pour chaque vérification de chaque moniteur.",
+      "downloading": "Téléchargement...",
+      "failed": "Échec du téléchargement de l'espace de travail",
+      "heartbeats_failed": "Échec du téléchargement de l'historique des heartbeats"
+    },
+    "workspace_import": {
+      "title": "Importer",
+      "description": "Ajoutez à cet espace de travail les éléments d'un fichier d'export d'espace de travail. Rien n'est remplacé : ils arrivent à côté de ceux déjà présents.",
+      "file_label": "Fichier d'export d'espace de travail (.json)",
+      "choose": "Choisir un fichier",
+      "not_json": "Ce fichier n'est pas un JSON valide, donc rien n'a été envoyé.",
+      "too_large": "Ce fichier dépasse 16 MB, le maximum accepté pour un import, donc rien n'a été envoyé.",
+      "confirm_title": "Importer {{file}} ?",
+      "confirm_description": "Ses éléments sont ajoutés à côté de ceux déjà présents dans cet espace de travail. Rien n'est remplacé, et importer deux fois le même fichier les ajoute deux fois. Les moniteurs démarrent dès qu'ils sont ajoutés.",
+      "confirm_button": "Importer",
+      "importing": "Importation...",
+      "failed": "Échec de l'importation du fichier",
+      "problems_title": "Le fichier ne peut pas être importé",
+      "problems_description": "Rien n'a été ajouté à cet espace de travail. Corrigez ces problèmes dans le fichier, puis importez-le à nouveau :",
+      "result_title": "Importation terminée",
+      "created_title": "Ajouté à cet espace de travail",
+      "nothing_created": "Rien n'a été ajouté.",
+      "changes_title": "Modifié pour s'adapter à cet espace de travail",
+      "no_changes": "Tout est arrivé tel que le fichier le contient.",
+      "close": "Fermer",
+      "created": {
+        "tags": "Étiquettes",
+        "proxies": "Proxys",
+        "notificationChannels": "Canaux de notification",
+        "monitors": "Moniteurs",
+        "maintenances": "Fenêtres de maintenance",
+        "statusPages": "Pages d'état"
+      },
+      "changes": {
+        "tag_reused": "Le tag \"{{name}}\" existe déjà dans cet espace de travail, donc ses moniteurs l'utilisent.",
+        "proxy_skipped_target_not_allowed": "Le proxy {{name}} a été écarté : cette installation bloque son adresse.",
+        "monitor_proxy_dropped": "Le moniteur \"{{name}}\" arrive sans son proxy {{from}}, qui a été écarté.",
+        "channel_skipped": "Le canal de notification \"{{name}}\" a été écarté : cette installation ou cet espace de travail ne peut pas l'accepter.",
+        "channel_skipped_target_not_allowed": "Le canal de notification \"{{name}}\" a été écarté : cette installation bloque l'adresse à laquelle il envoie.",
+        "channel_skipped_no_install_sender": "Le canal de notification \"{{name}}\" a été écarté : cette installation n'a pas d'expéditeur pour les e-mails.",
+        "channel_skipped_recipient_not_member": "Le canal de notification \"{{name}}\" a été écarté : son destinataire d'e-mail n'est pas membre de cet espace de travail.",
+        "monitor_skipped_type_disabled": "Le moniteur \"{{name}}\" a été écarté : cette installation désactive les moniteurs de type {{reason}}.",
+        "monitor_skipped_target_not_allowed": "Le moniteur \"{{name}}\" a été écarté : cette installation bloque sa cible {{reason}}.",
+        "monitor_interval_raised": "Le moniteur \"{{name}}\" vérifie toutes les {{to}} secondes au lieu de {{from}}, le minimum autorisé par cette installation.",
+        "monitor_retry_interval_raised": "Le moniteur \"{{name}}\" relance une vérification échouée toutes les {{to}} secondes au lieu de {{from}}, le minimum autorisé par cette installation.",
+        "push_token_replaced": "Le moniteur \"{{name}}\" a reçu un nouveau jeton push, car un autre moniteur détient celui du fichier. Mettez à jour l'adresse à laquelle votre tâche envoie.",
+        "monitor_paused_over_limit": "Le moniteur \"{{name}}\" arrive en pause : le plan de cet espace de travail n'a plus de place pour un moniteur actif de plus.",
+        "status_page_slug_changed": "La page d'état \"{{name}}\" a l'adresse {{to}} au lieu de {{from}}, car celle-ci est déjà prise.",
+        "status_page_skipped_over_limit": "La page d'état \"{{name}}\" a été écartée : le plan de cet espace de travail n'a plus de place pour une autre.",
+        "custom_domain_dropped": "Le domaine personnalisé {{name}} a été écarté : une autre page d'état l'utilise.",
+        "custom_domain_dropped_over_limit": "Le domaine personnalisé {{name}} a été écarté : le plan de cet espace de travail n'a plus de place pour un autre.",
+        "retention_capped": "La période de conservation des données est de {{to}} jours au lieu de {{from}}, le maximum autorisé par le plan de cet espace de travail.",
+        "unknown": "L'import a modifié {{subject}} ({{kind}})."
+      }
     }
   },
   "status": {

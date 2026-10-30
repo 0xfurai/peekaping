@@ -1932,6 +1932,68 @@
     "workspace_name": {
       "description": "Nimi, joka näkyy työtilan vaihtajassa ja sen jäsenille.",
       "title": "Työtilan nimi"
+    },
+    "workspace_export": {
+      "title": "Vienti",
+      "description": "Lataa tämän työtilan asetukset yhtenä JSON-tiedostona: sen asetukset, tunnisteet, välityspalvelimet, ilmoituskanavat, valvonnat, huolto-ikkunat ja tilasivut. Omistaja voi tuoda tiedoston toiseen työtilaan.",
+      "warning_title": "Tiedosto sisältää tallennettuja salaisuuksia",
+      "warning": "Ilmoituskanavien ja välityspalvelimien bottitunnisteet, salasanat ja webhook-osoitteet ovat tiedostossa kokonaisina, ei piilotettuina. Säilytä tiedostoa kuin salasanaa äläkä jaa sitä kenellekään, jolla ei pitäisi olla niitä.",
+      "download_workspace": "Lataa työtila",
+      "download_heartbeats": "Lataa sydämenlyöntihistoria",
+      "heartbeats_note": "Sydämenlyöntihistoria on erillinen tiedosto, ja se voi olla suuri. Siinä on yksi rivi jokaista valvonnan tarkistusta kohden.",
+      "downloading": "Ladataan...",
+      "failed": "Työtilan lataaminen epäonnistui",
+      "heartbeats_failed": "Sydämenlyöntihistorian lataaminen epäonnistui"
+    },
+    "workspace_import": {
+      "title": "Tuonti",
+      "description": "Lisää työtilan vientitiedoston tietueet tähän työtilaan. Mitään ei korvata: ne tulevat jo olemassa olevien rinnalle.",
+      "file_label": "Työtilan vientitiedosto (.json)",
+      "choose": "Valitse tiedosto",
+      "not_json": "Tiedosto ei ole kelvollista JSONia, joten mitään ei lähetetty.",
+      "too_large": "Tiedosto on suurempi kuin 16 MB, joka on tuonnin enimmäiskoko, joten mitään ei lähetetty.",
+      "confirm_title": "Tuodaanko {{file}}?",
+      "confirm_description": "Sen tietueet lisätään tässä työtilassa jo olevien rinnalle. Mitään ei korvata, ja saman tiedoston tuominen kahdesti lisää ne kahdesti. Valvonnat alkavat toimia heti, kun ne on lisätty.",
+      "confirm_button": "Tuo",
+      "importing": "Tuodaan...",
+      "failed": "Tiedoston tuonti epäonnistui",
+      "problems_title": "Tiedostoa ei voi tuoda",
+      "problems_description": "Työtilaan ei lisätty mitään. Korjaa nämä ongelmat tiedostossa ja tuo se uudelleen:",
+      "result_title": "Tuonti valmis",
+      "created_title": "Lisätty tähän työtilaan",
+      "nothing_created": "Mitään ei lisätty.",
+      "changes_title": "Muutettu sopimaan tähän työtilaan",
+      "no_changes": "Kaikki tuli sellaisenaan kuin tiedostossa.",
+      "close": "Sulje",
+      "created": {
+        "tags": "Tunnisteet",
+        "proxies": "Välityspalvelimet",
+        "notificationChannels": "Ilmoituskanavat",
+        "monitors": "Valvonnat",
+        "maintenances": "Huolto-ikkunat",
+        "statusPages": "Tilasivut"
+      },
+      "changes": {
+        "tag_reused": "Tunniste \"{{name}}\" on jo tässä työtilassa, joten sen valvonnat käyttävät sitä.",
+        "proxy_skipped_target_not_allowed": "Välityspalvelin {{name}} jätettiin pois: tämä asennus estää sen osoitteen.",
+        "monitor_proxy_dropped": "Valvonta \"{{name}}\" tulee ilman välityspalvelintaan {{from}}, joka jätettiin pois.",
+        "channel_skipped": "Ilmoituskanava \"{{name}}\" jätettiin pois: tämä asennus tai työtila ei voi ottaa sitä vastaan.",
+        "channel_skipped_target_not_allowed": "Ilmoituskanava \"{{name}}\" jätettiin pois: tämä asennus estää osoitteen, johon se lähettää.",
+        "channel_skipped_no_install_sender": "Ilmoituskanava \"{{name}}\" jätettiin pois: tällä asennuksella ei ole sähköpostien lähettäjää.",
+        "channel_skipped_recipient_not_member": "Ilmoituskanava \"{{name}}\" jätettiin pois: sen sähköpostin vastaanottaja ei ole tämän työtilan jäsen.",
+        "monitor_skipped_type_disabled": "Valvonta \"{{name}}\" jätettiin pois: tämä asennus poistaa käytöstä tyypin {{reason}} valvonnat.",
+        "monitor_skipped_target_not_allowed": "Valvonta \"{{name}}\" jätettiin pois: tämä asennus estää sen kohteen {{reason}}.",
+        "monitor_interval_raised": "Valvonta \"{{name}}\" tarkistaa {{to}} sekunnin välein {{from}} sijaan, mikä on lyhin tämän asennuksen sallima.",
+        "monitor_retry_interval_raised": "Valvonta \"{{name}}\" yrittää epäonnistunutta tarkistusta uudelleen {{to}} sekunnin välein {{from}} sijaan, mikä on lyhin tämän asennuksen sallima.",
+        "push_token_replaced": "Valvonta \"{{name}}\" sai uuden push-tunnisteen, koska toinen valvonta käyttää tiedoston tunnistetta. Päivitä osoite, johon työsi lähettää.",
+        "monitor_paused_over_limit": "Valvonta \"{{name}}\" tulee keskeytettynä: tämän työtilan paketissa ei ole tilaa toiselle käynnissä olevalle valvonnalle.",
+        "status_page_slug_changed": "Tilasivun \"{{name}}\" osoite on {{to}} osoitteen {{from}} sijaan, koska se on jo käytössä.",
+        "status_page_skipped_over_limit": "Tilasivu \"{{name}}\" jätettiin pois: tämän työtilan paketissa ei ole tilaa toiselle.",
+        "custom_domain_dropped": "Mukautettu verkkotunnus {{name}} jätettiin pois: toinen tilasivu käyttää sitä.",
+        "custom_domain_dropped_over_limit": "Mukautettu verkkotunnus {{name}} jätettiin pois: tämän työtilan paketissa ei ole tilaa toiselle.",
+        "retention_capped": "Tietojen säilytysaika on {{to}} päivää {{from}} sijaan, mikä on enintään tämän työtilan paketin sallima.",
+        "unknown": "Tuonti muutti kohdetta {{subject}} ({{kind}})."
+      }
     }
   },
   "status": {

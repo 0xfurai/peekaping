@@ -1932,6 +1932,68 @@
     "workspace_name": {
       "description": "Nimi, mida näidatakse tööruumi vahetajas ja selle liikmetele.",
       "title": "Tööruumi nimi"
+    },
+    "workspace_export": {
+      "title": "Eksport",
+      "description": "Laadi selle tööruumi seadistus alla ühe JSON-failina: selle seaded, sildid, proksid, teavituskanalid, monitoorid, hoolduse ajavahemikud ja olekusivud. Omanik saab faili importida teise tööruumi.",
+      "warning_title": "Fail sisaldab salvestatud saladusi",
+      "warning": "Teavituskanalite ja proksite boti tokenid, paroolid ja webhooki URL-id on selles täielikult olemas, peitmata. Hoia faili nagu parooli ja ära jaga seda kellegagi, kes ei tohi neid näha.",
+      "download_workspace": "Laadi tööruum alla",
+      "download_heartbeats": "Laadi südamelöökide ajalugu alla",
+      "heartbeats_note": "Südamelöökide ajalugu on eraldi fail ja see võib olla suur. Selles on üks rida iga monitoori iga kontrolli kohta.",
+      "downloading": "Allalaadimine...",
+      "failed": "Tööruumi allalaadimine ebaõnnestus",
+      "heartbeats_failed": "Südamelöökide ajaloo allalaadimine ebaõnnestus"
+    },
+    "workspace_import": {
+      "title": "Import",
+      "description": "Lisa tööruumi eksportfaili kirjed sellesse tööruumi. Midagi ei asendata: need tulevad siia juba olemasolevate kõrvale.",
+      "file_label": "Tööruumi eksportfail (.json)",
+      "choose": "Vali fail",
+      "not_json": "See fail ei ole kehtiv JSON, seega ei saadetud midagi.",
+      "too_large": "See fail on suurem kui 16 MB, mis on impordi lubatud maksimum, seega ei saadetud midagi.",
+      "confirm_title": "Kas importida {{file}}?",
+      "confirm_description": "Selle kirjed lisatakse selles tööruumis juba olemasolevate kõrvale. Midagi ei asendata ja sama faili kaks korda importimine lisab need kaks korda. Monitoorid hakkavad tööle kohe, kui need on lisatud.",
+      "confirm_button": "Impordi",
+      "importing": "Importimine...",
+      "failed": "Faili importimine ebaõnnestus",
+      "problems_title": "Faili ei saa importida",
+      "problems_description": "Sellesse tööruumi ei lisatud midagi. Paranda need probleemid failis ja impordi see uuesti:",
+      "result_title": "Import on lõppenud",
+      "created_title": "Sellesse tööruumi lisatud",
+      "nothing_created": "Midagi ei lisatud.",
+      "changes_title": "Muudetud sellele tööruumile sobivaks",
+      "no_changes": "Kõik tuli sisse nii, nagu on failis.",
+      "close": "Sulge",
+      "created": {
+        "tags": "Sildid",
+        "proxies": "Proksid",
+        "notificationChannels": "Teavituskanalid",
+        "monitors": "Monitoorid",
+        "maintenances": "Hoolduse ajavahemikud",
+        "statusPages": "Olekusivud"
+      },
+      "changes": {
+        "tag_reused": "Silt \"{{name}}\" on selles tööruumis juba olemas, seega kasutavad monitoorid seda.",
+        "proxy_skipped_target_not_allowed": "Proksi {{name}} jäeti välja: see paigaldus blokeerib selle aadressi.",
+        "monitor_proxy_dropped": "Monitoor \"{{name}}\" tuleb sisse ilma oma proksita {{from}}, mis jäeti välja.",
+        "channel_skipped": "Teavituskanal \"{{name}}\" jäeti välja: see paigaldus või tööruum ei saa seda vastu võtta.",
+        "channel_skipped_target_not_allowed": "Teavituskanal \"{{name}}\" jäeti välja: see paigaldus blokeerib aadressi, kuhu see saadab.",
+        "channel_skipped_no_install_sender": "Teavituskanal \"{{name}}\" jäeti välja: sellel paigaldusel pole e-kirjade saatjat.",
+        "channel_skipped_recipient_not_member": "Teavituskanal \"{{name}}\" jäeti välja: selle e-kirja saaja ei ole selle tööruumi liige.",
+        "monitor_skipped_type_disabled": "Monitoor \"{{name}}\" jäeti välja: see paigaldus lülitab välja tüüpi {{reason}} monitoorid.",
+        "monitor_skipped_target_not_allowed": "Monitoor \"{{name}}\" jäeti välja: see paigaldus blokeerib selle sihtmärgi {{reason}}.",
+        "monitor_interval_raised": "Monitoor \"{{name}}\" kontrollib iga {{to}} sekundi tagant {{from}} asemel, mis on lühim intervall, mida see paigaldus lubab.",
+        "monitor_retry_interval_raised": "Monitoor \"{{name}}\" kordab ebaõnnestunud kontrolli iga {{to}} sekundi tagant {{from}} asemel, mis on lühim intervall, mida see paigaldus lubab.",
+        "push_token_replaced": "Monitoor \"{{name}}\" sai uue push-tokeni, sest failis oleva tokeni omab teine monitoor. Uuenda aadressi, kuhu sinu ülesanne saadab.",
+        "monitor_paused_over_limit": "Monitoor \"{{name}}\" tuleb sisse peatatuna: selle tööruumi paketis pole ruumi veel ühele töötavale monitoorile.",
+        "status_page_slug_changed": "Olekusivu \"{{name}}\" aadress on {{to}}, mitte {{from}}, sest see on hõivatud.",
+        "status_page_skipped_over_limit": "Olekusivu \"{{name}}\" jäeti välja: selle tööruumi paketis pole ruumi veel ühele.",
+        "custom_domain_dropped": "Kohandatud domeen {{name}} jäeti välja: see on teisel olekusivul.",
+        "custom_domain_dropped_over_limit": "Kohandatud domeen {{name}} jäeti välja: selle tööruumi paketis pole ruumi veel ühele.",
+        "retention_capped": "Andmete säilitamise periood on {{to}} päeva {{from}} asemel, mis on maksimum, mida selle tööruumi pakett lubab.",
+        "unknown": "Import muutis: {{subject}} ({{kind}})."
+      }
     }
   },
   "status": {

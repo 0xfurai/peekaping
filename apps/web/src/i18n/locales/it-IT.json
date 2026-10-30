@@ -1932,6 +1932,68 @@
     "workspace_name": {
       "description": "Il nome mostrato nel selettore degli spazi di lavoro e ai suoi membri.",
       "title": "Nome dello spazio di lavoro"
+    },
+    "workspace_export": {
+      "title": "Esporta",
+      "description": "Scarica la configurazione di questo spazio di lavoro in un unico file JSON: impostazioni, tag, proxy, canali di notifica, monitor, finestre di manutenzione e pagine di stato. Un proprietario può importare il file in un altro spazio di lavoro.",
+      "warning_title": "Il file contiene segreti salvati",
+      "warning": "I token dei bot, le password e gli URL dei webhook dei tuoi canali di notifica e dei proxy sono presenti per intero, non nascosti. Conserva il file come una password e non condividerlo con chi non dovrebbe averli.",
+      "download_workspace": "Scarica spazio di lavoro",
+      "download_heartbeats": "Scarica la cronologia degli heartbeat",
+      "heartbeats_note": "La cronologia degli heartbeat è un file separato e può essere grande. Contiene una riga per ogni controllo di ogni monitor.",
+      "downloading": "Download in corso...",
+      "failed": "Impossibile scaricare lo spazio di lavoro",
+      "heartbeats_failed": "Impossibile scaricare la cronologia degli heartbeat"
+    },
+    "workspace_import": {
+      "title": "Importa",
+      "description": "Aggiungi a questo spazio di lavoro i record di un file di esportazione di uno spazio di lavoro. Nulla viene sostituito: arrivano accanto a quelli già presenti.",
+      "file_label": "File di esportazione dello spazio di lavoro (.json)",
+      "choose": "Scegli un file",
+      "not_json": "Questo file non è un JSON valido, quindi non è stato inviato nulla.",
+      "too_large": "Questo file supera i 16 MB, il massimo accettato da un'importazione, quindi non è stato inviato nulla.",
+      "confirm_title": "Importare {{file}}?",
+      "confirm_description": "I suoi record vengono aggiunti accanto a quelli già presenti in questo spazio di lavoro. Nulla viene sostituito e importare due volte lo stesso file li aggiunge due volte. I monitor si avviano non appena vengono aggiunti.",
+      "confirm_button": "Importa",
+      "importing": "Importazione...",
+      "failed": "Impossibile importare il file",
+      "problems_title": "Il file non può essere importato",
+      "problems_description": "Non è stato aggiunto nulla a questo spazio di lavoro. Correggi questi problemi nel file e importalo di nuovo:",
+      "result_title": "Importazione completata",
+      "created_title": "Aggiunto a questo spazio di lavoro",
+      "nothing_created": "Non è stato aggiunto nulla.",
+      "changes_title": "Modificato per adattarsi a questo spazio di lavoro",
+      "no_changes": "Tutto è arrivato così come è nel file.",
+      "close": "Chiudi",
+      "created": {
+        "tags": "Tag",
+        "proxies": "Proxy",
+        "notificationChannels": "Canali di notifica",
+        "monitors": "Monitor",
+        "maintenances": "Finestre di manutenzione",
+        "statusPages": "Pagine di stato"
+      },
+      "changes": {
+        "tag_reused": "Il tag \"{{name}}\" è già in questo spazio di lavoro, quindi i suoi monitor lo usano.",
+        "proxy_skipped_target_not_allowed": "Il proxy {{name}} è stato escluso: questa installazione blocca il suo indirizzo.",
+        "monitor_proxy_dropped": "Il monitor \"{{name}}\" arriva senza il suo proxy {{from}}, che è stato escluso.",
+        "channel_skipped": "Il canale di notifica \"{{name}}\" è stato escluso: questa installazione o questo spazio di lavoro non può accettarlo.",
+        "channel_skipped_target_not_allowed": "Il canale di notifica \"{{name}}\" è stato escluso: questa installazione blocca l'indirizzo a cui invia.",
+        "channel_skipped_no_install_sender": "Il canale di notifica \"{{name}}\" è stato escluso: questa installazione non ha un mittente per le e-mail.",
+        "channel_skipped_recipient_not_member": "Il canale di notifica \"{{name}}\" è stato escluso: il destinatario dell'e-mail non è un membro di questo spazio di lavoro.",
+        "monitor_skipped_type_disabled": "Il monitor \"{{name}}\" è stato escluso: questa installazione disattiva i monitor di tipo {{reason}}.",
+        "monitor_skipped_target_not_allowed": "Il monitor \"{{name}}\" è stato escluso: questa installazione blocca il suo obiettivo {{reason}}.",
+        "monitor_interval_raised": "Il monitor \"{{name}}\" controlla ogni {{to}} secondi invece di {{from}}, il minimo consentito da questa installazione.",
+        "monitor_retry_interval_raised": "Il monitor \"{{name}}\" riprova un controllo non riuscito ogni {{to}} secondi invece di {{from}}, il minimo consentito da questa installazione.",
+        "push_token_replaced": "Il monitor \"{{name}}\" ha ricevuto un nuovo token push, perché un altro monitor possiede quello nel file. Aggiorna l'indirizzo a cui invia il tuo job.",
+        "monitor_paused_over_limit": "Il monitor \"{{name}}\" arriva in pausa: il piano di questo spazio di lavoro non ha spazio per un altro monitor in esecuzione.",
+        "status_page_slug_changed": "La pagina di stato \"{{name}}\" ha l'indirizzo {{to}} invece di {{from}}, perché quest'ultimo è già occupato.",
+        "status_page_skipped_over_limit": "La pagina di stato \"{{name}}\" è stata esclusa: il piano di questo spazio di lavoro non ha spazio per un'altra.",
+        "custom_domain_dropped": "Il dominio personalizzato {{name}} è stato escluso: lo usa un'altra pagina di stato.",
+        "custom_domain_dropped_over_limit": "Il dominio personalizzato {{name}} è stato escluso: il piano di questo spazio di lavoro non ha spazio per un altro.",
+        "retention_capped": "Il periodo di conservazione dei dati è di {{to}} giorni invece di {{from}}, il massimo consentito dal piano di questo spazio di lavoro.",
+        "unknown": "L'importazione ha modificato {{subject}} ({{kind}})."
+      }
     }
   },
   "status": {

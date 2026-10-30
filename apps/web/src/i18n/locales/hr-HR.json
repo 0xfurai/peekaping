@@ -1932,6 +1932,68 @@
     "workspace_name": {
       "description": "Naziv koji se prikazuje u izborniku radnih prostora i njegovim članovima.",
       "title": "Naziv radnog prostora"
+    },
+    "workspace_export": {
+      "title": "Izvoz",
+      "description": "Preuzmite postavke ovog radnog prostora kao jednu JSON datoteku: njegove postavke, oznake, proxyje, kanale obavijesti, nadzore, okvire održavanja i statusne stranice. Vlasnik može uvesti datoteku u drugi radni prostor.",
+      "warning_title": "Datoteka sadrži spremljene tajne",
+      "warning": "Tokeni botova, lozinke i webhook URL-ovi vaših kanala obavijesti i proxyja nalaze se u njoj u cijelosti, nisu skriveni. Čuvajte datoteku kao lozinku i ne dijelite je s nikim tko ih ne bi smio imati.",
+      "download_workspace": "Preuzmi radni prostor",
+      "download_heartbeats": "Preuzmi povijest otkucaja",
+      "heartbeats_note": "Povijest otkucaja zasebna je datoteka i može biti velika. Sadrži jedan redak za svaku provjeru svakog nadzora.",
+      "downloading": "Preuzimanje...",
+      "failed": "Preuzimanje radnog prostora nije uspjelo",
+      "heartbeats_failed": "Preuzimanje povijesti otkucaja nije uspjelo"
+    },
+    "workspace_import": {
+      "title": "Uvoz",
+      "description": "Dodajte zapise iz izvozne datoteke radnog prostora u ovaj radni prostor. Ništa se ne zamjenjuje: dolaze uz one koji su već ovdje.",
+      "file_label": "Izvozna datoteka radnog prostora (.json)",
+      "choose": "Odaberite datoteku",
+      "not_json": "Ova datoteka nije valjan JSON, pa ništa nije poslano.",
+      "too_large": "Ova datoteka veća je od 16 MB, što je najviše što uvoz prima, pa ništa nije poslano.",
+      "confirm_title": "Uvesti {{file}}?",
+      "confirm_description": "Njezini zapisi dodaju se uz one koji su već u ovom radnom prostoru. Ništa se ne zamjenjuje, a uvoz iste datoteke dvaput dodaje ih dvaput. Nadzori se pokreću čim se dodaju.",
+      "confirm_button": "Uvezi",
+      "importing": "Uvoz...",
+      "failed": "Uvoz datoteke nije uspio",
+      "problems_title": "Datoteka se ne može uvesti",
+      "problems_description": "Ništa nije dodano u ovaj radni prostor. Ispravite ove probleme u datoteci i uvezite je ponovno:",
+      "result_title": "Uvoz je završen",
+      "created_title": "Dodano u ovaj radni prostor",
+      "nothing_created": "Ništa nije dodano.",
+      "changes_title": "Promijenjeno radi prilagodbe ovom radnom prostoru",
+      "no_changes": "Sve je došlo onako kako je u datoteci.",
+      "close": "Zatvori",
+      "created": {
+        "tags": "Oznake",
+        "proxies": "Proxyji",
+        "notificationChannels": "Kanali obavijesti",
+        "monitors": "Nadzori",
+        "maintenances": "Okviri održavanja",
+        "statusPages": "Statusne stranice"
+      },
+      "changes": {
+        "tag_reused": "Oznaka „{{name}}“ već postoji u ovom radnom prostoru, pa je njezini nadzori koriste.",
+        "proxy_skipped_target_not_allowed": "Proxy {{name}} izostavljen je: ova instalacija blokira njegovu adresu.",
+        "monitor_proxy_dropped": "Nadzor „{{name}}“ dolazi bez svojeg proxyja {{from}}, koji je izostavljen.",
+        "channel_skipped": "Kanal obavijesti „{{name}}“ izostavljen je: ova instalacija ili radni prostor ne može ga prihvatiti.",
+        "channel_skipped_target_not_allowed": "Kanal obavijesti „{{name}}“ izostavljen je: ova instalacija blokira adresu na koju šalje.",
+        "channel_skipped_no_install_sender": "Kanal obavijesti „{{name}}“ izostavljen je: ova instalacija nema pošiljatelja e-pošte.",
+        "channel_skipped_recipient_not_member": "Kanal obavijesti „{{name}}“ izostavljen je: primatelj e-pošte nije član ovog radnog prostora.",
+        "monitor_skipped_type_disabled": "Nadzor „{{name}}“ izostavljen je: ova instalacija isključuje nadzore vrste {{reason}}.",
+        "monitor_skipped_target_not_allowed": "Nadzor „{{name}}“ izostavljen je: ova instalacija blokira njegov cilj {{reason}}.",
+        "monitor_interval_raised": "Nadzor „{{name}}“ provjerava svakih {{to}} sekundi umjesto {{from}}, što je najkraće što ova instalacija dopušta.",
+        "monitor_retry_interval_raised": "Nadzor „{{name}}“ ponavlja neuspjelu provjeru svakih {{to}} sekundi umjesto {{from}}, što je najkraće što ova instalacija dopušta.",
+        "push_token_replaced": "Nadzor „{{name}}“ dobio je novi push token jer drugi nadzor drži onaj iz datoteke. Ažurirajte adresu na koju vaš zadatak šalje.",
+        "monitor_paused_over_limit": "Nadzor „{{name}}“ dolazi pauziran: paket ovog radnog prostora nema mjesta za još jedan aktivni nadzor.",
+        "status_page_slug_changed": "Statusna stranica „{{name}}“ ima adresu {{to}} umjesto {{from}}, jer je ta zauzeta.",
+        "status_page_skipped_over_limit": "Statusna stranica „{{name}}“ izostavljena je: paket ovog radnog prostora nema mjesta za još jednu.",
+        "custom_domain_dropped": "Prilagođena domena {{name}} izostavljena je: koristi je druga statusna stranica.",
+        "custom_domain_dropped_over_limit": "Prilagođena domena {{name}} izostavljena je: paket ovog radnog prostora nema mjesta za još jednu.",
+        "retention_capped": "Rok zadržavanja podataka iznosi {{to}} dana umjesto {{from}}, što je najviše što paket ovog radnog prostora dopušta.",
+        "unknown": "Uvoz je promijenio {{subject}} ({{kind}})."
+      }
     }
   },
   "status": {

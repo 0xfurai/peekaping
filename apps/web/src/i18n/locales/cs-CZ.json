@@ -1932,6 +1932,68 @@
     "workspace_name": {
       "description": "Název zobrazený v přepínači pracovních prostorů a jeho členům.",
       "title": "Název pracovního prostoru"
+    },
+    "workspace_export": {
+      "title": "Export",
+      "description": "Stáhněte nastavení tohoto pracovního prostoru jako jeden soubor JSON: jeho nastavení, tagy, proxy servery, notifikační kanály, monitory, okna údržby a stránky stavu. Vlastník může soubor importovat do jiného pracovního prostoru.",
+      "warning_title": "Soubor obsahuje uložená tajemství",
+      "warning": "Tokeny botů, hesla a adresy webhooků vašich notifikačních kanálů a proxy serverů jsou v něm celé, neskryté. Uchovávejte soubor jako heslo a nesdílejte ho s nikým, kdo by je neměl vidět.",
+      "download_workspace": "Stáhnout pracovní prostor",
+      "download_heartbeats": "Stáhnout historii pulzů",
+      "heartbeats_note": "Historie pulzů je samostatný soubor a může být velká. Obsahuje jeden řádek pro každou kontrolu každého monitoru.",
+      "downloading": "Stahování...",
+      "failed": "Pracovní prostor se nepodařilo stáhnout",
+      "heartbeats_failed": "Historii pulzů se nepodařilo stáhnout"
+    },
+    "workspace_import": {
+      "title": "Import",
+      "description": "Přidejte záznamy ze souboru exportu pracovního prostoru do tohoto pracovního prostoru. Nic se nenahrazuje: přidají se vedle těch, které tu už jsou.",
+      "file_label": "Soubor exportu pracovního prostoru (.json)",
+      "choose": "Vybrat soubor",
+      "not_json": "Tento soubor není platný JSON, proto se nic neodeslalo.",
+      "too_large": "Tento soubor je větší než 16 MB, což je maximum, které import přijme, proto se nic neodeslalo.",
+      "confirm_title": "Importovat {{file}}?",
+      "confirm_description": "Jeho záznamy se přidají vedle těch, které už v tomto pracovním prostoru jsou. Nic se nenahrazuje a import téhož souboru dvakrát je přidá dvakrát. Monitory se spustí, jakmile jsou přidány.",
+      "confirm_button": "Importovat",
+      "importing": "Importuje se...",
+      "failed": "Soubor se nepodařilo importovat",
+      "problems_title": "Soubor nelze importovat",
+      "problems_description": "Do tohoto pracovního prostoru se nic nepřidalo. Opravte tyto problémy v souboru a importujte ho znovu:",
+      "result_title": "Import dokončen",
+      "created_title": "Přidáno do tohoto pracovního prostoru",
+      "nothing_created": "Nic se nepřidalo.",
+      "changes_title": "Změněno, aby to odpovídalo tomuto pracovnímu prostoru",
+      "no_changes": "Vše se načetlo tak, jak je v souboru.",
+      "close": "Zavřít",
+      "created": {
+        "tags": "Tagy",
+        "proxies": "Proxy servery",
+        "notificationChannels": "Notifikační kanály",
+        "monitors": "Monitory",
+        "maintenances": "Okna údržby",
+        "statusPages": "Stránky stavu"
+      },
+      "changes": {
+        "tag_reused": "Tag \"{{name}}\" už v tomto pracovním prostoru je, proto ho používají monitory.",
+        "proxy_skipped_target_not_allowed": "Proxy server {{name}} byl vynechán: tato instalace blokuje jeho adresu.",
+        "monitor_proxy_dropped": "Monitor \"{{name}}\" se importuje bez svého proxy serveru {{from}}, který byl vynechán.",
+        "channel_skipped": "Notifikační kanál \"{{name}}\" byl vynechán: tato instalace nebo pracovní prostor ho nemůže přijmout.",
+        "channel_skipped_target_not_allowed": "Notifikační kanál \"{{name}}\" byl vynechán: tato instalace blokuje adresu, na kterou odesílá.",
+        "channel_skipped_no_install_sender": "Notifikační kanál \"{{name}}\" byl vynechán: tato instalace nemá odesílatele e-mailů.",
+        "channel_skipped_recipient_not_member": "Notifikační kanál \"{{name}}\" byl vynechán: příjemce jeho e-mailů není členem tohoto pracovního prostoru.",
+        "monitor_skipped_type_disabled": "Monitor \"{{name}}\" byl vynechán: tato instalace vypíná monitory typu {{reason}}.",
+        "monitor_skipped_target_not_allowed": "Monitor \"{{name}}\" byl vynechán: tato instalace blokuje jeho cíl {{reason}}.",
+        "monitor_interval_raised": "Monitor \"{{name}}\" kontroluje každých {{to}} sekund místo {{from}}, což je nejkratší interval, který tato instalace povoluje.",
+        "monitor_retry_interval_raised": "Monitor \"{{name}}\" opakuje neúspěšnou kontrolu každých {{to}} sekund místo {{from}}, což je nejkratší interval, který tato instalace povoluje.",
+        "push_token_replaced": "Monitor \"{{name}}\" dostal nový push token, protože token ze souboru už má jiný monitor. Aktualizujte adresu, na kterou vaše úloha odesílá.",
+        "monitor_paused_over_limit": "Monitor \"{{name}}\" se importuje pozastavený: tarif tohoto pracovního prostoru nemá místo pro další běžící monitor.",
+        "status_page_slug_changed": "Stránka stavu \"{{name}}\" má adresu {{to}} místo {{from}}, protože ta je obsazená.",
+        "status_page_skipped_over_limit": "Stránka stavu \"{{name}}\" byla vynechána: tarif tohoto pracovního prostoru nemá místo pro další.",
+        "custom_domain_dropped": "Vlastní doména {{name}} byla vynechána: drží ji jiná stránka stavu.",
+        "custom_domain_dropped_over_limit": "Vlastní doména {{name}} byla vynechána: tarif tohoto pracovního prostoru nemá místo pro další.",
+        "retention_capped": "Doba uchovávání dat je {{to}} dní místo {{from}}, což je nejvíce, co tarif tohoto pracovního prostoru povoluje.",
+        "unknown": "Import změnil {{subject}} ({{kind}})."
+      }
     }
   },
   "status": {

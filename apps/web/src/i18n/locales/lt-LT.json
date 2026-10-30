@@ -1932,6 +1932,68 @@
     "workspace_name": {
       "description": "Pavadinimas, rodomas darbo erdvių perjungiklyje ir jos nariams.",
       "title": "Darbo erdvės pavadinimas"
+    },
+    "workspace_export": {
+      "title": "Eksportas",
+      "description": "Atsisiųskite šios darbo erdvės sąranką vienu JSON failu: nustatymus, tagus, proksi, pranešimų kanalus, monitorius, priežiūros laikotarpius ir būsenos puslapius. Savininkas gali šį failą importuoti į kitą darbo erdvę.",
+      "warning_title": "Faile yra išsaugotų paslapčių",
+      "warning": "Pranešimų kanalų ir proksi botų raktai, slaptažodžiai ir webhook URL faile yra pilni, nepaslėpti. Saugokite failą kaip slaptažodį ir nesidalykite juo su tais, kurie jų žinoti neturėtų.",
+      "download_workspace": "Atsisiųsti darbo erdvę",
+      "download_heartbeats": "Atsisiųsti širdies ritmų istoriją",
+      "heartbeats_note": "Širdies ritmų istorija yra atskiras failas ir gali būti didelė. Joje yra po vieną eilutę kiekvienam kiekvieno monitoriaus patikrinimui.",
+      "downloading": "Atsisiunčiama...",
+      "failed": "Nepavyko atsisiųsti darbo erdvės",
+      "heartbeats_failed": "Nepavyko atsisiųsti širdies ritmų istorijos"
+    },
+    "workspace_import": {
+      "title": "Importas",
+      "description": "Pridėkite darbo erdvės eksporto failo įrašus prie šios darbo erdvės. Niekas nepakeičiama: jie įtraukiami šalia čia jau esančių.",
+      "file_label": "Darbo erdvės eksporto failas (.json)",
+      "choose": "Pasirinkti failą",
+      "not_json": "Šis failas nėra tinkamas JSON, todėl nieko nesiųsta.",
+      "too_large": "Šis failas didesnis nei 16 MB – tiek daugiausia priima importas, todėl nieko nesiųsta.",
+      "confirm_title": "Importuoti {{file}}?",
+      "confirm_description": "Jo įrašai pridedami šalia jau esančių šioje darbo erdvėje. Niekas nepakeičiama, o importavus tą patį failą du kartus, jie pridedami du kartus. Monitoriai pradeda veikti iškart, kai tik pridedami.",
+      "confirm_button": "Importuoti",
+      "importing": "Importuojama...",
+      "failed": "Nepavyko importuoti failo",
+      "problems_title": "Failo importuoti negalima",
+      "problems_description": "Į šią darbo erdvę nieko nepridėta. Ištaisykite šias failo problemas ir importuokite jį dar kartą:",
+      "result_title": "Importas baigtas",
+      "created_title": "Pridėta į šią darbo erdvę",
+      "nothing_created": "Nieko nepridėta.",
+      "changes_title": "Pakeista, kad tiktų šiai darbo erdvei",
+      "no_changes": "Viskas įtraukta tokia, kokia yra faile.",
+      "close": "Uždaryti",
+      "created": {
+        "tags": "Tagai",
+        "proxies": "Proksi",
+        "notificationChannels": "Pranešimų kanalai",
+        "monitors": "Monitoriai",
+        "maintenances": "Priežiūros laikotarpiai",
+        "statusPages": "Būsenos puslapiai"
+      },
+      "changes": {
+        "tag_reused": "Tagas \"{{name}}\" jau yra šioje darbo erdvėje, todėl jo monitoriai naudoja jį.",
+        "proxy_skipped_target_not_allowed": "Proksi {{name}} praleistas: šis diegimas blokuoja jo adresą.",
+        "monitor_proxy_dropped": "Monitorius \"{{name}}\" įtrauktas be proksi {{from}}, kuris buvo praleistas.",
+        "channel_skipped": "Pranešimų kanalas \"{{name}}\" praleistas: šis diegimas ar darbo erdvė jo priimti negali.",
+        "channel_skipped_target_not_allowed": "Pranešimų kanalas \"{{name}}\" praleistas: šis diegimas blokuoja adresą, į kurį jis siunčia.",
+        "channel_skipped_no_install_sender": "Pranešimų kanalas \"{{name}}\" praleistas: šiame diegime nėra el. laiškų siuntėjo.",
+        "channel_skipped_recipient_not_member": "Pranešimų kanalas \"{{name}}\" praleistas: jo el. laiško gavėjas nėra šios darbo erdvės narys.",
+        "monitor_skipped_type_disabled": "Monitorius \"{{name}}\" praleistas: šis diegimas išjungia šio tipo monitorius: {{reason}}.",
+        "monitor_skipped_target_not_allowed": "Monitorius \"{{name}}\" praleistas: šis diegimas blokuoja jo tikslą {{reason}}.",
+        "monitor_interval_raised": "Monitorius \"{{name}}\" tikrina kas {{to}} sek. vietoj {{from}} sek. – tai trumpiausias šio diegimo leidžiamas intervalas.",
+        "monitor_retry_interval_raised": "Monitorius \"{{name}}\" kartoja nepavykusį patikrinimą kas {{to}} sek. vietoj {{from}} sek. – tai trumpiausias šio diegimo leidžiamas intervalas.",
+        "push_token_replaced": "Monitorius \"{{name}}\" gavo naują push raktą, nes failo raktą jau turi kitas monitorius. Atnaujinkite adresą, į kurį siunčia jūsų užduotis.",
+        "monitor_paused_over_limit": "Monitorius \"{{name}}\" įtrauktas pristabdytas: šios darbo erdvės plane nebėra vietos dar vienam veikiančiam monitoriui.",
+        "status_page_slug_changed": "Būsenos puslapio \"{{name}}\" adresas yra {{to}}, o ne {{from}}, nes šis jau užimtas.",
+        "status_page_skipped_over_limit": "Būsenos puslapis \"{{name}}\" praleistas: šios darbo erdvės plane nebėra vietos dar vienam.",
+        "custom_domain_dropped": "Pasirinktinis domenas {{name}} praleistas: jį jau turi kitas būsenos puslapis.",
+        "custom_domain_dropped_over_limit": "Pasirinktinis domenas {{name}} praleistas: šios darbo erdvės plane nebėra vietos dar vienam.",
+        "retention_capped": "Duomenų saugojimo laikotarpis yra {{to}} d., o ne {{from}} d. – tai daugiausia, ką leidžia šios darbo erdvės planas.",
+        "unknown": "Importas pakeitė: {{subject}} ({{kind}})."
+      }
     }
   },
   "status": {

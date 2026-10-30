@@ -1932,6 +1932,68 @@
     "workspace_name": {
       "description": "De naam die wordt getoond in de werkruimteschakelaar en aan de leden.",
       "title": "Naam van de werkruimte"
+    },
+    "workspace_export": {
+      "title": "Exporteren",
+      "description": "Download de instellingen van deze werkruimte als één JSON-bestand: de instellingen, tags, proxy's, meldingskanalen, monitors, onderhoudsvensters en statuspagina's. Een eigenaar kan het bestand in een andere werkruimte importeren.",
+      "warning_title": "Het bestand bevat opgeslagen geheimen",
+      "warning": "Bottokens, wachtwoorden en webhook-URL's van je meldingskanalen en proxy's staan er volledig in, niet verborgen. Bewaar het bestand als een wachtwoord en deel het niet met iemand die ze niet mag hebben.",
+      "download_workspace": "Werkruimte downloaden",
+      "download_heartbeats": "Heartbeat-geschiedenis downloaden",
+      "heartbeats_note": "De heartbeat-geschiedenis is een apart bestand en kan groot zijn. Het bevat één regel voor elke controle van elke monitor.",
+      "downloading": "Downloaden...",
+      "failed": "Downloaden van de werkruimte mislukt",
+      "heartbeats_failed": "Downloaden van de heartbeat-geschiedenis mislukt"
+    },
+    "workspace_import": {
+      "title": "Importeren",
+      "description": "Voeg de records van een werkruimte-exportbestand toe aan deze werkruimte. Er wordt niets vervangen: ze komen erbij naast de records die hier al staan.",
+      "file_label": "Werkruimte-exportbestand (.json)",
+      "choose": "Kies een bestand",
+      "not_json": "Dit bestand is geen geldige JSON, dus er is niets verzonden.",
+      "too_large": "Dit bestand is groter dan 16 MB, het maximum voor een import, dus er is niets verzonden.",
+      "confirm_title": "{{file}} importeren?",
+      "confirm_description": "De records worden toegevoegd naast de records die al in deze werkruimte staan. Er wordt niets vervangen, en als je hetzelfde bestand twee keer importeert, worden ze twee keer toegevoegd. Monitors gaan draaien zodra ze zijn toegevoegd.",
+      "confirm_button": "Importeren",
+      "importing": "Importeren...",
+      "failed": "Importeren van het bestand mislukt",
+      "problems_title": "Het bestand kan niet worden geïmporteerd",
+      "problems_description": "Er is niets aan deze werkruimte toegevoegd. Los deze problemen in het bestand op en importeer het opnieuw:",
+      "result_title": "Import voltooid",
+      "created_title": "Toegevoegd aan deze werkruimte",
+      "nothing_created": "Er is niets toegevoegd.",
+      "changes_title": "Aangepast aan deze werkruimte",
+      "no_changes": "Alles is binnengekomen zoals het bestand het heeft.",
+      "close": "Sluiten",
+      "created": {
+        "tags": "Tags",
+        "proxies": "Proxy's",
+        "notificationChannels": "Meldingskanalen",
+        "monitors": "Monitors",
+        "maintenances": "Onderhoudsvensters",
+        "statusPages": "Statuspagina's"
+      },
+      "changes": {
+        "tag_reused": "De tag \"{{name}}\" staat al in deze werkruimte, dus de monitors gebruiken die.",
+        "proxy_skipped_target_not_allowed": "De proxy {{name}} is weggelaten: deze installatie blokkeert het adres.",
+        "monitor_proxy_dropped": "De monitor \"{{name}}\" komt binnen zonder de proxy {{from}}, die is weggelaten.",
+        "channel_skipped": "Het meldingskanaal \"{{name}}\" is weggelaten: deze installatie of werkruimte kan het niet aan.",
+        "channel_skipped_target_not_allowed": "Het meldingskanaal \"{{name}}\" is weggelaten: deze installatie blokkeert het adres waarnaar het verstuurt.",
+        "channel_skipped_no_install_sender": "Het meldingskanaal \"{{name}}\" is weggelaten: deze installatie heeft geen afzender voor e-mails.",
+        "channel_skipped_recipient_not_member": "Het meldingskanaal \"{{name}}\" is weggelaten: de e-mailontvanger is geen lid van deze werkruimte.",
+        "monitor_skipped_type_disabled": "De monitor \"{{name}}\" is weggelaten: deze installatie schakelt monitors van het type {{reason}} uit.",
+        "monitor_skipped_target_not_allowed": "De monitor \"{{name}}\" is weggelaten: deze installatie blokkeert het doel {{reason}}.",
+        "monitor_interval_raised": "De monitor \"{{name}}\" controleert elke {{to}} seconden in plaats van {{from}}, het kortste interval dat deze installatie toestaat.",
+        "monitor_retry_interval_raised": "De monitor \"{{name}}\" probeert een mislukte controle elke {{to}} seconden opnieuw in plaats van {{from}}, het kortste interval dat deze installatie toestaat.",
+        "push_token_replaced": "De monitor \"{{name}}\" kreeg een nieuw pushtoken, omdat een andere monitor het token uit het bestand heeft. Werk het adres bij waarnaar je taak verstuurt.",
+        "monitor_paused_over_limit": "De monitor \"{{name}}\" komt gepauzeerd binnen: het abonnement van deze werkruimte heeft geen ruimte voor nog een draaiende monitor.",
+        "status_page_slug_changed": "De statuspagina \"{{name}}\" heeft het adres {{to}} in plaats van {{from}}, omdat dat al in gebruik is.",
+        "status_page_skipped_over_limit": "De statuspagina \"{{name}}\" is weggelaten: het abonnement van deze werkruimte heeft geen ruimte voor nog een.",
+        "custom_domain_dropped": "Het aangepaste domein {{name}} is weggelaten: een andere statuspagina gebruikt het.",
+        "custom_domain_dropped_over_limit": "Het aangepaste domein {{name}} is weggelaten: het abonnement van deze werkruimte heeft geen ruimte voor nog een.",
+        "retention_capped": "De bewaartermijn van gegevens is {{to}} dagen in plaats van {{from}}, het maximum dat het abonnement van deze werkruimte toestaat.",
+        "unknown": "De import heeft {{subject}} ({{kind}}) gewijzigd."
+      }
     }
   },
   "status": {
