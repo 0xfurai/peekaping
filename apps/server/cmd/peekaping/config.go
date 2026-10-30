@@ -192,6 +192,17 @@ func LoadAndValidate(path string) (*Config, error) {
 
 // Validate validates peekaping's configuration
 func Validate(cfg *Config) error {
+	for _, check := range []func(*Config) error{validateStorage, validateBruteforce, validateAddresses, validateProbe, validateAccountsAndMonitors, validateWebDir} {
+		if err := check(cfg); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// validateStorage checks the database settings
+func validateStorage(cfg *Config) error {
 	// MongoDB storage was removed, and the db_type validator below would only call the value invalid
 	if err := config.RefuseMongoStorage(cfg.DBType); err != nil {
 		return err
@@ -219,7 +230,11 @@ func Validate(cfg *Config) error {
 		return fmt.Errorf("database validation failed: %w", err)
 	}
 
-	// Validate bruteforce settings
+	return nil
+}
+
+// validateBruteforce checks the login lockout settings
+func validateBruteforce(cfg *Config) error {
 	if cfg.BruteforceMaxAttempts <= 0 {
 		return fmt.Errorf("BRUTEFORCE_MAX_ATTEMPTS must be greater than 0")
 	}
@@ -239,6 +254,11 @@ func Validate(cfg *Config) error {
 		return fmt.Errorf("BRUTEFORCE_ACCOUNT_LOCKOUT must be a positive duration")
 	}
 
+	return nil
+}
+
+// validateAddresses checks the settings that name a port, a proxy or an origin
+func validateAddresses(cfg *Config) error {
 	// A METRICS_PORT that isn't a port, equals SERVER_PORT or has no /metrics to serve stops startup
 	if err := config.ValidateMetricsPort(cfg.MetricsEnabled, cfg.MetricsPort, cfg.Port); err != nil {
 		return err
@@ -256,6 +276,11 @@ func Validate(cfg *Config) error {
 		return err
 	}
 
+	return nil
+}
+
+// validateProbe checks the local probe's settings
+func validateProbe(cfg *Config) error {
 	// A shorter limit would announce a probe offline while it restarts gracefully (see
 	// probe.RetiredAt)
 	if cfg.ProbeOfflineAfter < config.MinProbeOfflineAfter {
@@ -267,6 +292,11 @@ func Validate(cfg *Config) error {
 		return fmt.Errorf("PROBE_OFFLINE_AFTER must be at most %s", config.MaxProbeOfflineAfter)
 	}
 
+	return nil
+}
+
+// validateAccountsAndMonitors checks the account email, signup and disabled monitor type settings
+func validateAccountsAndMonitors(cfg *Config) error {
 	// A sender host without a sender address stops startup, not the first password reset
 	if err := config.ValidateAccountSMTP(cfg.AccountSMTPHost, cfg.AccountSMTPFrom, cfg.AccountSMTPTLS); err != nil {
 		return err
@@ -282,6 +312,11 @@ func Validate(cfg *Config) error {
 		return err
 	}
 
+	return nil
+}
+
+// validateWebDir checks that the web build, when there is one, can be served
+func validateWebDir(cfg *Config) error {
 	// A WEB_DIR without a web build fails at startup, not on every page load
 	if cfg.WebDir != "" {
 		if err := web.CheckDir(cfg.WebDir); err != nil {
