@@ -346,6 +346,17 @@ The Ingress and the Istio VirtualService route only `/api`, `/probe` and `/socke
 
 Each component has a `replicaCount`, which is 3 by default, and `resources` with requests and limits. Change them under the component's name, for example `probe.replicaCount` or `api.resources`. The API replicas share one database and one leader, and the probe pods share the local probe's monitors, so add probe replicas to check more monitors. A pod that stops hands its monitors to the others.
 
+### Rolling restarts of the API
+
+A stopping API pod needs a moment to leave the Service's endpoints and the ingress's backends. Until it has, they still send it requests, and a pod that has already closed its port refuses them. So the API container sleeps for `api.preStopSleepSeconds` seconds (5 by default) in a `preStop` hook, still serving, before it gets `SIGTERM` and starts its own shutdown. The pod's `terminationGracePeriodSeconds` is that sleep plus the 35 seconds the API needs: 40 by default. The probe pods have no sleep and keep 35.
+
+```yaml
+api:
+  preStopSleepSeconds: 10   # 0 removes the hook; the grace period is then 35
+```
+
+Raise it if your ingress controller or load balancer is slow to drop a pod. The hook runs `sleep`, which the API image has, so it also works under `api.apparmor.enabled`.
+
 ## Upgrading
 
 1. Back up your PostgreSQL database. If you upgrade from 0.0.46 or earlier, also read [Upgrading stats storage](./upgrading-stats.md). If the release you run still has `producer`, `worker` and `ingester` values, also read [Upgrading to probes](./upgrading-to-probes.md): your values file needs a few changes.
