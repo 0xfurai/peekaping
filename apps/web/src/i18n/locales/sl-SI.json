@@ -435,6 +435,7 @@
       "email_invalid": "Prosimo, vnesite veljaven e-poštni naslov",
       "password_required": "Geslo je obvezno",
       "password_min_length": "Geslo mora biti dolgo vsaj 8 znakov.",
+      "password_complexity": "Geslo mora vsebovati veliko črko, malo črko, številko in poseben znak.",
       "passwords_mismatch": "Gesla se ne ujemata"
     }
   },

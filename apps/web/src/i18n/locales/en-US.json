@@ -435,6 +435,7 @@
       "email_invalid": "Please enter a valid email address",
       "password_required": "Password is required",
       "password_min_length": "Password must be at least 8 characters",
+      "password_complexity": "Password must include an uppercase letter, a lowercase letter, a number and a special character",
       "passwords_mismatch": "Passwords don't match"
     }
   },

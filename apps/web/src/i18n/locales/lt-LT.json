@@ -435,6 +435,7 @@
       "email_invalid": "Įveskite galiojantį el. pašto adresą",
       "password_required": "Slaptažodis yra privalomas",
       "password_min_length": "Slaptažodis turi būti ne trumpesnis nei 8 simboliai.",
+      "password_complexity": "Slaptažodyje turi būti didžioji raidė, mažoji raidė, skaičius ir specialusis simbolis.",
       "passwords_mismatch": "Slaptažodžiai nesutampa"
     }
   },

@@ -16,24 +16,24 @@ import { toast } from "sonner";
 import { useMutation } from "@tanstack/react-query";
 import { TypographyH4 } from "@/components/ui/typography";
 import { commonMutationErrorHandler } from "@/lib/utils";
+import { createNewPasswordSchema } from "@/lib/password";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
-const updatePasswordSchema = z
-  .object({
-    currentPassword: z.string().min(1, { message: "Old password is required" }),
-    newPassword: z
-      .string()
-      .min(8, { message: "New password must be at least 8 characters" }),
-    confirmPassword: z
-      .string()
-      .min(1, { message: "Please confirm new password" }),
-  })
-  .refine((data) => data.newPassword === data.confirmPassword, {
-    message: "Passwords do not match",
-    path: ["confirmPassword"],
-  });
+const createUpdatePasswordSchema = (t: (key: string) => string) =>
+  z
+    .object({
+      currentPassword: z.string().min(1, { message: "Old password is required" }),
+      newPassword: createNewPasswordSchema(t),
+      confirmPassword: z
+        .string()
+        .min(1, { message: "Please confirm new password" }),
+    })
+    .refine((data) => data.newPassword === data.confirmPassword, {
+      message: "Passwords do not match",
+      path: ["confirmPassword"],
+    });
 
-type UpdatePasswordFormValues = z.infer<typeof updatePasswordSchema>;
+type UpdatePasswordFormValues = z.infer<ReturnType<typeof createUpdatePasswordSchema>>;
 
 const UpdatePassword = () => {
   const { t } = useLocalizedTranslation();
@@ -43,7 +43,7 @@ const UpdatePassword = () => {
       newPassword: "",
       confirmPassword: "",
     },
-    resolver: zodResolver(updatePasswordSchema),
+    resolver: zodResolver(createUpdatePasswordSchema(t)),
   });
 
   const updatePasswordMutation = useMutation({

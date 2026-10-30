@@ -435,6 +435,7 @@
       "email_invalid": "Syötä kelvollinen sähköpostiosoite",
       "password_required": "Salasana on pakollinen",
       "password_min_length": "Salasanan tulee olla vähintään 8 merkkiä",
+      "password_complexity": "Salasanassa tulee olla iso kirjain, pieni kirjain, numero ja erikoismerkki",
       "passwords_mismatch": "Salasanat eivät täsmää"
     }
   },

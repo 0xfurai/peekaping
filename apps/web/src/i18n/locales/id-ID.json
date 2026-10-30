@@ -435,6 +435,7 @@
       "email_invalid": "Silakan masukkan alamat email yang valid",
       "password_required": "Kata sandi wajib diisi",
       "password_min_length": "Kata sandi harus minimal 8 karakter",
+      "password_complexity": "Kata sandi harus mengandung huruf besar, huruf kecil, angka, dan karakter khusus",
       "passwords_mismatch": "Kata sandi tidak cocok"
     }
   },

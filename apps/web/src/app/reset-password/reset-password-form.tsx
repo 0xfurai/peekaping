@@ -26,13 +26,14 @@ import {
 import { PasswordInput } from "@/components/ui/password-input";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 import { accountEmailFailure } from "@/lib/account-email";
+import { createNewPasswordSchema } from "@/lib/password";
 import { useAuthStore } from "@/store/auth";
 
 // The signup page's password rules
 const createResetPasswordSchema = (t: (key: string) => string) =>
   z
     .object({
-      password: z.string().min(8, t("forms.validation.password_min_length")),
+      password: createNewPasswordSchema(t),
       confirmPassword: z.string().min(8, t("forms.validation.password_min_length")),
     })
     .refine((data) => data.password === data.confirmPassword, {

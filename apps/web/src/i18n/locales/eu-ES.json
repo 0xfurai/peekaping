@@ -435,6 +435,7 @@
       "email_invalid": "Mesedez, sartu baliozko eposta helbidea",
       "password_required": "Pasahitza beharrezkoa da",
       "password_min_length": "Pasahitza gutxienez 8 karaktere izan behar du",
+      "password_complexity": "Pasahitzak letra larri bat, letra xehe bat, zenbaki bat eta karaktere berezi bat izan behar ditu",
       "passwords_mismatch": "Pasahitzak ez datoz bat"
     }
   },

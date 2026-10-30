@@ -435,6 +435,7 @@
       "email_invalid": "請輸入有效的電子郵件地址",
       "password_required": "密碼為必填",
       "password_min_length": "密碼至少要 8 個字元",
+      "password_complexity": "密碼必須包含大寫字母、小寫字母、數字和特殊字元",
       "passwords_mismatch": "密碼不一致"
     }
   },

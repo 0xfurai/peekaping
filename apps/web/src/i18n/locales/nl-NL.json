@@ -435,6 +435,7 @@
       "email_invalid": "Voer een geldig e-mailadres in.",
       "password_required": "Wachtwoord is verplicht",
       "password_min_length": "Wachtwoord moet minimaal 8 tekens bevatten.",
+      "password_complexity": "Wachtwoord moet een hoofdletter, een kleine letter, een cijfer en een speciaal teken bevatten.",
       "passwords_mismatch": "Wachtwoorden komen niet overeen"
     }
   },

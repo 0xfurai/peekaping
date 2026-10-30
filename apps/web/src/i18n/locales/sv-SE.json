@@ -435,6 +435,7 @@
       "email_invalid": "Ange en giltig e-postadress",
       "password_required": "Lösenord krävs",
       "password_min_length": "Lösenord måste vara minst 8 tecken",
+      "password_complexity": "Lösenordet måste innehålla en versal, en gemen, en siffra och ett specialtecken",
       "passwords_mismatch": "Lösenorden matchar inte"
     }
   },

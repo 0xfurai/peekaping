@@ -35,6 +35,7 @@ import { useEnterWorkspace } from "@/hooks/useEnterWorkspace";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 import { acceptInviteAndEnter } from "@/lib/accept-invite-and-enter";
 import { inviteNextPath } from "@/lib/next-path";
+import { createNewPasswordSchema } from "@/lib/password";
 import { workspaceErrorKey, workspaceErrorMessage } from "@/lib/workspace-errors";
 import { useAuthStore } from "@/store/auth";
 
@@ -140,7 +141,7 @@ function OtherAccount({ currentEmail, preview }: { currentEmail: string; preview
 
 const createSignupSchema = (t: (key: string) => string) =>
   z.object({
-    password: z.string().min(8, t("forms.validation.password_min_length")),
+    password: createNewPasswordSchema(t),
   });
 
 type SignupFormValues = z.infer<ReturnType<typeof createSignupSchema>>;

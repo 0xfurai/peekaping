@@ -435,6 +435,7 @@
       "email_invalid": "Vă rugăm să introduceți o adresă de e-mail validă",
       "password_required": "Parola este obligatorie",
       "password_min_length": "Parola trebuie să aibă cel puțin 8 caractere",
+      "password_complexity": "Parola trebuie să conțină o literă mare, o literă mică, o cifră și un caracter special",
       "passwords_mismatch": "Parolele nu se potrivesc"
     }
   },
