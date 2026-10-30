@@ -1,0 +1,18 @@
+To: oncall@example.com
+Subject: Public API is Maintenance
+
+Monitor: Public API
+Status: Maintenance
+Time: 2026-10-17 09:30:00 UTC
+
+Planned work
+
+Open the monitor:
+https://peekaping.example.com/w/ws-1/monitors/mon-1
+
+--- HTML
+<p>Monitor: <strong>Public API</strong><br>
+Status: <strong>Maintenance</strong><br>
+Time: <strong>2026-10-17 09:30:00 UTC</strong></p>
+<p>Planned work</p>
+<p><a href="https://peekaping.example.com/w/ws-1/monitors/mon-1">Open the monitor</a></p>
