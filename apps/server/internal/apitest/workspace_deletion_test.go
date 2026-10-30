@@ -10,10 +10,14 @@ import (
 	"peekaping/internal/config"
 	"peekaping/internal/modules/check"
 	"peekaping/internal/modules/cleanup"
+	"peekaping/internal/modules/events"
+	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/scheduler"
+	"peekaping/internal/modules/shared"
 	"peekaping/internal/modules/workspace"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/dig"
@@ -190,16 +194,64 @@ func TestWorkspaceDeletion_OneWorkspaceThatCantBeDeletedDoesNotStopTheOthers(t *
 	assert.Len(t, logs.FilterMessage("Deleted a workspace scheduled for deletion").All(), 1)
 }
 
+// changedAfterListing runs a change once the purge has listed the workspaces that are due, and
+// before it deletes the first of them: the gap in which an owner can cancel
+type changedAfterListing struct {
+	workspace.Repository
+	change func()
+	listed *[]workspace.ID
+}
+
+func (c changedAfterListing) ListDeletionDueAnyWorkspace(ctx context.Context, now time.Time) ([]workspace.ID, error) {
+	due, err := c.Repository.ListDeletionDueAnyWorkspace(ctx, now)
+	*c.listed = due
+	c.change()
+	return due, err
+}
+
+func TestWorkspaceDeletion_AWorkspaceCancelledAfterTheListingIsNotDeleted(t *testing.T) {
+	parallel(t)
+	forEachBackend(t, func(t *testing.T, backend func(*config.Config)) {
+		cases := map[string]bool{"cancelled": false, "cancelled and scheduled again": true}
+		for name, again := range cases {
+			t.Run(name, func(t *testing.T) {
+				a := newAppWithAdmin(t, backend)
+				saved := a.seedWorkspace(t, "Saved", "saved")
+				due := decode[scheduledDeletion](t, a.scheduleDeletion(t, "Saved", saved.owner), http.StatusOK).DeletionScheduledAt
+				before := a.footprint(t, saved)
+				core, logs := observer.New(zap.InfoLevel)
+				var listed []workspace.ID
+
+				require.NoError(t, a.container.Invoke(func(workspaces workspace.Repository, service workspace.Service) {
+					stale := changedAfterListing{Repository: workspaces, listed: &listed, change: func() {
+						require.Equal(t, http.StatusNoContent, a.cancelDeletion(t, saved.owner).Code)
+						if again {
+							require.Equal(t, http.StatusOK, a.scheduleDeletion(t, "Saved", saved.owner).Code)
+						}
+					}}
+					// At the date itself: the new schedule of the second case is later, so it is not due
+					cleanup.PurgeScheduledWorkspaces(context.Background(), stale, service, due, zap.New(core).Sugar())
+				}))
+
+				assert.Equal(t, []workspace.ID{saved.id}, listed, "it was due when the purge listed it")
+				assert.Equal(t, before, a.footprint(t, saved), "every row is kept")
+				assert.Empty(t, logs.FilterMessage("Deleted a workspace scheduled for deletion").All())
+				assert.Empty(t, logs.FilterMessage("Failed to delete a workspace scheduled for deletion").All(), "a workspace that is no longer due is no error")
+			})
+		}
+	})
+}
+
 type failingFor struct {
 	workspace.Service
 	fail workspace.ID
 }
 
-func (f failingFor) DeleteAnyWorkspace(ctx context.Context, id workspace.ID) error {
+func (f failingFor) DeleteDueAnyWorkspace(ctx context.Context, id workspace.ID, now time.Time) (bool, error) {
 	if id == f.fail {
-		return assert.AnError
+		return false, assert.AnError
 	}
-	return f.Service.DeleteAnyWorkspace(ctx, id)
+	return f.Service.DeleteDueAnyWorkspace(ctx, id, now)
 }
 
 // MARK: The hold
@@ -251,6 +303,58 @@ func assertRunning(t *testing.T, a *app, w acme, source *scheduler.DatabaseSourc
 	for path := range badgePaths(w.activeA) {
 		assert.Equal(t, http.StatusOK, a.request(t, http.MethodGet, path, nil).Code, path)
 	}
+}
+
+// workspaceWithAWebhookMonitor makes a workspace whose push monitor notifies the webhook
+func (a *app) workspaceWithAWebhookMonitor(t *testing.T, name, slug, hookURL string) (seededWorkspace, string) {
+	t.Helper()
+	w := a.seedWorkspace(t, name, slug)
+	channel := secretChannelOfType(t, "webhook").withVisible(map[string]any{"webhook_url": hookURL + "/hook"})
+	channelID := decode[created](t, a.request(t, http.MethodPost, "/api/v1/notification-channels", channel.body("Hook"), w.owner), http.StatusCreated).ID
+	body := with(pushMonitorBody(name+" monitor", slug+"-push-token"), "notification_ids", []string{channelID})
+	return w, decode[created](t, a.request(t, http.MethodPost, monitorsPath, body, w.owner), http.StatusCreated).ID
+}
+
+// monitorGoesDown announces, as the heartbeat pipeline does, that the monitor went down
+func (a *app) monitorGoesDown(t *testing.T, monitorID string) {
+	t.Helper()
+	require.NoError(t, a.container.Invoke(func(bus events.EventBus) error {
+		return events.Publish(context.Background(), bus, events.ImportantHeartbeat, heartbeat.Model{
+			ID: uuid.NewString(), MonitorID: monitorID, Status: shared.MonitorStatusDown, Msg: "connection refused", Important: true, Time: time.Now().UTC(),
+		})
+	}))
+}
+
+func (r *requestReceiver) bodies() []string {
+	var out []string
+	for _, request := range r.received() {
+		out = append(out, string(request.body))
+	}
+	return out
+}
+
+func TestWorkspaceDeletion_AHeldWorkspaceSendsNoNotificationAndOneThatIsCancelledDoes(t *testing.T) {
+	blockExternalHTTP(t)
+	// The webhook listens on this machine, which the cloud's run blocks
+	a := newAppWithAdmin(t, withBlockPrivateTargets(false))
+	a.takeNotificationsFromTheQueue(t)
+	hook := startRequestReceiver(t)
+	held, heldMonitor := a.workspaceWithAWebhookMonitor(t, "Held", "held", hook.url)
+	_, runningMonitor := a.workspaceWithAWebhookMonitor(t, "Running", "running", hook.url)
+	require.Equal(t, http.StatusOK, a.scheduleDeletion(t, "Held", held.owner).Code)
+
+	// The running workspace's is sent after the held one's was offered, so that its arrival says
+	// that the held one's would have been
+	a.monitorGoesDown(t, heldMonitor)
+	a.monitorGoesDown(t, runningMonitor)
+	require.Eventually(t, func() bool { return len(hook.received()) >= 1 }, 10*time.Second, 20*time.Millisecond, "the running workspace notifies")
+	require.Len(t, hook.bodies(), 1)
+	assert.Contains(t, hook.bodies()[0], "Running monitor")
+
+	require.Equal(t, http.StatusNoContent, a.cancelDeletion(t, held.owner).Code)
+	a.monitorGoesDown(t, heldMonitor)
+	require.Eventually(t, func() bool { return len(hook.received()) >= 2 }, 10*time.Second, 20*time.Millisecond, "and the held one notifies once cancelled")
+	assert.Contains(t, hook.bodies()[1], "Held monitor")
 }
 
 func TestWorkspaceDeletion_TheWorkspaceIsHeldDuringTheGracePeriodAndEveryMemberSeesTheDate(t *testing.T) {

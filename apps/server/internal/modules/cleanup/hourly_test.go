@@ -119,10 +119,10 @@ func (oneWorkspace) ListDeletionDueAnyWorkspace(context.Context, time.Time) ([]w
 // countingDeleter counts the workspaces the purge deletes
 type countingDeleter struct{ c *cleanups }
 
-func (d countingDeleter) DeleteAnyWorkspace(_ context.Context, id workspace.ID) error {
+func (d countingDeleter) DeleteDueAnyWorkspace(_ context.Context, id workspace.ID, _ time.Time) (bool, error) {
 	d.c.purges.Add(1)
 	d.c.deleted.Store(&[]workspace.ID{id})
-	return nil
+	return true, nil
 }
 
 // thirtyDays is a workspace setting service whose workspaces keep 30 days

@@ -193,8 +193,22 @@ func (r *SQLRepositoryImpl) FindOldest(ctx context.Context) (*Workspace, error) 
 }
 
 func (r *SQLRepositoryImpl) Delete(ctx context.Context, id ID) (*Deleted, error) {
+	return r.deleteWhere(ctx, id, nil)
+}
+
+func (r *SQLRepositoryImpl) DeleteDue(ctx context.Context, id ID, now time.Time) (*Deleted, error) {
+	return r.deleteWhere(ctx, id, &now)
+}
+
+// deleteWhere deletes the workspace; when dueAt is given, only if its deletion is scheduled and due
+// by then. The condition is part of the locking read, so that on PostgreSQL a cancellation that
+// commits while the delete waits for the row is seen once the lock is held.
+func (r *SQLRepositoryImpl) deleteWhere(ctx context.Context, id ID, dueAt *time.Time) (*Deleted, error) {
 	db := dbtx.DB(ctx, r.db)
 	lock := db.NewSelect().Table("workspaces").Column("id").Where("id = ?", string(id))
+	if dueAt != nil {
+		lock = lock.Where("deletion_scheduled_at IS NOT NULL AND deletion_scheduled_at <= ?", dueAt.UTC())
+	}
 	if r.db.Dialect().Name() == dialect.PG {
 		lock = lock.For("UPDATE")
 	}

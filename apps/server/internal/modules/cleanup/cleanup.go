@@ -229,14 +229,16 @@ func StartCleanupCron(
 	return c, nil
 }
 
-// WorkspaceDeleter deletes a workspace and everything in it. workspace.Service is one.
+// WorkspaceDeleter deletes a workspace and everything in it, if its scheduled deletion is still due
+// when it runs. workspace.Service is one.
 type WorkspaceDeleter interface {
-	DeleteAnyWorkspace(ctx context.Context, id workspace.ID) error
+	DeleteDueAnyWorkspace(ctx context.Context, id workspace.ID, now time.Time) (bool, error)
 }
 
 // PurgeScheduledWorkspaces deletes the workspaces whose scheduled deletion is due at now (PP-170),
-// each with everything in it. A workspace that can't be deleted is logged and left for the next
-// hour, and the others go on. It is exported so that a test can run it at a time of its own.
+// each with everything in it. A workspace whose deletion was cancelled or put off since the list
+// was read is kept. One that can't be deleted is logged and left for the next hour, and the others
+// go on. It is exported so that a test can run it at a time of its own.
 func PurgeScheduledWorkspaces(ctx context.Context, workspaces workspace.Repository, deleter WorkspaceDeleter, now time.Time, logger *zap.SugaredLogger) {
 	due, err := workspaces.ListDeletionDueAnyWorkspace(ctx, now)
 	if err != nil {
@@ -244,8 +246,14 @@ func PurgeScheduledWorkspaces(ctx context.Context, workspaces workspace.Reposito
 		return
 	}
 	for _, id := range due {
-		if err := deleter.DeleteAnyWorkspace(ctx, id); err != nil {
+		deleted, err := deleter.DeleteDueAnyWorkspace(ctx, id, now)
+		if err != nil {
 			logger.Errorw("Failed to delete a workspace scheduled for deletion", "workspace", id, "error", err)
+			continue
+		}
+		if !deleted {
+			// Its owner cancelled the deletion, or scheduled it again, since the list was read
+			logger.Infow("Kept a workspace whose scheduled deletion is no longer due", "workspace", id)
 			continue
 		}
 		logger.Infow("Deleted a workspace scheduled for deletion", "workspace", id)
