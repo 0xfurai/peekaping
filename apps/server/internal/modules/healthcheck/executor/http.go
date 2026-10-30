@@ -305,26 +305,20 @@ func guardedClient(guard *netguard.Guard) (*http.Client, func()) {
 	return &http.Client{Transport: transport}, transport.CloseIdleConnections
 }
 
+// statusPatternRanges maps each accepted status pattern to the codes it covers, from the first to
+// the one after the last
+var statusPatternRanges = map[string][2]int{
+	"2XX": {200, 300},
+	"3XX": {300, 400},
+	"4XX": {400, 500},
+	"5XX": {500, 600},
+}
+
 // Helper to check if status code matches accepted patterns
 func isStatusAccepted(statusCode int, accepted []string) bool {
 	for _, pattern := range accepted {
-		switch pattern {
-		case "2XX":
-			if statusCode >= 200 && statusCode < 300 {
-				return true
-			}
-		case "3XX":
-			if statusCode >= 300 && statusCode < 400 {
-				return true
-			}
-		case "4XX":
-			if statusCode >= 400 && statusCode < 500 {
-				return true
-			}
-		case "5XX":
-			if statusCode >= 500 && statusCode < 600 {
-				return true
-			}
+		if codes, ok := statusPatternRanges[pattern]; ok && statusCode >= codes[0] && statusCode < codes[1] {
+			return true
 		}
 	}
 	return false
@@ -354,59 +348,7 @@ func checkJsonQuery(responseBody, jsonQuery, condition, expectedValue string) (b
 	if jsonQuery == "" {
 		// When no query is specified, we want to compare the full response
 		if expectedValue != "" {
-			var responseJson, expectedJson interface{}
-
-			// Try to parse both as JSON first
-			responseIsJson := json.Unmarshal([]byte(responseBody), &responseJson) == nil
-			expectedIsJson := json.Unmarshal([]byte(expectedValue), &expectedJson) == nil
-
-			// If both are valid JSON, do JSON comparison
-			if responseIsJson && expectedIsJson {
-				// For JSON comparison, we need to marshal both back to normalized JSON strings
-				// This ensures consistent formatting and key ordering
-				responseJsonBytes, err := json.Marshal(responseJson)
-				if err != nil {
-					return false, fmt.Errorf("failed to marshal response JSON: %w", err)
-				}
-
-				expectedJsonBytes, err := json.Marshal(expectedJson)
-				if err != nil {
-					return false, fmt.Errorf("failed to marshal expected JSON: %w", err)
-				}
-
-				// Compare the normalized JSON strings
-				actualValue := string(responseJsonBytes)
-				expectedValueNormalized := string(expectedJsonBytes)
-
-				// Default condition is equality
-				if condition == "" {
-					condition = "=="
-				}
-
-				switch condition {
-				case "==":
-					return actualValue == expectedValueNormalized, nil
-				case "!=":
-					return actualValue != expectedValueNormalized, nil
-				default:
-					return false, fmt.Errorf("unsupported condition '%s' for full JSON comparison: only '==' and '!=' are supported", condition)
-				}
-			}
-
-			// If one or both are not valid JSON, fall back to string comparison
-			// But only allow == and != conditions for non-JSON comparison
-			if condition == "" {
-				condition = "=="
-			}
-
-			switch condition {
-			case "==":
-				return responseBody == expectedValue, nil
-			case "!=":
-				return responseBody != expectedValue, nil
-			default:
-				return false, fmt.Errorf("unsupported condition '%s' for non-JSON comparison: only '==' and '!=' are supported", condition)
-			}
+			return compareFullResponse(responseBody, condition, expectedValue)
 		}
 
 		// If no expected value, just return the raw response body as string for backward compatibility
@@ -422,8 +364,49 @@ func checkJsonQuery(responseBody, jsonQuery, condition, expectedValue string) (b
 		return result.Exists(), nil
 	}
 
-	actualValue := result.String()
+	return compareQueryResult(result.String(), condition, expectedValue)
+}
 
+// compareFullResponse compares the whole response to the expected value: as JSON when both are
+// JSON, and as text otherwise. Only equality is supported for either.
+func compareFullResponse(responseBody, condition, expectedValue string) (bool, error) {
+	var responseJson, expectedJson interface{}
+
+	// Try to parse both as JSON first
+	responseIsJson := json.Unmarshal([]byte(responseBody), &responseJson) == nil
+	expectedIsJson := json.Unmarshal([]byte(expectedValue), &expectedJson) == nil
+
+	// If both are valid JSON, do JSON comparison
+	if responseIsJson && expectedIsJson {
+		return compareNormalizedJSON(responseJson, expectedJson, condition)
+	}
+
+	// If one or both are not valid JSON, fall back to string comparison
+	// But only allow == and != conditions for non-JSON comparison
+	return compareEquality(responseBody, expectedValue, condition, "non-JSON")
+}
+
+// compareNormalizedJSON compares two parsed JSON values, as the normalized JSON they marshal to
+func compareNormalizedJSON(responseJson, expectedJson interface{}, condition string) (bool, error) {
+	// For JSON comparison, we need to marshal both back to normalized JSON strings
+	// This ensures consistent formatting and key ordering
+	responseJsonBytes, err := json.Marshal(responseJson)
+	if err != nil {
+		return false, fmt.Errorf("failed to marshal response JSON: %w", err)
+	}
+
+	expectedJsonBytes, err := json.Marshal(expectedJson)
+	if err != nil {
+		return false, fmt.Errorf("failed to marshal expected JSON: %w", err)
+	}
+
+	// Compare the normalized JSON strings
+	return compareEquality(string(responseJsonBytes), string(expectedJsonBytes), condition, "full JSON")
+}
+
+// compareEquality applies the == or != condition to two values. The condition is == when empty.
+// kind names what is compared, for the error of any other condition.
+func compareEquality(actualValue, expectedValue, condition, kind string) (bool, error) {
 	// Default condition is equality
 	if condition == "" {
 		condition = "=="
@@ -434,37 +417,50 @@ func checkJsonQuery(responseBody, jsonQuery, condition, expectedValue string) (b
 		return actualValue == expectedValue, nil
 	case "!=":
 		return actualValue != expectedValue, nil
-	case ">":
-		actualFloat, err1 := strconv.ParseFloat(actualValue, 64)
-		expectedFloat, err2 := strconv.ParseFloat(expectedValue, 64)
-		if err1 != nil || err2 != nil {
-			return strings.Compare(actualValue, expectedValue) > 0, nil
-		}
-		return actualFloat > expectedFloat, nil
-	case "<":
-		actualFloat, err1 := strconv.ParseFloat(actualValue, 64)
-		expectedFloat, err2 := strconv.ParseFloat(expectedValue, 64)
-		if err1 != nil || err2 != nil {
-			return strings.Compare(actualValue, expectedValue) < 0, nil
-		}
-		return actualFloat < expectedFloat, nil
-	case ">=":
-		actualFloat, err1 := strconv.ParseFloat(actualValue, 64)
-		expectedFloat, err2 := strconv.ParseFloat(expectedValue, 64)
-		if err1 != nil || err2 != nil {
-			return strings.Compare(actualValue, expectedValue) >= 0, nil
-		}
-		return actualFloat >= expectedFloat, nil
-	case "<=":
-		actualFloat, err1 := strconv.ParseFloat(actualValue, 64)
-		expectedFloat, err2 := strconv.ParseFloat(expectedValue, 64)
-		if err1 != nil || err2 != nil {
-			return strings.Compare(actualValue, expectedValue) <= 0, nil
-		}
-		return actualFloat <= expectedFloat, nil
 	default:
+		return false, fmt.Errorf("unsupported condition '%s' for %s comparison: only '==' and '!=' are supported", condition, kind)
+	}
+}
+
+// orderedComparison is a condition that orders two values: how it compares two numbers, and how it
+// reads the result of comparing two strings
+type orderedComparison struct {
+	numbers func(actual, expected float64) bool
+	strings func(compared int) bool
+}
+
+var orderedComparisons = map[string]orderedComparison{
+	">":  {func(a, e float64) bool { return a > e }, func(c int) bool { return c > 0 }},
+	"<":  {func(a, e float64) bool { return a < e }, func(c int) bool { return c < 0 }},
+	">=": {func(a, e float64) bool { return a >= e }, func(c int) bool { return c >= 0 }},
+	"<=": {func(a, e float64) bool { return a <= e }, func(c int) bool { return c <= 0 }},
+}
+
+// compareQueryResult applies the condition to the value a JSON query found. The condition is ==
+// when empty. Numbers compare as numbers, and anything else as strings.
+func compareQueryResult(actualValue, condition, expectedValue string) (bool, error) {
+	if condition == "" {
+		condition = "=="
+	}
+
+	switch condition {
+	case "==":
+		return actualValue == expectedValue, nil
+	case "!=":
+		return actualValue != expectedValue, nil
+	}
+
+	comparison, ok := orderedComparisons[condition]
+	if !ok {
 		return false, fmt.Errorf("unsupported condition: %s", condition)
 	}
+
+	actualFloat, err1 := strconv.ParseFloat(actualValue, 64)
+	expectedFloat, err2 := strconv.ParseFloat(expectedValue, 64)
+	if err1 != nil || err2 != nil {
+		return comparison.strings(strings.Compare(actualValue, expectedValue)), nil
+	}
+	return comparison.numbers(actualFloat, expectedFloat), nil
 }
 
 func buildProxyTransport(base *http.Transport, proxyModel *Proxy) http.RoundTripper {
