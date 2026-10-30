@@ -24,6 +24,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   getStatusPagesInfiniteQueryKey,
   getStatusPagesByIdQueryKey,
+  getStatusPagesDomainsByIdQueryKey,
   postStatusPagesMutation,
   patchStatusPagesByIdMutation,
 } from "@/api/@tanstack/react-query.gen";
@@ -33,6 +34,7 @@ import { commonMutationErrorHandler } from "@/lib/utils";
 import { showLimitReached } from "@/lib/limit-errors";
 import type { AxiosError } from "axios";
 import { useWorkspacePath } from "@/hooks/useWorkspacePath";
+import { useVerifyCustomDomains } from "@/hooks/useVerifyCustomDomains";
 
 // DNS, ports 80 and 443 and the Caddyfiles that give each custom domain a certificate
 const DOMAINS_DOCS_URL =
@@ -102,6 +104,7 @@ const CreateEditForm = ({
   const navigate = useNavigate();
   const workspacePath = useWorkspacePath();
   const queryClient = useQueryClient();
+  const verifyDomains = useVerifyCustomDomains();
   const [domainToHighlight, setDomainToHighlight] = useState<string | undefined>(undefined);
 
   const form = useForm<StatusPageFormValues>({
@@ -156,6 +159,9 @@ const CreateEditForm = ({
       });
       queryClient.removeQueries({
         queryKey: getStatusPagesByIdQueryKey({ path: { id: id! } }),
+      });
+      queryClient.invalidateQueries({
+        queryKey: getStatusPagesDomainsByIdQueryKey({ path: { id: id! } }),
       });
       navigate(workspacePath("/status-pages"));
     },
@@ -378,6 +384,7 @@ const CreateEditForm = ({
                   <FormLabel>{t("status_pages.domains")}</FormLabel>
                   <FormControl>
                     <DomainsManager
+                      pageId={mode === "edit" ? id : undefined}
                       value={field.value || []}
                       onChange={field.onChange}
                       error={{
@@ -389,7 +396,9 @@ const CreateEditForm = ({
                   <Alert className="mt-1">
                     <AlertCircleIcon className="w-4 h-4" />
                     <AlertDescription>
-                      {t("status_pages.domains_info_warning")}{" "}
+                      {verifyDomains
+                        ? t("status_pages.domain_verification.info")
+                        : t("status_pages.domains_info_warning")}{" "}
                       <a
                         href={DOMAINS_DOCS_URL}
                         target="_blank"
