@@ -435,6 +435,7 @@
       "email_invalid": "Palun sisesta kehtiv e-posti aadress",
       "password_required": "Parool on nõutav",
       "password_min_length": "Parool peab olema vähemalt 8 tähemärki",
+      "password_complexity": "Parool peab sisaldama suurtähte, väiketähte, numbrit ja erimärki",
       "passwords_mismatch": "Paroolid ei ühti"
     }
   },

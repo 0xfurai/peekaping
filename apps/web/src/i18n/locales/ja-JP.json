@@ -435,6 +435,7 @@
       "email_invalid": "有効なメールアドレスを入力してください",
       "password_required": "パスワードは必須です",
       "password_min_length": "パスワードは8文字以上にしてください",
+      "password_complexity": "パスワードには大文字、小文字、数字、特殊文字をそれぞれ1文字以上含めてください",
       "passwords_mismatch": "パスワードが一致しません"
     }
   },

@@ -435,6 +435,7 @@
       "email_invalid": "Por favor, introduce una dirección de correo electrónico válida.",
       "password_required": "La contraseña es obligatoria",
       "password_min_length": "La contraseña debe tener al menos 8 caracteres",
+      "password_complexity": "La contraseña debe incluir una letra mayúscula, una minúscula, un número y un carácter especial",
       "passwords_mismatch": "Las contraseñas no coinciden"
     }
   },

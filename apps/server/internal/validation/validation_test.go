@@ -28,6 +28,21 @@ func TestPasswordRule(t *testing.T) {
 		{name: "no number", password: "Abcdefgh!", valid: false},
 		{name: "no special character", password: "Abcdefgh1", valid: false},
 		{name: "empty", password: "", valid: false},
+		{name: "tilde as the special character", password: "Abcdefg1~", valid: true},
+		{name: "trailing space as the special character", password: "Abcdefg1 ", valid: true},
+		{name: "apostrophe", password: "Abcdefg1'", valid: true},
+		{name: "double quote", password: `Abcdefg1"`, valid: true},
+		{name: "slash", password: "Abcdefg1/", valid: true},
+		{name: "backslash", password: `Abcdefg1\`, valid: true},
+		{name: "backtick", password: "Abcdefg1`", valid: true},
+		{name: "7 characters, multi-byte letters with a digit and a special one", password: "Ééééé1!", valid: false},
+		{name: "7 characters with a multi-byte special one", password: "Abcde1€", valid: false},
+		{name: "7 characters, one an emoji outside the BMP", password: "Abcde1😀", valid: false},
+		{name: "8 characters with a multi-byte special one", password: "Abcdef1€", valid: true},
+		{name: "8 characters, one an emoji outside the BMP", password: "Abcdef1😀", valid: true},
+		{name: "multi-byte upper and lower case letters count", password: "Éééééé1!", valid: true},
+		{name: "multi-byte letters only, no number", password: "Éééééééé!", valid: false},
+		{name: "other letters and a number are no special character", password: "Abcdéf1ß", valid: false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

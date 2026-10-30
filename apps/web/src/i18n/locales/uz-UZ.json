@@ -435,6 +435,7 @@
       "email_invalid": "Iltimos, to‘g‘ri elektron pochta manzilini kiriting",
       "password_required": "Parol talab qilinadi",
       "password_min_length": "Parol kamida 8 belgidan iborat bo‘lishi kerak",
+      "password_complexity": "Parolda bosh harf, kichik harf, raqam va maxsus belgi bo‘lishi kerak",
       "passwords_mismatch": "Parollar mos kelmadi"
     }
   },

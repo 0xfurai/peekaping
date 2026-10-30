@@ -435,6 +435,7 @@
       "email_invalid": "Kérjük, adjon meg egy érvényes e-mail címet.",
       "password_required": "A jelszó megadása kötelező",
       "password_min_length": "A jelszónak legalább 8 karakterből kell állnia",
+      "password_complexity": "A jelszónak tartalmaznia kell nagybetűt, kisbetűt, számot és speciális karaktert",
       "passwords_mismatch": "A jelszavak nem egyeznek"
     }
   },

@@ -435,6 +435,7 @@
       "email_invalid": "Lütfen geçerli bir e-posta adresi giriniz",
       "password_required": "Şifre gereklidir",
       "password_min_length": "Şifre en az 8 karakter olmalıdır",
+      "password_complexity": "Şifre bir büyük harf, bir küçük harf, bir rakam ve bir özel karakter içermelidir",
       "passwords_mismatch": "Parolalar eşleşmiyor"
     }
   },

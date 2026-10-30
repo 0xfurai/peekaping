@@ -435,6 +435,7 @@
       "email_invalid": "Indtast venligst en gyldig e-mailadresse",
       "password_required": "Adgangskode er påkrævet",
       "password_min_length": "Adgangskoden skal være mindst 8 tegn",
+      "password_complexity": "Adgangskoden skal indeholde et stort bogstav, et lille bogstav, et tal og et specialtegn",
       "passwords_mismatch": "Adgangskoder matcher ikke"
     }
   },

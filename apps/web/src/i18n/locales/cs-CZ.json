@@ -435,6 +435,7 @@
       "email_invalid": "Zadejte platnou e-mailovou adresu",
       "password_required": "Heslo je povinné",
       "password_min_length": "Heslo musí mít alespoň 8 znaků.",
+      "password_complexity": "Heslo musí obsahovat velké písmeno, malé písmeno, číslici a speciální znak.",
       "passwords_mismatch": "Hesla se neshodují"
     }
   },

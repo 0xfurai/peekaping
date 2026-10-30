@@ -435,6 +435,7 @@
       "email_invalid": "Molimo unesite važeću e‑mail adresu",
       "password_required": "Лозинка је обавезна",
       "password_min_length": "Лозинка мора да буде барем 8 знакова",
+      "password_complexity": "Лозинка мора да садржи велико слово, мало слово, број и посебан знак",
       "passwords_mismatch": "Лозинке се не подударају"
     }
   },

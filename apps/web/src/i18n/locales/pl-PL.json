@@ -435,6 +435,7 @@
       "email_invalid": "Proszę wprowadzić poprawny adres e‑mail",
       "password_required": "Hasło jest wymagane",
       "password_min_length": "Hasło musi składać się z co najmniej 8 znaków",
+      "password_complexity": "Hasło musi zawierać wielką literę, małą literę, cyfrę i znak specjalny",
       "passwords_mismatch": "Hasła się nie zgadzają"
     }
   },

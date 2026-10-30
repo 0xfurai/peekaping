@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { createNewPasswordSchema } from "@/lib/password";
 import { Button } from "@/components/ui/button";
 import { PasswordInput } from "@/components/ui/password-input";
 import {
@@ -56,7 +57,7 @@ import {
 const createRegisterSchema = (t: (key: string) => string) => z
   .object({
     email: z.string().email(t("forms.validation.email_invalid")),
-    password: z.string().min(8, t("forms.validation.password_min_length")),
+    password: createNewPasswordSchema(t),
     confirmPassword: z
       .string()
       .min(8, t("forms.validation.password_min_length")),

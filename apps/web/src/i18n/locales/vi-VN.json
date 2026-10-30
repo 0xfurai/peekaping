@@ -435,6 +435,7 @@
       "email_invalid": "Vui lòng nhập địa chỉ email hợp lệ",
       "password_required": "Mật khẩu là bắt buộc",
       "password_min_length": "Mật khẩu phải có ít nhất 8 ký tự",
+      "password_complexity": "Mật khẩu phải có chữ hoa, chữ thường, chữ số và ký tự đặc biệt",
       "passwords_mismatch": "Mật khẩu không khớp"
     }
   },

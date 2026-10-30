@@ -435,6 +435,7 @@
       "email_invalid": "Veuillez saisir une adresse e‑mail valide.",
       "password_required": "Le mot de passe est requis",
       "password_min_length": "Le mot de passe doit contenir au moins 8 caractères",
+      "password_complexity": "Le mot de passe doit contenir une majuscule, une minuscule, un chiffre et un caractère spécial",
       "passwords_mismatch": "Les mots de passe ne correspondent pas"
     }
   },

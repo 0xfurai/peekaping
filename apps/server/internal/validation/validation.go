@@ -5,9 +5,9 @@ package validation
 
 import (
 	"encoding/json"
-	"strings"
 	"sync"
 	"unicode"
+	"unicode/utf8"
 
 	"github.com/go-playground/validator/v10"
 )
@@ -26,29 +26,27 @@ func ValidateConfig[T any](config string) (*T, error) {
 	return &cfg, nil
 }
 
+// minPasswordLength is counted in characters (runes), not bytes: a password of 7 multi-byte
+// letters is as short as one of 7 ASCII letters. The limit in bytes that bcrypt has is checked
+// where the password is hashed.
+const minPasswordLength = 8
+
 // validatePassword checks if the password meets all requirements:
 // - minimum length of 8 characters
 // - at least one uppercase letter
 // - at least one lowercase letter
 // - at least one number
-// - at least one special character
+// - at least one special character: any character that is no letter and no number, a space too
+//
+// The web app checks the same rules in apps/web/src/lib/password.ts, with the same Unicode classes
+// (\p{Lu}, \p{Ll}, \p{L}, \p{N}). Change the two together.
 func validatePassword(fl validator.FieldLevel) bool {
 	password := fl.Field().String()
-
-	// Check minimum length
-	if len(password) < 8 {
+	if utf8.RuneCountInString(password) < minPasswordLength {
 		return false
 	}
 
-	var (
-		hasUpper   bool
-		hasLower   bool
-		hasNumber  bool
-		hasSpecial bool
-	)
-
-	specialChars := "!@#$%^&*()_+-=[]{}|;:,.<>?"
-
+	var hasUpper, hasLower, hasNumber, hasSpecial bool
 	for _, char := range password {
 		switch {
 		case unicode.IsUpper(char):
@@ -57,7 +55,7 @@ func validatePassword(fl validator.FieldLevel) bool {
 			hasLower = true
 		case unicode.IsNumber(char):
 			hasNumber = true
-		case strings.ContainsRune(specialChars, char):
+		case !unicode.IsLetter(char):
 			hasSpecial = true
 		}
 	}
