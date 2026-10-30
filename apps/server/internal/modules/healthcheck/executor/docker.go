@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	dockercontainer "github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
 	"go.uber.org/zap"
 )
@@ -152,109 +153,148 @@ func (e *DockerExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Pr
 		}
 	}
 
-	var cli *client.Client
-	var cliErr error
-
-	if cfg.ConnectionType == "socket" {
-		cli, cliErr = client.NewClientWithOpts(
-			client.WithHost("unix://"+cfg.DockerDaemon),
-			client.WithAPIVersionNegotiation(),
-		)
-	} else if cfg.ConnectionType == "tcp" {
-		clientOpts := []client.Opt{
-			client.WithHost(cfg.DockerDaemon),
-			client.WithAPIVersionNegotiation(),
-		}
-
-		// Add TLS support for TCP connections
-		if cfg.TLSEnabled {
-			tlsConfig, err := e.createTLSConfig(cfg)
-			if err != nil {
-				return DownResult(fmt.Errorf("TLS configuration error: %w", err), start, time.Now().UTC())
-			}
-
-			httpClient := &http.Client{
-				Transport: &http.Transport{
-					TLSClientConfig: tlsConfig,
-				},
-			}
-			clientOpts = append(clientOpts, client.WithHTTPClient(httpClient))
-		}
-
-		// Dial through the guard while it is on. This comes after the HTTP client above, so it is
-		// the dial function of that client's transport that it replaces. The daemon is dialed
-		// itself: through a proxy from the environment, which WithHost sets up for a tcp://
-		// daemon, the guard would check the proxy's address and not the daemon's.
-		if e.on() {
-			clientOpts = append(clientOpts,
-				client.WithDialContext(e.dialer(&net.Dialer{Timeout: 32 * time.Second}).DialContext),
-				withoutEnvironmentProxy(),
-			)
-		}
-
-		cli, cliErr = client.NewClientWithOpts(clientOpts...)
-	} else {
-		return DownResult(fmt.Errorf("unknown docker connection type: %s", cfg.ConnectionType), start, time.Now().UTC())
-	}
-
-	if cliErr != nil {
-		return DownResult(fmt.Errorf("docker client error: %w", cliErr), start, time.Now().UTC())
+	cli, err := e.newClient(cfg)
+	if err != nil {
+		return DownResult(err, start, time.Now().UTC())
 	}
 	defer cli.Close()
 
 	container, err := cli.ContainerInspect(ctx, cfg.ContainerID)
 	if err != nil {
-		// Provide better error messages for common TLS issues
-		errorMsg := err.Error()
-		if strings.Contains(errorMsg, "certificate relies on legacy Common Name field") {
-			return DownResult(fmt.Errorf("container inspect error: %w\n\nHint: The Docker daemon's TLS certificate uses legacy Common Name instead of Subject Alternative Names. Try setting 'Verify TLS' to false, or update your Docker daemon with a proper certificate that includes SANs", err), start, time.Now().UTC())
-		}
-		if strings.Contains(errorMsg, "x509: certificate signed by unknown authority") {
-			return DownResult(fmt.Errorf("container inspect error: %w\n\nHint: The Docker daemon's certificate is not trusted. Provide a CA certificate or set 'Verify TLS' to false", err), start, time.Now().UTC())
-		}
-		if strings.Contains(errorMsg, "tls: failed to verify certificate") {
-			return DownResult(fmt.Errorf("container inspect error: %w\n\nHint: TLS certificate verification failed. Check your certificates or set 'Verify TLS' to false for testing", err), start, time.Now().UTC())
-		}
-		return DownResult(fmt.Errorf("container inspect error: %w", err), start, time.Now().UTC())
+		return DownResult(dockerInspectError(err), start, time.Now().UTC())
 	}
 
 	endTime := time.Now().UTC()
 
-	if container.State != nil && container.State.Running {
-		if container.State.Health != nil && container.State.Health.Status != "healthy" {
-			// Handle different health statuses appropriately
-			switch container.State.Health.Status {
-			case "starting":
-				return &Result{
-					Status:    shared.MonitorStatusPending,
-					Message:   container.State.Health.Status,
-					StartTime: start,
-					EndTime:   endTime,
-				}
-			case "unhealthy":
-				return DownResult(fmt.Errorf("container is unhealthy: %s", container.State.Health.Status), start, endTime)
-			default:
-				// For any other non-healthy status, consider it down
-				return DownResult(fmt.Errorf("container health status: %s", container.State.Health.Status), start, endTime)
-			}
+	return dockerContainerResult(container.State, start, endTime)
+}
+
+// newClient connects a Docker client to the daemon the config names
+func (e *DockerExecutor) newClient(cfg *DockerConfig) (*client.Client, error) {
+	var cli *client.Client
+	var cliErr error
+
+	switch cfg.ConnectionType {
+	case "socket":
+		cli, cliErr = client.NewClientWithOpts(
+			client.WithHost("unix://"+cfg.DockerDaemon),
+			client.WithAPIVersionNegotiation(),
+		)
+	case "tcp":
+		clientOpts, err := e.tcpClientOpts(cfg)
+		if err != nil {
+			return nil, err
 		}
-		var message string
-		if container.State.Health != nil {
-			message = container.State.Health.Status
-		} else {
-			message = container.State.Status
-		}
-		return &Result{
-			Status:    shared.MonitorStatusUp,
-			Message:   message,
-			StartTime: start,
-			EndTime:   endTime,
-		}
+		cli, cliErr = client.NewClientWithOpts(clientOpts...)
+	default:
+		return nil, fmt.Errorf("unknown docker connection type: %s", cfg.ConnectionType)
 	}
 
-	if container.State == nil {
+	if cliErr != nil {
+		return nil, fmt.Errorf("docker client error: %w", cliErr)
+	}
+	return cli, nil
+}
+
+// tcpClientOpts is the options of a client that connects to the daemon over TCP, with TLS when the
+// config asks for it
+func (e *DockerExecutor) tcpClientOpts(cfg *DockerConfig) ([]client.Opt, error) {
+	clientOpts := []client.Opt{
+		client.WithHost(cfg.DockerDaemon),
+		client.WithAPIVersionNegotiation(),
+	}
+
+	// Add TLS support for TCP connections
+	if cfg.TLSEnabled {
+		tlsConfig, err := e.createTLSConfig(cfg)
+		if err != nil {
+			return nil, fmt.Errorf("TLS configuration error: %w", err)
+		}
+
+		httpClient := &http.Client{
+			Transport: &http.Transport{
+				TLSClientConfig: tlsConfig,
+			},
+		}
+		clientOpts = append(clientOpts, client.WithHTTPClient(httpClient))
+	}
+
+	// Dial through the guard while it is on. This comes after the HTTP client above, so it is
+	// the dial function of that client's transport that it replaces. The daemon is dialed
+	// itself: through a proxy from the environment, which WithHost sets up for a tcp://
+	// daemon, the guard would check the proxy's address and not the daemon's.
+	if e.on() {
+		clientOpts = append(clientOpts,
+			client.WithDialContext(e.dialer(&net.Dialer{Timeout: 32 * time.Second}).DialContext),
+			withoutEnvironmentProxy(),
+		)
+	}
+
+	return clientOpts, nil
+}
+
+// dockerTLSHints explains the errors of a TLS connection to the daemon that are common, keyed by
+// the text that identifies each
+var dockerTLSHints = []struct{ match, hint string }{
+	{"certificate relies on legacy Common Name field", "The Docker daemon's TLS certificate uses legacy Common Name instead of Subject Alternative Names. Try setting 'Verify TLS' to false, or update your Docker daemon with a proper certificate that includes SANs"},
+	{"x509: certificate signed by unknown authority", "The Docker daemon's certificate is not trusted. Provide a CA certificate or set 'Verify TLS' to false"},
+	{"tls: failed to verify certificate", "TLS certificate verification failed. Check your certificates or set 'Verify TLS' to false for testing"},
+}
+
+// dockerInspectError wraps the error of a container inspect, with a hint for the common TLS issues
+func dockerInspectError(err error) error {
+	errorMsg := err.Error()
+	for _, h := range dockerTLSHints {
+		if strings.Contains(errorMsg, h.match) {
+			return fmt.Errorf("container inspect error: %w\n\nHint: %s", err, h.hint)
+		}
+	}
+	return fmt.Errorf("container inspect error: %w", err)
+}
+
+// dockerContainerResult is the check's result for the state of the inspected container
+func dockerContainerResult(state *dockercontainer.State, start, endTime time.Time) *Result {
+	if state == nil {
 		return DownResult(fmt.Errorf("container state is nil"), start, endTime)
 	}
 
-	return DownResult(fmt.Errorf("container state is %s", container.State.Status), start, endTime)
+	if !state.Running {
+		return DownResult(fmt.Errorf("container state is %s", state.Status), start, endTime)
+	}
+
+	if state.Health != nil && state.Health.Status != "healthy" {
+		return dockerUnhealthyResult(state.Health.Status, start, endTime)
+	}
+
+	var message string
+	if state.Health != nil {
+		message = state.Health.Status
+	} else {
+		message = state.Status
+	}
+	return &Result{
+		Status:    shared.MonitorStatusUp,
+		Message:   message,
+		StartTime: start,
+		EndTime:   endTime,
+	}
+}
+
+// dockerUnhealthyResult is the result for a running container whose health status isn't healthy
+func dockerUnhealthyResult(healthStatus string, start, endTime time.Time) *Result {
+	// Handle different health statuses appropriately
+	switch healthStatus {
+	case "starting":
+		return &Result{
+			Status:    shared.MonitorStatusPending,
+			Message:   healthStatus,
+			StartTime: start,
+			EndTime:   endTime,
+		}
+	case "unhealthy":
+		return DownResult(fmt.Errorf("container is unhealthy: %s", healthStatus), start, endTime)
+	default:
+		// For any other non-healthy status, consider it down
+		return DownResult(fmt.Errorf("container health status: %s", healthStatus), start, endTime)
+	}
 }
