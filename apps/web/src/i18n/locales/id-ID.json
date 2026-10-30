@@ -1944,6 +1944,7 @@
     "domain_already_used": "Domain {{domain}} sudah digunakan oleh halaman status lain",
     "domain_host_warning": "Domain ini sama dengan URL host Anda saat ini. Hal ini dapat menyebabkan konflik.",
     "domains": "Domain",
+    "domains_docs_link": "Domain kustom dan HTTPS",
     "domains_info_warning": "Jangan lupa menambahkan catatan CNAME ke DNS Anda untuk setiap domain.",
     "draft_status": "Konsep",
     "edit_page_name": "Ubah Halaman Status",

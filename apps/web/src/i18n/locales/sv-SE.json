@@ -1944,6 +1944,7 @@
     "domain_already_used": "Domänen {{domain}} används redan av en annan status-sida",
     "domain_host_warning": "Denna domän är densamma som din nuvarande värdadress. Det kan orsaka konflikter.",
     "domains": "Domäner",
+    "domains_docs_link": "Egna domäner och HTTPS",
     "domains_info_warning": "Glöm inte att lägga till CNAME-posterna i din DNS för varje domän.",
     "draft_status": "Utkast",
     "edit_page_name": "Redigera status­sida",

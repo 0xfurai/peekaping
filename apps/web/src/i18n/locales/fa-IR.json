@@ -1944,6 +1944,7 @@
     "domain_already_used": "دامین {{domain}} قبلاً توسط صفحه وضعیت دیگری استفاده شده است",
     "domain_host_warning": "این دامنه همان URL میزبان کنونی شما است. ممکن است باعث بروز تعارض شود.",
     "domains": "دامنه‌ها",
+    "domains_docs_link": "دامنه‌های سفارشی و HTTPS",
     "domains_info_warning": "فراموش نکنید که رکوردهای CNAME را برای هر دامنه در DNS خود اضافه کنید.",
     "draft_status": "پیش‌نویس",
     "edit_page_name": "ویرایش صفحه وضعیت",

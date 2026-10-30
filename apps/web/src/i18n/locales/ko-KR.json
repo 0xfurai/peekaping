@@ -1944,6 +1944,7 @@
     "domain_already_used": "도메인 {{domain}}은 이미 다른 상태 페이지에서 사용 중입니다.",
     "domain_host_warning": "이 도메인은 현재 호스트 URL과 동일합니다. 이로 인해 충돌이 발생할 수 있습니다.",
     "domains": "도메인",
+    "domains_docs_link": "사용자 지정 도메인과 HTTPS",
     "domains_info_warning": "각 도메인에 대해 DNS에 CNAME 레코드를 추가하는 것을 잊지 마세요.",
     "draft_status": "초안",
     "edit_page_name": "상태 페이지 편집",

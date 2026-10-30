@@ -1944,6 +1944,7 @@
     "domain_already_used": "Domeinua {{domain}} dagoeneko beste egoera-orri batek erabiltzen du.",
     "domain_host_warning": "Domeinua zure uneko ostalariaren URLa berdina da. Gatazkak sor daitezke.",
     "domains": "Domeinuak",
+    "domains_docs_link": "Domeinu pertsonalizatuak eta HTTPS",
     "domains_info_warning": "Ez ahaztu zure DNS-era CNAME erregistroak gehitzea, domeinu bakoitzeko.",
     "draft_status": "Zirriborroa",
     "edit_page_name": "Editatu egoera orria",

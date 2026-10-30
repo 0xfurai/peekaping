@@ -1944,6 +1944,7 @@
     "domain_already_used": "Domain {{domain}} on jo varattu toisen status-sivun toimesta",
     "domain_host_warning": "Tämä domain on sama kuin nykyinen isäntä-URL-osoitteesi. Tämä voi aiheuttaa konflikteja.",
     "domains": "Domainit",
+    "domains_docs_link": "Omat verkkotunnukset ja HTTPS",
     "domains_info_warning": "Älä unohda lisätä CNAME-tietueita DNS:ään jokaiselle domainille.",
     "draft_status": "Luonnos",
     "edit_page_name": "Muokkaa tilasivua",

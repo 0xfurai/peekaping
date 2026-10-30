@@ -1944,6 +1944,7 @@
     "domain_already_used": "Alan adı {{domain}} zaten başka bir durum sayfası tarafından kullanılıyor.",
     "domain_host_warning": "Bu alan adı, mevcut host URL'nizle aynıdır. Bu durum çatışmalara yol açabilir.",
     "domains": "Alan Adları",
+    "domains_docs_link": "Özel alan adları ve HTTPS",
     "domains_info_warning": "Her alan adı için CNAME kayıtlarını DNS'inize eklemeyi unutmayın.",
     "draft_status": "Taslak",
     "edit_page_name": "Durum Sayfasını Düzenle",

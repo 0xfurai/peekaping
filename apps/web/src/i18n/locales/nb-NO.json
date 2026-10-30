@@ -1944,6 +1944,7 @@
     "domain_already_used": "Domene {{domain}} er allerede i bruk av en annen statusside.",
     "domain_host_warning": "Dette domenet er det samme som din nåværende vert‑URL. Dette kan føre til konflikter.",
     "domains": "Domener",
+    "domains_docs_link": "Egendefinerte domener og HTTPS",
     "domains_info_warning": "Ikke glem å legge til CNAME‑poster i DNS‑en din for hvert domene.",
     "draft_status": "Utkast",
     "edit_page_name": "Rediger statusside",

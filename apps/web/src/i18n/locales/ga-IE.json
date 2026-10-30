@@ -1943,6 +1943,7 @@
     "domain_already_used": "Tá an t-ainm domain {{domain}} in úsáid cheana féin ag cianbhalla eile",
     "domain_host_warning": "Is an t‑ainmleabhra seo an URL reatha do fhreastalaí. D’fhéadfadh sé seo conbhróga a chruthú.",
     "domains": "Domhan",
+    "domains_docs_link": "Fearainn shaincheaptha agus HTTPS",
     "domains_info_warning": "Ná déan dearmad na taifid CNAME a chur do DNS do gach fearann.",
     "draft_status": "Dréacht",
     "edit_page_name": "Cuir Leathanach Stáit in Eagar",

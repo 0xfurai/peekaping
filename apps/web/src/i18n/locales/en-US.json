@@ -1944,6 +1944,7 @@
     "domain_already_used": "Domain {{domain}} is already used by another status page",
     "domain_host_warning": "This domain is the same as your current host URL. This may cause conflicts.",
     "domains": "Domains",
+    "domains_docs_link": "Custom domains and HTTPS",
     "domains_info_warning": "Don't forget to add the CNAME records to your DNS for each domain.",
     "draft_status": "Draft",
     "edit_page_name": "Edit Status Page",

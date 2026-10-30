@@ -1944,6 +1944,7 @@
     "domain_already_used": "域名 {{domain}} 已經被其他狀態頁使用",
     "domain_host_warning": "呢個域名同你而家嘅主機網址相同，可能會造成衝突。",
     "domains": "域名",
+    "domains_docs_link": "自訂網域同 HTTPS",
     "domains_info_warning": "記得為每個域名喺 DNS 入面加上 CNAME 紀錄。",
     "draft_status": "草稿",
     "edit_page_name": "編輯狀態頁",

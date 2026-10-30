@@ -11,6 +11,7 @@ import (
 	"peekaping/internal/modules/monitor_status_page"
 	"peekaping/internal/modules/workspace"
 	"peekaping/internal/utils"
+	"strings"
 
 	"go.uber.org/zap"
 )
@@ -33,6 +34,10 @@ type Service interface {
 	// FindPublishedByDomainAnyWorkspace serves a visitor of a custom domain, and is ErrUnavailable
 	// like FindPublishedBySlugAnyWorkspace
 	FindPublishedByDomainAnyWorkspace(ctx context.Context, domain string) (*Model, error)
+	// IsServedAnyWorkspace reports whether domain is on the custom domain list, whatever page holds
+	// it and whether that page is published. It is the one decision about which hosts get a
+	// certificate, for the TLS ask endpoint.
+	IsServedAnyWorkspace(ctx context.Context, domain string) (bool, error)
 	FindAll(ctx context.Context, workspaceID workspace.ID, page int, limit int, q string) ([]*Model, error)
 	// FindAllAnyWorkspace lists the pages of every workspace: the usage ping describes the install
 	FindAllAnyWorkspace(ctx context.Context, page int, limit int) ([]*Model, error)
@@ -475,6 +480,25 @@ func (s *ServiceImpl) FindPublishedByDomainAnyWorkspace(ctx context.Context, dom
 
 	page, err := s.repository.FindByIDAnyWorkspace(ctx, domainStatusPage.StatusPageID)
 	return s.available(ctx, page, err)
+}
+
+// IsServedAnyWorkspace reports whether domain is a custom domain of any status page, published or
+// not, so a page's certificate is ready when it is published. A host is the same in any case and
+// with one trailing dot, which is how a resolver may write it, and a domain is saved as written, so
+// it matches a stored domain with or without that dot. Only the answer leaves: the page, its
+// workspace and its state do not.
+func (s *ServiceImpl) IsServedAnyWorkspace(ctx context.Context, domain string) (bool, error) {
+	host := strings.TrimSuffix(strings.TrimSpace(domain), ".")
+	if host == "" || strings.HasSuffix(host, ".") {
+		return false, nil
+	}
+	for _, form := range []string{host, host + "."} {
+		listed, err := s.domainStatusPageService.FindByDomain(ctx, form)
+		if err != nil || listed != nil {
+			return listed != nil, err
+		}
+	}
+	return false, nil
 }
 
 // available is the page when it is published and its workspace is not suspended: nil when it is not

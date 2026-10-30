@@ -36,6 +36,7 @@ var anyWorkspaceCallers = map[string]string{
 	// public status pages and badges
 	"internal/modules/status_page.Controller.FindBySlug":      "a visitor of a public status page is in no workspace; the slug is unique across the install",
 	"internal/modules/status_page.Controller.FindByDomain":    "a visitor of a custom domain is in no workspace; the domain is unique across the install",
+	"internal/modules/status_page.Controller.TLSAsk":          "Caddy asks, with no login, whether a host is on the custom domain list; the domain is unique across the install and only yes or no leaves",
 	"internal/modules/status_page.Controller.publishedPage":   "a visitor finds a published page by its slug, in no workspace",
 	"internal/modules/status_page.Controller.publicMonitor":   "a monitor of a published page, loaded for the visitor",
 	"internal/modules/status_page.Controller.publicLocations": "the heartbeats and uptime of a monitor on a published page",

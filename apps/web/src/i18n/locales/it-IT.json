@@ -1944,6 +1944,7 @@
     "domain_already_used": "Il dominio {{domain}} è già in uso da un'altra pagina di stato",
     "domain_host_warning": "Questo dominio è identico all'URL host corrente. Questo potrebbe causare conflitti.",
     "domains": "Domini",
+    "domains_docs_link": "Domini personalizzati e HTTPS",
     "domains_info_warning": "Non dimenticare di aggiungere i record CNAME al tuo DNS per ogni dominio.",
     "draft_status": "Bozza",
     "edit_page_name": "Modifica pagina di stato",

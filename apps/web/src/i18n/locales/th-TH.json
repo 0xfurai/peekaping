@@ -1944,6 +1944,7 @@
     "domain_already_used": "โดเมน {{domain}} ถูกใช้โดยหน้าแสดงสถานะอื่นแล้ว",
     "domain_host_warning": "โดเมนนี้ตรงกับ URL ของโฮสต์ปัจจุบันของคุณ ซึ่งอาจทำให้เกิดความขัดแย้ง",
     "domains": "โดเมน",
+    "domains_docs_link": "โดเมนที่กำหนดเองและ HTTPS",
     "domains_info_warning": "อย่าลืมเพิ่มระเบียน CNAME ใน DNS ของคุณสำหรับแต่ละโดเมน",
     "draft_status": "ร่าง",
     "edit_page_name": "แก้ไขหน้าสถานะ",

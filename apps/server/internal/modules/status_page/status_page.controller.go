@@ -123,6 +123,21 @@ func (c *Controller) FindByDomain(ctx context.Context, input *FindByDomainInput)
 	}
 	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("success", page))
 }
+
+// TLSAsk answers Caddy's on_demand_tls ask: 200 and no body for a host on the custom domain list,
+// 404 for any other. It names no page and says nothing else.
+func (c *Controller) TLSAsk(ctx context.Context, input *TLSAskInput) (*httpx.Output[httpx.EmptyBody], error) {
+	domain := input.Request.URL.Query().Get("domain")
+	served, err := c.service.IsServedAnyWorkspace(ctx, domain)
+	if err != nil {
+		c.logger.Errorw("Failed to check a domain for the TLS ask", "error", err, "domain", domain)
+		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+	}
+	if !served {
+		return nil, httpx.Fail(http.StatusNotFound, utils.NewFailResponse("Not found"))
+	}
+	return httpx.Empty(http.StatusOK)
+}
 func (c *Controller) FindAll(ctx context.Context, input *FindAllInput) (*httpx.Output[utils.ApiResponse[[]*Model]], error) {
 	workspaceID, err := workspacehttp.Scope(ctx)
 	if err != nil {

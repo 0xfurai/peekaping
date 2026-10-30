@@ -282,6 +282,9 @@ import type {
   GetStatusPagesSlugBySlugMonitorsHomepageData,
   GetStatusPagesSlugBySlugMonitorsHomepageResponses,
   GetStatusPagesSlugBySlugMonitorsHomepageErrors,
+  GetStatusPagesTlsAskData,
+  GetStatusPagesTlsAskResponses,
+  GetStatusPagesTlsAskErrors,
   DeleteStatusPagesByIdData,
   DeleteStatusPagesByIdResponses,
   DeleteStatusPagesByIdErrors,
@@ -2794,6 +2797,23 @@ export const getStatusPagesSlugBySlugMonitorsHomepage = <
   >({
     responseType: "json",
     url: "/api/v1/status-pages/slug/{slug}/monitors/homepage",
+    ...options,
+  });
+};
+
+/**
+ * Ask whether a host may get a certificate
+ * For Caddy's on_demand_tls ask option: 200 with no body when the domain is on a status page's custom domain list, published or not, and 404 when it is not. The domain is compared in lower case and without a trailing dot. It reveals nothing beyond yes or no.
+ */
+export const getStatusPagesTlsAsk = <ThrowOnError extends boolean = false>(
+  options: Options<GetStatusPagesTlsAskData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).get<
+    GetStatusPagesTlsAskResponses,
+    GetStatusPagesTlsAskErrors,
+    ThrowOnError
+  >({
+    url: "/api/v1/status-pages/tls-ask",
     ...options,
   });
 };

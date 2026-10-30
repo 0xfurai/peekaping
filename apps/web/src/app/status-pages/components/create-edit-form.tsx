@@ -34,6 +34,10 @@ import { showLimitReached } from "@/lib/limit-errors";
 import type { AxiosError } from "axios";
 import { useWorkspacePath } from "@/hooks/useWorkspacePath";
 
+// DNS, ports 80 and 443 and the Caddyfiles that give each custom domain a certificate
+const DOMAINS_DOCS_URL =
+  "https://docs.peekaping.com/self-hosting/docker-with-sqlite#custom-domains-and-https";
+
 const statusPageSchema = z.object({
   title: z.string().min(1, "Title is required"),
   slug: z
@@ -385,7 +389,15 @@ const CreateEditForm = ({
                   <Alert className="mt-1">
                     <AlertCircleIcon className="w-4 h-4" />
                     <AlertDescription>
-                      {t("status_pages.domains_info_warning")}
+                      {t("status_pages.domains_info_warning")}{" "}
+                      <a
+                        href={DOMAINS_DOCS_URL}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="underline text-blue-600"
+                      >
+                        {t("status_pages.domains_docs_link")}
+                      </a>
                     </AlertDescription>
                   </Alert>
                 </FormItem>

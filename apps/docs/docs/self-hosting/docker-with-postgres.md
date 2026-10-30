@@ -156,6 +156,10 @@ With `TRUSTED_PROXIES` empty behind a proxy, every login counts as coming from t
 
 Whatever you set, Peekaping also locks an account after `BRUTEFORCE_ACCOUNT_MAX_ATTEMPTS` failed logins (100 by default) from any addresses within `BRUTEFORCE_ACCOUNT_WINDOW` (10 minutes). A lock lasts `BRUTEFORCE_ACCOUNT_LOCKOUT` (1 minute). The count of failures is kept until the window, measured from the first failure, has passed, so until then each further failure after a lock ends locks the account again. So guessing is bounded to the limit per window plus one attempt each time a lock ends, and after an attack stops the owner is back in within the window at most. An attacker who keeps going can keep the account locked. [API Server](../architecture/api-server.md#security-configuration) lists the lockout settings.
 
+### Custom domains and HTTPS
+
+To serve a status page on a domain of its own, with a certificate for each domain, see [Custom domains and HTTPS](./docker-with-sqlite.md#custom-domains-and-https). It covers DNS, the Caddyfiles and Caddy in a container. In the Compose example there, the `peekaping` service is the one in the file above.
+
 ### Upgrading from the PostgreSQL bundle
 
 If you run the `peekaping-bundle-postgres` image, from 0.0.44 to 0.0.47, which ran Redis, Caddy and PostgreSQL inside one container, see [Moving from the PostgreSQL bundle](./upgrading-to-single-mode.md#moving-from-the-postgresql-bundle). The image gets no new tags, and the page copies your database into the layout above.

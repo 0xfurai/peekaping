@@ -1944,6 +1944,7 @@
     "domain_already_used": "A(z) {{domain}} domain már egy másik státuszoldal által van használva.",
     "domain_host_warning": "Ez a domain megegyezik a jelenlegi hosztnév URL-jével. Ez konfliktusokat okozhat.",
     "domains": "Domainok",
+    "domains_docs_link": "Egyéni domainek és HTTPS",
     "domains_info_warning": "Ne felejtsd el hozzáadni a CNAME rekordokat a DNS-hez minden domain-hez.",
     "draft_status": "Piszkozat",
     "edit_page_name": "Állapotoldal szerkesztése",

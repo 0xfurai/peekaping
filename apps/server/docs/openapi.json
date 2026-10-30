@@ -16095,6 +16095,53 @@
         ]
       }
     },
+    "/api/v1/status-pages/tls-ask": {
+      "get": {
+        "description": "For Caddy's on_demand_tls ask option: 200 with no body when the domain is on a status page's custom domain list, published or not, and 404 when it is not. The domain is compared in lower case and without a trailing dot. It reveals nothing beyond yes or no.",
+        "operationId": "getStatusPagesTlsAsk",
+        "parameters": [
+          {
+            "description": "The host a certificate is asked for",
+            "in": "query",
+            "name": "domain",
+            "required": true,
+            "schema": {
+              "description": "The host a certificate is asked for",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Ask whether a host may get a certificate",
+        "tags": [
+          "status_page"
+        ]
+      }
+    },
     "/api/v1/status-pages/{id}": {
       "delete": {
         "operationId": "deleteStatusPagesById",
