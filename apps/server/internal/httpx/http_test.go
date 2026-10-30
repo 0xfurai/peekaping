@@ -70,9 +70,19 @@ func TestCORS_AnAllowedOriginReadsTheResponse(t *testing.T) {
 	assert.True(t, ran)
 	assert.Equal(t, 202, w.Code)
 	assert.Equal(t, "https://client.example", w.Header().Get("Access-Control-Allow-Origin"))
-	assert.Equal(t, "Authorization, X-Request-ID, Retry-After", w.Header().Get("Access-Control-Expose-Headers"))
+	assert.Equal(t, "Authorization, X-Request-ID, Retry-After, Content-Disposition", w.Header().Get("Access-Control-Expose-Headers"))
 	assert.Equal(t, []string{"Origin"}, w.Header().Values("Vary"))
 	assert.Empty(t, w.Header().Get("Access-Control-Allow-Credentials"))
+}
+
+func TestCORS_TheExportsFileNameIsExposedToTheWebApp(t *testing.T) {
+	w, _ := serveCORS(corsOrigins(t, "https://client.example"), "GET", "https://client.example")
+
+	exposed := strings.Split(w.Header().Get("Access-Control-Expose-Headers"), ",")
+	for i := range exposed {
+		exposed[i] = strings.TrimSpace(exposed[i])
+	}
+	assert.Contains(t, exposed, "Content-Disposition")
 }
 
 func TestCORS_APreflightFromAnAllowedOriginIsAnswered(t *testing.T) {
@@ -151,7 +161,7 @@ func TestCORS_AStarAllowsAnyOriginWithoutCredentials(t *testing.T) {
 	w, ran := serveCORS(origins, "GET", "https://anything.example")
 	assert.True(t, ran)
 	assert.Equal(t, "*", w.Header().Get("Access-Control-Allow-Origin"))
-	assert.Equal(t, "Authorization, X-Request-ID, Retry-After", w.Header().Get("Access-Control-Expose-Headers"))
+	assert.Equal(t, "Authorization, X-Request-ID, Retry-After, Content-Disposition", w.Header().Get("Access-Control-Expose-Headers"))
 	assert.Empty(t, w.Header().Values("Vary"))
 	assert.Empty(t, w.Header().Get("Access-Control-Allow-Credentials"))
 
