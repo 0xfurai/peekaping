@@ -86,6 +86,23 @@ describe("The monitor form's notification picker", () => {
     expect(html).not.toContain(LOAD_FAILED);
   });
 
+  // The first load, and a retry (TanStack resets a failed query without data to pending, with no
+  // error), have no channels yet and so can't say there are none
+  it("doesn't claim there are no channels while they load, and disables the select", () => {
+    const pending = (client: QueryClient) => {
+      const { queryKey } = allNotificationChannelsOptions();
+      client.setQueryDefaults(queryKey, { retryOnMount: false });
+      client.getQueryCache().build(client, { queryKey }).setState({ status: "pending", error: null, fetchStatus: "fetching" });
+    };
+    const html = picker(pending);
+    expect(html).not.toContain(NO_CHANNELS);
+    expect(html).not.toContain(text("monitors.form.shared.notifications.no_channels_available"));
+    expect(html).not.toContain(LOAD_FAILED);
+    expect(html).not.toContain(text("common.retry"));
+    expect(html).toContain(text("monitors.form.shared.notifications.add_notifier"));
+    expect(html).toMatch(/<button[^>]*role="combobox"[^>]*disabled=""/);
+  });
+
   it("says the channels could not be loaded, not that there are none, when the request failed", () => {
     const html = picker(failedRequest);
     expect(html).toContain(LOAD_FAILED);

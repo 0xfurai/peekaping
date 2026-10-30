@@ -80,13 +80,14 @@ const Notifications = ({ onNewNotifier }: { onNewNotifier?: () => void }) => {
   const notification_ids = form.watch("notification_ids");
 
   // Every channel, so that a ticked one past the list's first page is shown and can be chosen
-  const { data: notifications, isError, refetch } = useQuery({
+  const { data: notifications, isError, isPending, refetch } = useQuery({
     ...allNotificationChannelsOptions(),
   });
   // A refresh that failed after the channels were read still has them to show
   const loadFailed = isError && !notifications;
   const availableNotifiers = availableChannels(notifications?.data, notification_ids || []);
-  const hasChannels = (notifications?.data?.length ?? 0) > 0;
+  // Until the channels are read, on the first load and on a retry, there is no knowing there are none
+  const noChannels = !isPending && !notifications?.data?.length;
 
   return (
     <div className="flex flex-col gap-2">
@@ -104,13 +105,14 @@ const Notifications = ({ onNewNotifier }: { onNewNotifier?: () => void }) => {
             render={({ field }) => (
               <FormItem className="flex-1">
                 <FormLabel className="pb-1">
-                  {hasChannels
-                    ? t("monitors.form.shared.notifications.add_notifier")
-                    : t("monitors.form.shared.notifications.no_channels")}
+                  {noChannels
+                    ? t("monitors.form.shared.notifications.no_channels")
+                    : t("monitors.form.shared.notifications.add_notifier")}
                 </FormLabel>
                 {/* FormControl goes on the trigger: the Select root renders no
                     element, so the label's id and aria attributes would be lost. */}
                 <Select
+                  disabled={isPending}
                   value={"none"}
                   onValueChange={(val) => {
                     if (!val || val === "none") return;
@@ -130,9 +132,9 @@ const Notifications = ({ onNewNotifier }: { onNewNotifier?: () => void }) => {
 
                   <SelectContent>
                     <SelectItem value="none" disabled>
-                      {hasChannels
-                        ? t("monitors.form.shared.notifications.select_channel")
-                        : t("monitors.form.shared.notifications.no_channels_available")}
+                      {noChannels
+                        ? t("monitors.form.shared.notifications.no_channels_available")
+                        : t("monitors.form.shared.notifications.select_channel")}
                     </SelectItem>
                     {availableNotifiers.map((n) => (
                       <SelectItem key={n.id} value={n.id || "none"}>
