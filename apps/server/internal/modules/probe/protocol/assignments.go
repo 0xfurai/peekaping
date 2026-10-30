@@ -64,25 +64,41 @@ func (c *Controller) Assignments(ctx context.Context, input *AssignmentsInput) (
 		wake := c.waker.Wait(pollCtx, owner.ID)
 
 		current, err := c.assign(pollCtx, owner.ID, instanceID)
-		switch {
-		case errors.Is(err, errProbeGone):
-			return nil, httpx.Fail(http.StatusUnauthorized, utils.NewFailResponse(messageInvalidToken))
-		case err != nil && r.Context().Err() != nil:
-			return notModified()
-		case err != nil:
-			return nil, c.fail(err)
-		case current.version != held:
+		if err != nil {
+			return c.assignFailed(r, err)
+		}
+		if current.version != held {
 			return httpx.Reply(http.StatusOK, probeproto.AssignmentsResponse{Version: current.version, Monitors: current.monitors})
 		}
 
-		select {
-		case <-wake:
-			// Something changed, or the probe hung up. The version says which.
-		case <-c.waker.Closed():
-			return notModified()
-		case <-timeout.C:
+		if !c.changed(wake, timeout) {
 			return notModified()
 		}
+	}
+}
+
+// assignFailed is the answer to a poll that could not read its assignment
+func (c *Controller) assignFailed(r *http.Request, err error) (*httpx.Output[probeproto.AssignmentsResponse], error) {
+	switch {
+	case errors.Is(err, errProbeGone):
+		return nil, httpx.Fail(http.StatusUnauthorized, utils.NewFailResponse(messageInvalidToken))
+	case r.Context().Err() != nil:
+		return notModified()
+	}
+	return nil, c.fail(err)
+}
+
+// changed waits for the wake of a poll, and reports whether it came: false when the server is
+// closing or the poll timed out
+func (c *Controller) changed(wake <-chan struct{}, timeout *time.Timer) bool {
+	select {
+	case <-wake:
+		// Something changed, or the probe hung up. The version says which.
+		return true
+	case <-c.waker.Closed():
+		return false
+	case <-timeout.C:
+		return false
 	}
 }
 

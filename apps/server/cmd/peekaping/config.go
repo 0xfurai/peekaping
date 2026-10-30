@@ -77,6 +77,11 @@ type Config struct {
 	// to scrape. Off by default since it exposes monitor names and status.
 	MetricsEnabled bool `env:"METRICS_ENABLED" default:"false"`
 
+	// A port that serves /metrics alone, on all interfaces, instead of the API port. Unset (the
+	// default), /metrics is on the API port. Needs METRICS_ENABLED=true and must differ from
+	// SERVER_PORT, which config.ValidateMetricsPort checks.
+	MetricsPort string `env:"METRICS_PORT"`
+
 	// How many days the hourly cleanup keeps notification history. The history stops a
 	// certificate expiry notification from being sent twice, so it must outlast the
 	// default thresholds (the largest is 21 days): the minimum is 30. 0 counts as unset
@@ -194,6 +199,17 @@ func LoadAndValidate(path string) (*Config, error) {
 
 // Validate validates peekaping's configuration
 func Validate(cfg *Config) error {
+	for _, check := range []func(*Config) error{validateStorage, validateBruteforce, validateAddresses, validateProbe, validateAccountsAndMonitors, validateWebDir} {
+		if err := check(cfg); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// validateStorage checks the database settings
+func validateStorage(cfg *Config) error {
 	// MongoDB storage was removed, and the db_type validator below would only call the value invalid
 	if err := config.RefuseMongoStorage(cfg.DBType); err != nil {
 		return err
@@ -221,7 +237,11 @@ func Validate(cfg *Config) error {
 		return fmt.Errorf("database validation failed: %w", err)
 	}
 
-	// Validate bruteforce settings
+	return nil
+}
+
+// validateBruteforce checks the login lockout settings
+func validateBruteforce(cfg *Config) error {
 	if cfg.BruteforceMaxAttempts <= 0 {
 		return fmt.Errorf("BRUTEFORCE_MAX_ATTEMPTS must be greater than 0")
 	}
@@ -241,6 +261,16 @@ func Validate(cfg *Config) error {
 		return fmt.Errorf("BRUTEFORCE_ACCOUNT_LOCKOUT must be a positive duration")
 	}
 
+	return nil
+}
+
+// validateAddresses checks the settings that name a port, a proxy or an origin
+func validateAddresses(cfg *Config) error {
+	// A METRICS_PORT that isn't a port, equals SERVER_PORT or has no /metrics to serve stops startup
+	if err := config.ValidateMetricsPort(cfg.MetricsEnabled, cfg.MetricsPort, cfg.Port); err != nil {
+		return err
+	}
+
 	// A mistyped TRUSTED_PROXIES stops startup: ignoring it would hide a setup that doesn't
 	// protect the login lockout the way its operator thinks it does.
 	if _, err := httpx.ParseTrustedProxies(cfg.TrustedProxies); err != nil {
@@ -253,6 +283,11 @@ func Validate(cfg *Config) error {
 		return err
 	}
 
+	return nil
+}
+
+// validateProbe checks the local probe's settings
+func validateProbe(cfg *Config) error {
 	// A shorter limit would announce a probe offline while it restarts gracefully (see
 	// probe.RetiredAt)
 	if cfg.ProbeOfflineAfter < config.MinProbeOfflineAfter {
@@ -264,6 +299,12 @@ func Validate(cfg *Config) error {
 		return fmt.Errorf("PROBE_OFFLINE_AFTER must be at most %s", config.MaxProbeOfflineAfter)
 	}
 
+	return nil
+}
+
+// validateAccountsAndMonitors checks the account email, signup, disabled monitor type and custom
+// domain CNAME target settings
+func validateAccountsAndMonitors(cfg *Config) error {
 	// A sender host without a sender address stops startup, not the first password reset
 	if err := config.ValidateAccountSMTP(cfg.AccountSMTPHost, cfg.AccountSMTPFrom, cfg.AccountSMTPTLS); err != nil {
 		return err
@@ -284,6 +325,11 @@ func Validate(cfg *Config) error {
 		return err
 	}
 
+	return nil
+}
+
+// validateWebDir checks that the web build, when there is one, can be served
+func validateWebDir(cfg *Config) error {
 	// A WEB_DIR without a web build fails at startup, not on every page load
 	if cfg.WebDir != "" {
 		if err := web.CheckDir(cfg.WebDir); err != nil {
@@ -340,6 +386,7 @@ func (c *Config) ToInternalConfig() *config.Config {
 		CORSOrigins:                    c.CORSOrigins,
 		ServiceName:                    c.ServiceName,
 		MetricsEnabled:                 c.MetricsEnabled,
+		MetricsPort:                    c.MetricsPort,
 		Telemetry:                      c.Telemetry,
 		TelemetryURL:                   c.TelemetryURL,
 		ErrorReporting:                 c.ErrorReporting,

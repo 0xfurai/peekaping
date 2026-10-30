@@ -52,6 +52,89 @@ func (e *NTFYSender) Validate(configJSON string) error {
 	return GenericValidator(cfg.(*NTFYConfig))
 }
 
+// renderOr renders text as a template. It gives fallback for text that is left out, and for text
+// that can't be rendered, which what names in the warning.
+func (e *NTFYSender) renderOr(engine *liquid.Engine, bindings map[string]any, text, what, fallback string) string {
+	if text == "" {
+		return fallback
+	}
+	rendered, err := engine.ParseAndRenderString(text, bindings)
+	if err != nil {
+		e.logger.Warnf("Failed to render %s template: %v", what, err)
+		return fallback
+	}
+	return rendered
+}
+
+// renderTags renders the tags as a template, and splits them at the commas. It gives none for tags
+// that are left out, and for tags that can't be rendered.
+func (e *NTFYSender) renderTags(engine *liquid.Engine, bindings map[string]any, text string) []string {
+	if text == "" {
+		return nil
+	}
+	rendered, err := engine.ParseAndRenderString(text, bindings)
+	if err != nil {
+		e.logger.Warnf("Failed to render tags template: %v", err)
+		return nil
+	}
+	tags := strings.Split(rendered, ",")
+	// Trim whitespace from each tag
+	for i, tag := range tags {
+		tags[i] = strings.TrimSpace(tag)
+	}
+	return tags
+}
+
+// ntfyPriority is the configured priority, and 3 if there is none
+func ntfyPriority(cfg *NTFYConfig) int {
+	if cfg.Priority == 0 {
+		return 3 // Default priority
+	}
+	return cfg.Priority
+}
+
+// ntfySetHeaders sets the headers of the request: the title, priority and tags that there are
+func ntfySetHeaders(req *http.Request, title string, priority int, tags []string) {
+	req.Header.Set("Content-Type", "text/plain")
+	req.Header.Set("User-Agent", "Peekaping-NTFY/"+version.Version)
+
+	// Set title header if provided
+	if title != "" {
+		req.Header.Set("X-Title", title)
+	}
+
+	// Set priority header if provided
+	if priority > 0 {
+		req.Header.Set("X-Priority", fmt.Sprintf("%d", priority))
+	}
+
+	// Set tags header if provided
+	if len(tags) > 0 {
+		req.Header.Set("X-Tags", strings.Join(tags, ","))
+	}
+}
+
+// ntfyAuthenticate sets the request's credentials for the configured type of authentication
+func ntfyAuthenticate(req *http.Request, cfg *NTFYConfig) error {
+	switch cfg.AuthenticationType {
+	case "basic":
+		if cfg.Username == "" || cfg.Password == "" {
+			return fmt.Errorf("username and password required for basic authentication")
+		}
+		req.SetBasicAuth(cfg.Username, cfg.Password)
+	case "token":
+		if cfg.Token == "" {
+			return fmt.Errorf("token required for token authentication")
+		}
+		req.Header.Set("Authorization", "Bearer "+cfg.Token)
+	case "none":
+		// No authentication required
+	default:
+		return fmt.Errorf("unsupported authentication type: %s", cfg.AuthenticationType)
+	}
+	return nil
+}
+
 func (e *NTFYSender) Send(
 	ctx context.Context,
 	configJSON string,
@@ -69,44 +152,16 @@ func (e *NTFYSender) Send(
 	bindings := PrepareTemplateBindings(m, heartbeat, message)
 
 	// Prepare message content
-	finalMessage := message
-	if cfg.CustomMessage != "" {
-		if rendered, err := engine.ParseAndRenderString(cfg.CustomMessage, bindings); err == nil {
-			finalMessage = rendered
-		} else {
-			e.logger.Warnf("Failed to render custom message template: %v", err)
-		}
-	}
+	finalMessage := e.renderOr(engine, bindings, cfg.CustomMessage, "custom message", message)
 
 	// Prepare title
-	finalTitle := "Peekaping Notification"
-	if cfg.Title != "" {
-		if rendered, err := engine.ParseAndRenderString(cfg.Title, bindings); err == nil {
-			finalTitle = rendered
-		} else {
-			e.logger.Warnf("Failed to render title template: %v", err)
-		}
-	}
+	finalTitle := e.renderOr(engine, bindings, cfg.Title, "title", "Peekaping Notification")
 
 	// Prepare tags
-	var tags []string
-	if cfg.Tags != "" {
-		if rendered, err := engine.ParseAndRenderString(cfg.Tags, bindings); err == nil {
-			tags = strings.Split(rendered, ",")
-			// Trim whitespace from each tag
-			for i, tag := range tags {
-				tags[i] = strings.TrimSpace(tag)
-			}
-		} else {
-			e.logger.Warnf("Failed to render tags template: %v", err)
-		}
-	}
+	tags := e.renderTags(engine, bindings, cfg.Tags)
 
 	// Set default priority if not specified
-	priority := cfg.Priority
-	if priority == 0 {
-		priority = 3 // Default priority
-	}
+	priority := ntfyPriority(cfg)
 
 	// Prepare request URL
 	url := fmt.Sprintf("%s/%s", strings.TrimSuffix(cfg.ServerUrl, "/"), cfg.Topic)
@@ -118,42 +173,11 @@ func (e *NTFYSender) Send(
 	}
 
 	// Set headers
-	req.Header.Set("Content-Type", "text/plain")
-	req.Header.Set("User-Agent", "Peekaping-NTFY/"+version.Version)
-
-	// Set title header if provided
-	if finalTitle != "" {
-		req.Header.Set("X-Title", finalTitle)
-	}
-
-	// Set priority header if provided
-	if priority > 0 {
-		req.Header.Set("X-Priority", fmt.Sprintf("%d", priority))
-	}
-
-	// Set tags header if provided
-	if len(tags) > 0 {
-		req.Header.Set("X-Tags", strings.Join(tags, ","))
-	}
+	ntfySetHeaders(req, finalTitle, priority, tags)
 
 	// Handle authentication
-	switch cfg.AuthenticationType {
-	case "basic":
-		if cfg.Username != "" && cfg.Password != "" {
-			req.SetBasicAuth(cfg.Username, cfg.Password)
-		} else {
-			return fmt.Errorf("username and password required for basic authentication")
-		}
-	case "token":
-		if cfg.Token != "" {
-			req.Header.Set("Authorization", "Bearer "+cfg.Token)
-		} else {
-			return fmt.Errorf("token required for token authentication")
-		}
-	case "none":
-		// No authentication required
-	default:
-		return fmt.Errorf("unsupported authentication type: %s", cfg.AuthenticationType)
+	if err := ntfyAuthenticate(req, cfg); err != nil {
+		return err
 	}
 
 	// Send request

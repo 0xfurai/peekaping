@@ -132,55 +132,46 @@ func formatText(message string) string {
 	return strings.Join(lines, "\n\n")
 }
 
-// buildAdaptiveCard builds the Microsoft Teams adaptive card
-func (s *TeamsSender) buildAdaptiveCard(
-	ctx context.Context,
-	cfg *TeamsConfig,
-	monitor *monitor.Model,
-	heartbeat *heartbeat.Model,
-	message string,
-) map[string]any {
-	title, style := s.getTitle(monitor, heartbeat)
-
-	body := []map[string]any{
-		{
-			"type":  "Container",
-			"style": style,
-			"bleed": true,
-			"items": []map[string]any{
-				{
-					"type": "ColumnSet",
-					"columns": []map[string]any{
-						{
-							"type":  "Column",
-							"width": "auto",
-							"items": []map[string]any{
-								{
-									"type":    "Image",
-									"url":     teamsLogoURL,
-									"size":    "Small",
-									"style":   "Person",
-									"altText": "Peekaping",
-								},
+// teamsHeader is the container at the top of the card: the logo, the title, and the style that
+// colors it by status
+func teamsHeader(title, style string) map[string]any {
+	return map[string]any{
+		"type":  "Container",
+		"style": style,
+		"bleed": true,
+		"items": []map[string]any{
+			{
+				"type": "ColumnSet",
+				"columns": []map[string]any{
+					{
+						"type":  "Column",
+						"width": "auto",
+						"items": []map[string]any{
+							{
+								"type":    "Image",
+								"url":     teamsLogoURL,
+								"size":    "Small",
+								"style":   "Person",
+								"altText": "Peekaping",
 							},
 						},
-						{
-							"type":  "Column",
-							"width": "stretch",
-							"items": []map[string]any{
-								{
-									"type":   "TextBlock",
-									"text":   title,
-									"weight": "Bolder",
-									"size":   "Medium",
-									"wrap":   true,
-								},
-								{
-									"type":     "TextBlock",
-									"text":     "Peekaping Alert",
-									"isSubtle": true,
-									"spacing":  "None",
-								},
+					},
+					{
+						"type":  "Column",
+						"width": "stretch",
+						"items": []map[string]any{
+							{
+								"type":   "TextBlock",
+								"text":   title,
+								"weight": "Bolder",
+								"size":   "Medium",
+								"wrap":   true,
+							},
+							{
+								"type":     "TextBlock",
+								"text":     "Peekaping Alert",
+								"isSubtle": true,
+								"spacing":  "None",
 							},
 						},
 					},
@@ -188,21 +179,15 @@ func (s *TeamsSender) buildAdaptiveCard(
 			},
 		},
 	}
+}
 
-	if text := formatText(message); text != "" {
-		body = append(body, map[string]any{
-			"type": "TextBlock",
-			"text": text,
-			"wrap": true,
-		})
-	}
-
+// teamsFacts are the facts of the card: the monitor's name, what it checks and the time of the heartbeat
+func teamsFacts(monitor *monitor.Model, heartbeat *heartbeat.Model, addressTitle, address string) []map[string]string {
 	facts := []map[string]string{}
 	if monitor != nil && monitor.Name != "" {
 		facts = append(facts, map[string]string{"title": "Monitor", "value": monitor.Name})
 	}
 
-	addressTitle, address, addressLink := s.getAddress(monitor)
 	if address != "" {
 		facts = append(facts, map[string]string{"title": addressTitle, "value": address})
 	}
@@ -214,14 +199,11 @@ func (s *TeamsSender) buildAdaptiveCard(
 			"value": heartbeat.Time.UTC().Format("2006-01-02 15:04:05 UTC"),
 		})
 	}
+	return facts
+}
 
-	if len(facts) > 0 {
-		body = append(body, map[string]any{
-			"type":  "FactSet",
-			"facts": facts,
-		})
-	}
-
+// buildActions are the buttons of the card: one to the monitor's page, and one to what it checks
+func (s *TeamsSender) buildActions(ctx context.Context, cfg *TeamsConfig, monitor *monitor.Model, addressLink string) []map[string]any {
 	actions := []map[string]any{}
 
 	// Test notifications use a monitor that isn't saved, so there is no page to link to
@@ -240,6 +222,36 @@ func (s *TeamsSender) buildAdaptiveCard(
 			"url":   addressLink,
 		})
 	}
+	return actions
+}
+
+// buildAdaptiveCard builds the Microsoft Teams adaptive card
+func (s *TeamsSender) buildAdaptiveCard(
+	ctx context.Context,
+	cfg *TeamsConfig,
+	monitor *monitor.Model,
+	heartbeat *heartbeat.Model,
+	message string,
+) map[string]any {
+	title, style := s.getTitle(monitor, heartbeat)
+
+	body := []map[string]any{teamsHeader(title, style)}
+
+	if text := formatText(message); text != "" {
+		body = append(body, map[string]any{
+			"type": "TextBlock",
+			"text": text,
+			"wrap": true,
+		})
+	}
+
+	addressTitle, address, addressLink := s.getAddress(monitor)
+	if facts := teamsFacts(monitor, heartbeat, addressTitle, address); len(facts) > 0 {
+		body = append(body, map[string]any{
+			"type":  "FactSet",
+			"facts": facts,
+		})
+	}
 
 	card := map[string]any{
 		"$schema":      "http://adaptivecards.io/schemas/adaptive-card.json",
@@ -249,7 +261,7 @@ func (s *TeamsSender) buildAdaptiveCard(
 		"body":         body,
 	}
 
-	if len(actions) > 0 {
+	if actions := s.buildActions(ctx, cfg, monitor, addressLink); len(actions) > 0 {
 		card["actions"] = actions
 	}
 

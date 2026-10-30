@@ -81,6 +81,11 @@ config:
     # REDIS_USERNAME: "peekaping"
     # Serve the unauthenticated Prometheus /metrics endpoint on the API port (off by default).
     # METRICS_ENABLED: "true"
+    # Serve /metrics on this port instead of the API port, and not on the API port at all. Needs
+    # METRICS_ENABLED: "true". The api Pod and Service get a "metrics" port, and Prometheus scrapes
+    # <release>-api.<namespace>.svc.cluster.local:<port>/metrics. The ingress never routes it, so
+    # /metrics stays inside the cluster. Set it on any install whose API is public.
+    # METRICS_PORT: "9100"
     # How many days the hourly cleanup keeps notification history (default 90, at least 30)
     # and monitor TLS info (default 30, at least 1).
     # NOTIFICATION_HISTORY_RETENTION_DAYS: "90"

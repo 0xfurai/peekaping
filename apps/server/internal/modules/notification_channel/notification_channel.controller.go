@@ -186,39 +186,8 @@ func (ic *Controller) UpdatePartial(ctx context.Context, input *UpdatePartialInp
 		return nil, lookupErr
 	}
 
-	channelType := current.Type
-	if notification.Type != nil {
-		channelType = *notification.Type
-	}
-
-	// The saved config would be read by the new type's provider, which doesn't know the old
-	// type's secret keys and so wouldn't hide them. The new type brings its own config.
-	if channelType != current.Type && notification.Config == nil {
-		if _, ok := ic.providers.Get(channelType); !ok {
-			return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Unsupported notification type"))
-		}
-		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Invalid config: send the config when changing the type"))
-	}
-
-	// A secret sent back as the placeholder keeps its saved value
-	if notification.Config != nil {
-		resolved, _, resolveErr := ic.resolveConfig(channelType, *notification.Config, current)
-		if resolveErr != nil {
-			return nil, resolveErr
-		}
-		notification.Config = &resolved
-	}
-
-	// Validate the type and config the channel will have after the update; omitted fields keep their saved values
-	if notification.Type != nil || notification.Config != nil {
-		config := configOf(current)
-		if notification.Config != nil {
-			config = *notification.Config
-		}
-
-		if _, err := ic.validateConfig(ctx, workspaceID, channelType, config); err != nil {
-			return nil, err
-		}
+	if err := ic.checkPartialUpdate(ctx, workspaceID, current, &notification); err != nil {
+		return nil, err
 	}
 
 	updatedNotification, err := ic.service.UpdatePartial(ctx, workspaceID, id, &notification)
@@ -231,6 +200,55 @@ func (ic *Controller) UpdatePartial(ctx context.Context, input *UpdatePartialInp
 	}
 
 	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("notification updated successfully", redactModel(ic.providers, updatedNotification)))
+}
+
+// checkPartialUpdate checks the update of a channel, which keeps the saved values of what the patch
+// leaves out. A config the patch sends is resolved against the saved secrets, and put back in the
+// patch. The type and config the channel will have after the update are validated.
+func (ic *Controller) checkPartialUpdate(ctx context.Context, workspaceID workspace.ID, current *Model, patch *PartialUpdateDto) error {
+	channelType := current.Type
+	if patch.Type != nil {
+		channelType = *patch.Type
+	}
+
+	if err := ic.requireConfigForNewType(channelType, current, patch); err != nil {
+		return err
+	}
+
+	// A secret sent back as the placeholder keeps its saved value
+	if patch.Config != nil {
+		resolved, _, resolveErr := ic.resolveConfig(channelType, *patch.Config, current)
+		if resolveErr != nil {
+			return resolveErr
+		}
+		patch.Config = &resolved
+	}
+
+	// Validate the type and config the channel will have after the update; omitted fields keep their saved values
+	if patch.Type != nil || patch.Config != nil {
+		config := configOf(current)
+		if patch.Config != nil {
+			config = *patch.Config
+		}
+
+		if _, err := ic.validateConfig(ctx, workspaceID, channelType, config); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// requireConfigForNewType refuses a patch that changes the type and sends no config
+func (ic *Controller) requireConfigForNewType(channelType string, current *Model, patch *PartialUpdateDto) error {
+	// The saved config would be read by the new type's provider, which doesn't know the old
+	// type's secret keys and so wouldn't hide them. The new type brings its own config.
+	if channelType == current.Type || patch.Config != nil {
+		return nil
+	}
+	if _, ok := ic.providers.Get(channelType); !ok {
+		return httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Unsupported notification type"))
+	}
+	return httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Invalid config: send the config when changing the type"))
 }
 func (ic *Controller) Delete(ctx context.Context, input *DeleteInput) (*httpx.Output[utils.ApiResponse[any]], error) {
 	workspaceID, err := workspacehttp.Scope(ctx)
@@ -272,13 +290,9 @@ func (ic *Controller) Test(ctx context.Context, input *TestInput) (*httpx.Output
 
 	// A secret sent as the placeholder is the one the saved channel has, if the request says which
 	// channel it edits
-	var saved *Model
-	if notificationChannel.ID != "" {
-		record, err := utils.RequireRecord(ctx, ic.logger, "Notification channel", findIn(ic.service, workspaceID), notificationChannel.ID)
-		if err != nil {
-			return nil, err
-		}
-		saved = record
+	saved, err := ic.savedChannel(ctx, workspaceID, notificationChannel.ID)
+	if err != nil {
+		return nil, err
 	}
 	config, resolvedSecrets, resolveErr := ic.resolveConfig(notificationChannel.Type, notificationChannel.Config, saved)
 	if resolveErr != nil {
@@ -290,6 +304,25 @@ func (ic *Controller) Test(ctx context.Context, input *TestInput) (*httpx.Output
 		return nil, lookupErr
 	}
 
+	if err := ic.sendTestNotification(ctx, workspaceID, integration, config, resolvedSecrets); err != nil {
+		return nil, err
+	}
+
+	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse[any]("Test notification sent successfully", nil))
+}
+
+// savedChannel returns the saved channel a test request edits, or nil when it names none
+func (ic *Controller) savedChannel(ctx context.Context, workspaceID workspace.ID, id string) (*Model, error) {
+	if id == "" {
+		return nil, nil
+	}
+	return utils.RequireRecord(ctx, ic.logger, "Notification channel", findIn(ic.service, workspaceID), id)
+}
+
+// sendTestNotification sends a test notification through the channel's provider, and answers a
+// failure as the API does. resolvedSecrets are the secrets taken from the saved channel, which no
+// answer or log may repeat.
+func (ic *Controller) sendTestNotification(ctx context.Context, workspaceID workspace.ID, integration NotificationChannelProvider, config string, resolvedSecrets []string) error {
 	// Create a test message and monitor for the notification
 	testMessage := "This is a test notification from Peekaping"
 	testMonitor := &monitor.Model{
@@ -305,24 +338,23 @@ func (ic *Controller) Test(ctx context.Context, input *TestInput) (*httpx.Output
 	sendCtx, cancel := context.WithTimeout(providers.WithWorkspace(ctx, workspaceID), sendTimeout)
 	defer cancel()
 	// An HTTP client's errors hold the request URL, and for a channel the URL holds a credential
-	err = providers.RedactURLErrors(integration.Send(sendCtx, config, testMessage, testMonitor, testHeartbeat))
+	err := providers.RedactURLErrors(integration.Send(sendCtx, config, testMessage, testMonitor, testHeartbeat))
 	if errors.Is(err, netguard.ErrBlocked) {
 		// The channel's address resolves to one the install blocks, which only the caller can change
-		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Failed to send test notification: "+maskSecrets(err.Error(), resolvedSecrets)))
+		return httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Failed to send test notification: "+maskSecrets(err.Error(), resolvedSecrets)))
 	}
 	if errors.Is(err, providers.ErrRecipientNotVerified) {
 		// The caller can fix it, as with a config the provider refuses: their recipient has to verify
-		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Failed to send test notification: "+err.Error()))
+		return httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Failed to send test notification: "+err.Error()))
 	}
 	if err != nil {
 		// A failed send repeats what it was sent to, which has the secrets in it. The ones taken from
 		// the saved channel are not the caller's to read back.
 		failure := maskSecrets(err.Error(), resolvedSecrets)
 		ic.logger.Errorw("Failed to send test notification", "error", failure)
-		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Failed to send test notification: "+failure))
+		return httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Failed to send test notification: "+failure))
 	}
-
-	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse[any]("Test notification sent successfully", nil))
+	return nil
 }
 
 // configOf returns the config a channel is saved with, which is empty when it has none

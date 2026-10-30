@@ -103,6 +103,21 @@ const unsetDataRetentionDays = "365"
 // secrets and settings are the only ones the target ends with.
 func (c *copier) copySettings(ctx context.Context) error {
 	report := c.report.collection("setting", "settings")
+	if err := c.replaceTargetSettings(ctx); err != nil {
+		return err
+	}
+	chosen, keys, err := c.chooseSettings(ctx, report)
+	if err != nil {
+		return err
+	}
+	if err := c.writeSettings(ctx, report, chosen, keys); err != nil {
+		return err
+	}
+	return c.keepUnsetRetention(ctx, chosen)
+}
+
+// replaceTargetSettings deletes the settings a first start of the target wrote, and notes how many
+func (c *copier) replaceTargetSettings(ctx context.Context) error {
 	deleted, err := c.tx.ExecContext(ctx, "DELETE FROM settings")
 	if err != nil {
 		return fmt.Errorf("replace the settings of the target: %w", err)
@@ -112,14 +127,22 @@ func (c *copier) copySettings(ctx context.Context) error {
 	} else if n > 1 {
 		c.report.note("the %d settings that the target had written when Peekaping first started on it were replaced by the install's", n)
 	}
-	type candidate struct {
-		d       doc
-		id      primitive.ObjectID
-		updated time.Time
-	}
-	chosen := map[string]candidate{}
+	return nil
+}
+
+// settingCandidate is the document of a setting that wins its key so far
+type settingCandidate struct {
+	d       doc
+	id      primitive.ObjectID
+	updated time.Time
+}
+
+// chooseSettings reads the settings and picks the document that wins each key: the one saved
+// last. It returns the winners and the keys in the order they were first seen.
+func (c *copier) chooseSettings(ctx context.Context, report *CollectionReport) (map[string]settingCandidate, []string, error) {
+	chosen := map[string]settingCandidate{}
 	var keys []string
-	err = c.src.each(ctx, "setting", byID, func(d doc) error {
+	err := c.src.each(ctx, "setting", byID, func(d doc) error {
 		report.Read++
 		id, ok := d.id()
 		if !ok {
@@ -137,53 +160,70 @@ func (c *copier) copySettings(ctx context.Context) error {
 				return nil
 			}
 		}
-		chosen[key] = candidate{d, id, updated}
+		chosen[key] = settingCandidate{d, id, updated}
 		return nil
 	})
-	if err != nil {
-		return err
-	}
+	return chosen, keys, err
+}
+
+// writeSettings writes the winner of each key: to the settings of the workspace for a key that
+// belongs to one, else to the settings of the install
+func (c *copier) writeSettings(ctx context.Context, report *CollectionReport, chosen map[string]settingCandidate, keys []string) error {
 	out := newBatcher[settingRow](c.tx, "settings", report)
 	workspaceOut := newBatcher[workspaceSettingRow](c.tx, "workspace_settings", report)
 	stored := map[string]bool{}
 	workspaceKeys := []string{workspace.DataRetentionPeriodKey, workspace.CertExpiryNotifyDaysKey}
 	for _, key := range keys {
 		winner := chosen[key]
+		var err error
 		if slices.Contains(workspaceKeys, key) {
-			if c.workspaceID == "" {
-				report.skip("a workspace setting, and the install has no workspace")
-				continue
-			}
-			created, updated := stamps(report, winner.d, winner.id, "created_at", "updated_at")
-			if _, err := c.tx.ExecContext(ctx, "DELETE FROM workspace_settings WHERE workspace_id = ? AND key = ?", string(c.workspaceID), key); err != nil {
-				return fmt.Errorf("replace the default %s of the workspace: %w", key, err)
-			}
-			err := workspaceOut.add(ctx, workspaceSettingRow{WorkspaceID: string(c.workspaceID), Key: key, Value: winner.d.str("value"), Type: winner.d.str("type"), CreatedAt: created, UpdatedAt: updated})
-			if err != nil {
-				return err
-			}
-			continue
+			err = c.copyWorkspaceSetting(ctx, report, workspaceOut, key, winner)
+		} else {
+			err = c.copyInstallSetting(ctx, report, out, stored, key, winner)
 		}
-		created, updated := stamps(report, winner.d, winner.id, "created_at", "updated_at")
-		row := settingRow{Key: c.uniqueText(report, "key", stored, key, 255), Value: winner.d.str("value"), Type: winner.d.str("type"), CreatedAt: created, UpdatedAt: updated}
-		if err := out.add(ctx, row); err != nil {
+		if err != nil {
 			return err
 		}
 	}
 	if err := out.flush(ctx); err != nil {
 		return err
 	}
-	if err := workspaceOut.flush(ctx); err != nil {
-		return err
+	return workspaceOut.flush(ctx)
+}
+
+// copyWorkspaceSetting replaces the default of a setting of the install's workspace. Without a
+// workspace there is nothing to hold it, and it is left out.
+func (c *copier) copyWorkspaceSetting(ctx context.Context, report *CollectionReport, out *batcher[workspaceSettingRow], key string, winner settingCandidate) error {
+	if c.workspaceID == "" {
+		report.skip("a workspace setting, and the install has no workspace")
+		return nil
 	}
-	if c.workspaceID != "" {
-		if _, stored := chosen[workspace.DataRetentionPeriodKey]; !stored {
-			_, err := c.tx.ExecContext(ctx, "UPDATE workspace_settings SET value = ? WHERE workspace_id = ? AND key = ?", unsetDataRetentionDays, string(c.workspaceID), workspace.DataRetentionPeriodKey)
-			if err != nil {
-				return fmt.Errorf("keep the data retention period of an install that never stored one: %w", err)
-			}
-			c.report.note("the install never stored a data retention period, so the workspace keeps %s days, as an upgraded install does", unsetDataRetentionDays)
+	created, updated := stamps(report, winner.d, winner.id, "created_at", "updated_at")
+	if _, err := c.tx.ExecContext(ctx, "DELETE FROM workspace_settings WHERE workspace_id = ? AND key = ?", string(c.workspaceID), key); err != nil {
+		return fmt.Errorf("replace the default %s of the workspace: %w", key, err)
+	}
+	return out.add(ctx, workspaceSettingRow{WorkspaceID: string(c.workspaceID), Key: key, Value: winner.d.str("value"), Type: winner.d.str("type"), CreatedAt: created, UpdatedAt: updated})
+}
+
+// copyInstallSetting copies a setting of the install
+func (c *copier) copyInstallSetting(ctx context.Context, report *CollectionReport, out *batcher[settingRow], stored map[string]bool, key string, winner settingCandidate) error {
+	created, updated := stamps(report, winner.d, winner.id, "created_at", "updated_at")
+	row := settingRow{Key: c.uniqueText(report, "key", stored, key, 255), Value: winner.d.str("value"), Type: winner.d.str("type"), CreatedAt: created, UpdatedAt: updated}
+	return out.add(ctx, row)
+}
+
+// keepUnsetRetention gives the workspace the 365 days of an install that never stored a data
+// retention period
+func (c *copier) keepUnsetRetention(ctx context.Context, chosen map[string]settingCandidate) error {
+	if c.workspaceID == "" {
+		return nil
+	}
+	if _, stored := chosen[workspace.DataRetentionPeriodKey]; !stored {
+		_, err := c.tx.ExecContext(ctx, "UPDATE workspace_settings SET value = ? WHERE workspace_id = ? AND key = ?", unsetDataRetentionDays, string(c.workspaceID), workspace.DataRetentionPeriodKey)
+		if err != nil {
+			return fmt.Errorf("keep the data retention period of an install that never stored one: %w", err)
 		}
+		c.report.note("the install never stored a data retention period, so the workspace keeps %s days, as an upgraded install does", unsetDataRetentionDays)
 	}
 	return nil
 }

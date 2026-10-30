@@ -365,7 +365,32 @@ func (mr *MonitorServiceImpl) Create(ctx context.Context, workspaceID workspace.
 		return nil, err
 	}
 	lowerLinkIDs(monitorCreateDto)
-	createModel := &Model{
+	createModel := newCreateModel(workspaceID, monitorCreateDto)
+	if err := mr.chooseCreateProbes(ctx, monitorCreateDto, createModel, workspaceLimits); err != nil {
+		return nil, err
+	}
+
+	// The monitor and its links are stored together or not at all, and the event comes after
+	// they are committed, so a listener that reads the monitor's links finds them.
+	var createdModel *Model
+	err = mr.transactor.WithTx(ctx, func(ctx context.Context) error {
+		var err error
+		createdModel, err = mr.storeCreated(ctx, workspaceID, workspaceLimits, createModel, monitorCreateDto)
+		return err
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	// Emit monitor created event
+	mr.publishMonitor(ctx, events.MonitorCreated, createdModel)
+
+	return createdModel, nil
+}
+
+// newCreateModel is the monitor a create request asks for, before its probes are chosen
+func newCreateModel(workspaceID workspace.ID, monitorCreateDto *CreateUpdateDto) *Model {
+	return &Model{
 		WorkspaceID:    workspaceID,
 		Type:           monitorCreateDto.Type,
 		Name:           monitorCreateDto.Name,
@@ -385,67 +410,75 @@ func (mr *MonitorServiceImpl) Create(ctx context.Context, workspaceID workspace.
 		LocationRule:      locationRuleOrAny(monitorCreateDto.LocationRule),
 		LocationThreshold: monitorCreateDto.LocationThreshold,
 	}
+}
 
+// chooseCreateProbes checks the probes a create asks for, or gives the monitor the default ones, and
+// checks its location rule against the number of probes it runs on.
+func (mr *MonitorServiceImpl) chooseCreateProbes(ctx context.Context, monitorCreateDto *CreateUpdateDto, createModel *Model, workspaceLimits limits.Limits) error {
 	// A monitor created without probes (none, which is not an empty list) runs on the default
 	// probes that run its type, and on the local one when there are none. The workspace's limit cuts
 	// the defaults to the first ones, in their order, and refuses more probes chosen.
-	probes := 1
+	var probes int
+	var err error
 	if monitorCreateDto.ProbeIDs != nil {
-		if err := requireProbesWithin(workspaceLimits, monitorCreateDto.ProbeIDs); err != nil {
-			return nil, err
-		}
-		if err := mr.validateProbes(ctx, monitorCreateDto.Type, monitorCreateDto.ProbeIDs); err != nil {
-			return nil, err
-		}
-		probes = len(monitorCreateDto.ProbeIDs)
+		probes, err = mr.checkChosenProbes(ctx, monitorCreateDto, workspaceLimits)
 	} else {
-		defaults, err := mr.defaultProbeIDs(ctx, monitorCreateDto.Type)
-		if err != nil {
+		probes, err = mr.giveDefaultProbes(ctx, monitorCreateDto, createModel, workspaceLimits)
+	}
+	if err != nil {
+		return err
+	}
+	return validateLocationRule(createModel.LocationRule, createModel.LocationThreshold, probes)
+}
+
+// checkChosenProbes refuses more probes than the workspace allows and probes that don't fit the
+// type, and returns how many the monitor runs on
+func (mr *MonitorServiceImpl) checkChosenProbes(ctx context.Context, monitorCreateDto *CreateUpdateDto, workspaceLimits limits.Limits) (int, error) {
+	if err := requireProbesWithin(workspaceLimits, monitorCreateDto.ProbeIDs); err != nil {
+		return 0, err
+	}
+	if err := mr.validateProbes(ctx, monitorCreateDto.Type, monitorCreateDto.ProbeIDs); err != nil {
+		return 0, err
+	}
+	return len(monitorCreateDto.ProbeIDs), nil
+}
+
+// giveDefaultProbes gives the monitor the default probes that run its type, the first ones the
+// workspace's limit allows, and returns how many it runs on: the local probe alone when there are none
+func (mr *MonitorServiceImpl) giveDefaultProbes(ctx context.Context, monitorCreateDto *CreateUpdateDto, createModel *Model, workspaceLimits limits.Limits) (int, error) {
+	defaults, err := mr.defaultProbeIDs(ctx, monitorCreateDto.Type)
+	if err != nil {
+		return 0, err
+	}
+	if most := workspaceLimits.ProbesPerMonitor; most != nil && len(defaults) > *most {
+		defaults = defaults[:*most]
+	}
+	if len(defaults) == 0 {
+		return 1, nil
+	}
+	createModel.ProbeIDs = defaults
+	return len(defaults), nil
+}
+
+// storeCreated writes the monitor and its links in the caller's transaction
+func (mr *MonitorServiceImpl) storeCreated(ctx context.Context, workspaceID workspace.ID, workspaceLimits limits.Limits, createModel *Model, monitorCreateDto *CreateUpdateDto) (*Model, error) {
+	// A paused monitor doesn't count against the limit of active monitors, so only an active
+	// one needs room
+	if createModel.Active {
+		if err := mr.requireRoomForActive(ctx, workspaceID, workspaceLimits); err != nil {
 			return nil, err
-		}
-		if most := workspaceLimits.ProbesPerMonitor; most != nil && len(defaults) > *most {
-			defaults = defaults[:*most]
-		}
-		if len(defaults) > 0 {
-			createModel.ProbeIDs = defaults
-			probes = len(defaults)
 		}
 	}
-	if err := validateLocationRule(createModel.LocationRule, createModel.LocationThreshold, probes); err != nil {
+	// The channels, tags and proxy the monitor names must be its workspace's, and all of them
+	// are checked before the monitor or a link is written
+	if err := mr.requireLinks(ctx, workspaceID, monitorCreateDto.NotificationIds, monitorCreateDto.TagIds, monitorCreateDto.ProxyId); err != nil {
 		return nil, err
 	}
-
-	// The monitor and its links are stored together or not at all, and the event comes after
-	// they are committed, so a listener that reads the monitor's links finds them.
-	var createdModel *Model
-	err = mr.transactor.WithTx(ctx, func(ctx context.Context) error {
-		var err error
-		// A paused monitor doesn't count against the limit of active monitors, so only an active
-		// one needs room
-		if createModel.Active {
-			if err := mr.requireRoomForActive(ctx, workspaceID, workspaceLimits); err != nil {
-				return err
-			}
-		}
-		// The channels, tags and proxy the monitor names must be its workspace's, and all of them
-		// are checked before the monitor or a link is written
-		if err = mr.requireLinks(ctx, workspaceID, monitorCreateDto.NotificationIds, monitorCreateDto.TagIds, monitorCreateDto.ProxyId); err != nil {
-			return err
-		}
-		createdModel, err = mr.monitorRepository.Create(ctx, workspaceID, createModel)
-		if err != nil {
-			return err
-		}
-		return mr.createLinks(ctx, createdModel.ID, monitorCreateDto.NotificationIds, monitorCreateDto.TagIds)
-	})
+	createdModel, err := mr.monitorRepository.Create(ctx, workspaceID, createModel)
 	if err != nil {
 		return nil, err
 	}
-
-	// Emit monitor created event
-	mr.publishMonitor(ctx, events.MonitorCreated, createdModel)
-
-	return createdModel, nil
+	return createdModel, mr.createLinks(ctx, createdModel.ID, monitorCreateDto.NotificationIds, monitorCreateDto.TagIds)
 }
 
 func (mr *MonitorServiceImpl) FindByID(ctx context.Context, workspaceID workspace.ID, id string) (*Model, error) {
@@ -503,7 +536,30 @@ func (mr *MonitorServiceImpl) UpdateFull(ctx context.Context, workspaceID worksp
 		return nil, err
 	}
 	lowerLinkIDs(monitor)
-	model := &Model{
+	model := newFullUpdateModel(id, monitor)
+
+	// The monitor and its links change together or not at all. The monitor is read before the
+	// update, to check its probes against the type it will have, and back after it: the response
+	// and the event carry what is stored, including its status and created_at.
+	var updatedMonitor *Model
+	err = mr.transactor.WithTx(ctx, func(ctx context.Context) error {
+		var err error
+		updatedMonitor, err = mr.storeFullUpdate(ctx, workspaceID, id, workspaceLimits, monitor, model)
+		return err
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	// Emit monitor updated event, once the update is committed
+	mr.publishMonitor(ctx, events.MonitorUpdated, updatedMonitor)
+
+	return updatedMonitor, nil
+}
+
+// newFullUpdateModel is the monitor a full update asks for, before its location rule is checked
+func newFullUpdateModel(id string, monitor *CreateUpdateDto) *Model {
+	return &Model{
 		ID:             id,
 		Name:           monitor.Name,
 		Type:           monitor.Type,
@@ -519,74 +575,87 @@ func (mr *MonitorServiceImpl) UpdateFull(ctx context.Context, workspaceID worksp
 		PushToken:      monitor.PushToken,
 		ProbeIDs:       monitor.ProbeIDs,
 	}
+}
 
-	// The monitor and its links change together or not at all. The monitor is read before the
-	// update, to check its probes against the type it will have, and back after it: the response
-	// and the event carry what is stored, including its status and created_at.
-	var updatedMonitor *Model
-	err = mr.transactor.WithTx(ctx, func(ctx context.Context) error {
-		if err := mr.holdForLimits(ctx, workspaceID, workspaceLimits, monitor.Active, monitor.ProbeIDs != nil); err != nil {
-			return err
-		}
-		current, err := mr.FindByID(ctx, workspaceID, id)
-		if err != nil {
-			return err
-		}
-		if current == nil {
-			return fmt.Errorf("%w: monitor %s", ErrMonitorNotFound, id)
-		}
-		// A monitor that already has a disabled type can still be edited, but not given one
-		if monitor.Type != current.Type {
-			if err := mr.requireTypeEnabled(monitor.Type); err != nil {
-				return err
-			}
-		}
-		// Resuming a paused monitor adds an active one
-		if monitor.Active && !current.Active {
-			if err := mr.requireRoomForActive(ctx, workspaceID, workspaceLimits); err != nil {
-				return err
-			}
-		}
-		if monitor.ProbeIDs != nil && !sameProbes(monitor.ProbeIDs, currentProbeIDs(current)) {
-			if err := requireProbesWithin(workspaceLimits, monitor.ProbeIDs); err != nil {
-				return err
-			}
-		}
-		if err := mr.validateFullProbes(ctx, current, monitor); err != nil {
-			return err
-		}
-		// The rule is checked against the probes the monitor will have, and a request without one
-		// keeps the monitor's
-		model.LocationRule, model.LocationThreshold, err = validateFullLocationRule(current, monitor)
-		if err != nil {
-			return err
-		}
-		if err := mr.requireLinks(ctx, workspaceID, monitor.NotificationIds, monitor.TagIds, monitor.ProxyId); err != nil {
-			return err
-		}
-		if err := mr.monitorRepository.UpdateFull(ctx, workspaceID, id, model); err != nil {
-			return err
-		}
-		if err := mr.replaceLinks(ctx, id, monitor.NotificationIds, monitor.TagIds); err != nil {
-			return err
-		}
-		updatedMonitor, err = mr.FindByID(ctx, workspaceID, id)
-		if err != nil {
-			return err
-		}
-		if updatedMonitor == nil {
-			return fmt.Errorf("%w: monitor %s", ErrMonitorNotFound, id)
-		}
-		return nil
-	})
+// storeFullUpdate checks the update against the monitor as it is stored, then writes it and its
+// links and reads the monitor back, in the caller's transaction
+func (mr *MonitorServiceImpl) storeFullUpdate(ctx context.Context, workspaceID workspace.ID, id string, workspaceLimits limits.Limits, monitor *CreateUpdateDto, model *Model) (*Model, error) {
+	if err := mr.holdForLimits(ctx, workspaceID, workspaceLimits, monitor.Active, monitor.ProbeIDs != nil); err != nil {
+		return nil, err
+	}
+	current, err := mr.findInWorkspace(ctx, workspaceID, id)
 	if err != nil {
 		return nil, err
 	}
+	if err := mr.requireFullUpdateAllowed(ctx, workspaceID, workspaceLimits, current, monitor); err != nil {
+		return nil, err
+	}
+	if err := mr.validateFullShape(ctx, current, monitor, model); err != nil {
+		return nil, err
+	}
+	if err := mr.requireLinks(ctx, workspaceID, monitor.NotificationIds, monitor.TagIds, monitor.ProxyId); err != nil {
+		return nil, err
+	}
+	if err := mr.monitorRepository.UpdateFull(ctx, workspaceID, id, model); err != nil {
+		return nil, err
+	}
+	if err := mr.replaceLinks(ctx, id, monitor.NotificationIds, monitor.TagIds); err != nil {
+		return nil, err
+	}
+	return mr.findInWorkspace(ctx, workspaceID, id)
+}
 
-	// Emit monitor updated event, once the update is committed
-	mr.publishMonitor(ctx, events.MonitorUpdated, updatedMonitor)
+// validateFullShape checks the probes and the location rule against the monitor as it will be, and
+// sets the rule the update writes
+func (mr *MonitorServiceImpl) validateFullShape(ctx context.Context, current *Model, monitor *CreateUpdateDto, model *Model) error {
+	if err := mr.validateFullProbes(ctx, current, monitor); err != nil {
+		return err
+	}
+	// The rule is checked against the probes the monitor will have, and a request without one
+	// keeps the monitor's
+	var err error
+	model.LocationRule, model.LocationThreshold, err = validateFullLocationRule(current, monitor)
+	return err
+}
 
-	return updatedMonitor, nil
+// requireFullUpdateAllowed refuses a full update that gives the monitor a type the install turns
+// off, resumes it in a workspace that has no room for another active monitor, or sets more probes
+// than the workspace allows
+func (mr *MonitorServiceImpl) requireFullUpdateAllowed(ctx context.Context, workspaceID workspace.ID, workspaceLimits limits.Limits, current *Model, monitor *CreateUpdateDto) error {
+	// A monitor that already has a disabled type can still be edited, but not given one
+	if monitor.Type != current.Type {
+		if err := mr.requireTypeEnabled(monitor.Type); err != nil {
+			return err
+		}
+	}
+	// Resuming a paused monitor adds an active one
+	if monitor.Active && !current.Active {
+		if err := mr.requireRoomForActive(ctx, workspaceID, workspaceLimits); err != nil {
+			return err
+		}
+	}
+	if monitor.ProbeIDs != nil && !sameProbes(monitor.ProbeIDs, currentProbeIDs(current)) {
+		return requireProbesWithin(workspaceLimits, monitor.ProbeIDs)
+	}
+	return nil
+}
+
+// findInWorkspace reads the monitor in the workspace, and it is ErrMonitorNotFound when it isn't there
+func (mr *MonitorServiceImpl) findInWorkspace(ctx context.Context, workspaceID workspace.ID, id string) (*Model, error) {
+	found, err := mr.FindByID(ctx, workspaceID, id)
+	return orNotFound(found, err, id)
+}
+
+// orNotFound is the result of a read of a monitor that has to be there: its error, or
+// ErrMonitorNotFound when it found nothing
+func orNotFound(found *Model, err error, id string) (*Model, error) {
+	if err != nil {
+		return nil, err
+	}
+	if found == nil {
+		return nil, fmt.Errorf("%w: monitor %s", ErrMonitorNotFound, id)
+	}
+	return found, nil
 }
 
 func (mr *MonitorServiceImpl) UpdatePartial(ctx context.Context, workspaceID workspace.ID, id string, monitor *PartialUpdateDto, noPublish bool) (*Model, error) {
@@ -614,7 +683,50 @@ func (mr *MonitorServiceImpl) updatePartial(ctx context.Context, workspaceID *wo
 		lowered := utils.LowerUUID(*monitor.ProxyId)
 		monitor.ProxyId = &lowered
 	}
-	model := &UpdateModel{
+	model := newPartialUpdateModel(id, monitor)
+	// The two calls that go across workspaces when the update has none are made here, in the one
+	// function the isolation test lists, and handed down
+	repo := partialRepository{
+		ownerOf: mr.monitorRepository.FindWorkspaceIDAnyWorkspace,
+		write: func(ctx context.Context, model *UpdateModel) error {
+			if workspaceID == nil {
+				return mr.monitorRepository.UpdatePartialAnyWorkspace(ctx, id, model)
+			}
+			return mr.monitorRepository.UpdatePartial(ctx, *workspaceID, id, model)
+		},
+	}
+
+	// The monitor and its links change together or not at all. The monitor is read inside the
+	// transaction, so that what the update is checked against is what it then changes. Links
+	// change only when IDs are sent: a request without them leaves the links as they are.
+	var updatedMonitor *Model
+	err := mr.transactor.WithTx(ctx, func(ctx context.Context) error {
+		var err error
+		updatedMonitor, err = mr.storePartialUpdate(ctx, workspaceID, id, monitor, model, repo)
+		return err
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	// Emit monitor updated event, once the update is committed
+	if !noPublish {
+		mr.publishMonitor(ctx, events.MonitorUpdated, updatedMonitor)
+	}
+
+	return updatedMonitor, nil
+}
+
+// partialRepository is what an update reaches the repository with: where the monitor's workspace
+// is looked up, and the write of the update, in the workspace or across workspaces
+type partialRepository struct {
+	ownerOf func(ctx context.Context, id string) (workspace.ID, bool, error)
+	write   func(ctx context.Context, model *UpdateModel) error
+}
+
+// newPartialUpdateModel is the update a partial update asks for, before its location rule is checked
+func newPartialUpdateModel(id string, monitor *PartialUpdateDto) *UpdateModel {
+	return &UpdateModel{
 		ID:             &id,
 		Type:           monitor.Type,
 		Name:           monitor.Name,
@@ -630,136 +742,167 @@ func (mr *MonitorServiceImpl) updatePartial(ctx context.Context, workspaceID *wo
 		PushToken:      monitor.PushToken,
 		ProbeIDs:       monitor.ProbeIDs,
 	}
+}
 
-	// The monitor and its links change together or not at all. The monitor is read inside the
-	// transaction, so that what the update is checked against is what it then changes. Links
-	// change only when IDs are sent: a request without them leaves the links as they are.
-	var updatedMonitor *Model
-	err := mr.transactor.WithTx(ctx, func(ctx context.Context) error {
-		// An update that makes the monitor active or sets its probes holds the workspace before it
-		// reads the monitor (holdForLimits). A background update knows the monitor alone, so it looks
-		// the workspace up first: a monitor never moves.
-		activates := monitor.Active != nil && *monitor.Active
-		setsProbes := monitor.ProbeIDs != nil
-		scope := workspaceID
-		if scope == nil && (activates || setsProbes) {
-			owner, found, err := mr.monitorRepository.FindWorkspaceIDAnyWorkspace(ctx, id)
-			if err != nil {
-				return err
-			}
-			if !found {
-				return fmt.Errorf("%w: monitor %s", ErrMonitorNotFound, id)
-			}
-			scope = &owner
-		}
-		var workspaceLimits limits.Limits
-		if scope != nil {
-			var err error
-			if workspaceLimits, err = mr.limitsOf(ctx, *scope); err != nil {
-				return err
-			}
-			if err := mr.holdForLimits(ctx, *scope, workspaceLimits, activates, setsProbes); err != nil {
-				return err
-			}
-		}
-		current, err := mr.find(ctx, workspaceID, id)
-		if err != nil {
-			return err
-		}
-		if current == nil {
-			return fmt.Errorf("%w: monitor %s", ErrMonitorNotFound, id)
-		}
-		if monitor.Type != nil && *monitor.Type != current.Type {
-			if err := mr.requireTypeEnabled(*monitor.Type); err != nil {
-				return err
-			}
-		}
-		if err := mr.validatePartialConfig(current, monitor); err != nil {
-			return err
-		}
-		if scope == nil {
-			if workspaceLimits, err = mr.limitsOf(ctx, current.WorkspaceID); err != nil {
-				return err
-			}
-		}
-		// Only the intervals the request sends are checked: a monitor stored below the minimum can
-		// still be renamed or paused
-		if err := requireIntervals(mr.minimumFor(workspaceLimits), monitor.Interval, monitor.RetryInterval); err != nil {
-			return err
-		}
-		// Resuming a paused monitor adds an active one; pausing is always allowed
-		if monitor.Active != nil && *monitor.Active && !current.Active {
-			if err := mr.requireRoomForActive(ctx, current.WorkspaceID, workspaceLimits); err != nil {
-				return err
-			}
-		}
-		if monitor.ProbeIDs != nil && !sameProbes(monitor.ProbeIDs, currentProbeIDs(current)) {
-			if err := requireProbesWithin(workspaceLimits, monitor.ProbeIDs); err != nil {
-				return err
-			}
-		}
-		if err := validatePartialTimeout(current, monitor); err != nil {
-			return err
-		}
-		if err := mr.validatePartialProbes(ctx, current, monitor); err != nil {
-			return err
-		}
-		// The rule is checked against the probes the monitor will have, so an update that only
-		// removes probes is checked too
-		if err := validatePartialLocationRule(current, monitor); err != nil {
-			return err
-		}
-		if rule, threshold, set := partialLocationRule(current, monitor); set {
-			model.LocationRule, model.LocationThreshold = &rule, threshold
-		}
-		// A background update changes a status and never links, so only a request's can name
-		// records of another workspace
-		if workspaceID != nil {
-			proxyID := ""
-			if monitor.ProxyId != nil {
-				proxyID = *monitor.ProxyId
-			}
-			if err := mr.requireLinks(ctx, *workspaceID, monitor.NotificationIds, monitor.TagIds, proxyID); err != nil {
-				return err
-			}
-		}
-		if workspaceID == nil {
-			err = mr.monitorRepository.UpdatePartialAnyWorkspace(ctx, id, model)
-		} else {
-			err = mr.monitorRepository.UpdatePartial(ctx, *workspaceID, id, model)
-		}
-		if err != nil {
-			return err
-		}
-		if len(monitor.NotificationIds) > 0 {
-			if err := mr.syncNotificationLinks(ctx, id, monitor.NotificationIds); err != nil {
-				return err
-			}
-		}
-		if len(monitor.TagIds) > 0 {
-			if err := mr.syncTagLinks(ctx, id, monitor.TagIds); err != nil {
-				return err
-			}
-		}
-		updatedMonitor, err = mr.find(ctx, workspaceID, id)
-		if err != nil {
-			return err
-		}
-		if updatedMonitor == nil {
-			return fmt.Errorf("%w: monitor %s", ErrMonitorNotFound, id)
-		}
-		return nil
-	})
+// storePartialUpdate checks the update against the monitor as it is stored, then writes it and its
+// links and reads the monitor back, in the caller's transaction
+func (mr *MonitorServiceImpl) storePartialUpdate(ctx context.Context, workspaceID *workspace.ID, id string, monitor *PartialUpdateDto, model *UpdateModel, repo partialRepository) (*Model, error) {
+	scope, workspaceLimits, err := mr.holdForPartialUpdate(ctx, workspaceID, id, monitor, repo)
 	if err != nil {
 		return nil, err
 	}
-
-	// Emit monitor updated event, once the update is committed
-	if !noPublish {
-		mr.publishMonitor(ctx, events.MonitorUpdated, updatedMonitor)
+	current, err := mr.findExisting(ctx, workspaceID, id)
+	if err != nil {
+		return nil, err
 	}
+	if err := mr.requirePartialTypeAndConfig(current, monitor); err != nil {
+		return nil, err
+	}
+	if scope == nil {
+		if workspaceLimits, err = mr.limitsOf(ctx, current.WorkspaceID); err != nil {
+			return nil, err
+		}
+	}
+	if err := mr.requirePartialWithinLimits(ctx, current, monitor, workspaceLimits); err != nil {
+		return nil, err
+	}
+	if err := mr.validatePartialShape(ctx, current, monitor, model); err != nil {
+		return nil, err
+	}
+	return mr.writePartialUpdate(ctx, workspaceID, id, monitor, model, repo)
+}
 
-	return updatedMonitor, nil
+// holdForPartialUpdate holds the workspace of an update that can go over one of its limits before
+// the monitor is read (holdForLimits), and returns the workspace it holds with its limits. A
+// background update knows the monitor alone, so it looks the workspace up first, when it makes the
+// monitor active or sets its probes: a monitor never moves. Without a workspace the limits are none.
+func (mr *MonitorServiceImpl) holdForPartialUpdate(ctx context.Context, workspaceID *workspace.ID, id string, monitor *PartialUpdateDto, repo partialRepository) (*workspace.ID, limits.Limits, error) {
+	activates := monitor.Active != nil && *monitor.Active
+	setsProbes := monitor.ProbeIDs != nil
+	scope, err := mr.partialScope(ctx, workspaceID, id, activates || setsProbes, repo)
+	if err != nil || scope == nil {
+		return scope, limits.Limits{}, err
+	}
+	workspaceLimits, err := mr.limitsOf(ctx, *scope)
+	if err != nil {
+		return scope, workspaceLimits, err
+	}
+	return scope, workspaceLimits, mr.holdForLimits(ctx, *scope, workspaceLimits, activates, setsProbes)
+}
+
+// partialScope is the workspace of the update: the request's, or for a background update that needs
+// it, the one the monitor is in
+func (mr *MonitorServiceImpl) partialScope(ctx context.Context, workspaceID *workspace.ID, id string, needed bool, repo partialRepository) (*workspace.ID, error) {
+	if workspaceID != nil || !needed {
+		return workspaceID, nil
+	}
+	owner, found, err := repo.ownerOf(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if !found {
+		return nil, fmt.Errorf("%w: monitor %s", ErrMonitorNotFound, id)
+	}
+	return &owner, nil
+}
+
+// findExisting reads the monitor in the workspace, or across workspaces when there is none, and it
+// is ErrMonitorNotFound when it isn't there
+func (mr *MonitorServiceImpl) findExisting(ctx context.Context, workspaceID *workspace.ID, id string) (*Model, error) {
+	found, err := mr.find(ctx, workspaceID, id)
+	return orNotFound(found, err, id)
+}
+
+// requirePartialTypeAndConfig refuses a type the install turns off, unless the monitor has it
+// already, and a type and config that don't fit together
+func (mr *MonitorServiceImpl) requirePartialTypeAndConfig(current *Model, monitor *PartialUpdateDto) error {
+	if monitor.Type != nil && *monitor.Type != current.Type {
+		if err := mr.requireTypeEnabled(*monitor.Type); err != nil {
+			return err
+		}
+	}
+	return mr.validatePartialConfig(current, monitor)
+}
+
+// requirePartialWithinLimits refuses an interval below the minimum, a resume of a monitor in a
+// workspace that has no room for another active one, and more probes than the workspace allows
+func (mr *MonitorServiceImpl) requirePartialWithinLimits(ctx context.Context, current *Model, monitor *PartialUpdateDto, workspaceLimits limits.Limits) error {
+	// Only the intervals the request sends are checked: a monitor stored below the minimum can
+	// still be renamed or paused
+	if err := requireIntervals(mr.minimumFor(workspaceLimits), monitor.Interval, monitor.RetryInterval); err != nil {
+		return err
+	}
+	// Resuming a paused monitor adds an active one; pausing is always allowed
+	if monitor.Active != nil && *monitor.Active && !current.Active {
+		if err := mr.requireRoomForActive(ctx, current.WorkspaceID, workspaceLimits); err != nil {
+			return err
+		}
+	}
+	if monitor.ProbeIDs != nil && !sameProbes(monitor.ProbeIDs, currentProbeIDs(current)) {
+		return requireProbesWithin(workspaceLimits, monitor.ProbeIDs)
+	}
+	return nil
+}
+
+// validatePartialShape checks the timeout, the probes and the location rule against the monitor as
+// it will be, and sets the rule the update writes
+func (mr *MonitorServiceImpl) validatePartialShape(ctx context.Context, current *Model, monitor *PartialUpdateDto, model *UpdateModel) error {
+	if err := validatePartialTimeout(current, monitor); err != nil {
+		return err
+	}
+	if err := mr.validatePartialProbes(ctx, current, monitor); err != nil {
+		return err
+	}
+	// The rule is checked against the probes the monitor will have, so an update that only
+	// removes probes is checked too
+	if err := validatePartialLocationRule(current, monitor); err != nil {
+		return err
+	}
+	if rule, threshold, set := partialLocationRule(current, monitor); set {
+		model.LocationRule, model.LocationThreshold = &rule, threshold
+	}
+	return nil
+}
+
+// writePartialUpdate writes the update and its links, and reads the monitor back
+func (mr *MonitorServiceImpl) writePartialUpdate(ctx context.Context, workspaceID *workspace.ID, id string, monitor *PartialUpdateDto, model *UpdateModel, repo partialRepository) (*Model, error) {
+	if err := mr.requirePartialLinks(ctx, workspaceID, monitor); err != nil {
+		return nil, err
+	}
+	if err := repo.write(ctx, model); err != nil {
+		return nil, err
+	}
+	if err := mr.syncPartialLinks(ctx, id, monitor); err != nil {
+		return nil, err
+	}
+	return mr.findExisting(ctx, workspaceID, id)
+}
+
+// requirePartialLinks refuses links to records of another workspace. A background update changes a
+// status and never links, so only a request's can name them.
+func (mr *MonitorServiceImpl) requirePartialLinks(ctx context.Context, workspaceID *workspace.ID, monitor *PartialUpdateDto) error {
+	if workspaceID == nil {
+		return nil
+	}
+	proxyID := ""
+	if monitor.ProxyId != nil {
+		proxyID = *monitor.ProxyId
+	}
+	return mr.requireLinks(ctx, *workspaceID, monitor.NotificationIds, monitor.TagIds, proxyID)
+}
+
+// syncPartialLinks makes the IDs the update sends the monitor's links, channels and then tags. An
+// update without IDs leaves the links as they are.
+func (mr *MonitorServiceImpl) syncPartialLinks(ctx context.Context, id string, monitor *PartialUpdateDto) error {
+	if len(monitor.NotificationIds) > 0 {
+		if err := mr.syncNotificationLinks(ctx, id, monitor.NotificationIds); err != nil {
+			return err
+		}
+	}
+	if len(monitor.TagIds) > 0 {
+		return mr.syncTagLinks(ctx, id, monitor.TagIds)
+	}
+	return nil
 }
 
 // validatePartialConfig checks that the type and config the monitor has after the update fit
