@@ -80,7 +80,15 @@ func TestResults_NoMonitorStartsStoringAfterAnotherFailed(t *testing.T) {
 	for i, id := range ids {
 		batch = append(batch, checkResult("r"+string(rune('a'+i)), id, start))
 	}
-	s.ingest.failOn = func(*ingester.Result) error { return errors.New("the database is down") }
+	// The monitors that start before the first fails are all being stored before any fails, or a
+	// fast failure would stop the others from starting
+	watch := newInFlight(0)
+	watch.waitForAll = protocol.StoreConcurrency
+	s.ingest.hold = watch.hold
+	s.ingest.failOn = func(*ingester.Result) error {
+		assert.True(t, watch.reachedAll(), "the first failure came once all the monitors it stops were being stored")
+		return errors.New("the database is down")
+	}
 
 	w := s.post(t, probeproto.ResultsRequest{Results: batch})
 
@@ -88,6 +96,7 @@ func TestResults_NoMonitorStartsStoringAfterAnotherFailed(t *testing.T) {
 	assert.Len(t, s.ingest.attempts, protocol.StoreConcurrency, "the monitors being stored when the first failed were tried, and no other")
 
 	s.ingest.failOn = nil
+	s.ingest.hold = nil
 	got := s.results(t, batch...)
 	require.Len(t, got, len(batch))
 	for _, outcome := range got {
