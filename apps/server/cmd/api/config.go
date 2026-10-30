@@ -135,6 +135,14 @@ type Config struct {
 	// and cloud metadata. Off by default: a self-hosted install monitors its own network.
 	BlockPrivateTargets bool `env:"BLOCK_PRIVATE_TARGETS" default:"false"`
 
+	// VerifyCustomDomains makes a custom domain serve only once its owner has proved, by a TXT
+	// record or a CNAME, that it points at this install. Off by default. A string, so Validate checks
+	// the value from the environment or a .env file alike; ToInternalConfig reads it as a boolean.
+	VerifyCustomDomains string `env:"VERIFY_CUSTOM_DOMAINS" default:"false"`
+	// CustomDomainCNAMETarget is the host a custom domain may be a CNAME to. Empty means the host of
+	// the public URL.
+	CustomDomainCNAMETarget string `env:"CUSTOM_DOMAIN_CNAME_TARGET"`
+
 	// Requests per minute a workspace, and one of its API keys, may make. 0, the default, is off.
 	APIRateLimitPerWorkspace int `env:"API_RATE_LIMIT_PER_WORKSPACE" validate:"min=0" default:"0"`
 	APIRateLimitPerAPIKey    int `env:"API_RATE_LIMIT_PER_API_KEY" validate:"min=0" default:"0"`
@@ -183,6 +191,17 @@ func LoadAndValidate(path string) (*Config, error) {
 
 // Validate validates the API service configuration
 func Validate(cfg *Config) error {
+	for _, check := range []func(*Config) error{validateStorage, validateBruteforce, validateAddresses, validateProbe, validateAccountsAndMonitors} {
+		if err := check(cfg); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// validateStorage checks the database settings
+func validateStorage(cfg *Config) error {
 	// MongoDB storage was removed, and the db_type validator below would only call the value invalid
 	if err := config.RefuseMongoStorage(cfg.DBType); err != nil {
 		return err
@@ -210,7 +229,11 @@ func Validate(cfg *Config) error {
 		return fmt.Errorf("database validation failed: %w", err)
 	}
 
-	// Validate bruteforce settings
+	return nil
+}
+
+// validateBruteforce checks the login lockout settings
+func validateBruteforce(cfg *Config) error {
 	if cfg.BruteforceMaxAttempts <= 0 {
 		return fmt.Errorf("BRUTEFORCE_MAX_ATTEMPTS must be greater than 0")
 	}
@@ -230,6 +253,11 @@ func Validate(cfg *Config) error {
 		return fmt.Errorf("BRUTEFORCE_ACCOUNT_LOCKOUT must be a positive duration")
 	}
 
+	return nil
+}
+
+// validateAddresses checks the settings that name a port, a proxy or an origin
+func validateAddresses(cfg *Config) error {
 	// A METRICS_PORT that isn't a port, equals SERVER_PORT or has no /metrics to serve stops startup
 	if err := config.ValidateMetricsPort(cfg.MetricsEnabled, cfg.MetricsPort, cfg.Port); err != nil {
 		return err
@@ -247,6 +275,11 @@ func Validate(cfg *Config) error {
 		return err
 	}
 
+	return nil
+}
+
+// validateProbe checks the local probe's settings
+func validateProbe(cfg *Config) error {
 	// A short token is easy to guess, and it would give a probe's access to the monitors' configs.
 	// The message doesn't repeat it.
 	if cfg.ProbeBootstrapToken != "" && len(cfg.ProbeBootstrapToken) < probe.MinBootstrapTokenLength {
@@ -264,6 +297,12 @@ func Validate(cfg *Config) error {
 		return fmt.Errorf("PROBE_OFFLINE_AFTER must be at most %s", config.MaxProbeOfflineAfter)
 	}
 
+	return nil
+}
+
+// validateAccountsAndMonitors checks the account email, signup, disabled monitor type and custom
+// domain settings
+func validateAccountsAndMonitors(cfg *Config) error {
 	// A sender host without a sender address stops startup, not the first password reset
 	if err := config.ValidateAccountSMTP(cfg.AccountSMTPHost, cfg.AccountSMTPFrom, cfg.AccountSMTPTLS); err != nil {
 		return err
@@ -276,6 +315,17 @@ func Validate(cfg *Config) error {
 
 	// A mistyped monitor type stops startup, with the types that exist
 	if err := config.ValidateDisabledMonitorTypes(cfg.DisabledMonitorTypes, executor.KnownTypes()); err != nil {
+		return err
+	}
+
+	// A CNAME target that isn't a host name stops startup, not every domain check
+	if err := config.ValidateCustomDomainCNAMETarget(cfg.CustomDomainCNAMETarget); err != nil {
+		return err
+	}
+
+	// A VERIFY_CUSTOM_DOMAINS, from the environment or a .env file, that is not true, 1, false or 0,
+	// such as TRUE, stops startup instead of leaving verification off
+	if err := config.ValidateVerifyCustomDomains(cfg.VerifyCustomDomains); err != nil {
 		return err
 	}
 
@@ -333,6 +383,8 @@ func (c *Config) ToInternalConfig() *config.Config {
 		SignupTurnstileSecret:          c.SignupTurnstileSecret,
 		DisabledMonitorTypes:           c.DisabledMonitorTypes,
 		BlockPrivateTargets:            c.BlockPrivateTargets,
+		VerifyCustomDomains:            config.VerifyCustomDomainsOn(c.VerifyCustomDomains),
+		CustomDomainCNAMETarget:        c.CustomDomainCNAMETarget,
 		APIRateLimitPerWorkspace:       c.APIRateLimitPerWorkspace,
 		APIRateLimitPerAPIKey:          c.APIRateLimitPerAPIKey,
 		ChecksPerHostPerMinute:         c.ChecksPerHostPerMinute,

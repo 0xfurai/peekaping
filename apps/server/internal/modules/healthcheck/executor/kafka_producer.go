@@ -57,20 +57,8 @@ func (k *KafkaProducerExecutor) Validate(configJSON string) error {
 
 	kafkaCfg := cfg.(*KafkaProducerConfig)
 
-	// Validate brokers list is not empty
-	if len(kafkaCfg.Brokers) == 0 {
-		return fmt.Errorf("brokers list cannot be empty")
-	}
-
-	// Validate each broker address format
-	for _, broker := range kafkaCfg.Brokers {
-		if strings.TrimSpace(broker) == "" {
-			return fmt.Errorf("broker address cannot be empty")
-		}
-		// Basic validation for host:port format
-		if !strings.Contains(broker, ":") {
-			return fmt.Errorf("broker address must be in host:port format: %s", broker)
-		}
+	if err := validateKafkaBrokers(kafkaCfg.Brokers); err != nil {
+		return err
 	}
 
 	// Validate topic name
@@ -83,17 +71,50 @@ func (k *KafkaProducerExecutor) Validate(configJSON string) error {
 		return fmt.Errorf("message cannot be empty")
 	}
 
-	// Validate SASL mechanism if provided
-	if kafkaCfg.SASLOptions.Mechanism != "" && kafkaCfg.SASLOptions.Mechanism != "None" {
-		if kafkaCfg.SASLOptions.Username == "" {
-			return fmt.Errorf("username is required when SASL mechanism is specified")
-		}
-		if kafkaCfg.SASLOptions.Password == "" {
-			return fmt.Errorf("password is required when SASL mechanism is specified")
-		}
+	if err := validateKafkaSASL(kafkaCfg.SASLOptions); err != nil {
+		return err
 	}
 
 	return GenericValidator(kafkaCfg)
+}
+
+// validateKafkaBrokers checks that there are brokers, and that each is a host:port address
+func validateKafkaBrokers(brokers []string) error {
+	// Validate brokers list is not empty
+	if len(brokers) == 0 {
+		return fmt.Errorf("brokers list cannot be empty")
+	}
+
+	// Validate each broker address format
+	for _, broker := range brokers {
+		if strings.TrimSpace(broker) == "" {
+			return fmt.Errorf("broker address cannot be empty")
+		}
+		// Basic validation for host:port format
+		if !strings.Contains(broker, ":") {
+			return fmt.Errorf("broker address must be in host:port format: %s", broker)
+		}
+	}
+	return nil
+}
+
+// kafkaSASLEnabled reports whether the options name a SASL mechanism
+func kafkaSASLEnabled(opts KafkaProducerSASLOptions) bool {
+	return opts.Mechanism != "" && opts.Mechanism != "None"
+}
+
+// validateKafkaSASL checks that a SASL mechanism comes with a username and password
+func validateKafkaSASL(opts KafkaProducerSASLOptions) error {
+	if !kafkaSASLEnabled(opts) {
+		return nil
+	}
+	if opts.Username == "" {
+		return fmt.Errorf("username is required when SASL mechanism is specified")
+	}
+	if opts.Password == "" {
+		return fmt.Errorf("password is required when SASL mechanism is specified")
+	}
+	return nil
 }
 
 // Targets lists the hosts of the brokers a Kafka check connects to. The brokers the cluster
@@ -129,6 +150,22 @@ func (k *KafkaProducerExecutor) Execute(ctx context.Context, monitor *Monitor, p
 	checkCtx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
+	config, err := k.producerConfig(cfg, monitor.ID, timeout)
+	if err != nil {
+		return DownResult(err, startTime, time.Now().UTC())
+	}
+
+	producer, failure := k.createProducer(ctx, checkCtx, cfg.Brokers, config, monitor, startTime)
+	if failure != nil {
+		return failure
+	}
+
+	return k.sendMessage(checkCtx, producer, cfg, monitor, startTime)
+}
+
+// producerConfig is the sarama configuration for the check: its timeouts, the guard's dialer, TLS
+// and SASL
+func (k *KafkaProducerExecutor) producerConfig(cfg *KafkaProducerConfig, monitorID string, timeout time.Duration) (*sarama.Config, error) {
 	// Create Kafka configuration
 	config := sarama.NewConfig()
 	config.Producer.Return.Successes = true
@@ -161,32 +198,55 @@ func (k *KafkaProducerExecutor) Execute(ctx context.Context, monitor *Monitor, p
 	}
 
 	// Configure SASL if specified
-	if cfg.SASLOptions.Mechanism != "" && cfg.SASLOptions.Mechanism != "None" {
-		config.Net.SASL.Enable = true
-		config.Net.SASL.User = cfg.SASLOptions.Username
-		config.Net.SASL.Password = cfg.SASLOptions.Password
-
-		switch cfg.SASLOptions.Mechanism {
-		case "PLAIN":
-			config.Net.SASL.Mechanism = sarama.SASLTypePlaintext
-		case "SCRAM-SHA-256":
-			config.Net.SASL.Mechanism = sarama.SASLTypeSCRAMSHA256
-			config.Net.SASL.SCRAMClientGeneratorFunc = func() sarama.SCRAMClient {
-				return &scramClient{HashGeneratorFcn: scram.SHA256}
-			}
-		case "SCRAM-SHA-512":
-			config.Net.SASL.Mechanism = sarama.SASLTypeSCRAMSHA512
-			config.Net.SASL.SCRAMClientGeneratorFunc = func() sarama.SCRAMClient {
-				return &scramClient{HashGeneratorFcn: scram.SHA512}
-			}
-		default:
-			return DownResult(fmt.Errorf("unsupported SASL mechanism: %s", cfg.SASLOptions.Mechanism), startTime, time.Now().UTC())
-		}
+	if err := configureKafkaSASL(config, cfg.SASLOptions); err != nil {
+		return nil, err
 	}
 
 	// Set client ID
-	config.ClientID = fmt.Sprintf("peekaping-monitor-%s", monitor.ID)
+	config.ClientID = fmt.Sprintf("peekaping-monitor-%s", monitorID)
 
+	return config, nil
+}
+
+// kafkaSASLMechanisms sets up the sarama configuration for each supported SASL mechanism
+var kafkaSASLMechanisms = map[string]func(config *sarama.Config){
+	"PLAIN": func(config *sarama.Config) {
+		config.Net.SASL.Mechanism = sarama.SASLTypePlaintext
+	},
+	"SCRAM-SHA-256": func(config *sarama.Config) {
+		config.Net.SASL.Mechanism = sarama.SASLTypeSCRAMSHA256
+		config.Net.SASL.SCRAMClientGeneratorFunc = func() sarama.SCRAMClient {
+			return &scramClient{HashGeneratorFcn: scram.SHA256}
+		}
+	},
+	"SCRAM-SHA-512": func(config *sarama.Config) {
+		config.Net.SASL.Mechanism = sarama.SASLTypeSCRAMSHA512
+		config.Net.SASL.SCRAMClientGeneratorFunc = func() sarama.SCRAMClient {
+			return &scramClient{HashGeneratorFcn: scram.SHA512}
+		}
+	},
+}
+
+// configureKafkaSASL turns on SASL in the configuration when the options name a mechanism
+func configureKafkaSASL(config *sarama.Config, opts KafkaProducerSASLOptions) error {
+	if !kafkaSASLEnabled(opts) {
+		return nil
+	}
+
+	config.Net.SASL.Enable = true
+	config.Net.SASL.User = opts.Username
+	config.Net.SASL.Password = opts.Password
+
+	setMechanism, ok := kafkaSASLMechanisms[opts.Mechanism]
+	if !ok {
+		return fmt.Errorf("unsupported SASL mechanism: %s", opts.Mechanism)
+	}
+	setMechanism(config)
+	return nil
+}
+
+// createProducer creates the producer, or returns the Down result for why it couldn't
+func (k *KafkaProducerExecutor) createProducer(ctx, checkCtx context.Context, brokers []string, config *sarama.Config, monitor *Monitor, startTime time.Time) (sarama.SyncProducer, *Result) {
 	// Create the producer in the background: sarama takes no context, so the
 	// select below is what ends the check when the context does. The network
 	// timeouts above end the goroutine soon after.
@@ -196,11 +256,10 @@ func (k *KafkaProducerExecutor) Execute(ctx context.Context, monitor *Monitor, p
 	}
 	createDone := make(chan created, 1)
 	go func() {
-		p, createErr := sarama.NewSyncProducer(cfg.Brokers, config)
+		p, createErr := sarama.NewSyncProducer(brokers, config)
 		createDone <- created{p, createErr}
 	}()
 
-	var producer sarama.SyncProducer
 	select {
 	case <-checkCtx.Done():
 		// A producer that arrives after the check has ended is closed.
@@ -211,7 +270,7 @@ func (k *KafkaProducerExecutor) Execute(ctx context.Context, monitor *Monitor, p
 		}()
 		reason := producerCreationFailure(ctx, checkCtx, nil, monitor.Timeout)
 		k.logger.Infof("Kafka producer creation failed: %s, %s", monitor.Name, reason)
-		return &Result{
+		return nil, &Result{
 			Status:    shared.MonitorStatusDown,
 			Message:   fmt.Sprintf("Failed to create Kafka producer: %s", reason),
 			StartTime: startTime,
@@ -221,16 +280,19 @@ func (k *KafkaProducerExecutor) Execute(ctx context.Context, monitor *Monitor, p
 		if c.err != nil {
 			k.logger.Infof("Kafka producer creation failed: %s, %s", monitor.Name, c.err.Error())
 			reason := producerCreationFailure(ctx, checkCtx, c.err, monitor.Timeout)
-			return &Result{
+			return nil, &Result{
 				Status:    shared.MonitorStatusDown,
 				Message:   fmt.Sprintf("Failed to create Kafka producer: %s", reason),
 				StartTime: startTime,
 				EndTime:   time.Now().UTC(),
 			}
 		}
-		producer = c.producer
+		return c.producer, nil
 	}
+}
 
+// sendMessage sends the check's message and closes the producer, and returns the check's result
+func (k *KafkaProducerExecutor) sendMessage(checkCtx context.Context, producer sarama.SyncProducer, cfg *KafkaProducerConfig, monitor *Monitor, startTime time.Time) *Result {
 	// Create message
 	message := &sarama.ProducerMessage{
 		Topic: cfg.Topic,

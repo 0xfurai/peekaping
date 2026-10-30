@@ -1,0 +1,7 @@
+POST https://hooks.slack.com/services/T/B/X
+Content-Type: application/json
+User-Agent: Peekaping-Slack/<version>
+
+{
+  "text": "200 - OK"
+}

@@ -62,72 +62,9 @@ func (g *GrafanaOncallSender) Send(
 
 	g.logger.Infof("Sending Grafana OnCall notification")
 
-	var payload map[string]interface{}
-
-	switch {
-	case heartbeat == nil && monitor.IsProbeEvent():
-		// A probe's notification has no heartbeat, so the status of its stand-in monitor says
-		// whether the probe went offline or came back online
-		payload = grafanaOncallProbePayload(message, monitor)
-		if payload == nil {
-			g.logger.Warnf("Unknown probe status: %d", monitor.Status)
-			return nil
-		}
-	case heartbeat == nil:
-		// General notification
-		payload = map[string]interface{}{
-			"title":   "General notification",
-			"message": message,
-			"state":   "alerting",
-		}
-	default:
-		// Monitor-specific notification
-		monitorName := unknownMonitorName
-		if monitor != nil {
-			monitorName = monitor.Name
-		}
-
-		switch heartbeat.Status {
-		case shared.MonitorStatusDown:
-			payload = map[string]interface{}{
-				"title":   fmt.Sprintf("%s is down", monitorName),
-				"message": heartbeat.Msg,
-				"state":   "alerting",
-			}
-		case shared.MonitorStatusUp:
-			payload = map[string]interface{}{
-				"title":   fmt.Sprintf("%s is up", monitorName),
-				"message": heartbeat.Msg,
-				"state":   "ok",
-			}
-		default:
-			// For pending/maintenance states, treat as alerting
-			payload = map[string]interface{}{
-				"title":   fmt.Sprintf("%s status changed", monitorName),
-				"message": heartbeat.Msg,
-				"state":   "alerting",
-			}
-		}
-
-		// OnCall groups alerts by alert_uid and resolves a group on state ok, so the monitor's id
-		// in the form of PagerDuty's dedup key keeps its Up from resolving other monitors' alerts.
-		// A test notification's monitor has no ID, and so no alert group of its own.
-		if monitor != nil && monitor.ID != "" {
-			payload["alert_uid"] = fmt.Sprintf("Peekaping/%s", monitor.ID)
-		}
-
-		payload["status"] = humanReadableStatus(int(heartbeat.Status))
-		payload["ping_ms"] = heartbeat.Ping
-		payload["retries"] = heartbeat.Retries
-		// A test notification's heartbeat has no time
-		if !heartbeat.Time.IsZero() {
-			payload["time"] = heartbeat.Time.Format(time.RFC3339)
-		}
-	}
-
-	// Certificate expiry notifications come with the monitor but no heartbeat
-	if monitor != nil {
-		addGrafanaOncallMonitorFields(payload, monitor)
+	payload := g.buildPayload(message, monitor, heartbeat)
+	if payload == nil {
+		return nil
 	}
 
 	jsonPayload, err := json.Marshal(payload)
@@ -156,6 +93,80 @@ func (g *GrafanaOncallSender) Send(
 
 	g.logger.Infof("Grafana OnCall notification sent successfully")
 	return nil
+}
+
+// buildPayload is the alert for a notification, or nil for a probe's notification that says
+// nothing to send
+func (g *GrafanaOncallSender) buildPayload(message string, m *monitor.Model, hb *heartbeat.Model) map[string]interface{} {
+	var payload map[string]interface{}
+
+	switch {
+	case hb == nil && m.IsProbeEvent():
+		// A probe's notification has no heartbeat, so the status of its stand-in monitor says
+		// whether the probe went offline or came back online
+		payload = grafanaOncallProbePayload(message, m)
+		if payload == nil {
+			g.logger.Warnf("Unknown probe status: %d", m.Status)
+			return nil
+		}
+	case hb == nil:
+		// General notification
+		payload = map[string]interface{}{
+			"title":   "General notification",
+			"message": message,
+			"state":   "alerting",
+		}
+	default:
+		// Monitor-specific notification
+		payload = grafanaOncallHeartbeatPayload(m, hb)
+	}
+
+	// Certificate expiry notifications come with the monitor but no heartbeat
+	if m != nil {
+		addGrafanaOncallMonitorFields(payload, m)
+	}
+	return payload
+}
+
+// grafanaOncallHeartbeatPayload is the alert for a monitor's heartbeat: alerting for Down, ok for
+// Up, and alerting for any other status
+func grafanaOncallHeartbeatPayload(m *monitor.Model, hb *heartbeat.Model) map[string]interface{} {
+	monitorName := unknownMonitorName
+	if m != nil {
+		monitorName = m.Name
+	}
+
+	var title, state string
+	switch hb.Status {
+	case shared.MonitorStatusDown:
+		title, state = fmt.Sprintf("%s is down", monitorName), "alerting"
+	case shared.MonitorStatusUp:
+		title, state = fmt.Sprintf("%s is up", monitorName), "ok"
+	default:
+		// For pending/maintenance states, treat as alerting
+		title, state = fmt.Sprintf("%s status changed", monitorName), "alerting"
+	}
+	payload := map[string]interface{}{
+		"title":   title,
+		"message": hb.Msg,
+		"state":   state,
+	}
+
+	// OnCall groups alerts by alert_uid and resolves a group on state ok, so the monitor's id
+	// in the form of PagerDuty's dedup key keeps its Up from resolving other monitors' alerts.
+	// A test notification's monitor has no ID, and so no alert group of its own.
+	if m != nil && m.ID != "" {
+		payload["alert_uid"] = fmt.Sprintf("Peekaping/%s", m.ID)
+	}
+
+	payload["status"] = humanReadableStatus(int(hb.Status))
+	payload["ping_ms"] = hb.Ping
+	payload["retries"] = hb.Retries
+	// A test notification's heartbeat has no time
+	if !hb.Time.IsZero() {
+		payload["time"] = hb.Time.Format(time.RFC3339)
+	}
+	return payload
 }
 
 // grafanaOncallProbePayload is the alert for a probe that went offline, or the one that resolves it
@@ -197,6 +208,12 @@ func addGrafanaOncallMonitorFields(payload map[string]interface{}, m *monitor.Mo
 	}
 	payload["tags"] = tags
 
+	addGrafanaOncallTarget(payload, m)
+}
+
+// addGrafanaOncallTarget adds what the monitor checks to the payload: the URL of an HTTP monitor,
+// or the host of a TCP, ping, DNS or gRPC one
+func addGrafanaOncallTarget(payload map[string]interface{}, m *monitor.Model) {
 	var cfg struct {
 		URL     string `json:"url"`
 		Host    string `json:"host"`
@@ -209,17 +226,18 @@ func addGrafanaOncallMonitorFields(payload map[string]interface{}, m *monitor.Mo
 	// Other monitor types are left out: their config, such as a database DSN, can hold credentials
 	switch m.Type {
 	case "http", "http-keyword", "http-json-query":
-		if u := urlWithoutSecrets(cfg.URL); u != "" {
-			payload["monitor_url"] = u
-		}
+		setIfNotEmpty(payload, "monitor_url", urlWithoutSecrets(cfg.URL))
 	case "tcp", "ping", "dns":
-		if cfg.Host != "" {
-			payload["monitor_host"] = cfg.Host
-		}
+		setIfNotEmpty(payload, "monitor_host", cfg.Host)
 	case "grpc-keyword":
-		if target := grpcTargetWithoutSecrets(cfg.GrpcURL); target != "" {
-			payload["monitor_host"] = target
-		}
+		setIfNotEmpty(payload, "monitor_host", grpcTargetWithoutSecrets(cfg.GrpcURL))
+	}
+}
+
+// setIfNotEmpty sets the payload's key to value, unless value is empty
+func setIfNotEmpty(payload map[string]interface{}, key, value string) {
+	if value != "" {
+		payload[key] = value
 	}
 }
 

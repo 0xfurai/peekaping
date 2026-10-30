@@ -1,0 +1,21 @@
+POST https://oncall.example.com/integrations/v1/formatted_webhook/abc/
+Content-Type: application/json
+User-Agent: Peekaping/<version>
+
+{
+  "alert_uid": "Peekaping/mon-1",
+  "message": "slow response",
+  "monitor_id": "mon-1",
+  "monitor_type": "http",
+  "monitor_url": "https://api.example.com/health",
+  "ping_ms": 0,
+  "retries": 0,
+  "state": "alerting",
+  "status": "PENDING",
+  "tags": [
+    "severity:critical",
+    "team:core"
+  ],
+  "time": "2026-10-17T09:32:00Z",
+  "title": "Public API status changed"
+}

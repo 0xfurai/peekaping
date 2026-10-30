@@ -1251,6 +1251,12 @@
           "accountEmails": {
             "type": "boolean"
           },
+          "customDomainCnameTarget": {
+            "examples": [
+              "peekaping.example.com"
+            ],
+            "type": "string"
+          },
           "defaultWorkspaceId": {
             "type": [
               "string",
@@ -1282,6 +1288,9 @@
           "user": {
             "$ref": "#/components/schemas/auth.MeUser"
           },
+          "verifyCustomDomains": {
+            "type": "boolean"
+          },
           "workspaces": {
             "items": {
               "$ref": "#/components/schemas/auth.MeWorkspace"
@@ -1299,6 +1308,8 @@
           "accountEmails",
           "disabledMonitorTypes",
           "minCheckInterval",
+          "verifyCustomDomains",
+          "customDomainCnameTarget",
           "supportContact"
         ],
         "type": "object"
@@ -1586,6 +1597,135 @@
           "success",
           "message",
           "retry_after"
+        ],
+        "type": "object"
+      },
+      "domain_status_page.CNAMERecord": {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "examples": [
+              "status.example.com"
+            ],
+            "type": "string"
+          },
+          "target": {
+            "examples": [
+              "peekaping.example.com"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "target"
+        ],
+        "type": "object"
+      },
+      "domain_status_page.Records": {
+        "additionalProperties": false,
+        "properties": {
+          "cname": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/domain_status_page.CNAMERecord"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "txt": {
+            "$ref": "#/components/schemas/domain_status_page.TXTRecord"
+          }
+        },
+        "required": [
+          "txt",
+          "cname"
+        ],
+        "type": "object"
+      },
+      "domain_status_page.Status": {
+        "additionalProperties": false,
+        "properties": {
+          "domain": {
+            "examples": [
+              "status.example.com"
+            ],
+            "type": "string"
+          },
+          "failingSince": {
+            "format": "date-time",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "lastCheckedAt": {
+            "format": "date-time",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "records": {
+            "$ref": "#/components/schemas/domain_status_page.Records"
+          },
+          "removeAt": {
+            "format": "date-time",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "state": {
+            "enum": [
+              "verified",
+              "pending"
+            ],
+            "examples": [
+              "pending"
+            ],
+            "type": "string"
+          },
+          "verifiedAt": {
+            "format": "date-time",
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "domain",
+          "state",
+          "verifiedAt",
+          "lastCheckedAt",
+          "failingSince",
+          "removeAt",
+          "records"
+        ],
+        "type": "object"
+      },
+      "domain_status_page.TXTRecord": {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "examples": [
+              "_peekaping-verify.status.example.com"
+            ],
+            "type": "string"
+          },
+          "value": {
+            "examples": [
+              "peekaping-verify=0f3c..."
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "value"
         ],
         "type": "object"
       },
@@ -4586,6 +4726,25 @@
         ],
         "type": "object"
       },
+      "status_page.DomainStatusesDTO": {
+        "additionalProperties": false,
+        "properties": {
+          "domains": {
+            "items": {
+              "$ref": "#/components/schemas/domain_status_page.Status"
+            },
+            "type": "array"
+          },
+          "verificationRequired": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "verificationRequired",
+          "domains"
+        ],
+        "type": "object"
+      },
       "status_page.Model": {
         "additionalProperties": false,
         "properties": {
@@ -5835,6 +5994,22 @@
         ],
         "type": "object"
       },
+      "utils.ApiResponse_domain_status_page.Status": {
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/domain_status_page.Status"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "message",
+          "data"
+        ],
+        "type": "object"
+      },
       "utils.ApiResponse_maintenance.MaintenanceResponseDto": {
         "additionalProperties": false,
         "properties": {
@@ -6032,6 +6207,22 @@
         "properties": {
           "data": {
             "$ref": "#/components/schemas/shared.SettingModel"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "message",
+          "data"
+        ],
+        "type": "object"
+      },
+      "utils.ApiResponse_status_page.DomainStatusesDTO": {
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/status_page.DomainStatusesDTO"
           },
           "message": {
             "type": "string"
@@ -15903,6 +16094,214 @@
         ]
       }
     },
+    "/api/v1/status-pages/domains/{id}": {
+      "get": {
+        "description": "Each domain's state (verified or pending), when it was last checked, when its records went missing (failingSince), when a pending domain is removed from the page (removeAt) and the DNS records that verify it: a TXT record, or a CNAME to the install (null when the install has no host to point at). verificationRequired says whether a pending domain is held back from serving (VERIFY_CUSTOM_DOMAINS). Any member of the workspace may ask.",
+        "operationId": "getStatusPagesDomainsById",
+        "parameters": [
+          {
+            "description": "Status Page ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "description": "Status Page ID",
+              "type": "string"
+            }
+          },
+          {
+            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.ApiResponse_status_page.DomainStatusesDTO"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before sending the request again.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "JwtAuth": []
+          },
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "summary": "Get the custom domains of a status page with their verification state",
+        "tags": [
+          "status_page"
+        ]
+      }
+    },
+    "/api/v1/status-pages/domains/{id}/{domain}/verify": {
+      "post": {
+        "description": "Looks up the domain's TXT record and CNAME right away, whether verification is on or not, and answers the domain's state after the check. Answers 404 when the page is not in the workspace or does not list the domain. A check never removes a domain: one that stayed pending for 7 days is removed by the scheduled check.",
+        "operationId": "postStatusPagesDomainsByIdByDomainVerify",
+        "parameters": [
+          {
+            "description": "Status Page ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "description": "Status Page ID",
+              "type": "string"
+            }
+          },
+          {
+            "description": "A custom domain of the status page",
+            "in": "path",
+            "name": "domain",
+            "required": true,
+            "schema": {
+              "description": "A custom domain of the status page",
+              "type": "string"
+            }
+          },
+          {
+            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.ApiResponse_domain_status_page.Status"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before sending the request again.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "JwtAuth": []
+          },
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "summary": "Check a custom domain's DNS records now",
+        "tags": [
+          "status_page"
+        ]
+      }
+    },
     "/api/v1/status-pages/slug/{slug}": {
       "get": {
         "description": "Answers 503 with the code STATUS_PAGE_UNAVAILABLE and the message \"This status page is unavailable\" when the page is published and its workspace is suspended, whether by an instance admin or while it waits for its owner to verify their email address. It does not say which, and a page that is not published is still 404.",
@@ -16090,6 +16489,53 @@
           }
         },
         "summary": "Get monitors for a status page by slug for homepage",
+        "tags": [
+          "status_page"
+        ]
+      }
+    },
+    "/api/v1/status-pages/tls-ask": {
+      "get": {
+        "description": "For Caddy's on_demand_tls ask option: 200 with no body when the domain is on a status page's custom domain list, published or not, and 404 when it is not. With VERIFY_CUSTOM_DOMAINS on, a domain on the list must also be verified, and a pending one answers 404. The domain is compared in lower case and without a trailing dot. It reveals nothing beyond yes or no.",
+        "operationId": "getStatusPagesTlsAsk",
+        "parameters": [
+          {
+            "description": "The host a certificate is asked for",
+            "in": "query",
+            "name": "domain",
+            "required": true,
+            "schema": {
+              "description": "The host a certificate is asked for",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Ask whether a host may get a certificate",
         "tags": [
           "status_page"
         ]

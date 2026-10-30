@@ -506,3 +506,39 @@ func closedAddr(t *testing.T) string {
 	t.Helper()
 	return net.JoinHostPort("127.0.0.1", strconv.Itoa(closedPort(t)))
 }
+
+func TestValidateConnectionStringWithOptions(t *testing.T) {
+	tests := []struct {
+		name            string
+		connectionStr   string
+		schemes         []string
+		allowNoUsername bool
+		wantErr         string
+	}{
+		{name: "empty", connectionStr: "", schemes: []string{"postgres"}, wantErr: "connection string cannot be empty"},
+		{name: "unparsable", connectionStr: "postgres://user@host:abc/db", schemes: []string{"postgres"}, wantErr: `invalid connection string format: parse "postgres://user@host:abc/db": invalid port ":abc" after host`},
+		{name: "wrong scheme, one supported", connectionStr: "mysql://user@host/db", schemes: []string{"postgres"}, wantErr: "connection string must use postgres:// scheme, got: mysql"},
+		{name: "wrong scheme, several supported", connectionStr: "mysql://user@host/db", schemes: []string{"postgres", "postgresql"}, wantErr: "connection string must use one of [postgres postgresql] schemes, got: mysql"},
+		{name: "no host", connectionStr: "postgres:///db", schemes: []string{"postgres"}, wantErr: "connection string must include host"},
+		{name: "port without hostname", connectionStr: "postgres://user@:5432/db", schemes: []string{"postgres"}, wantErr: "connection string must include host"},
+		{name: "no user info", connectionStr: "postgres://host/db", schemes: []string{"postgres"}, wantErr: "connection string must include username"},
+		{name: "empty username", connectionStr: "postgres://:secret@host/db", schemes: []string{"postgres"}, wantErr: "connection string must include username"},
+		{name: "no username allowed", connectionStr: "mongodb://host/db", schemes: []string{"mongodb"}, allowNoUsername: true},
+		{name: "no database", connectionStr: "postgres://user@host", schemes: []string{"postgres"}, wantErr: "connection string must include database name"},
+		{name: "root path only", connectionStr: "postgres://user@host/", schemes: []string{"postgres"}, wantErr: "connection string must include database name"},
+		{name: "port zero", connectionStr: "postgres://user@host:0/db", schemes: []string{"postgres"}, wantErr: "invalid port: 0"},
+		{name: "valid with port", connectionStr: "postgres://user:secret@host:5432/db", schemes: []string{"postgres", "postgresql"}},
+		{name: "valid without port", connectionStr: "postgresql://user@host/db", schemes: []string{"postgres", "postgresql"}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := ValidateConnectionStringWithOptions(tt.connectionStr, tt.schemes, tt.allowNoUsername)
+			if tt.wantErr == "" {
+				require.NoError(t, err)
+				return
+			}
+			require.EqualError(t, err, tt.wantErr)
+		})
+	}
+}

@@ -1,0 +1,32 @@
+POST https://api.sendgrid.com/v3/mail/send
+Accept: application/json
+Authorization: Bearer SG.key
+Content-Type: application/json
+User-Agent: sendgrid/3.16.1;go
+
+{
+  "from": {
+    "email": "alerts@example.com"
+  },
+  "subject": "Peekaping Notification",
+  "personalizations": [
+    {
+      "to": [
+        {
+          "email": "oncall@example.com"
+        }
+      ],
+      "cc": [
+        {
+          "email": "a@example.com"
+        }
+      ]
+    }
+  ],
+  "content": [
+    {
+      "type": "text/plain",
+      "value": "connection refused"
+    }
+  ]
+}

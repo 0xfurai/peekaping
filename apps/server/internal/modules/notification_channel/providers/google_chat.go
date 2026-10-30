@@ -45,6 +45,60 @@ func (g *GoogleChatSender) Validate(configJSON string) error {
 	return GenericValidator(cfg.(*GoogleChatConfig))
 }
 
+// googleChatTitle is the header of the card: the monitor's name and whether it went down or came
+// back, or a plain title for a notification without a monitor or a heartbeat
+func googleChatTitle(m *monitor.Model, hb *heartbeat.Model) string {
+	if m == nil || hb == nil {
+		return "Peekaping Alert"
+	}
+	if hb.Status == shared.MonitorStatusUp {
+		return fmt.Sprintf("✅ %s is back online", m.Name)
+	}
+	return fmt.Sprintf("🔴 %s went down", m.Name)
+}
+
+// googleChatWidgets are the widgets of the card: the message, the time of the heartbeat if there
+// is one, and a button to buttonURL if there is one
+func googleChatWidgets(message string, hb *heartbeat.Model, buttonURL string) []map[string]any {
+	// Always show message
+	widgets := []map[string]any{
+		{
+			"textParagraph": map[string]string{
+				"text": fmt.Sprintf("<b>Message:</b>\n%s", message),
+			},
+		},
+	}
+
+	// Add time if available
+	if hb != nil {
+		// Format timestamp (Note: In a real implementation, you might want to add timezone support)
+		timeStr := hb.Time.Format("2006-01-02 15:04:05")
+		widgets = append(widgets, map[string]any{
+			"textParagraph": map[string]string{
+				"text": fmt.Sprintf("<b>Time:</b>\n%s", timeStr),
+			},
+		})
+	}
+
+	if buttonURL != "" {
+		widgets = append(widgets, map[string]any{
+			"buttonList": map[string][]map[string]any{
+				"buttons": {
+					{
+						"text": "Visit Peekaping",
+						"onClick": map[string]any{
+							"openLink": map[string]string{
+								"url": buttonURL,
+							},
+						},
+					},
+				},
+			},
+		})
+	}
+	return widgets
+}
+
 func (g *GoogleChatSender) Send(
 	ctx context.Context,
 	configJSON string,
@@ -62,54 +116,12 @@ func (g *GoogleChatSender) Send(
 
 	// Google Chat message formatting: https://developers.google.com/chat/api/guides/message-formats/basic
 	chatHeader := map[string]string{
-		"title": "Peekaping Alert",
-	}
-
-	if m != nil && hb != nil {
-		if hb.Status == shared.MonitorStatusUp {
-			chatHeader["title"] = fmt.Sprintf("✅ %s is back online", m.Name)
-		} else {
-			chatHeader["title"] = fmt.Sprintf("🔴 %s went down", m.Name)
-		}
-	}
-
-	// Always show message
-	sectionWidgets := []map[string]any{
-		{
-			"textParagraph": map[string]string{
-				"text": fmt.Sprintf("<b>Message:</b>\n%s", message),
-			},
-		},
-	}
-
-	// Add time if available
-	if hb != nil {
-		// Format timestamp (Note: In a real implementation, you might want to add timezone support)
-		timeStr := hb.Time.Format("2006-01-02 15:04:05")
-		sectionWidgets = append(sectionWidgets, map[string]any{
-			"textParagraph": map[string]string{
-				"text": fmt.Sprintf("<b>Time:</b>\n%s", timeStr),
-			},
-		})
+		"title": googleChatTitle(m, hb),
 	}
 
 	// Add button for the monitor's page, or the Probes page for a probe, if available
-	if buttonURL := peekapingLink(publicURL(ctx, g.publicURL), m); buttonURL != "" {
-		sectionWidgets = append(sectionWidgets, map[string]any{
-			"buttonList": map[string][]map[string]any{
-				"buttons": {
-					{
-						"text": "Visit Peekaping",
-						"onClick": map[string]any{
-							"openLink": map[string]string{
-								"url": buttonURL,
-							},
-						},
-					},
-				},
-			},
-		})
-	}
+	buttonURL := peekapingLink(publicURL(ctx, g.publicURL), m)
+	sectionWidgets := googleChatWidgets(message, hb, buttonURL)
 
 	chatSections := []map[string]any{
 		{

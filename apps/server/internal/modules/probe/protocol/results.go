@@ -104,6 +104,40 @@ func (c *Controller) Results(ctx context.Context, input *ResultsInput) (*httpx.O
 	if !ok {
 		return nil, c.unauthenticated()
 	}
+	req, err := decodeResults(r)
+	if err != nil {
+		return nil, err
+	}
+	outcomes := make([]probeproto.ResultOutcome, len(req.Results))
+	if len(req.Results) == 0 {
+		return httpx.Reply(http.StatusOK, probeproto.ResultsResponse{Results: outcomes})
+	}
+
+	b, err := c.newBatch(r.Context(), owner, instanceID, outcomes)
+	if err != nil {
+		return nil, err
+	}
+	// What was claimed and not stored goes back to the window, whether the request fails or panics:
+	// the probe sends such a result again, and it has to be accepted
+	defer b.releaseUnstored(r.Context())
+	if err := b.decideAll(r.Context(), req.Results); err != nil {
+		return nil, err
+	}
+
+	// A request stores for StoreDeadline at the most, so that it is over before its claims run out
+	storeCtx, cancelStore := context.WithTimeout(r.Context(), c.timing.StoreDeadline)
+	defer cancelStore()
+	if err := c.store(storeCtx, owner, instanceID, b.waiting); err != nil {
+		return nil, c.storeFailed(r, storeCtx, owner, err)
+	}
+	if b.heldElsewhere {
+		return nil, c.retryLater(owner.ID, messagePending)
+	}
+	return httpx.Reply(http.StatusOK, probeproto.ResultsResponse{Results: outcomes})
+}
+
+// decodeResults reads the batch of the request, and refuses one of more than BatchMax results
+func decodeResults(r *http.Request) (*probeproto.ResultsRequest, error) {
 	var req probeproto.ResultsRequest
 	if err := decodeBody(r, &req); err != nil {
 		return nil, err
@@ -112,14 +146,47 @@ func (c *Controller) Results(ctx context.Context, input *ResultsInput) (*httpx.O
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(
 			"batch holds "+strconv.Itoa(len(req.Results))+" results, the limit is "+strconv.Itoa(BatchMax)))
 	}
-	outcomes := make([]probeproto.ResultOutcome, len(req.Results))
-	if len(req.Results) == 0 {
-		return httpx.Reply(http.StatusOK, probeproto.ResultsResponse{Results: outcomes})
-	}
+	return &req, nil
+}
 
+// storeFailed is the error that answers a request whose results failed to store with err
+func (c *Controller) storeFailed(r *http.Request, storeCtx context.Context, owner *probe.Model, err error) error {
+	if storeCtx.Err() != nil && r.Context().Err() == nil {
+		// The deadline, not the probe going away: what was stored is kept and the rest is given
+		// back on the way out, and the probe sends the batch again
+		c.logger.Errorw("Storing a batch of results took until the deadline",
+			"probeId", owner.ID, "deadline", c.timing.StoreDeadline.String(), "error", err)
+		return c.retryLater(owner.ID, messageStoreDeadline)
+	}
+	return c.fail(err)
+}
+
+// batch is a results request while its results are judged: what the instance may send results for,
+// and what has been decided of the results so far
+type batch struct {
+	c        *Controller
+	owner    *probe.Model
+	instance *probe.Instance
+	now      time.Time
+	// owned are the monitors the probe is dealt, by id
+	owned map[string]*monitor.Model
+	// others are the monitors that results name and the probe is not dealt, read once each; a nil
+	// is a monitor that does not exist
+	others map[string]*monitor.Model
+	// claimedHere are the ids this request claimed, and heldElsewhere is whether the window found
+	// an id of the batch pending: claimed by another request that has not stored its result
+	claimedHere   map[string]bool
+	heldElsewhere bool
+	// waiting are the results that passed every check and wait to be stored
+	waiting  []*candidate
+	outcomes []probeproto.ResultOutcome
+}
+
+// newBatch finds what the instance may send results for. Its outcomes are the ones to fill in.
+func (c *Controller) newBatch(ctx context.Context, owner *probe.Model, instanceID string, outcomes []probeproto.ResultOutcome) (*batch, error) {
 	// The types this instance runs say which monitors it may send results for: a build that lacks
 	// an executor can't have run the check
-	instance, err := c.service.FindInstance(r.Context(), owner.ID, instanceID)
+	instance, err := c.service.FindInstance(ctx, owner.ID, instanceID)
 	if err != nil {
 		return nil, c.fail(err)
 	}
@@ -127,109 +194,113 @@ func (c *Controller) Results(ctx context.Context, input *ResultsInput) (*httpx.O
 		// Gone since the middleware stamped it (replaced to make room, or pruned): it has to say hello
 		return nil, httpx.Fail(http.StatusConflict, utils.NewFailResponse(messageUnknownInstance))
 	}
-	owned, err := c.dealtMonitors(r.Context(), owner, instance)
+	owned, err := c.dealtMonitors(ctx, owner, instance)
 	if err != nil {
 		return nil, c.fail(err)
 	}
-	now := c.now().UTC()
+	return &batch{
+		c: c, owner: owner, instance: instance, now: c.now().UTC(), owned: owned,
+		others: map[string]*monitor.Model{}, claimedHere: map[string]bool{}, outcomes: outcomes,
+	}, nil
+}
 
-	// others are the monitors that results name and the probe is not dealt, read once each; a nil
-	// is a monitor that does not exist
-	others := map[string]*monitor.Model{}
-	var waiting []*candidate
-	// claimedHere are the ids this request claimed, and heldElsewhere is whether the window found
-	// an id of the batch pending: claimed by another request that has not stored its result
-	claimedHere := map[string]bool{}
-	heldElsewhere := false
-	// What was claimed and not stored goes back to the window, whether the request fails or panics:
-	// the probe sends such a result again, and it has to be accepted
-	defer func() {
-		for _, w := range waiting {
-			if w.stored {
-				continue
-			}
-			if err := c.accepted.Release(r.Context(), owner.ID, w.result.ID); err != nil {
-				// The id stays claimed until the window forgets it, so the probe's retry of this
-				// result is answered duplicate though it was not stored
-				c.logger.Errorw("Failed to give back the id of a result that was not stored",
-					"probeId", owner.ID, "resultId", w.result.ID, "error", err)
-			}
+// decideAll decides each of the results, in the order sent, and claims the ids of those to be stored
+func (b *batch) decideAll(ctx context.Context, results []probeproto.Result) error {
+	for i := range results {
+		b.outcomes[i] = probeproto.ResultOutcome{ID: results[i].ID}
+		if err := b.decide(ctx, i, &results[i]); err != nil {
+			return err
 		}
-	}()
-	for i := range req.Results {
-		result := &req.Results[i]
-		outcomes[i] = probeproto.ResultOutcome{ID: result.ID}
+	}
+	return nil
+}
 
-		status, tlsInfo, reason := judge(result, now)
-		var m *monitor.Model
-		if reason == "" {
-			m = owned[result.MonitorID]
-			if m == nil {
-				other, err := c.otherMonitor(r.Context(), others, result.MonitorID)
-				if err != nil {
-					return nil, c.fail(err)
-				}
-				if dealtTo(other, owner, instance) {
-					// The listing missed it: paging by offset skips a monitor when another is paused
-					// or deleted during the scan. The probe drops a not_assigned result for good, so
-					// the monitor's own read decides.
-					m = other
-				} else {
-					reason = notAssignedOrUnknown(other)
-				}
-			}
-		}
-		// The claim is the last check, so that only a result that goes on to be stored takes an id.
-		// An id twice in one batch is claimed by the first.
-		if reason == "" && claimedHere[result.ID] {
-			reason = probeproto.ReasonDuplicate
-		}
-		if reason == "" {
-			claim, err := c.accepted.Claim(r.Context(), owner.ID, result.ID, now)
-			if err != nil {
-				// The window could not say whether the id was taken: the batch is the probe's to
-				// send again, and the ids claimed so far are given back
-				return nil, c.unavailable("claiming a result id", err)
-			}
-			switch claim {
-			case ClaimWon:
-				claimedHere[result.ID] = true
-			case ClaimPending:
-				// Another request holds the id and has not stored the result: it may be at it, or
-				// it may have died. This one is neither stored nor a duplicate, which the probe
-				// would drop for good. The rest of the batch goes on, and the probe sends the
-				// whole batch again.
-				heldElsewhere = true
-				continue
-			default:
-				reason = probeproto.ReasonDuplicate
-			}
-		}
-		if reason != "" {
-			outcomes[i].Reason = reason
+// decide fills in the outcome of the i-th result: rejected with a reason, accepted and waiting to be
+// stored, or neither when another request holds its id
+func (b *batch) decide(ctx context.Context, i int, result *probeproto.Result) error {
+	status, tlsInfo, reason := judge(result, b.now)
+	var m *monitor.Model
+	var pending bool
+	var err error
+	if reason == "" {
+		m, reason, err = b.monitorFor(ctx, result)
+	}
+	// The claim is the last check, so that only a result that goes on to be stored takes an id.
+	if err == nil && reason == "" {
+		reason, pending, err = b.claim(ctx, result.ID)
+	}
+	switch {
+	case err != nil:
+		return err
+	case pending:
+		// Another request holds the id and has not stored the result: it may be at it, or
+		// it may have died. This one is neither stored nor a duplicate, which the probe
+		// would drop for good. The rest of the batch goes on, and the probe sends the
+		// whole batch again.
+		b.heldElsewhere = true
+	case reason != "":
+		b.outcomes[i].Reason = reason
+	default:
+		b.outcomes[i].Accepted = true
+		b.waiting = append(b.waiting, &candidate{result: result, monitor: m, status: status, tlsInfo: tlsInfo})
+	}
+	return nil
+}
+
+// monitorFor finds the monitor the result is for, or the reason to reject it
+func (b *batch) monitorFor(ctx context.Context, result *probeproto.Result) (*monitor.Model, string, error) {
+	if m := b.owned[result.MonitorID]; m != nil {
+		return m, "", nil
+	}
+	other, err := b.c.otherMonitor(ctx, b.others, result.MonitorID)
+	if err != nil {
+		return nil, "", b.c.fail(err)
+	}
+	if dealtTo(other, b.owner, b.instance) {
+		// The listing missed it: paging by offset skips a monitor when another is paused
+		// or deleted during the scan. The probe drops a not_assigned result for good, so
+		// the monitor's own read decides.
+		return other, "", nil
+	}
+	return nil, notAssignedOrUnknown(other), nil
+}
+
+// claim takes the id in the window. It returns the reason to reject the result when the id is taken,
+// and whether another request holds it without having stored the result.
+func (b *batch) claim(ctx context.Context, id string) (reason string, pending bool, err error) {
+	// An id twice in one batch is claimed by the first.
+	if b.claimedHere[id] {
+		return probeproto.ReasonDuplicate, false, nil
+	}
+	claim, err := b.c.accepted.Claim(ctx, b.owner.ID, id, b.now)
+	if err != nil {
+		// The window could not say whether the id was taken: the batch is the probe's to
+		// send again, and the ids claimed so far are given back
+		return "", false, b.c.unavailable("claiming a result id", err)
+	}
+	switch claim {
+	case ClaimWon:
+		b.claimedHere[id] = true
+		return "", false, nil
+	case ClaimPending:
+		return "", true, nil
+	}
+	return probeproto.ReasonDuplicate, false, nil
+}
+
+// releaseUnstored gives back to the window the ids that were claimed and not stored
+func (b *batch) releaseUnstored(ctx context.Context) {
+	for _, w := range b.waiting {
+		if w.stored {
 			continue
 		}
-		outcomes[i].Accepted = true
-		waiting = append(waiting, &candidate{result: result, monitor: m, status: status, tlsInfo: tlsInfo})
-	}
-
-	// A request stores for StoreDeadline at the most, so that it is over before its claims run out
-	storeCtx, cancelStore := context.WithTimeout(r.Context(), c.timing.StoreDeadline)
-	defer cancelStore()
-	if err := c.store(storeCtx, owner, instanceID, waiting); err != nil {
-		if storeCtx.Err() != nil && r.Context().Err() == nil {
-			// The deadline, not the probe going away: what was stored is kept and the rest is given
-			// back on the way out, and the probe sends the batch again
-			c.logger.Errorw("Storing a batch of results took until the deadline",
-				"probeId", owner.ID, "deadline", c.timing.StoreDeadline.String(), "error", err)
-			return nil, c.retryLater(owner.ID, messageStoreDeadline)
+		if err := b.c.accepted.Release(ctx, b.owner.ID, w.result.ID); err != nil {
+			// The id stays claimed until the window forgets it, so the probe's retry of this
+			// result is answered duplicate though it was not stored
+			b.c.logger.Errorw("Failed to give back the id of a result that was not stored",
+				"probeId", b.owner.ID, "resultId", w.result.ID, "error", err)
 		}
-		return nil, c.fail(err)
 	}
-	if heldElsewhere {
-		return nil, c.retryLater(owner.ID, messagePending)
-	}
-	return httpx.Reply(http.StatusOK, probeproto.ResultsResponse{Results: outcomes})
 }
 
 // retryLater answers 503 with a Retry-After for a batch that has results left to store: one whose

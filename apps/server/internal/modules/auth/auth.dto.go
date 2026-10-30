@@ -44,6 +44,14 @@ type MeResponse struct {
 	// lets a monitor be saved with (MIN_CHECK_INTERVAL, PP-159): 20 by default. The app uses it as the
 	// minimum and the default of the monitor form.
 	MinCheckInterval int `json:"minCheckInterval" example:"20"`
+	// VerifyCustomDomains is whether a custom domain must be verified before it serves its status
+	// page (VERIFY_CUSTOM_DOMAINS, PP-165): the app tells a workspace that its domain waits for the
+	// DNS records, and when it will be removed.
+	VerifyCustomDomains bool `json:"verifyCustomDomains"`
+	// CustomDomainCnameTarget is the host a custom domain may be a CNAME to, to be verified:
+	// CUSTOM_DOMAIN_CNAME_TARGET, else the host of the public URL. Empty when the install has none (its
+	// public URL is localhost or an IP address), and then only the TXT record verifies a domain.
+	CustomDomainCNAMETarget string `json:"customDomainCnameTarget" example:"peekaping.example.com"`
 	// SupportContact is how a member of a suspended workspace gets in touch with whoever runs the
 	// install (SUPPORT_CONTACT, PP-372): free text, an email address or a URL, for the suspension
 	// banner. Null when the install sets none.

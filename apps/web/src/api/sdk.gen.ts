@@ -273,6 +273,12 @@ import type {
   GetStatusPagesDomainByDomainData,
   GetStatusPagesDomainByDomainResponses,
   GetStatusPagesDomainByDomainErrors,
+  GetStatusPagesDomainsByIdData,
+  GetStatusPagesDomainsByIdResponses,
+  GetStatusPagesDomainsByIdErrors,
+  PostStatusPagesDomainsByIdByDomainVerifyData,
+  PostStatusPagesDomainsByIdByDomainVerifyResponses,
+  PostStatusPagesDomainsByIdByDomainVerifyErrors,
   GetStatusPagesSlugBySlugData,
   GetStatusPagesSlugBySlugResponses,
   GetStatusPagesSlugBySlugErrors,
@@ -282,6 +288,9 @@ import type {
   GetStatusPagesSlugBySlugMonitorsHomepageData,
   GetStatusPagesSlugBySlugMonitorsHomepageResponses,
   GetStatusPagesSlugBySlugMonitorsHomepageErrors,
+  GetStatusPagesTlsAskData,
+  GetStatusPagesTlsAskResponses,
+  GetStatusPagesTlsAskErrors,
   DeleteStatusPagesByIdData,
   DeleteStatusPagesByIdResponses,
   DeleteStatusPagesByIdErrors,
@@ -2741,6 +2750,64 @@ export const getStatusPagesDomainByDomain = <
 };
 
 /**
+ * Get the custom domains of a status page with their verification state
+ * Each domain's state (verified or pending), when it was last checked, when its records went missing (failingSince), when a pending domain is removed from the page (removeAt) and the DNS records that verify it: a TXT record, or a CNAME to the install (null when the install has no host to point at). verificationRequired says whether a pending domain is held back from serving (VERIFY_CUSTOM_DOMAINS). Any member of the workspace may ask.
+ */
+export const getStatusPagesDomainsById = <ThrowOnError extends boolean = false>(
+  options: Options<GetStatusPagesDomainsByIdData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).get<
+    GetStatusPagesDomainsByIdResponses,
+    GetStatusPagesDomainsByIdErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+      {
+        name: "X-API-Key",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/v1/status-pages/domains/{id}",
+    ...options,
+  });
+};
+
+/**
+ * Check a custom domain's DNS records now
+ * Looks up the domain's TXT record and CNAME right away, whether verification is on or not, and answers the domain's state after the check. Answers 404 when the page is not in the workspace or does not list the domain. A check never removes a domain: one that stayed pending for 7 days is removed by the scheduled check.
+ */
+export const postStatusPagesDomainsByIdByDomainVerify = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<PostStatusPagesDomainsByIdByDomainVerifyData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).post<
+    PostStatusPagesDomainsByIdByDomainVerifyResponses,
+    PostStatusPagesDomainsByIdByDomainVerifyErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+      {
+        name: "X-API-Key",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/v1/status-pages/domains/{id}/{domain}/verify",
+    ...options,
+  });
+};
+
+/**
  * Get a status page by slug
  * Answers 503 with the code STATUS_PAGE_UNAVAILABLE and the message "This status page is unavailable" when the page is published and its workspace is suspended, whether by an instance admin or while it waits for its owner to verify their email address. It does not say which, and a page that is not published is still 404.
  */
@@ -2794,6 +2861,23 @@ export const getStatusPagesSlugBySlugMonitorsHomepage = <
   >({
     responseType: "json",
     url: "/api/v1/status-pages/slug/{slug}/monitors/homepage",
+    ...options,
+  });
+};
+
+/**
+ * Ask whether a host may get a certificate
+ * For Caddy's on_demand_tls ask option: 200 with no body when the domain is on a status page's custom domain list, published or not, and 404 when it is not. With VERIFY_CUSTOM_DOMAINS on, a domain on the list must also be verified, and a pending one answers 404. The domain is compared in lower case and without a trailing dot. It reveals nothing beyond yes or no.
+ */
+export const getStatusPagesTlsAsk = <ThrowOnError extends boolean = false>(
+  options: Options<GetStatusPagesTlsAskData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).get<
+    GetStatusPagesTlsAskResponses,
+    GetStatusPagesTlsAskErrors,
+    ThrowOnError
+  >({
+    url: "/api/v1/status-pages/tls-ask",
     ...options,
   });
 };

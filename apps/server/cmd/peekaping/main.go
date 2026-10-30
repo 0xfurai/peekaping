@@ -26,6 +26,7 @@ import (
 	"peekaping/internal/mailer"
 	"peekaping/internal/modules/auth"
 	"peekaping/internal/modules/cleanup"
+	"peekaping/internal/modules/domain_status_page"
 	"peekaping/internal/modules/error_reporting"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/heartbeat"
@@ -112,9 +113,11 @@ type parts struct {
 	Watchdog  *stale.Watchdog
 	// ProbeSweep sets the probes whose instances went quiet offline
 	ProbeSweep *probe.Sweep
-	EventBus   events.EventBus
-	Mailer     *mailer.Mailer
-	DB         *bun.DB
+	// Domains verifies the custom domains by DNS when VERIFY_CUSTOM_DOMAINS is on
+	Domains  domain_status_page.Service
+	EventBus events.EventBus
+	Mailer   *mailer.Mailer
+	DB       *bun.DB
 
 	Config               *config.Config
 	Settings             setting.Service
@@ -159,24 +162,15 @@ func run(ctx context.Context, cfg *Config, logger *zap.SugaredLogger, listener n
 	logger.Infow("Starting Peekaping in single mode", "version", version.Version)
 	warnAboutIgnoredSettings(cfg, logger)
 
-	container := dig.New()
-	internalCfg := cfg.ToInternalConfig()
-	if err := app.RegisterSingle(container, internalCfg); err != nil {
-		return fmt.Errorf("failed to register dependencies: %w", err)
+	container, err := newContainer(cfg.ToInternalConfig(), logger)
+	if err != nil {
+		return err
 	}
-	// Every module logs through the caller's logger
-	if err := container.Decorate(func() *zap.SugaredLogger { return logger }); err != nil {
-		return fmt.Errorf("failed to decorate the logger: %w", err)
-	}
-	// Error reports stay off until startJobs applies the admin's choice. The reports still queued
-	// go out as the process ends.
-	if err := app.SetupErrorReporting(container, internalCfg); err != nil {
-		return fmt.Errorf("failed to set up error reporting: %w", err)
-	}
+	// The reports still queued go out as the process ends
 	defer reporting.Flush(errorReportingFlush)
-	var p parts
-	if err := container.Invoke(func(resolved parts) { p = resolved }); err != nil {
-		return fmt.Errorf("failed to build peekaping: %w", err)
+	p, err := resolveParts(container)
+	if err != nil {
+		return err
 	}
 
 	handler, err := apiHandler(cfg, p, logger)
@@ -219,6 +213,32 @@ func run(ctx context.Context, cfg *Config, logger *zap.SugaredLogger, listener n
 	}
 	logger.Info("Peekaping stopped")
 	return nil
+}
+
+// newContainer registers peekaping's dependencies, with error reporting set up but still off
+func newContainer(internalCfg *config.Config, logger *zap.SugaredLogger) (*dig.Container, error) {
+	container := dig.New()
+	if err := app.RegisterSingle(container, internalCfg); err != nil {
+		return nil, fmt.Errorf("failed to register dependencies: %w", err)
+	}
+	// Every module logs through the caller's logger
+	if err := container.Decorate(func() *zap.SugaredLogger { return logger }); err != nil {
+		return nil, fmt.Errorf("failed to decorate the logger: %w", err)
+	}
+	// Error reports stay off until startJobs applies the admin's choice
+	if err := app.SetupErrorReporting(container, internalCfg); err != nil {
+		return nil, fmt.Errorf("failed to set up error reporting: %w", err)
+	}
+	return container, nil
+}
+
+// resolveParts builds everything run starts and stops
+func resolveParts(container *dig.Container) (parts, error) {
+	var p parts
+	if err := container.Invoke(func(resolved parts) { p = resolved }); err != nil {
+		return parts{}, fmt.Errorf("failed to build peekaping: %w", err)
+	}
+	return p, nil
 }
 
 // warnAboutIgnoredSettings says which settings single mode ignores: the Redis settings, and the
@@ -284,6 +304,8 @@ type jobs struct {
 	watchdogDone  chan struct{}
 	stopSweep     context.CancelFunc
 	sweepDone     chan struct{}
+	stopDomains   context.CancelFunc
+	domainsDone   chan struct{}
 	cleanup       *cron.Cron
 	stopRepair    context.CancelFunc
 	repairDone    chan struct{}
@@ -382,6 +404,10 @@ func startJobs(ctx context.Context, p parts, cfg *Config, logger *zap.SugaredLog
 		p.ProbeSweep.Run(sweepCtx)
 	})
 
+	// The check of custom domains runs once, as the leader api replica runs it in cluster mode. It
+	// returns at once while VERIFY_CUSTOM_DOMAINS is off.
+	j.stopDomains, j.domainsDone = startDomainChecks(p.Domains)
+
 	// The usage ping is sent a few minutes after the start, unless an admin opted out or the
 	// environment forces it off, and a failed one is dropped. It runs once: this process is the
 	// only one, so there is no claim to win.
@@ -390,6 +416,17 @@ func startJobs(ctx context.Context, p parts, cfg *Config, logger *zap.SugaredLog
 	j.usagePingDone = p.UsagePing.Start(usagePingCtx, telemetrySchedule)
 
 	return j, nil
+}
+
+// startDomainChecks starts the check of custom domains, and returns how to stop it and its done channel
+func startDomainChecks(domains domain_status_page.Service) (context.CancelFunc, chan struct{}) {
+	ctx, stop := context.WithCancel(context.Background())
+	done := make(chan struct{})
+	reporting.Go("custom-domain-checks", func() {
+		defer close(done)
+		domains.Run(ctx)
+	})
+	return stop, done
 }
 
 // stop stops the background jobs and waits for them until ctx is done. The usage ping stops
@@ -405,6 +442,9 @@ func (j *jobs) stop(ctx context.Context) error {
 
 	j.stopSweep()
 	errs = append(errs, lifecycle.Await(ctx, "the probe sweep", j.sweepDone))
+
+	j.stopDomains()
+	errs = append(errs, lifecycle.Await(ctx, "the custom domain checks", j.domainsDone))
 
 	schedulerDone := make(chan struct{})
 	go func() {

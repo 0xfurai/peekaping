@@ -195,6 +195,17 @@ type Config struct {
 	// setting is on or the server's is, which the server states in hello.
 	BlockPrivateTargets bool `env:"BLOCK_PRIVATE_TARGETS" default:"false"`
 
+	// VerifyCustomDomains makes a custom domain serve its status page only once its owner has
+	// proved the domain points at this install (PP-165): a TXT record at _peekaping-verify.<domain>
+	// holding the domain's token, or a CNAME to CustomDomainCNAMETarget. Off by default, since a
+	// self-hosted install trusts its people to add their own domains; the cloud turns it on, so
+	// that a workspace can't hold a domain it doesn't own.
+	VerifyCustomDomains bool `env:"VERIFY_CUSTOM_DOMAINS" default:"false"`
+	// CustomDomainCNAMETarget is the host a verified custom domain may be a CNAME to. Empty, the
+	// default, means the host of the public URL (CLIENT_URL, or the address an instance admin
+	// saved); see CustomDomainCNAMETargetFor. ValidateCustomDomainCNAMETarget checks it at startup.
+	CustomDomainCNAMETarget string `env:"CUSTOM_DOMAIN_CNAME_TARGET"`
+
 	// APIRateLimitPerWorkspace and APIRateLimitPerAPIKey cap the requests a workspace, and one of
 	// its API keys, may make per minute (PP-159). 0, the default, is off. A request over either
 	// answers 429 with Retry-After. Each api replica counts for itself (see package ratelimit).
@@ -387,38 +398,48 @@ func validateConfig[T any](config *T) error {
 	return nil
 }
 
+// validationMessages say in words which rule a field broke, by tag. The field's name is the one
+// verb.
+var validationMessages = map[string]string{
+	"required":  "%s is required",
+	"url":       "%s must be a valid URL",
+	"numeric":   "%s must be a valid number",
+	"port":      "%s must be a valid port number (1-65535)",
+	"db_type":   "%s must be one of: postgres, postgresql, mysql, sqlite",
+	"log_level": "%s must be one of: debug, info, warn, warning, error, dpanic, panic, fatal",
+}
+
+// paramValidationMessages are validationMessages for the rules with a parameter: the field's name
+// is the first verb, the parameter the second.
+var paramValidationMessages = map[string]string{
+	"duration_min": "%s must be at least %s",
+	"max":          "%s must be at most %s",
+	"oneof":        "%s must be one of: %s",
+}
+
 func formatValidationError(err validator.FieldError) string {
 	field := err.Field()
 	tag := err.Tag()
 
-	switch tag {
-	case "required":
-		return fmt.Sprintf("%s is required", field)
-	case "url":
-		return fmt.Sprintf("%s must be a valid URL", field)
-	case "numeric":
-		return fmt.Sprintf("%s must be a valid number", field)
-	case "port":
-		return fmt.Sprintf("%s must be a valid port number (1-65535)", field)
-	case "db_type":
-		return fmt.Sprintf("%s must be one of: postgres, postgresql, mysql, sqlite", field)
-	case "log_level":
-		return fmt.Sprintf("%s must be one of: debug, info, warn, warning, error, dpanic, panic, fatal", field)
-	case "duration_min":
-		return fmt.Sprintf("%s must be at least %s", field, err.Param())
-	case "min":
-		switch err.Kind() {
-		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-			return fmt.Sprintf("%s must be at least %s", field, err.Param())
-		}
-		return fmt.Sprintf("%s must be at least %s characters", field, err.Param())
-	case "max":
-		return fmt.Sprintf("%s must be at most %s", field, err.Param())
-	case "oneof":
-		return fmt.Sprintf("%s must be one of: %s", field, err.Param())
-	default:
-		return fmt.Sprintf("%s failed validation: %s", field, tag)
+	if tag == "min" {
+		return formatMinError(err)
 	}
+	if message, ok := validationMessages[tag]; ok {
+		return fmt.Sprintf(message, field)
+	}
+	if message, ok := paramValidationMessages[tag]; ok {
+		return fmt.Sprintf(message, field, err.Param())
+	}
+	return fmt.Sprintf("%s failed validation: %s", field, tag)
+}
+
+// formatMinError words a min rule: a number is at least, a string at least that many characters
+func formatMinError(err validator.FieldError) string {
+	switch err.Kind() {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return fmt.Sprintf("%s must be at least %s", err.Field(), err.Param())
+	}
+	return fmt.Sprintf("%s must be at least %s characters", err.Field(), err.Param())
 }
 
 func ValidateDatabaseCustomRules(config *DBConfig) error {
@@ -462,42 +483,47 @@ func applyDefaults[T any](config *T) map[string]string {
 		defaultValue := field.Tag.Get("default")
 		envKey := field.Tag.Get("env")
 
-		if defaultValue != "" && fieldValue.IsZero() {
-			switch fieldValue.Kind() {
-			case reflect.String:
-				fieldValue.SetString(defaultValue)
-				if envKey != "" {
-					defaultsApplied[envKey] = defaultValue
-				}
-			case reflect.Int, reflect.Int64:
-				var intValue int64
-				var err error
-
-				// Special case for time.Duration
-				if field.Type == reflect.TypeOf(time.Duration(0)) {
-					var duration time.Duration
-					duration, err = time.ParseDuration(defaultValue)
-					intValue = int64(duration)
-				} else {
-					intValue, err = strconv.ParseInt(defaultValue, 10, 64)
-				}
-
-				if err == nil {
-					fieldValue.SetInt(intValue)
-					if envKey != "" {
-						defaultsApplied[envKey] = defaultValue
-					}
-				}
-			case reflect.Bool:
-				fieldValue.SetBool(defaultValue == "true" || defaultValue == "1")
-				if envKey != "" {
-					defaultsApplied[envKey] = defaultValue
-				}
-			}
+		if defaultValue == "" || !fieldValue.IsZero() {
+			continue
+		}
+		// A default that doesn't parse, or a kind the loader doesn't read, leaves the field zero
+		if set, err := setFieldFromText(field, fieldValue, defaultValue); set && err == nil && envKey != "" {
+			defaultsApplied[envKey] = defaultValue
 		}
 	}
 
 	return defaultsApplied
+}
+
+// setFieldFromText sets a string, int, int64 (a time.Duration included) or bool field from its
+// text. It reports whether the field's kind is one it reads, and the error of a number that
+// doesn't parse, which leaves the field as it was.
+func setFieldFromText(field reflect.StructField, fieldValue reflect.Value, value string) (bool, error) {
+	switch fieldValue.Kind() {
+	case reflect.String:
+		fieldValue.SetString(value)
+	case reflect.Int, reflect.Int64:
+		intValue, err := parseInt(field.Type, value)
+		if err != nil {
+			return true, err
+		}
+		fieldValue.SetInt(intValue)
+	case reflect.Bool:
+		fieldValue.SetBool(value == "true" || value == "1")
+	default:
+		return false, nil
+	}
+	return true, nil
+}
+
+// parseInt reads value as a number, or as a duration for a time.Duration
+func parseInt(fieldType reflect.Type, value string) (int64, error) {
+	// Special case for time.Duration
+	if fieldType == reflect.TypeOf(time.Duration(0)) {
+		duration, err := time.ParseDuration(value)
+		return int64(duration), err
+	}
+	return strconv.ParseInt(value, 10, 64)
 }
 
 func loadEnvFile[T any](filePath string, config *T, envVarsFromFile map[string]string) error {
@@ -573,29 +599,8 @@ func setFieldsFromMap[T any](config *T, values map[string]string) error {
 			continue
 		}
 
-		switch fieldValue.Kind() {
-		case reflect.String:
-			fieldValue.SetString(value)
-		case reflect.Int, reflect.Int64:
-			var intValue int64
-			var err error
-
-			// Special case for time.Duration
-			if field.Type == reflect.TypeOf(time.Duration(0)) {
-				var duration time.Duration
-				duration, err = time.ParseDuration(value)
-				intValue = int64(duration)
-			} else {
-				intValue, err = strconv.ParseInt(value, 10, 64)
-			}
-
-			if err != nil {
-				fmt.Printf("Warning: could not parse %s=%s as number: %v\n", envKey, value, err)
-				continue
-			}
-			fieldValue.SetInt(intValue)
-		case reflect.Bool:
-			fieldValue.SetBool(value == "true" || value == "1")
+		if _, err := setFieldFromText(field, fieldValue, value); err != nil {
+			fmt.Printf("Warning: could not parse %s=%s as number: %v\n", envKey, value, err)
 		}
 	}
 

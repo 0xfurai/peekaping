@@ -1,0 +1,10 @@
+To: oncall@example.com
+Subject: Peekaping Notification: Probe Frankfurt
+
+Probe: Probe Frankfurt
+
+Probe Frankfurt is slow
+
+--- HTML
+<p>Probe: <strong>Probe Frankfurt</strong></p>
+<p>Probe Frankfurt is slow</p>
