@@ -36,7 +36,8 @@ var anyWorkspaceCallers = map[string]string{
 	// public status pages and badges
 	"internal/modules/status_page.Controller.FindBySlug":      "a visitor of a public status page is in no workspace; the slug is unique across the install",
 	"internal/modules/status_page.Controller.FindByDomain":    "a visitor of a custom domain is in no workspace; the domain is unique across the install",
-	"internal/modules/status_page.Controller.publicMonitors":  "the monitors of a published page, loaded for the visitor",
+	"internal/modules/status_page.Controller.publishedPage":   "a visitor finds a published page by its slug, in no workspace",
+	"internal/modules/status_page.Controller.publicMonitor":   "a monitor of a published page, loaded for the visitor",
 	"internal/modules/status_page.Controller.publicLocations": "the heartbeats and uptime of a monitor on a published page",
 	"internal/modules/status_page.ServiceImpl.validateSlug":   "slugs are unique across the install, so a new page checks every workspace's",
 	"internal/modules/badge.ServiceImpl.GetMonitorBadgeData":  "a badge is public for a monitor on a published page, whatever its workspace",
@@ -57,7 +58,8 @@ var anyWorkspaceCallers = map[string]string{
 	"internal/modules/check.Loader.Load":                   "a check loads its monitor by ID, whatever its workspace",
 	"internal/modules/check.Loader.isUnderMaintenance":     "a check looks up the maintenance windows of its monitor",
 	"internal/modules/healthcheck.MonitorUnderMaintenance": "a push checks the maintenance windows of its monitor",
-	"internal/modules/stale.Watchdog.checkStaleMonitors":   "the watchdog looks for stale monitors in every workspace",
+	"internal/modules/stale.Watchdog.checkActiveMonitors":  "the watchdog looks for stale monitors in every workspace",
+	"internal/modules/stale.Watchdog.forgetGoneMonitors":   "the watchdog finds out whether a stale monitor is still checked, in any workspace",
 	// ingester
 	"internal/modules/ingester.ServiceImpl.Ingest":          "the ingester stores a probe's result on the monitor, whatever its workspace",
 	"internal/modules/ingester.ServiceImpl.restoreLocation": "the ingester restores a monitor's location state after a failed result",
