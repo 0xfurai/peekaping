@@ -590,13 +590,7 @@ func (mr *MonitorServiceImpl) storeFullUpdate(ctx context.Context, workspaceID w
 	if err := mr.requireFullUpdateAllowed(ctx, workspaceID, workspaceLimits, current, monitor); err != nil {
 		return nil, err
 	}
-	if err := mr.validateFullProbes(ctx, current, monitor); err != nil {
-		return nil, err
-	}
-	// The rule is checked against the probes the monitor will have, and a request without one
-	// keeps the monitor's
-	model.LocationRule, model.LocationThreshold, err = validateFullLocationRule(current, monitor)
-	if err != nil {
+	if err := mr.validateFullShape(ctx, current, monitor, model); err != nil {
 		return nil, err
 	}
 	if err := mr.requireLinks(ctx, workspaceID, monitor.NotificationIds, monitor.TagIds, monitor.ProxyId); err != nil {
@@ -609,6 +603,19 @@ func (mr *MonitorServiceImpl) storeFullUpdate(ctx context.Context, workspaceID w
 		return nil, err
 	}
 	return mr.findInWorkspace(ctx, workspaceID, id)
+}
+
+// validateFullShape checks the probes and the location rule against the monitor as it will be, and
+// sets the rule the update writes
+func (mr *MonitorServiceImpl) validateFullShape(ctx context.Context, current *Model, monitor *CreateUpdateDto, model *Model) error {
+	if err := mr.validateFullProbes(ctx, current, monitor); err != nil {
+		return err
+	}
+	// The rule is checked against the probes the monitor will have, and a request without one
+	// keeps the monitor's
+	var err error
+	model.LocationRule, model.LocationThreshold, err = validateFullLocationRule(current, monitor)
+	return err
 }
 
 // requireFullUpdateAllowed refuses a full update that gives the monitor a type the install turns
@@ -677,6 +684,17 @@ func (mr *MonitorServiceImpl) updatePartial(ctx context.Context, workspaceID *wo
 		monitor.ProxyId = &lowered
 	}
 	model := newPartialUpdateModel(id, monitor)
+	// The two calls that go across workspaces when the update has none are made here, in the one
+	// function the isolation test lists, and handed down
+	repo := partialRepository{
+		ownerOf: mr.monitorRepository.FindWorkspaceIDAnyWorkspace,
+		write: func(ctx context.Context, model *UpdateModel) error {
+			if workspaceID == nil {
+				return mr.monitorRepository.UpdatePartialAnyWorkspace(ctx, id, model)
+			}
+			return mr.monitorRepository.UpdatePartial(ctx, *workspaceID, id, model)
+		},
+	}
 
 	// The monitor and its links change together or not at all. The monitor is read inside the
 	// transaction, so that what the update is checked against is what it then changes. Links
@@ -684,7 +702,7 @@ func (mr *MonitorServiceImpl) updatePartial(ctx context.Context, workspaceID *wo
 	var updatedMonitor *Model
 	err := mr.transactor.WithTx(ctx, func(ctx context.Context) error {
 		var err error
-		updatedMonitor, err = mr.storePartialUpdate(ctx, workspaceID, id, monitor, model)
+		updatedMonitor, err = mr.storePartialUpdate(ctx, workspaceID, id, monitor, model, repo)
 		return err
 	})
 	if err != nil {
@@ -697,6 +715,13 @@ func (mr *MonitorServiceImpl) updatePartial(ctx context.Context, workspaceID *wo
 	}
 
 	return updatedMonitor, nil
+}
+
+// partialRepository is what an update reaches the repository with: where the monitor's workspace
+// is looked up, and the write of the update, in the workspace or across workspaces
+type partialRepository struct {
+	ownerOf func(ctx context.Context, id string) (workspace.ID, bool, error)
+	write   func(ctx context.Context, model *UpdateModel) error
 }
 
 // newPartialUpdateModel is the update a partial update asks for, before its location rule is checked
@@ -721,8 +746,8 @@ func newPartialUpdateModel(id string, monitor *PartialUpdateDto) *UpdateModel {
 
 // storePartialUpdate checks the update against the monitor as it is stored, then writes it and its
 // links and reads the monitor back, in the caller's transaction
-func (mr *MonitorServiceImpl) storePartialUpdate(ctx context.Context, workspaceID *workspace.ID, id string, monitor *PartialUpdateDto, model *UpdateModel) (*Model, error) {
-	scope, workspaceLimits, err := mr.holdForPartialUpdate(ctx, workspaceID, id, monitor)
+func (mr *MonitorServiceImpl) storePartialUpdate(ctx context.Context, workspaceID *workspace.ID, id string, monitor *PartialUpdateDto, model *UpdateModel, repo partialRepository) (*Model, error) {
+	scope, workspaceLimits, err := mr.holdForPartialUpdate(ctx, workspaceID, id, monitor, repo)
 	if err != nil {
 		return nil, err
 	}
@@ -744,17 +769,17 @@ func (mr *MonitorServiceImpl) storePartialUpdate(ctx context.Context, workspaceI
 	if err := mr.validatePartialShape(ctx, current, monitor, model); err != nil {
 		return nil, err
 	}
-	return mr.writePartialUpdate(ctx, workspaceID, id, monitor, model)
+	return mr.writePartialUpdate(ctx, workspaceID, id, monitor, model, repo)
 }
 
 // holdForPartialUpdate holds the workspace of an update that can go over one of its limits before
 // the monitor is read (holdForLimits), and returns the workspace it holds with its limits. A
 // background update knows the monitor alone, so it looks the workspace up first, when it makes the
 // monitor active or sets its probes: a monitor never moves. Without a workspace the limits are none.
-func (mr *MonitorServiceImpl) holdForPartialUpdate(ctx context.Context, workspaceID *workspace.ID, id string, monitor *PartialUpdateDto) (*workspace.ID, limits.Limits, error) {
+func (mr *MonitorServiceImpl) holdForPartialUpdate(ctx context.Context, workspaceID *workspace.ID, id string, monitor *PartialUpdateDto, repo partialRepository) (*workspace.ID, limits.Limits, error) {
 	activates := monitor.Active != nil && *monitor.Active
 	setsProbes := monitor.ProbeIDs != nil
-	scope, err := mr.partialScope(ctx, workspaceID, id, activates || setsProbes)
+	scope, err := mr.partialScope(ctx, workspaceID, id, activates || setsProbes, repo)
 	if err != nil || scope == nil {
 		return scope, limits.Limits{}, err
 	}
@@ -767,11 +792,11 @@ func (mr *MonitorServiceImpl) holdForPartialUpdate(ctx context.Context, workspac
 
 // partialScope is the workspace of the update: the request's, or for a background update that needs
 // it, the one the monitor is in
-func (mr *MonitorServiceImpl) partialScope(ctx context.Context, workspaceID *workspace.ID, id string, needed bool) (*workspace.ID, error) {
+func (mr *MonitorServiceImpl) partialScope(ctx context.Context, workspaceID *workspace.ID, id string, needed bool, repo partialRepository) (*workspace.ID, error) {
 	if workspaceID != nil || !needed {
 		return workspaceID, nil
 	}
-	owner, found, err := mr.monitorRepository.FindWorkspaceIDAnyWorkspace(ctx, id)
+	owner, found, err := repo.ownerOf(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -840,38 +865,44 @@ func (mr *MonitorServiceImpl) validatePartialShape(ctx context.Context, current 
 }
 
 // writePartialUpdate writes the update and its links, and reads the monitor back
-func (mr *MonitorServiceImpl) writePartialUpdate(ctx context.Context, workspaceID *workspace.ID, id string, monitor *PartialUpdateDto, model *UpdateModel) (*Model, error) {
-	// A background update changes a status and never links, so only a request's can name
-	// records of another workspace
-	if workspaceID != nil {
-		proxyID := ""
-		if monitor.ProxyId != nil {
-			proxyID = *monitor.ProxyId
-		}
-		if err := mr.requireLinks(ctx, *workspaceID, monitor.NotificationIds, monitor.TagIds, proxyID); err != nil {
-			return nil, err
-		}
-	}
-	var err error
-	if workspaceID == nil {
-		err = mr.monitorRepository.UpdatePartialAnyWorkspace(ctx, id, model)
-	} else {
-		err = mr.monitorRepository.UpdatePartial(ctx, *workspaceID, id, model)
-	}
-	if err != nil {
+func (mr *MonitorServiceImpl) writePartialUpdate(ctx context.Context, workspaceID *workspace.ID, id string, monitor *PartialUpdateDto, model *UpdateModel, repo partialRepository) (*Model, error) {
+	if err := mr.requirePartialLinks(ctx, workspaceID, monitor); err != nil {
 		return nil, err
 	}
+	if err := repo.write(ctx, model); err != nil {
+		return nil, err
+	}
+	if err := mr.syncPartialLinks(ctx, id, monitor); err != nil {
+		return nil, err
+	}
+	return mr.findExisting(ctx, workspaceID, id)
+}
+
+// requirePartialLinks refuses links to records of another workspace. A background update changes a
+// status and never links, so only a request's can name them.
+func (mr *MonitorServiceImpl) requirePartialLinks(ctx context.Context, workspaceID *workspace.ID, monitor *PartialUpdateDto) error {
+	if workspaceID == nil {
+		return nil
+	}
+	proxyID := ""
+	if monitor.ProxyId != nil {
+		proxyID = *monitor.ProxyId
+	}
+	return mr.requireLinks(ctx, *workspaceID, monitor.NotificationIds, monitor.TagIds, proxyID)
+}
+
+// syncPartialLinks makes the IDs the update sends the monitor's links, channels and then tags. An
+// update without IDs leaves the links as they are.
+func (mr *MonitorServiceImpl) syncPartialLinks(ctx context.Context, id string, monitor *PartialUpdateDto) error {
 	if len(monitor.NotificationIds) > 0 {
 		if err := mr.syncNotificationLinks(ctx, id, monitor.NotificationIds); err != nil {
-			return nil, err
+			return err
 		}
 	}
 	if len(monitor.TagIds) > 0 {
-		if err := mr.syncTagLinks(ctx, id, monitor.TagIds); err != nil {
-			return nil, err
-		}
+		return mr.syncTagLinks(ctx, id, monitor.TagIds)
 	}
-	return mr.findExisting(ctx, workspaceID, id)
+	return nil
 }
 
 // validatePartialConfig checks that the type and config the monitor has after the update fit

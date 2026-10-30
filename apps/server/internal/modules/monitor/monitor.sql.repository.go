@@ -263,12 +263,18 @@ func (r *SQLRepositoryImpl) markOverLimit(ctx context.Context, models []*Model) 
 	if err != nil {
 		return err
 	}
+	setOverLimit(models, over, ahead)
+	return nil
+}
+
+// setOverLimit marks the active monitors that have as many active monitors of their workspace ahead
+// as its limit
+func setOverLimit(models []*Model, over map[workspace.ID]int, ahead map[string]int) {
 	for _, m := range models {
 		if limit, ok := over[m.WorkspaceID]; ok && m.Active {
 			m.OverLimit = ahead[m.ID] >= limit
 		}
 	}
-	return nil
 }
 
 // activeWorkspaceIDs are the workspaces of the active monitors, once each, in the order they come
@@ -1239,6 +1245,13 @@ func (r *SQLRepositoryImpl) updatePartial(ctx context.Context, workspaceID *work
 	if err != nil {
 		return pushTokenConflict(err)
 	}
+	return r.afterPartialWrite(ctx, workspaceID, id, monitor, result)
+}
+
+// afterPartialWrite forgets the count of monitors over their limit when the update changed one's
+// active setting, finds the monitor in the workspace, and replaces its probes when the update gives
+// them
+func (r *SQLRepositoryImpl) afterPartialWrite(ctx context.Context, workspaceID *workspace.ID, id string, monitor *UpdateModel, result sql.Result) error {
 	if monitor.Active != nil {
 		r.overLimitCache.forget()
 	}
