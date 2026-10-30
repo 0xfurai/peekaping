@@ -358,6 +358,17 @@ func TestACNAMETargetThatIsNotAHostNameStopsStartup(t *testing.T) {
 	assert.ErrorContains(t, err, "CUSTOM_DOMAIN_CNAME_TARGET must be a host name")
 }
 
+func TestAVerifyCustomDomainsThatIsNotABooleanStopsStartup(t *testing.T) {
+	for _, value := range []string{"TRUE", "yes", "on"} {
+		t.Setenv("DB_TYPE", "sqlite")
+		t.Setenv("DB_NAME", "peekaping.db")
+		t.Setenv("VERIFY_CUSTOM_DOMAINS", value)
+
+		_, err := LoadAndValidate(t.TempDir())
+		assert.ErrorContains(t, err, "VERIFY_CUSTOM_DOMAINS must be true, 1, false or 0", value)
+	}
+}
+
 func TestAPIRateLimitsAreOffByDefaultAndLoadedFromTheEnvironment(t *testing.T) {
 	t.Setenv("DB_TYPE", "sqlite")
 	t.Setenv("DB_NAME", "peekaping.db")

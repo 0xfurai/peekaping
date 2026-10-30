@@ -234,7 +234,7 @@ With it on, these addresses are blocked: loopback (`127.0.0.0/8`, `::1`), the pr
 
 | Variable | Type | Required | Default | Description |
 |----------|------|----------|---------|-------------|
-| `VERIFY_CUSTOM_DOMAINS` | bool | No | `false` | `true` serves a custom domain only once it is verified. Anything else serves every domain, as before |
+| `VERIFY_CUSTOM_DOMAINS` | bool | No | `false` | `true` serves a custom domain only once it is verified. `false` or unset serves every domain, as before. Any other value, such as `TRUE`, `yes` or `on`, stops startup, so a mistyped value never leaves verification off |
 | `CUSTOM_DOMAIN_CNAME_TARGET` | string | No | empty | The host a domain may be a `CNAME` to. Empty means the host of the public URL (`CLIENT_URL`, or the address an instance admin saved), without its port. A public URL on `localhost` or at an IP address gives no target, and then only the TXT record verifies a domain. A value that isn't a host name stops startup |
 
 With it on:
