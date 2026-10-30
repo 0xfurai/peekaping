@@ -274,6 +274,9 @@ var (
 		"POST /api/v1/workspaces":             "the signed-in user makes a workspace of their own and reads none",
 		"POST /api/v1/invites/{token}/accept": "the signed-in user joins the workspace an invite's token names, if their account's email is the invited one; no workspace of the caller is read",
 		"POST /api/v1/workspace/leave":        "the signed-in user leaves the workspace the request runs in, which only a member of it can name (404 otherwise, as for every route); it takes no ID and removes the caller's own place alone",
+
+		"POST /api/v1/workspace/deletion":   "an owner schedules the deletion of the workspace the request runs in, which only a member of it can name (404 otherwise, as for every route); it takes no ID, reads none of the workspace's records and sets the workspace's own deletion date (PP-170)",
+		"DELETE /api/v1/workspace/deletion": "an owner cancels the deletion of the workspace the request runs in, which only a member of it can name (404 otherwise, as for every route); it takes no ID and clears the workspace's own deletion date (PP-170)",
 	}
 
 	// isolationInstallRoutes belong to the install, and the instance admin manages them (ADR 0005 section 10)

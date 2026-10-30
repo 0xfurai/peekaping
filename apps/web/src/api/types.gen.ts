@@ -375,6 +375,7 @@ export type AdminWorkspaceMonitorsResponse = {
 export type AdminWorkspaceResponse = {
   createdAt: string;
   customDomains: number;
+  deletionScheduledAt: string | null;
   id: string;
   limits: AdminWorkspaceLimitsResponse;
   memberCount: number;
@@ -384,7 +385,7 @@ export type AdminWorkspaceResponse = {
   statusPages: number;
   suspended: boolean;
   suspendedAt: string | null;
-  suspendedReason: "admin" | "unverified" | null;
+  suspendedReason: "deleting" | "admin" | "unverified" | null;
 };
 
 export type AdminWorkspacesPageResponse = {
@@ -491,6 +492,7 @@ export type AuthMeUser = {
 };
 
 export type AuthMeWorkspace = {
+  deletionScheduledAt: string | null;
   id: string;
   name: string;
   role: string;
@@ -1984,6 +1986,11 @@ export type UtilsApiResponseWorkspaceWorkspacehttpMemberResponse = {
   message: string;
 };
 
+export type UtilsApiResponseWorkspaceWorkspacehttpScheduledDeletionResponse = {
+  data: WorkspacehttpScheduledDeletionResponse;
+  message: string;
+};
+
 export type UtilsApiResponseWorkspaceWorkspacehttpWorkspaceResponse = {
   data: WorkspacehttpWorkspaceResponse;
   message: string;
@@ -2053,9 +2060,28 @@ export type WorkspacehttpMemberResponse = {
   userId: string;
 };
 
+export type WorkspacehttpNameMismatchErrorBody = {
+  code: string;
+};
+
+export type WorkspacehttpNameMismatchResponse = {
+  data: null;
+  error: WorkspacehttpNameMismatchErrorBody;
+  message: string;
+};
+
 export type WorkspacehttpRenameWorkspaceDto = {
   name: string;
   [key: string]: unknown | string;
+};
+
+export type WorkspacehttpScheduleDeletionDto = {
+  name?: string;
+  [key: string]: unknown | string | undefined;
+};
+
+export type WorkspacehttpScheduledDeletionResponse = {
+  deletionScheduledAt: string;
 };
 
 export type WorkspacehttpWorkspaceResponse = {
@@ -7478,6 +7504,108 @@ export type PatchWorkspaceResponses = {
 
 export type PatchWorkspaceResponse =
   PatchWorkspaceResponses[keyof PatchWorkspaceResponses];
+
+export type DeleteWorkspaceDeletionData = {
+  body?: never;
+  headers?: {
+    /**
+     * The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+     */
+    "X-Workspace-ID"?: string;
+  };
+  path?: never;
+  query?: never;
+  url: "/api/v1/workspace/deletion";
+};
+
+export type DeleteWorkspaceDeletionErrors = {
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
+  /**
+   * Forbidden
+   */
+  403: HttpxErrorBody;
+  /**
+   * Not Found
+   */
+  404: HttpxErrorBody;
+  /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
+  /**
+   * Internal Server Error
+   */
+  500: HttpxErrorBody;
+};
+
+export type DeleteWorkspaceDeletionError =
+  DeleteWorkspaceDeletionErrors[keyof DeleteWorkspaceDeletionErrors];
+
+export type DeleteWorkspaceDeletionResponses = {
+  /**
+   * No Content
+   */
+  204: void;
+};
+
+export type DeleteWorkspaceDeletionResponse =
+  DeleteWorkspaceDeletionResponses[keyof DeleteWorkspaceDeletionResponses];
+
+export type PostWorkspaceDeletionData = {
+  body: WorkspacehttpScheduleDeletionDto;
+  headers?: {
+    /**
+     * The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+     */
+    "X-Workspace-ID"?: string;
+  };
+  path?: never;
+  query?: never;
+  url: "/api/v1/workspace/deletion";
+};
+
+export type PostWorkspaceDeletionErrors = {
+  /**
+   * Bad Request
+   */
+  400: WorkspacehttpNameMismatchResponse | HttpxErrorBody;
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
+  /**
+   * Forbidden
+   */
+  403: HttpxErrorBody;
+  /**
+   * Not Found
+   */
+  404: HttpxErrorBody;
+  /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
+  /**
+   * Internal Server Error
+   */
+  500: HttpxErrorBody;
+};
+
+export type PostWorkspaceDeletionError =
+  PostWorkspaceDeletionErrors[keyof PostWorkspaceDeletionErrors];
+
+export type PostWorkspaceDeletionResponses = {
+  /**
+   * OK
+   */
+  200: UtilsApiResponseWorkspaceWorkspacehttpScheduledDeletionResponse;
+};
+
+export type PostWorkspaceDeletionResponse =
+  PostWorkspaceDeletionResponses[keyof PostWorkspaceDeletionResponses];
 
 export type GetWorkspaceInvitesData = {
   body?: never;

@@ -63,6 +63,8 @@ var jwtOnlyRoutes = map[string]bool{
 	"POST /api/v1/auth/verify-email/resend":        true,
 	"POST /api/v1/workspaces":                      true,
 	"POST /api/v1/workspace/leave":                 true,
+	"POST /api/v1/workspace/deletion":              true,
+	"DELETE /api/v1/workspace/deletion":            true,
 	"POST /api/v1/invites/{token}/accept":          true,
 	"POST /api/v1/api-keys":                        true,
 	"GET /api/v1/api-keys":                         true,
