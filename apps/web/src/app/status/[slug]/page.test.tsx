@@ -230,6 +230,25 @@ describe("PublicStatusPage, a monitor that isn't checked", () => {
   });
 });
 
+// A monitor that is checked but has no result yet is Pending, not Down (PP-361)
+describe("PublicStatusPage, a monitor that is checked and Pending", () => {
+  const PENDING = 2;
+
+  it("says Pending, not Down, and doesn't make the page an outage", () => {
+    const page = pageWith([monitor("new", PENDING, { heartbeats: [] })]);
+    expect(page.cards[0].status).toBe(text("monitors.view.status.pending"));
+    expect(page.overall).toBe(text("status.messages.all_systems_operational"));
+  });
+
+  it("is not taken for a monitor that isn't checked", () => {
+    const page = pageWith([monitor("new", PENDING), monitor("paused", PENDING, { active: false })]);
+    expect(page.cards.map((card) => card.status)).toEqual([
+      text("monitors.view.status.pending"),
+      text("status.messages.not_monitored"),
+    ]);
+  });
+});
+
 describe("createCustomDomainUnavailableRoute", () => {
   // A custom domain whose lookup answered unavailable shows the same page at every address
   it("shows the unavailable page on a custom domain", () => {
