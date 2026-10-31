@@ -33,6 +33,7 @@ import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { commonMutationErrorHandler } from "@/lib/utils";
 import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
+import { useDelayedLoading } from "@/hooks/useDelayedLoading";
 import EmptyList from "@/components/empty-list";
 import { Button } from "@/components/ui/button";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
@@ -79,6 +80,8 @@ const NotifiersPage = () => {
       initialPageParam: 0,
       enabled: true,
     });
+
+  const shouldShowSkeleton = useDelayedLoading(isLoading, 200);
 
   const deleteMutation = useMutation({
     ...deleteNotificationChannelsByIdMutation(),
@@ -158,7 +161,7 @@ const NotifiersPage = () => {
           </div>
         </div>
 
-        {notificationChannels.length === 0 && isLoading && (
+        {notificationChannels.length === 0 && shouldShowSkeleton && (
           <div className="flex flex-col space-y-2 mb-2">
             {Array.from({ length: 7 }, (_, id) => (
               <Skeleton className="h-[68px] w-full rounded-xl" key={id} />
