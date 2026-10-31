@@ -932,6 +932,7 @@
         },
         "notifications": {
           "add_notifier": "알림기 추가",
+          "load_failed": "알림 채널을 불러오지 못했습니다",
           "new_notifier": "+ 새 알림기",
           "no_channels": "알림 채널이 없습니다. 먼저 하나를 만들어 주세요.",
           "no_channels_available": "채널이 없습니다",
@@ -2005,6 +2006,7 @@
       "last_updated": "마지막 업데이트",
       "maintenance": "유지보수",
       "no_monitors_configured": "이 상태 페이지에는 모니터가 구성되어 있지 않습니다.",
+      "not_monitored": "모니터링 안 함",
       "operational": "운영 중",
       "partial_system_outage": "부분 시스템 장애",
       "powered_by": "제공",

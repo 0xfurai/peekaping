@@ -932,6 +932,7 @@
         },
         "notifications": {
           "add_notifier": "Додај обавештавача",
+          "load_failed": "Није могуће учитати канале обавештења",
           "new_notifier": "+ Нови обавештавач",
           "no_channels": "Нису пронађени канали за обавештења, прво створите један",
           "no_channels_available": "Нема доступних канала",
@@ -2004,6 +2005,7 @@
       "last_updated": "Последње ажурирање",
       "maintenance": "Одржавање",
       "no_monitors_configured": "Нема конфигурисаних мониторинга за ову статусну страницу.",
+      "not_monitored": "Не надгледа се",
       "operational": "Радно",
       "partial_system_outage": "Делимични прекид система",
       "powered_by": "Pokreće",

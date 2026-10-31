@@ -932,6 +932,7 @@
         },
         "notifications": {
           "add_notifier": "Cuir Fógraíú",
+          "load_failed": "Níorbh fhéidir na cainéil fógra a lódáil",
           "new_notifier": "+ Fógraí Nua",
           "no_channels": "Níor aimsíodh aon chánálacha fógra; cruthaigh ceann ar dtús.",
           "no_channels_available": "Níl aon chanais ar fáil",
@@ -2004,6 +2005,7 @@
       "last_updated": "Cuirteigh as Deireanach",
       "maintenance": "Cothú",
       "no_monitors_configured": "Níor cumraíodh aon monaitirí don leathanach stádais seo.",
+      "not_monitored": "Gan monatóireacht",
       "operational": "Oibríochtúil",
       "partial_system_outage": "Teip Córas Leathúil",
       "powered_by": "Le cumhacht ag",

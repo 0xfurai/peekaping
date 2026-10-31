@@ -932,6 +932,7 @@
         },
         "notifications": {
           "add_notifier": "Dodaj obveščevalnik",
+          "load_failed": "Kanalov za obveščanje ni bilo mogoče naložiti",
           "new_notifier": "+ Nov opozorilnik",
           "no_channels": "Ni najdenih kanalov za obvestila, najprej ustvarite enega.",
           "no_channels_available": "Ni na voljo kanalov",
@@ -2005,6 +2006,7 @@
       "last_updated": "Nazadnje posodobljeno",
       "maintenance": "Vzdrževanje",
       "no_monitors_configured": "Noben monitor ni nastavljen za to statusno stran.",
+      "not_monitored": "Se ne nadzoruje",
       "operational": "Deluje",
       "partial_system_outage": "Delni izpad sistema",
       "powered_by": "Spremljeno z",

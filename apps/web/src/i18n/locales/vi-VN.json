@@ -932,6 +932,7 @@
         },
         "notifications": {
           "add_notifier": "Thêm thông báo",
+          "load_failed": "Không thể tải các kênh thông báo",
           "new_notifier": "+ Thêm kênh thông báo",
           "no_channels": "Không tìm thấy kênh thông báo, hãy tạo một kênh trước",
           "no_channels_available": "Không có kênh nào",
@@ -2005,6 +2006,7 @@
       "last_updated": "Cập nhật lần cuối",
       "maintenance": "Bảo trì",
       "no_monitors_configured": "Không có trình giám sát nào được cấu hình cho trang trạng thái này.",
+      "not_monitored": "Không được giám sát",
       "operational": "Hoạt động",
       "partial_system_outage": "Hệ thống bị gián đoạn một phần",
       "powered_by": "Được cung cấp bởi",

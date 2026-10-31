@@ -932,6 +932,7 @@
         },
         "notifications": {
           "add_notifier": "Adaugă notificator",
+          "load_failed": "Canalele de notificare nu au putut fi încărcate",
           "new_notifier": "+ Notificator nou",
           "no_channels": "Nu există canale de notificare, creați unul mai întâi.",
           "no_channels_available": "Nu există canale disponibile",
@@ -2004,6 +2005,7 @@
       "last_updated": "Ultima actualizare",
       "maintenance": "Întreținere",
       "no_monitors_configured": "Niciun monitor configurat pentru această pagină de stare.",
+      "not_monitored": "Nemonitorizat",
       "operational": "Operațional",
       "partial_system_outage": "Întrerupere parțială a sistemului",
       "powered_by": "Propulsat de",

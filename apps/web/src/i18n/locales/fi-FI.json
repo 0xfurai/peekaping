@@ -932,6 +932,7 @@
         },
         "notifications": {
           "add_notifier": "Lisää ilmoitin",
+          "load_failed": "Ilmoituskanavien lataaminen epäonnistui",
           "new_notifier": "+ Uusi ilmoitin",
           "no_channels": "Ilmoituskanavia ei löytynyt, luo ensin yksi",
           "no_channels_available": "Ei kanavia saatavilla",
@@ -2005,6 +2006,7 @@
       "last_updated": "Viimeksi päivitetty",
       "maintenance": "Huolto",
       "no_monitors_configured": "Tälle tilasivulle ei ole määritetty valvontaa.",
+      "not_monitored": "Ei seurannassa",
       "operational": "Toiminnassa",
       "partial_system_outage": "Osittainen järjestelmäkatko",
       "powered_by": "Palvelun toiminta",

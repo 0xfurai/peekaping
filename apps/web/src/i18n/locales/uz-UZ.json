@@ -932,6 +932,7 @@
         },
         "notifications": {
           "add_notifier": "Bildirishnoma qo'shish",
+          "load_failed": "Bildirishnoma kanallarini yuklab bo'lmadi",
           "new_notifier": "+ Yangi bildirishchi",
           "no_channels": "Hech qanday bildirishkan kanali topilmadi, birini yaratib qo'ying",
           "no_channels_available": "Mavjud kanal yo'q",
@@ -2004,6 +2005,7 @@
       "last_updated": "Oxirgi yangilangan",
       "maintenance": "Texnik xizmat",
       "no_monitors_configured": "Status sahifasi uchun hech qanday monitorlar sozlanmagan.",
+      "not_monitored": "Monitoring qilinmaydi",
       "operational": "Operatsion",
       "partial_system_outage": "Tizimning qisman uzilishi",
       "powered_by": "Ta'minlagan:",

@@ -932,6 +932,7 @@
         },
         "notifications": {
           "add_notifier": "Adicionar notificador",
+          "load_failed": "Não foi possível carregar os canais de notificação",
           "new_notifier": "+ Novo Notificador",
           "no_channels": "Nenhum canal de notificação encontrado, crie um primeiro.",
           "no_channels_available": "Nenhum canal disponível",
@@ -2005,6 +2006,7 @@
       "last_updated": "Última Atualização",
       "maintenance": "Manutenção",
       "no_monitors_configured": "Nenhum monitor configurado para esta página de status.",
+      "not_monitored": "Não monitorado",
       "operational": "Operacional",
       "partial_system_outage": "Falha parcial do sistema",
       "powered_by": "Desenvolvido por",

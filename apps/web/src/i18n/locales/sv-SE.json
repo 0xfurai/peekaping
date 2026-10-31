@@ -932,6 +932,7 @@
         },
         "notifications": {
           "add_notifier": "Lägg till notifierare",
+          "load_failed": "Det gick inte att läsa in aviseringskanalerna",
           "new_notifier": "+ Ny notifierare",
           "no_channels": "Inga notifikationskanaler hittade, skapa en först",
           "no_channels_available": "Inga kanaler tillgängliga",
@@ -2005,6 +2006,7 @@
       "last_updated": "Senast uppdaterad",
       "maintenance": "Underhåll",
       "no_monitors_configured": "Inga övervakningar är konfigurerade för denna statussida.",
+      "not_monitored": "Övervakas inte",
       "operational": "Operativ",
       "partial_system_outage": "Delvis systemavbrott",
       "powered_by": "Drivs av",
