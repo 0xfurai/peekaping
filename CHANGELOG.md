@@ -52,6 +52,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - fix: a boolean setting (`METRICS_ENABLED`, `BLOCK_PRIVATE_TARGETS`, `VERIFY_CUSTOM_DOMAINS`, `PROBE_ALLOW_INSECURE`) set to `TRUE` or `True` was read as off, without a word. They now read every form Go's `strconv.ParseBool` reads (`1`, `t`, `T`, `TRUE`, `true`, `True` and the false forms). A value that is none of them, such as `yes` or `on`, stops startup with a message that names the variable. Unset or empty keeps the default. A wrong value in a `.env` file stops startup even when the system environment overrides it
+- fix: a RabbitMQ monitor tries its next node when one hangs. Each node now gets a share of the monitor's timeout (what is left divided by the nodes left to try), where before a node that never answered used all of it and hid the healthy nodes after it
 
 ## [0.1.0] - 2026-10-28
 
