@@ -139,7 +139,7 @@ func TestHTTPExecutor_BlocksARedirectToAPrivateTarget(t *testing.T) {
 	})
 	e := guardedExecutor(t, "http", guard)
 
-	result := e.Execute(context.Background(), httpMonitor(t, "http", HTTPConfig{Url: allowed.URL, AuthMethod: "none", MaxRedirects: 5}), nil)
+	result := e.Execute(context.Background(), httpMonitor(t, "http", HTTPConfig{Url: allowed.URL, AuthMethod: "none", MaxRedirects: intPtr(5)}), nil)
 
 	requireBlocked(t, result)
 	assert.Equal(t, int32(1), allowedRequests.Load(), "the first address was reached")
@@ -154,7 +154,7 @@ func TestHTTPExecutor_FollowsARedirectToAnAllowedTarget(t *testing.T) {
 	})
 	e := guardedExecutor(t, "http", guard)
 
-	result := e.Execute(context.Background(), httpMonitor(t, "http", HTTPConfig{Url: first.URL, AuthMethod: "none", MaxRedirects: 5}), nil)
+	result := e.Execute(context.Background(), httpMonitor(t, "http", HTTPConfig{Url: first.URL, AuthMethod: "none", MaxRedirects: intPtr(5)}), nil)
 
 	assert.Equal(t, shared.MonitorStatusUp, result.Status, result.Message)
 	assert.Equal(t, int32(1), finalRequests.Load())

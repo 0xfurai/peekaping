@@ -117,6 +117,9 @@ func validateMTLSAuth(sl validator.StructLevel, cfg HTTPConfig) {
 	// TlsCa is optional
 }
 
+// defaultMaxRedirects is how many redirects a check follows when its config sets no max_redirects
+const defaultMaxRedirects = 10
+
 type HTTPConfig struct {
 	Url string `json:"url" validate:"required,url"`
 
@@ -125,7 +128,7 @@ type HTTPConfig struct {
 	Encoding            string   `json:"encoding" validate:"required,oneof=json form xml text"`
 	Body                string   `json:"body" validate:"omitempty"`
 	AcceptedStatusCodes []string `json:"accepted_statuscodes" validate:"required,dive,oneof=2XX 3XX 4XX 5XX"`
-	MaxRedirects        int      `json:"max_redirects" validate:"omitempty,min=0"`
+	MaxRedirects        *int     `json:"max_redirects,omitempty" validate:"omitempty,min=0"` // nil: defaultMaxRedirects; 0: follow none
 	IgnoreTlsErrors     bool     `json:"ignore_tls_errors"`
 	CheckCertExpiry     bool     `json:"check_cert_expiry"`
 
@@ -597,7 +600,7 @@ func (h *HTTPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 	sender := &httpSender{
 		client: &http.Client{
 			Timeout:       time.Duration(m.Timeout) * time.Second,
-			CheckRedirect: h.redirectPolicy(cfg.MaxRedirects),
+			CheckRedirect: h.redirectPolicy(cfg.maxRedirects()),
 			Transport:     tlsInterceptor,
 		},
 		interceptor: tlsInterceptor,
@@ -696,13 +699,22 @@ func setInferredContentType(req *http.Request, cfg *HTTPConfig) {
 	}
 }
 
-// redirectPolicy is the client's CheckRedirect: it follows up to maxRedirects redirects, and none
-// when it is 0
+// maxRedirects is how many redirects the check follows: the configured number, or the default
+// when the config sets none
+func (cfg *HTTPConfig) maxRedirects() int {
+	if cfg.MaxRedirects == nil {
+		return defaultMaxRedirects
+	}
+	return *cfg.MaxRedirects
+}
+
+// redirectPolicy is the client's CheckRedirect: it follows up to maxRedirects redirects. With 0 it
+// follows none and returns the redirect response itself, which the accepted status codes judge.
 func (h *HTTPExecutor) redirectPolicy(maxRedirects int) func(req *http.Request, via []*http.Request) error {
 	return func(req *http.Request, via []*http.Request) error {
 		h.logger.Debugf("checkRedirect: %d redirects followed, max allowed: %d", len(via), maxRedirects)
 		if maxRedirects == 0 {
-			return fmt.Errorf("redirects disabled: max_redirects set to 0")
+			return http.ErrUseLastResponse
 		}
 		if len(via) > maxRedirects {
 			return fmt.Errorf("too many redirects: followed %d redirects, maximum allowed is %d", len(via), maxRedirects)

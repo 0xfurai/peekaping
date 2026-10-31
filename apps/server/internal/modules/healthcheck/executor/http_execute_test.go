@@ -266,13 +266,13 @@ func TestHTTPExecutor_Execute_ReportsTLSInformationOnFailures(t *testing.T) {
 		{name: "status not accepted", cfg: HTTPConfig{Url: server.URL + "/error", AuthMethod: "none", IgnoreTlsErrors: true}, wantMessage: "HTTP request failed with status: 500"},
 		{
 			name:        "request fails after the handshake",
-			cfg:         HTTPConfig{Url: server.URL + "/loop", AuthMethod: "none", IgnoreTlsErrors: true, MaxRedirects: 1},
+			cfg:         HTTPConfig{Url: server.URL + "/loop", AuthMethod: "none", IgnoreTlsErrors: true, MaxRedirects: intPtr(1)},
 			wantMessage: "too many redirects: followed 2 redirects, maximum allowed is 1",
 		},
 		{
 			name: "request fails after the handshake, with a client certificate",
 			cfg: HTTPConfig{
-				Url: server.URL + "/loop", AuthMethod: "mtls", TlsCert: pki.clientCertPEM, TlsKey: pki.clientKeyPEM, TlsCa: pki.caPEM, MaxRedirects: 1,
+				Url: server.URL + "/loop", AuthMethod: "mtls", TlsCert: pki.clientCertPEM, TlsKey: pki.clientKeyPEM, TlsCa: pki.caPEM, MaxRedirects: intPtr(1),
 			},
 			wantMessage: "too many redirects: followed 2 redirects, maximum allowed is 1",
 		},
