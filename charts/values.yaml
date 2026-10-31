@@ -159,6 +159,10 @@ config:
 # that component.
 api:
   replicaCount: 3
+  # Seconds a stopping api pod keeps serving before it gets SIGTERM, so the Service and the ingress
+  # stop routing to it first. The pod's terminationGracePeriodSeconds is this plus 35. 0 is
+  # no sleep.
+  preStopSleepSeconds: 5
   apparmor:
     enabled: false
   image:

@@ -348,6 +348,19 @@ The Ingress and the Istio VirtualService route only `/api`, `/probe` and `/socke
 
 Each component has a `replicaCount`, which is 3 by default, and `resources` with requests and limits. Change them under the component's name, for example `probe.replicaCount` or `api.resources`. The API replicas share one database and one leader, and the probe pods share the local probe's monitors, so add probe replicas to check more monitors. A pod that stops hands its monitors to the others.
 
+### Rolling restarts of the API
+
+A stopping API pod needs a moment to leave the Service's endpoints and the ingress's backends. Until it has, they still send it requests, and a pod that has already closed its port refuses them. So the API container sleeps for `api.preStopSleepSeconds` seconds (5 by default) in a `preStop` hook, still serving, before it gets `SIGTERM` and starts its own shutdown. That gives the Service and the ingress time to stop routing to the pod, which reduces refused requests during a rollout. The pod gets the sleep plus 35 seconds to stop (`terminationGracePeriodSeconds`): 40 by default. A normal shutdown fits in that. A shutdown while an account email is still sending can take about 40 seconds and be cut off, and a longer sleep doesn't give it more time: Kubernetes counts the grace period from before the hook. The probe pods have no sleep and keep 35.
+
+```yaml
+api:
+  preStopSleepSeconds: 10   # 0 removes the hook; the grace period is then 35
+```
+
+The sleep also delays a restart after a failed liveness probe by the same time. `api.preStopSleepSeconds: 0` turns it off.
+
+It must be a whole number from 0 through 999999; the chart refuses anything else, such as `-5`, `7.5` or `10s`. Raise it if your ingress controller or load balancer is slow to drop a pod. The hook runs `sleep`, which the API image has, so it also works under `api.apparmor.enabled`.
+
 ## Upgrading
 
 1. Back up your PostgreSQL database. If you upgrade from 0.0.46 or earlier, also read [Upgrading stats storage](./upgrading-stats.md). If the release you run still has `producer`, `worker` and `ingester` values, also read [Upgrading to probes](./upgrading-to-probes.md): your values file needs a few changes.
