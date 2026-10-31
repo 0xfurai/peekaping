@@ -932,6 +932,7 @@
         },
         "notifications": {
           "add_notifier": "Bildirim Ekle",
+          "load_failed": "Bildirim kanalları yüklenemedi",
           "new_notifier": "+ Yeni Bildirimci",
           "no_channels": "Bildirim kanalı bulunamadı, önce bir tane oluşturun.",
           "no_channels_available": "Kanal mevcut değil",

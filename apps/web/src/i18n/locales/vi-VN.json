@@ -932,6 +932,7 @@
         },
         "notifications": {
           "add_notifier": "Thêm thông báo",
+          "load_failed": "Không thể tải các kênh thông báo",
           "new_notifier": "+ Thêm kênh thông báo",
           "no_channels": "Không tìm thấy kênh thông báo, hãy tạo một kênh trước",
           "no_channels_available": "Không có kênh nào",

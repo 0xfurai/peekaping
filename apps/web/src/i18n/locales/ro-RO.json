@@ -932,6 +932,7 @@
         },
         "notifications": {
           "add_notifier": "Adaugă notificator",
+          "load_failed": "Canalele de notificare nu au putut fi încărcate",
           "new_notifier": "+ Notificator nou",
           "no_channels": "Nu există canale de notificare, creați unul mai întâi.",
           "no_channels_available": "Nu există canale disponibile",

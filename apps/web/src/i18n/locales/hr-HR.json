@@ -932,6 +932,7 @@
         },
         "notifications": {
           "add_notifier": "Dodaj obavijestnik",
+          "load_failed": "Kanale obavijesti nije moguće učitati",
           "new_notifier": "+ Novi notifier",
           "no_channels": "Nema kanala obavijesti, stvorite prvi.",
           "no_channels_available": "Nema dostupnih kanala",

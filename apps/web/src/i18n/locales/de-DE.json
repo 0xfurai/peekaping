@@ -932,6 +932,7 @@
         },
         "notifications": {
           "add_notifier": "Notifier hinzufügen",
+          "load_failed": "Die Benachrichtigungskanäle konnten nicht geladen werden",
           "new_notifier": "+ Neuer Benachrichtigungsdienst",
           "no_channels": "Keine Benachrichtigungskanäle gefunden. Erstellen Sie zuerst einen Kanal.",
           "no_channels_available": "Keine Benachrichtigungskanäle verfügbar",

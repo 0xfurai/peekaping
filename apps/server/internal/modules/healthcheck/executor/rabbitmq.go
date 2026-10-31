@@ -95,10 +95,9 @@ func (r *RabbitMQExecutor) Execute(ctx context.Context, monitor *Monitor, proxyM
 
 	// Try each node until one succeeds or all fail
 	var lastError error
-	for _, nodeURL := range cfg.Nodes {
-		// Check if context is already cancelled/timed out
-		select {
-		case <-timeoutCtx.Done():
+	for i, nodeURL := range cfg.Nodes {
+		// Check if the whole check is already cancelled/timed out
+		if timeoutCtx.Err() != nil {
 			endTime := time.Now()
 			r.logger.Infof("RabbitMQ health check timed out: %s", monitor.Name)
 			return &Result{
@@ -107,32 +106,10 @@ func (r *RabbitMQExecutor) Execute(ctx context.Context, monitor *Monitor, proxyM
 				StartTime: startTime,
 				EndTime:   endTime,
 			}
-		default:
 		}
 
-		// Ensure trailing slash for proper URL joining
-		baseURL := nodeURL
-		if !strings.HasSuffix(baseURL, "/") {
-			baseURL += "/"
-		}
-
-		// Construct the health check URL
-		healthURL, err := url.JoinPath(baseURL, "api/health/checks/alarms/")
-		if err != nil {
-			r.logger.Debugf("failed to construct health URL for node %s: %v", nodeURL, err)
-			lastError = fmt.Errorf("invalid URL construction for node %s: %w", nodeURL, err)
-			continue
-		}
-
-		success, message, err := r.checkNode(
-			timeoutCtx, // Use the timeout context instead of original context
-			client,
-			healthURL,
-			cfg.Username,
-			cfg.Password,
-		)
-
-		if success {
+		message, err := r.tryNode(timeoutCtx, client, cfg, nodeURL, len(cfg.Nodes)-i)
+		if err == nil {
 			endTime := time.Now()
 			r.logger.Infof("RabbitMQ health check successful: %s", monitor.Name)
 			return &Result{
@@ -143,10 +120,8 @@ func (r *RabbitMQExecutor) Execute(ctx context.Context, monitor *Monitor, proxyM
 			}
 		}
 
-		if err != nil {
-			lastError = err
-			r.logger.Debugf("RabbitMQ node %s failed: %v", nodeURL, err)
-		}
+		lastError = err
+		r.logger.Debugf("RabbitMQ node %s failed: %v", nodeURL, err)
 	}
 
 	endTime := time.Now()
@@ -163,6 +138,39 @@ func (r *RabbitMQExecutor) Execute(ctx context.Context, monitor *Monitor, proxyM
 		StartTime: startTime,
 		EndTime:   endTime,
 	}
+}
+
+// tryNode checks one node and returns its message, or the error that failed it. The node gets the
+// check's remaining time divided by the nodes left to try (itself included), so a node that never
+// answers can't use up the time of those after it, and the time a refused node leaves unused goes
+// to them. The share ends with the node: it doesn't cancel the check's own context.
+func (r *RabbitMQExecutor) tryNode(ctx context.Context, client *http.Client, cfg *RabbitMQConfig, nodeURL string, nodesLeft int) (string, error) {
+	// Ensure trailing slash for proper URL joining
+	baseURL := nodeURL
+	if !strings.HasSuffix(baseURL, "/") {
+		baseURL += "/"
+	}
+
+	// Construct the health check URL
+	healthURL, err := url.JoinPath(baseURL, "api/health/checks/alarms/")
+	if err != nil {
+		return "", fmt.Errorf("invalid URL construction for node %s: %w", nodeURL, err)
+	}
+
+	nodeCtx, cancel := context.WithTimeout(ctx, nodeShare(ctx, nodesLeft))
+	defer cancel()
+
+	success, message, err := r.checkNode(nodeCtx, client, healthURL, cfg.Username, cfg.Password)
+	if success {
+		return message, nil
+	}
+	return "", err
+}
+
+// nodeShare is the time left until ctx's deadline (the check always sets one) divided by the nodes left to try
+func nodeShare(ctx context.Context, nodesLeft int) time.Duration {
+	deadline, _ := ctx.Deadline()
+	return time.Until(deadline) / time.Duration(nodesLeft)
 }
 
 func (r *RabbitMQExecutor) checkNode(ctx context.Context, client *http.Client, healthURL, username, password string) (bool, string, error) {

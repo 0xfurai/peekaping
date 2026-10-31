@@ -932,6 +932,7 @@
         },
         "notifications": {
           "add_notifier": "Tilføj notifikator",
+          "load_failed": "Notifikationskanalerne kunne ikke indlæses",
           "new_notifier": "+ Ny notifier",
           "no_channels": "Ingen notifikationskanaler fundet, opret en først",
           "no_channels_available": "Ingen kanaler tilgængelige",

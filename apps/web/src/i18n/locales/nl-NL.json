@@ -932,6 +932,7 @@
         },
         "notifications": {
           "add_notifier": "Notifier toevoegen",
+          "load_failed": "De meldingskanalen konden niet worden geladen",
           "new_notifier": "+ Nieuwe notificatiebron",
           "no_channels": "Geen notificatiekanalen gevonden, maak er eerst één aan.",
           "no_channels_available": "Geen kanalen beschikbaar",

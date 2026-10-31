@@ -932,6 +932,7 @@
         },
         "notifications": {
           "add_notifier": "Lägg till notifierare",
+          "load_failed": "Det gick inte att läsa in aviseringskanalerna",
           "new_notifier": "+ Ny notifierare",
           "no_channels": "Inga notifikationskanaler hittade, skapa en först",
           "no_channels_available": "Inga kanaler tillgängliga",
