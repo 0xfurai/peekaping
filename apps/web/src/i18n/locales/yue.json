@@ -2006,6 +2006,7 @@
       "last_updated": "最後更新",
       "maintenance": "維護",
       "no_monitors_configured": "呢個狀態頁未設定任何監控。",
+      "not_monitored": "冇監控",
       "operational": "正常運作",
       "partial_system_outage": "部分系統停機",
       "powered_by": "由",

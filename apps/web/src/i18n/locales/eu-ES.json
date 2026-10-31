@@ -2006,6 +2006,7 @@
       "last_updated": "Azken eguneratze-data",
       "maintenance": "Mantentze",
       "no_monitors_configured": "Status orri honetarako monitorik ez dago konfiguraturik.",
+      "not_monitored": "Ez dago monitorizatuta",
       "operational": "eragitekoa",
       "partial_system_outage": "Sistemaren eragin partziala",
       "powered_by": "Powered by",

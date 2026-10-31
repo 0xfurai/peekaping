@@ -17,15 +17,50 @@ import {
   Activity,
   TrendingUp,
   RefreshCw,
+  MinusCircle,
 } from "lucide-react";
-import type { StatusPageMonitorWithHeartbeatsAndUptimeDto } from "@/api/types.gen";
+import type {
+  StatusPageMonitorWithHeartbeatsAndUptimeDto,
+  StatusPagePublicHeartbeatDto,
+} from "@/api/types.gen";
 import BarHistory from "@/components/bars";
 import { NoData } from "@/components/no-data";
-import { hasPublicLocations, publicMonitorStatus } from "../public-status";
+import {
+  NOT_MONITORED,
+  hasPublicLocations,
+  isPublicMonitorChecked,
+  publicMonitorStatus,
+  statusShownFor,
+} from "../public-status";
 import { StatusPageUnavailable } from "../status-page-unavailable";
 import { isStatusPageUnavailable } from "@/lib/admin-workspaces";
 import { ThemeToggle } from "../../../components/theme-toggle";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
+import { cn } from "@/lib/utils";
+
+// The bars of a monitor's past heartbeats. A monitor that isn't checked keeps them, dimmed: they
+// are history, not its state.
+const HistoryBars = ({
+  heartbeats,
+  dimmed,
+}: {
+  heartbeats: StatusPagePublicHeartbeatDto[];
+  dimmed: boolean;
+}) => (
+  <div
+    className={cn("w-full", dimmed && "opacity-50")}
+    data-testid="status-page-history"
+  >
+    <BarHistory
+      data={heartbeats}
+      segmentWidth={6}
+      gap={2}
+      barHeight={16}
+      borderRadius={2}
+      tooltip={false}
+    />
+  </div>
+);
 
 const PublicStatusPage = ({ incomingSlug }: { incomingSlug?: string }) => {
   const params = useParams<{ slug: string }>();
@@ -185,6 +220,8 @@ const PublicStatusPage = ({ incomingSlug }: { incomingSlug?: string }) => {
         return <Clock className="h-5 w-5 text-orange-500" />;
       case 3: // Maintenance
         return <Clock className="h-5 w-5 text-blue-500" />;
+      case NOT_MONITORED:
+        return <MinusCircle className="h-5 w-5 text-gray-500" />;
       default:
         return <Activity className="h-5 w-5 text-gray-500" />;
     }
@@ -200,6 +237,8 @@ const PublicStatusPage = ({ incomingSlug }: { incomingSlug?: string }) => {
         return t("monitors.view.status.pending");
       case 3:
         return t("status.messages.maintenance");
+      case NOT_MONITORED:
+        return t("status.messages.not_monitored");
       default:
         return t("status.messages.unknown");
     }
@@ -221,15 +260,17 @@ const PublicStatusPage = ({ incomingSlug }: { incomingSlug?: string }) => {
   };
 
   const getOverallStatus = () => {
-    if (monitors.length === 0)
+    // A monitor that isn't checked says nothing about the page's state, whatever its last status was
+    const checked = monitors.filter(isPublicMonitorChecked);
+    if (checked.length === 0)
       return { status: 1, text: t("status.messages.all_systems_operational") };
 
     // Pending isn't Down yet: a monitor that is retrying or hasn't been checked is no outage
-    const hasDown = monitors.some(
+    const hasDown = checked.some(
       (m: StatusPageMonitorWithHeartbeatsAndUptimeDto) =>
         publicMonitorStatus(m) === 0
     );
-    const hasMaintenance = monitors.some(
+    const hasMaintenance = checked.some(
       (m: StatusPageMonitorWithHeartbeatsAndUptimeDto) =>
         publicMonitorStatus(m) === 3
     );
@@ -325,7 +366,11 @@ const PublicStatusPage = ({ incomingSlug }: { incomingSlug?: string }) => {
               monitors.length > 0 &&
               monitors.map(
                 (monitor: StatusPageMonitorWithHeartbeatsAndUptimeDto) => {
-                  const monitorStatus = publicMonitorStatus(monitor);
+                  const checked = isPublicMonitorChecked(monitor);
+                  const monitorStatus = statusShownFor(
+                    monitor,
+                    publicMonitorStatus(monitor)
+                  );
 
                   return (
                     <Card key={monitor.id} data-testid="status-page-monitor">
@@ -372,22 +417,22 @@ const PublicStatusPage = ({ incomingSlug }: { incomingSlug?: string }) => {
                                   <div className="flex items-center gap-2">
                                     {uptimeBadge(location.uptime_24h)}
                                     <Badge
-                                      variant={getStatusVariant(location.status)}
+                                      variant={getStatusVariant(
+                                        statusShownFor(monitor, location.status)
+                                      )}
                                       data-testid="status-page-location-status"
                                     >
-                                      {getStatusText(location.status)}
+                                      {getStatusText(
+                                        statusShownFor(monitor, location.status)
+                                      )}
                                     </Badge>
                                   </div>
                                 </div>
                                 {location.heartbeats &&
                                   location.heartbeats.length > 0 && (
-                                    <BarHistory
-                                      data={location.heartbeats}
-                                      segmentWidth={6}
-                                      gap={2}
-                                      barHeight={16}
-                                      borderRadius={2}
-                                      tooltip={false}
+                                    <HistoryBars
+                                      heartbeats={location.heartbeats}
+                                      dimmed={!checked}
                                     />
                                   )}
                               </div>
@@ -399,16 +444,10 @@ const PublicStatusPage = ({ incomingSlug }: { incomingSlug?: string }) => {
                         {!hasPublicLocations(monitor) &&
                           monitor.heartbeats &&
                           monitor.heartbeats.length > 0 && (
-                            <div className="w-full">
-                              <BarHistory
-                                data={monitor.heartbeats}
-                                segmentWidth={6}
-                                gap={2}
-                                barHeight={16}
-                                borderRadius={2}
-                                tooltip={false}
-                              />
-                            </div>
+                            <HistoryBars
+                              heartbeats={monitor.heartbeats}
+                              dimmed={!checked}
+                            />
                           )}
                       </CardContent>
                     </Card>

@@ -2006,6 +2006,7 @@
       "last_updated": "Son güncellenme",
       "maintenance": "Bakım",
       "no_monitors_configured": "Bu durum sayfası için izleyici yapılandırılmadı.",
+      "not_monitored": "İzlenmiyor",
       "operational": "İşlemde",
       "partial_system_outage": "Kısmi Sistem Arızası",
       "powered_by": "Tarafından destekleniyor",

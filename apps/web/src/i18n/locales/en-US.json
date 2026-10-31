@@ -2006,6 +2006,7 @@
       "last_updated": "Last Updated",
       "maintenance": "Maintenance",
       "no_monitors_configured": "No monitors configured for this status page.",
+      "not_monitored": "Not monitored",
       "operational": "Operational",
       "partial_system_outage": "Partial System Outage",
       "powered_by": "Powered by",

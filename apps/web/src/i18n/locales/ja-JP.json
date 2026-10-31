@@ -2006,6 +2006,7 @@
       "last_updated": "最終更新",
       "maintenance": "メンテナンス",
       "no_monitors_configured": "このステータスページにはモニターが設定されていません。",
+      "not_monitored": "監視していません",
       "operational": "稼働中",
       "partial_system_outage": "一部システム障害",
       "powered_by": "提供元",

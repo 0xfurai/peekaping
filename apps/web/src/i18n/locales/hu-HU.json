@@ -2006,6 +2006,7 @@
       "last_updated": "Utolsó frissítés",
       "maintenance": "Karbantartás",
       "no_monitors_configured": "Nincs monitor beállítva ehhez a státusz oldalhoz.",
+      "not_monitored": "Nincs figyelve",
       "operational": "Működik",
       "partial_system_outage": "Részleges rendszerleállás",
       "powered_by": "Powered by",

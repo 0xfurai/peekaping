@@ -2006,6 +2006,7 @@
       "last_updated": "Zuletzt aktualisiert",
       "maintenance": "Wartung",
       "no_monitors_configured": "Für diese Statusseite sind keine Monitore konfiguriert.",
+      "not_monitored": "Nicht überwacht",
       "operational": "In Betrieb",
       "partial_system_outage": "Teilweiser Systemausfall",
       "powered_by": "Bereitgestellt von",
