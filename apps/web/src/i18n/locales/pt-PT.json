@@ -2006,6 +2006,7 @@
       "last_updated": "Última atualização",
       "maintenance": "Manutenção",
       "no_monitors_configured": "Nenhum monitor configurado para esta página de estado.",
+      "not_monitored": "Não monitorizado",
       "operational": "Operacional",
       "partial_system_outage": "Interrupção Parcial do Sistema",
       "powered_by": "Impulsionado por",

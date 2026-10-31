@@ -2005,6 +2005,7 @@
       "last_updated": "آخری تازہ کاری",
       "maintenance": "رکھ رکھاؤ",
       "no_monitors_configured": "اس اسٹیٹس صفحے کے لیے کوئی مانیٹرز کنفیگر نہیں ہیں۔",
+      "not_monitored": "مانیٹر نہیں کیا جا رہا",
       "operational": "فعال",
       "partial_system_outage": "جزوی نظامی خرابی",
       "powered_by": "میزبانی",

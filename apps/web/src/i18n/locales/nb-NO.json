@@ -2006,6 +2006,7 @@
       "last_updated": "Sist oppdatert",
       "maintenance": "Vedlikehold",
       "no_monitors_configured": "Ingen overvåkere er konfigurert for denne status‑siden.",
+      "not_monitored": "Ikke overvåket",
       "operational": "Operativ",
       "partial_system_outage": "Delvis systemnedetid",
       "powered_by": "Drives av",

@@ -2006,6 +2006,7 @@
       "last_updated": "Terakhir Diperbarui",
       "maintenance": "Pemeliharaan",
       "no_monitors_configured": "Tidak ada monitor yang dikonfigurasi untuk halaman status ini.",
+      "not_monitored": "Tidak dipantau",
       "operational": "Operasional",
       "partial_system_outage": "Gangguan Sistem Parsial",
       "powered_by": "Didukung oleh",
