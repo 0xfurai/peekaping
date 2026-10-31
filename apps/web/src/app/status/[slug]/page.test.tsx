@@ -199,25 +199,25 @@ describe("PublicStatusPage, a monitor that isn't checked", () => {
 
   it("still draws the history, dimmed, and leaves a checked monitor's history as it was", () => {
     const page = pageWith([
-      monitor("paused", DOWN, { active: false }),
+      monitor("unchecked", DOWN, { active: false }),
       monitor("live", UP),
-      monitor("paused-locations", UP, { active: false, locations: LOCATIONS }),
+      monitor("unchecked-locations", UP, { active: false, locations: LOCATIONS }),
     ]);
     expect(page.cards.map((card) => card.history)).toEqual([[true], [false], [true, true]]);
   });
 
   it("doesn't let a stale Down change the page's overall state", () => {
-    const page = pageWith([monitor("live", UP), monitor("paused", DOWN, { active: false })]);
+    const page = pageWith([monitor("live", UP), monitor("unchecked", DOWN, { active: false })]);
     expect(page.overall).toBe(text("status.messages.all_systems_operational"));
   });
 
   it("doesn't let a stale Maintenance change the page's overall state", () => {
-    const page = pageWith([monitor("live", UP), monitor("paused", MAINTENANCE, { active: false })]);
+    const page = pageWith([monitor("live", UP), monitor("unchecked", MAINTENANCE, { active: false })]);
     expect(page.overall).toBe(text("status.messages.all_systems_operational"));
   });
 
   it("still lets a monitor that is checked and Down make the page a partial outage", () => {
-    const page = pageWith([monitor("live", DOWN), monitor("paused", UP, { active: false })]);
+    const page = pageWith([monitor("live", DOWN), monitor("unchecked", UP, { active: false })]);
     expect(page.overall).toBe(text("status.messages.partial_system_outage"));
   });
 

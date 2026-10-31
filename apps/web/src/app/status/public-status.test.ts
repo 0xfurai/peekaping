@@ -63,9 +63,13 @@ describe("isPublicMonitorChecked", () => {
     expect(isPublicMonitorChecked({ active: true })).toBe(true);
   });
 
-  // The server sends active: false for a paused monitor and for one of a turned-off type
+  // The server sends active: false for any monitor that isn't checked, paused by hand or of a turned-off type
   it("is false for a monitor that isn't active", () => {
     expect(isPublicMonitorChecked({ active: false })).toBe(false);
+  });
+
+  it("is true for a monitor with no active field", () => {
+    expect(isPublicMonitorChecked({} as { active: boolean })).toBe(true);
   });
 });
 
