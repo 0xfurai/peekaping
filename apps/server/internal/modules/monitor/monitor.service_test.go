@@ -544,11 +544,11 @@ func TestMonitorService_Create(t *testing.T) {
 	t.Run("push token taken from the config when the request has none", func(t *testing.T) {
 		service, mockRepo, _, _, _, _, _, _ := setupMonitorService()
 		var saved *Model
-		mockRepo.On("Create", inTx, mock.Anything).Run(func(args mock.Arguments) {
-			saved = args.Get(1).(*Model)
+		mockRepo.On("Create", inTx, testWorkspace, mock.Anything).Run(func(args mock.Arguments) {
+			saved = args.Get(2).(*Model)
 		}).Return(&Model{ID: "push123"}, nil).Once()
 
-		_, err := service.Create(ctx, &CreateUpdateDto{Type: "push", Name: "Push", Config: `{"pushToken":"cfgtoken"}`})
+		_, err := service.Create(ctx, testWorkspace, &CreateUpdateDto{Type: "push", Name: "Push", Config: `{"pushToken":"cfgtoken"}`})
 
 		require.NoError(t, err)
 		require.NotNil(t, saved)
@@ -725,13 +725,13 @@ func TestMonitorService_UpdateFull(t *testing.T) {
 		service, mockRepo, _, _, notifications, tags, _, _ := setupMonitorService()
 		notifications.On("DeleteByMonitorID", inTx, "push123").Return(nil)
 		tags.On("DeleteByMonitorID", inTx, "push123").Return(nil)
-		mockRepo.On("FindByID", inTx, "push123").Return(&Model{ID: "push123", Type: "push"}, nil).Once()
-		mockRepo.On("UpdateFull", inTx, "push123", mock.MatchedBy(func(m *Model) bool {
+		mockRepo.On("FindByID", inTx, testWorkspace, "push123").Return(&Model{ID: "push123", Type: "push"}, nil).Once()
+		mockRepo.On("UpdateFull", inTx, testWorkspace, "push123", mock.MatchedBy(func(m *Model) bool {
 			return m.PushToken == "cfgtoken"
 		})).Return(nil)
-		mockRepo.On("FindByID", inTx, "push123").Return(&Model{ID: "push123"}, nil)
+		mockRepo.On("FindByID", inTx, testWorkspace, "push123").Return(&Model{ID: "push123"}, nil)
 
-		_, err := service.UpdateFull(ctx, "push123", &CreateUpdateDto{Type: "push", Name: "Push", Config: `{"pushToken":"cfgtoken"}`})
+		_, err := service.UpdateFull(ctx, testWorkspace, "push123", &CreateUpdateDto{Type: "push", Name: "Push", Config: `{"pushToken":"cfgtoken"}`})
 
 		require.NoError(t, err)
 		mockRepo.AssertExpectations(t)
