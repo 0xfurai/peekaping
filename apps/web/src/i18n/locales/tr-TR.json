@@ -932,6 +932,7 @@
         },
         "notifications": {
           "add_notifier": "Bildirim Ekle",
+          "load_failed": "Bildirim kanalları yüklenemedi",
           "new_notifier": "+ Yeni Bildirimci",
           "no_channels": "Bildirim kanalı bulunamadı, önce bir tane oluşturun.",
           "no_channels_available": "Kanal mevcut değil",
@@ -2005,6 +2006,7 @@
       "last_updated": "Son güncellenme",
       "maintenance": "Bakım",
       "no_monitors_configured": "Bu durum sayfası için izleyici yapılandırılmadı.",
+      "not_monitored": "İzlenmiyor",
       "operational": "İşlemde",
       "partial_system_outage": "Kısmi Sistem Arızası",
       "powered_by": "Tarafından destekleniyor",

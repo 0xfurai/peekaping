@@ -932,6 +932,7 @@
         },
         "notifications": {
           "add_notifier": "Gehitu jakinarazlea",
+          "load_failed": "Ezin izan dira jakinarazpen-kanalak kargatu",
           "new_notifier": "+ Jakinarazle berria",
           "no_channels": "Jakinarazpen-kanalerik ez da aurkitu, sortu bat lehenik",
           "no_channels_available": "Kanalerik ez dago eskuragarri",
@@ -2005,6 +2006,7 @@
       "last_updated": "Azken eguneratze-data",
       "maintenance": "Mantentze",
       "no_monitors_configured": "Status orri honetarako monitorik ez dago konfiguraturik.",
+      "not_monitored": "Ez dago monitorizatuta",
       "operational": "eragitekoa",
       "partial_system_outage": "Sistemaren eragin partziala",
       "powered_by": "Powered by",

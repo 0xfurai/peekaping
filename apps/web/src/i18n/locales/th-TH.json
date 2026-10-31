@@ -932,6 +932,7 @@
         },
         "notifications": {
           "add_notifier": "เพิ่มผู้แจ้งเตือน",
+          "load_failed": "โหลดช่องทางการแจ้งเตือนไม่สำเร็จ",
           "new_notifier": "+ เพิ่มตัวแจ้งเตือน",
           "no_channels": "ยังไม่พบช่องทางการแจ้งเตือน, กรุณาสร้างช่องทางการแจ้งเตือนก่อน",
           "no_channels_available": "ไม่มีช่องทางการแจ้งเตือน",
@@ -2005,6 +2006,7 @@
       "last_updated": "อัปเดตล่าสุด",
       "maintenance": "บำรุงรักษา",
       "no_monitors_configured": "ยังไม่มีตัวตรวจสอบสำหรับหน้าสถานะนี้",
+      "not_monitored": "ไม่ได้ตรวจสอบ",
       "operational": "ปกติ",
       "partial_system_outage": "ระบบขัดข้องบางส่วน",
       "powered_by": "ขับเคลื่อนโดย",

@@ -932,6 +932,7 @@
         },
         "notifications": {
           "add_notifier": "添加通知器",
+          "load_failed": "无法加载通知渠道",
           "new_notifier": "+ 新建通知器",
           "no_channels": "未找到通知渠道，请先创建一个。",
           "no_channels_available": "暂无可用渠道",
@@ -2005,6 +2006,7 @@
       "last_updated": "最近更新时间",
       "maintenance": "维护",
       "no_monitors_configured": "此状态页面未配置任何监控。",
+      "not_monitored": "未监控",
       "operational": "正常运行",
       "partial_system_outage": "系统部分停机",
       "powered_by": "由",

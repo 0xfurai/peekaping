@@ -6,7 +6,71 @@ import { TypographyH4 } from "@/components/ui/typography";
 import { useQuery } from "@tanstack/react-query";
 import { useFormContext } from "react-hook-form";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
-import { allNotificationChannelsOptions } from "./channel-support";
+import type { NotificationChannelModel } from "@/api/types.gen";
+import { allNotificationChannelsOptions, availableChannels } from "./channel-support";
+
+// What stands in the place of the channel select when the channels could not be loaded, so that
+// the form doesn't say there are none
+const ChannelsLoadError = ({ onRetry }: { onRetry: () => void }) => {
+  const { t } = useLocalizedTranslation();
+  return (
+    <div role="alert" className="flex flex-1 items-center gap-2 text-sm text-destructive">
+      <span>{t("monitors.form.shared.notifications.load_failed")}</span>
+      <Button type="button" variant="outline" size="sm" onClick={onRetry}>
+        {t("common.retry")}
+      </Button>
+    </div>
+  );
+};
+
+// The channels ticked on the form, each with a button to take it off
+const SelectedChannels = ({
+  ids,
+  channels,
+}: {
+  ids: unknown;
+  channels: NotificationChannelModel[] | null | undefined;
+}) => {
+  const { t } = useLocalizedTranslation();
+  const form = useFormContext();
+  if (!Array.isArray(ids) || ids.length === 0) return null;
+  return (
+    <>
+      <Label>{t("monitors.form.shared.notifications.selected_channels")}</Label>
+      <div className="flex flex-col gap-1 mb-2">
+        {ids.map((id: string) => {
+          const notification = channels?.find((n) => n.id === id);
+          if (!notification) {
+            console.log("Notification not found to render in list", id);
+            return null;
+          }
+          return (
+            <div
+              key={id}
+              className="flex items-center justify-between bg-muted rounded px-3 py-1"
+            >
+              <span>{notification.name}</span>
+              <Button
+                type="button"
+                size="icon"
+                variant="ghost"
+                onClick={() => {
+                  const newIds = ids.filter((nid) => nid !== id);
+                  form.setValue("notification_ids", newIds, {
+                    shouldDirty: true,
+                  });
+                }}
+                aria-label={`Remove ${notification.name}`}
+              >
+                ×
+              </Button>
+            </div>
+          );
+        })}
+      </div>
+    </>
+  );
+};
 
 // Without onNewNotifier the "new channel" button is left out, for forms that have no
 // place to create a channel.
@@ -16,75 +80,39 @@ const Notifications = ({ onNewNotifier }: { onNewNotifier?: () => void }) => {
   const notification_ids = form.watch("notification_ids");
 
   // Every channel, so that a ticked one past the list's first page is shown and can be chosen
-  const { data: notifications } = useQuery({
+  const { data: notifications, isError, isPending, refetch } = useQuery({
     ...allNotificationChannelsOptions(),
   });
+  // A refresh that failed after the channels were read still has them to show
+  const loadFailed = isError && !notifications;
+  const availableNotifiers = availableChannels(notifications?.data, notification_ids || []);
+  // Until the channels are read, on the first load and on a retry, there is no knowing there are none
+  const noChannels = !isPending && !notifications?.data?.length;
 
   return (
     <div className="flex flex-col gap-2">
       <TypographyH4 className="mb-2">{t("monitors.form.shared.notifications.title")}</TypographyH4>
 
-      {Array.isArray(notification_ids) && notification_ids.length > 0 && (
-        <>
-          <Label>{t("monitors.form.shared.notifications.selected_channels")}</Label>
-          <div className="flex flex-col gap-1 mb-2">
-            {notification_ids.map((id: string) => {
-              const notification = notifications?.data?.find(
-                (n) => n.id === id
-              );
-              if (!notification) {
-                console.log("Notification not found to render in list", id);
-                return null;
-              }
-              return (
-                <div
-                  key={id}
-                  className="flex items-center justify-between bg-muted rounded px-3 py-1"
-                >
-                  <span>{notification.name}</span>
-                  <Button
-                    type="button"
-                    size="icon"
-                    variant="ghost"
-                    onClick={() => {
-                      const newIds = notification_ids.filter(
-                        (nid) => nid !== id
-                      );
-                      form.setValue("notification_ids", newIds, {
-                        shouldDirty: true,
-                      });
-                    }}
-                    aria-label={`Remove ${notification.name}`}
-                  >
-                    ×
-                  </Button>
-                </div>
-              );
-            })}
-          </div>
-        </>
-      )}
+      <SelectedChannels ids={notification_ids} channels={notifications?.data} />
 
       <div className="flex gap-2 flex-col sm:flex-row sm:items-center">
-        <FormField
-          control={form.control}
-          name="notification_ids"
-          render={({ field }) => {
-            const availableNotifiers =
-              notifications?.data?.filter(
-                (n) => !(notification_ids || []).includes(n.id)
-              ) || [];
-
-            return (
+        {loadFailed ? (
+          <ChannelsLoadError onRetry={() => void refetch()} />
+        ) : (
+          <FormField
+            control={form.control}
+            name="notification_ids"
+            render={({ field }) => (
               <FormItem className="flex-1">
                 <FormLabel className="pb-1">
-                  {notifications?.data?.length || 0
-                    ? t("monitors.form.shared.notifications.add_notifier")
-                    : t("monitors.form.shared.notifications.no_channels")}
+                  {noChannels
+                    ? t("monitors.form.shared.notifications.no_channels")
+                    : t("monitors.form.shared.notifications.add_notifier")}
                 </FormLabel>
                 {/* FormControl goes on the trigger: the Select root renders no
                     element, so the label's id and aria attributes would be lost. */}
                 <Select
+                  disabled={isPending}
                   value={"none"}
                   onValueChange={(val) => {
                     if (!val || val === "none") return;
@@ -104,9 +132,9 @@ const Notifications = ({ onNewNotifier }: { onNewNotifier?: () => void }) => {
 
                   <SelectContent>
                     <SelectItem value="none" disabled>
-                      {(notifications?.data?.length || 0) > 0
-                        ? t("monitors.form.shared.notifications.select_channel")
-                        : t("monitors.form.shared.notifications.no_channels_available")}
+                      {noChannels
+                        ? t("monitors.form.shared.notifications.no_channels_available")
+                        : t("monitors.form.shared.notifications.select_channel")}
                     </SelectItem>
                     {availableNotifiers.map((n) => (
                       <SelectItem key={n.id} value={n.id || "none"}>
@@ -119,9 +147,9 @@ const Notifications = ({ onNewNotifier }: { onNewNotifier?: () => void }) => {
                 </Select>
                 <FormMessage />
               </FormItem>
-            );
-          }}
-        />
+            )}
+          />
+        )}
         {onNewNotifier && (
           <Button
             type="button"
