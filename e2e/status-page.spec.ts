@@ -112,20 +112,21 @@ test('A status page lists each location of a monitor only once it is asked to', 
   }
 });
 
-// A monitor that has never been checked is Pending, not Down, and doesn't make the page an outage.
-// A Down monitor still does (PP-361).
-test('A status page shows a never-checked monitor as Pending and a Down one as Down', async ({ page, browser, request }) => {
+// A monitor that isn't checked is Not monitored and doesn't make the page an outage (PP-387). A Down
+// monitor still does. That a monitor that is checked but has no heartbeat yet is Pending, not Down, is
+// covered by the unit tests of the status page (PP-361).
+test('A status page shows a paused monitor as Not monitored and a Down one as Down', async ({ page, browser, request }) => {
   // The Down monitor's first check can take up to 60 seconds to reach the page.
   test.setTimeout(180_000);
   const id = randomID();
   const api = await adminAPI(page);
-  const unchecked = `Unchecked monitor ${id}`;
+  const pausedName = `Paused monitor ${id}`;
   const failing = `Failing monitor ${id}`;
   const created: string[] = [];
 
   try {
-    // A paused monitor is never checked.
-    const paused = await createHTTPMonitor(api, unchecked, targetURL(id), { active: false });
+    // A paused monitor runs no checks.
+    const paused = await createHTTPMonitor(api, pausedName, targetURL(id), { active: false });
     created.push(`monitors/${paused.id}`);
     const publish = async (slug: string, monitorID: string) => {
       const response = await api.post('status-pages', {
@@ -134,7 +135,7 @@ test('A status page shows a never-checked monitor as Pending and a Down one as D
       expect(response.status(), await response.text()).toBe(201);
       created.push(`status-pages/${(await response.json()).data.id}`);
     };
-    await publish(`pending-${id}`, paused.id);
+    await publish(`paused-${id}`, paused.id);
 
     // With no retries, the first failed check is Down.
     await setTargetStatus(request, `down-${id}`, 500);
@@ -150,11 +151,11 @@ test('A status page shows a never-checked monitor as Pending and a Down one as D
     const monitorStatus = visitorPage.getByTestId('status-page-monitor').getByTestId('status-page-monitor-status');
     const overallStatus = visitorPage.getByTestId('status-page-overall-status');
 
-    await visitorPage.goto(`/status/pending-${id}`);
-    await expect(monitorStatus).toHaveText('Pending');
+    await visitorPage.goto(`/status/paused-${id}`);
+    await expect(monitorStatus).toHaveText('Not monitored');
     await expect(overallStatus).toHaveText('All Systems Operational');
 
-    // The monitor is Pending until its first check, which fails.
+    // The monitor has no status until its first check, which fails.
     await visitorPage.goto(`/status/down-${id}`);
     await expect(async () => {
       await visitorPage.reload();
