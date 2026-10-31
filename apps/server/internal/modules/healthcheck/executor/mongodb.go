@@ -85,20 +85,20 @@ func (m *MongoDBExecutor) Targets(configJSON string) ([]string, error) {
 func (m *MongoDBExecutor) Execute(ctx context.Context, monitor *Monitor, proxyModel *Proxy) *Result {
 	cfgAny, err := m.Unmarshal(monitor.Config)
 	if err != nil {
-		return DownResult(err, time.Now().UTC(), time.Now().UTC())
+		return DownResult(err, time.Now(), time.Now())
 	}
 	cfg := cfgAny.(*MongoDBConfig)
 
-	startTime := time.Now().UTC()
+	startTime := time.Now()
 
 	command, err := parseMongoDBCommand(cfg.Command)
 	if err != nil {
-		return DownResult(fmt.Errorf("invalid MongoDB command JSON: %w", err), startTime, time.Now().UTC())
+		return DownResult(fmt.Errorf("invalid MongoDB command JSON: %w", err), startTime, time.Now())
 	}
 
 	// Run MongoDB command
 	result, err := m.runMongoDBCommand(ctx, cfg.ConnectionString, command, time.Duration(monitor.Timeout)*time.Second)
-	endTime := time.Now().UTC()
+	endTime := time.Now()
 
 	if err != nil {
 		m.logger.Infof("MongoDB command failed: %s, %s", monitor.Name, err.Error())

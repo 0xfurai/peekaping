@@ -155,15 +155,15 @@ func (m *MySQLExecutor) parseMySQLURL(connectionString string) (*mysql.Config, e
 func (m *MySQLExecutor) Execute(ctx context.Context, monitor *Monitor, proxyModel *Proxy) *Result {
 	cfgAny, err := m.Unmarshal(monitor.Config)
 	if err != nil {
-		return DownResult(err, time.Now().UTC(), time.Now().UTC())
+		return DownResult(err, time.Now(), time.Now())
 	}
 	cfg := cfgAny.(*MySQLConfig)
 
-	startTime := time.Now().UTC()
+	startTime := time.Now()
 
 	// Validate configuration before execution
 	if err := ValidateConnectionString(cfg.ConnectionString, []string{"mysql"}); err != nil {
-		return DownResult(fmt.Errorf("connection string validation failed: %w", err), startTime, time.Now().UTC())
+		return DownResult(fmt.Errorf("connection string validation failed: %w", err), startTime, time.Now())
 	}
 
 	query := cfg.Query
@@ -172,12 +172,12 @@ func (m *MySQLExecutor) Execute(ctx context.Context, monitor *Monitor, proxyMode
 	} else {
 		// Validate query before execution
 		if err := m.validateQuery(query); err != nil {
-			return DownResult(fmt.Errorf("query validation failed: %w", err), startTime, time.Now().UTC())
+			return DownResult(fmt.Errorf("query validation failed: %w", err), startTime, time.Now())
 		}
 	}
 
 	message, err := m.mysqlQuery(ctx, cfg.ConnectionString, query, time.Duration(monitor.Timeout)*time.Second)
-	endTime := time.Now().UTC()
+	endTime := time.Now()
 
 	if err != nil {
 		m.logger.Infof("MySQL query failed: %s, %s", monitor.Name, err.Error())

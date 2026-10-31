@@ -130,14 +130,17 @@ func (s *Sink) wireResult(r *ingest.Result) (probeproto.Result, error) {
 	if !ok {
 		return probeproto.Result{}, fmt.Errorf("the result of monitor %s has status %d, which the probe protocol has no word for", r.MonitorID, r.Status)
 	}
+	// The server refuses a result that ends before it starts, so the end is the start plus the
+	// measured duration
+	start, end := ingest.UTCSpan(r.StartTime, r.EndTime)
 	result := probeproto.Result{
 		ID:        s.ids.next(s.session.now()),
 		MonitorID: r.MonitorID,
 		Status:    status,
 		Message:   r.Message,
 		PingMs:    r.PingMs,
-		StartTime: r.StartTime.UTC(),
-		EndTime:   r.EndTime.UTC(),
+		StartTime: start,
+		EndTime:   end,
 	}
 	if r.TLSInfo != nil {
 		raw, err := json.Marshal(r.TLSInfo)

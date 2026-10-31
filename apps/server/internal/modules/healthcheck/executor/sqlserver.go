@@ -312,15 +312,15 @@ func (s *SQLServerExecutor) Targets(configJSON string) ([]string, error) {
 func (s *SQLServerExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Proxy) *Result {
 	cfgAny, err := s.Unmarshal(m.Config)
 	if err != nil {
-		return DownResult(err, time.Now().UTC(), time.Now().UTC())
+		return DownResult(err, time.Now(), time.Now())
 	}
 	cfg := cfgAny.(*SQLServerConfig)
 
-	startTime := time.Now().UTC()
+	startTime := time.Now()
 
 	dsn, query, err := s.prepare(cfg)
 	if err != nil {
-		return DownResult(err, startTime, time.Now().UTC())
+		return DownResult(err, startTime, time.Now())
 	}
 
 	// Set connection timeout using the monitor's configured timeout
@@ -331,23 +331,23 @@ func (s *SQLServerExecutor) Execute(ctx context.Context, m *Monitor, proxyModel 
 	// Open connection
 	connector, err := newSQLServerConnector(dsn, deadline, s.guard)
 	if err != nil {
-		return DownResult(fmt.Errorf("failed to open SQL Server connection: %w", err), startTime, time.Now().UTC())
+		return DownResult(fmt.Errorf("failed to open SQL Server connection: %w", err), startTime, time.Now())
 	}
 	db := sql.OpenDB(connector)
 	defer db.Close()
 
 	rows, err := queryRows(ctx, db, query)
 	if err != nil {
-		return DownResult(err, startTime, time.Now().UTC())
+		return DownResult(err, startTime, time.Now())
 	}
 	defer rows.Close()
 
 	columns, rowCount, err := countRows(rows)
 	if err != nil {
-		return DownResult(err, startTime, time.Now().UTC())
+		return DownResult(err, startTime, time.Now())
 	}
 
-	endTime := time.Now().UTC()
+	endTime := time.Now()
 	ping := endTime.Sub(startTime).Milliseconds()
 
 	s.logger.Infof("SQL Server query successful: %s, ping: %dms", m.Name, ping)

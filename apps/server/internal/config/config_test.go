@@ -3,7 +3,9 @@ package config
 import (
 	"os"
 	"path/filepath"
+	"reflect"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -332,4 +334,77 @@ func TestLoadConfig_ABadBooleanInAnEnvFileStopsStartupEvenWhenTheEnvironmentOver
 	_, err := LoadConfig[Config](dir)
 
 	assert.ErrorContains(t, err, `VERIFY_CUSTOM_DOMAINS must be a boolean: 1, t, T, TRUE, true, True, 0, f, F, FALSE, false or False, not "yes"`)
+}
+
+func TestLoadConfig_ANumberOrDurationThatDoesNotParseStopsStartupAndNamesTheVariable(t *testing.T) {
+	for _, name := range []string{"MIN_CHECK_INTERVAL", "REDIS_DB", "QUEUE_CONCURRENCY", "ACCOUNT_SMTP_PORT", "BRUTEFORCE_WINDOW", "PROBE_OFFLINE_AFTER"} {
+		t.Run(name, func(t *testing.T) {
+			_, err := loadTestConfig(t, map[string]string{name: "soon"})
+
+			var invalid *InvalidNumberError
+			require.ErrorAs(t, err, &invalid)
+			assert.Equal(t, InvalidNumberError{Name: name, Value: "soon"}, *invalid)
+			assert.ErrorContains(t, err, name+" must be a whole number")
+		})
+	}
+}
+
+func TestLoadConfig_ANumberOrDurationThatIsUnsetOrEmptyKeepsItsDefault(t *testing.T) {
+	cfg, err := loadTestConfig(t, map[string]string{"MIN_CHECK_INTERVAL": "", "BRUTEFORCE_WINDOW": "", "PROBE_OFFLINE_AFTER": ""})
+
+	require.NoError(t, err)
+	assert.Equal(t, 20, cfg.MinCheckInterval)
+	assert.Equal(t, time.Minute, cfg.BruteforceWindow)
+	assert.Equal(t, 3*time.Minute, cfg.ProbeOfflineAfter)
+	assert.Equal(t, 128, cfg.QueueConcurrency)
+}
+
+func TestLoadConfig_AValidNumberOrDurationIsReadAsBefore(t *testing.T) {
+	cfg, err := loadTestConfig(t, map[string]string{"MIN_CHECK_INTERVAL": "45", "BRUTEFORCE_WINDOW": "90s", "PROBE_OFFLINE_AFTER": "15m"})
+
+	require.NoError(t, err)
+	assert.Equal(t, 45, cfg.MinCheckInterval)
+	assert.Equal(t, 90*time.Second, cfg.BruteforceWindow)
+	assert.Equal(t, 15*time.Minute, cfg.ProbeOfflineAfter)
+}
+
+// A comment after a value is part of the value: the loader does not strip it
+func TestLoadConfig_ATrailingCommentOnAnEnvFileNumberStopsStartup(t *testing.T) {
+	t.Setenv("DB_TYPE", "sqlite")
+	t.Setenv("DB_NAME", "peekaping.db")
+	dir := t.TempDir()
+	require.NoError(t, os.WriteFile(filepath.Join(dir, ".env"), []byte("MIN_CHECK_INTERVAL=20 # seconds\n"), 0o600))
+
+	_, err := LoadConfig[Config](dir)
+
+	assert.ErrorContains(t, err, `MIN_CHECK_INTERVAL must be a whole number`)
+	assert.ErrorContains(t, err, `not "20 # seconds"`)
+}
+
+// A bad number in the file stops startup even when the environment overrides it, as a bad boolean does
+func TestLoadConfig_ABadNumberInAnEnvFileStopsStartupEvenWhenTheEnvironmentOverridesIt(t *testing.T) {
+	t.Setenv("DB_TYPE", "sqlite")
+	t.Setenv("DB_NAME", "peekaping.db")
+	t.Setenv("MIN_CHECK_INTERVAL", "30")
+	dir := t.TempDir()
+	require.NoError(t, os.WriteFile(filepath.Join(dir, ".env"), []byte("MIN_CHECK_INTERVAL=soon\n"), 0o600))
+
+	_, err := LoadConfig[Config](dir)
+
+	assert.ErrorContains(t, err, `MIN_CHECK_INTERVAL must be a whole number, or a duration such as 90s or 3m for a time setting, not "soon"`)
+}
+
+// A default goes through the same reading, so every default on the config must parse
+func TestConfig_EveryDefaultParses(t *testing.T) {
+	configType := reflect.TypeOf(Config{})
+	configValue := reflect.New(configType).Elem()
+	for i := 0; i < configType.NumField(); i++ {
+		field := configType.Field(i)
+		def := field.Tag.Get("default")
+		if def == "" {
+			continue
+		}
+		_, err := setFieldFromText(field, configValue.Field(i), def)
+		assert.NoError(t, err, field.Name)
+	}
 }

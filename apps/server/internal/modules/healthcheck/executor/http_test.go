@@ -277,6 +277,29 @@ func TestHTTPExecutor_Validate(t *testing.T) {
 			expectedError: false,
 		},
 		{
+			name: "valid config with zero max redirects",
+			config: `{
+				"url": "http://example.com",
+				"method": "GET",
+				"encoding": "json",
+				"accepted_statuscodes": ["2XX"],
+				"authMethod": "none",
+				"max_redirects": 0
+			}`,
+			expectedError: false,
+		},
+		{
+			name: "valid config without max redirects",
+			config: `{
+				"url": "http://example.com",
+				"method": "GET",
+				"encoding": "json",
+				"accepted_statuscodes": ["2XX"],
+				"authMethod": "none"
+			}`,
+			expectedError: false,
+		},
+		{
 			name: "invalid config with negative max redirects",
 			config: `{
 				"url": "http://example.com",
@@ -1640,37 +1663,95 @@ func TestHTTPExecutor_Execute_MaxRedirects_Success(t *testing.T) {
 	assert.Equal(t, shared.MonitorStatusUp, result.Status)
 }
 
-func TestHTTPExecutor_Execute_DisabledRedirects(t *testing.T) {
-	// Setup
-	logger := zap.NewNop().Sugar()
-	executor := NewHTTPExecutor(logger)
+func intPtr(n int) *int { return &n }
 
-	// Create test server that redirects
+// redirectingServer redirects with a 302 to the same address with one more hop until it has
+// redirected hops times, and then answers 200
+func redirectingServer(t *testing.T, hops int) *httptest.Server {
+	t.Helper()
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		http.Redirect(w, r, r.URL.String()+"?redirected", http.StatusFound)
+		followed, _ := strconv.Atoi(r.URL.Query().Get("hop"))
+		if followed < hops {
+			http.Redirect(w, r, fmt.Sprintf("http://%s/?hop=%d", r.Host, followed+1), http.StatusFound)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
 	}))
-	defer server.Close()
+	t.Cleanup(server.Close)
+	return server
+}
 
-	monitor := &Monitor{
+// redirectMonitor is an HTTP monitor of url; maxRedirects is the config's max_redirects member
+// with its leading comma, or empty to leave the member out
+func redirectMonitor(url string, acceptedStatusCodes string, maxRedirects string) *Monitor {
+	return &Monitor{
 		ID:       "monitor1",
 		Type:     "http",
 		Name:     "Test Monitor",
 		Interval: 30,
 		Timeout:  5,
 		Config: `{
-			"url": "` + server.URL + `",
+			"url": "` + url + `",
 			"method": "GET",
 			"encoding": "json",
-			"accepted_statuscodes": ["2XX"],
-			"authMethod": "none",
-			"max_redirects": 0
+			"accepted_statuscodes": ` + acceptedStatusCodes + `,
+			"authMethod": "none"` + maxRedirects + `
 		}`,
 	}
+}
 
-	result := executor.Execute(context.Background(), monitor, nil)
-	// Should fail because redirects are disabled
+func TestHTTPExecutor_Execute_ZeroMaxRedirectsAcceptsARedirectStatusThatIsAccepted(t *testing.T) {
+	executor := NewHTTPExecutor(zap.NewNop().Sugar())
+	server := redirectingServer(t, 1)
+
+	result := executor.Execute(context.Background(), redirectMonitor(server.URL, `["3XX"]`, `, "max_redirects": 0`), nil)
+
+	assert.Equal(t, shared.MonitorStatusUp, result.Status, result.Message)
+	assert.Contains(t, result.Message, "302")
+}
+
+func TestHTTPExecutor_Execute_ZeroMaxRedirectsFailsOnARedirectStatusThatIsNotAccepted(t *testing.T) {
+	executor := NewHTTPExecutor(zap.NewNop().Sugar())
+	server := redirectingServer(t, 1)
+
+	result := executor.Execute(context.Background(), redirectMonitor(server.URL, `["2XX"]`, `, "max_redirects": 0`), nil)
+
 	assert.Equal(t, shared.MonitorStatusDown, result.Status)
-	assert.Contains(t, result.Message, "redirects disabled")
+	assert.Equal(t, "HTTP request failed with status: 302", result.Message)
+}
+
+func TestHTTPExecutor_Execute_WithoutMaxRedirectsFollowsUpToTen(t *testing.T) {
+	executor := NewHTTPExecutor(zap.NewNop().Sugar())
+
+	tests := []struct {
+		name       string
+		hops       int
+		wantStatus shared.MonitorStatus
+		wantInMsg  string
+	}{
+		{name: "one redirect", hops: 1, wantStatus: shared.MonitorStatusUp},
+		{name: "ten redirects", hops: 10, wantStatus: shared.MonitorStatusUp},
+		{name: "eleven redirects", hops: 11, wantStatus: shared.MonitorStatusDown, wantInMsg: "maximum allowed is 10"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			server := redirectingServer(t, tt.hops)
+
+			result := executor.Execute(context.Background(), redirectMonitor(server.URL, `["2XX"]`, ""), nil)
+
+			assert.Equal(t, tt.wantStatus, result.Status, result.Message)
+			assert.Contains(t, result.Message, tt.wantInMsg)
+		})
+	}
+}
+
+func TestHTTPExecutor_Execute_NullMaxRedirectsFollowsUpToTen(t *testing.T) {
+	executor := NewHTTPExecutor(zap.NewNop().Sugar())
+	server := redirectingServer(t, 3)
+
+	result := executor.Execute(context.Background(), redirectMonitor(server.URL, `["2XX"]`, `, "max_redirects": null`), nil)
+
+	assert.Equal(t, shared.MonitorStatusUp, result.Status, result.Message)
 }
 
 func TestIsStatusAccepted(t *testing.T) {

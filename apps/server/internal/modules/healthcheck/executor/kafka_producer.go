@@ -136,11 +136,11 @@ func (k *KafkaProducerExecutor) Targets(configJSON string) ([]string, error) {
 func (k *KafkaProducerExecutor) Execute(ctx context.Context, monitor *Monitor, proxyModel *Proxy) *Result {
 	cfgAny, err := k.Unmarshal(monitor.Config)
 	if err != nil {
-		return DownResult(err, time.Now().UTC(), time.Now().UTC())
+		return DownResult(err, time.Now(), time.Now())
 	}
 	cfg := cfgAny.(*KafkaProducerConfig)
 
-	startTime := time.Now().UTC()
+	startTime := time.Now()
 
 	// The monitor's timeout bounds the whole check: connecting, fetching
 	// metadata and sending. sarama's own defaults are 30s per dial or read and
@@ -152,7 +152,7 @@ func (k *KafkaProducerExecutor) Execute(ctx context.Context, monitor *Monitor, p
 
 	config, err := k.producerConfig(cfg, monitor.ID, timeout)
 	if err != nil {
-		return DownResult(err, startTime, time.Now().UTC())
+		return DownResult(err, startTime, time.Now())
 	}
 
 	producer, failure := k.createProducer(ctx, checkCtx, cfg.Brokers, config, monitor, startTime)
@@ -274,7 +274,7 @@ func (k *KafkaProducerExecutor) createProducer(ctx, checkCtx context.Context, br
 			Status:    shared.MonitorStatusDown,
 			Message:   fmt.Sprintf("Failed to create Kafka producer: %s", reason),
 			StartTime: startTime,
-			EndTime:   time.Now().UTC(),
+			EndTime:   time.Now(),
 		}
 	case c := <-createDone:
 		if c.err != nil {
@@ -284,7 +284,7 @@ func (k *KafkaProducerExecutor) createProducer(ctx, checkCtx context.Context, br
 				Status:    shared.MonitorStatusDown,
 				Message:   fmt.Sprintf("Failed to create Kafka producer: %s", reason),
 				StartTime: startTime,
-				EndTime:   time.Now().UTC(),
+				EndTime:   time.Now(),
 			}
 		}
 		return c.producer, nil
@@ -312,7 +312,7 @@ func (k *KafkaProducerExecutor) sendMessage(checkCtx context.Context, producer s
 
 	select {
 	case <-checkCtx.Done():
-		endTime := time.Now().UTC()
+		endTime := time.Now()
 		k.logger.Infof("Kafka message send timeout: %s", monitor.Name)
 		// Close once the send has returned, in the background so it can't hold
 		// up the result. Closing sooner could close the producer's input before
@@ -328,7 +328,7 @@ func (k *KafkaProducerExecutor) sendMessage(checkCtx context.Context, producer s
 			EndTime:   endTime,
 		}
 	case sendErr := <-sendDone:
-		endTime := time.Now().UTC()
+		endTime := time.Now()
 		k.closeProducer(producer)
 
 		if sendErr != nil {

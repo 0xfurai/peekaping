@@ -73,11 +73,11 @@ func (r *RabbitMQExecutor) Targets(configJSON string) ([]string, error) {
 func (r *RabbitMQExecutor) Execute(ctx context.Context, monitor *Monitor, proxyModel *Proxy) *Result {
 	cfgAny, err := r.Unmarshal(monitor.Config)
 	if err != nil {
-		return DownResult(err, time.Now().UTC(), time.Now().UTC())
+		return DownResult(err, time.Now(), time.Now())
 	}
 	cfg := cfgAny.(*RabbitMQConfig)
 
-	startTime := time.Now().UTC()
+	startTime := time.Now()
 
 	// Create a context with timeout for the entire operation
 	timeoutCtx, cancel := context.WithTimeout(ctx, time.Duration(monitor.Timeout)*time.Second)
@@ -98,7 +98,7 @@ func (r *RabbitMQExecutor) Execute(ctx context.Context, monitor *Monitor, proxyM
 	for i, nodeURL := range cfg.Nodes {
 		// Check if the whole check is already cancelled/timed out
 		if timeoutCtx.Err() != nil {
-			endTime := time.Now().UTC()
+			endTime := time.Now()
 			r.logger.Infof("RabbitMQ health check timed out: %s", monitor.Name)
 			return &Result{
 				Status:    shared.MonitorStatusDown,
@@ -110,7 +110,7 @@ func (r *RabbitMQExecutor) Execute(ctx context.Context, monitor *Monitor, proxyM
 
 		message, err := r.tryNode(timeoutCtx, client, cfg, nodeURL, len(cfg.Nodes)-i)
 		if err == nil {
-			endTime := time.Now().UTC()
+			endTime := time.Now()
 			r.logger.Infof("RabbitMQ health check successful: %s", monitor.Name)
 			return &Result{
 				Status:    shared.MonitorStatusUp,
@@ -124,7 +124,7 @@ func (r *RabbitMQExecutor) Execute(ctx context.Context, monitor *Monitor, proxyM
 		r.logger.Debugf("RabbitMQ node %s failed: %v", nodeURL, err)
 	}
 
-	endTime := time.Now().UTC()
+	endTime := time.Now()
 	r.logger.Infof("All RabbitMQ nodes failed: %s, last error: %v", monitor.Name, lastError)
 
 	message := "All RabbitMQ nodes failed"

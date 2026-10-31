@@ -82,7 +82,7 @@ var dnsLookups = map[string]dnsLookup{
 func (d *DNSExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Proxy) *Result {
 	cfgAny, err := d.Unmarshal(m.Config)
 	if err != nil {
-		return DownResult(err, time.Now().UTC(), time.Now().UTC())
+		return DownResult(err, time.Now(), time.Now())
 	}
 	cfg := cfgAny.(*DNSConfig)
 
@@ -102,9 +102,9 @@ func (d *DNSExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Proxy
 		},
 	}
 
-	startTime := time.Now().UTC()
+	startTime := time.Now()
 	message, err := d.lookup(ctx, dnsQuery{resolver: r, cfg: cfg, timeout: time.Duration(m.Timeout) * time.Second})
-	endTime := time.Now().UTC()
+	endTime := time.Now()
 
 	if err != nil {
 		d.logger.Infof("DNS lookup failed: %s, %s", m.Name, err.Error())

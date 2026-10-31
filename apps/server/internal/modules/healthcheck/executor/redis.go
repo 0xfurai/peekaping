@@ -414,29 +414,29 @@ func (r *RedisExecutor) Targets(configJSON string) ([]string, error) {
 func (r *RedisExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Proxy) *Result {
 	cfgAny, err := r.Unmarshal(m.Config)
 	if err != nil {
-		return DownResult(err, time.Now().UTC(), time.Now().UTC())
+		return DownResult(err, time.Now(), time.Now())
 	}
 	cfg := cfgAny.(*RedisConfig)
 
 	// Validate connection string before attempting connection
 	if err := r.validateRedisConnectionString(cfg.DatabaseConnectionString); err != nil {
 		r.logger.Infof("Redis connection string validation failed: %s, %s", m.Name, err.Error())
-		return DownResult(fmt.Errorf("connection string validation failed: %w", err), time.Now().UTC(), time.Now().UTC())
+		return DownResult(fmt.Errorf("connection string validation failed: %w", err), time.Now(), time.Now())
 	}
 
-	startTime := time.Now().UTC()
+	startTime := time.Now()
 
 	// Parse Redis connection string
 	opts, err := redis.ParseURL(cfg.DatabaseConnectionString)
 	if err != nil {
 		r.logger.Infof("Redis connection string parse failed: %s, %s", m.Name, err.Error())
-		return DownResult(fmt.Errorf("invalid Redis connection string: %w", err), startTime, time.Now().UTC())
+		return DownResult(fmt.Errorf("invalid Redis connection string: %w", err), startTime, time.Now())
 	}
 
 	// Configure TLS settings
 	if err := r.configureTLS(cfg, opts); err != nil {
 		r.logger.Infof("Redis TLS configuration failed: %s, %s", m.Name, err.Error())
-		return DownResult(fmt.Errorf("TLS configuration failed: %w", err), startTime, time.Now().UTC())
+		return DownResult(fmt.Errorf("TLS configuration failed: %w", err), startTime, time.Now())
 	}
 
 	// Set connection timeouts
@@ -467,7 +467,7 @@ func (r *RedisExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Pro
 
 	// Perform ping
 	pong, err := client.Ping(pingCtx).Result()
-	endTime := time.Now().UTC()
+	endTime := time.Now()
 
 	if err != nil {
 		r.logger.Infof("Redis ping failed: %s, %s", m.Name, err.Error())
