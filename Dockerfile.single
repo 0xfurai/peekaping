@@ -18,7 +18,7 @@ FROM node:22-alpine AS web-builder
 
 WORKDIR /app
 # Bun, at the version pinned in package.json
-COPY --from=oven/bun:1.4.3-alpine /usr/local/bin/bun /usr/local/bin/bun
+COPY --from=oven/bun:1.4.4-alpine /usr/local/bin/bun /usr/local/bin/bun
 COPY package.json bun.lock ./
 COPY apps/web/package.json ./apps/web/package.json
 RUN bun install --frozen-lockfile --filter web

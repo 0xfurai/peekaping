@@ -22,7 +22,7 @@
     "nodemon": "^3.1.10",
     "prettier": "3.6.2"
   },
-  "packageManager": "bun@1.4.3",
+  "packageManager": "bun@1.4.4",
   "engines": {
     "node": ">=22"
   }
