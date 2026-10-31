@@ -612,6 +612,28 @@ func TestSink_SendsTheResultAsTheServerReadsIt(t *testing.T) {
 	assert.IsIncreasing(t, ids, "ULIDs made in the same millisecond still go in order")
 }
 
+// The server refuses a result that ends before it starts. A check measures its duration on the
+// monotonic clock, which the wall clock's steps don't move, so the end is sent as the start plus
+// that duration, in UTC.
+func TestSink_SendsAnEndThatFollowsTheMeasuredDurationInUTC(t *testing.T) {
+	server := newResultsServer(t, nil)
+	sink, _ := newSink(server, &sleeper{}, nil)
+	start := time.Now().In(time.FixedZone("CEST", 2*3600))
+	end := start.Add(340 * time.Millisecond)
+	ingest(t, sink, &ingester.Result{
+		MonitorID: "m1", Status: shared.MonitorStatusUp, PingMs: 340, StartTime: start, EndTime: end,
+	})
+
+	require.NoError(t, sink.Flush(context.Background()))
+
+	stored := server.storedResults()
+	require.Len(t, stored, 1)
+	assert.Equal(t, time.UTC, stored[0].StartTime.Location())
+	assert.Equal(t, time.UTC, stored[0].EndTime.Location())
+	assert.True(t, stored[0].StartTime.Equal(start), "the start is the instant the check started")
+	assert.Equal(t, 340*time.Millisecond, stored[0].EndTime.Sub(stored[0].StartTime))
+}
+
 func TestSink_RejectsAStatusTheServerDoesNotKnow(t *testing.T) {
 	server := newResultsServer(t, nil)
 	sink, _ := newSink(server, &sleeper{}, nil)

@@ -26,6 +26,7 @@ type TickResult struct {
 // certificate's expiry to be checked. Single mode's scheduler builds what it ingests here.
 func (r *TickResult) IngestResult(checkCertExpiry bool) *ingest.Result {
 	m := r.Monitor
+	start, end := ingest.UTCSpan(r.ExecutionResult.StartTime, r.ExecutionResult.EndTime)
 	return &ingest.Result{
 		ProbeID:           shared.LocalProbeID,
 		MonitorID:         m.ID,
@@ -44,8 +45,8 @@ func (r *TickResult) IngestResult(checkCertExpiry bool) *ingest.Result {
 		Status:                   r.ExecutionResult.Status,
 		Message:                  r.ExecutionResult.Message,
 		PingMs:                   r.PingMs,
-		StartTime:                r.ExecutionResult.StartTime,
-		EndTime:                  r.ExecutionResult.EndTime,
+		StartTime:                start,
+		EndTime:                  end,
 		IsUnderMaintenance:       r.IsUnderMaintenance,
 		TLSInfo:                  r.ExecutionResult.TLSInfo,
 		CheckCertExpiry:          checkCertExpiry,

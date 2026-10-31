@@ -57,7 +57,7 @@ func (s *SnmpExecutor) Targets(configJSON string) ([]string, error) {
 func (s *SnmpExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Proxy) *Result {
 	cfgAny, err := s.Unmarshal(m.Config)
 	if err != nil {
-		return DownResult(err, time.Now().UTC(), time.Now().UTC())
+		return DownResult(err, time.Now(), time.Now())
 	}
 	cfg := cfgAny.(*SnmpConfig)
 
@@ -66,7 +66,7 @@ func (s *SnmpExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 		cfg.Port = 161
 	}
 
-	startTime := time.Now().UTC()
+	startTime := time.Now()
 
 	// Create SNMP connection
 	snmpClient := &gosnmp.GoSNMP{
@@ -82,7 +82,7 @@ func (s *SnmpExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 
 	err = snmpClient.Connect()
 	if err != nil {
-		endTime := time.Now().UTC()
+		endTime := time.Now()
 		s.logger.Infof("SNMP connection failed: %s, %s", m.Name, err.Error())
 		return &Result{
 			Status:    shared.MonitorStatusDown,
@@ -97,7 +97,7 @@ func (s *SnmpExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 	oids := []string{cfg.Oid}
 	result, err := snmpClient.Get(oids)
 	if err != nil {
-		endTime := time.Now().UTC()
+		endTime := time.Now()
 		s.logger.Infof("SNMP GET failed: %s, %s", m.Name, err.Error())
 		return &Result{
 			Status:    shared.MonitorStatusDown,
@@ -107,7 +107,7 @@ func (s *SnmpExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 		}
 	}
 
-	endTime := time.Now().UTC()
+	endTime := time.Now()
 
 	status, message := s.checkVariables(m, cfg, result.Variables)
 	return &Result{

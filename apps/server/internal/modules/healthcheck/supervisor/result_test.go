@@ -9,6 +9,7 @@ import (
 	"peekaping/internal/modules/shared"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestTickResult_IngestResultCarriesTheCheckAndTheMonitorSettings(t *testing.T) {
@@ -69,4 +70,42 @@ func TestTickResult_IngestResultTakesTheCertificateExpiryFlagFromTheCaller(t *te
 
 	assert.False(t, tick.IngestResult(false).CheckCertExpiry)
 	assert.True(t, tick.IngestResult(true).CheckCertExpiry)
+}
+
+func TestTickResult_IngestResultGivesTheTimesInUTC(t *testing.T) {
+	kyiv := time.FixedZone("EEST", 3*60*60)
+	start := time.Date(2026, 10, 17, 15, 0, 0, 0, kyiv)
+	tick := &TickResult{
+		Monitor: &shared.Monitor{ID: "mon-1"},
+		ExecutionResult: &executor.Result{
+			Status:    shared.MonitorStatusUp,
+			StartTime: start,
+			EndTime:   start.Add(12 * time.Millisecond),
+		},
+	}
+
+	got := tick.IngestResult(false)
+
+	assert.Equal(t, time.UTC, got.StartTime.Location())
+	assert.Equal(t, time.UTC, got.EndTime.Location())
+	assert.Equal(t, time.Date(2026, 10, 17, 12, 0, 0, 0, time.UTC), got.StartTime)
+	assert.Equal(t, time.Date(2026, 10, 17, 12, 0, 0, 12_000_000, time.UTC), got.EndTime)
+}
+
+// The times of a check carry the monotonic clock, so their difference is the time that passed even
+// when the wall clock stepped. Converting them to UTC drops that reading, so the end is made from
+// the start and the difference: it can't come out before the start.
+func TestTickResult_IngestResultEndsWhereTheMeasuredDurationEnds(t *testing.T) {
+	start := time.Now()
+	end := start.Add(250 * time.Millisecond)
+	require.Contains(t, end.String(), "m=", "the end time needs a monotonic reading for this test")
+	tick := &TickResult{
+		Monitor:         &shared.Monitor{ID: "mon-1"},
+		ExecutionResult: &executor.Result{Status: shared.MonitorStatusUp, StartTime: start, EndTime: end},
+	}
+
+	got := tick.IngestResult(false)
+
+	assert.Equal(t, 250*time.Millisecond, got.EndTime.Sub(got.StartTime))
+	assert.True(t, got.StartTime.Equal(start))
 }

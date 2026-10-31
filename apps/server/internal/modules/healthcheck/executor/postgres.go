@@ -98,28 +98,28 @@ func (p *PostgresExecutor) validateQuery(query string) error {
 func (p *PostgresExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Proxy) *Result {
 	cfgAny, err := p.Unmarshal(m.Config)
 	if err != nil {
-		return DownResult(err, time.Now().UTC(), time.Now().UTC())
+		return DownResult(err, time.Now(), time.Now())
 	}
 	cfg := cfgAny.(*PostgresConfig)
 
-	startTime := time.Now().UTC()
+	startTime := time.Now()
 
 	// Validate configuration before execution, and before connecting: a
 	// query that isn't allowed is Down even when nothing listens.
 	if err := ValidateConnectionString(cfg.DatabaseConnectionString, []string{"postgres", "postgresql"}); err != nil {
-		return DownResult(fmt.Errorf("connection string validation failed: %w", err), startTime, time.Now().UTC())
+		return DownResult(fmt.Errorf("connection string validation failed: %w", err), startTime, time.Now())
 	}
 
 	query := cfg.DatabaseQuery
 	if strings.TrimSpace(query) == "" {
 		query = "SELECT 1"
 	} else if err := p.validateQuery(query); err != nil {
-		return DownResult(fmt.Errorf("query validation failed: %w", err), startTime, time.Now().UTC())
+		return DownResult(fmt.Errorf("query validation failed: %w", err), startTime, time.Now())
 	}
 
 	connector, err := newPostgresConnector(cfg.DatabaseConnectionString)
 	if err != nil {
-		return DownResult(fmt.Errorf("failed to parse connection string: %w", err), startTime, time.Now().UTC())
+		return DownResult(fmt.Errorf("failed to parse connection string: %w", err), startTime, time.Now())
 	}
 
 	// Dial as the driver does, through the guard. The connector connects over TCP whatever the
@@ -134,12 +134,12 @@ func (p *PostgresExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *
 	defer cancel()
 
 	if err := db.PingContext(ctx); err != nil {
-		return DownResult(fmt.Errorf("connection failed: %w", err), startTime, time.Now().UTC())
+		return DownResult(fmt.Errorf("connection failed: %w", err), startTime, time.Now())
 	}
 
 	rows, err := db.QueryContext(ctx, query)
 	if err != nil {
-		endTime := time.Now().UTC()
+		endTime := time.Now()
 		p.logger.Infof("PostgreSQL query failed: %s, %s", m.Name, err.Error())
 		return &Result{
 			Status:    shared.MonitorStatusDown,
@@ -152,7 +152,7 @@ func (p *PostgresExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *
 
 	if !rows.Next() {
 		if err := rows.Err(); err != nil {
-			endTime := time.Now().UTC()
+			endTime := time.Now()
 			return &Result{
 				Status:    shared.MonitorStatusDown,
 				Message:   fmt.Sprintf("Query error: %v", err),
@@ -162,7 +162,7 @@ func (p *PostgresExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *
 		}
 	}
 
-	endTime := time.Now().UTC()
+	endTime := time.Now()
 	ping := endTime.Sub(startTime).Milliseconds()
 
 	p.logger.Infof("PostgreSQL query successful: %s, ping: %dms", m.Name, ping)

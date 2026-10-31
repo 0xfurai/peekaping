@@ -138,7 +138,7 @@ func (s *HealthCheckSupervisor) executeWithDeadline(
 	exec executor.Executor,
 	proxyModel *shared.Proxy,
 ) *executor.Result {
-	startTime := time.Now().UTC()
+	startTime := time.Now()
 	done := make(chan *executor.Result, 1)
 	go func() {
 		// A panic in this goroutine would stop the process, so it is recovered here
@@ -151,7 +151,7 @@ func (s *HealthCheckSupervisor) executeWithDeadline(
 					"panic", r,
 					"stack", string(stack))
 				reporting.CapturePanic("executor", r, stack)
-				done <- executor.DownResult(fmt.Errorf("check failed with an internal error: %v", r), startTime, time.Now().UTC())
+				done <- executor.DownResult(fmt.Errorf("check failed with an internal error: %v", r), startTime, time.Now())
 			}
 		}()
 		done <- exec.Execute(ctx, m, proxyModel)
@@ -171,7 +171,7 @@ func (s *HealthCheckSupervisor) executeWithDeadline(
 		return executor.DownResult(
 			fmt.Errorf("check did not finish within the %ds timeout", m.Timeout),
 			startTime,
-			time.Now().UTC(),
+			time.Now(),
 		)
 	}
 }

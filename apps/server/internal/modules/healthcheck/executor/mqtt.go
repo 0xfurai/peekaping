@@ -93,11 +93,11 @@ func (s *MQTTExecutor) Targets(configJSON string) ([]string, error) {
 func (m *MQTTExecutor) Execute(ctx context.Context, monitor *Monitor, proxyModel *Proxy) *Result {
 	cfgAny, err := m.Unmarshal(monitor.Config)
 	if err != nil {
-		return DownResult(err, time.Now().UTC(), time.Now().UTC())
+		return DownResult(err, time.Now(), time.Now())
 	}
 	cfg := cfgAny.(*MQTTConfig)
 
-	startTime := time.Now().UTC()
+	startTime := time.Now()
 
 	// Set default check type if not specified
 	if cfg.CheckType == "" {
@@ -112,7 +112,7 @@ func (m *MQTTExecutor) Execute(ctx context.Context, monitor *Monitor, proxyModel
 		"timeout":  time.Duration(monitor.Timeout) * time.Second,
 	})
 
-	endTime := time.Now().UTC()
+	endTime := time.Now()
 
 	if err != nil {
 		m.logger.Infof("MQTT connection failed: %s, %s", monitor.Name, err.Error())

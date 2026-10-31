@@ -99,7 +99,7 @@ func (s *SMTPExecutor) Targets(configJSON string) ([]string, error) {
 func (s *SMTPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Proxy) *Result {
 	configAny, err := s.Unmarshal(m.Config)
 	if err != nil {
-		return DownResult(err, time.Now().UTC(), time.Now().UTC())
+		return DownResult(err, time.Now(), time.Now())
 	}
 	config := configAny.(*SMTPConfig)
 
@@ -150,7 +150,7 @@ func (s *SMTPExecutor) newSMTPCheck(ctx context.Context, m *Monitor, config *SMT
 		ctx:       ctx,
 		monitor:   m,
 		config:    config,
-		startTime: time.Now().UTC(),
+		startTime: time.Now(),
 	}
 
 	// readTimeout: Maximum time to wait for each SMTP operation
@@ -184,7 +184,7 @@ func (c *smtpCheck) down(format string, args ...any) *Result {
 		Status:    shared.MonitorStatusDown,
 		Message:   message,
 		StartTime: c.startTime,
-		EndTime:   time.Now().UTC(),
+		EndTime:   time.Now(),
 		TLSInfo:   c.tlsInfo,
 	}
 }
@@ -222,7 +222,7 @@ func (c *smtpCheck) run() *Result {
 		c.logger.Debugf("SMTP QUIT failed (non-critical) for %s: %v", c.monitor.Name, err)
 	}
 
-	endTime := time.Now().UTC()
+	endTime := time.Now()
 	c.logger.Debugf("SMTP connection successful: %s", c.monitor.Name)
 
 	return &Result{

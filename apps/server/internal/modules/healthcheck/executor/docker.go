@@ -140,31 +140,31 @@ func (e *DockerExecutor) createTLSConfig(cfg *DockerConfig) (*tls.Config, error)
 }
 
 func (e *DockerExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Proxy) *Result {
-	start := time.Now().UTC()
+	start := time.Now()
 	cfgAny, err := e.Unmarshal(m.Config)
 	if err != nil {
-		return DownResult(fmt.Errorf("invalid config: %w", err), start, time.Now().UTC())
+		return DownResult(fmt.Errorf("invalid config: %w", err), start, time.Now())
 	}
 	cfg := cfgAny.(*DockerConfig)
 
 	if e.on() {
 		if err := e.socketRefusal(cfg); err != nil {
-			return DownResult(err, start, time.Now().UTC())
+			return DownResult(err, start, time.Now())
 		}
 	}
 
 	cli, err := e.newClient(cfg)
 	if err != nil {
-		return DownResult(err, start, time.Now().UTC())
+		return DownResult(err, start, time.Now())
 	}
 	defer cli.Close()
 
 	container, err := cli.ContainerInspect(ctx, cfg.ContainerID)
 	if err != nil {
-		return DownResult(dockerInspectError(err), start, time.Now().UTC())
+		return DownResult(dockerInspectError(err), start, time.Now())
 	}
 
-	endTime := time.Now().UTC()
+	endTime := time.Now()
 
 	return dockerContainerResult(container.State, start, endTime)
 }
