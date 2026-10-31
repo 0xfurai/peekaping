@@ -541,6 +541,20 @@ func TestMonitorService_Create(t *testing.T) {
 		assert.Equal(t, []string{"channel channel-b", "channel channel-a", "tag tag-a"}, linked, "each ID once, in the order sent")
 	})
 
+	t.Run("push token taken from the config when the request has none", func(t *testing.T) {
+		service, mockRepo, _, _, _, _, _, _ := setupMonitorService()
+		var saved *Model
+		mockRepo.On("Create", inTx, testWorkspace, mock.Anything).Run(func(args mock.Arguments) {
+			saved = args.Get(2).(*Model)
+		}).Return(&Model{ID: "push123"}, nil).Once()
+
+		_, err := service.Create(ctx, testWorkspace, &CreateUpdateDto{Type: "push", Name: "Push", Config: `{"pushToken":"cfgtoken"}`})
+
+		require.NoError(t, err)
+		require.NotNil(t, saved)
+		assert.Equal(t, "cfgtoken", saved.PushToken)
+	})
+
 	t.Run("repository error", func(t *testing.T) {
 		service, mockRepo, _, bus, _, _, _, _ := setupMonitorService()
 		createDto := &CreateUpdateDto{
@@ -705,6 +719,22 @@ func TestMonitorService_UpdateFull(t *testing.T) {
 
 		require.NoError(t, err)
 		assert.Equal(t, []string{"channel channel-b", "channel channel-a", "tag tag-a"}, linked, "each ID once, in the order sent")
+	})
+
+	t.Run("push token taken from the config when the request has none", func(t *testing.T) {
+		service, mockRepo, _, _, notifications, tags, _, _ := setupMonitorService()
+		notifications.On("DeleteByMonitorID", inTx, "push123").Return(nil)
+		tags.On("DeleteByMonitorID", inTx, "push123").Return(nil)
+		mockRepo.On("FindByID", inTx, testWorkspace, "push123").Return(&Model{ID: "push123", Type: "push"}, nil).Once()
+		mockRepo.On("UpdateFull", inTx, testWorkspace, "push123", mock.MatchedBy(func(m *Model) bool {
+			return m.PushToken == "cfgtoken"
+		})).Return(nil)
+		mockRepo.On("FindByID", inTx, testWorkspace, "push123").Return(&Model{ID: "push123"}, nil)
+
+		_, err := service.UpdateFull(ctx, testWorkspace, "push123", &CreateUpdateDto{Type: "push", Name: "Push", Config: `{"pushToken":"cfgtoken"}`})
+
+		require.NoError(t, err)
+		mockRepo.AssertExpectations(t)
 	})
 
 	t.Run("monitor removed before it is read back", func(t *testing.T) {
@@ -2232,4 +2262,23 @@ func TestMonitorService_ChecksTheProbeOfAMonitor(t *testing.T) {
 		var invalid *InvalidProbesError
 		assert.False(t, errors.As(err, &invalid))
 	})
+}
+
+func TestResolvePushToken(t *testing.T) {
+	tests := []struct {
+		name string
+		dto  CreateUpdateDto
+		want string
+	}{
+		{"explicit push_token wins", CreateUpdateDto{Type: "push", PushToken: "own", Config: `{"pushToken":"cfg"}`}, "own"},
+		{"taken from config", CreateUpdateDto{Type: "push", Config: `{"pushToken":"cfg"}`}, "cfg"},
+		{"other types untouched", CreateUpdateDto{Type: "http", Config: `{"pushToken":"cfg"}`}, ""},
+		{"malformed config falls back to the request value", CreateUpdateDto{Type: "push", Config: `{not json`}, ""},
+		{"empty config", CreateUpdateDto{Type: "push"}, ""},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, resolvePushToken(&tt.dto))
+		})
+	}
 }
