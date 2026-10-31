@@ -53,11 +53,8 @@ func TestExecutorSources_DoNotStripTheMonotonicReadingFromACheckTime(t *testing.
 	require.NoError(t, err)
 	require.NotEmpty(t, files)
 
-	// allowed lists the files that may read time.Now().UTC(): none
-	allowed := map[string]bool{}
-
 	for _, file := range files {
-		if strings.HasSuffix(file, "_test.go") || allowed[file] {
+		if strings.HasSuffix(file, "_test.go") {
 			continue
 		}
 		source, err := os.ReadFile(file)

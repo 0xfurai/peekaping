@@ -131,9 +131,8 @@ func (s *Sink) wireResult(r *ingest.Result) (probeproto.Result, error) {
 		return probeproto.Result{}, fmt.Errorf("the result of monitor %s has status %d, which the probe protocol has no word for", r.MonitorID, r.Status)
 	}
 	// The server refuses a result that ends before it starts, so the end is the start plus the
-	// measured duration. A time with a monotonic reading subtracts on that clock, which a step of the
-	// wall clock doesn't move; UTC drops the reading, so it comes after the subtraction.
-	start := r.StartTime.UTC()
+	// measured duration
+	start, end := ingest.UTCSpan(r.StartTime, r.EndTime)
 	result := probeproto.Result{
 		ID:        s.ids.next(s.session.now()),
 		MonitorID: r.MonitorID,
@@ -141,7 +140,7 @@ func (s *Sink) wireResult(r *ingest.Result) (probeproto.Result, error) {
 		Message:   r.Message,
 		PingMs:    r.PingMs,
 		StartTime: start,
-		EndTime:   start.Add(r.EndTime.Sub(r.StartTime)),
+		EndTime:   end,
 	}
 	if r.TLSInfo != nil {
 		raw, err := json.Marshal(r.TLSInfo)

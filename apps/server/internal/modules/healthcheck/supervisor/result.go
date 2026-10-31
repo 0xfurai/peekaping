@@ -1,8 +1,6 @@
 package supervisor
 
 import (
-	"time"
-
 	"peekaping/internal/modules/healthcheck/executor"
 	"peekaping/internal/modules/ingester/ingest"
 	"peekaping/internal/modules/shared"
@@ -28,7 +26,7 @@ type TickResult struct {
 // certificate's expiry to be checked. Single mode's scheduler builds what it ingests here.
 func (r *TickResult) IngestResult(checkCertExpiry bool) *ingest.Result {
 	m := r.Monitor
-	start, end := utcTimes(r.ExecutionResult.StartTime, r.ExecutionResult.EndTime)
+	start, end := ingest.UTCSpan(r.ExecutionResult.StartTime, r.ExecutionResult.EndTime)
 	return &ingest.Result{
 		ProbeID:           shared.LocalProbeID,
 		MonitorID:         m.ID,
@@ -53,14 +51,4 @@ func (r *TickResult) IngestResult(checkCertExpiry bool) *ingest.Result {
 		TLSInfo:                  r.ExecutionResult.TLSInfo,
 		CheckCertExpiry:          checkCertExpiry,
 	}
-}
-
-// utcTimes is the start and end of a check, in UTC, for ingest and storage. The executors keep the
-// monotonic reading of their times, so end.Sub(start) is the time that passed even if the wall
-// clock stepped during the check. UTC drops that reading, so the end is the start plus that
-// difference: it can't come out before the start.
-func utcTimes(start, end time.Time) (time.Time, time.Time) {
-	duration := end.Sub(start)
-	start = start.UTC()
-	return start, start.Add(duration)
 }
