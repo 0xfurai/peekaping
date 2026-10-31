@@ -100,17 +100,35 @@ func TestSetFieldsFromMap_RefusesABooleanParseBoolDoesNotReadAndKeepsTheField(t 
 	assert.True(t, cfg.On)
 }
 
-func TestSetFieldsFromMap_WarnsAboutANumberThatDoesNotParseAndKeepsTheField(t *testing.T) {
-	cfg := loaded{Count: 3, Wait: time.Second}
+func TestSetFieldsFromMap_RefusesANumberOrDurationThatDoesNotParseAndKeepsTheField(t *testing.T) {
+	for name, tc := range map[string]struct {
+		key, value string
+		want       InvalidNumberError
+	}{
+		"a word for a count":      {"COUNT", "many", InvalidNumberError{Name: "COUNT", Value: "many"}},
+		"a float for a count":     {"COUNT", "1.5", InvalidNumberError{Name: "COUNT", Value: "1.5"}},
+		"a comment after a value": {"COUNT", "20 # seconds", InvalidNumberError{Name: "COUNT", Value: "20 # seconds"}},
+		"too big for an int64":    {"BIG", "99999999999999999999", InvalidNumberError{Name: "BIG", Value: "99999999999999999999"}},
+		"a word for a duration":   {"WAIT", "soon", InvalidNumberError{Name: "WAIT", Value: "soon"}},
+		"a duration with no unit": {"WAIT", "90", InvalidNumberError{Name: "WAIT", Value: "90"}},
+	} {
+		t.Run(name, func(t *testing.T) {
+			cfg := loaded{Count: 3, Wait: time.Second}
 
-	out := stdout(t, func() {
-		require.NoError(t, setFieldsFromMap(&cfg, map[string]string{"COUNT": "many", "WAIT": "soon", "BIG": "12"}))
-	})
+			err := setFieldsFromMap(&cfg, map[string]string{tc.key: tc.value})
 
-	assert.Equal(t, "Warning: could not parse COUNT=many as number: strconv.ParseInt: parsing \"many\": invalid syntax\n"+
-		"Warning: could not parse WAIT=soon as number: time: invalid duration \"soon\"\n", out,
-		"the warnings follow the order of the struct's fields")
-	assert.Equal(t, loaded{Count: 3, Wait: time.Second, Big: 12}, cfg)
+			var invalid *InvalidNumberError
+			require.ErrorAs(t, err, &invalid)
+			assert.Equal(t, tc.want, *invalid)
+			assert.Equal(t, loaded{Count: 3, Wait: time.Second}, cfg)
+		})
+	}
+}
+
+func TestInvalidNumberError_NamesTheVariableAndTheFormsItReads(t *testing.T) {
+	err := &InvalidNumberError{Name: "MIN_CHECK_INTERVAL", Value: "20 # seconds"}
+
+	assert.EqualError(t, err, `MIN_CHECK_INTERVAL must be a whole number, or a duration such as 90s or 3m for a time setting, not "20 # seconds"`)
 }
 
 // A rule on a field that fails is named in words, whatever the rule is

@@ -506,7 +506,7 @@ func setFieldFromText(field reflect.StructField, fieldValue reflect.Value, value
 	case reflect.String:
 		fieldValue.SetString(value)
 	case reflect.Int, reflect.Int64:
-		intValue, err := parseInt(field.Type, value)
+		intValue, err := parseInt(field, value)
 		if err != nil {
 			return true, err
 		}
@@ -534,6 +534,18 @@ func (e *InvalidBooleanError) Error() string {
 	return fmt.Sprintf("%s must be a boolean: 1, t, T, TRUE, true, True, 0, f, F, FALSE, false or False, not %q", e.Name, e.Value)
 }
 
+// InvalidNumberError is a number or duration variable set to text that doesn't parse, such as many,
+// 1.5 or a comment after the value (20 # seconds). It would otherwise fall back to the default
+// without a word, so startup stops.
+type InvalidNumberError struct {
+	Name  string
+	Value string
+}
+
+func (e *InvalidNumberError) Error() string {
+	return fmt.Sprintf("%s must be a whole number, or a duration such as 90s or 3m for a time setting, not %q", e.Name, e.Value)
+}
+
 // parseBool reads value as strconv.ParseBool does, and names the field's variable when it can't
 func parseBool(field reflect.StructField, value string) (bool, error) {
 	parsed, err := strconv.ParseBool(value)
@@ -543,14 +555,22 @@ func parseBool(field reflect.StructField, value string) (bool, error) {
 	return parsed, nil
 }
 
-// parseInt reads value as a number, or as a duration for a time.Duration
-func parseInt(fieldType reflect.Type, value string) (int64, error) {
-	// Special case for time.Duration
-	if fieldType == reflect.TypeOf(time.Duration(0)) {
-		duration, err := time.ParseDuration(value)
-		return int64(duration), err
+// parseInt reads value as a number, or as a duration for a time.Duration, and names the field's
+// variable when it can't
+func parseInt(field reflect.StructField, value string) (int64, error) {
+	var parsed int64
+	var err error
+	if field.Type == reflect.TypeOf(time.Duration(0)) {
+		var duration time.Duration
+		duration, err = time.ParseDuration(value)
+		parsed = int64(duration)
+	} else {
+		parsed, err = strconv.ParseInt(value, 10, 64)
 	}
-	return strconv.ParseInt(value, 10, 64)
+	if err != nil {
+		return 0, &InvalidNumberError{Name: field.Tag.Get("env"), Value: value}
+	}
+	return parsed, nil
 }
 
 func loadEnvFile[T any](filePath string, config *T, envVarsFromFile map[string]string) error {
@@ -626,11 +646,7 @@ func setFieldsFromMap[T any](config *T, values map[string]string) error {
 		}
 
 		if _, err := setFieldFromText(field, fieldValue, value); err != nil {
-			var invalid *InvalidBooleanError
-			if errors.As(err, &invalid) {
-				return err
-			}
-			fmt.Printf("Warning: could not parse %s=%s as number: %v\n", envKey, value, err)
+			return err
 		}
 	}
 

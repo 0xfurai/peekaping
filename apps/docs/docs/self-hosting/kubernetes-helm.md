@@ -155,6 +155,8 @@ The database settings have no defaults. For PostgreSQL, set `DB_TYPE` (the chart
 | `TELEMETRY` | empty | Set `off` to switch off the anonymous [usage statistics](./telemetry.md) whatever an admin chose. |
 | `ERROR_REPORTING` | empty | Set `off` to switch off the [error reports](./telemetry.md#error-reporting) whatever an admin chose. |
 
+Quote a number in your values file (`MIN_CHECK_INTERVAL: "1000000"`). Helm reads an unquoted 1000000 or more as a float and renders it as `1e+06`, which a number setting refuses at startup.
+
 Leave `API_URL` unset. The web app then calls the API on its own address, which is where the Ingress sends `/api`. [API Server](../architecture/api-server.md#environment-variables) lists every variable.
 
 Changing `config.env` and running `helm upgrade` restarts the pods. Changing the secret doesn't, because Kubernetes passes its values to a pod only when the pod starts. Restart the deployments after you change it:

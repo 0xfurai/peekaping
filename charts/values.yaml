@@ -64,6 +64,8 @@ redis:
 config:
   existingSecret: "peekaping-config"
   env:
+    # Quote every value, numbers included: Helm reads an unquoted 1000000 as a float and renders
+    # it as 1e+06, which a number setting refuses at startup.
     # The chart supports PostgreSQL only: it refuses DB_TYPE sqlite, since it has no
     # volume for the file and each pod would get a database of its own. For SQLite, use the single-mode image.
     # It refuses mongo and mongodb too: MongoDB storage was removed. Move to PostgreSQL with
