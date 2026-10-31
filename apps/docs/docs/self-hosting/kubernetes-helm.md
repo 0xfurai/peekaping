@@ -348,12 +348,14 @@ Each component has a `replicaCount`, which is 3 by default, and `resources` with
 
 ### Rolling restarts of the API
 
-A stopping API pod needs a moment to leave the Service's endpoints and the ingress's backends. Until it has, they still send it requests, and a pod that has already closed its port refuses them. So the API container sleeps for `api.preStopSleepSeconds` seconds (5 by default) in a `preStop` hook, still serving, before it gets `SIGTERM` and starts its own shutdown. The pod's `terminationGracePeriodSeconds` is that sleep plus the 35 seconds the API needs: 40 by default. The probe pods have no sleep and keep 35.
+A stopping API pod needs a moment to leave the Service's endpoints and the ingress's backends. Until it has, they still send it requests, and a pod that has already closed its port refuses them. So the API container sleeps for `api.preStopSleepSeconds` seconds (5 by default) in a `preStop` hook, still serving, before it gets `SIGTERM` and starts its own shutdown. That gives the Service and the ingress time to stop routing to the pod, which reduces refused requests during a rollout. The pod gets the sleep plus 35 seconds to stop (`terminationGracePeriodSeconds`): 40 by default. A normal shutdown fits in that. A shutdown while an account email is still sending can take about 40 seconds and be cut off, and a longer sleep doesn't give it more time: Kubernetes counts the grace period from before the hook. The probe pods have no sleep and keep 35.
 
 ```yaml
 api:
   preStopSleepSeconds: 10   # 0 removes the hook; the grace period is then 35
 ```
+
+The sleep also delays a restart after a failed liveness probe by the same time. `api.preStopSleepSeconds: 0` turns it off.
 
 It must be a whole number of 0 or more; the chart refuses anything else, such as `-5`, `7.5` or `10s`. Raise it if your ingress controller or load balancer is slow to drop a pod. The hook runs `sleep`, which the API image has, so it also works under `api.apparmor.enabled`.
 

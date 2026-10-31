@@ -107,7 +107,7 @@ spec:
 
           {{- if gt $preStopSleep 0 }}
           # Keep serving while the Service and the ingress drop this pod from their endpoints, so a
-          # rollout refuses no connection. The api gets SIGTERM after the sleep.
+          # rollout refuses fewer connections. The api gets SIGTERM after the sleep.
           lifecycle:
             preStop:
               exec:
