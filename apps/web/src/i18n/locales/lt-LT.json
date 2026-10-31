@@ -932,6 +932,7 @@
         },
         "notifications": {
           "add_notifier": "Pridėti pranešimo kanalą",
+          "load_failed": "Nepavyko įkelti pranešimų kanalų",
           "new_notifier": "+ Naujas pranešėjas",
           "no_channels": "Nerasta pranešimų kanalų, pirmiausia sukurkite vieną.",
           "no_channels_available": "Nėra kanalų",
@@ -2005,6 +2006,7 @@
       "last_updated": "Paskutinis atnaujinimas",
       "maintenance": "Priežiūra",
       "no_monitors_configured": "Šiam būsenos puslapiui nebuvo sukonfigūruojamų monitorių.",
+      "not_monitored": "Nestebima",
       "operational": "Veikia",
       "partial_system_outage": "Dalinis sistemos sutrikimas",
       "powered_by": "Sąskaitą palaiko",

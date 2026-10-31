@@ -52,7 +52,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - fix: the Helm chart's api pods sleep 5 seconds in a `preStop` hook before they stop. The sleep gives the Service and the ingress time to stop routing to the pod, which reduces refused requests during a rollout. `api.preStopSleepSeconds` sets the sleep and 0 turns it off; the api pods get 40 seconds to stop (the sleep plus 35). A value that is not a whole number from 0 through 999999 stops the render. The probe pods are unchanged. See [Kubernetes (Helm)](apps/docs/docs/self-hosting/kubernetes-helm.md#rolling-restarts-of-the-api)
+- fix: a public status page showed a monitor that isn't checked (paused, or of a turned-off type) with the last status it had, and a stale Down or Maintenance still set the page's overall state. The page now shows "Not monitored" for the monitor and for each of its locations, dims its history bar, and leaves it out of the overall state. A page where no monitor is checked says "All Systems Operational", as a page with no monitors does
 - fix: a boolean setting (`METRICS_ENABLED`, `BLOCK_PRIVATE_TARGETS`, `VERIFY_CUSTOM_DOMAINS`, `PROBE_ALLOW_INSECURE`) set to `TRUE` or `True` was read as off, without a word. They now read every form Go's `strconv.ParseBool` reads (`1`, `t`, `T`, `TRUE`, `true`, `True` and the false forms). A value that is none of them, such as `yes` or `on`, stops startup with a message that names the variable. Unset or empty keeps the default. A wrong value in a `.env` file stops startup even when the system environment overrides it
+- fix: a RabbitMQ monitor tries its next node when one hangs. Each node now gets a share of the monitor's timeout (what is left divided by the nodes left to try), where before a node that never answered used all of it and hid the healthy nodes after it
 
 ## [0.1.0] - 2026-10-28
 

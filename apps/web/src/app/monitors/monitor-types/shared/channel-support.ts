@@ -8,6 +8,12 @@ import type { NotificationChannelModel, UtilsApiResponseArrayNotificationChannel
 export const defaultChannelIds = (channels: Pick<NotificationChannelModel, "id" | "is_default">[] | null | undefined): string[] =>
   (channels ?? []).filter((channel) => channel.is_default).map((channel) => channel.id);
 
+// The channels the monitor form's picker offers to add: the loaded ones that are not ticked yet
+export const availableChannels = (
+  channels: NotificationChannelModel[] | null | undefined,
+  tickedIds: string[]
+): NotificationChannelModel[] => (channels ?? []).filter((channel) => !tickedIds.includes(channel.id));
+
 // The largest page the channel list answers (the server's utils.MaxPageSize)
 const CHANNEL_PAGE_SIZE = 1000;
 

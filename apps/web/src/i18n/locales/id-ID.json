@@ -932,6 +932,7 @@
         },
         "notifications": {
           "add_notifier": "Tambah Pemberitahuan",
+          "load_failed": "Gagal memuat saluran notifikasi",
           "new_notifier": "+ Notifier Baru",
           "no_channels": "Tidak ada saluran notifikasi, buat satu terlebih dahulu",
           "no_channels_available": "Tidak ada saluran tersedia",
@@ -2005,6 +2006,7 @@
       "last_updated": "Terakhir Diperbarui",
       "maintenance": "Pemeliharaan",
       "no_monitors_configured": "Tidak ada monitor yang dikonfigurasi untuk halaman status ini.",
+      "not_monitored": "Tidak dipantau",
       "operational": "Operasional",
       "partial_system_outage": "Gangguan Sistem Parsial",
       "powered_by": "Didukung oleh",

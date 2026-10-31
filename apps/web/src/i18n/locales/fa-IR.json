@@ -932,6 +932,7 @@
         },
         "notifications": {
           "add_notifier": "افزودن اعلان‌دهنده",
+          "load_failed": "بارگیری کانال‌های اعلان ناموفق بود",
           "new_notifier": "+ اطلاعگر جدید",
           "no_channels": "هیچ کانالی یافت نشد، ابتدا یکی ایجاد کنید.",
           "no_channels_available": "هیچ کانالی در دسترس نیست",
@@ -2005,6 +2006,7 @@
       "last_updated": "آخرین به‌روزرسانی",
       "maintenance": "نگهداری",
       "no_monitors_configured": "هیچ مانیتوری برای این صفحه وضعیت تنظیم نشده است.",
+      "not_monitored": "تحت نظارت نیست",
       "operational": "عملی",
       "partial_system_outage": "از کار افتادن جزئی سیستم",
       "powered_by": "قدرت گرفته از",

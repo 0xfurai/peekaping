@@ -36,8 +36,10 @@ func refusedNodeURL(t *testing.T) string {
 	return "http://" + refusedAddr(t)
 }
 
-func TestRabbitMQExecutor_NodeNeverAnswers(t *testing.T) {
-	// A node that accepts the connection and then says nothing.
+// silentNodeURL returns the base URL of a node that accepts the connection and then says nothing,
+// until the test ends.
+func silentNodeURL(t *testing.T) string {
+	t.Helper()
 	l, err := net.Listen("tcp", "127.0.0.1:0")
 	require.NoError(t, err)
 	var mu sync.Mutex
@@ -61,19 +63,70 @@ func TestRabbitMQExecutor_NodeNeverAnswers(t *testing.T) {
 			_ = c.Close()
 		}
 	})
+	return "http://" + l.Addr().String()
+}
 
+// slowNodeURL returns the base URL of a healthy node that answers after delay, or gives up when
+// the check drops the request.
+func slowNodeURL(t *testing.T, delay time.Duration) string {
+	t.Helper()
+	node := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		select {
+		case <-time.After(delay):
+			w.WriteHeader(http.StatusOK)
+		case <-r.Context().Done():
+		}
+	}))
+	t.Cleanup(node.Close)
+	return node.URL
+}
+
+func runRabbitMQ(t *testing.T, timeout int, nodes ...string) (*Result, time.Duration) {
+	t.Helper()
 	exec := NewRabbitMQExecutor(zap.NewNop().Sugar())
 	start := time.Now()
-	result := exec.Execute(context.Background(), rabbitMQMonitor(t, 2, RabbitMQConfig{
-		Nodes:    []string{"http://" + l.Addr().String()},
+	result := exec.Execute(context.Background(), rabbitMQMonitor(t, timeout, RabbitMQConfig{
+		Nodes:    nodes,
 		Username: "user",
 		Password: "password",
 	}), nil)
-	elapsed := time.Since(start)
+	return result, time.Since(start)
+}
+
+func TestRabbitMQExecutor_NodeNeverAnswers(t *testing.T) {
+	result, elapsed := runRabbitMQ(t, 2, silentNodeURL(t))
 
 	assert.Equal(t, shared.MonitorStatusDown, result.Status)
 	assert.Contains(t, result.Message, "context deadline exceeded")
 	assert.Less(t, elapsed, 3*time.Second, "the check must end within the monitor's timeout plus 1s")
+}
+
+func TestRabbitMQExecutor_SilentFirstNodeDoesNotHideTheHealthySecond(t *testing.T) {
+	result, elapsed := runRabbitMQ(t, 2, silentNodeURL(t), slowNodeURL(t, 0))
+
+	assert.Equal(t, shared.MonitorStatusUp, result.Status)
+	assert.Equal(t, "OK", result.Message)
+	assert.Less(t, elapsed, 2*time.Second, "the check must be up within the monitor's timeout")
+}
+
+func TestRabbitMQExecutor_SingleNodeGetsTheWholeTimeout(t *testing.T) {
+	result, _ := runRabbitMQ(t, 2, slowNodeURL(t, 1500*time.Millisecond))
+
+	assert.Equal(t, shared.MonitorStatusUp, result.Status)
+}
+
+func TestRabbitMQExecutor_EveryNodeSilentIsDownWithinTheTimeout(t *testing.T) {
+	result, elapsed := runRabbitMQ(t, 2, silentNodeURL(t), silentNodeURL(t))
+
+	assert.Equal(t, shared.MonitorStatusDown, result.Status)
+	assert.Less(t, elapsed, 3*time.Second, "the check must end within the monitor's timeout plus 1s")
+}
+
+func TestRabbitMQExecutor_RefusedNodeHandsItsTimeToTheNodesAfterIt(t *testing.T) {
+	// Splitting the timeout evenly up front would leave the slow node 1s.
+	result, _ := runRabbitMQ(t, 2, refusedNodeURL(t), slowNodeURL(t, 1500*time.Millisecond))
+
+	assert.Equal(t, shared.MonitorStatusUp, result.Status)
 }
 
 func TestRabbitMQExecutor_ErrorResponses(t *testing.T) {

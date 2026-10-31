@@ -932,6 +932,7 @@
         },
         "notifications": {
           "add_notifier": "Přidat notifikátor",
+          "load_failed": "Kanály oznámení se nepodařilo načíst",
           "new_notifier": "+ Nový notifikátor",
           "no_channels": "Nebyl nalezen žádný kanál notifikací. Vytvořte jej nejdříve.",
           "no_channels_available": "Žádné kanály nejsou k dispozici",
@@ -2005,6 +2006,7 @@
       "last_updated": "Poslední aktualizace",
       "maintenance": "Údržba",
       "no_monitors_configured": "Pro tuto stránku stavu nebyly nakonfigurovány žádné monitory.",
+      "not_monitored": "Nesledováno",
       "operational": "V provozu",
       "partial_system_outage": "Částečný výpadek systému",
       "powered_by": "Poháněno",

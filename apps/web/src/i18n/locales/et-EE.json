@@ -932,6 +932,7 @@
         },
         "notifications": {
           "add_notifier": "Lisa teavitaja",
+          "load_failed": "Teavituskanaleid ei õnnestunud laadida",
           "new_notifier": "+ Lisa uus teavituskanal",
           "no_channels": "Teavituskanaleid ei leitud, loo kõigepealt üks",
           "no_channels_available": "Kanalid pole saadaval",
@@ -2005,6 +2006,7 @@
       "last_updated": "Viimati uuendatud",
       "maintenance": "Hooldus",
       "no_monitors_configured": "Selle oleku lehe jaoks pole monitoore seadistatud.",
+      "not_monitored": "Ei monitoorita",
       "operational": "Töökorras",
       "partial_system_outage": "Osaline süsteemi katkestus",
       "powered_by": "Põhineb",

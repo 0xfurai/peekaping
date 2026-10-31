@@ -932,6 +932,7 @@
         },
         "notifications": {
           "add_notifier": "نوٹیفائر شامل کریں",
+          "load_failed": "اطلاعی چینلز لوڈ نہیں ہو سکے",
           "new_notifier": "+ نیا نوٹیفائر",
           "no_channels": "کوئی نوٹیفیکیشن چینل نہیں ملا، پہلے ایک بنائیں",
           "no_channels_available": "کوئی چینل دستیاب نہیں",
@@ -2004,6 +2005,7 @@
       "last_updated": "آخری تازہ کاری",
       "maintenance": "رکھ رکھاؤ",
       "no_monitors_configured": "اس اسٹیٹس صفحے کے لیے کوئی مانیٹرز کنفیگر نہیں ہیں۔",
+      "not_monitored": "مانیٹر نہیں کیا جا رہا",
       "operational": "فعال",
       "partial_system_outage": "جزوی نظامی خرابی",
       "powered_by": "میزبانی",

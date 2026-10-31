@@ -64,6 +64,13 @@ gh api graphql -f query="$query" -F owner="${repo%/*}" -F name="${repo#*/}" -F p
     def clean: gsub("<!--[\\s\\S]*?-->"; "") | gsub("^\\s+|\\s+$"; "");
     def mine: (.body // "") | contains($marker);
     def bot: (.author.login // "") | test("\\[bot\\]$|^coderabbitai$|^codecov|^github-actions");
+    # CodeRabbit reports as a check run (name, status, conclusion), once as a
+    # status context (context, state): either way as the states pr-wait.sh reads.
+    def coderabbit: (.name // .context) == "CodeRabbit";
+    def coderabbit_state:
+      if .__typename == "CheckRun" then (if .status != "COMPLETED" then "PENDING" else .conclusion end)
+      elif .state == "EXPECTED" then "PENDING"
+      else .state end;
 
     .data.repository.pullRequest as $p
     | ($p.commits.nodes[0].commit.statusCheckRollup.contexts.nodes // []) as $ctx
@@ -87,8 +94,8 @@ gh api graphql -f query="$query" -F owner="${repo%/*}" -F name="${repo#*/}" -F p
             | {name: (.name // .context), url: (.detailsUrl // .targetUrl)}],
           passed: ([$ctx[] | select(.conclusion == "SUCCESS" or .state == "SUCCESS")] | length),
           completedAt: ([$ctx[] | select(.__typename == "CheckRun" and .completedAt != null) | {(.name): .completedAt}] | add // {}),
-          ci: ([$ctx[] | select(.context != "CodeRabbit")] | length),
-          coderabbit: ([$ctx[] | select(.context == "CodeRabbit") | .state][0] // "MISSING")
+          ci: ([$ctx[] | select(coderabbit | not)] | length),
+          coderabbit: ([$ctx[] | select(coderabbit) | coderabbit_state][0] // "MISSING")
         },
         threads: [$p.reviewThreads.nodes[]
           | select(.isResolved | not)

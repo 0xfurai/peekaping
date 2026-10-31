@@ -932,6 +932,7 @@
         },
         "notifications": {
           "add_notifier": "Add Notifier",
+          "load_failed": "Could not load the notification channels",
           "new_notifier": "+ New Notifier",
           "no_channels": "No notification channels found, create one first",
           "no_channels_available": "No channels available",
@@ -2005,6 +2006,7 @@
       "last_updated": "Last Updated",
       "maintenance": "Maintenance",
       "no_monitors_configured": "No monitors configured for this status page.",
+      "not_monitored": "Not monitored",
       "operational": "Operational",
       "partial_system_outage": "Partial System Outage",
       "powered_by": "Powered by",
