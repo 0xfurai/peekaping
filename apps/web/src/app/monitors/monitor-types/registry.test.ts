@@ -196,9 +196,10 @@ describe("monitor type registry", () => {
     const definition = monitorTypes.find((candidate) => candidate.type === type)!;
     const withMaxRedirects = (max_redirects?: number) => {
       const body = definition.serialize(definition.defaultValues as never);
-      const { max_redirects: _dropped, ...config } = JSON.parse(body.config ?? "{}");
-      const saved = { ...body, config: JSON.stringify(max_redirects === undefined ? config : { ...config, max_redirects }) };
-      return savedMonitor(saved);
+      const config = JSON.parse(body.config ?? "{}");
+      delete config.max_redirects;
+      if (max_redirects !== undefined) config.max_redirects = max_redirects;
+      return savedMonitor({ ...body, config: JSON.stringify(config) });
     };
     const sentMaxRedirects = (monitor: MonitorMonitorResponseDto) =>
       JSON.parse(serializeMonitor(deserializeMonitor(monitor)).config ?? "{}").max_redirects;
