@@ -932,6 +932,7 @@
         },
         "notifications": {
           "add_notifier": "Añadir notificador",
+          "load_failed": "No se pudieron cargar los canales de notificación",
           "new_notifier": "+ Nuevo notificador",
           "no_channels": "No se encontraron canales de notificación, crea uno primero",
           "no_channels_available": "No hay canales disponibles",

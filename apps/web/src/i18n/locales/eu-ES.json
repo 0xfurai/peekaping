@@ -932,6 +932,7 @@
         },
         "notifications": {
           "add_notifier": "Gehitu jakinarazlea",
+          "load_failed": "Ezin izan dira jakinarazpen-kanalak kargatu",
           "new_notifier": "+ Jakinarazle berria",
           "no_channels": "Jakinarazpen-kanalerik ez da aurkitu, sortu bat lehenik",
           "no_channels_available": "Kanalerik ez dago eskuragarri",

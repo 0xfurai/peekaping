@@ -932,6 +932,7 @@
         },
         "notifications": {
           "add_notifier": "הוסף מתווך",
+          "load_failed": "לא ניתן לטעון את ערוצי ההתראות",
           "new_notifier": "+ מדווח חדש",
           "no_channels": "לא נמצאו ערוצי התראות, צור אחד תחילה",
           "no_channels_available": "אין ערוצים זמינים",

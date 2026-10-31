@@ -932,6 +932,7 @@
         },
         "notifications": {
           "add_notifier": "Lisää ilmoitin",
+          "load_failed": "Ilmoituskanavien lataaminen epäonnistui",
           "new_notifier": "+ Uusi ilmoitin",
           "no_channels": "Ilmoituskanavia ei löytynyt, luo ensin yksi",
           "no_channels_available": "Ei kanavia saatavilla",

@@ -932,6 +932,7 @@
         },
         "notifications": {
           "add_notifier": "Přidat notifikátor",
+          "load_failed": "Kanály oznámení se nepodařilo načíst",
           "new_notifier": "+ Nový notifikátor",
           "no_channels": "Nebyl nalezen žádný kanál notifikací. Vytvořte jej nejdříve.",
           "no_channels_available": "Žádné kanály nejsou k dispozici",

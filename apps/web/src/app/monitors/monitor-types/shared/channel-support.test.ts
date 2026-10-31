@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { NotificationChannelModel } from "@/api/types.gen";
-import { defaultChannelIds, readAllChannels } from "./channel-support";
+import { availableChannels, defaultChannelIds, readAllChannels } from "./channel-support";
 
 const channel = (n: number, isDefault: boolean): NotificationChannelModel => ({
   id: `c${n}`,
@@ -49,5 +49,27 @@ describe("readAllChannels", () => {
     const { asked, fetchPage } = server([]);
     expect(await readAllChannels(fetchPage)).toEqual([]);
     expect(asked).toHaveLength(1);
+  });
+});
+
+// Radix Select renders its options only while open, so a static render can't list them: the
+// list the picker offers is read from the function that makes it.
+describe("availableChannels", () => {
+  it("offers the channels past the tenth", async () => {
+    const channels = Array.from({ length: 12 }, (_, i) => channel(i + 1, false));
+    const { fetchPage } = server(channels);
+    const offered = availableChannels(await readAllChannels(fetchPage), []);
+    expect(offered).toHaveLength(12);
+    expect(offered.map((c) => c.id)).toContain("c12");
+  });
+
+  it("leaves out the channels already ticked", () => {
+    const channels = [channel(1, false), channel(2, false), channel(3, false)];
+    expect(availableChannels(channels, ["c2"]).map((c) => c.id)).toEqual(["c1", "c3"]);
+  });
+
+  it("offers nothing for a list that did not load", () => {
+    expect(availableChannels(undefined, [])).toEqual([]);
+    expect(availableChannels(null, ["c1"])).toEqual([]);
   });
 });

@@ -932,6 +932,7 @@
         },
         "notifications": {
           "add_notifier": "通知を追加",
+          "load_failed": "通知チャネルを読み込めませんでした",
           "new_notifier": "+ 新しい通知先",
           "no_channels": "通知チャネルが見つかりません。まずは作成してください。",
           "no_channels_available": "使用可能なチャンネルがありません",

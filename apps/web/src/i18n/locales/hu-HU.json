@@ -932,6 +932,7 @@
         },
         "notifications": {
           "add_notifier": "Értesítő hozzáadása",
+          "load_failed": "Az értesítési csatornákat nem sikerült betölteni",
           "new_notifier": "+ Új Értesítő",
           "no_channels": "Nem találhatók értesítési csatornák, hozzon létre egyet először",
           "no_channels_available": "Nincs elérhető csatorna",
