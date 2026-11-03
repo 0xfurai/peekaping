@@ -23,5 +23,6 @@ export const useDelayedLoading = (isLoading: boolean, delay: number = 200): bool
     };
   }, [isLoading, delay]);
 
-  return delayedLoading;
+  // The reset above lands a render late, so gate on isLoading too.
+  return isLoading && delayedLoading;
 };
