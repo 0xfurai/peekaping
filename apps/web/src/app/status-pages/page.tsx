@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import StatusPageCard from "./components/status-page-card";
 import { Label } from "@/components/ui/label";
 import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
+import { useDelayedLoading } from "@/hooks/useDelayedLoading";
 import EmptyList from "@/components/empty-list";
 import { Button } from "@/components/ui/button";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
@@ -54,7 +55,9 @@ const StatusPagesPage = () => {
       enabled: true,
     });
 
-  const statusPages = (data?.pages.flatMap((page) => page.data || []) ||
+  const shouldShowSkeleton = useDelayedLoading(isLoading, 200);
+
+  const statusPages =(data?.pages.flatMap((page) => page.data || []) ||
     []) as StatusPageModel[];
 
   const handleObserver = useCallback(
@@ -105,7 +108,7 @@ const StatusPagesPage = () => {
           </div>
         </div>
 
-        {statusPages.length === 0 && isLoading && (
+        {statusPages.length === 0 && shouldShowSkeleton && (
           <div className="flex flex-col space-y-2 mb-2">
             {Array.from({ length: 7 }, (_, id) => (
               <Skeleton className="h-[68px] w-full rounded-xl" key={id} />

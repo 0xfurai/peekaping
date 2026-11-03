@@ -9,6 +9,7 @@ import { useState, useCallback, useEffect } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useSearchParams } from "@/hooks/useSearchParams";
 import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
+import { useDelayedLoading } from "@/hooks/useDelayedLoading";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
@@ -81,7 +82,9 @@ const TagsPage = () => {
       enabled: true,
     });
 
-  const tags = (data?.pages.flatMap((page) => page.data || []) ||
+  const shouldShowSkeleton = useDelayedLoading(isLoading, 200);
+
+  const tags =(data?.pages.flatMap((page) => page.data || []) ||
     []) as TagModel[];
 
   // Delete mutation
@@ -154,7 +157,7 @@ const TagsPage = () => {
         </div>
 
         {/* Tags list */}
-        {tags.length === 0 && isLoading && (
+        {tags.length === 0 && shouldShowSkeleton && (
           <div className="space-y-4">
             {Array.from({ length: 6 }, (_, id) => (
               <Skeleton className="h-[68px] w-full rounded-xl" key={id} />
