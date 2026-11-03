@@ -2,6 +2,7 @@ package monitor
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"peekaping/internal/config"
@@ -411,6 +412,22 @@ func (mr *MonitorServiceImpl) CreateWithoutEvent(ctx context.Context, workspaceI
 	return createdModel, nil
 }
 
+// resolvePushToken returns the token a push monitor is looked up by. The push URL matches the
+// push_token column, but the API validates config.pushToken, so a client that sends only the
+// config one gets it copied over.
+func resolvePushToken(dto *CreateUpdateDto) string {
+	if dto.Type != "push" || dto.PushToken != "" {
+		return dto.PushToken
+	}
+	var cfg struct {
+		PushToken string `json:"pushToken"`
+	}
+	if err := json.Unmarshal([]byte(dto.Config), &cfg); err != nil {
+		return dto.PushToken
+	}
+	return cfg.PushToken
+}
+
 // newCreateModel is the monitor a create request asks for, before its probes are chosen
 func newCreateModel(workspaceID workspace.ID, monitorCreateDto *CreateUpdateDto) *Model {
 	return &Model{
@@ -427,7 +444,7 @@ func newCreateModel(workspaceID workspace.ID, monitorCreateDto *CreateUpdateDto)
 		CreatedAt:      time.Now().UTC(),
 		Config:         monitorCreateDto.Config,
 		ProxyId:        monitorCreateDto.ProxyId,
-		PushToken:      monitorCreateDto.PushToken,
+		PushToken:      resolvePushToken(monitorCreateDto),
 		ProbeIDs:       monitorCreateDto.ProbeIDs,
 
 		LocationRule:      locationRuleOrAny(monitorCreateDto.LocationRule),
@@ -613,7 +630,7 @@ func newFullUpdateModel(id string, monitor *CreateUpdateDto) *Model {
 		UpdatedAt:      time.Now().UTC(),
 		Config:         monitor.Config,
 		ProxyId:        monitor.ProxyId,
-		PushToken:      monitor.PushToken,
+		PushToken:      resolvePushToken(monitor),
 		ProbeIDs:       monitor.ProbeIDs,
 	}
 }
