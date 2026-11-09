@@ -103,6 +103,28 @@ func monitorAddress(m *monitor.Model) string {
 	}
 }
 
+// shareableAddress returns a title and value for what the monitor checks, plus a link when it is
+// an HTTP(S) URL. Notifications are seen by everyone in the channel, so credentials, query and
+// fragment are dropped from URLs. It returns "" for all three when there is no address.
+func shareableAddress(m *monitor.Model) (title, value, link string) {
+	address := monitorAddress(m)
+	if address == "" {
+		return "", "", ""
+	}
+
+	u, err := url.Parse(address)
+	if err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" {
+		// A host or host:port, which isn't a link
+		return "Host", address, ""
+	}
+	u.User = nil
+	u.RawQuery = ""
+	u.ForceQuery = false
+	u.Fragment = ""
+	u.RawFragment = ""
+	return "URL", u.String(), u.String()
+}
+
 // PrepareTemplateBindings converts monitor and heartbeat objects to JSON representation
 // and prepares template bindings with parsed config for template engines
 func PrepareTemplateBindings(monitor *monitor.Model, heartbeat *heartbeat.Model, message string) map[string]any {
