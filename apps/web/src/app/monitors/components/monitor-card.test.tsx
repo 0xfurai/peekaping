@@ -50,4 +50,36 @@ describe("MonitorCard", () => {
     expect(html).not.toContain(text("monitors.view.status.paused"));
     expect(html).not.toContain('data-testid="monitor-type-disabled"');
   });
+
+  it("shows what an HTTP monitor checks, as text rather than a link, since the card opens the monitor", () => {
+    const html = renderAs(
+      owner,
+      <MonitorCard monitor={monitor({ type: "http", config: JSON.stringify({ url: "https://example.com/health" }) })} />
+    );
+
+    expect(html).toMatch(/<p [^>]*data-testid="monitor-target"[^>]*>https:\/\/example.com\/health<\/p>/);
+    expect(html).not.toContain("href=");
+  });
+
+  it("shows the host and port of a TCP monitor", () => {
+    const html = renderAs(
+      owner,
+      <MonitorCard monitor={monitor({ type: "tcp", config: JSON.stringify({ host: "1.1.1.1", port: 443 }) })} />
+    );
+
+    expect(html).toContain(">1.1.1.1:443<");
+  });
+
+  it("shows the record and resolver of a DNS monitor", () => {
+    const config = { host: "example.com", resolve_type: "A", resolver_server: "8.8.8.8", port: 53 };
+    const html = renderAs(owner, <MonitorCard monitor={monitor({ type: "dns", config: JSON.stringify(config) })} />);
+
+    expect(html).toContain(">example.com (A @ 8.8.8.8:53)<");
+  });
+
+  it("shows no target for a monitor that has none, such as a push monitor", () => {
+    const html = renderAs(owner, <MonitorCard monitor={monitor({ type: "push", config: JSON.stringify({}) })} />);
+
+    expect(html).not.toContain('data-testid="monitor-target"');
+  });
 });
