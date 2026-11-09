@@ -4,7 +4,7 @@
 import { resolve } from "node:path";
 import { parseArgs } from "node:util";
 import { renderDashboard } from "./dashboard-html";
-import { buildQueries, fetchRows, parseDays } from "./queries";
+import { buildQueries, fetchRows, installSummaryQuery, parseDays } from "./queries";
 import { requireEnv } from "./report";
 
 export const DEFAULT_OUT = "dashboard.html";
@@ -41,12 +41,16 @@ export async function run(options: DashboardOptions): Promise<string> {
   const token = requireEnv(options.env, "CLOUDFLARE_ANALYTICS_TOKEN");
 
   const [overall, ...byValue] = buildQueries(args.days);
+  // The install summary always covers the 92 retained days, whatever --days is
   const results = await Promise.all(
-    [overall!, ...byValue].map((query) => fetchRows(options.fetch, accountId, token, query.sql)),
+    [...[overall!, ...byValue].map((query) => query.sql), installSummaryQuery()].map((sql) =>
+      fetchRows(options.fetch, accountId, token, sql),
+    ),
   );
   const html = renderDashboard({
     days: args.days,
     generatedAt: options.now(),
+    installs: results.at(-1)!,
     overall: results[0]!,
     breakdowns: byValue.map((query, i) => ({ title: query.title, label: query.label!, rows: results[i + 1]! })),
   });
