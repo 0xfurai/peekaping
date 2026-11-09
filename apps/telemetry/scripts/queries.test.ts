@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { buildQueries, formatTable, installSummaryQuery, parseDays, sqlApiRequest } from "./queries";
+import { activeDaysQuery, buildQueries, formatTable, installSummaryQuery, parseDays, sqlApiRequest } from "./queries";
 
 const DATASET = "peekaping_telemetry";
 
@@ -82,6 +82,28 @@ describe("installSummaryQuery", () => {
 
   test("is not part of the report", () => {
     expect(buildQueries(30).map((q) => q.sql)).not.toContain(installSummaryQuery());
+  });
+});
+
+describe("activeDaysQuery", () => {
+  const sqlFor = (days: number) =>
+    `SELECT days, count() AS installs FROM (` +
+    `SELECT count(DISTINCT toStartOfDay(timestamp)) AS days FROM ${DATASET} ` +
+    `WHERE blob1 = 'ping' AND timestamp >= toStartOfDay(NOW()) - INTERVAL '${days}' DAY AND timestamp < toStartOfDay(NOW()) ` +
+    `GROUP BY index1) GROUP BY days ORDER BY days`;
+
+  test.each([7, 30, 90])("counts the installs by the number of UTC days with a usage ping in the last %p finished days", (days) => {
+    expect(compact(activeDaysQuery(days))).toBe(sqlFor(days));
+  });
+
+  test("never selects the instance ID, and is not part of the report", () => {
+    const sql = compact(activeDaysQuery(7));
+    expect(sql.replace("GROUP BY index1", "")).not.toContain("index1");
+    expect(buildQueries(30).map((q) => q.sql)).not.toContain(activeDaysQuery(7));
+  });
+
+  test.each([0, -1, 1.5, 93])("refuses %p days", (days) => {
+    expect(() => activeDaysQuery(days)).toThrow();
   });
 });
 

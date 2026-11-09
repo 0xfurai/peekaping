@@ -75,6 +75,20 @@ export function installSummaryQuery(): string {
   );
 }
 
+// How many installs sent the usage ping on 1, 2, ... `days` of the last `days` finished UTC days, as rows of
+// (days, installs).
+// The inner query groups by index1 (the instance ID) without selecting it, so IDs never leave Cloudflare.
+// Not part of buildQueries: `bun run report` doesn't use it.
+export function activeDaysQuery(days: number): string {
+  assertDays(days);
+  return (
+    `SELECT days, count() AS installs FROM (` +
+    `SELECT count(DISTINCT toStartOfDay(timestamp)) AS days FROM ${DATASET} ` +
+    `WHERE blob1 = 'ping' AND timestamp >= toStartOfDay(NOW()) - INTERVAL '${days}' DAY AND timestamp < toStartOfDay(NOW()) ` +
+    `GROUP BY index1) GROUP BY days ORDER BY days`
+  );
+}
+
 export function parseDays(argv: string[]): number {
   const { values } = parseArgs({
     args: argv,

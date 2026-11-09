@@ -70,6 +70,8 @@ export interface Metrics {
   weeks: WeekRow[];
   cohorts: CohortRow[];
   adoption: Adoption;
+  // One entry per CONTINUOUS window
+  continuous: ContinuousWindow[];
 }
 
 export const RETENTION_DAYS = [1, 7, 30];
@@ -182,7 +184,50 @@ function adoption(weekly: Install[]): Adoption {
   };
 }
 
-export function computeMetrics(rows: Record<string, unknown>[], generatedAt: Date): Metrics {
+// The windows of finished UTC days for continuous installs. The rule allows one missed day in 7: an install skips a
+// UTC day now and then, so 6 of 7 counts, and so do 26 of 30 and 78 of 90.
+export const CONTINUOUS = [
+  { days: 7, min: 6 },
+  { days: 30, min: 26 },
+  { days: 90, min: 78 },
+];
+
+export interface Continuity {
+  // Installs with a usage ping on 1, 2, ... window.days of the window's finished days
+  byDays: number[];
+  // Installs at or above the window's threshold
+  count: number;
+}
+
+// Rows of activeDaysQuery: days and installs, as strings. A row outside the window or without a count is ignored.
+export function continuity(rows: Record<string, unknown>[], window: { days: number; min: number }): Continuity {
+  const byDays = new Array<number>(window.days).fill(0);
+  for (const row of rows) {
+    const days = Number(row.days);
+    const installs = Number(row.installs);
+    if (Number.isInteger(days) && days >= 1 && days <= window.days && Number.isFinite(installs)) byDays[days - 1] = installs;
+  }
+  return { byDays, count: byDays.slice(window.min - 1).reduce((sum, n) => sum + n, 0) };
+}
+
+// A continuous count for one window; coveredDays is set when the data starts inside the window, as for ActiveCount.
+export interface ContinuousWindow extends Continuity, ActiveCount {
+  days: number;
+  min: number;
+}
+
+function continuousWindow(
+  rows: Record<string, unknown>[],
+  window: { days: number; min: number },
+  today: number,
+  dataStart: number | undefined,
+): ContinuousWindow {
+  const found = continuity(rows, window);
+  return { ...window, ...found, ...activeCount(found.count, window.days, today, dataStart) };
+}
+
+// activeDays holds the rows of activeDaysQuery for each CONTINUOUS window, in the same order.
+export function computeMetrics(rows: Record<string, unknown>[], generatedAt: Date, activeDays: Record<string, unknown>[][] = []): Metrics {
   const today = toDayNumber(generatedAt.toISOString());
   const installs = rows.map(parseInstall);
   const dataStart = earliestFirst(installs);
@@ -198,5 +243,6 @@ export function computeMetrics(rows: Record<string, unknown>[], generatedAt: Dat
     weeks: weekRows(installs, dataStart, today),
     cohorts: cohortRows(installs, dataStart, today),
     adoption: adoption(weekly),
+    continuous: CONTINUOUS.map((window, i) => continuousWindow(activeDays[i] ?? [], window, today, dataStart)),
   };
 }

@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { computeMetrics } from "./metrics";
+import { CONTINUOUS, computeMetrics, continuity } from "./metrics";
 
 // 2026-10-27 is a Tuesday, so today is Tuesday Oct 27, the last finished day is Monday Oct 26 and the current
 // week starts on Monday Oct 26.
@@ -279,5 +279,82 @@ describe("activation and feature adoption", () => {
       maintenance: 0,
       metrics: 0,
     });
+  });
+});
+
+describe("continuity", () => {
+  // The SQL API returns strings
+  const days = (pairs: [number | string, number | string][]) => pairs.map(([d, n]) => ({ days: String(d), installs: String(n) }));
+  const week = { days: 7, min: 6 };
+
+  test("the windows are 7, 30 and 90 days, each allowing one missed day in 7", () => {
+    expect(CONTINUOUS).toEqual([
+      { days: 7, min: 6 },
+      { days: 30, min: 26 },
+      { days: 90, min: 78 },
+    ]);
+  });
+
+  test("lists the installs for 1 to 7 days, 0 for a missing number", () => {
+    const { byDays } = continuity(days([[1, 4], [3, 2], [6, 5], [7, 20]]), week);
+    expect(byDays).toEqual([4, 0, 2, 0, 0, 5, 20]);
+  });
+
+  test("counts the installs at or above the threshold as continuous", () => {
+    expect(continuity(days([[5, 9], [6, 5], [7, 20]]), week).count).toBe(25);
+    expect(continuity(days([[1, 4], [5, 9]]), week).count).toBe(0);
+  });
+
+  test("counts the installs on 26 or more of 30 days, and 78 or more of 90", () => {
+    const month = continuity(days([[25, 7], [26, 3], [30, 2]]), { days: 30, min: 26 });
+    expect(month.count).toBe(5);
+    expect(month.byDays).toHaveLength(30);
+    expect(continuity(days([[77, 1], [78, 4], [90, 5]]), { days: 90, min: 78 }).count).toBe(9);
+  });
+
+  test("ignores a number of days outside the window and numbers that are not counts", () => {
+    const { byDays, count } = continuity(days([[0, 3], [8, 5], ["x", 2], [7, 1], [2, "n/a"]]), week);
+    expect(byDays).toEqual([0, 0, 0, 0, 0, 0, 1]);
+    expect(count).toBe(1);
+  });
+
+  test("is all zero without rows", () => {
+    expect(continuity([], week)).toEqual({ byDays: [0, 0, 0, 0, 0, 0, 0], count: 0 });
+  });
+});
+
+describe("continuous installs per window", () => {
+  const rows = [row("2026-10-20", "2026-10-26", { in_day: 1, in_week: 1, in_month: 1 })];
+  const activeDays = [
+    [{ days: "7", installs: "3" }],
+    [{ days: "26", installs: "2" }],
+    [{ days: "90", installs: "1" }],
+  ];
+
+  test("takes the counts per window, in the order of CONTINUOUS", () => {
+    const { continuous } = computeMetrics([row("2026-07-01", "2026-10-26")], NOW, activeDays);
+    expect(continuous.map((c) => [c.days, c.min, c.count, c.coveredDays])).toEqual([
+      [7, 6, 3, undefined],
+      [30, 26, 2, undefined],
+      [90, 78, 1, undefined],
+    ]);
+  });
+
+  test("a window the data does not cover yet reports the finished days covered", () => {
+    // Data from Oct 20: 7 finished days (Oct 20 to Oct 26) cover the 7-day window exactly
+    const { continuous } = computeMetrics(rows, NOW, activeDays);
+    expect(continuous.map((c) => c.coveredDays)).toEqual([undefined, 7, 7]);
+  });
+
+  test("covers 0 days when the data starts today", () => {
+    const { continuous } = computeMetrics([row("2026-10-27", "2026-10-27")], NOW, []);
+    expect(continuous.map((c) => c.coveredDays)).toEqual([0, 0, 0]);
+    expect(continuous.map((c) => c.count)).toEqual([0, 0, 0]);
+  });
+
+  test("a window one day short is partial, and a window that starts on the first day is not", () => {
+    // 30-day window is Sep 27 to Oct 26
+    expect(computeMetrics([row("2026-09-27", "2026-10-26")], NOW, []).continuous[1]!.coveredDays).toBeUndefined();
+    expect(computeMetrics([row("2026-09-28", "2026-10-26")], NOW, []).continuous[1]!.coveredDays).toBe(29);
   });
 });
