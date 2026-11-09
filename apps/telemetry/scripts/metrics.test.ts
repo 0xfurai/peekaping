@@ -83,3 +83,60 @@ describe("stickiness", () => {
     expect(computeMetrics([row("2026-09-01", "2026-09-05")], NOW, 3).stickiness).toBeUndefined();
   });
 });
+
+describe("weekly growth", () => {
+  // Weeks (Monday starts): Sep 28, Oct 5, Oct 12, Oct 19, Oct 26. The data starts on Wed Sep 30.
+  const rows = [
+    row("2026-09-30", "2026-10-26"), // A: still pinging
+    row("2026-09-30", "2026-10-04"), // B: last ping on a Sunday, so day 7 of silence is Sun Oct 11 (week Oct 5)
+    row("2026-10-05", "2026-10-05"), // C: first seen on a Monday (week Oct 5), churns Mon Oct 12 (week Oct 12)
+    row("2026-10-04", "2026-10-06"), // D: first seen on a Sunday (week Sep 28), churns Tue Oct 13
+    row("2026-10-12", "2026-10-12"), // E: churns Mon Oct 19
+    row("2026-10-14", "2026-10-19"), // F: last + 7 is Oct 26, the last finished day: churned
+    row("2026-10-14", "2026-10-20"), // G: last + 7 is Oct 27, today: not churned yet
+    row("2026-10-21", "2026-10-21"), // H: last + 7 is Oct 28
+    row("2026-10-26", "2026-10-26"), // I
+    row("2026-10-22", "2026-10-22"), // J
+  ];
+  const weeks = computeMetrics(rows, NOW, undefined).weeks;
+
+  test("lists the UTC weeks from the first week of the data to the current one, which is marked so far", () => {
+    expect(weeks.map((w) => [w.week, w.soFar])).toEqual([
+      ["2026-09-28", false],
+      ["2026-10-05", false],
+      ["2026-10-12", false],
+      ["2026-10-19", false],
+      ["2026-10-26", true],
+    ]);
+  });
+
+  test("leaves new and net out of the week the data starts in", () => {
+    expect(weeks[0]).toMatchObject({ newInstalls: null, churned: 0, net: null });
+  });
+
+  test("counts installs by the week they were first seen in, a Sunday and a Monday apart", () => {
+    expect(weeks.map((w) => w.newInstalls)).toEqual([null, 1, 3, 2, 1]);
+  });
+
+  test("counts churn in the week of the 7th silent day, only once it is a finished day", () => {
+    expect(weeks.map((w) => w.churned)).toEqual([0, 1, 2, 1, 1]);
+  });
+
+  test("net growth is new minus churned", () => {
+    expect(weeks.map((w) => w.net)).toEqual([null, 0, 1, 1, 0]);
+  });
+
+  test("an install that is silent for 7 days but not finished counting does not churn", () => {
+    // G (last Oct 20) and H (last Oct 21) are in no week's churn: the total is 1 + 2 + 1 + 1
+    expect(weeks.reduce((sum, w) => sum + w.churned, 0)).toBe(5);
+  });
+
+  test("a single week of data is the current week with no new or net numbers", () => {
+    const metrics = computeMetrics([row("2026-10-27", "2026-10-27")], NOW, undefined);
+    expect(metrics.weeks).toEqual([{ week: "2026-10-26", soFar: true, newInstalls: null, churned: 0, net: null }]);
+  });
+
+  test("has no weeks without rows", () => {
+    expect(computeMetrics([], NOW, undefined).weeks).toEqual([]);
+  });
+});
