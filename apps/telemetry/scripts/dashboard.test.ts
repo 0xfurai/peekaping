@@ -212,7 +212,9 @@ describe("renderDashboard install metrics", () => {
   test("gives every tile a one-line explanation", () => {
     expect(html.match(/<div class="tile( headline)?">/g)).toHaveLength(6);
     expect(html.match(/<div class="tile-why">/g)).toHaveLength(6);
-    expect(html).toContain("Installs with a usage ping in the last 7 finished UTC days.");
+    expect(html).toContain("Distinct installs that sent at least one usage ping Oct 20 – Oct 26 (UTC), each counted once.");
+    expect(html).toContain("Distinct installs that sent a usage ping on Oct 26 (UTC).");
+    expect(html).toContain("Distinct installs that sent at least one usage ping Sep 27 – Oct 26 (UTC)");
   });
 
   test("shows activation and feature adoption as bars of the weekly active installs", () => {
