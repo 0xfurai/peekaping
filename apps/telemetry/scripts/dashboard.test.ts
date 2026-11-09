@@ -224,7 +224,7 @@ describe("renderDashboard install metrics", () => {
 
   test("explains each new section in a line under its heading", () => {
     for (const [id, heading] of [
-      ["growth", "New and churned installs per week"],
+      ["growth", "New, churned and net installs per week"],
       ["cohorts", "Retention of weekly cohorts"],
       ["activation", "Activation"],
       ["adoption", "Feature adoption"],
@@ -276,6 +276,36 @@ describe("renderDashboard install metrics", () => {
     expect(history).toContain('class="bar-churned"');
   });
 
+  // The geometry of the net bar with this title, and of the zero line
+  function netBar(page: string, title: string) {
+    const bar = page.match(new RegExp(`<rect class="bar-net" x="[\\d.]+" y="([\\d.]+)" width="[\\d.]+" height="([\\d.]+)" rx="2"><title>${title}</title>`))!;
+    const zero = page.match(/<line class="grid zero"[^>]* y1="([\d.]+)"/)!;
+    return { y: Number(bar[1]), height: Number(bar[2]), zero: Number(zero[1]) };
+  }
+
+  test("charts net growth as a third series, listed in the legend, with null weeks left blank", () => {
+    expect(history).toContain('<span class="sw sw-net"></span>Net growth');
+    expect(history).toContain("<title>Oct 5: +4 net</title>");
+    // The first week of the data has no net
+    expect(history).not.toMatch(/<title>Sep 28: [^<]*net<\/title>/);
+  });
+
+  test("draws a positive net up from the zero line and a negative net below it", () => {
+    const up = netBar(history, "Oct 5: \\+4 net");
+    expect(up.height).toBeGreaterThan(0);
+    expect(up.y + up.height).toBeCloseTo(up.zero, 0);
+    const down = netBar(history, "Oct 12: -2 net");
+    expect(down.height).toBeGreaterThan(0);
+    expect(down.y).toBeCloseTo(down.zero, 0);
+  });
+
+  test("keeps the axis at zero when no week has a negative net", () => {
+    const growing = renderDashboard({ ...data, installs: [install("2026-10-20", "2026-10-26", DAY)] });
+    expect(growing).not.toMatch(/text-anchor="end">-\d/);
+    // With a negative net the axis gets a negative tick
+    expect(history).toMatch(/text-anchor="end">-\d/);
+  });
+
   test("tabulates cohort retention with counts, leaving unmeasurable cells blank", () => {
     expect(history).toContain("<td>Oct 5</td><td>4</td><td>75% (3 of 4)</td><td>25% (1 of 4)</td><td></td>");
     // The current week's cohort is empty and nothing in it is measurable
@@ -292,7 +322,7 @@ describe("renderDashboard install metrics", () => {
 
   test("defines the new colors for the light and the dark theme", () => {
     const [light, dark] = html.match(/:root \{[^}]*\}/g)!;
-    for (const token of ["--new:", "--churned:"]) {
+    for (const token of ["--new:", "--churned:", "--net:"]) {
       expect(light).toContain(token);
       expect(dark).toContain(token);
     }

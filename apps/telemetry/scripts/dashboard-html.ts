@@ -241,7 +241,39 @@ function weekLabel(row: { week: string; soFar: boolean }): string {
   return `${shortDay(row.week)}${row.soFar ? " (so far)" : ""}`;
 }
 
-// Grouped bars per UTC week: new installs and, beside them, the estimated churn. Inline SVG, so no script is needed.
+interface WeekPlot {
+  y: (count: number) => number;
+  barWidth: number;
+}
+
+// The value axis of the weekly chart: from 0 up to a round maximum, and down to a round minimum when a net is negative.
+function weeklyScale(weeks: WeekRow[], top: number, plotHeight: number): { y: (count: number) => number; ticks: number[] } {
+  const above = niceMax(Math.max(...weeks.flatMap((w) => [w.newInstalls ?? 0, w.churned, w.net ?? 0]), 1));
+  const lowest = Math.min(...weeks.map((w) => w.net ?? 0), 0);
+  const below = lowest < 0 ? niceMax(-lowest) : 0;
+  const ticks = [-below, 0, above / 2, above].filter((tick, i, all) => Number.isInteger(tick) && all.indexOf(tick) === i);
+  return { y: (count) => top + plotHeight * (1 - (count + below) / (above + below)), ticks };
+}
+
+// A bar rises from the zero line for a positive count and hangs below it for a negative one.
+function weekBar(plot: WeekPlot, cls: string, x: number, count: number, text: string): string {
+  const top = plot.y(Math.max(count, 0));
+  const height = Math.abs(plot.y(count) - plot.y(0));
+  return `<rect class="${cls}" x="${x.toFixed(1)}" y="${top.toFixed(1)}" width="${plot.barWidth.toFixed(1)}" height="${height.toFixed(1)}" rx="2"><title>${escapeHtml(text)}</title></rect>`;
+}
+
+// New, churned (estimate) and net bars side by side around `mid`; a week without a new or net number draws no mark for it.
+function weekGroup(plot: WeekPlot, week: WeekRow, mid: number, labelY: number): string {
+  const label = shortDay(week.week);
+  const w = plot.barWidth;
+  const added = week.newInstalls === null ? "" : weekBar(plot, "bar-new", mid - 1.5 * w - 1, week.newInstalls, `${label}: ${week.newInstalls} new`);
+  const gone = weekBar(plot, "bar-churned", mid - 0.5 * w, week.churned, `${label}: ${week.churned} churned (estimate)`);
+  const net = week.net === null ? "" : weekBar(plot, "bar-net", mid + 0.5 * w + 1, week.net, `${label}: ${signed(week.net)} net`);
+  const soFar = week.soFar ? `<text class="tick" x="${mid}" y="${labelY + 14}" text-anchor="middle">so far</text>` : "";
+  return `${added}${gone}${net}<text class="tick" x="${mid}" y="${labelY}" text-anchor="middle">${label}</text>${soFar}`;
+}
+
+// Grouped bars per UTC week. Inline SVG, so no script is needed.
 function weeklyChart(weeks: WeekRow[]): string {
   const width = 720;
   const height = 240;
@@ -249,37 +281,25 @@ function weeklyChart(weeks: WeekRow[]): string {
   const right = 16;
   const top = 12;
   const bottom = 40;
-  const max = niceMax(Math.max(...weeks.flatMap((w) => [w.newInstalls ?? 0, w.churned]), 1));
+  const { y, ticks } = weeklyScale(weeks, top, height - top - bottom);
   const slot = (width - left - right) / weeks.length;
-  const barWidth = Math.min(slot * 0.36, 26);
-  const y = (count: number) => top + (height - top - bottom) * (1 - count / max);
-  const bar = (cls: string, x: number, count: number, text: string) =>
-    `<rect class="${cls}" x="${x.toFixed(1)}" y="${y(count).toFixed(1)}" width="${barWidth.toFixed(1)}" height="${(y(0) - y(count)).toFixed(1)}" rx="2"><title>${escapeHtml(text)}</title></rect>`;
+  const plot = { y, barWidth: Math.min(slot * 0.26, 20) };
 
-  const grid = [0, max / 2, max]
-    .filter((tick, i, all) => Number.isInteger(tick) && all.indexOf(tick) === i)
+  const grid = ticks
     .map(
       (tick) =>
-        `<line class="grid" x1="${left}" x2="${width - right}" y1="${y(tick)}" y2="${y(tick)}"/>` +
+        `<line class="grid${tick === 0 ? " zero" : ""}" x1="${left}" x2="${width - right}" y1="${y(tick)}" y2="${y(tick)}"/>` +
         `<text class="tick" x="${left - 8}" y="${y(tick) + 4}" text-anchor="end">${tick}</text>`,
     )
     .join("");
-  const groups = weeks
-    .map((week, i) => {
-      const mid = left + slot * (i + 0.5);
-      const label = shortDay(week.week);
-      const added = week.newInstalls === null ? "" : bar("bar-new", mid - barWidth - 1, week.newInstalls, `${label}: ${week.newInstalls} new`);
-      const gone = bar("bar-churned", mid + 1, week.churned, `${label}: ${week.churned} churned (estimate)`);
-      const soFar = week.soFar ? `<text class="tick" x="${mid}" y="${height - 6}" text-anchor="middle">so far</text>` : "";
-      return `${added}${gone}<text class="tick" x="${mid}" y="${height - 20}" text-anchor="middle">${label}</text>${soFar}`;
-    })
-    .join("");
-  return `<svg viewBox="0 0 ${width} ${height}" role="img" aria-label="New and churned installs per week">${grid}${groups}</svg>`;
+  const groups = weeks.map((week, i) => weekGroup(plot, week, left + slot * (i + 0.5), height - 20)).join("");
+  return `<svg viewBox="0 0 ${width} ${height}" role="img" aria-label="New, churned and net installs per week">${grid}${groups}</svg>`;
 }
 
 const LEGEND =
   `<p class="legend"><span><span class="sw sw-new"></span>New</span>` +
-  `<span><span class="sw sw-churned"></span>Churned (estimate)</span></p>`;
+  `<span><span class="sw sw-churned"></span>Churned (estimate)</span>` +
+  `<span><span class="sw sw-net"></span>Net growth</span></p>`;
 
 function renderGrowth(weeks: WeekRow[]): string {
   const why =
@@ -289,7 +309,7 @@ function renderGrowth(weeks: WeekRow[]): string {
   const body = weeks.length === 0 ? `<p class="empty">No data.</p>` : LEGEND + weeklyChart(weeks);
   return section(
     "growth",
-    "New and churned installs per week",
+    "New, churned and net installs per week",
     why,
     `${body}<div class="scroll">${table(["week of", "new", "churned (estimate)", "net"], rows)}</div>${start}`,
   );
@@ -302,7 +322,7 @@ function cohortCell(cell: RetentionCell | null, size: number): string {
 
 function renderCohorts(cohorts: CohortRow[]): string {
   const why =
-    "For each week of first-seen installs, the share still pinging 1, 7 and 30 days later (a usage ping on that day or after). A cell stays blank until every install in the cohort has had that many finished days. The first week of the data is left out.";
+    "For each week of first-seen installs, the share still sending the usage ping 1, 7 and 30 days later (a usage ping on that day or after). A cell stays blank until every install in the cohort has had that many finished days. The first week of the data is left out.";
   const rows = cohorts.map((c) => [weekLabel({ week: c.week, soFar: false }), String(c.size), ...c.cells.map((cell) => cohortCell(cell, c.size))]);
   const headers = ["cohort, week of", "installs", ...RETENTION_DAYS.map((days) => `after ${days} day${days === 1 ? "" : "s"}`)];
   return section("cohorts", "Retention of weekly cohorts", why, `<div class="scroll">${table(headers, rows)}</div>`);
@@ -390,7 +410,7 @@ const STYLES = `:root {
   --surface: #fcfcfb; --card: #ffffff; --border: #e6e5e1;
   --text: #0b0b0b; --text-2: #52514e; --muted: #7a7974;
   --grid: #ecebe7; --series: #2a78d6; --track: #f0efec;
-  --new: #2a78d6; --churned: #d4731f;
+  --new: #2a78d6; --churned: #d4731f; --net: #2a9d8f;
 }
 @media (prefers-color-scheme: dark) {
   :root {
@@ -398,7 +418,7 @@ const STYLES = `:root {
     --surface: #1a1a19; --card: #222220; --border: #363633;
     --text: #f0efec; --text-2: #c3c2b7; --muted: #94938b;
     --grid: #2f2f2c; --series: #3987e5; --track: #2c2c29;
-    --new: #3987e5; --churned: #e8934a;
+    --new: #3987e5; --churned: #e8934a; --net: #4cc3b4;
   }
 }
 * { box-sizing: border-box; }
@@ -444,8 +464,11 @@ main > section.card { margin-top: 12px; }
 .sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; }
 .sw-new { background: var(--new); }
 .sw-churned { background: var(--churned); }
+.sw-net { background: var(--net); }
 .bar-new { fill: var(--new); }
 .bar-churned { fill: var(--churned); }
+.bar-net { fill: var(--net); }
+.zero { stroke: var(--muted); }
 .scroll { overflow-x: auto; }
 ul.limits { margin: 0; padding-left: 18px; color: var(--text-2); }
 ul.limits li { margin: 4px 0; }
