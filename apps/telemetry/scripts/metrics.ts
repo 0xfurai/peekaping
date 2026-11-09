@@ -7,6 +7,7 @@ const DAY_MS = 86_400_000;
 interface Install {
   first: number;
   last: number;
+  inDay: boolean;
   inWeek: boolean;
   inMonth: boolean;
   monitors: string;
@@ -34,7 +35,7 @@ export interface WeekRow {
   net: number | null;
 }
 
-// Installs of a cohort still pinging N days after they were first seen; share is null for an empty cohort.
+// Installs of a cohort still sending the usage ping N days after they were first seen; share is null for an empty cohort.
 export interface RetentionCell {
   retained: number;
   share: number | null;
@@ -59,6 +60,9 @@ export interface Adoption {
 }
 
 export interface Metrics {
+  // The last finished UTC day, as "YYYY-MM-DD"
+  lastFinished: string;
+  daily: ActiveCount;
   weekly: ActiveCount;
   monthly: ActiveCount;
   // Daily active ÷ monthly active, as a fraction; undefined when either is missing or monthly is 0
@@ -91,6 +95,7 @@ function parseInstall(row: Record<string, unknown>): Install {
   return {
     first: toDayNumber(String(row.first_day)),
     last: toDayNumber(String(row.last_day)),
+    inDay: Number(row.in_day) === 1,
     inWeek: Number(row.in_week) === 1,
     inMonth: Number(row.in_month) === 1,
     monitors: String(row.monitors),
@@ -113,9 +118,8 @@ function activeCount(count: number, windowDays: number, today: number, dataStart
   return { count, coveredDays: today - dataStart };
 }
 
-function stickiness(daily: number | undefined, monthly: number): number | undefined {
-  if (daily === undefined || monthly === 0) return undefined;
-  return daily / monthly;
+function stickiness(daily: number, monthly: number): number | undefined {
+  return monthly === 0 ? undefined : daily / monthly;
 }
 
 function countBy(installs: Install[], key: (install: Install) => number): Map<number, number> {
@@ -125,7 +129,7 @@ function countBy(installs: Install[], key: (install: Install) => number): Map<nu
 }
 
 // New installs by the week first seen, churned installs by the week of their 7th silent day. An install that comes
-// back after that is not churned: churn reads its latest ping.
+// back after that is not churned: churn reads its latest usage ping.
 function weekRows(installs: Install[], dataStart: number | undefined, today: number): WeekRow[] {
   if (dataStart === undefined) return [];
   const first = weekStart(dataStart);
@@ -178,17 +182,19 @@ function adoption(weekly: Install[]): Adoption {
   };
 }
 
-// dailyActive is the page's focus-day count (the latest finished day with pings); undefined when there is none.
-export function computeMetrics(rows: Record<string, unknown>[], generatedAt: Date, dailyActive: number | undefined): Metrics {
+export function computeMetrics(rows: Record<string, unknown>[], generatedAt: Date): Metrics {
   const today = toDayNumber(generatedAt.toISOString());
   const installs = rows.map(parseInstall);
   const dataStart = earliestFirst(installs);
+  const daily = installs.filter((install) => install.inDay).length;
   const weekly = installs.filter((install) => install.inWeek);
   const monthly = installs.filter((install) => install.inMonth).length;
   return {
+    lastFinished: toDay(today - 1),
+    daily: activeCount(daily, 1, today, dataStart),
     weekly: activeCount(weekly.length, 7, today, dataStart),
     monthly: activeCount(monthly, 30, today, dataStart),
-    stickiness: stickiness(dailyActive, monthly),
+    stickiness: stickiness(daily, monthly),
     weeks: weekRows(installs, dataStart, today),
     cohorts: cohortRows(installs, dataStart, today),
     adoption: adoption(weekly),

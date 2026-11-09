@@ -59,15 +59,15 @@ export function buildQueries(days: number): ReportQuery[] {
 
 // One row per install seen in the retained days, for the dashboard's install metrics. It groups by index1 (the
 // instance ID) without selecting it, so IDs never leave Cloudflare. It always covers MAX_DAYS, whatever --days is:
-// first seen, retention and churn need the whole history. The week and month flags cover the 7 and 30 finished
-// UTC days (today is left out); monitors and the feature flags come from the install's latest ping.
+// first seen, retention and churn need the whole history. The day, week and month flags cover the last 1, 7 and 30
+// finished UTC days (today is left out); monitors and the feature flags come from the install's latest ping.
 // Not part of buildQueries: `bun run report` doesn't use it.
 export function installSummaryQuery(): string {
   const finished = (days: number) =>
     `max(if(timestamp >= toStartOfDay(NOW()) - INTERVAL '${days}' DAY AND timestamp < toStartOfDay(NOW()), 1, 0))`;
   return (
     `SELECT toStartOfDay(min(timestamp)) AS first_day, toStartOfDay(max(timestamp)) AS last_day, ` +
-    `${finished(7)} AS in_week, ${finished(30)} AS in_month, ` +
+    `${finished(1)} AS in_day, ${finished(7)} AS in_week, ${finished(30)} AS in_month, ` +
     `argMax(blob6, timestamp) AS monitors, argMax(blob7, timestamp) AS status_pages, ` +
     `argMax(blob8, timestamp) AS maintenance, argMax(blob9, timestamp) AS metrics ` +
     `FROM ${DATASET} WHERE blob1 = 'ping' AND timestamp >= toStartOfDay(NOW() - INTERVAL '${MAX_DAYS - 1}' DAY) ` +

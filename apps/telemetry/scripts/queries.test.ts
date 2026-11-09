@@ -64,6 +64,7 @@ describe("installSummaryQuery", () => {
   test("summarises each install over the 92 retained days", () => {
     expect(compact(installSummaryQuery())).toBe(
       `SELECT toStartOfDay(min(timestamp)) AS first_day, toStartOfDay(max(timestamp)) AS last_day, ` +
+        `max(if(timestamp >= toStartOfDay(NOW()) - INTERVAL '1' DAY AND timestamp < toStartOfDay(NOW()), 1, 0)) AS in_day, ` +
         `max(if(timestamp >= toStartOfDay(NOW()) - INTERVAL '7' DAY AND timestamp < toStartOfDay(NOW()), 1, 0)) AS in_week, ` +
         `max(if(timestamp >= toStartOfDay(NOW()) - INTERVAL '30' DAY AND timestamp < toStartOfDay(NOW()), 1, 0)) AS in_month, ` +
         `argMax(blob6, timestamp) AS monitors, argMax(blob7, timestamp) AS status_pages, ` +

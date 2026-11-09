@@ -9,6 +9,7 @@ function install(first: string, last: string, extra: Record<string, unknown> = {
   return {
     first_day: `${first} 00:00:00`,
     last_day: `${last} 00:00:00`,
+    in_day: 0,
     in_week: 0,
     in_month: 0,
     monitors: "1-10",
@@ -20,13 +21,14 @@ function install(first: string, last: string, extra: Record<string, unknown> = {
 }
 const ACTIVE = { in_week: 1, in_month: 1 };
 
-// Six installs, all active in the week; the data starts on Oct 20
+// Six installs, all active in the week, five of them on the last finished day (Oct 26); the data starts on Oct 20
+const DAY = { ...ACTIVE, in_day: 1 };
 const INSTALLS = [
-  install("2026-10-20", "2026-10-26", { ...ACTIVE, status_pages: "true" }),
-  install("2026-10-20", "2026-10-26", { ...ACTIVE, monitors: "0" }),
-  install("2026-10-20", "2026-10-26", { ...ACTIVE, monitors: "11-50", status_pages: "true", maintenance: "true" }),
-  install("2026-10-21", "2026-10-26", { ...ACTIVE, metrics: "true" }),
-  install("2026-10-22", "2026-10-26", { ...ACTIVE, monitors: "51-200", status_pages: "true" }),
+  install("2026-10-20", "2026-10-26", { ...DAY, status_pages: "true" }),
+  install("2026-10-20", "2026-10-26", { ...DAY, monitors: "0" }),
+  install("2026-10-20", "2026-10-26", { ...DAY, monitors: "11-50", status_pages: "true", maintenance: "true" }),
+  install("2026-10-21", "2026-10-26", { ...DAY, metrics: "true" }),
+  install("2026-10-22", "2026-10-26", { ...DAY, monitors: "51-200", status_pages: "true" }),
   install("2026-10-20", "2026-10-20", ACTIVE),
 ];
 const ENV = { CLOUDFLARE_ACCOUNT_ID: "acct123", CLOUDFLARE_ANALYTICS_TOKEN: "tok456" };
@@ -185,6 +187,26 @@ describe("renderDashboard install metrics", () => {
     expect(week).not.toContain("last 7 finished days");
     const day = renderDashboard({ ...data, installs: [install("2026-10-26", "2026-10-26", ACTIVE)] });
     expect(day).toContain("data covers only 1 finished day<");
+  });
+
+  test("daily active is the last finished day: 0 when it had no installs, whatever older days had", () => {
+    // The overall rows say Oct 25 had 4, but the installs flagged for Oct 26 are none
+    const quiet = renderDashboard({ ...data, installs: [install("2026-10-20", "2026-10-25", ACTIVE)] });
+    expect(quiet).toContain('<div class="tile-value">0</div><div class="tile-note">on Oct 26</div>');
+  });
+
+  test("the daily active count does not depend on --days", () => {
+    const one = renderDashboard({ ...data, days: 1 });
+    expect(one).toContain('<div class="tile-value">5</div><div class="tile-note">on Oct 26</div>');
+    const wide = renderDashboard({ ...data, days: 30 });
+    expect(wide).toContain('<div class="tile-value">5</div><div class="tile-note">on Oct 26</div>');
+  });
+
+  test("says no finished day yet, not a coverage of 0 days, when the data starts today", () => {
+    const fresh = renderDashboard({ ...data, installs: [install("2026-10-27", "2026-10-27")] });
+    expect(fresh.match(/<div class="tile-note">no finished day yet<\/div>/g)).toHaveLength(3);
+    expect(fresh).not.toContain("covers only 0");
+    expect(fresh).toContain('<div class="tile-value">–</div><div class="tile-note">daily ÷ monthly active</div>');
   });
 
   test("gives every tile a one-line explanation", () => {

@@ -184,17 +184,17 @@ function buildView(data: DashboardData): View {
   return { today, counts, series, finished: series.length > 1 ? series.slice(0, -1) : series, focusDay, focusTotal };
 }
 
-// The note under a weekly or monthly tile: the window, or how little of it the data covers.
+// The note under an active-installs tile: the window, or how little of it the data covers.
 function windowNote(active: ActiveCount, days: number): string {
   if (active.coveredDays === undefined) return `last ${days} finished days`;
+  if (active.coveredDays === 0) return "no finished day yet";
   return `data covers only ${active.coveredDays} finished day${active.coveredDays === 1 ? "" : "s"}`;
 }
 
-function dailyTile(view: View): string {
-  const why = "Installs with a usage ping on the latest finished UTC day.";
-  if (view.focusDay === undefined) return tile("Daily active installs", "–", "no pings yet", why);
-  const note = `on ${shortDay(view.focusDay)}${view.focusDay === view.today ? ", still counting" : ""}`;
-  return tile("Daily active installs", String(view.focusTotal), note, why);
+// Always the last finished UTC day, whatever --days is and whatever the bars below show.
+function dailyTile(metrics: Metrics): string {
+  const note = metrics.daily.coveredDays === 0 ? windowNote(metrics.daily, 1) : `on ${shortDay(metrics.lastFinished)}`;
+  return tile("Daily active installs", String(metrics.daily.count), note, "Installs with a usage ping on the last finished UTC day.");
 }
 
 function stickinessTile(metrics: Metrics): string {
@@ -214,7 +214,7 @@ function renderTiles(data: DashboardData, view: View, metrics: Metrics): string 
       "Installs with a usage ping in the last 7 finished UTC days.",
       true,
     ),
-    dailyTile(view),
+    dailyTile(metrics),
     tile(
       "Monthly active installs",
       String(metrics.monthly.count),
@@ -222,7 +222,7 @@ function renderTiles(data: DashboardData, view: View, metrics: Metrics): string 
       "Installs with a usage ping in the last 30 finished UTC days.",
     ),
     stickinessTile(metrics),
-    tile("Today so far", String(view.counts.get(view.today) ?? 0), "UTC, still counting", "Installs that have pinged since 00:00 UTC; the count is still rising."),
+    tile("Today so far", String(view.counts.get(view.today) ?? 0), "UTC, still counting", "Installs that have sent the usage ping since 00:00 UTC; the count is still rising."),
     tile(`Peak, last ${data.days} days`, String(peak.instances), peakNote, "The most installs with a usage ping on one finished day of this range."),
   ].join("");
 }
@@ -489,7 +489,7 @@ function chartScript(finished: DayCount[]): string {
 
 export function renderDashboard(data: DashboardData): string {
   const view = buildView(data);
-  const metrics = computeMetrics(data.installs, data.generatedAt, view.focusDay === undefined ? undefined : view.focusTotal);
+  const metrics = computeMetrics(data.installs, data.generatedAt);
   const generated = data.generatedAt.toISOString().slice(0, 16).replace("T", " ");
 
   return `<!doctype html>
