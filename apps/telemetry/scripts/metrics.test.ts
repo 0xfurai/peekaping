@@ -140,3 +140,71 @@ describe("weekly growth", () => {
     expect(computeMetrics([], NOW, undefined).weeks).toEqual([]);
   });
 });
+
+describe("cohorts", () => {
+  // Weeks: Sep 28 (the data starts there, via A), Oct 5, Oct 12, Oct 19, Oct 26. Last finished day: Mon Oct 26.
+  const rows = [
+    row("2026-09-30", "2026-10-26"), // A: the first week of the data is left out
+    // Cohort Oct 5: its Sunday is Oct 11, so day 1 and day 7 are measurable (Oct 12, Oct 18), day 30 is not
+    row("2026-10-05", "2026-10-05"), // pinged on day 0 only
+    row("2026-10-06", "2026-10-07"), // day 1 yes (last >= Oct 7), day 7 no
+    row("2026-10-11", "2026-10-18"), // day 1 yes, day 7 yes: last is exactly first + 7
+    row("2026-10-08", "2026-10-14"), // day 1 yes, day 7 no
+    // Cohort Oct 12: its Sunday is Oct 18
+    row("2026-10-12", "2026-10-26"), // yes, yes
+    row("2026-10-13", "2026-10-13"), // no, no
+    row("2026-10-18", "2026-10-19"), // day 1 yes, day 7 no
+    row("2026-10-14", "2026-10-14"), // no, no
+    // Cohort Oct 19: its Sunday is Oct 25, so day 1 is Oct 26: the last finished day, measurable
+    row("2026-10-25", "2026-10-26"),
+    row("2026-10-19", "2026-10-19"),
+    // Cohort Oct 26: nothing is measurable yet
+    row("2026-10-26", "2026-10-26"),
+  ];
+  const cohorts = computeMetrics(rows, NOW, undefined).cohorts;
+
+  test("lists every week but the first of the data, with its size", () => {
+    expect(cohorts.map((c) => [c.week, c.size])).toEqual([
+      ["2026-10-05", 4],
+      ["2026-10-12", 4],
+      ["2026-10-19", 2],
+      ["2026-10-26", 1],
+    ]);
+  });
+
+  test("shows the share still pinging after 1, 7 and 30 days, with the count", () => {
+    expect(cohorts[0]!.cells).toEqual([{ retained: 3, share: 0.75 }, { retained: 1, share: 0.25 }, null]);
+    expect(cohorts[1]!.cells).toEqual([{ retained: 2, share: 0.5 }, { retained: 1, share: 0.25 }, null]);
+  });
+
+  test("leaves a cell blank until every install in the cohort has had that many finished days", () => {
+    // Day 1 of the Oct 19 cohort is Oct 26, finished; day 7 is Nov 1. Nothing in the current week is ready.
+    expect(cohorts[2]!.cells).toEqual([{ retained: 1, share: 0.5 }, null, null]);
+    expect(cohorts[3]!.cells).toEqual([null, null, null]);
+  });
+
+  test("measures day 30 once the cohort's Sunday + 30 is a finished day, and not a day sooner", () => {
+    const old = [
+      row("2026-08-03", "2026-10-26"), // first week of the data: left out
+      row("2026-08-10", "2026-09-15"), // first + 30 is Sep 9: yes on all three
+      row("2026-08-16", "2026-09-14"), // a Sunday; first + 30 is Sep 15: no on day 30
+      row("2026-09-21", "2026-10-26"), // its Sunday is Sep 27, + 30 is Oct 27, today: day 30 not measurable
+    ];
+    const byWeek = new Map(computeMetrics(old, NOW, undefined).cohorts.map((c) => [c.week, c]));
+    expect(byWeek.get("2026-08-10")!.cells[2]).toEqual({ retained: 1, share: 0.5 });
+    expect(byWeek.get("2026-09-21")!.cells[1]).toEqual({ retained: 1, share: 1 });
+    expect(byWeek.get("2026-09-21")!.cells[2]).toBeNull();
+  });
+
+  test("an empty cohort has a size of 0 and no share", () => {
+    const old = [row("2026-08-03", "2026-10-26"), row("2026-08-10", "2026-08-12")];
+    const empty = computeMetrics(old, NOW, undefined).cohorts.find((c) => c.week === "2026-08-17")!;
+    expect(empty.size).toBe(0);
+    expect(empty.cells[0]).toEqual({ retained: 0, share: null });
+  });
+
+  test("has no cohorts when the data is one week or empty", () => {
+    expect(computeMetrics([row("2026-10-27", "2026-10-27")], NOW, undefined).cohorts).toEqual([]);
+    expect(computeMetrics([], NOW, undefined).cohorts).toEqual([]);
+  });
+});

@@ -34,13 +34,29 @@ export interface WeekRow {
   net: number | null;
 }
 
+// Installs of a cohort still pinging N days after they were first seen; share is null for an empty cohort.
+export interface RetentionCell {
+  retained: number;
+  share: number | null;
+}
+
+export interface CohortRow {
+  week: string;
+  size: number;
+  // One cell per RETENTION_DAYS entry; null until every install in the cohort has had that many finished days
+  cells: (RetentionCell | null)[];
+}
+
 export interface Metrics {
   weekly: ActiveCount;
   monthly: ActiveCount;
   // Daily active ÷ monthly active, as a fraction; undefined when either is missing or monthly is 0
   stickiness: number | undefined;
   weeks: WeekRow[];
+  cohorts: CohortRow[];
 }
+
+export const RETENTION_DAYS = [1, 7, 30];
 
 // An install is churned once it has been silent for this many finished days.
 const CHURN_DAYS = 7;
@@ -116,6 +132,29 @@ function weekRows(installs: Install[], dataStart: number | undefined, today: num
   });
 }
 
+function retentionCell(members: Install[], week: number, days: number, lastFinished: number): RetentionCell | null {
+  // The cohort's last install was first seen on the Sunday, so it has had `days` days once Sunday + days is finished
+  if (week + 6 + days > lastFinished) return null;
+  const retained = members.filter((install) => install.last >= install.first + days).length;
+  return { retained, share: members.length === 0 ? null : retained / members.length };
+}
+
+// One cohort per week of first-seen installs, except the first week of the data, whose installs were running before.
+function cohortRows(installs: Install[], dataStart: number | undefined, today: number): CohortRow[] {
+  if (dataStart === undefined) return [];
+  const first = weekStart(dataStart);
+  const rows: CohortRow[] = [];
+  for (let week = first + 7; week <= weekStart(today); week += 7) {
+    const members = installs.filter((install) => weekStart(install.first) === week);
+    rows.push({
+      week: toDay(week),
+      size: members.length,
+      cells: RETENTION_DAYS.map((days) => retentionCell(members, week, days, today - 1)),
+    });
+  }
+  return rows;
+}
+
 // dailyActive is the page's focus-day count (the latest finished day with pings); undefined when there is none.
 export function computeMetrics(rows: Record<string, unknown>[], generatedAt: Date, dailyActive: number | undefined): Metrics {
   const today = toDayNumber(generatedAt.toISOString());
@@ -128,5 +167,6 @@ export function computeMetrics(rows: Record<string, unknown>[], generatedAt: Dat
     monthly: activeCount(monthly, 30, today, dataStart),
     stickiness: stickiness(dailyActive, monthly),
     weeks: weekRows(installs, dataStart, today),
+    cohorts: cohortRows(installs, dataStart, today),
   };
 }
