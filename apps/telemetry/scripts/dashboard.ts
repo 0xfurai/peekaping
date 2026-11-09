@@ -4,7 +4,8 @@
 import { resolve } from "node:path";
 import { parseArgs } from "node:util";
 import { renderDashboard } from "./dashboard-html";
-import { buildQueries, fetchRows, parseDays } from "./queries";
+import { CONTINUOUS } from "./metrics";
+import { activeDaysQuery, buildQueries, fetchRows, installSummaryQuery, parseDays } from "./queries";
 import { requireEnv } from "./report";
 
 export const DEFAULT_OUT = "dashboard.html";
@@ -41,12 +42,17 @@ export async function run(options: DashboardOptions): Promise<string> {
   const token = requireEnv(options.env, "CLOUDFLARE_ANALYTICS_TOKEN");
 
   const [overall, ...byValue] = buildQueries(args.days);
-  const results = await Promise.all(
-    [overall!, ...byValue].map((query) => fetchRows(options.fetch, accountId, token, query.sql)),
-  );
+  // The install summary always covers the 92 retained days, whatever --days is. The active-days queries follow
+  // it, one per continuous window.
+  const sqls = [...[overall!, ...byValue].map((query) => query.sql), installSummaryQuery()];
+  sqls.push(...CONTINUOUS.map((window) => activeDaysQuery(window.days)));
+  const results = await Promise.all(sqls.map((sql) => fetchRows(options.fetch, accountId, token, sql)));
+  const summary = byValue.length + 1;
   const html = renderDashboard({
     days: args.days,
     generatedAt: options.now(),
+    installs: results[summary]!,
+    activeDays: results.slice(summary + 1),
     overall: results[0]!,
     breakdowns: byValue.map((query, i) => ({ title: query.title, label: query.label!, rows: results[i + 1]! })),
   });

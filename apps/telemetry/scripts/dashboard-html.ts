@@ -1,5 +1,6 @@
 // Renders the `bun run dashboard` page: one self-contained HTML file, no external script, font or stylesheet.
 // Pure: query rows in, HTML out, so it can be tested without the SQL API.
+import { computeMetrics, RETENTION_DAYS, type ActiveCount, type Adoption, type CohortRow, type ContinuousWindow, type Metrics, type RetentionCell, type WeekRow } from "./metrics";
 
 export interface Breakdown {
   title: string;
@@ -11,6 +12,10 @@ export interface DashboardData {
   days: number;
   // The moment the page was built. "Today" is its UTC day.
   generatedAt: Date;
+  // Rows of the active-days query for each CONTINUOUS window (7, 30, 90 days): days, installs
+  activeDays: Record<string, unknown>[][];
+  // Rows of the install summary query: one per install, never with its instance ID
+  installs: Record<string, unknown>[];
   // Rows of the overall query: day, instances
   overall: Record<string, unknown>[];
   // Rows of the by-value queries: day, value, instances
@@ -118,15 +123,16 @@ function lineChart(series: DayCount[]): string {
   );
 }
 
-function barChart(rows: { value: string; instances: number }[], total: number): string {
+// A bar is as long as its count relative to `full`, the largest row unless the caller says what a full bar is.
+function barChart(rows: { value: string; instances: number }[], total: number, full?: number): string {
   if (rows.length === 0) return `<p class="empty">No data for this day.</p>`;
-  const max = Math.max(...rows.map((row) => row.instances), 1);
+  const max = full ?? Math.max(...rows.map((row) => row.instances), 1);
   return (
     `<div class="bars">` +
     rows
       .map((row) => {
         const share = total > 0 ? Math.round((row.instances / total) * 100) : 0;
-        const width = Math.max((row.instances / max) * 100, 0.5);
+        const width = Math.min(Math.max((row.instances / max) * 100, 0.5), 100);
         const label = escapeHtml(row.value);
         return (
           `<div class="bar-row" title="${label}: ${row.instances} installs, ${share}%">` +
@@ -148,53 +154,273 @@ function table(headers: string[], rows: string[][]): string {
   return `<table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
 }
 
-function tile(label: string, value: string, note: string): string {
+function tile(label: string, value: string, note: string, why: string, headline = false): string {
   return (
-    `<div class="tile"><div class="tile-label">${escapeHtml(label)}</div>` +
-    `<div class="tile-value">${escapeHtml(value)}</div><div class="tile-note">${escapeHtml(note)}</div></div>`
+    `<div class="tile${headline ? " headline" : ""}"><div class="tile-label">${escapeHtml(label)}</div>` +
+    `<div class="tile-value">${escapeHtml(value)}</div><div class="tile-note">${escapeHtml(note)}</div>` +
+    `<div class="tile-why">${escapeHtml(why)}</div></div>`
   );
 }
 
-export function renderDashboard(data: DashboardData): string {
+function percent(share: number): number {
+  return Math.round(share * 100);
+}
+
+interface View {
+  today: string;
+  counts: Map<string, number>;
+  series: DayCount[];
+  // The finished days: today is still counting, so the chart stops at yesterday unless today is the whole range
+  finished: DayCount[];
+  focusDay: string | undefined;
+  focusTotal: number;
+}
+
+function buildView(data: DashboardData): View {
   const range = dayRange(data.days, data.generatedAt);
   const today = range.at(-1)!;
   const counts = new Map(data.overall.map((row) => [dayOf(row), countOf(row)]));
   const series = range.map((day) => ({ day, instances: counts.get(day) ?? 0 }));
-  // Today is still counting, so the chart stops at yesterday unless today is the whole range.
-  const finished = series.length > 1 ? series.slice(0, -1) : series;
   const focusDay = latestCompleteDay(data.overall, today);
   const focusTotal = focusDay === undefined ? 0 : (counts.get(focusDay) ?? 0);
-  const peak = finished.reduce((best, point) => (point.instances > best.instances ? point : best), finished[0]!);
+  return { today, counts, series, finished: series.length > 1 ? series.slice(0, -1) : series, focusDay, focusTotal };
+}
 
-  const tiles = [
-    tile(
-      "Active installs",
-      focusDay === undefined ? "–" : String(focusTotal),
-      focusDay === undefined ? "no pings yet" : `on ${shortDay(focusDay)}${focusDay === today ? ", still counting" : ""}`,
-    ),
-    tile("Today so far", String(counts.get(today) ?? 0), "UTC, still counting"),
-    tile(`Peak, last ${data.days} days`, String(peak.instances), peak.instances > 0 ? `on ${shortDay(peak.day)}` : "no pings yet"),
+// The note under an active-installs tile: the window, or how little of it the data covers.
+function windowNote(active: ActiveCount, days: number): string {
+  if (active.coveredDays === undefined) return `last ${days} finished days`;
+  if (active.coveredDays === 0) return "no finished day yet";
+  return `data covers only ${active.coveredDays} finished day${active.coveredDays === 1 ? "" : "s"}`;
+}
+
+// "Nov 2 to Nov 8": the `days` finished UTC days ending on lastFinished.
+function windowSpan(lastFinished: string, days: number): string {
+  const start = new Date(Date.parse(`${lastFinished}T00:00:00Z`) - (days - 1) * 86_400_000).toISOString().slice(0, 10);
+  return `${shortDay(start)} to ${shortDay(lastFinished)}`;
+}
+
+// Always the last finished UTC day, whatever --days is and whatever the bars below show.
+function dailyTile(metrics: Metrics): string {
+  const note = metrics.daily.coveredDays === 0 ? windowNote(metrics.daily, 1) : `on ${shortDay(metrics.lastFinished)}`;
+  const why = `Distinct installs that sent a usage ping on ${shortDay(metrics.lastFinished)} (UTC). This count reads a few percent low, because an install sometimes skips a day. See Limits.`;
+  return tile("Daily active installs", String(metrics.daily.count), note, why);
+}
+
+// A window the data does not cover yet shows a dash, never a 0: the count would only look low.
+function continuousTile(metrics: Metrics, window: ContinuousWindow): string {
+  const label = `Continuous installs, ${window.days} days`;
+  const why = `Distinct installs that sent a usage ping on ${window.min} or more of the ${window.days} days from ${windowSpan(metrics.lastFinished, window.days)} (UTC). These installs run every day. An install can skip some days, see Limits.`;
+  if (window.coveredDays === undefined) return tile(label, String(window.count), `${window.min} of the last ${window.days} days or more`, why);
+  const note = window.coveredDays === 0 ? "no finished day yet" : `needs ${window.days} finished days, data covers ${window.coveredDays}`;
+  return tile(label, "–", note, why);
+}
+
+function stickinessTile(metrics: Metrics): string {
+  const value = metrics.stickiness === undefined ? "–" : `${percent(metrics.stickiness)}%`;
+  const why =
+    "Daily active installs divided by monthly active installs. A high value means that most installs run every day. A low value means that many installs stopped after a short time.";
+  return tile("Stickiness", value, "daily ÷ monthly active", why);
+}
+
+function activeTiles(metrics: Metrics): string[] {
+  const weekly = `Distinct installs that sent one or more usage pings from ${windowSpan(metrics.lastFinished, 7)} (UTC). Each install counts one time. Use this count for the number of running installs.`;
+  const monthly = `Distinct installs that sent one or more usage pings from ${windowSpan(metrics.lastFinished, 30)} (UTC). This count includes installs that ran for a short time and then stopped.`;
+  return [
+    tile("Weekly active installs", String(metrics.weekly.count), windowNote(metrics.weekly, 7), weekly, true),
+    ...metrics.continuous.map((window) => continuousTile(metrics, window)),
+    dailyTile(metrics),
+    tile("Monthly active installs", String(metrics.monthly.count), windowNote(metrics.monthly, 30), monthly),
+    stickinessTile(metrics),
+  ];
+}
+
+function renderTiles(data: DashboardData, view: View, metrics: Metrics): string {
+  const peak = view.finished.reduce((best, point) => (point.instances > best.instances ? point : best), view.finished[0]!);
+  const peakNote = peak.instances > 0 ? `on ${shortDay(peak.day)}` : "no usage ping yet";
+  const today = "Distinct installs that sent a usage ping today, from 00:00 UTC. This count increases until midnight UTC. Do not compare it with a finished day.";
+  const peakWhy = `The highest daily active count on one finished day of the last ${data.days} days. The line chart below shows each day.`;
+  return [
+    ...activeTiles(metrics),
+    tile("Today so far", String(view.counts.get(view.today) ?? 0), "UTC, still counting", today),
+    tile(`Peak, last ${data.days} days`, String(peak.instances), peakNote, peakWhy),
   ].join("");
+}
 
-  const breakdowns = data.breakdowns
+// A section card with a heading and its one-line explanation.
+function section(id: string, heading: string, why: string, body: string): string {
+  return `<section class="card" id="${id}"><h2>${escapeHtml(heading)}</h2><p class="why">${escapeHtml(why)}</p>${body}</section>`;
+}
+
+function signed(value: number | null): string {
+  if (value === null) return "–";
+  return value > 0 ? `+${value}` : String(value);
+}
+
+function weekLabel(row: { week: string; soFar: boolean }): string {
+  return `${shortDay(row.week)}${row.soFar ? " (so far)" : ""}`;
+}
+
+interface WeekPlot {
+  y: (count: number) => number;
+  barWidth: number;
+}
+
+// The value axis of the weekly chart: from 0 up to a round maximum, and down to a round minimum when a net is negative.
+function weeklyScale(weeks: WeekRow[], top: number, plotHeight: number): { y: (count: number) => number; ticks: number[] } {
+  const above = niceMax(Math.max(...weeks.flatMap((w) => [w.newInstalls ?? 0, w.churned, w.net ?? 0]), 1));
+  const lowest = Math.min(...weeks.map((w) => w.net ?? 0), 0);
+  const below = lowest < 0 ? niceMax(-lowest) : 0;
+  const ticks = [-below, 0, above / 2, above].filter((tick, i, all) => Number.isInteger(tick) && all.indexOf(tick) === i);
+  return { y: (count) => top + plotHeight * (1 - (count + below) / (above + below)), ticks };
+}
+
+// A bar rises from the zero line for a positive count and hangs below it for a negative one.
+function weekBar(plot: WeekPlot, cls: string, x: number, count: number, text: string): string {
+  const top = plot.y(Math.max(count, 0));
+  const height = Math.abs(plot.y(count) - plot.y(0));
+  return `<rect class="${cls}" x="${x.toFixed(1)}" y="${top.toFixed(1)}" width="${plot.barWidth.toFixed(1)}" height="${height.toFixed(1)}" rx="2"><title>${escapeHtml(text)}</title></rect>`;
+}
+
+// New, churned (estimate) and net bars side by side around `mid`; a week without a new or net number draws no mark for it.
+function weekGroup(plot: WeekPlot, week: WeekRow, mid: number, labelY: number): string {
+  const label = shortDay(week.week);
+  const w = plot.barWidth;
+  const added = week.newInstalls === null ? "" : weekBar(plot, "bar-new", mid - 1.5 * w - 1, week.newInstalls, `${label}: ${week.newInstalls} new`);
+  const gone = weekBar(plot, "bar-churned", mid - 0.5 * w, week.churned, `${label}: ${week.churned} churned (estimate)`);
+  const net = week.net === null ? "" : weekBar(plot, "bar-net", mid + 0.5 * w + 1, week.net, `${label}: ${signed(week.net)} net`);
+  const soFar = week.soFar ? `<text class="tick" x="${mid}" y="${labelY + 14}" text-anchor="middle">so far</text>` : "";
+  return `${added}${gone}${net}<text class="tick" x="${mid}" y="${labelY}" text-anchor="middle">${label}</text>${soFar}`;
+}
+
+// Grouped bars per UTC week. Inline SVG, so no script is needed.
+function weeklyChart(weeks: WeekRow[]): string {
+  const width = 720;
+  const height = 240;
+  const left = 44;
+  const right = 16;
+  const top = 12;
+  const bottom = 40;
+  const { y, ticks } = weeklyScale(weeks, top, height - top - bottom);
+  const slot = (width - left - right) / weeks.length;
+  const plot = { y, barWidth: Math.min(slot * 0.26, 20) };
+
+  const grid = ticks
+    .map(
+      (tick) =>
+        `<line class="grid${tick === 0 ? " zero" : ""}" x1="${left}" x2="${width - right}" y1="${y(tick)}" y2="${y(tick)}"/>` +
+        `<text class="tick" x="${left - 8}" y="${y(tick) + 4}" text-anchor="end">${tick}</text>`,
+    )
+    .join("");
+  const groups = weeks.map((week, i) => weekGroup(plot, week, left + slot * (i + 0.5), height - 20)).join("");
+  return `<svg viewBox="0 0 ${width} ${height}" role="img" aria-label="New, churned and net installs per week">${grid}${groups}</svg>`;
+}
+
+const LEGEND =
+  `<p class="legend"><span><span class="sw sw-new"></span>New</span>` +
+  `<span><span class="sw sw-churned"></span>Churned (estimate)</span>` +
+  `<span><span class="sw sw-net"></span>Net growth</span></p>`;
+
+function renderGrowth(weeks: WeekRow[]): string {
+  const why =
+    "Each week starts on Monday (UTC). New: installs whose first usage ping in the stored data is in that week. Churned (estimate): installs that stopped sending the usage ping. The page counts them in the week of their 7th day with no usage ping. An install that opts out looks the same as a churned install. Net growth: new installs minus churned installs.";
+  const rows = weeks.map((w) => [weekLabel(w), w.newInstalls === null ? "–" : String(w.newInstalls), String(w.churned), signed(w.net)]);
+  const start = weeks.length > 0 ? `<p class="note">The week of ${shortDay(weeks[0]!.week)} has no new or net value. The data starts in that week, so installs that ran before then look new.</p>` : "";
+  const body = weeks.length === 0 ? `<p class="empty">No data.</p>` : LEGEND + weeklyChart(weeks);
+  return section(
+    "growth",
+    "New, churned and net installs per week",
+    why,
+    `${body}<div class="scroll">${table(["week of", "new", "churned (estimate)", "net"], rows)}</div>${start}`,
+  );
+}
+
+function cohortCell(cell: RetentionCell | null, size: number): string {
+  if (cell === null || cell.share === null) return "";
+  return `${percent(cell.share)}% (${cell.retained} of ${size})`;
+}
+
+function renderCohorts(cohorts: CohortRow[]): string {
+  const why =
+    "Each row is a cohort: the installs whose first usage ping is in that week. Each column shows the share of the cohort that sent a usage ping N or more days after its first one. For example, \"30% (3 of 10)\" after 7 days means that 3 of 10 installs sent a usage ping on day 7 or later. A cell stays empty until all installs in the cohort are N days old. The table does not show the first week of the data, because installs that ran before then look new.";
+  const rows = cohorts.map((c) => [weekLabel({ week: c.week, soFar: false }), String(c.size), ...c.cells.map((cell) => cohortCell(cell, c.size))]);
+  const headers = ["cohort, week of", "installs", ...RETENTION_DAYS.map((days) => `after ${days} day${days === 1 ? "" : "s"}`)];
+  return section("cohorts", "Retention of weekly cohorts", why, `<div class="scroll">${table(headers, rows)}</div>`);
+}
+
+function renderAdoption(adoption: Adoption): string {
+  const bars = (rows: { value: string; instances: number }[]) =>
+    adoption.base === 0 ? `<p class="empty">No weekly active installs yet.</p>` : barChart(rows, adoption.base, adoption.base);
+  const activation = section(
+    "activation",
+    "Activation",
+    "Of the weekly active installs, the number with one or more monitors in their latest usage ping. These installs use Peekaping to check something. The other installs run with no monitors.",
+    bars([{ value: "More than 0 monitors", instances: adoption.activated }]),
+  );
+  const features = section(
+    "adoption",
+    "Feature adoption",
+    "Of the weekly active installs, the number that use each feature in their latest usage ping. Status pages and maintenance windows count when the install has one or more. The metrics endpoint counts when METRICS_ENABLED is on.",
+    bars([
+      { value: "Status pages", instances: adoption.statusPages },
+      { value: "Maintenance windows", instances: adoption.maintenance },
+      { value: "Metrics endpoint", instances: adoption.metrics },
+    ]),
+  );
+  return `<div class="grid2">${activation}${features}</div>`;
+}
+
+// The weekly active installs by the number of days with a usage ping in the 7 finished days, 7 days first.
+function renderContinuity(metrics: Metrics): string {
+  const weekly = metrics.weekly.count;
+  // The first CONTINUOUS window is the 7 day one
+  const rows = metrics.continuous[0]!.byDays
+    .map((installs, i) => ({ value: `${i + 1} day${i === 0 ? "" : "s"}`, instances: installs }))
+    .reverse();
+  const body = weekly === 0 ? `<p class="empty">No weekly active installs yet.</p>` : barChart(rows, weekly, weekly);
+  return section(
+    "continuity",
+    "Days with a usage ping, last 7 days",
+    "Weekly active installs by the number of days with a usage ping in the last 7 finished days. Installs on 6 or 7 days run every day. Installs on 1 day ran for a short time, for example a test.",
+    body,
+  );
+}
+
+const LIMITS = [
+  "Installs that opt out, or run with TELEMETRY=off, send no usage ping. The page does not count them.",
+  "An install that opts out and opts in again gets a new instance ID. The page can then count it as churned and then as new.",
+  "Cluster replicas share one instance ID. The page counts them as one install.",
+  "Cloudflare keeps the data for 92 days. First usage pings and cohorts go no further back than 92 days.",
+  "The daily count reads a few percent low. An install sends a usage ping only when its last one is more than 24 hours old. The server checks this every hour. So the time of the usage ping moves later each day, and sometimes it skips a full UTC day. The weekly and monthly counts do not have this problem.",
+  "The page does not count an install as churned if it sends a usage ping again after 7 or more days with no usage ping. Churn uses the latest usage ping of each install.",
+];
+
+function renderLimits(): string {
+  const items = LIMITS.map((limit) => `<li>${escapeHtml(limit)}</li>`).join("");
+  return section("limits", "Limits", "What these numbers cannot show.", `<ul class="limits">${items}</ul>`);
+}
+
+function renderBreakdowns(data: DashboardData, view: View): string {
+  return data.breakdowns
     .map((breakdown) => {
       const rows = breakdown.rows
-        .filter((row) => dayOf(row) === focusDay)
+        .filter((row) => dayOf(row) === view.focusDay)
         .map((row) => ({ value: String(row.value), instances: countOf(row) }))
         .sort((a, b) => b.instances - a.instances || a.value.localeCompare(b.value));
       return (
         `<section class="card"><h2>${escapeHtml(breakdown.label[0]!.toUpperCase() + breakdown.label.slice(1))}</h2>` +
-        barChart(rows, focusTotal) +
+        barChart(rows, view.focusTotal) +
         `</section>`
       );
     })
     .join("");
+}
 
-  const tables =
+function renderTables(data: DashboardData, view: View): string {
+  return (
     `<h3>Active installs per day</h3>` +
     table(
       ["day", "instances"],
-      series.map((point) => [point.day, String(point.instances)]),
+      view.series.map((point) => [point.day, String(point.instances)]),
     ) +
     data.breakdowns
       .map(
@@ -205,26 +431,21 @@ export function renderDashboard(data: DashboardData): string {
             breakdown.rows.map((row) => [dayOf(row), String(row.value), String(countOf(row))]),
           ),
       )
-      .join("");
+      .join("")
+  );
+}
 
-  const generated = data.generatedAt.toISOString().slice(0, 16).replace("T", " ");
-  const focusNote =
-    focusDay === undefined
-      ? "No pings in this range yet."
-      : `Breakdowns show ${shortDay(focusDay)} (UTC). Shares are of that day's ${focusTotal} active installs; an install can use several monitor and channel types.`;
+function focusNote(view: View): string {
+  if (view.focusDay === undefined) return "No usage ping in this range yet.";
+  return `The breakdowns below show ${shortDay(view.focusDay)} (UTC). Each share is of the ${view.focusTotal} active installs of that day. One install can use more than one monitor type and channel type.`;
+}
 
-  return `<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Peekaping telemetry</title>
-<style>
-:root {
+const STYLES = `:root {
   color-scheme: light;
   --surface: #fcfcfb; --card: #ffffff; --border: #e6e5e1;
   --text: #0b0b0b; --text-2: #52514e; --muted: #7a7974;
   --grid: #ecebe7; --series: #2a78d6; --track: #f0efec;
+  --new: #2a78d6; --churned: #d4731f; --net: #2a9d8f;
 }
 @media (prefers-color-scheme: dark) {
   :root {
@@ -232,6 +453,7 @@ export function renderDashboard(data: DashboardData): string {
     --surface: #1a1a19; --card: #222220; --border: #363633;
     --text: #f0efec; --text-2: #c3c2b7; --muted: #94938b;
     --grid: #2f2f2c; --series: #3987e5; --track: #2c2c29;
+    --new: #3987e5; --churned: #e8934a; --net: #4cc3b4;
   }
 }
 * { box-sizing: border-box; }
@@ -268,22 +490,28 @@ summary { cursor: pointer; color: var(--text-2); }
 table { border-collapse: collapse; font-variant-numeric: tabular-nums; }
 th, td { text-align: left; padding: 3px 14px 3px 0; border-bottom: 1px solid var(--border); }
 th { color: var(--text-2); font-weight: 500; }
-</style>
-</head>
-<body>
-<main>
-<header>
-<h1>Peekaping telemetry</h1>
-<p>Distinct installs sending the usage ping, last ${data.days} days (UTC). Generated ${escapeHtml(generated)} UTC.</p>
-</header>
-<div class="tiles">${tiles}</div>
-<section class="card"><h2>Active installs per day</h2>${lineChart(finished)}<p class="note">Finished UTC days. Today is in the tile above.</p></section>
-<p class="note">${escapeHtml(focusNote)}</p>
-<div class="grid2">${breakdowns}</div>
-<details><summary>Data tables</summary>${tables}</details>
-</main>
-<script>
-for (const chart of document.querySelectorAll(".chart")) {
+main > section.card { margin-top: 12px; }
+.tile.headline { border-color: var(--series); }
+.tile.headline .tile-value { font-size: 40px; }
+.tile-why { color: var(--muted); font-size: 12px; margin-top: 6px; }
+.why { margin: 0 0 10px; color: var(--text-2); }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 0 0 8px; color: var(--text-2); font-size: 12px; }
+.sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; }
+.sw-new { background: var(--new); }
+.sw-churned { background: var(--churned); }
+.sw-net { background: var(--net); }
+.bar-new { fill: var(--new); }
+.bar-churned { fill: var(--churned); }
+.bar-net { fill: var(--net); }
+.zero { stroke: var(--muted); }
+.scroll { overflow-x: auto; }
+ul.limits { margin: 0; padding-left: 18px; color: var(--text-2); }
+ul.limits li { margin: 4px 0; }
+`;
+
+// Hover tooltips for the daily line chart
+function chartScript(finished: DayCount[]): string {
+  return `for (const chart of document.querySelectorAll(".chart")) {
   const points = JSON.parse(chart.dataset.points);
   const svg = chart.querySelector("svg");
   const hit = chart.querySelector(".hit");
@@ -314,7 +542,42 @@ for (const chart of document.querySelectorAll(".chart")) {
     tip.hidden = false;
   });
 }
-</script>
+`;
+}
+
+export function renderDashboard(data: DashboardData): string {
+  const view = buildView(data);
+  const metrics = computeMetrics(data.installs, data.generatedAt, data.activeDays);
+  const generated = data.generatedAt.toISOString().slice(0, 16).replace("T", " ");
+
+  return `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Peekaping telemetry</title>
+<style>
+${STYLES}</style>
+</head>
+<body>
+<main>
+<header>
+<h1>Peekaping telemetry</h1>
+<p>Distinct installs sending the usage ping, last ${data.days} days (UTC). Generated ${escapeHtml(generated)} UTC.</p>
+</header>
+<div class="tiles">${renderTiles(data, view, metrics)}</div>
+${renderGrowth(metrics.weeks)}
+${renderCohorts(metrics.cohorts)}
+${renderAdoption(metrics.adoption)}
+${renderContinuity(metrics)}
+<section class="card"><h2>Active installs per day</h2>${lineChart(view.finished)}<p class="note">Distinct installs that sent a usage ping on each finished UTC day. This is the daily active count over time. The tile above shows today.</p></section>
+<p class="note">${escapeHtml(focusNote(view))}</p>
+<div class="grid2">${renderBreakdowns(data, view)}</div>
+${renderLimits()}
+<details><summary>Data tables</summary>${renderTables(data, view)}</details>
+</main>
+<script>
+${chartScript(view.finished)}</script>
 </body>
 </html>
 `;
