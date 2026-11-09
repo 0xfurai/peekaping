@@ -1,6 +1,6 @@
 // Renders the `bun run dashboard` page: one self-contained HTML file, no external script, font or stylesheet.
 // Pure: query rows in, HTML out, so it can be tested without the SQL API.
-import { computeMetrics, RETENTION_DAYS, type ActiveCount, type Adoption, type CohortRow, type Metrics, type RetentionCell, type WeekRow } from "./metrics";
+import { computeMetrics, RETENTION_DAYS, type ActiveCount, type Adoption, type CohortRow, type ContinuousWindow, type Metrics, type RetentionCell, type WeekRow } from "./metrics";
 
 export interface Breakdown {
   title: string;
@@ -12,6 +12,8 @@ export interface DashboardData {
   days: number;
   // The moment the page was built. "Today" is its UTC day.
   generatedAt: Date;
+  // Rows of the active-days query for each CONTINUOUS window (7, 30, 90 days): days, installs
+  activeDays: Record<string, unknown>[][];
   // Rows of the install summary query: one per install, never with its instance ID
   installs: Record<string, unknown>[];
   // Rows of the overall query: day, instances
@@ -130,7 +132,7 @@ function barChart(rows: { value: string; instances: number }[], total: number, f
     rows
       .map((row) => {
         const share = total > 0 ? Math.round((row.instances / total) * 100) : 0;
-        const width = Math.max((row.instances / max) * 100, 0.5);
+        const width = Math.min(Math.max((row.instances / max) * 100, 0.5), 100);
         const label = escapeHtml(row.value);
         return (
           `<div class="bar-row" title="${label}: ${row.instances} installs, ${share}%">` +
@@ -204,6 +206,15 @@ function dailyTile(metrics: Metrics): string {
   return tile("Daily active installs", String(metrics.daily.count), note, why);
 }
 
+// A window the data does not cover yet shows a dash, never a 0: the count would only look low.
+function continuousTile(metrics: Metrics, window: ContinuousWindow): string {
+  const label = `Continuous installs, ${window.days} days`;
+  const why = `Distinct installs that sent a usage ping on ${window.min} or more of the ${window.days} days from ${windowSpan(metrics.lastFinished, window.days)} (UTC). These installs run every day. An install can skip some days, see Limits.`;
+  if (window.coveredDays === undefined) return tile(label, String(window.count), `${window.min} of the last ${window.days} days or more`, why);
+  const note = window.coveredDays === 0 ? "no finished day yet" : `needs ${window.days} finished days, data covers ${window.coveredDays}`;
+  return tile(label, "–", note, why);
+}
+
 function stickinessTile(metrics: Metrics): string {
   const value = metrics.stickiness === undefined ? "–" : `${percent(metrics.stickiness)}%`;
   const why =
@@ -216,6 +227,7 @@ function activeTiles(metrics: Metrics): string[] {
   const monthly = `Distinct installs that sent one or more usage pings from ${windowSpan(metrics.lastFinished, 30)} (UTC). This count includes installs that ran for a short time and then stopped.`;
   return [
     tile("Weekly active installs", String(metrics.weekly.count), windowNote(metrics.weekly, 7), weekly, true),
+    ...metrics.continuous.map((window) => continuousTile(metrics, window)),
     dailyTile(metrics),
     tile("Monthly active installs", String(metrics.monthly.count), windowNote(metrics.monthly, 30), monthly),
     stickinessTile(metrics),
@@ -355,6 +367,22 @@ function renderAdoption(adoption: Adoption): string {
     ]),
   );
   return `<div class="grid2">${activation}${features}</div>`;
+}
+
+// The weekly active installs by the number of days with a usage ping in the 7 finished days, 7 days first.
+function renderContinuity(metrics: Metrics): string {
+  const weekly = metrics.weekly.count;
+  // The first CONTINUOUS window is the 7 day one
+  const rows = metrics.continuous[0]!.byDays
+    .map((installs, i) => ({ value: `${i + 1} day${i === 0 ? "" : "s"}`, instances: installs }))
+    .reverse();
+  const body = weekly === 0 ? `<p class="empty">No weekly active installs yet.</p>` : barChart(rows, weekly, weekly);
+  return section(
+    "continuity",
+    "Days with a usage ping, last 7 days",
+    "Weekly active installs by the number of days with a usage ping in the last 7 finished days. Installs on 6 or 7 days run every day. Installs on 1 day ran for a short time, for example a test.",
+    body,
+  );
 }
 
 const LIMITS = [
@@ -519,7 +547,7 @@ function chartScript(finished: DayCount[]): string {
 
 export function renderDashboard(data: DashboardData): string {
   const view = buildView(data);
-  const metrics = computeMetrics(data.installs, data.generatedAt);
+  const metrics = computeMetrics(data.installs, data.generatedAt, data.activeDays);
   const generated = data.generatedAt.toISOString().slice(0, 16).replace("T", " ");
 
   return `<!doctype html>
@@ -541,6 +569,7 @@ ${STYLES}</style>
 ${renderGrowth(metrics.weeks)}
 ${renderCohorts(metrics.cohorts)}
 ${renderAdoption(metrics.adoption)}
+${renderContinuity(metrics)}
 <section class="card"><h2>Active installs per day</h2>${lineChart(view.finished)}<p class="note">Distinct installs that sent a usage ping on each finished UTC day. This is the daily active count over time. The tile above shows today.</p></section>
 <p class="note">${escapeHtml(focusNote(view))}</p>
 <div class="grid2">${renderBreakdowns(data, view)}</div>

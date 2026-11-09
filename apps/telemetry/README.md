@@ -65,4 +65,6 @@ It runs the same queries and writes `dashboard.html` (gitignored), one self-cont
 
 The install metrics come from one extra query, which always covers the 92 retained days whatever `--days` is. It returns one row per install (first and last ping day, active in the last 1, 7 and 30 finished days, monitors bucket and feature flags from its latest ping) and never returns instance IDs, so they stay in Cloudflare. `bun run report` doesn't run it.
 
+Continuous installs are installs that sent the usage ping on at least 6 of the last 7, 26 of the last 30 and 78 of the last 90 finished days (one missed day in 7 is allowed), and a histogram shows the weekly active installs by their number of days with a usage ping. Three more queries give these counts, one per window, as counts per number of days with no instance IDs.
+
 The deploy token is not the report token. Create the report token with only the read permission.

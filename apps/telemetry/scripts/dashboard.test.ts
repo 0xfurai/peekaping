@@ -21,6 +21,21 @@ function install(first: string, last: string, extra: Record<string, unknown> = {
 }
 const ACTIVE = { in_week: 1, in_month: 1 };
 
+// Rows of the active-days query for the 7, 30 and 90 day windows: installs by the number of days with a usage ping
+const ACTIVE_DAYS = [
+  [
+    { days: "1", installs: "1" },
+    { days: "3", installs: "1" },
+    { days: "6", installs: "2" },
+    { days: "7", installs: "2" },
+  ],
+  [
+    { days: "26", installs: "3" },
+    { days: "30", installs: "1" },
+  ],
+  [{ days: "78", installs: "2" }],
+];
+
 // Six installs, all active in the week, five of them on the last finished day (Oct 26); the data starts on Oct 20
 const DAY = { ...ACTIVE, in_day: 1 };
 const INSTALLS = [
@@ -76,6 +91,7 @@ describe("renderDashboard", () => {
     days: 3,
     generatedAt: NOW,
     installs: INSTALLS,
+    activeDays: ACTIVE_DAYS,
     overall: [
       { day: "2026-10-25 00:00:00", instances: "4" },
       { day: "2026-10-26 00:00:00", instances: "5" },
@@ -148,6 +164,7 @@ describe("renderDashboard install metrics", () => {
     days: 3,
     generatedAt: NOW,
     installs: INSTALLS,
+    activeDays: ACTIVE_DAYS,
     overall: [
       { day: "2026-10-25 00:00:00", instances: "4" },
       { day: "2026-10-26 00:00:00", instances: "5" },
@@ -164,6 +181,9 @@ describe("renderDashboard install metrics", () => {
     );
     const order = [
       "Weekly active installs",
+      "Continuous installs, 7 days",
+      "Continuous installs, 30 days",
+      "Continuous installs, 90 days",
       "Daily active installs",
       "Monthly active installs",
       "Stickiness",
@@ -184,7 +204,7 @@ describe("renderDashboard install metrics", () => {
   test("says so when the data covers fewer days than the window", () => {
     const week = renderDashboard({ ...data, installs: [install("2026-10-24", "2026-10-26", ACTIVE)] });
     expect(week).toContain("data covers only 3 finished days");
-    expect(week).not.toContain("last 7 finished days");
+    expect(week).not.toContain('<div class="tile-note">last 7 finished days</div>');
     const day = renderDashboard({ ...data, installs: [install("2026-10-26", "2026-10-26", ACTIVE)] });
     expect(day).toContain("data covers only 1 finished day<");
   });
@@ -204,14 +224,77 @@ describe("renderDashboard install metrics", () => {
 
   test("says no finished day yet, not a coverage of 0 days, when the data starts today", () => {
     const fresh = renderDashboard({ ...data, installs: [install("2026-10-27", "2026-10-27")] });
-    expect(fresh.match(/<div class="tile-note">no finished day yet<\/div>/g)).toHaveLength(3);
+    // Weekly, daily, monthly and the three continuous tiles
+    expect(fresh.match(/<div class="tile-note">no finished day yet<\/div>/g)).toHaveLength(6);
     expect(fresh).not.toContain("covers only 0");
     expect(fresh).toContain('<div class="tile-value">–</div><div class="tile-note">daily ÷ monthly active</div>');
   });
 
+  const tileOf = (page: string, label: string) =>
+    page.match(new RegExp(`<div class="tile-label">${label}</div><div class="tile-value">([^<]*)</div><div class="tile-note">([^<]*)</div>`))!.slice(1);
+
+  test("shows the continuous installs of the 7 day window, and a dash for windows the data does not cover", () => {
+    expect(tileOf(html, "Continuous installs, 7 days")).toEqual(["4", "6 of the last 7 days or more"]);
+    // The data starts on Oct 20: 7 finished days
+    expect(tileOf(html, "Continuous installs, 30 days")).toEqual(["–", "needs 30 finished days, data covers 7"]);
+    expect(tileOf(html, "Continuous installs, 90 days")).toEqual(["–", "needs 90 finished days, data covers 7"]);
+  });
+
+  test("shows the counts of all three windows once the data covers them", () => {
+    const old = renderDashboard({ ...data, installs: [install("2026-07-01", "2026-10-26", DAY)] });
+    expect(tileOf(old, "Continuous installs, 7 days")).toEqual(["4", "6 of the last 7 days or more"]);
+    expect(tileOf(old, "Continuous installs, 30 days")).toEqual(["4", "26 of the last 30 days or more"]);
+    expect(tileOf(old, "Continuous installs, 90 days")).toEqual(["2", "78 of the last 90 days or more"]);
+  });
+
+  test("never shows 0 for a window the data does not cover, even when the rows are empty", () => {
+    const page = renderDashboard({ ...data, activeDays: [[], [], []] });
+    expect(tileOf(page, "Continuous installs, 30 days")[0]).toBe("–");
+    expect(tileOf(page, "Continuous installs, 7 days")[0]).toBe("0");
+  });
+
+  test("a partial 7 day window says how many finished days the data covers", () => {
+    const page = renderDashboard({ ...data, installs: [install("2026-10-24", "2026-10-26", ACTIVE)] });
+    expect(tileOf(page, "Continuous installs, 7 days")).toEqual(["–", "needs 7 finished days, data covers 3"]);
+  });
+
+  test("explains each continuous tile with the threshold, the window and its dates", () => {
+    expect(html).toContain(
+      "Distinct installs that sent a usage ping on 26 or more of the 30 days from Sep 27 to Oct 26 (UTC). These installs run every day. An install can skip some days, see Limits.",
+    );
+    expect(html).toContain("on 6 or more of the 7 days from Oct 20 to Oct 26 (UTC)");
+    expect(html).toContain("on 78 or more of the 90 days from Jul 29 to Oct 26 (UTC)");
+  });
+
+  test("charts the weekly active installs by the days with a usage ping, from 7 days down to 1 day", () => {
+    expect(html).toContain(
+      '<section class="card" id="continuity"><h2>Days with a usage ping, last 7 days</h2><p class="why">Weekly active installs by the number of days with a usage ping in the last 7 finished days. Installs on 6 or 7 days run every day. Installs on 1 day ran for a short time, for example a test.</p>',
+    );
+    expect(html).toContain('title="7 days: 2 installs, 33%"');
+    expect(html).toContain('title="6 days: 2 installs, 33%"');
+    expect(html).toContain('title="2 days: 0 installs, 0%"');
+    expect(html).toContain('title="1 day: 1 installs, 17%"');
+    const at = ["7 days", "6 days", "5 days", "4 days", "3 days", "2 days", "1 day"].map((l) => html.indexOf(`title="${l}:`));
+    expect(at.every((i) => i > 0)).toBe(true);
+    expect(at).toEqual([...at].sort((a, b) => a - b));
+  });
+
+  test("never draws a bar longer than its track, even when the queries disagree by a few installs", () => {
+    // One weekly active install in the summary, but 2 installs on 7 days in the histogram
+    const page = renderDashboard({ ...data, installs: [install("2026-10-20", "2026-10-26", DAY)] });
+    const widths = [...page.matchAll(/style="width:([\d.]+)%"/g)].map((m) => Number(m[1]));
+    expect(widths.length).toBeGreaterThan(0);
+    expect(Math.max(...widths)).toBe(100);
+  });
+
+  test("says so when there are no weekly active installs for the histogram", () => {
+    const empty = renderDashboard({ ...data, installs: [], activeDays: [[], [], []] });
+    expect(empty.slice(empty.indexOf('id="continuity"'))).toContain("No weekly active installs yet.");
+  });
+
   test("gives every tile a one-line explanation", () => {
-    expect(html.match(/<div class="tile( headline)?">/g)).toHaveLength(6);
-    expect(html.match(/<div class="tile-why">/g)).toHaveLength(6);
+    expect(html.match(/<div class="tile( headline)?">/g)).toHaveLength(9);
+    expect(html.match(/<div class="tile-why">/g)).toHaveLength(9);
     expect(html).toContain("Distinct installs that sent one or more usage pings from Oct 20 to Oct 26 (UTC). Each install counts one time.");
     expect(html).toContain("Distinct installs that sent a usage ping on Oct 26 (UTC).");
     expect(html).toContain("Distinct installs that sent one or more usage pings from Sep 27 to Oct 26 (UTC).");
@@ -367,9 +450,9 @@ describe("run", () => {
     const fetchFn = (async (_url: string | URL | Request, init?: RequestInit) => {
       const sql = String(init?.body);
       bodies.push(sql);
-      const rows = sql.includes("GROUP BY index1")
-        ? [install("2026-10-20", "2026-10-26", ACTIVE), install("2026-10-22", "2026-10-26", ACTIVE)]
-        : [{ day: "2026-10-26 00:00:00", value: "http", instances: "3" }];
+      let rows: Record<string, unknown>[] = [{ day: "2026-10-26 00:00:00", value: "http", instances: "3" }];
+      if (sql.includes("AS first_day")) rows = [install("2026-10-20", "2026-10-26", ACTIVE), install("2026-10-22", "2026-10-26", ACTIVE)];
+      if (sql.startsWith("SELECT days")) rows = [{ days: "7", installs: "2" }];
       return new Response(JSON.stringify({ data: rows }));
     }) as typeof fetch;
     const options = {
@@ -384,10 +467,10 @@ describe("run", () => {
     return { options, bodies, written, opened };
   }
 
-  test("runs the seven queries, writes the page and opens it", async () => {
+  test("runs the ten queries, writes the page and opens it", async () => {
     const { options, bodies, written, opened } = setup();
     await run(options);
-    expect(bodies).toHaveLength(7);
+    expect(bodies).toHaveLength(10);
     expect(written).toHaveLength(1);
     expect(written[0]!.path).toBe("/tmp/out.html");
     expect(written[0]!.content).toContain("<title>Peekaping telemetry</title>");
@@ -397,14 +480,26 @@ describe("run", () => {
     expect(opened).toEqual(["/tmp/out.html"]);
   });
 
-  test("sends the install summary last, over the 92 retained days whatever --days is", async () => {
+  test("sends the install summary over the 92 retained days, whatever --days is", async () => {
     const { options, bodies } = setup();
     await run({ ...options, argv: [...options.argv, "--days", "7"] });
-    expect(bodies).toHaveLength(7);
+    expect(bodies).toHaveLength(10);
     expect(bodies[0]).toContain("INTERVAL '6' DAY");
-    expect(bodies[6]).toContain("GROUP BY index1");
+    expect(bodies[6]).toContain("AS first_day");
     expect(bodies[6]).toContain("INTERVAL '91' DAY");
-    expect(bodies.filter((sql) => sql.includes("GROUP BY index1"))).toHaveLength(1);
+  });
+
+  test("then sends the active-days query for the 7, 30 and 90 day windows", async () => {
+    const { options, bodies } = setup();
+    await run({ ...options, argv: [...options.argv, "--days", "7"] });
+    expect(bodies.slice(7).map((sql) => sql.match(/INTERVAL '(\d+)' DAY AND/)![1])).toEqual(["7", "30", "90"]);
+    expect(bodies.slice(7).every((sql) => sql.startsWith("SELECT days, count() AS installs"))).toBe(true);
+  });
+
+  test("shows the rows of the active-days queries on the page", async () => {
+    const { options, written } = setup();
+    await run(options);
+    expect(written[0]!.content).toContain('title="7 days: 2 installs, 100%"');
   });
 
   test("does not open with --no-open", async () => {
