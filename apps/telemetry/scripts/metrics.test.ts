@@ -208,3 +208,35 @@ describe("cohorts", () => {
     expect(computeMetrics([], NOW, undefined).cohorts).toEqual([]);
   });
 });
+
+describe("activation and feature adoption", () => {
+  const active = { in_week: 1, in_month: 1 };
+  const rows = [
+    row("2026-09-01", "2026-10-26", { ...active, monitors: "0" }),
+    row("2026-09-01", "2026-10-26", { ...active, monitors: "1-10", status_pages: "true" }),
+    row("2026-09-01", "2026-10-26", { ...active, monitors: "11-50", status_pages: "true", maintenance: "true" }),
+    row("2026-09-01", "2026-10-26", { ...active, monitors: "1000+", status_pages: "true", maintenance: "true", metrics: "true" }),
+    // Not active in the last 7 days: out of the base, whatever it has on
+    row("2026-09-01", "2026-10-10", { in_week: 0, in_month: 1, monitors: "51-200", status_pages: "true", maintenance: "true", metrics: "true" }),
+  ];
+
+  test("counts the weekly active installs with monitors and with each feature on, from their latest ping", () => {
+    expect(computeMetrics(rows, NOW, undefined).adoption).toEqual({
+      base: 4,
+      activated: 3,
+      statusPages: 3,
+      maintenance: 2,
+      metrics: 1,
+    });
+  });
+
+  test("is all zero without active installs", () => {
+    expect(computeMetrics([], NOW, undefined).adoption).toEqual({
+      base: 0,
+      activated: 0,
+      statusPages: 0,
+      maintenance: 0,
+      metrics: 0,
+    });
+  });
+});

@@ -47,6 +47,17 @@ export interface CohortRow {
   cells: (RetentionCell | null)[];
 }
 
+// Of the weekly active installs, by their latest usage ping
+export interface Adoption {
+  // The weekly active installs
+  base: number;
+  // More than 0 monitors
+  activated: number;
+  statusPages: number;
+  maintenance: number;
+  metrics: number;
+}
+
 export interface Metrics {
   weekly: ActiveCount;
   monthly: ActiveCount;
@@ -54,6 +65,7 @@ export interface Metrics {
   stickiness: number | undefined;
   weeks: WeekRow[];
   cohorts: CohortRow[];
+  adoption: Adoption;
 }
 
 export const RETENTION_DAYS = [1, 7, 30];
@@ -155,18 +167,30 @@ function cohortRows(installs: Install[], dataStart: number | undefined, today: n
   return rows;
 }
 
+function adoption(weekly: Install[]): Adoption {
+  const count = (test: (install: Install) => boolean) => weekly.filter(test).length;
+  return {
+    base: weekly.length,
+    activated: count((install) => install.monitors !== "0"),
+    statusPages: count((install) => install.statusPages === "true"),
+    maintenance: count((install) => install.maintenance === "true"),
+    metrics: count((install) => install.metrics === "true"),
+  };
+}
+
 // dailyActive is the page's focus-day count (the latest finished day with pings); undefined when there is none.
 export function computeMetrics(rows: Record<string, unknown>[], generatedAt: Date, dailyActive: number | undefined): Metrics {
   const today = toDayNumber(generatedAt.toISOString());
   const installs = rows.map(parseInstall);
   const dataStart = earliestFirst(installs);
-  const weekly = installs.filter((install) => install.inWeek).length;
+  const weekly = installs.filter((install) => install.inWeek);
   const monthly = installs.filter((install) => install.inMonth).length;
   return {
-    weekly: activeCount(weekly, 7, today, dataStart),
+    weekly: activeCount(weekly.length, 7, today, dataStart),
     monthly: activeCount(monthly, 30, today, dataStart),
     stickiness: stickiness(dailyActive, monthly),
     weeks: weekRows(installs, dataStart, today),
     cohorts: cohortRows(installs, dataStart, today),
+    adoption: adoption(weekly),
   };
 }
