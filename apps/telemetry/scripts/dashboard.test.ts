@@ -127,7 +127,7 @@ describe("renderDashboard", () => {
 
   test("renders an empty dataset", () => {
     const html = renderDashboard({ ...data, overall: [], breakdowns: [{ ...data.breakdowns[0]!, rows: [] }] });
-    expect(html).toContain("No pings in this range yet.");
+    expect(html).toContain("No usage ping in this range yet.");
     expect(html).toContain("No data for this day.");
   });
 
@@ -212,9 +212,9 @@ describe("renderDashboard install metrics", () => {
   test("gives every tile a one-line explanation", () => {
     expect(html.match(/<div class="tile( headline)?">/g)).toHaveLength(6);
     expect(html.match(/<div class="tile-why">/g)).toHaveLength(6);
-    expect(html).toContain("Distinct installs that sent at least one usage ping Oct 20 – Oct 26 (UTC), each counted once.");
+    expect(html).toContain("Distinct installs that sent one or more usage pings from Oct 20 to Oct 26 (UTC). Each install counts one time.");
     expect(html).toContain("Distinct installs that sent a usage ping on Oct 26 (UTC).");
-    expect(html).toContain("Distinct installs that sent at least one usage ping Sep 27 – Oct 26 (UTC)");
+    expect(html).toContain("Distinct installs that sent one or more usage pings from Sep 27 to Oct 26 (UTC).");
   });
 
   test("shows activation and feature adoption as bars of the weekly active installs", () => {
@@ -240,12 +240,12 @@ describe("renderDashboard install metrics", () => {
     const limits = html.slice(html.indexOf('id="limits"'));
     expect(limits).toContain("TELEMETRY=off");
     expect(limits).toContain("opt out");
-    expect(limits).toContain("instance ID changes");
-    expect(limits).toContain("one install can count as churned and then as new");
+    expect(limits).toContain("opts in again gets a new instance ID");
+    expect(limits).toContain("count it as churned and then as new");
     expect(limits).toContain("replicas share one instance ID");
-    expect(limits).toContain("kept for 92 days");
+    expect(limits).toContain("keeps the data for 92 days");
     expect(limits).toContain("daily count reads a few percent low");
-    expect(limits).toContain("comes back after 7 or more silent days is not counted as churned");
+    expect(limits).toContain("does not count an install as churned if it sends a usage ping again after 7 or more days");
   });
 
   // Data from Sep 30: weeks start Sep 28, Oct 5, Oct 12, Oct 19, Oct 26 (so far)

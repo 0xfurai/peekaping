@@ -191,29 +191,29 @@ function windowNote(active: ActiveCount, days: number): string {
   return `data covers only ${active.coveredDays} finished day${active.coveredDays === 1 ? "" : "s"}`;
 }
 
-// "Nov 2 – Nov 8": the `days` finished UTC days ending on lastFinished.
+// "Nov 2 to Nov 8": the `days` finished UTC days ending on lastFinished.
 function windowSpan(lastFinished: string, days: number): string {
   const start = new Date(Date.parse(`${lastFinished}T00:00:00Z`) - (days - 1) * 86_400_000).toISOString().slice(0, 10);
-  return `${shortDay(start)} – ${shortDay(lastFinished)}`;
+  return `${shortDay(start)} to ${shortDay(lastFinished)}`;
 }
 
 // Always the last finished UTC day, whatever --days is and whatever the bars below show.
 function dailyTile(metrics: Metrics): string {
   const note = metrics.daily.coveredDays === 0 ? windowNote(metrics.daily, 1) : `on ${shortDay(metrics.lastFinished)}`;
-  const why = `Distinct installs that sent a usage ping on ${shortDay(metrics.lastFinished)} (UTC). Reads a few percent low: an install skips a day now and then (see Limits).`;
+  const why = `Distinct installs that sent a usage ping on ${shortDay(metrics.lastFinished)} (UTC). This count reads a few percent low, because an install sometimes skips a day. See Limits.`;
   return tile("Daily active installs", String(metrics.daily.count), note, why);
 }
 
 function stickinessTile(metrics: Metrics): string {
   const value = metrics.stickiness === undefined ? "–" : `${percent(metrics.stickiness)}%`;
   const why =
-    "Of the monthly active installs, the share that was active on the last day. High means installs keep running; low means many were tried once and stopped.";
+    "Daily active installs divided by monthly active installs. A high value means that most installs run every day. A low value means that many installs stopped after a short time.";
   return tile("Stickiness", value, "daily ÷ monthly active", why);
 }
 
 function activeTiles(metrics: Metrics): string[] {
-  const weekly = `Distinct installs that sent at least one usage ping ${windowSpan(metrics.lastFinished, 7)} (UTC), each counted once. The best measure of how many installs are running.`;
-  const monthly = `Distinct installs that sent at least one usage ping ${windowSpan(metrics.lastFinished, 30)} (UTC), including ones tried once and stopped.`;
+  const weekly = `Distinct installs that sent one or more usage pings from ${windowSpan(metrics.lastFinished, 7)} (UTC). Each install counts one time. Use this count for the number of running installs.`;
+  const monthly = `Distinct installs that sent one or more usage pings from ${windowSpan(metrics.lastFinished, 30)} (UTC). This count includes installs that ran for a short time and then stopped.`;
   return [
     tile("Weekly active installs", String(metrics.weekly.count), windowNote(metrics.weekly, 7), weekly, true),
     dailyTile(metrics),
@@ -224,9 +224,9 @@ function activeTiles(metrics: Metrics): string[] {
 
 function renderTiles(data: DashboardData, view: View, metrics: Metrics): string {
   const peak = view.finished.reduce((best, point) => (point.instances > best.instances ? point : best), view.finished[0]!);
-  const peakNote = peak.instances > 0 ? `on ${shortDay(peak.day)}` : "no pings yet";
-  const today = "Distinct installs that sent a usage ping since 00:00 UTC today. It keeps rising until midnight UTC, so don't compare it with a full day.";
-  const peakWhy = `The highest daily active installs on one finished day of the last ${data.days} days (the line chart below).`;
+  const peakNote = peak.instances > 0 ? `on ${shortDay(peak.day)}` : "no usage ping yet";
+  const today = "Distinct installs that sent a usage ping today, from 00:00 UTC. This count increases until midnight UTC. Do not compare it with a finished day.";
+  const peakWhy = `The highest daily active count on one finished day of the last ${data.days} days. The line chart below shows each day.`;
   return [
     ...activeTiles(metrics),
     tile("Today so far", String(view.counts.get(view.today) ?? 0), "UTC, still counting", today),
@@ -310,9 +310,9 @@ const LEGEND =
 
 function renderGrowth(weeks: WeekRow[]): string {
   const why =
-    "Weeks run Monday to Sunday (UTC). New: installs whose first usage ping in the kept data fell in that week. Churned (estimate): installs that stopped sending the usage ping, counted in the week they reached 7 silent days; an opt-out looks the same. Net growth: new minus churned, how much the install base grew that week.";
+    "Each week starts on Monday (UTC). New: installs whose first usage ping in the stored data is in that week. Churned (estimate): installs that stopped sending the usage ping. The page counts them in the week of their 7th day with no usage ping. An install that opts out looks the same as a churned install. Net growth: new installs minus churned installs.";
   const rows = weeks.map((w) => [weekLabel(w), w.newInstalls === null ? "–" : String(w.newInstalls), String(w.churned), signed(w.net)]);
-  const start = weeks.length > 0 ? `<p class="note">New and net are blank for ${shortDay(weeks[0]!.week)}, the week the data starts in: installs already running then look new. Weeks start on Monday (UTC).</p>` : "";
+  const start = weeks.length > 0 ? `<p class="note">The week of ${shortDay(weeks[0]!.week)} has no new or net value. The data starts in that week, so installs that ran before then look new.</p>` : "";
   const body = weeks.length === 0 ? `<p class="empty">No data.</p>` : LEGEND + weeklyChart(weeks);
   return section(
     "growth",
@@ -329,7 +329,7 @@ function cohortCell(cell: RetentionCell | null, size: number): string {
 
 function renderCohorts(cohorts: CohortRow[]): string {
   const why =
-    "Each row is a cohort: the installs whose first usage ping fell in that week. \"After 7 days: 30% (3 of 10)\" means 3 of those 10 installs sent a usage ping 7 or more days after their first one, so they kept running at least that long. A cell stays blank until every install in the cohort is that many days old. The first week of the data is left out, since installs already running then look new.";
+    "Each row is a cohort: the installs whose first usage ping is in that week. Each column shows the share of the cohort that sent a usage ping N or more days after its first one. For example, \"30% (3 of 10)\" after 7 days means that 3 of 10 installs sent a usage ping on day 7 or later. A cell stays empty until all installs in the cohort are N days old. The table does not show the first week of the data, because installs that ran before then look new.";
   const rows = cohorts.map((c) => [weekLabel({ week: c.week, soFar: false }), String(c.size), ...c.cells.map((cell) => cohortCell(cell, c.size))]);
   const headers = ["cohort, week of", "installs", ...RETENTION_DAYS.map((days) => `after ${days} day${days === 1 ? "" : "s"}`)];
   return section("cohorts", "Retention of weekly cohorts", why, `<div class="scroll">${table(headers, rows)}</div>`);
@@ -341,13 +341,13 @@ function renderAdoption(adoption: Adoption): string {
   const activation = section(
     "activation",
     "Activation",
-    "Of the weekly active installs, how many have at least one monitor, by their latest usage ping: installs that went past setup and use Peekaping. The rest run it with nothing to check.",
+    "Of the weekly active installs, the number with one or more monitors in their latest usage ping. These installs use Peekaping to check something. The other installs run with no monitors.",
     bars([{ value: "More than 0 monitors", instances: adoption.activated }]),
   );
   const features = section(
     "adoption",
     "Feature adoption",
-    "Of the weekly active installs, how many use each feature, by their latest usage ping: at least one status page, at least one maintenance window, or the metrics endpoint turned on (METRICS_ENABLED).",
+    "Of the weekly active installs, the number that use each feature in their latest usage ping. Status pages and maintenance windows count when the install has one or more. The metrics endpoint counts when METRICS_ENABLED is on.",
     bars([
       { value: "Status pages", instances: adoption.statusPages },
       { value: "Maintenance windows", instances: adoption.maintenance },
@@ -358,17 +358,17 @@ function renderAdoption(adoption: Adoption): string {
 }
 
 const LIMITS = [
-  "Installs that opt out, or run with TELEMETRY=off, send no usage ping and are not counted.",
-  "An instance ID changes when an install opts out and opts in again, so one install can count as churned and then as new.",
-  "Cluster replicas share one instance ID and count once.",
-  "Data is kept for 92 days, so first seen and the cohorts reach back only that far.",
-  "The daily count reads a few percent low: a usage ping is due only once the last one is more than 24 hours old and the check runs hourly, so its time slides later each day and now and then skips a UTC day. Weekly and monthly counts are not affected.",
-  "An install that comes back after 7 or more silent days is not counted as churned: churn reads its latest usage ping.",
+  "Installs that opt out, or run with TELEMETRY=off, send no usage ping. The page does not count them.",
+  "An install that opts out and opts in again gets a new instance ID. The page can then count it as churned and then as new.",
+  "Cluster replicas share one instance ID. The page counts them as one install.",
+  "Cloudflare keeps the data for 92 days. First usage pings and cohorts go no further back than 92 days.",
+  "The daily count reads a few percent low. An install sends a usage ping only when its last one is more than 24 hours old. The server checks this every hour. So the time of the usage ping moves later each day, and sometimes it skips a full UTC day. The weekly and monthly counts do not have this problem.",
+  "The page does not count an install as churned if it sends a usage ping again after 7 or more days with no usage ping. Churn uses the latest usage ping of each install.",
 ];
 
 function renderLimits(): string {
   const items = LIMITS.map((limit) => `<li>${escapeHtml(limit)}</li>`).join("");
-  return section("limits", "Limits", "What these numbers can and can't tell you.", `<ul class="limits">${items}</ul>`);
+  return section("limits", "Limits", "What these numbers cannot show.", `<ul class="limits">${items}</ul>`);
 }
 
 function renderBreakdowns(data: DashboardData, view: View): string {
@@ -408,8 +408,8 @@ function renderTables(data: DashboardData, view: View): string {
 }
 
 function focusNote(view: View): string {
-  if (view.focusDay === undefined) return "No pings in this range yet.";
-  return `Breakdowns show ${shortDay(view.focusDay)} (UTC). Shares are of that day's ${view.focusTotal} active installs; an install can use several monitor and channel types.`;
+  if (view.focusDay === undefined) return "No usage ping in this range yet.";
+  return `The breakdowns below show ${shortDay(view.focusDay)} (UTC). Each share is of the ${view.focusTotal} active installs of that day. One install can use more than one monitor type and channel type.`;
 }
 
 const STYLES = `:root {
@@ -541,7 +541,7 @@ ${STYLES}</style>
 ${renderGrowth(metrics.weeks)}
 ${renderCohorts(metrics.cohorts)}
 ${renderAdoption(metrics.adoption)}
-<section class="card"><h2>Active installs per day</h2>${lineChart(view.finished)}<p class="note">Distinct installs that sent a usage ping on each finished UTC day: the daily active count over time. Today is in the tile above.</p></section>
+<section class="card"><h2>Active installs per day</h2>${lineChart(view.finished)}<p class="note">Distinct installs that sent a usage ping on each finished UTC day. This is the daily active count over time. The tile above shows today.</p></section>
 <p class="note">${escapeHtml(focusNote(view))}</p>
 <div class="grid2">${renderBreakdowns(data, view)}</div>
 ${renderLimits()}
