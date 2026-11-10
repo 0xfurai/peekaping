@@ -62,7 +62,7 @@ const MonitorCard = ({ monitor, probes, unsupportedProbeIds }: MonitorCardProps)
     >
       <CardContent className="px-2">
         <div className="flex justify-between flex-col md:flex-row">
-          <div className="flex items-center min-w-0 mb-4 md:mb-0">
+          <div className="flex items-center mb-4 md:mb-0 md:flex-1">
             <div className="text-sm text-gray-500 mr-4 min-w-[60px] shrink-0">
               {(() => {
                 if (paused) {
@@ -92,12 +92,13 @@ const MonitorCard = ({ monitor, probes, unsupportedProbeIds }: MonitorCardProps)
               })()}
             </div>
 
-            <div className="flex flex-col min-w-[100px]">
+            <div className="flex flex-col flex-1 min-w-[100px]">
               <h3 className="font-bold mb-1">{monitor.name}</h3>
-              {/* Plain text, not a link: a click anywhere on the card opens the monitor */}
+              {/* Plain text, not a link: a click anywhere on the card opens the monitor.
+                  contain-inline-size keeps a long target from widening the card, so it is cut short instead */}
               {target && (
                 <p
-                  className="text-xs text-muted-foreground mb-1 truncate"
+                  className="text-xs text-muted-foreground mb-1 truncate contain-inline-size"
                   title={target.label}
                   data-testid="monitor-target"
                 >
@@ -139,7 +140,7 @@ const MonitorCard = ({ monitor, probes, unsupportedProbeIds }: MonitorCardProps)
             </div>
           </div>
 
-          <div className="flex flex-col w-full md:w-[400px] md:shrink-0 justify-center mb-2 md:mb-0">
+          <div className="flex flex-col w-full md:w-[400px] justify-center mb-2 md:mb-0">
             <div className="text-sm text-gray-500 mb-1">
               {t("monitors.card.check_interval")} {monitor.interval}s
             </div>
