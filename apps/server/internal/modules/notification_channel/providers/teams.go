@@ -98,28 +98,6 @@ func (s *TeamsSender) getTitle(monitor *monitor.Model, heartbeat *heartbeat.Mode
 	}
 }
 
-// getAddress returns the fact title and value for what the monitor checks, plus a link
-// when it is an HTTP(S) URL. The card is visible to the whole channel, so credentials,
-// query and fragment are dropped from URLs.
-func (s *TeamsSender) getAddress(monitor *monitor.Model) (title, value, link string) {
-	address := monitorAddress(monitor)
-	if address == "" {
-		return "", "", ""
-	}
-
-	u, err := url.Parse(address)
-	if err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" {
-		// A host or host:port, which isn't a link
-		return "Host", address, ""
-	}
-	u.User = nil
-	u.RawQuery = ""
-	u.ForceQuery = false
-	u.Fragment = ""
-	u.RawFragment = ""
-	return "URL", u.String(), u.String()
-}
-
 // formatText keeps a message's line breaks. Teams renders card text as markdown,
 // where a single newline can fold into a space, so lines are separated by blank lines.
 func formatText(message string) string {
@@ -245,7 +223,7 @@ func (s *TeamsSender) buildAdaptiveCard(
 		})
 	}
 
-	addressTitle, address, addressLink := s.getAddress(monitor)
+	addressTitle, address, addressLink := shareableAddress(monitor)
 	if facts := teamsFacts(monitor, heartbeat, addressTitle, address); len(facts) > 0 {
 		body = append(body, map[string]any{
 			"type":  "FactSet",

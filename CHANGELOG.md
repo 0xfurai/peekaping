@@ -48,6 +48,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `bun db import-mongo` stores no push token as none, clears a push token that an earlier monitor holds, normalizes domains and gives a domain that two status pages held to the first, and its report counts each.
 - feat: a new monitor's form ticks the notification channels marked as default, which you can untick. A clone keeps its source's channels and an edit keeps the monitor's own. The first channel made in Get started is one.
 - feat: the public status pages and the badges of a suspended workspace answer 503 with the code `STATUS_PAGE_UNAVAILABLE` and the message "This status page is unavailable", and say nothing of why, whichever hold the workspace is under, including a new account's workspace while it waits for its owner's email verification. A page that is not published still answers 404. They answered as usual before.
+- feat: a Slack channel's rich messages show what the monitor checks, as Microsoft Teams cards do: the URL of an HTTP monitor or the host of a TCP, ping or DNS monitor, and a Visit site button for an HTTP(S) URL. Credentials, query and fragment are dropped from the URL, since everyone in the channel sees it (#173)
 
 ### Fixed
 
