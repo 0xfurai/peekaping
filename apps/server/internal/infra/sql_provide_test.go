@@ -71,14 +71,14 @@ func TestProvideSQLDB_OpensDataDBInTheWorkingDirectoryWithoutADatabaseName(t *te
 // The server is not reached before the connection is tested, so a server that isn't there is
 // the ping's error, after the line that says where it connected
 func TestProvideSQLDB_PingsPostgreSQLAndMySQLAndSaysWhichItConnectedTo(t *testing.T) {
-	for _, tc := range []struct{ dbType, line string }{
-		{"postgres", "Connecting to PostgreSQL database: 127.0.0.1:1/peekaping"},
-		{"postgresql", "Connecting to PostgreSQL database: 127.0.0.1:1/peekaping"},
-		{"mysql", "Connecting to MySQL database: 127.0.0.1:1/peekaping"},
+	for _, tc := range []struct{ dbType, uri, line string }{
+		{"postgres", "postgres://u:p@db.example/peekaping", "Connecting to PostgreSQL database: 127.0.0.1:1/peekaping"},
+		{"postgresql", "postgresql://u:p@db.example/peekaping", "Connecting to PostgreSQL database: 127.0.0.1:1/peekaping"},
+		{"mysql", "u:p@tcp(db.example:3306)/peekaping", "Connecting to MySQL database: 127.0.0.1:1/peekaping"},
 	} {
 		t.Run(tc.dbType, func(t *testing.T) {
 			core, logs := observer.New(zapcore.DebugLevel)
-			cfg := &config.Config{DBType: tc.dbType, DBHost: "127.0.0.1", DBPort: "1", DBName: "peekaping", DBUser: "u", DBPass: "p"}
+			cfg := &config.Config{DBType: tc.dbType, DBUri: tc.uri, DBHost: "127.0.0.1", DBPort: "1", DBName: "peekaping", DBUser: "u", DBPass: "p"}
 
 			db, err := ProvideSQLDB(cfg, zap.New(core).Sugar())
 

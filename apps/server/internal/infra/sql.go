@@ -59,7 +59,7 @@ func ProvideSQLDB(
 func openPostgres(cfg *config.Config, logger *zap.SugaredLogger) *bun.DB {
 	dsn := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable",
 		cfg.DBUser, cfg.DBPass, cfg.DBHost, cfg.DBPort, cfg.DBName)
-	if (cfg.DBUri != "") {
+	if cfg.DBUri != "" {
 		dsn = cfg.DBUri
 	}
 	sqldb := sql.OpenDB(pgdriver.NewConnector(pgdriver.WithDSN(dsn)))
@@ -73,7 +73,7 @@ func openPostgres(cfg *config.Config, logger *zap.SugaredLogger) *bun.DB {
 func openMySQL(cfg *config.Config, logger *zap.SugaredLogger) (*bun.DB, error) {
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true",
 		cfg.DBUser, cfg.DBPass, cfg.DBHost, cfg.DBPort, cfg.DBName)
-	if (cfg.DBUri != "") {
+	if cfg.DBUri != "" {
 		dsn = cfg.DBUri
 	}
 	sqldb, err := sql.Open("mysql", dsn)

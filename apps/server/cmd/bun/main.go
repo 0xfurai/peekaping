@@ -305,7 +305,7 @@ func connectToDatabase(cfg *config.DBConfig) (*bun.DB, error) {
 	case "postgres", "postgresql":
 		dsn := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable&search_path=public",
 			cfg.DBUser, cfg.DBPass, cfg.DBHost, cfg.DBPort, cfg.DBName)
-		if (cfg.DBUri != "") {
+		if cfg.DBUri != "" {
 			dsn = cfg.DBUri
 		}
 		sqldb = sql.OpenDB(pgdriver.NewConnector(pgdriver.WithDSN(dsn)))
@@ -314,7 +314,7 @@ func connectToDatabase(cfg *config.DBConfig) (*bun.DB, error) {
 	case "mysql":
 		dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true",
 			cfg.DBUser, cfg.DBPass, cfg.DBHost, cfg.DBPort, cfg.DBName)
-		if (cfg.DBUri != "") {
+		if cfg.DBUri != "" {
 			dsn = cfg.DBUri
 		}
 		sqldb, err = sql.Open("mysql", dsn)

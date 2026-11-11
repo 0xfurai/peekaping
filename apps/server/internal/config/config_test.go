@@ -202,6 +202,10 @@ func TestMaskSensitiveValue_MasksTheProbeBootstrapToken(t *testing.T) {
 	assert.Equal(t, "*****", maskSensitiveValue("PROBE_BOOTSTRAP_TOKEN", "0123456789abcdef0123456789abcdef"))
 }
 
+func TestMaskSensitiveValue_MasksNativeDatabaseURI(t *testing.T) {
+	assert.Equal(t, "*****", maskSensitiveValue("DB_URI", "user:secret@tcp(db.example:3306)/peekaping"))
+}
+
 // AC1: MongoDB storage was removed, and every binary says so, not that DB_TYPE is invalid. The
 // db_type validator ignores case, so the refusal does too.
 func TestLoadConfig_RefusesMongoStorage(t *testing.T) {
@@ -327,6 +331,17 @@ func TestValidateDatabaseCustomRules_RejectsMalformedDatabaseURI(t *testing.T) {
 			assert.ErrorContains(t, err, tc.want)
 		})
 	}
+}
+
+func TestValidateDatabaseCustomRules_DoesNotIncludeDatabaseURIInParseErrors(t *testing.T) {
+	secret := "secret-password"
+	err := ValidateDatabaseCustomRules(&DBConfig{
+		DBType: "postgres",
+		DBUri:  "postgres://user:" + secret + "@db.example/%zz",
+	})
+
+	require.Error(t, err)
+	assert.NotContains(t, err.Error(), secret)
 }
 
 func TestValidateDatabaseCustomRules_RejectsDatabaseURIForSQLite(t *testing.T) {

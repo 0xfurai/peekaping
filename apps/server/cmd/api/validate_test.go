@@ -64,6 +64,13 @@ func TestValidate_AllowsDatabaseURIWithoutConnectionFields(t *testing.T) {
 	assert.NoError(t, Validate(cfg))
 }
 
+func TestToInternalConfig_CopiesDatabaseURI(t *testing.T) {
+	cfg := validatedConfig(t)
+	cfg.DBUri = "postgres://user:pass@db.example/peekaping"
+
+	assert.Equal(t, cfg.DBUri, cfg.ToInternalConfig().DBUri)
+}
+
 // Validate stops at the first setting that is wrong, in the order the settings are checked
 func TestValidate_ReportsTheFirstSettingThatIsWrong(t *testing.T) {
 	cfg := validatedConfig(t)

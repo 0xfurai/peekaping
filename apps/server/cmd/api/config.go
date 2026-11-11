@@ -223,7 +223,7 @@ func validateStorage(cfg *Config) error {
 		DBUser: cfg.DBUser,
 		DBPass: cfg.DBPass,
 		DBType: cfg.DBType,
-		DBUri: cfg.DBUri,
+		DBUri:  cfg.DBUri,
 	}
 
 	if err := config.ValidateDatabaseCustomRules(dbConfig); err != nil {
@@ -340,6 +340,7 @@ func (c *Config) ToInternalConfig() *config.Config {
 		DBUser:                         c.DBUser,
 		DBPass:                         c.DBPass,
 		DBType:                         c.DBType,
+		DBUri:                          c.DBUri,
 		SQLiteStartupCheck:             c.SQLiteStartupCheck,
 		Mode:                           c.Mode,
 		LogLevel:                       c.LogLevel,
