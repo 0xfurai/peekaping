@@ -63,11 +63,14 @@ YYYYMMDDHHMMSS_description.tx.{up|down}.sql
 | Variable | Type | Required | Default | Description |
 |----------|------|----------|---------|-------------|
 | `DB_TYPE` | string | Yes | - | Database type: `postgres`, `mysql`, `sqlite` |
+| `DB_URI` | string | Conditional | - | Database connection URI. `DB_NAME` is still required when `DB_URI` is set. For PostgreSQL, use `postgres://`, `postgresql://` or `unix://`; a Unix socket URI has the form `unix://database-name/path/to/socket`, where `database-name` selects the database and the path selects the socket. Do not use `DB_NAME` to select the database in this case. For MySQL, use its native DSN format. It takes precedence over the other database connection variables and is not supported for SQLite |
 | `DB_HOST` | string | Conditional | - | Database host (not required for SQLite) |
 | `DB_PORT` | string | Conditional | - | Database port (not required for SQLite) |
 | `DB_NAME` | string | Yes | - | Database name or SQLite file path |
 | `DB_USER` | string | Conditional | - | Database username (not required for SQLite) |
 | `DB_PASS` | string | Conditional | - | Database password (not required for SQLite) |
+
+For PostgreSQL and MySQL, set `DB_URI` and `DB_NAME`, or the individual `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER` and `DB_PASS` variables. When `DB_URI` is set, it takes precedence over those individual variables. SQLite uses `DB_NAME` and does not accept `DB_URI`.
 
 **Note**: No Redis or other services are required for migrations.
 

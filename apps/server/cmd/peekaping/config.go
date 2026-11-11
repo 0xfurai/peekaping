@@ -30,6 +30,7 @@ type Config struct {
 	DBUser string `env:"DB_USER"`                           // validated in Validate()
 	DBPass string `env:"DB_PASS"`                           // validated in Validate()
 	DBType string `env:"DB_TYPE" validate:"required,db_type"`
+	DBUri  string `env:"DB_URI"`
 
 	// Which check the process runs when it opens SQLite: quick (PRAGMA quick_check), full
 	// (PRAGMA integrity_check, which reads the whole file) or off. A finding stops startup.
@@ -231,6 +232,7 @@ func validateStorage(cfg *Config) error {
 		DBUser: cfg.DBUser,
 		DBPass: cfg.DBPass,
 		DBType: cfg.DBType,
+		DBUri:  cfg.DBUri,
 	}
 
 	if err := config.ValidateDatabaseCustomRules(dbConfig); err != nil {
@@ -371,6 +373,7 @@ func (c *Config) ToInternalConfig() *config.Config {
 		DBUser:                         c.DBUser,
 		DBPass:                         c.DBPass,
 		DBType:                         c.DBType,
+		DBUri:                          c.DBUri,
 		SQLiteStartupCheck:             c.SQLiteStartupCheck,
 		Mode:                           c.Mode,
 		LogLevel:                       c.LogLevel,

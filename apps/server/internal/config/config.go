@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"net/url"
 	"os"
 	"reflect"
 	"strconv"
@@ -11,6 +12,7 @@ import (
 	"time"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/go-sql-driver/mysql"
 )
 
 type DBConfig struct {
@@ -20,6 +22,7 @@ type DBConfig struct {
 	DBUser string `env:"DB_USER"`                           // validated in validateCustomRules
 	DBPass string `env:"DB_PASS"`                           // validated in validateCustomRules
 	DBType string `env:"DB_TYPE" validate:"required,db_type"`
+	DBUri  string `env:"DB_URI"`
 }
 
 type Config struct {
@@ -35,6 +38,7 @@ type Config struct {
 	DBUser string `env:"DB_USER"`                           // validated in validateCustomRules
 	DBPass string `env:"DB_PASS"`                           // validated in validateCustomRules
 	DBType string `env:"DB_TYPE" validate:"required,db_type"`
+	DBUri  string `env:"DB_URI"`
 
 	// Which check a process that opens SQLite runs at startup: "quick" runs PRAGMA quick_check,
 	// "full" runs PRAGMA integrity_check, and "off" runs none. A finding stops startup.
@@ -331,6 +335,7 @@ func switchedOff(value string) bool {
 
 var validate = validator.New()
 
+// LoadConfig loads configuration from the .env file and environment, applies defaults, and validates it.
 func LoadConfig[T any](path string) (config T, err error) {
 	// Register custom validators
 	RegisterCustomValidators(validate)
@@ -445,33 +450,94 @@ func formatMinError(err validator.FieldError) string {
 	return fmt.Sprintf("%s must be at least %s characters", err.Field(), err.Param())
 }
 
+// ValidateDatabaseCustomRules validates database settings that cannot be expressed as struct tags.
 func ValidateDatabaseCustomRules(config *DBConfig) error {
-	// Validate database-specific requirements
 	switch config.DBType {
 	case "postgres", "postgresql", "mysql":
-		if config.DBHost == "" {
-			return fmt.Errorf("DB_HOST is required for %s database", config.DBType)
+		if config.DBUri != "" {
+			return validateDatabaseURI(config.DBType, config.DBUri)
 		}
-		if config.DBPort == "" {
-			return fmt.Errorf("DB_PORT is required for %s database", config.DBType)
-		}
-		if config.DBUser == "" {
-			return fmt.Errorf("DB_USER is required for %s database", config.DBType)
-		}
-		if config.DBPass == "" {
-			return fmt.Errorf("DB_PASS is required for %s database", config.DBType)
-		}
-		// Validate port format for database connection
-		if _, err := strconv.Atoi(config.DBPort); err != nil {
-			return fmt.Errorf("DB_PORT must be a valid number for %s database", config.DBType)
-		}
+		return validateDatabaseConnectionFields(config)
 	case "sqlite":
-		// SQLite only requires a database file path
-		if config.DBName == "" {
-			return fmt.Errorf("DB_NAME (database file path) is required for SQLite database")
+		if config.DBUri != "" {
+			return fmt.Errorf("DB_URI is not supported for sqlite database")
 		}
+		return validateSQLiteFields(config)
 	}
 
+	return nil
+}
+
+func validateDatabaseConnectionFields(config *DBConfig) error {
+	fields := []struct {
+		value string
+		name  string
+	}{
+		{config.DBHost, "DB_HOST"},
+		{config.DBPort, "DB_PORT"},
+		{config.DBUser, "DB_USER"},
+		{config.DBPass, "DB_PASS"},
+	}
+	for _, field := range fields {
+		if field.value == "" {
+			return fmt.Errorf("%s is required for %s database", field.name, config.DBType)
+		}
+	}
+	if _, err := strconv.Atoi(config.DBPort); err != nil {
+		return fmt.Errorf("DB_PORT must be a valid number for %s database", config.DBType)
+	}
+	return nil
+}
+
+func validateSQLiteFields(config *DBConfig) error {
+	if config.DBName == "" {
+		return fmt.Errorf("DB_NAME (database file path) is required for SQLite database")
+	}
+	return nil
+}
+
+// validateDatabaseURI validates a database URI for the configured database type.
+func validateDatabaseURI(dbType, databaseURI string) error {
+	switch dbType {
+	case "postgres", "postgresql":
+		return validatePostgresURI(dbType, databaseURI)
+	case "mysql":
+		return validateMySQLURI(databaseURI)
+	}
+
+	return nil
+}
+
+func validatePostgresURI(dbType, databaseURI string) error {
+	parsed, err := url.Parse(databaseURI)
+	if err != nil {
+		return fmt.Errorf("DB_URI is not a valid %s connection string", dbType)
+	}
+	switch parsed.Scheme {
+	case "unix":
+		if parsed.Path == "" {
+			return fmt.Errorf("DB_URI must include a Unix socket path for %s database", dbType)
+		}
+		return nil
+	case "postgres", "postgresql":
+		if parsed.Host == "" {
+			if parsed.Query().Get("host") == "" {
+				return fmt.Errorf("DB_URI must include a host for %s database", dbType)
+			}
+		}
+		if parsed.Path == "" || parsed.Path == "/" {
+			return fmt.Errorf("DB_URI must include a database name for %s database", dbType)
+		}
+		return nil
+	default:
+		return fmt.Errorf("DB_URI must use postgres://, postgresql://, or unix:// for %s database", dbType)
+	}
+}
+
+func validateMySQLURI(databaseURI string) error {
+	if _, err := mysql.ParseDSN(databaseURI); err != nil {
+		return fmt.Errorf("DB_URI is not a valid mysql connection string")
+	}
 	return nil
 }
 
@@ -672,7 +738,7 @@ func maskSensitiveValue(key, value string) string {
 
 	// Define sensitive key patterns
 	sensitiveKeys := []string{
-		"SECRET_KEY", "SECRET", "PASSWORD", "PASS", "TOKEN", "API_KEY", "PRIVATE_KEY", "DSN",
+		"SECRET_KEY", "SECRET", "PASSWORD", "PASS", "TOKEN", "API_KEY", "PRIVATE_KEY", "DSN", "DB_URI",
 	}
 
 	keyUpper := strings.ToUpper(key)

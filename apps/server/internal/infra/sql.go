@@ -21,6 +21,7 @@ import (
 
 const sqliteRecoveryDocsURL = "https://docs.peekaping.com/self-hosting/sqlite-recovery"
 
+// ProvideSQLDB opens and pings the configured SQL database.
 func ProvideSQLDB(
 	cfg *config.Config,
 	logger *zap.SugaredLogger,
@@ -59,7 +60,9 @@ func ProvideSQLDB(
 func openPostgres(cfg *config.Config, logger *zap.SugaredLogger) *bun.DB {
 	dsn := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable",
 		cfg.DBUser, cfg.DBPass, cfg.DBHost, cfg.DBPort, cfg.DBName)
-
+	if cfg.DBUri != "" {
+		dsn = cfg.DBUri
+	}
 	sqldb := sql.OpenDB(pgdriver.NewConnector(pgdriver.WithDSN(dsn)))
 	db := bun.NewDB(sqldb, pgdialect.New())
 
@@ -71,7 +74,9 @@ func openPostgres(cfg *config.Config, logger *zap.SugaredLogger) *bun.DB {
 func openMySQL(cfg *config.Config, logger *zap.SugaredLogger) (*bun.DB, error) {
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true",
 		cfg.DBUser, cfg.DBPass, cfg.DBHost, cfg.DBPort, cfg.DBName)
-
+	if cfg.DBUri != "" {
+		dsn = cfg.DBUri
+	}
 	sqldb, err := sql.Open("mysql", dsn)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open MySQL connection: %w", err)

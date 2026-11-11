@@ -202,6 +202,10 @@ func TestMaskSensitiveValue_MasksTheProbeBootstrapToken(t *testing.T) {
 	assert.Equal(t, "*****", maskSensitiveValue("PROBE_BOOTSTRAP_TOKEN", "0123456789abcdef0123456789abcdef"))
 }
 
+func TestMaskSensitiveValue_MasksNativeDatabaseURI(t *testing.T) {
+	assert.Equal(t, "*****", maskSensitiveValue("DB_URI", "user:secret@tcp(db.example:3306)/peekaping"))
+}
+
 // AC1: MongoDB storage was removed, and every binary says so, not that DB_TYPE is invalid. The
 // db_type validator ignores case, so the refusal does too.
 func TestLoadConfig_RefusesMongoStorage(t *testing.T) {
@@ -243,6 +247,113 @@ func TestLoadConfig_AcceptsTheSQLStorageBackends(t *testing.T) {
 			assert.NoError(t, err)
 		})
 	}
+}
+
+func TestLoadConfig_ReadsDatabaseURIFromTheEnvironment(t *testing.T) {
+	cfg, err := loadTestConfig(t, map[string]string{
+		"DB_TYPE": "postgres",
+		"DB_URI":  "postgres://user:pass@db.example/peekaping?sslmode=require",
+	})
+
+	require.NoError(t, err)
+	assert.Equal(t, "postgres://user:pass@db.example/peekaping?sslmode=require", cfg.DBUri)
+}
+
+func TestLoadDBConfig_ReadsDatabaseURIFromTheEnvironment(t *testing.T) {
+	t.Setenv("DB_TYPE", "mysql")
+	t.Setenv("DB_NAME", "peekaping")
+	t.Setenv("DB_URI", "user:pass@tcp(db.example:3306)/peekaping")
+
+	cfg, err := LoadConfig[DBConfig](t.TempDir())
+
+	require.NoError(t, err)
+	assert.Equal(t, "user:pass@tcp(db.example:3306)/peekaping", cfg.DBUri)
+}
+
+func TestValidateDatabaseCustomRules_AllowsDatabaseURIWithoutConnectionFields(t *testing.T) {
+	for _, tc := range []struct {
+		dbType string
+		dbURI  string
+	}{
+		{dbType: "postgres", dbURI: "postgres://user:pass@db.example/peekaping"},
+		{dbType: "postgresql", dbURI: "postgresql://user:pass@db.example/peekaping"},
+		{dbType: "mysql", dbURI: "user:pass@tcp(db.example:3306)/peekaping"},
+	} {
+		t.Run(tc.dbType, func(t *testing.T) {
+			err := ValidateDatabaseCustomRules(&DBConfig{
+				DBType: tc.dbType,
+				DBUri:  tc.dbURI,
+			})
+
+			assert.NoError(t, err)
+		})
+	}
+}
+
+func TestValidateDatabaseCustomRules_RejectsDatabaseURIForTheWrongDatabaseType(t *testing.T) {
+	err := ValidateDatabaseCustomRules(&DBConfig{
+		DBType: "mysql",
+		DBUri:  "postgres://user:pass@db.example/peekaping",
+	})
+
+	assert.ErrorContains(t, err, "DB_URI is not a valid mysql connection string")
+}
+
+func TestValidateDatabaseCustomRules_RejectsMalformedDatabaseURI(t *testing.T) {
+	for _, tc := range []struct {
+		name   string
+		dbType string
+		dbURI  string
+		want   string
+	}{
+		{
+			name:   "postgres wrong scheme",
+			dbType: "postgres",
+			dbURI:  "mysql://user:pass@db.example/peekaping",
+			want:   "DB_URI must use postgres://, postgresql://, or unix:// for postgres database",
+		},
+		{
+			name:   "postgres missing database",
+			dbType: "postgres",
+			dbURI:  "postgres://user:pass@db.example/",
+			want:   "DB_URI must include a database name for postgres database",
+		},
+		{
+			name:   "mysql malformed DSN",
+			dbType: "mysql",
+			dbURI:  "user:pass@tcp(db.example:3306)",
+			want:   "DB_URI is not a valid mysql connection string",
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			err := ValidateDatabaseCustomRules(&DBConfig{DBType: tc.dbType, DBUri: tc.dbURI})
+
+			assert.ErrorContains(t, err, tc.want)
+		})
+	}
+}
+
+func TestValidateDatabaseCustomRules_DoesNotIncludeDatabaseURIInParseErrors(t *testing.T) {
+	secret := "secret-password"
+	err := ValidateDatabaseCustomRules(&DBConfig{
+		DBType: "postgres",
+		DBUri:  "postgres://user:" + secret + "@db.example/%zz",
+	})
+
+	require.Error(t, err)
+	assert.NotContains(t, err.Error(), secret)
+}
+
+func TestValidateDatabaseCustomRules_RejectsDatabaseURIForSQLite(t *testing.T) {
+	err := ValidateDatabaseCustomRules(&DBConfig{DBType: "sqlite", DBName: "peekaping.db", DBUri: "sqlite://db"})
+
+	assert.EqualError(t, err, "DB_URI is not supported for sqlite database")
+}
+
+func TestValidateDatabaseCustomRules_RequiresConnectionFieldsWithoutDatabaseURI(t *testing.T) {
+	err := ValidateDatabaseCustomRules(&DBConfig{DBType: "postgres"})
+
+	assert.EqualError(t, err, "DB_HOST is required for postgres database")
 }
 
 func TestLoadConfig_AnUnknownDBTypeStillGetsTheValidatorsMessage(t *testing.T) {

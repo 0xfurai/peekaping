@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -102,6 +103,28 @@ func TestConnectToDatabase_LeavesAnExistingSQLiteDatabaseWithoutAutoVacuumAsItIs
 
 	if got := autoVacuumOf(t, db); got != 0 {
 		t.Errorf("auto_vacuum of an old database: got %d, want 0", got)
+	}
+}
+
+func TestConnectToDatabase_UsesPostgreSQLURI(t *testing.T) {
+	_, err := connectToDatabase(&config.DBConfig{
+		DBType: "postgres",
+		DBUri:  "postgres://user:pass@db.example/peekaping",
+	})
+
+	if err == nil || !strings.Contains(err.Error(), "db.example") {
+		t.Fatalf("connect error did not use the configured PostgreSQL URI: %v", err)
+	}
+}
+
+func TestConnectToDatabase_UsesMySQLURI(t *testing.T) {
+	_, err := connectToDatabase(&config.DBConfig{
+		DBType: "mysql",
+		DBUri:  "user:pass@tcp(db.example:3306)/peekaping",
+	})
+
+	if err == nil || !strings.Contains(err.Error(), "db.example") {
+		t.Fatalf("connect error did not use the configured MySQL URI: %v", err)
 	}
 }
 
