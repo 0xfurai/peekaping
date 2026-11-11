@@ -52,6 +52,18 @@ func TestValidate_NamesTheSettingThatIsWrong(t *testing.T) {
 	}
 }
 
+func TestValidate_AllowsDatabaseURIWithoutConnectionFields(t *testing.T) {
+	cfg := validatedConfig(t)
+	cfg.DBType = "postgres"
+	cfg.DBUri = "postgres://user:pass@db.example/peekaping"
+	cfg.DBHost = ""
+	cfg.DBPort = ""
+	cfg.DBUser = ""
+	cfg.DBPass = ""
+
+	assert.NoError(t, Validate(cfg))
+}
+
 // Validate stops at the first setting that is wrong, in the order the settings are checked
 func TestValidate_ReportsTheFirstSettingThatIsWrong(t *testing.T) {
 	cfg := validatedConfig(t)

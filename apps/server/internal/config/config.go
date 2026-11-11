@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"net/url"
 	"os"
 	"reflect"
 	"strconv"
@@ -11,6 +12,7 @@ import (
 	"time"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/go-sql-driver/mysql"
 )
 
 type DBConfig struct {
@@ -20,6 +22,7 @@ type DBConfig struct {
 	DBUser string `env:"DB_USER"`                           // validated in validateCustomRules
 	DBPass string `env:"DB_PASS"`                           // validated in validateCustomRules
 	DBType string `env:"DB_TYPE" validate:"required,db_type"`
+	DBUri  string `env:"DB_URI"`
 }
 
 type Config struct {
@@ -35,6 +38,7 @@ type Config struct {
 	DBUser string `env:"DB_USER"`                           // validated in validateCustomRules
 	DBPass string `env:"DB_PASS"`                           // validated in validateCustomRules
 	DBType string `env:"DB_TYPE" validate:"required,db_type"`
+	DBUri  string `env:"DB_URI"`
 
 	// Which check a process that opens SQLite runs at startup: "quick" runs PRAGMA quick_check,
 	// "full" runs PRAGMA integrity_check, and "off" runs none. A finding stops startup.
@@ -449,6 +453,9 @@ func ValidateDatabaseCustomRules(config *DBConfig) error {
 	// Validate database-specific requirements
 	switch config.DBType {
 	case "postgres", "postgresql", "mysql":
+		if config.DBUri != "" {
+			return validateDatabaseURI(config.DBType, config.DBUri)
+		}
 		if config.DBHost == "" {
 			return fmt.Errorf("DB_HOST is required for %s database", config.DBType)
 		}
@@ -466,9 +473,43 @@ func ValidateDatabaseCustomRules(config *DBConfig) error {
 			return fmt.Errorf("DB_PORT must be a valid number for %s database", config.DBType)
 		}
 	case "sqlite":
+		if config.DBUri != "" {
+			return fmt.Errorf("DB_URI is not supported for sqlite database")
+		}
 		// SQLite only requires a database file path
 		if config.DBName == "" {
 			return fmt.Errorf("DB_NAME (database file path) is required for SQLite database")
+		}
+	}
+
+	return nil
+}
+
+func validateDatabaseURI(dbType, databaseURI string) error {
+	switch dbType {
+	case "postgres", "postgresql":
+		parsed, err := url.Parse(databaseURI)
+		if err != nil {
+			return fmt.Errorf("DB_URI is not a valid %s connection string: %w", dbType, err)
+		}
+		if parsed.Scheme != "postgres" && parsed.Scheme != "postgresql" && parsed.Scheme != "unix" {
+			return fmt.Errorf("DB_URI must use postgres://, postgresql://, or unix:// for %s database", dbType)
+		}
+		if parsed.Scheme == "unix" {
+			if parsed.Path == "" {
+				return fmt.Errorf("DB_URI must include a Unix socket path for %s database", dbType)
+			}
+			return nil
+		}
+		if parsed.Host == "" && parsed.Query().Get("host") == "" {
+			return fmt.Errorf("DB_URI must include a host for %s database", dbType)
+		}
+		if parsed.Path == "" || parsed.Path == "/" {
+			return fmt.Errorf("DB_URI must include a database name for %s database", dbType)
+		}
+	case "mysql":
+		if _, err := mysql.ParseDSN(databaseURI); err != nil {
+			return fmt.Errorf("DB_URI is not a valid mysql connection string: %w", err)
 		}
 	}
 
