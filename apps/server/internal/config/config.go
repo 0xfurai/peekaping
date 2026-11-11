@@ -335,6 +335,7 @@ func switchedOff(value string) bool {
 
 var validate = validator.New()
 
+// LoadConfig loads configuration from the .env file and environment, applies defaults, and validates it.
 func LoadConfig[T any](path string) (config T, err error) {
 	// Register custom validators
 	RegisterCustomValidators(validate)
@@ -449,6 +450,7 @@ func formatMinError(err validator.FieldError) string {
 	return fmt.Sprintf("%s must be at least %s characters", err.Field(), err.Param())
 }
 
+// ValidateDatabaseCustomRules validates database settings that cannot be expressed as struct tags.
 func ValidateDatabaseCustomRules(config *DBConfig) error {
 	switch config.DBType {
 	case "postgres", "postgresql", "mysql":

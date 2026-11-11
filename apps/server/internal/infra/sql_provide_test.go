@@ -84,6 +84,7 @@ func TestProvideSQLDB_PingsPostgreSQLAndMySQLAndSaysWhichItConnectedTo(t *testin
 
 			assert.Nil(t, db)
 			assert.ErrorContains(t, err, "failed to ping database: ")
+			assert.ErrorContains(t, err, "db.example")
 			assert.Equal(t, []string{"info: " + tc.line}, messages(logs))
 		})
 	}

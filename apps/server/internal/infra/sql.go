@@ -21,6 +21,7 @@ import (
 
 const sqliteRecoveryDocsURL = "https://docs.peekaping.com/self-hosting/sqlite-recovery"
 
+// ProvideSQLDB opens and pings the configured SQL database.
 func ProvideSQLDB(
 	cfg *config.Config,
 	logger *zap.SugaredLogger,
