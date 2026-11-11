@@ -4,9 +4,12 @@ import (
 	"context"
 	"database/sql"
 	"database/sql/driver"
+	"fmt"
 	"io"
+	"net"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"peekaping/internal/config"
 
@@ -71,20 +74,46 @@ func TestProvideSQLDB_OpensDataDBInTheWorkingDirectoryWithoutADatabaseName(t *te
 // The server is not reached before the connection is tested, so a server that isn't there is
 // the ping's error, after the line that says where it connected
 func TestProvideSQLDB_PingsPostgreSQLAndMySQLAndSaysWhichItConnectedTo(t *testing.T) {
-	for _, tc := range []struct{ dbType, uri, line string }{
-		{"postgres", "postgres://u:p@db.example/peekaping", "Connecting to PostgreSQL database: 127.0.0.1:1/peekaping"},
-		{"postgresql", "postgresql://u:p@db.example/peekaping", "Connecting to PostgreSQL database: 127.0.0.1:1/peekaping"},
-		{"mysql", "u:p@tcp(db.example:3306)/peekaping", "Connecting to MySQL database: 127.0.0.1:1/peekaping"},
+	for _, tc := range []struct{ dbType, line string }{
+		{"postgres", "Connecting to PostgreSQL database: 127.0.0.1:1/peekaping"},
+		{"postgresql", "Connecting to PostgreSQL database: 127.0.0.1:1/peekaping"},
+		{"mysql", "Connecting to MySQL database: 127.0.0.1:1/peekaping"},
 	} {
 		t.Run(tc.dbType, func(t *testing.T) {
+			listener, err := net.Listen("tcp", "127.0.0.1:0")
+			require.NoError(t, err)
+			t.Cleanup(func() { _ = listener.Close() })
+			connectionReceived := make(chan struct{})
+			go func() {
+				conn, acceptErr := listener.Accept()
+				if acceptErr == nil {
+					close(connectionReceived)
+					_ = listener.Close()
+					_ = conn.Close()
+				}
+			}()
+
+			_, port, err := net.SplitHostPort(listener.Addr().String())
+			require.NoError(t, err)
+			uri := fmt.Sprintf("postgres://u:p@127.0.0.1:%s/peekaping", port)
+			if tc.dbType == "mysql" {
+				uri = fmt.Sprintf("u:p@tcp(127.0.0.1:%s)/peekaping", port)
+			}
 			core, logs := observer.New(zapcore.DebugLevel)
-			cfg := &config.Config{DBType: tc.dbType, DBUri: tc.uri, DBHost: "127.0.0.1", DBPort: "1", DBName: "peekaping", DBUser: "u", DBPass: "p"}
+			cfg := &config.Config{DBType: tc.dbType, DBUri: uri, DBHost: "127.0.0.1", DBPort: "1", DBName: "peekaping", DBUser: "u", DBPass: "p"}
 
 			db, err := ProvideSQLDB(cfg, zap.New(core).Sugar())
 
 			assert.Nil(t, db)
 			assert.ErrorContains(t, err, "failed to ping database: ")
-			assert.ErrorContains(t, err, "db.example")
+			require.Eventually(t, func() bool {
+				select {
+				case <-connectionReceived:
+					return true
+				default:
+					return false
+				}
+			}, time.Second, time.Millisecond)
 			assert.Equal(t, []string{"info: " + tc.line}, messages(logs))
 		})
 	}

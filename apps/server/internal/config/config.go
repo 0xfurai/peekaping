@@ -496,6 +496,7 @@ func validateSQLiteFields(config *DBConfig) error {
 	return nil
 }
 
+// validateDatabaseURI validates a database URI for the configured database type.
 func validateDatabaseURI(dbType, databaseURI string) error {
 	switch dbType {
 	case "postgres", "postgresql":
