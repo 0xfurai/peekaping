@@ -71,15 +71,22 @@ func TestProvideSQLDB_OpensDataDBInTheWorkingDirectoryWithoutADatabaseName(t *te
 	assert.Equal(t, 1, logs.FilterMessage("Connecting to SQLite database: ./data.db (WAL mode enabled, corruption prevention active)").Len())
 }
 
-// The server is not reached before the connection is tested, so a server that isn't there is
-// the ping's error, after the line that says where it connected
+// TestProvideSQLDB_PingsPostgreSQLAndMySQLAndSaysWhichItConnectedTo verifies URI and field-based
+// connection setup. The server is not reached before the connection is tested, so a server that
+// isn't there is the ping's error, after the line that says where it connected.
 func TestProvideSQLDB_PingsPostgreSQLAndMySQLAndSaysWhichItConnectedTo(t *testing.T) {
-	for _, tc := range []struct{ dbType, line string }{
-		{"postgres", "Connecting to PostgreSQL database: 127.0.0.1:1/peekaping"},
-		{"postgresql", "Connecting to PostgreSQL database: 127.0.0.1:1/peekaping"},
-		{"mysql", "Connecting to MySQL database: 127.0.0.1:1/peekaping"},
+	for _, tc := range []struct {
+		name, dbType, database string
+		useURI                 bool
+	}{
+		{"postgres URI", "postgres", "PostgreSQL", true},
+		{"postgres fields", "postgres", "PostgreSQL", false},
+		{"postgresql URI", "postgresql", "PostgreSQL", true},
+		{"postgresql fields", "postgresql", "PostgreSQL", false},
+		{"mysql URI", "mysql", "MySQL", true},
+		{"mysql fields", "mysql", "MySQL", false},
 	} {
-		t.Run(tc.dbType, func(t *testing.T) {
+		t.Run(tc.name, func(t *testing.T) {
 			listener, err := net.Listen("tcp", "127.0.0.1:0")
 			require.NoError(t, err)
 			t.Cleanup(func() { _ = listener.Close() })
@@ -95,12 +102,19 @@ func TestProvideSQLDB_PingsPostgreSQLAndMySQLAndSaysWhichItConnectedTo(t *testin
 
 			_, port, err := net.SplitHostPort(listener.Addr().String())
 			require.NoError(t, err)
-			uri := fmt.Sprintf("postgres://u:p@127.0.0.1:%s/peekaping", port)
-			if tc.dbType == "mysql" {
-				uri = fmt.Sprintf("u:p@tcp(127.0.0.1:%s)/peekaping", port)
+			uri := ""
+			dbPort := port
+			linePort := port
+			if tc.useURI {
+				dbPort = "1"
+				linePort = dbPort
+				uri = fmt.Sprintf("postgres://u:p@127.0.0.1:%s/peekaping", port)
+				if tc.dbType == "mysql" {
+					uri = fmt.Sprintf("u:p@tcp(127.0.0.1:%s)/peekaping", port)
+				}
 			}
 			core, logs := observer.New(zapcore.DebugLevel)
-			cfg := &config.Config{DBType: tc.dbType, DBUri: uri, DBHost: "127.0.0.1", DBPort: "1", DBName: "peekaping", DBUser: "u", DBPass: "p"}
+			cfg := &config.Config{DBType: tc.dbType, DBUri: uri, DBHost: "127.0.0.1", DBPort: dbPort, DBName: "peekaping", DBUser: "u", DBPass: "p"}
 
 			db, err := ProvideSQLDB(cfg, zap.New(core).Sugar())
 
@@ -114,7 +128,7 @@ func TestProvideSQLDB_PingsPostgreSQLAndMySQLAndSaysWhichItConnectedTo(t *testin
 					return false
 				}
 			}, time.Second, time.Millisecond)
-			assert.Equal(t, []string{"info: " + tc.line}, messages(logs))
+			assert.Equal(t, []string{"info: Connecting to " + tc.database + " database: 127.0.0.1:" + linePort + "/peekaping"}, messages(logs))
 		})
 	}
 }

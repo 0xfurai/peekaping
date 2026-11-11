@@ -88,7 +88,7 @@ With `WEB_DIR` set, only `/api/*`, `/socket.io/*` and, when `METRICS_ENABLED` is
 | Variable | Type | Required | Default | Description |
 |----------|------|----------|---------|-------------|
 | `DB_TYPE` | string | Yes | - | Storage backend: `postgres`, `mysql` or `sqlite`. MongoDB storage was removed: `mongo` and `mongodb` [stop the API at startup](../self-hosting/docker-with-mongo.md) |
-| `DB_URI` | string | Conditional | - | Database connection URI. `DB_NAME` is still required when `DB_URI` is set. For PostgreSQL, use `postgres://`, `postgresql://` or `unix://`; for MySQL, use its native DSN format. It takes precedence over the other database connection variables and is not supported for SQLite |
+| `DB_URI` | string | Conditional | - | Database connection URI. `DB_NAME` is still required when `DB_URI` is set. For PostgreSQL, use `postgres://`, `postgresql://` or `unix://`; a Unix socket URI has the form `unix://database-name/path/to/socket`, where `database-name` selects the database and the path selects the socket. Do not use `DB_NAME` to select the database in this case. For MySQL, use its native DSN format. It takes precedence over the other database connection variables and is not supported for SQLite |
 | `DB_HOST` | string | Conditional | - | Database host (not required for SQLite) |
 | `DB_PORT` | string | Conditional | - | Database port (not required for SQLite) |
 | `DB_NAME` | string | Yes | - | Database name or SQLite file path |
