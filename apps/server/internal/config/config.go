@@ -451,6 +451,16 @@ func formatMinError(err validator.FieldError) string {
 	return fmt.Sprintf("%s must be at least %s characters", err.Field(), err.Param())
 }
 
+// PostgresSSLMode is the sslmode a PostgreSQL connection string carries: mode, or disable when
+// mode is empty. A config built without LoadConfig, as a test's, has no default applied, and an
+// empty sslmode makes pgdriver try TLS, its default.
+func PostgresSSLMode(mode string) string {
+	if mode == "" {
+		return "disable"
+	}
+	return mode
+}
+
 func ValidateDatabaseCustomRules(config *DBConfig) error {
 	// Validate database-specific requirements
 	switch config.DBType {

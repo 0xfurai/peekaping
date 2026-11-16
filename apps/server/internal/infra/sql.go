@@ -64,11 +64,10 @@ func openPostgres(cfg *config.Config, logger *zap.SugaredLogger) *bun.DB {
 	return db
 }
 
-// postgresDSN is the connection string openPostgres connects with. DBSSLMode is the sslmode:
-// disable (the config's default) connects without TLS.
+// postgresDSN is the connection string openPostgres connects with.
 func postgresDSN(cfg *config.Config) string {
 	return fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s",
-		cfg.DBUser, cfg.DBPass, cfg.DBHost, cfg.DBPort, cfg.DBName, cfg.DBSSLMode)
+		cfg.DBUser, cfg.DBPass, cfg.DBHost, cfg.DBPort, cfg.DBName, config.PostgresSSLMode(cfg.DBSSLMode))
 }
 
 // openMySQL is the MySQL connection

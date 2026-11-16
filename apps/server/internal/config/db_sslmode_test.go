@@ -41,6 +41,14 @@ func TestLoadConfig_AnUnknownDBSSLModeStopsStartup(t *testing.T) {
 	}
 }
 
+// A mode of "" — a config built without LoadConfig — is disable, as sslmode=disable was: an
+// empty sslmode would make pgdriver try TLS, its default
+func TestPostgresSSLMode_TreatsAnEmptyModeAsDisable(t *testing.T) {
+	assert.Equal(t, "disable", PostgresSSLMode(""))
+	assert.Equal(t, "disable", PostgresSSLMode("disable"))
+	assert.Equal(t, "require", PostgresSSLMode("require"))
+}
+
 // "bun db migrate" reads the same variable: it loads only the database settings
 func TestLoadConfig_DBSSLModeInTheDatabaseSettings(t *testing.T) {
 	t.Setenv("DB_TYPE", "sqlite")
