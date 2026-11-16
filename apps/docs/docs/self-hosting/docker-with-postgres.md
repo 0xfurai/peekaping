@@ -65,6 +65,8 @@ services:
       DB_USER: ${DB_USER:-postgres}
       DB_PASS: ${DB_PASS:-password}
       DB_NAME: ${DB_NAME:-peekaping}
+      # When the database wants TLS, set it in .env (see "Another PostgreSQL server")
+      DB_SSLMODE: ${DB_SSLMODE:-disable}
       # Behind a reverse proxy, set TRUSTED_PROXIES in .env (see Reverse proxy and HTTPS)
       TRUSTED_PROXIES: ${TRUSTED_PROXIES-}
     depends_on:
@@ -84,7 +86,7 @@ PostgreSQL's major versions are upgraded through the official image, not through
 
 Single mode works with any PostgreSQL, such as a managed one. Remove the `postgres` service and the `depends_on`, and set `DB_HOST` and `DB_PORT` to the server's address, with `DB_USER`, `DB_PASS` and `DB_NAME` of a database that exists. The user needs to create tables in its public schema. `peekaping` creates its tables with the migrations at start.
 
-Set `DB_SSLMODE` when the server wants TLS, as a managed one usually does: `require`, `allow` or `prefer` encrypt the connection without checking the server's certificate, `verify-ca` checks the certificate's chain, and `verify-full` checks the host name too. The default, `disable`, connects without TLS. The same variable is read in cluster mode, by the `api` and the `migrate` services.
+Set `DB_SSLMODE` when the server wants TLS, as a managed one usually does: `require`, `allow` or `prefer` encrypt the connection without checking the server's certificate, `verify-ca` checks the certificate's chain, and `verify-full` checks the host name too. The default, `disable`, connects without TLS. Unlike libpq, the driver doesn't fall back to plain on `allow` and `prefer`: those still need a server that offers TLS. The same variable is read in cluster mode, by the `api` and the `migrate` services.
 
 ### Settings
 
