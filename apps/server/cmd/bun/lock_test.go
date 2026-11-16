@@ -327,5 +327,5 @@ func setDatabaseEnv(t *testing.T, cfg *config.DBConfig) {
 	t.Setenv("DB_NAME", cfg.DBName)
 	t.Setenv("DB_USER", cfg.DBUser)
 	t.Setenv("DB_PASS", cfg.DBPass)
-	t.Setenv("DB_SSLMODE", cfg.DBSSLMode)
+	t.Setenv("DB_SSLMODE", config.PostgresSSLMode(cfg.DBSSLMode))
 }
