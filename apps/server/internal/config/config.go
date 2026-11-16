@@ -20,6 +20,9 @@ type DBConfig struct {
 	DBUser string `env:"DB_USER"`                           // validated in validateCustomRules
 	DBPass string `env:"DB_PASS"`                           // validated in validateCustomRules
 	DBType string `env:"DB_TYPE" validate:"required,db_type"`
+	// DBSSLMode is the sslmode of the PostgreSQL connection: whether it uses TLS and how much
+	// it checks. MySQL and SQLite don't read it.
+	DBSSLMode string `env:"DB_SSLMODE" validate:"oneof=disable allow prefer require verify-ca verify-full" default:"disable"`
 }
 
 type Config struct {
@@ -35,6 +38,9 @@ type Config struct {
 	DBUser string `env:"DB_USER"`                           // validated in validateCustomRules
 	DBPass string `env:"DB_PASS"`                           // validated in validateCustomRules
 	DBType string `env:"DB_TYPE" validate:"required,db_type"`
+	// DBSSLMode is the sslmode of the PostgreSQL connection: whether it uses TLS and how much
+	// it checks. MySQL and SQLite don't read it.
+	DBSSLMode string `env:"DB_SSLMODE" validate:"oneof=disable allow prefer require verify-ca verify-full" default:"disable"`
 
 	// Which check a process that opens SQLite runs at startup: "quick" runs PRAGMA quick_check,
 	// "full" runs PRAGMA integrity_check, and "off" runs none. A finding stops startup.

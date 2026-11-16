@@ -68,6 +68,7 @@ YYYYMMDDHHMMSS_description.tx.{up|down}.sql
 | `DB_NAME` | string | Yes | - | Database name or SQLite file path |
 | `DB_USER` | string | Conditional | - | Database username (not required for SQLite) |
 | `DB_PASS` | string | Conditional | - | Database password (not required for SQLite) |
+| `DB_SSLMODE` | string | No | `disable` | PostgreSQL TLS mode: `disable`, `allow`, `prefer`, `require`, `verify-ca` or `verify-full` |
 
 **Note**: No Redis or other services are required for migrations.
 

@@ -84,6 +84,8 @@ PostgreSQL's major versions are upgraded through the official image, not through
 
 Single mode works with any PostgreSQL, such as a managed one. Remove the `postgres` service and the `depends_on`, and set `DB_HOST` and `DB_PORT` to the server's address, with `DB_USER`, `DB_PASS` and `DB_NAME` of a database that exists. The user needs to create tables in its public schema. `peekaping` creates its tables with the migrations at start.
 
+Set `DB_SSLMODE` when the server wants TLS, as a managed one usually does: `require`, `allow` or `prefer` encrypt the connection without checking the server's certificate, `verify-ca` checks the certificate's chain, and `verify-full` checks the host name too. The default, `disable`, connects without TLS. The same variable is read in cluster mode, by the `api` and the `migrate` services.
+
 ### Settings
 
 The image reads the same environment variables as cluster mode (see the [`.env` file](#env-file) below), with these exceptions:
@@ -201,6 +203,10 @@ DB_NAME=peekaping
 DB_HOST=database
 DB_PORT=5432
 DB_TYPE=postgres
+# Whether the connection to PostgreSQL uses TLS: disable (the default), allow,
+# prefer, require, verify-ca or verify-full. A managed database usually needs
+# one of the last three.
+# DB_SSLMODE=require
 
 # Server Configuration
 # The API's port inside the Docker network. The single-mode image ignores it

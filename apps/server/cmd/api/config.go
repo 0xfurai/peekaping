@@ -29,6 +29,9 @@ type Config struct {
 	DBPass string `env:"DB_PASS"`                           // validated in Validate()
 	DBType string `env:"DB_TYPE" validate:"required,db_type"`
 
+	// The sslmode of the PostgreSQL connection; MySQL and SQLite don't read it
+	DBSSLMode string `env:"DB_SSLMODE" validate:"oneof=disable allow prefer require verify-ca verify-full" default:"disable"`
+
 	// Which check the process runs when it opens SQLite: quick (PRAGMA quick_check), full
 	// (PRAGMA integrity_check, which reads the whole file) or off. A finding stops startup.
 	SQLiteStartupCheck string `env:"SQLITE_STARTUP_CHECK" validate:"oneof=quick full off" default:"quick"`
@@ -216,12 +219,13 @@ func validateStorage(cfg *Config) error {
 
 	// Validate database-specific requirements
 	dbConfig := &config.DBConfig{
-		DBHost: cfg.DBHost,
-		DBPort: cfg.DBPort,
-		DBName: cfg.DBName,
-		DBUser: cfg.DBUser,
-		DBPass: cfg.DBPass,
-		DBType: cfg.DBType,
+		DBHost:    cfg.DBHost,
+		DBPort:    cfg.DBPort,
+		DBName:    cfg.DBName,
+		DBUser:    cfg.DBUser,
+		DBPass:    cfg.DBPass,
+		DBType:    cfg.DBType,
+		DBSSLMode: cfg.DBSSLMode,
 	}
 
 	if err := config.ValidateDatabaseCustomRules(dbConfig); err != nil {
@@ -338,6 +342,7 @@ func (c *Config) ToInternalConfig() *config.Config {
 		DBUser:                         c.DBUser,
 		DBPass:                         c.DBPass,
 		DBType:                         c.DBType,
+		DBSSLMode:                      c.DBSSLMode,
 		SQLiteStartupCheck:             c.SQLiteStartupCheck,
 		Mode:                           c.Mode,
 		LogLevel:                       c.LogLevel,
