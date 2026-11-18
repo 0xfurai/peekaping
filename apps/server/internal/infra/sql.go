@@ -57,14 +57,17 @@ func ProvideSQLDB(
 
 // openPostgres is the PostgreSQL connection, which connects at the first query
 func openPostgres(cfg *config.Config, logger *zap.SugaredLogger) *bun.DB {
-	dsn := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable",
-		cfg.DBUser, cfg.DBPass, cfg.DBHost, cfg.DBPort, cfg.DBName)
-
-	sqldb := sql.OpenDB(pgdriver.NewConnector(pgdriver.WithDSN(dsn)))
+	sqldb := sql.OpenDB(pgdriver.NewConnector(pgdriver.WithDSN(postgresDSN(cfg))))
 	db := bun.NewDB(sqldb, pgdialect.New())
 
 	logger.Infof("Connecting to PostgreSQL database: %s:%s/%s", cfg.DBHost, cfg.DBPort, cfg.DBName)
 	return db
+}
+
+// postgresDSN is the connection string openPostgres connects with.
+func postgresDSN(cfg *config.Config) string {
+	return fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s",
+		cfg.DBUser, cfg.DBPass, cfg.DBHost, cfg.DBPort, cfg.DBName, config.PostgresSSLMode(cfg.DBSSLMode))
 }
 
 // openMySQL is the MySQL connection

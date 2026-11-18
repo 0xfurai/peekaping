@@ -53,7 +53,7 @@ func postgresConfig(t *testing.T) *config.DBConfig {
 		require.NoError(t, err)
 		require.NoError(t, admin.Close())
 	})
-	return &config.DBConfig{DBType: "postgres", DBHost: u.Hostname(), DBPort: u.Port(), DBUser: u.User.Username(), DBPass: password, DBName: name}
+	return &config.DBConfig{DBType: "postgres", DBHost: u.Hostname(), DBPort: u.Port(), DBUser: u.User.Username(), DBPass: password, DBName: name, DBSSLMode: u.Query().Get("sslmode")}
 }
 
 // eachBackend runs the test on every storage backend that has a migrate lock to speak of. Each
@@ -327,4 +327,5 @@ func setDatabaseEnv(t *testing.T, cfg *config.DBConfig) {
 	t.Setenv("DB_NAME", cfg.DBName)
 	t.Setenv("DB_USER", cfg.DBUser)
 	t.Setenv("DB_PASS", cfg.DBPass)
+	t.Setenv("DB_SSLMODE", config.PostgresSSLMode(cfg.DBSSLMode))
 }

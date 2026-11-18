@@ -23,6 +23,7 @@ func usePostgres(t *testing.T, dsn string) func(*config.Config) {
 		cfg.DBType, cfg.DBHost, cfg.DBPort = "postgres", parsed.Hostname(), parsed.Port()
 		cfg.DBUser, cfg.DBPass = parsed.User.Username(), password
 		cfg.DBName = "apitest_" + uuid.NewString()[:8]
+		cfg.DBSSLMode = parsed.Query().Get("sslmode")
 		admin := openAdmin(dsn)
 		defer admin.Close()
 		// A Docker Desktop port forwarding resets the first connection now and then

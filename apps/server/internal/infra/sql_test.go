@@ -22,6 +22,26 @@ import (
 	"peekaping/internal/config"
 )
 
+// The sslmode of the connection string is DB_SSLMODE: a PostgreSQL that needs TLS gets the
+// mode the install set, and the default connects without TLS as before.
+func TestPostgresDSN_PutsTheConfiguredSSLModeInTheConnectionString(t *testing.T) {
+	cfg := &config.Config{
+		DBHost: "db.example.com", DBPort: "5432", DBName: "peekaping",
+		DBUser: "peekaping", DBPass: "secret", DBType: "postgres", DBSSLMode: "verify-full",
+	}
+
+	require.Equal(t, "postgres://peekaping:secret@db.example.com:5432/peekaping?sslmode=verify-full", postgresDSN(cfg))
+
+	cfg.DBSSLMode = "disable"
+	require.Equal(t, "postgres://peekaping:secret@db.example.com:5432/peekaping?sslmode=disable", postgresDSN(cfg))
+
+	// A config built without LoadConfig, as a test's, has an empty mode. It must still mean
+	// disable: an empty sslmode would make pgdriver try TLS, its default, which a server
+	// without it refuses.
+	cfg.DBSSLMode = ""
+	require.Equal(t, "postgres://peekaping:secret@db.example.com:5432/peekaping?sslmode=disable", postgresDSN(cfg))
+}
+
 // A web client that hangs up mid-request cancels the API's read of heartbeats.
 // The SQLite driver must close that read's statement when it is cancelled. If
 // it doesn't, the API's only connection keeps a stale read snapshot open, and
