@@ -13,8 +13,6 @@ import (
 	"peekaping/internal/modules/workspace/workspacehttp"
 	"peekaping/internal/utils"
 
-	"github.com/danielgtaylor/huma/v2"
-	"github.com/danielgtaylor/huma/v2/adapters/humago"
 	"go.uber.org/zap"
 )
 
@@ -71,15 +69,15 @@ func (c *Controller) failImport(err error) error {
 }
 
 // download sets the headers of a file answer. The file holds secrets, so nothing may keep a copy.
-func download(ctx huma.Context, contentType, filename string) {
-	ctx.SetHeader("Content-Type", contentType)
-	ctx.SetHeader("Content-Disposition", `attachment; filename="`+filename+`"`)
-	ctx.SetHeader("Cache-Control", "no-store")
-	ctx.SetStatus(http.StatusOK)
+func download(w http.ResponseWriter, contentType, filename string) {
+	w.Header().Set("Content-Type", contentType)
+	w.Header().Set("Content-Disposition", `attachment; filename="`+filename+`"`)
+	w.Header().Set("Cache-Control", "no-store")
+	w.WriteHeader(http.StatusOK)
 }
 
 // Export answers the workspace document as a JSON file
-func (c *Controller) Export(ctx context.Context, _ *ExportInput) (*httpx.Output[func(huma.Context)], error) {
+func (c *Controller) Export(ctx context.Context, _ *ExportInput) (*httpx.Output[httpx.Stream], error) {
 	doc, err := c.service.Export(ctx)
 	if err != nil {
 		return nil, c.fail(err)
@@ -93,22 +91,21 @@ func (c *Controller) Export(ctx context.Context, _ *ExportInput) (*httpx.Output[
 		return nil, c.fail(err)
 	}
 	filename := "peekaping-workspace-" + doc.ExportedAt.UTC().Format("2006-01-02") + ".json"
-	return &httpx.Output[func(huma.Context)]{Body: func(hctx huma.Context) {
-		download(hctx, "application/json; charset=utf-8", filename)
-		_, _ = hctx.BodyWriter().Write(body.Bytes())
+	return &httpx.Output[httpx.Stream]{Body: func(w http.ResponseWriter) {
+		download(w, "application/json; charset=utf-8", filename)
+		_, _ = w.Write(body.Bytes())
 	}}, nil
 }
 
 // ExportHeartbeats streams the workspace's heartbeat history as NDJSON
-func (c *Controller) ExportHeartbeats(ctx context.Context, input *ExportHeartbeatsInput) (*httpx.Output[func(huma.Context)], error) {
+func (c *Controller) ExportHeartbeats(ctx context.Context, input *ExportHeartbeatsInput) (*httpx.Output[httpx.Stream], error) {
 	export, err := c.service.PrepareHeartbeatExport(ctx)
 	if err != nil {
 		return nil, c.fail(err)
 	}
 	filename := "peekaping-heartbeats-" + export.At().Format("2006-01-02") + ".ndjson"
-	return &httpx.Output[func(huma.Context)]{Body: func(hctx huma.Context) {
-		download(hctx, "application/x-ndjson", filename)
-		_, w := humago.Unwrap(hctx)
+	return &httpx.Output[httpx.Stream]{Body: func(w http.ResponseWriter) {
+		download(w, "application/x-ndjson", filename)
 		if err := export.Write(ctx, newNDJSONSink(w)); err != nil {
 			// The answer is started and cannot say it failed. Ending the connection without the
 			// terminating chunk tells the client that the file is cut short.

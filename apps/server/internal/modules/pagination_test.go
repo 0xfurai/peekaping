@@ -16,8 +16,6 @@ import (
 	"peekaping/internal/modules/workspace/workspacetest"
 	"testing"
 
-	"github.com/danielgtaylor/huma/v2"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
@@ -111,28 +109,30 @@ func TestListEndpointsPagination(t *testing.T) {
 		name         string
 		defaultLimit int
 		register     func(*httpx.Router, *paginationCall)
+		// target is the path a request goes to: / unless the route has a wildcard
+		target string
 	}{
 		{"tags", 10, func(router *httpx.Router, call *paginationCall) {
-			httpx.Register(router, "GET", "/", huma.Operation{Errors: []int{400, 500}}, tag.NewController(&tagPaginationService{paginationCall: call}, logger).FindAll)
-		}},
+			httpx.Register(router, "GET", "/", httpx.Operation{Errors: []int{400, 500}}, tag.NewController(&tagPaginationService{paginationCall: call}, logger).FindAll)
+		}, ""},
 		{"proxies", 10, func(router *httpx.Router, call *paginationCall) {
-			httpx.Register(router, "GET", "/", huma.Operation{Errors: []int{400, 500}}, proxy.NewController(&proxyPaginationService{paginationCall: call}, logger).FindAll)
-		}},
+			httpx.Register(router, "GET", "/", httpx.Operation{Errors: []int{400, 500}}, proxy.NewController(&proxyPaginationService{paginationCall: call}, logger).FindAll)
+		}, ""},
 		{"notification-channels", 10, func(router *httpx.Router, call *paginationCall) {
-			httpx.Register(router, "GET", "/", huma.Operation{Errors: []int{400, 500}}, notification_channel.NewController(&notificationPaginationService{paginationCall: call}, nil, logger).FindAll)
-		}},
+			httpx.Register(router, "GET", "/", httpx.Operation{Errors: []int{400, 500}}, notification_channel.NewController(&notificationPaginationService{paginationCall: call}, nil, logger).FindAll)
+		}, ""},
 		{"maintenances", 10, func(router *httpx.Router, call *paginationCall) {
-			httpx.Register(router, "GET", "/", huma.Operation{Errors: []int{400, 500}}, maintenance.NewController(&maintenancePaginationService{paginationCall: call}, logger).FindAll)
-		}},
+			httpx.Register(router, "GET", "/", httpx.Operation{Errors: []int{400, 500}}, maintenance.NewController(&maintenancePaginationService{paginationCall: call}, logger).FindAll)
+		}, ""},
 		{"status-pages", 10, func(router *httpx.Router, call *paginationCall) {
-			httpx.Register(router, "GET", "/", huma.Operation{Errors: []int{400, 500}}, status_page.NewController(&statusPagePaginationService{paginationCall: call}, nil, nil, logger).FindAll)
-		}},
+			httpx.Register(router, "GET", "/", httpx.Operation{Errors: []int{400, 500}}, status_page.NewController(&statusPagePaginationService{paginationCall: call}, nil, nil, logger).FindAll)
+		}, ""},
 		{"monitors", 10, func(router *httpx.Router, call *paginationCall) {
-			httpx.Register(router, "GET", "/", huma.Operation{Errors: []int{400, 500}}, monitor.NewMonitorController(&monitorPaginationService{paginationCall: call}, logger, nil, nil, nil, nil).FindAll)
-		}},
+			httpx.Register(router, "GET", "/", httpx.Operation{Errors: []int{400, 500}}, monitor.NewMonitorController(&monitorPaginationService{paginationCall: call}, logger, nil, nil, nil, nil).FindAll)
+		}, ""},
 		{"heartbeats", 50, func(router *httpx.Router, call *paginationCall) {
-			httpx.Register(router, "GET", "/", huma.Operation{Errors: []int{400, 500}}, monitor.NewMonitorController(&monitorPaginationService{paginationCall: call}, logger, nil, nil, nil, nil).FindByMonitorIDPaginated)
-		}},
+			httpx.Register(router, "GET", "/{id}", httpx.Operation{Errors: []int{400, 500}}, monitor.NewMonitorController(&monitorPaginationService{paginationCall: call}, logger, nil, nil, nil, nil).FindByMonitorIDPaginated)
+		}, "/m1"},
 	}
 	cases := []struct {
 		name   string
@@ -164,7 +164,11 @@ func TestListEndpointsPagination(t *testing.T) {
 					router := httpx.NewRouter()
 					endpoint.register(router, call)
 					response := httptest.NewRecorder()
-					request := httptest.NewRequest(http.MethodGet, "/"+tc.query, nil)
+					target := endpoint.target
+					if target == "" {
+						target = "/"
+					}
+					request := httptest.NewRequest(http.MethodGet, target+tc.query, nil)
 					// the requests of a workspace's routes run in one
 					request = request.WithContext(workspace.WithContext(request.Context(), workspacetest.ID, workspace.RoleAdmin))
 					router.ServeHTTP(response, request)

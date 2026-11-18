@@ -4,8 +4,6 @@ import (
 	"net/http"
 	"peekaping/internal/httpx"
 	"peekaping/internal/modules/status_page"
-
-	"github.com/danielgtaylor/huma/v2"
 )
 
 type Route struct {
@@ -33,23 +31,23 @@ func (r *Route) ConnectRoute(rg *httpx.Router, controller *Controller) {
 	badge := rg.Group("badge")
 	badge.Use(restrictBrowser)
 	// A badge of a monitor in a suspended workspace answers 503 and says nothing of why (PP-372)
-	unavailable := map[string]*huma.Response{"503": httpx.ErrorResponse[status_page.UnavailableResponse](badge, http.StatusServiceUnavailable)}
+	unavailable := map[string]*httpx.Response{"503": httpx.ErrorResponse[status_page.UnavailableResponse]()}
 	{
 		// Status badge
-		httpx.Register(badge, "GET", "/{monitorId}/status", huma.Operation{Summary: "Get status badge", Tags: []string{"badge"}, DefaultStatus: http.StatusOK, Responses: unavailable, Errors: []int{http.StatusBadRequest, http.StatusInternalServerError, http.StatusNotFound}}, r.controller.GetStatusBadge)
+		httpx.Register(badge, "GET", "/{monitorId}/status", httpx.Operation{Summary: "Get status badge", Tags: []string{"badge"}, DefaultStatus: http.StatusOK, Responses: unavailable, Errors: []int{http.StatusBadRequest, http.StatusInternalServerError, http.StatusNotFound}}, r.controller.GetStatusBadge)
 
 		// Uptime badge with duration
-		httpx.Register(badge, "GET", "/{monitorId}/uptime/{duration}", huma.Operation{Summary: "Get uptime badge", Tags: []string{"badge"}, DefaultStatus: http.StatusOK, Responses: unavailable, Errors: []int{http.StatusBadRequest, http.StatusInternalServerError, http.StatusNotFound}}, r.controller.GetUptimeBadge)
-		httpx.Register(badge, "GET", "/{monitorId}/uptime", huma.Operation{Summary: "Get uptime badge", Tags: []string{"badge"}, DefaultStatus: http.StatusOK, Responses: unavailable, Errors: []int{http.StatusBadRequest, http.StatusInternalServerError, http.StatusNotFound}}, r.controller.GetUptimeBadge) // Default duration
+		httpx.Register(badge, "GET", "/{monitorId}/uptime/{duration}", httpx.Operation{Summary: "Get uptime badge", Tags: []string{"badge"}, DefaultStatus: http.StatusOK, Responses: unavailable, Errors: []int{http.StatusBadRequest, http.StatusInternalServerError, http.StatusNotFound}}, r.controller.GetUptimeBadge)
+		httpx.Register(badge, "GET", "/{monitorId}/uptime", httpx.Operation{Summary: "Get uptime badge", Tags: []string{"badge"}, DefaultStatus: http.StatusOK, Responses: unavailable, Errors: []int{http.StatusBadRequest, http.StatusInternalServerError, http.StatusNotFound}}, r.controller.GetUptimeBadgeDefault)
 
 		// Ping badge with duration
-		httpx.Register(badge, "GET", "/{monitorId}/ping/{duration}", huma.Operation{Summary: "Get ping badge", Tags: []string{"badge"}, DefaultStatus: http.StatusOK, Responses: unavailable, Errors: []int{http.StatusBadRequest, http.StatusInternalServerError, http.StatusNotFound}}, r.controller.GetPingBadge)
-		httpx.Register(badge, "GET", "/{monitorId}/ping", huma.Operation{Summary: "Get ping badge", Tags: []string{"badge"}, DefaultStatus: http.StatusOK, Responses: unavailable, Errors: []int{http.StatusBadRequest, http.StatusInternalServerError, http.StatusNotFound}}, r.controller.GetPingBadge) // Default duration
+		httpx.Register(badge, "GET", "/{monitorId}/ping/{duration}", httpx.Operation{Summary: "Get ping badge", Tags: []string{"badge"}, DefaultStatus: http.StatusOK, Responses: unavailable, Errors: []int{http.StatusBadRequest, http.StatusInternalServerError, http.StatusNotFound}}, r.controller.GetPingBadge)
+		httpx.Register(badge, "GET", "/{monitorId}/ping", httpx.Operation{Summary: "Get ping badge", Tags: []string{"badge"}, DefaultStatus: http.StatusOK, Responses: unavailable, Errors: []int{http.StatusBadRequest, http.StatusInternalServerError, http.StatusNotFound}}, r.controller.GetPingBadgeDefault)
 
 		// Certificate expiry badge
-		httpx.Register(badge, "GET", "/{monitorId}/cert-exp", huma.Operation{Summary: "Get certificate expiry badge", Tags: []string{"badge"}, DefaultStatus: http.StatusOK, Responses: unavailable, Errors: []int{http.StatusBadRequest, http.StatusInternalServerError, http.StatusNotFound}}, r.controller.GetCertExpBadge)
+		httpx.Register(badge, "GET", "/{monitorId}/cert-exp", httpx.Operation{Summary: "Get certificate expiry badge", Tags: []string{"badge"}, DefaultStatus: http.StatusOK, Responses: unavailable, Errors: []int{http.StatusBadRequest, http.StatusInternalServerError, http.StatusNotFound}}, r.controller.GetCertExpBadge)
 
 		// Response time badge
-		httpx.Register(badge, "GET", "/{monitorId}/response", huma.Operation{Summary: "Get response time badge", Tags: []string{"badge"}, DefaultStatus: http.StatusOK, Responses: unavailable, Errors: []int{http.StatusBadRequest, http.StatusInternalServerError, http.StatusNotFound}}, r.controller.GetResponseBadge)
+		httpx.Register(badge, "GET", "/{monitorId}/response", httpx.Operation{Summary: "Get response time badge", Tags: []string{"badge"}, DefaultStatus: http.StatusOK, Responses: unavailable, Errors: []int{http.StatusBadRequest, http.StatusInternalServerError, http.StatusNotFound}}, r.controller.GetResponseBadge)
 	}
 }

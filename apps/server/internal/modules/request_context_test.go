@@ -7,8 +7,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/danielgtaylor/huma/v2"
-
 	"peekaping/internal/httpx"
 	"peekaping/internal/modules/tag"
 	"peekaping/internal/modules/workspace"
@@ -36,7 +34,7 @@ func TestControllerPropagatesRequestContext(t *testing.T) {
 	ctx = workspace.WithContext(ctx, workspacetest.ID, workspace.RoleAdmin) // the request of a workspace's route
 	service := &contextTagService{}
 	router := httpx.NewRouter()
-	httpx.Register(router, "GET", "/tags", huma.Operation{Errors: []int{400, 500}}, tag.NewController(service, zap.NewNop().Sugar()).FindAll,
+	httpx.Register(router, "GET", "/tags", httpx.Operation{Errors: []int{400, 500}}, tag.NewController(service, zap.NewNop().Sugar()).FindAll,
 		func(next http.Handler) http.Handler {
 			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				next.ServeHTTP(w, httpx.WithValue(r, "authType", "jwt"))

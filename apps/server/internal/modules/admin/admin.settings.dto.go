@@ -5,8 +5,6 @@ import (
 
 	"peekaping/internal/httpx"
 	"peekaping/internal/installsettings"
-
-	"github.com/danielgtaylor/huma/v2"
 )
 
 // StringSettingResponse is an install setting's value and where it comes from
@@ -144,9 +142,8 @@ func (c *LimitChange) UnmarshalJSON(data []byte) error {
 	return json.Unmarshal(data, &c.value)
 }
 
-func (LimitChange) Schema(huma.Registry) *huma.Schema {
-	minimum := 1.0
-	return &huma.Schema{Type: "integer", Format: "int64", Nullable: true, Minimum: &minimum}
+func (LimitChange) OASSchema() map[string]any {
+	return map[string]any{"type": []string{"integer", "null"}, "format": "int64", "minimum": 1}
 }
 
 // UpdateDefaultLimitsDto changes the install's default limits. A limit left out stays as it is.

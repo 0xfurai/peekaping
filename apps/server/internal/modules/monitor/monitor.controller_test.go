@@ -14,7 +14,6 @@ import (
 	"peekaping/internal/modules/monitor_tag"
 	"peekaping/internal/modules/workspace"
 
-	"github.com/danielgtaylor/huma/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
@@ -48,7 +47,7 @@ func TestControllerCreateLogsTheMonitorsIDAndTypeButNotItsConfig(t *testing.T) {
 	core, logs := observer.New(zap.DebugLevel)
 	controller := NewMonitorController(creatingService{}, zap.New(core).Sugar(), unlinkedNotifications{}, unlinkedTags{}, nil, nil)
 	router := httpx.NewRouter()
-	httpx.Register(router, "POST", "/", huma.Operation{Errors: []int{400, 500}}, controller.Create)
+	httpx.Register(router, "POST", "/", httpx.Operation{Errors: []int{400, 500}}, controller.Create)
 
 	body := `{"type": "http", "name": "Public API", "interval": 60, "retry_interval": 60, "timeout": 16, "notification_ids": [],` +
 		` "config": "{\"url\": \"https://example.com\", \"authMethod\": \"basic\", \"basic_auth_pass\": \"secret-monitor-password\"}"}`
@@ -100,7 +99,7 @@ func TestControllerCreateAnswersWithoutReadingTheLinksBack(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			controller := NewMonitorController(creatingService{}, zap.NewNop().Sugar(), failingNotifications{}, failingTags{}, nil, nil)
 			router := httpx.NewRouter()
-			httpx.Register(router, "POST", "/", huma.Operation{Errors: []int{400, 500}}, controller.Create)
+			httpx.Register(router, "POST", "/", httpx.Operation{Errors: []int{400, 500}}, controller.Create)
 
 			body := `{"type": "http", "name": "Public API", "interval": 60, "retry_interval": 60, "timeout": 16, ` + tc.body +
 				`, "config": "{\"url\": \"https://example.com\"}"}`

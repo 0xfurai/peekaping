@@ -33,8 +33,6 @@ import (
 	"peekaping/internal/probeproto"
 	"peekaping/internal/version"
 
-	"github.com/danielgtaylor/huma/v2"
-
 	"go.uber.org/zap"
 )
 
@@ -156,7 +154,7 @@ func ProvideServer(
 	server := httpx.NewRouter(httpx.RequestID, httpx.Logger(logger, trustedProxies), httpx.Recovery(logger), httpx.CORS(corsOrigins), httpx.LimitBodyBy(requestBodyLimit))
 
 	healthHandler := newHealthHandler(staleStore, logger)
-	httpx.Register(server, "GET", "/health", huma.Operation{Summary: "Get server health", Tags: []string{"System"}}, healthHandler)
+	httpx.Register(server, "GET", "/health", httpx.Operation{Summary: "Get server health", Tags: []string{"System"}}, healthHandler)
 
 	// Prometheus metrics endpoint (unauthenticated, like /health and /version). With METRICS_PORT
 	// set, the binary serves it on that port instead, and this router doesn't.
@@ -165,8 +163,8 @@ func ProvideServer(
 	}
 
 	router := server.Group("/api/v1")
-	httpx.Register(router, "GET", "/health", huma.Operation{Summary: "Get server health", Tags: []string{"System"}}, healthHandler)
-	httpx.Register(router, "GET", "/version", huma.Operation{Summary: "Get server version", Tags: []string{"System"}}, versionHandler)
+	httpx.Register(router, "GET", "/health", httpx.Operation{Summary: "Get server health", Tags: []string{"System"}}, healthHandler)
+	httpx.Register(router, "GET", "/version", httpx.Operation{Summary: "Get server version", Tags: []string{"System"}}, versionHandler)
 
 	// Connect routes
 	monitorRoute.ConnectRoute(router, monitorController)
@@ -194,7 +192,7 @@ func ProvideServer(
 	healthcheck.RegisterPushEndpoint(router, monitorService, heartbeatService, ingesterService, maintenanceService, logger)
 
 	// Compatibility entry points; generated documentation lives at /docs.
-	server.Handle("GET", "/swagger/{any...}", swaggerHandler(server.API()))
+	server.Handle("GET", "/swagger/{any...}", swaggerHandler(server.OpenAPI()))
 	server.Handle("GET", "/socket.io/{f...}", wsServer.ServeHTTP)
 	server.Handle("POST", "/socket.io/{f...}", wsServer.ServeHTTP)
 

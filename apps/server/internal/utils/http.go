@@ -6,8 +6,6 @@ import (
 	"peekaping/internal/httpx"
 	"strings"
 
-	"github.com/danielgtaylor/huma/v2"
-
 	"go.uber.org/zap"
 )
 
@@ -18,13 +16,9 @@ type ApiResponse[T any] struct {
 
 // NullableApiResponse describes endpoints that successfully return null data,
 // such as a monitor without TLS information. Its wire envelope is unchanged.
-type NullableApiResponse[T any] ApiResponse[T]
-
-func (NullableApiResponse[T]) TransformSchema(_ huma.Registry, schema *huma.Schema) *huma.Schema {
-	if data := schema.Properties["data"]; data != nil {
-		schema.Properties["data"] = &huma.Schema{AnyOf: []*huma.Schema{data, {Type: "null"}}}
-	}
-	return schema
+type NullableApiResponse[T any] struct {
+	Message string `json:"message"`
+	Data    T      `json:"data" nullable:"true"`
 }
 
 func NewNullableSuccessResponse[T any](message string, data T) NullableApiResponse[T] {

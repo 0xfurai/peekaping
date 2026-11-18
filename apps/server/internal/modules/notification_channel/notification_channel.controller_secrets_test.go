@@ -14,7 +14,6 @@ import (
 
 	"peekaping/internal/httpx"
 
-	"github.com/danielgtaylor/huma/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
@@ -79,7 +78,7 @@ func newSecretsFixture(t *testing.T, config string) *secretsFixture {
 	core, logs := observer.New(zap.DebugLevel)
 	controller := NewController(store, providers, zap.New(core).Sugar())
 	router := httpx.NewRouter()
-	ops := huma.Operation{Errors: []int{400, 404, 500}}
+	ops := httpx.Operation{Errors: []int{400, 404, 500}}
 	httpx.Register(router, "POST", "/", ops, controller.Create)
 	httpx.Register(router, "POST", "/test", ops, controller.Test)
 	httpx.Register(router, "GET", "/{id}", ops, controller.FindByID)

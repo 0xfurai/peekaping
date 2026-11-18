@@ -38,7 +38,6 @@ import (
 	"peekaping/internal/modules/workspace"
 	"peekaping/internal/modules/workspace/workspacetest"
 
-	"github.com/danielgtaylor/huma/v2"
 	"github.com/hibiken/asynq"
 	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
@@ -258,7 +257,7 @@ func TestRegisterSingle_TestsAChannelWithoutTheNotificationListenerBuilt(t *test
 	require.NoError(t, container.Invoke(func(controller *notification_channel.Controller, db *bun.DB) {
 		closeDB(t, db)
 		router := httpx.NewRouter()
-		httpx.Register(router, "POST", "/test", huma.Operation{Errors: []int{400, 404, 500}}, controller.Test)
+		httpx.Register(router, "POST", "/test", httpx.Operation{Errors: []int{400, 404, 500}}, controller.Test)
 
 		req := httptest.NewRequest(http.MethodPost, "/test", strings.NewReader(string(body)))
 		req.Header.Set("Content-Type", "application/json")

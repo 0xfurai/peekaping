@@ -23,9 +23,10 @@ type GetStatusBadgeParams struct {
 }
 type GetStatusBadgeInput = httpx.Input[httpx.NoBody, GetStatusBadgeParams]
 
-type GetUptimeBadgeParams struct {
+// GetUptimeBadgeDefaultParams are the parameters of the uptime badge of the default duration,
+// whose path has none
+type GetUptimeBadgeDefaultParams struct {
 	MonitorId   string `path:"monitorId" doc:"Monitor ID" required:"true"`
-	Duration    string `path:"duration" doc:"Hours; absent or invalid values use 24."`
 	Style       string `query:"style" doc:"Badge style"`
 	Label       string `query:"label" doc:"Custom label"`
 	Suffix      string `query:"suffix" doc:"Value suffix"`
@@ -41,11 +42,18 @@ type GetUptimeBadgeParams struct {
 	WarnDays    string `query:"warnDays" doc:"Invalid options fall back to defaults."`
 	DownDays    string `query:"downDays" doc:"Invalid options fall back to defaults."`
 }
+type GetUptimeBadgeDefaultInput = httpx.Input[httpx.NoBody, GetUptimeBadgeDefaultParams]
+
+type GetUptimeBadgeParams struct {
+	GetUptimeBadgeDefaultParams
+	Duration string `path:"duration" doc:"Hours; absent or invalid values use 24."`
+}
 type GetUptimeBadgeInput = httpx.Input[httpx.NoBody, GetUptimeBadgeParams]
 
-type GetPingBadgeParams struct {
+// GetPingBadgeDefaultParams are the parameters of the ping badge of the default duration,
+// whose path has none
+type GetPingBadgeDefaultParams struct {
 	MonitorId   string `path:"monitorId" doc:"Monitor ID" required:"true"`
-	Duration    string `path:"duration" doc:"Hours; absent or invalid values use 24."`
 	Style       string `query:"style" doc:"Badge style"`
 	Label       string `query:"label" doc:"Custom label"`
 	Suffix      string `query:"suffix" doc:"Value suffix"`
@@ -60,6 +68,12 @@ type GetPingBadgeParams struct {
 	Prefix      string `query:"prefix" doc:"Invalid options fall back to defaults."`
 	WarnDays    string `query:"warnDays" doc:"Invalid options fall back to defaults."`
 	DownDays    string `query:"downDays" doc:"Invalid options fall back to defaults."`
+}
+type GetPingBadgeDefaultInput = httpx.Input[httpx.NoBody, GetPingBadgeDefaultParams]
+
+type GetPingBadgeParams struct {
+	GetPingBadgeDefaultParams
+	Duration string `path:"duration" doc:"Hours; absent or invalid values use 24."`
 }
 type GetPingBadgeInput = httpx.Input[httpx.NoBody, GetPingBadgeParams]
 

@@ -11,8 +11,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/danielgtaylor/huma/v2"
-
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
 )
@@ -77,8 +75,8 @@ func TestControllerUpdateValidatesConfig(t *testing.T) {
 				service := &updateRecordingService{saved: &Model{Type: "test-valid", Config: stringPtr("{}")}}
 				controller := NewController(service, providers, zap.NewNop().Sugar())
 				router := httpx.NewRouter()
-				httpx.Register(router, "PUT", "/{id}", huma.Operation{Errors: []int{400, 404, 500}}, controller.UpdateFull)
-				httpx.Register(router, "PATCH", "/{id}", huma.Operation{Errors: []int{400, 404, 500}}, controller.UpdatePartial)
+				httpx.Register(router, "PUT", "/{id}", httpx.Operation{Errors: []int{400, 404, 500}}, controller.UpdateFull)
+				httpx.Register(router, "PATCH", "/{id}", httpx.Operation{Errors: []int{400, 404, 500}}, controller.UpdatePartial)
 
 				body := `{"name": "Alerts", "type": "` + tc.channelType + `", "config": "{}"}`
 				req := httptest.NewRequest(method, "/channel-1", strings.NewReader(body))
@@ -122,7 +120,7 @@ func TestControllerUpdatePartialMergesSavedChannel(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			service := &updateRecordingService{saved: tc.saved}
 			router := httpx.NewRouter()
-			httpx.Register(router, "PATCH", "/{id}", huma.Operation{Errors: []int{400, 404, 500}}, NewController(service, providers, zap.NewNop().Sugar()).UpdatePartial)
+			httpx.Register(router, "PATCH", "/{id}", httpx.Operation{Errors: []int{400, 404, 500}}, NewController(service, providers, zap.NewNop().Sugar()).UpdatePartial)
 
 			req := httptest.NewRequest(http.MethodPatch, "/channel-1", strings.NewReader(tc.body))
 
@@ -140,7 +138,7 @@ func TestControllerUpdatePartialMergesSavedChannel(t *testing.T) {
 	t.Run("omitted fields reach the service as nil", func(t *testing.T) {
 		service := &updateRecordingService{saved: &Model{Type: "test-valid", Config: stringPtr("{}")}}
 		router := httpx.NewRouter()
-		httpx.Register(router, "PATCH", "/{id}", huma.Operation{Errors: []int{400, 404, 500}}, NewController(service, providers, zap.NewNop().Sugar()).UpdatePartial)
+		httpx.Register(router, "PATCH", "/{id}", httpx.Operation{Errors: []int{400, 404, 500}}, NewController(service, providers, zap.NewNop().Sugar()).UpdatePartial)
 
 		req := httptest.NewRequest(http.MethodPatch, "/channel-1", strings.NewReader(`{"name": "Renamed"}`))
 
@@ -160,7 +158,7 @@ func TestControllerUpdatePartialMergesSavedChannel(t *testing.T) {
 	t.Run("active only reaches the service alone", func(t *testing.T) {
 		service := &updateRecordingService{saved: &Model{Type: "test-valid", Config: stringPtr("{}")}}
 		router := httpx.NewRouter()
-		httpx.Register(router, "PATCH", "/{id}", huma.Operation{Errors: []int{400, 404, 500}}, NewController(service, providers, zap.NewNop().Sugar()).UpdatePartial)
+		httpx.Register(router, "PATCH", "/{id}", httpx.Operation{Errors: []int{400, 404, 500}}, NewController(service, providers, zap.NewNop().Sugar()).UpdatePartial)
 
 		req := httptest.NewRequest(http.MethodPatch, "/channel-1", strings.NewReader(`{"active": false}`))
 
@@ -191,7 +189,7 @@ func TestControllerTestSendsWithADeadline(t *testing.T) {
 		}},
 	})
 	router := httpx.NewRouter()
-	httpx.Register(router, "POST", "/test", huma.Operation{Errors: []int{400, 404, 500}}, NewController(nil, providers, zap.NewNop().Sugar()).Test)
+	httpx.Register(router, "POST", "/test", httpx.Operation{Errors: []int{400, 404, 500}}, NewController(nil, providers, zap.NewNop().Sugar()).Test)
 
 	req := httptest.NewRequest(http.MethodPost, "/test", strings.NewReader(`{"name": "Alerts", "type": "test-valid", "config": "{}"}`))
 
@@ -213,7 +211,7 @@ func TestControllerTestKeepsTheTelegramTokenOutOfAFailedSend(t *testing.T) {
 		"telegram": providers.NewTelegramSender(zap.NewNop().Sugar(), providers.NewHTTPClient()),
 	})
 	router := httpx.NewRouter()
-	httpx.Register(router, "POST", "/test", huma.Operation{Errors: []int{400, 404, 500}}, NewController(nil, registry, zap.NewNop().Sugar()).Test)
+	httpx.Register(router, "POST", "/test", httpx.Operation{Errors: []int{400, 404, 500}}, NewController(nil, registry, zap.NewNop().Sugar()).Test)
 
 	const botToken = "123456:secret-bot-token"
 	body := `{"name": "Alerts", "type": "telegram", "config": "{\"bot_token\": \"` + botToken + `\", \"chat_id\": \"42\", \"server_url\": \"` + server.URL + `\"}"}`

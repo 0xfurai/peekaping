@@ -389,7 +389,7 @@ The monitors, tags, proxies, notification channels, status pages, maintenances, 
 
 ### OpenAPI Documentation
 
-REST controllers use typed Huma inputs and outputs, registered through the standard HTTP router. These registrations also define the OpenAPI contract. Export and regenerate the client with `bun run api:generate`; `bun run api:check` validates the spec and checks committed artifacts without databases or Redis.
+REST controllers use typed `httpx.Input` and `httpx.Output` types, registered through the standard HTTP router with `httpx.Register`. These registrations also define the OpenAPI contract. Export and regenerate the client with `bun run api:generate`; `bun run api:check` validates the spec and checks committed artifacts without databases or Redis.
 
 The interactive reference is available at:
 ```

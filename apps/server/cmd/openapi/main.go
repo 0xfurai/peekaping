@@ -1,4 +1,4 @@
-// Command openapi exports the Huma specification without database/Redis access.
+// Command openapi exports the OpenAPI specification without database/Redis access.
 package main
 
 import (
@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 	"peekaping/internal"
+	"peekaping/internal/httpx"
 )
 
 func main() {
@@ -20,7 +21,7 @@ func main() {
 	case "json":
 		data, err = json.MarshalIndent(spec, "", "  ")
 	case "yaml":
-		data, err = spec.YAML()
+		data, err = httpx.SpecYAML(spec)
 	default:
 		err = fmt.Errorf("unknown format %q", *format)
 	}

@@ -653,52 +653,6 @@ export type HttpxErrorBody = {
   message: string;
 };
 
-export type HttpxNoBody = {
-  [key: string]: never;
-};
-
-export type HumaErrorDetail = {
-  /**
-   * Where the error occurred, e.g. 'body.items[3].tags' or 'path.thing-id'
-   */
-  location?: string;
-  /**
-   * Error message text
-   */
-  message?: string;
-  /**
-   * The value at the given location
-   */
-  value?: unknown;
-};
-
-export type HumaErrorModel = {
-  /**
-   * A human-readable explanation specific to this occurrence of the problem.
-   */
-  detail?: string;
-  /**
-   * Optional list of individual error details
-   */
-  errors?: Array<HumaErrorDetail> | null;
-  /**
-   * A URI reference that identifies the specific occurrence of the problem.
-   */
-  instance?: string;
-  /**
-   * HTTP status code
-   */
-  status?: number;
-  /**
-   * A short, human-readable summary of the problem type. This value should not change between occurrences of the error.
-   */
-  title?: string;
-  /**
-   * A URI reference to human-readable documentation for the error.
-   */
-  type?: string;
-};
-
 export type InternalHealthResponse = {
   stale_monitors: number | null;
   status: string;
@@ -2475,17 +2429,17 @@ export type GetAdminUsersData = {
   path?: never;
   query?: {
     /**
-     * Only users whose email contains this text, ignoring case
+     * Users per page
      */
-    q?: string;
+    limit?: number;
     /**
      * Page number, from 0
      */
     page?: number;
     /**
-     * Users per page
+     * Only users whose email contains this text, ignoring case
      */
-    limit?: number;
+    q?: string;
   };
   url: "/api/v1/admin/users";
 };
@@ -2714,17 +2668,17 @@ export type GetAdminWorkspacesData = {
   path?: never;
   query?: {
     /**
-     * Only workspaces whose name or whose owner's email contains this text, ignoring case
+     * Workspaces per page
      */
-    q?: string;
+    limit?: number;
     /**
      * Page number, from 0
      */
     page?: number;
     /**
-     * Workspaces per page
+     * Only workspaces whose name or whose owner's email contains this text, ignoring case
      */
-    limit?: number;
+    q?: string;
   };
   url: "/api/v1/admin/workspaces";
 };
@@ -3589,17 +3543,13 @@ export type GetBadgeByMonitorIdCertExpData = {
   };
   query?: {
     /**
-     * Badge style
+     * Invalid options fall back to defaults.
      */
-    style?: string;
+    color?: string;
     /**
-     * Custom label
+     * Invalid options fall back to defaults.
      */
-    label?: string;
-    /**
-     * Days before expiry to show warning
-     */
-    warnDays?: number;
+    downColor?: string;
     /**
      * Days before expiry to show as down
      */
@@ -3607,27 +3557,15 @@ export type GetBadgeByMonitorIdCertExpData = {
     /**
      * Invalid options fall back to defaults.
      */
-    color?: string;
+    downLabel?: string;
+    /**
+     * Custom label
+     */
+    label?: string;
     /**
      * Invalid options fall back to defaults.
      */
     labelColor?: string;
-    /**
-     * Invalid options fall back to defaults.
-     */
-    upLabel?: string;
-    /**
-     * Invalid options fall back to defaults.
-     */
-    downLabel?: string;
-    /**
-     * Invalid options fall back to defaults.
-     */
-    upColor?: string;
-    /**
-     * Invalid options fall back to defaults.
-     */
-    downColor?: string;
     /**
      * Invalid options fall back to defaults.
      */
@@ -3641,9 +3579,25 @@ export type GetBadgeByMonitorIdCertExpData = {
      */
     prefix?: string;
     /**
+     * Badge style
+     */
+    style?: string;
+    /**
      * Invalid options fall back to defaults.
      */
     suffix?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    upColor?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    upLabel?: string;
+    /**
+     * Days before expiry to show warning
+     */
+    warnDays?: number;
   };
   url: "/api/v1/badge/{monitorId}/cert-exp";
 };
@@ -3690,41 +3644,29 @@ export type GetBadgeByMonitorIdPingData = {
   };
   query?: {
     /**
-     * Badge style
-     */
-    style?: string;
-    /**
-     * Custom label
-     */
-    label?: string;
-    /**
-     * Value suffix
-     */
-    suffix?: string;
-    /**
      * Badge color
      */
     color?: string;
     /**
      * Invalid options fall back to defaults.
      */
-    labelColor?: string;
+    downColor?: string;
     /**
      * Invalid options fall back to defaults.
      */
-    upLabel?: string;
+    downDays?: string;
     /**
      * Invalid options fall back to defaults.
      */
     downLabel?: string;
     /**
-     * Invalid options fall back to defaults.
+     * Custom label
      */
-    upColor?: string;
+    label?: string;
     /**
      * Invalid options fall back to defaults.
      */
-    downColor?: string;
+    labelColor?: string;
     /**
      * Invalid options fall back to defaults.
      */
@@ -3738,13 +3680,25 @@ export type GetBadgeByMonitorIdPingData = {
      */
     prefix?: string;
     /**
-     * Invalid options fall back to defaults.
+     * Badge style
      */
-    warnDays?: string;
+    style?: string;
+    /**
+     * Value suffix
+     */
+    suffix?: string;
     /**
      * Invalid options fall back to defaults.
      */
-    downDays?: string;
+    upColor?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    upLabel?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    warnDays?: string;
   };
   url: "/api/v1/badge/{monitorId}/ping";
 };
@@ -3795,41 +3749,29 @@ export type GetBadgeByMonitorIdPingByDurationData = {
   };
   query?: {
     /**
-     * Badge style
-     */
-    style?: string;
-    /**
-     * Custom label
-     */
-    label?: string;
-    /**
-     * Value suffix
-     */
-    suffix?: string;
-    /**
      * Badge color
      */
     color?: string;
     /**
      * Invalid options fall back to defaults.
      */
-    labelColor?: string;
+    downColor?: string;
     /**
      * Invalid options fall back to defaults.
      */
-    upLabel?: string;
+    downDays?: string;
     /**
      * Invalid options fall back to defaults.
      */
     downLabel?: string;
     /**
-     * Invalid options fall back to defaults.
+     * Custom label
      */
-    upColor?: string;
+    label?: string;
     /**
      * Invalid options fall back to defaults.
      */
-    downColor?: string;
+    labelColor?: string;
     /**
      * Invalid options fall back to defaults.
      */
@@ -3843,13 +3785,25 @@ export type GetBadgeByMonitorIdPingByDurationData = {
      */
     prefix?: string;
     /**
-     * Invalid options fall back to defaults.
+     * Badge style
      */
-    warnDays?: string;
+    style?: string;
+    /**
+     * Value suffix
+     */
+    suffix?: string;
     /**
      * Invalid options fall back to defaults.
      */
-    downDays?: string;
+    upColor?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    upLabel?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    warnDays?: string;
   };
   url: "/api/v1/badge/{monitorId}/ping/{duration}";
 };
@@ -3896,41 +3850,29 @@ export type GetBadgeByMonitorIdResponseData = {
   };
   query?: {
     /**
-     * Badge style
-     */
-    style?: string;
-    /**
-     * Custom label
-     */
-    label?: string;
-    /**
-     * Value suffix
-     */
-    suffix?: string;
-    /**
      * Badge color
      */
     color?: string;
     /**
      * Invalid options fall back to defaults.
      */
-    labelColor?: string;
+    downColor?: string;
     /**
      * Invalid options fall back to defaults.
      */
-    upLabel?: string;
+    downDays?: string;
     /**
      * Invalid options fall back to defaults.
      */
     downLabel?: string;
     /**
-     * Invalid options fall back to defaults.
+     * Custom label
      */
-    upColor?: string;
+    label?: string;
     /**
      * Invalid options fall back to defaults.
      */
-    downColor?: string;
+    labelColor?: string;
     /**
      * Invalid options fall back to defaults.
      */
@@ -3944,13 +3886,25 @@ export type GetBadgeByMonitorIdResponseData = {
      */
     prefix?: string;
     /**
-     * Invalid options fall back to defaults.
+     * Badge style
      */
-    warnDays?: string;
+    style?: string;
+    /**
+     * Value suffix
+     */
+    suffix?: string;
     /**
      * Invalid options fall back to defaults.
      */
-    downDays?: string;
+    upColor?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    upLabel?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    warnDays?: string;
   };
   url: "/api/v1/badge/{monitorId}/response";
 };
@@ -3997,21 +3951,9 @@ export type GetBadgeByMonitorIdStatusData = {
   };
   query?: {
     /**
-     * Badge style (flat, flat-square, plastic, for-the-badge, social)
+     * Invalid options fall back to defaults.
      */
-    style?: string;
-    /**
-     * Label when monitor is up
-     */
-    upLabel?: string;
-    /**
-     * Label when monitor is down
-     */
-    downLabel?: string;
-    /**
-     * Color when monitor is up
-     */
-    upColor?: string;
+    color?: string;
     /**
      * Color when monitor is down
      */
@@ -4019,7 +3961,15 @@ export type GetBadgeByMonitorIdStatusData = {
     /**
      * Invalid options fall back to defaults.
      */
-    color?: string;
+    downDays?: string;
+    /**
+     * Label when monitor is down
+     */
+    downLabel?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    label?: string;
     /**
      * Invalid options fall back to defaults.
      */
@@ -4031,27 +3981,31 @@ export type GetBadgeByMonitorIdStatusData = {
     /**
      * Invalid options fall back to defaults.
      */
-    label?: string;
-    /**
-     * Invalid options fall back to defaults.
-     */
     labelSuffix?: string;
     /**
      * Invalid options fall back to defaults.
      */
     prefix?: string;
     /**
+     * Badge style (flat, flat-square, plastic, for-the-badge, social)
+     */
+    style?: string;
+    /**
      * Invalid options fall back to defaults.
      */
     suffix?: string;
     /**
-     * Invalid options fall back to defaults.
+     * Color when monitor is up
      */
-    warnDays?: string;
+    upColor?: string;
+    /**
+     * Label when monitor is up
+     */
+    upLabel?: string;
     /**
      * Invalid options fall back to defaults.
      */
-    downDays?: string;
+    warnDays?: string;
   };
   url: "/api/v1/badge/{monitorId}/status";
 };
@@ -4098,41 +4052,29 @@ export type GetBadgeByMonitorIdUptimeData = {
   };
   query?: {
     /**
-     * Badge style
-     */
-    style?: string;
-    /**
-     * Custom label
-     */
-    label?: string;
-    /**
-     * Value suffix
-     */
-    suffix?: string;
-    /**
      * Badge color
      */
     color?: string;
     /**
      * Invalid options fall back to defaults.
      */
-    labelColor?: string;
+    downColor?: string;
     /**
      * Invalid options fall back to defaults.
      */
-    upLabel?: string;
+    downDays?: string;
     /**
      * Invalid options fall back to defaults.
      */
     downLabel?: string;
     /**
-     * Invalid options fall back to defaults.
+     * Custom label
      */
-    upColor?: string;
+    label?: string;
     /**
      * Invalid options fall back to defaults.
      */
-    downColor?: string;
+    labelColor?: string;
     /**
      * Invalid options fall back to defaults.
      */
@@ -4146,13 +4088,25 @@ export type GetBadgeByMonitorIdUptimeData = {
      */
     prefix?: string;
     /**
-     * Invalid options fall back to defaults.
+     * Badge style
      */
-    warnDays?: string;
+    style?: string;
+    /**
+     * Value suffix
+     */
+    suffix?: string;
     /**
      * Invalid options fall back to defaults.
      */
-    downDays?: string;
+    upColor?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    upLabel?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    warnDays?: string;
   };
   url: "/api/v1/badge/{monitorId}/uptime";
 };
@@ -4203,41 +4157,29 @@ export type GetBadgeByMonitorIdUptimeByDurationData = {
   };
   query?: {
     /**
-     * Badge style
-     */
-    style?: string;
-    /**
-     * Custom label
-     */
-    label?: string;
-    /**
-     * Value suffix
-     */
-    suffix?: string;
-    /**
      * Badge color
      */
     color?: string;
     /**
      * Invalid options fall back to defaults.
      */
-    labelColor?: string;
+    downColor?: string;
     /**
      * Invalid options fall back to defaults.
      */
-    upLabel?: string;
+    downDays?: string;
     /**
      * Invalid options fall back to defaults.
      */
     downLabel?: string;
     /**
-     * Invalid options fall back to defaults.
+     * Custom label
      */
-    upColor?: string;
+    label?: string;
     /**
      * Invalid options fall back to defaults.
      */
-    downColor?: string;
+    labelColor?: string;
     /**
      * Invalid options fall back to defaults.
      */
@@ -4251,13 +4193,25 @@ export type GetBadgeByMonitorIdUptimeByDurationData = {
      */
     prefix?: string;
     /**
-     * Invalid options fall back to defaults.
+     * Badge style
      */
-    warnDays?: string;
+    style?: string;
+    /**
+     * Value suffix
+     */
+    suffix?: string;
     /**
      * Invalid options fall back to defaults.
      */
-    downDays?: string;
+    upColor?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    upLabel?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    warnDays?: string;
   };
   url: "/api/v1/badge/{monitorId}/uptime/{duration}";
 };
@@ -4479,6 +4433,14 @@ export type GetMaintenancesData = {
   path?: never;
   query?: {
     /**
+     * Items per page
+     */
+    limit?: number;
+    /**
+     * Page number
+     */
+    page?: number;
+    /**
      * Search query
      */
     q?: string;
@@ -4486,14 +4448,6 @@ export type GetMaintenancesData = {
      * Filter by strategy
      */
     strategy?: string;
-    /**
-     * Page number
-     */
-    page?: number;
-    /**
-     * Items per page
-     */
-    limit?: number;
   };
   url: "/api/v1/maintenances";
 };
@@ -4923,21 +4877,21 @@ export type GetMonitorsData = {
   path?: never;
   query?: {
     /**
-     * Search query
+     * Active status
      */
-    q?: string;
-    /**
-     * Page number
-     */
-    page?: number;
+    active?: boolean;
     /**
      * Items per page
      */
     limit?: number;
     /**
-     * Active status
+     * Page number
      */
-    active?: boolean;
+    page?: number;
+    /**
+     * Search query
+     */
+    q?: string;
     /**
      * Status
      */
@@ -5326,6 +5280,10 @@ export type GetMonitorsByIdHeartbeatsData = {
   };
   query?: {
     /**
+     * Filter by important heartbeats only
+     */
+    important?: boolean;
+    /**
      * Number of heartbeats per page
      */
     limit?: number;
@@ -5334,17 +5292,13 @@ export type GetMonitorsByIdHeartbeatsData = {
      */
     page?: number;
     /**
-     * Filter by important heartbeats only
+     * Only the heartbeats this probe made, by probe id. Omitted, the heartbeats of every probe.
      */
-    important?: boolean;
+    probe_id?: string;
     /**
      * Reverse the order of heartbeats
      */
     reverse?: boolean;
-    /**
-     * Only the heartbeats this probe made, by probe id. Omitted, the heartbeats of every probe.
-     */
-    probe_id?: string;
   };
   url: "/api/v1/monitors/{id}/heartbeats";
 };
@@ -5451,14 +5405,6 @@ export type GetMonitorsByIdStatsPointsData = {
   };
   query: {
     /**
-     * Start time (RFC3339)
-     */
-    since: string;
-    /**
-     * End time (RFC3339, default now)
-     */
-    until?: string;
-    /**
      * Granularity (minute, hour, day)
      */
     granularity?: string;
@@ -5466,6 +5412,14 @@ export type GetMonitorsByIdStatsPointsData = {
      * Only the checks this probe ran, by probe id. Omitted, the checks of every probe count.
      */
     probe_id?: string;
+    /**
+     * Start time (RFC3339)
+     */
+    since: string;
+    /**
+     * End time (RFC3339, default now)
+     */
+    until?: string;
   };
   url: "/api/v1/monitors/{id}/stats/points";
 };
@@ -5622,17 +5576,17 @@ export type GetNotificationChannelsData = {
   path?: never;
   query?: {
     /**
-     * Search query
+     * Items per page
      */
-    q?: string;
+    limit?: number;
     /**
      * Page number
      */
     page?: number;
     /**
-     * Items per page
+     * Search query
      */
-    limit?: number;
+    q?: string;
   };
   url: "/api/v1/notification-channels";
 };
@@ -6367,17 +6321,17 @@ export type GetProxiesData = {
   path?: never;
   query?: {
     /**
-     * Search query
+     * Items per page
      */
-    q?: string;
+    limit?: number;
     /**
      * Page number
      */
     page?: number;
     /**
-     * Items per page
+     * Search query
      */
-    limit?: number;
+    q?: string;
   };
   url: "/api/v1/proxies";
 };
@@ -6674,10 +6628,6 @@ export type GetPushByTokenData = {
   };
   query?: {
     /**
-     * Empty, up, or 1 means Up; other values mean Down.
-     */
-    status?: string;
-    /**
      * Heartbeat message; defaults to OK or Down.
      */
     msg?: string;
@@ -6685,6 +6635,10 @@ export type GetPushByTokenData = {
      * Response time in milliseconds; malformed values are ignored.
      */
     ping?: string;
+    /**
+     * Empty, up, or 1 means Up; other values mean Down.
+     */
+    status?: string;
   };
   url: "/api/v1/push/{token}";
 };
@@ -6894,17 +6848,17 @@ export type GetStatusPagesData = {
   path?: never;
   query?: {
     /**
-     * Search query
+     * Items per page
      */
-    q?: string;
+    limit?: number;
     /**
      * Page number
      */
     page?: number;
     /**
-     * Items per page
+     * Search query
      */
-    limit?: number;
+    q?: string;
   };
   url: "/api/v1/status-pages";
 };
@@ -7462,17 +7416,17 @@ export type GetTagsData = {
   path?: never;
   query?: {
     /**
-     * Search query
+     * Items per page
      */
-    q?: string;
+    limit?: number;
     /**
      * Page number
      */
     page?: number;
     /**
-     * Items per page
+     * Search query
      */
-    limit?: number;
+    q?: string;
   };
   url: "/api/v1/tags";
 };
