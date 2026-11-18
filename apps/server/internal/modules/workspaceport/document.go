@@ -10,8 +10,6 @@ package workspaceport
 import (
 	"encoding/json"
 	"time"
-
-	"github.com/danielgtaylor/huma/v2"
 )
 
 const (
@@ -41,8 +39,8 @@ func (c *ConfigJSON) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (ConfigJSON) Schema(huma.Registry) *huma.Schema {
-	return &huma.Schema{Type: "object", AdditionalProperties: true, Description: "The config of the record as a JSON object; its keys depend on the record's type"}
+func (ConfigJSON) OASSchema() map[string]any {
+	return map[string]any{"type": "object", "additionalProperties": true, "description": "The config of the record as a JSON object; its keys depend on the record's type"}
 }
 
 // String is the config as the database stores it: a JSON object

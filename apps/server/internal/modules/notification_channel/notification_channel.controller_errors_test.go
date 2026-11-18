@@ -14,7 +14,6 @@ import (
 	"peekaping/internal/modules/workspace"
 	"peekaping/internal/netguard"
 
-	"github.com/danielgtaylor/huma/v2"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
 )
@@ -89,7 +88,7 @@ func TestControllerUpdatePartialWhenTheStoreFails(t *testing.T) {
 			providers, _ := newSecretTestRegistry()
 			controller := NewController(failingStore{channelStore: f.store, updateErr: tc.err}, providers, zap.NewNop().Sugar())
 			f.router = httpx.NewRouter()
-			httpx.Register(f.router, "PATCH", "/{id}", huma.Operation{Errors: []int{400, 404, 500}}, controller.UpdatePartial)
+			httpx.Register(f.router, "PATCH", "/{id}", httpx.Operation{Errors: []int{400, 404, 500}}, controller.UpdatePartial)
 
 			rec := f.do(http.MethodPatch, "/channel-1", `{"name":"Renamed"}`)
 

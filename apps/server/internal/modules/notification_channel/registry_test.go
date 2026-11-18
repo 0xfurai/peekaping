@@ -21,7 +21,6 @@ import (
 	"peekaping/internal/modules/probe_notification"
 	"peekaping/internal/modules/tag"
 
-	"github.com/danielgtaylor/huma/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/dig"
@@ -130,7 +129,7 @@ func TestProviderRegistry_ControllerAndListenerUseTheContainersRegistry(t *testi
 
 	require.NoError(t, container.Invoke(func(controller *Controller, listener *NotificationEventListener) {
 		router := httpx.NewRouter()
-		httpx.Register(router, "POST", "/test", huma.Operation{Errors: []int{400, 404, 500}}, controller.Test)
+		httpx.Register(router, "POST", "/test", httpx.Operation{Errors: []int{400, 404, 500}}, controller.Test)
 		req := httptest.NewRequest(http.MethodPost, "/test", strings.NewReader(`{"name": "Alerts", "type": "test-fake", "config": "{}"}`))
 		req = req.WithContext(workspace.WithContext(req.Context(), testWorkspace, workspace.RoleAdmin))
 		req.Header.Set("Content-Type", "application/json")

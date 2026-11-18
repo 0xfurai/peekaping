@@ -14,8 +14,6 @@ import (
 var publicRoutes = map[string]string{
 	"GET /openapi.json":          "OpenAPI spec",
 	"GET /openapi.yaml":          "OpenAPI spec",
-	"GET /openapi-3.0.json":      "OpenAPI 3.0 spec",
-	"GET /openapi-3.0.yaml":      "OpenAPI 3.0 spec",
 	"GET /docs":                  "API reference",
 	"GET /health":                "server liveness",
 	"GET /metrics":               "Prometheus scrape target, served only when METRICS_ENABLED is set",

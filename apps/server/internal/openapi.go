@@ -22,7 +22,7 @@ import (
 	"peekaping/internal/modules/workspace/workspacehttp"
 	"peekaping/internal/modules/workspaceport"
 
-	"github.com/danielgtaylor/huma/v2"
+	"github.com/0xfurai/oasome"
 	"go.uber.org/zap"
 )
 
@@ -30,7 +30,7 @@ import (
 // Dependencies are only used when a request reaches a handler, never to register
 // its typed contract. This also makes missing export operations testable against
 // the production server, rather than keeping a separate documentation route list.
-func OpenAPI() *huma.OpenAPI {
+func OpenAPI() *oasome.Doc {
 	server := ProvideServer(
 		zap.NewNop().Sugar(), &config.Config{}, nil, nil,
 		monitor.NewMonitorRoute(nil, nil), nil,
@@ -53,5 +53,5 @@ func OpenAPI() *huma.OpenAPI {
 		admin.NewRoute(nil, (*middleware.AuthChain)(nil)), nil,
 		nil, nil,
 	)
-	return server.Router.API().OpenAPI()
+	return server.Router.OpenAPI()
 }

@@ -1,22 +1,21 @@
 package internal
 
 import (
-	"encoding/json"
 	"net/http"
 	"peekaping/internal/httpx"
 
-	"github.com/danielgtaylor/huma/v2"
+	"github.com/0xfurai/oasome"
 )
 
-// Retain the two published Swagger entry points while serving the Huma contract.
+// Retain the two published Swagger entry points while serving the OpenAPI contract.
 // Static Swagger UI assets are obsolete; /docs serves the interactive reference.
-func swaggerHandler(api huma.API) http.HandlerFunc {
+func swaggerHandler(doc *oasome.Doc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case "/swagger/index.html":
 			http.Redirect(w, r, "/docs", http.StatusTemporaryRedirect)
 		case "/swagger/doc.json":
-			spec, err := json.Marshal(api.OpenAPI())
+			spec, err := doc.MarshalJSON()
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				return

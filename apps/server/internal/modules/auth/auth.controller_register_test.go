@@ -18,7 +18,6 @@ import (
 	"peekaping/internal/utils"
 	"peekaping/internal/validation"
 
-	"github.com/danielgtaylor/huma/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
@@ -74,20 +73,17 @@ func newcomer(extra string) string {
 // answer is the status and the message of an error the controller answered with
 func answer(t *testing.T, err error) (int, string) {
 	t.Helper()
-	var status huma.StatusError
-	require.ErrorAs(t, err, &status)
 	var response *httpx.ResponseError
-	if errors.As(err, &response) {
-		switch body := response.Body.(type) {
-		case utils.ApiResponse[any]:
-			return response.Status, body.Message
-		case httpx.ErrorBody:
-			return response.Status, body.Message
-		case limits.ReachedResponse:
-			return response.Status, body.Message
-		}
+	require.ErrorAs(t, err, &response)
+	switch body := response.Body.(type) {
+	case utils.ApiResponse[any]:
+		return response.Status, body.Message
+	case httpx.ErrorBody:
+		return response.Status, body.Message
+	case limits.ReachedResponse:
+		return response.Status, body.Message
 	}
-	return status.GetStatus(), ""
+	return response.Status, ""
 }
 
 func TestController_Register_RefusesABodyThatDoesNotReadOrValidate(t *testing.T) {
@@ -187,11 +183,11 @@ func TestController_Register_AnOpenSignupPassesTheGateAndAnInviteDoesNot(t *test
 	out, err := rig.post(t, "203.0.113.5", newcomer(""))
 
 	assert.Nil(t, out)
-	var rateLimited huma.HeadersError
+	var rateLimited *httpx.ResponseError
 	require.ErrorAs(t, err, &rateLimited)
 	status, _ := answer(t, err)
 	assert.Equal(t, http.StatusTooManyRequests, status)
-	assert.NotEmpty(t, rateLimited.GetHeaders().Get("Retry-After"))
+	assert.NotEmpty(t, rateLimited.Headers.Get("Retry-After"))
 	assert.Len(t, rig.service.dtos, 5, "the sixth never reached the service")
 
 	_, err = rig.post(t, "203.0.113.5", newcomer(`,"inviteToken":"pki_x"`))

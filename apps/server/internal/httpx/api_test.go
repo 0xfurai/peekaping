@@ -7,7 +7,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/danielgtaylor/huma/v2"
 	"github.com/santhosh-tekuri/jsonschema/v6"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -37,9 +36,9 @@ func TestOpenAPI_NullableFieldsAcceptNull(t *testing.T) {
 		return httpx.Reply(200, nullableResponse{})
 	}
 	// Two operations share the schemas, so the generator documents them twice.
-	httpx.Register(router, "POST", "/things", huma.Operation{}, handler)
-	httpx.Register(router, "PUT", "/things", huma.Operation{}, handler)
-	spec, err := json.Marshal(router.API().OpenAPI())
+	httpx.Register(router, "POST", "/things", httpx.Operation{}, handler)
+	httpx.Register(router, "PUT", "/things", httpx.Operation{}, handler)
+	spec, err := json.Marshal(router.OpenAPI())
 	require.NoError(t, err)
 	doc, err := jsonschema.UnmarshalJSON(strings.NewReader(string(spec)))
 	require.NoError(t, err)

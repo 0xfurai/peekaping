@@ -5,11 +5,11 @@ go 1.27.0
 toolchain go1.27.3
 
 require (
+	github.com/0xfurai/oasome v0.2.0
 	github.com/Azure/go-ntlmssp v0.0.0-20221128193559-754e69321358
 	github.com/IBM/sarama v1.43.3
 	github.com/alicebob/miniredis/v2 v2.35.0
 	github.com/blues/jsonata-go v1.5.4
-	github.com/danielgtaylor/huma/v2 v2.34.3
 	github.com/denisenkom/go-mssqldb v0.12.3
 	github.com/docker/docker v28.3.0+incompatible
 	github.com/eclipse/paho.mqtt.golang v1.5.0
@@ -54,6 +54,7 @@ require (
 	golang.org/x/time v0.12.0
 	google.golang.org/grpc v1.73.0
 	google.golang.org/protobuf v1.36.8
+	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
@@ -173,7 +174,6 @@ require (
 	golang.org/x/tools v0.50.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250603155806-513f23925822 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
 	mellium.im/sasl v0.3.2 // indirect
 	modernc.org/libc v1.77.1 // indirect
 	modernc.org/mathutil v1.7.1 // indirect

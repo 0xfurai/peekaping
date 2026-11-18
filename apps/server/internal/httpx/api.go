@@ -3,50 +3,40 @@ package httpx
 import (
 	"context"
 	"encoding/json"
-	"io"
+	"errors"
 	"net/http"
-	"peekaping/internal/version"
 	"reflect"
 	"strconv"
-	"strings"
 
-	"github.com/danielgtaylor/huma/v2"
-	"github.com/danielgtaylor/huma/v2/adapters/humago"
+	"github.com/0xfurai/oasome"
 )
 
 // NoBody marks operations that do not consume a request body.
 type NoBody struct{}
 
-// RetryAfterHeader documents the Retry-After header of a 429 (see TooManyRequests)
-var RetryAfterHeader = &huma.Param{Description: "Seconds to wait before sending the request again.", Schema: &huma.Schema{Type: "integer"}}
-
+// JWTOnly, SharedAuth and ProbeAuth are the security of an operation: each map is one way to sign
+// in, and any one of them is enough
 var JWTOnly = []map[string][]string{{"JwtAuth": {}}}
 var SharedAuth = []map[string][]string{{"JwtAuth": {}}, {"ApiKeyAuth": {}}}
-
-// WorkspaceIDHeader is the header that names the workspace a request runs in. A route group whose
-// records belong to a workspace documents it with Router.DocumentWorkspace, next to the middleware
-// that reads it.
-var WorkspaceIDHeader = &huma.Param{
-	Name:        "X-Workspace-ID",
-	In:          "header",
-	Description: "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
-	Schema:      &huma.Schema{Type: "string", Format: "uuid"},
-}
 
 // ProbeAuth is the probe token, which opens the probe protocol's routes and nothing else
 var ProbeAuth = []map[string][]string{{"ProbeAuth": {}}}
 
-// Input keeps the typed body and parameter contract together. Decoding stays
-// explicit in the handler: existing endpoints check authentication and sometimes
-// the resource before decoding, and accept one JSON value with unknown fields.
-// Huma's automatic binding would change those observable behaviors.
-type Input[B, P any] struct {
-	Request *http.Request `json:"-"`
+// retryAfterHeader documents the Retry-After header of a 429 (see TooManyRequests)
+var retryAfterHeader = IntHeader("Retry-After", "Seconds to wait before sending the request again.")
+
+// workspaceParams is the header that names the workspace a request runs in. A route group whose
+// records belong to a workspace documents it with Router.DocumentWorkspace, next to the middleware
+// that reads it.
+type workspaceParams struct {
+	WorkspaceID string `header:"X-Workspace-ID" format:"uuid" doc:"The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace."`
 }
 
-func (i *Input[B, P]) Resolve(ctx huma.Context) []error {
-	i.Request, _ = humago.Unwrap(ctx)
-	return nil
+// Input keeps the typed body and parameter contract together. Decoding stays explicit in the
+// handler: existing endpoints check authentication and sometimes the resource before decoding, and
+// accept one JSON value with unknown fields. B documents the request body and P the parameters.
+type Input[B, P any] struct {
+	Request *http.Request `json:"-"`
 }
 
 func (i *Input[B, P]) Decode() (B, error) {
@@ -55,19 +45,29 @@ func (i *Input[B, P]) Decode() (B, error) {
 	return body, err
 }
 
-func (*Input[B, P]) bodyType() reflect.Type   { return reflect.TypeFor[B]() }
-func (*Input[B, P]) paramsType() reflect.Type { return reflect.TypeFor[P]() }
+func (i *Input[B, P]) setRequest(r *http.Request) { i.Request = r }
+func (*Input[B, P]) bodyType() reflect.Type       { return reflect.TypeFor[B]() }
 
-type inputContract interface {
-	bodyType() reflect.Type
-	paramsType() reflect.Type
+// document is the request side of the operation: the body, unless it is NoBody, and the parameters
+func (*Input[B, P]) document() []oasome.RouteOption {
+	options := []oasome.RouteOption{oasome.Params[P]()}
+	if reflect.TypeFor[B]() != reflect.TypeFor[NoBody]() {
+		options = append(options, oasome.Body[B]())
+	}
+	return options
 }
 
-// Output is serialized by Huma, with the existing API's status and media type.
+type inputContract interface {
+	setRequest(*http.Request)
+	bodyType() reflect.Type
+	document() []oasome.RouteOption
+}
+
+// Output is a handler's answer: the status, the headers that are set and the body.
 type Output[T any] struct {
 	Status       int
-	ContentType  *string `header:"Content-Type"`
-	CacheControl *string `header:"Cache-Control"`
+	ContentType  *string
+	CacheControl *string
 	Body         T
 }
 
@@ -80,8 +80,8 @@ func Reply[T any](status int, body T) (*Output[T], error) {
 	return output, nil
 }
 
-// EmptyBody is the body of a response that has none: the status alone is the answer. Huma writes a
-// []byte body as it is, so an empty one sends nothing, where NoBody would send "{}". The
+// EmptyBody is the body of a response that has none: the status alone is the answer. A []byte body
+// is written as it is, so an empty one sends nothing, where NoBody would send "{}". The
 // specification documents such a response without content.
 type EmptyBody = []byte
 
@@ -93,8 +93,8 @@ func Empty(status int) (*Output[EmptyBody], error) {
 // SVGBody is raw SVG, with a string schema and its own response media type.
 type SVGBody []byte
 
-func (SVGBody) Schema(huma.Registry) *huma.Schema { return &huma.Schema{Type: "string"} }
-func (SVGBody) ContentType(string) string         { return "image/svg+xml" }
+func (SVGBody) OASSchema() map[string]any { return map[string]any{"type": "string"} }
+func (SVGBody) ContentType(string) string { return "image/svg+xml" }
 
 func SVG(svg string) (*Output[SVGBody], error) {
 	cache := "no-cache, no-store, must-revalidate"
@@ -102,11 +102,17 @@ func SVG(svg string) (*Output[SVGBody], error) {
 	return &Output[SVGBody]{Status: 200, ContentType: &contentType, CacheControl: &cache, Body: SVGBody(svg)}, nil
 }
 
+// Stream is a body that the handler writes itself, with its status and headers: a file download.
+// The operation documents its response in Operation.Responses.
+type Stream func(w http.ResponseWriter)
+
 // ResponseError preserves existing error bodies, including the endpoint-specific
 // domain and 2FA responses. Error-model unification belongs to PP-87.
 type ResponseError struct {
 	Status int
 	Body   any
+	// Headers are added to the answer, such as the Retry-After of a 429
+	Headers http.Header
 }
 
 func (e *ResponseError) Error() string                { return http.StatusText(e.Status) }
@@ -114,6 +120,11 @@ func (e *ResponseError) GetStatus() int               { return e.Status }
 func (e *ResponseError) ContentType(string) string    { return "application/json; charset=utf-8" }
 func (e *ResponseError) MarshalJSON() ([]byte, error) { return json.Marshal(e.Body) }
 func Fail(status int, body any) error                 { return &ResponseError{Status: status, Body: body} }
+
+// FailWithHeaders is Fail with headers on the answer
+func FailWithHeaders(status int, body any, headers http.Header) error {
+	return &ResponseError{Status: status, Body: body, Headers: headers}
+}
 
 type ErrorBody struct {
 	Message string `json:"message"`
@@ -123,479 +134,293 @@ type ErrorBody struct {
 // Null documents the data field emitted by existing error responses.
 type Null struct{}
 
-func (Null) Schema(huma.Registry) *huma.Schema { return &huma.Schema{Type: "null"} }
-func (Null) MarshalJSON() ([]byte, error)      { return []byte("null"), nil }
+func (Null) OASSchema() map[string]any    { return map[string]any{"type": "null"} }
+func (Null) MarshalJSON() ([]byte, error) { return []byte("null"), nil }
 
-// muxBridge routes Huma registrations through the same compatibility and
-// middleware layer as other standard HTTP handlers.
-type muxBridge struct{ router *Router }
-
-func (m muxBridge) ServeHTTP(w http.ResponseWriter, r *http.Request) { m.router.ServeHTTP(w, r) }
-func (m muxBridge) HandleFunc(pattern string, handler func(http.ResponseWriter, *http.Request)) {
-	method, path, ok := strings.Cut(pattern, " ")
-	if !ok {
-		panic("Huma registered a route without a method: " + pattern)
-	}
-	router := *m.router
-	router.prefix = ""
-	router.Handle(method, path, handler)
+// Operation documents a REST operation. The handler's input and output types give the request
+// body, the parameters and the success response; the rest is here.
+type Operation struct {
+	Summary     string
+	Description string
+	Tags        []string
+	// DefaultStatus is the status of the success response, 200 when not set
+	DefaultStatus int
+	// Security lists the ways to sign in, any one of which opens the operation. Empty, it is public.
+	Security []map[string][]string
+	// Errors are statuses answered with the usual {message, data: null} body
+	Errors []int
+	// Responses are the responses that differ from that, by status. An entry for DefaultStatus
+	// replaces the success response the output type gives.
+	Responses map[string]*Response
+	// Options are more documentation, such as parameters a middleware reads
+	Options []oasome.RouteOption
 }
 
-// operationAPI customizes registration, not a second specification pipeline.
-// Huma still derives output schemas and serves/exports this same OpenAPI object.
-type operationAPI struct {
-	huma.API
-	router *Router
-	input  inputContract
-	// parameters are the ones the router documents on every operation (Router.Document)
-	parameters []*huma.Param
-	// empty is set when the handler answers with an EmptyBody
-	empty bool
+// Response documents one response of an operation
+type Response struct {
+	// Description replaces the status text
+	Description string
+	Headers     []Header
+	// body documents the body for a status, nil for a response without one
+	body func(status int) oasome.RouteOption
 }
 
-func (a operationAPI) Adapter() huma.Adapter { return humago.NewAdapter(muxBridge{a.router}, "") }
-
-// Existing endpoints always produce JSON regardless of Accept.
-func (a operationAPI) Negotiate(string) (string, error) { return "application/json", nil }
-func (a operationAPI) Marshal(w io.Writer, _ string, value any) error {
-	if svg, ok := value.(SVGBody); ok {
-		_, err := w.Write(svg)
-		return err
+// options documents the response as the answer with status
+func (r *Response) options(status int) []oasome.RouteOption {
+	options := []oasome.RouteOption{oasome.ReturnsEmpty(status)}
+	if r.body != nil {
+		options[0] = r.body(status)
 	}
-	b, err := json.Marshal(value)
-	if err != nil {
-		return err
+	for _, header := range r.Headers {
+		options = append(options, header.option(status))
 	}
-	_, err = w.Write(b)
-	return err
-}
-func (a operationAPI) DocumentOperation(op *huma.Operation) {
-	registry := a.OpenAPI().Components.Schemas
-	if body := a.input.bodyType(); body != reflect.TypeFor[NoBody]() {
-		schema := registry.Schema(body, true, op.OperationID+"Request")
-		normalizeRequest(registry, body)
-		op.RequestBody = &huma.RequestBody{Required: true, Content: map[string]*huma.MediaType{
-			"application/json": {Schema: schema},
-		}}
-	}
-	a.documentParameters(op, registry)
-	documentResponses(op, a.empty)
-	for _, schema := range registry.Map() {
-		documentNull(schema)
-	}
-	a.OpenAPI().AddOperation(op)
+	return options
 }
 
-// documentParameters adds the parameters of the handler's params struct, then the ones the router
-// documents on every operation
-func (a operationAPI) documentParameters(op *huma.Operation, registry huma.Registry) {
-	params := a.input.paramsType()
-	for n := 0; n < params.NumField(); n++ {
-		if parameter, ok := parameterOf(params.Field(n), op, registry); ok {
-			op.Parameters = append(op.Parameters, parameter)
-		}
-	}
-	for _, parameter := range a.parameters {
-		documented := *parameter
-		op.Parameters = append(op.Parameters, &documented)
-	}
+// Header documents a header of a response
+type Header struct {
+	option func(status int) oasome.RouteOption
 }
 
-// parameterOf documents a field of the params struct: a path parameter by its path tag, any other
-// by its query tag. A field with neither is not a parameter.
-func parameterOf(f reflect.StructField, op *huma.Operation, registry huma.Registry) (*huma.Param, bool) {
-	location, name := "query", f.Tag.Get("query")
-	if path := f.Tag.Get("path"); path != "" {
-		location, name = "path", path
-	}
-	// A handler may also serve an alias without its optional path segment.
-	if name == "" || (location == "path" && !strings.Contains(op.Path, "{"+name+"}")) {
-		return nil, false
-	}
-	return &huma.Param{Name: name, In: location,
-		Required: location == "path" || f.Tag.Get("required") == "true", Description: f.Tag.Get("doc"),
-		Schema: huma.SchemaFromField(registry, f, op.OperationID+f.Name)}, true
+// IntHeader is a header with a whole number
+func IntHeader(name, description string) Header {
+	return Header{func(status int) oasome.RouteOption {
+		return oasome.ResponseHeader[headerInteger](status, name, description)
+	}}
 }
 
-// documentResponses drops the default response, the bodies of the responses that have none, and
-// the headers Huma adds to a success response. An empty handler answers every success without one.
-func documentResponses(op *huma.Operation, empty bool) {
-	delete(op.Responses, "default")
-	for code, response := range op.Responses {
-		if code == "204" || code == "304" || (empty && strings.HasPrefix(code, "2")) {
-			response.Content = nil
-			response.Headers = nil
-			continue
-		}
-		if strings.HasPrefix(code, "2") {
-			delete(response.Headers, "Content-Type")
-			if response.Content["image/svg+xml"] == nil {
-				delete(response.Headers, "Cache-Control")
-			}
-		}
-	}
+// headerInteger is the value of an integer header, of any size
+type headerInteger int
+
+func (headerInteger) OASSchema() map[string]any { return map[string]any{"type": "integer"} }
+
+// StringHeader is a header with text
+func StringHeader(name, description string) Header {
+	return Header{func(status int) oasome.RouteOption { return oasome.ResponseHeader[string](status, name, description) }}
 }
 
-// documentNull finishes schema and every schema in it, properties and list items alike, when they
-// are nullable. Huma marks a `nullable:"true"` field nullable but leaves null out of its enum, and
-// it marks the items of a list of pointers nullable the same way.
-func documentNull(schema *huma.Schema) {
-	if schema == nil {
-		return
-	}
-	if schema.Nullable {
-		allowNull(schema)
-	}
-	for _, property := range schema.Properties {
-		documentNull(property)
-	}
-	documentNull(schema.Items)
+// JSONResponse is a response with a JSON body of type T
+func JSONResponse[T any]() *Response {
+	return &Response{body: func(status int) oasome.RouteOption { return oasome.Returns[T](status) }}
 }
 
-// allowNull documents null as a value of property. An enum lists null beside its values. A $ref has
-// no type to add null to, so it becomes anyOf the $ref and null. A property without a type, such as
-// one allowNull already turned into anyOf, is left as it is.
-func allowNull(property *huma.Schema) {
-	if property.Ref != "" {
-		property.AnyOf = []*huma.Schema{{Ref: property.Ref}, {Type: "null"}}
-		property.Ref, property.Nullable = "", false
-		return
-	}
-	if property.Type == "" {
-		property.Nullable = false
-		return
-	}
-	property.Nullable = true
-	for _, value := range property.Enum {
-		if value == nil {
-			return
-		}
-	}
-	if len(property.Enum) > 0 {
-		property.Enum = append(property.Enum, nil)
-	}
-}
-
-func Register[I, T any](router *Router, method, path string, op huma.Operation, handler func(context.Context, *I) (*Output[T], error), middleware ...Middleware) {
-	api := router.API()
-	op.Method, op.Path = method, join(router.prefix, path)
-	if op.OperationID == "" {
-		op.OperationID = operationID(method, op.Path)
-	}
-	if op.DefaultStatus == 0 {
-		op.DefaultStatus = 200
-	}
-	if op.Responses == nil {
-		op.Responses = map[string]*huma.Response{}
-	}
-	// Explicit error responses avoid Huma's Problem Details/422 defaults.
-	for _, status := range append(op.Errors, router.errors...) {
-		if op.Responses[strconv.Itoa(status)] != nil {
-			continue
-		}
-		response := &huma.Response{Description: http.StatusText(status), Content: map[string]*huma.MediaType{
-			"application/json": {Schema: router.registry.api.OpenAPI().Components.Schemas.Schema(reflect.TypeFor[ErrorBody](), true, "Error")},
-		}}
-		if status == http.StatusTooManyRequests {
-			response.Headers = map[string]*huma.Param{"Retry-After": RetryAfterHeader}
-		}
-		op.Responses[strconv.Itoa(status)] = response
-	}
-	op.Errors = nil
-	scoped := *router
-	scoped.middleware = append(append([]Middleware(nil), router.middleware...), middleware...)
-	input, ok := any(new(I)).(inputContract)
-	if !ok {
-		panic("REST handlers must use httpx.Input")
-	}
-	huma.Register(operationAPI{API: api, router: &scoped, input: input, parameters: router.parameters, empty: reflect.TypeFor[T]() == reflect.TypeFor[EmptyBody]()}, op, handler)
+// ContentResponse is a response with a body of type T in another media type than JSON
+func ContentResponse[T any](mediaType string) *Response {
+	return &Response{body: func(status int) oasome.RouteOption { return oasome.ReturnsContent[T](status, mediaType) }}
 }
 
 // ErrorResponse and ErrorVariants describe the few established responses that
 // differ from the normal {message,data:null} envelope.
-func ErrorResponse[T any](router *Router, status int) *huma.Response {
-	return &huma.Response{Description: http.StatusText(status), Content: map[string]*huma.MediaType{
-		"application/json": {Schema: router.API().OpenAPI().Components.Schemas.Schema(reflect.TypeFor[T](), true, "Error")},
-	}}
-}
-func ErrorVariants[T any](router *Router, status int) *huma.Response {
-	response := ErrorResponse[T](router, status)
-	media := response.Content["application/json"]
-	media.Schema = &huma.Schema{AnyOf: []*huma.Schema{media.Schema,
-		router.API().OpenAPI().Components.Schemas.Schema(reflect.TypeFor[ErrorBody](), true, "Error")}}
-	return response
-}
+func ErrorResponse[T any]() *Response { return JSONResponse[T]() }
+
+// ErrorVariants is a response that is either T or the usual error body
+func ErrorVariants[T any]() *Response { return JSONResponse[anyOf2[T, ErrorBody]]() }
 
 // ErrorVariants2 is ErrorVariants for an operation that answers with either of two error bodies
 // besides the usual one.
-func ErrorVariants2[T, U any](router *Router, status int) *huma.Response {
-	response := ErrorResponse[T](router, status)
-	media := response.Content["application/json"]
-	media.Schema = &huma.Schema{AnyOf: []*huma.Schema{media.Schema,
-		router.API().OpenAPI().Components.Schemas.Schema(reflect.TypeFor[U](), true, "Error"),
-		router.API().OpenAPI().Components.Schemas.Schema(reflect.TypeFor[ErrorBody](), true, "Error")}}
-	return response
-}
+func ErrorVariants2[T, U any]() *Response { return JSONResponse[anyOf3[T, U, ErrorBody]]() }
 
 // ErrorVariants3 is ErrorVariants for an operation that answers with any of three error bodies
 // besides the usual one.
-func ErrorVariants3[T, U, V any](router *Router, status int) *huma.Response {
-	response := ErrorResponse[T](router, status)
-	media := response.Content["application/json"]
-	media.Schema = &huma.Schema{AnyOf: []*huma.Schema{media.Schema,
-		router.API().OpenAPI().Components.Schemas.Schema(reflect.TypeFor[U](), true, "Error"),
-		router.API().OpenAPI().Components.Schemas.Schema(reflect.TypeFor[V](), true, "Error"),
-		router.API().OpenAPI().Components.Schemas.Schema(reflect.TypeFor[ErrorBody](), true, "Error")}}
-	return response
-}
+func ErrorVariants3[T, U, V any]() *Response { return JSONResponse[anyOf4[T, U, V, ErrorBody]]() }
 
 // ErrorVariants4 is ErrorVariants for an operation that answers with any of four error bodies
 // besides the usual one.
-func ErrorVariants4[T, U, V, W any](router *Router, status int) *huma.Response {
-	response := ErrorResponse[T](router, status)
-	media := response.Content["application/json"]
-	media.Schema = &huma.Schema{AnyOf: []*huma.Schema{media.Schema,
-		router.API().OpenAPI().Components.Schemas.Schema(reflect.TypeFor[U](), true, "Error"),
-		router.API().OpenAPI().Components.Schemas.Schema(reflect.TypeFor[V](), true, "Error"),
-		router.API().OpenAPI().Components.Schemas.Schema(reflect.TypeFor[W](), true, "Error"),
-		router.API().OpenAPI().Components.Schemas.Schema(reflect.TypeFor[ErrorBody](), true, "Error")}}
-	return response
+func ErrorVariants4[T, U, V, W any]() *Response {
+	return JSONResponse[anyOf5[T, U, V, W, ErrorBody]]()
 }
 
-// normalizeRequest documents the existing validator's rules without enabling
-// Huma validation. In particular, untagged fields are optional and unknown JSON
-// fields are accepted. Runtime validators and their messages remain unchanged.
-func normalizeRequest(registry huma.Registry, t reflect.Type) {
-	t = derefType(t)
-	if t.Kind() != reflect.Struct {
-		return
+// anyOf2 to anyOf5 document a body that is any one of their types
+type anyOf2[A, B any] struct{}
+type anyOf3[A, B, C any] struct{}
+type anyOf4[A, B, C, D any] struct{}
+type anyOf5[A, B, C, D, E any] struct{}
+
+func (anyOf2[A, B]) OASSchema() map[string]any { return anyOf(oasome.Ref[A](), oasome.Ref[B]()) }
+func (anyOf3[A, B, C]) OASSchema() map[string]any {
+	return anyOf(oasome.Ref[A](), oasome.Ref[B](), oasome.Ref[C]())
+}
+func (anyOf4[A, B, C, D]) OASSchema() map[string]any {
+	return anyOf(oasome.Ref[A](), oasome.Ref[B](), oasome.Ref[C](), oasome.Ref[D]())
+}
+func (anyOf5[A, B, C, D, E]) OASSchema() map[string]any {
+	return anyOf(oasome.Ref[A](), oasome.Ref[B](), oasome.Ref[C](), oasome.Ref[D](), oasome.Ref[E]())
+}
+
+func anyOf(schemas ...any) map[string]any { return map[string]any{"anyOf": schemas} }
+
+// Register adds a REST operation: the handler serves method and path on the router, and the
+// operation documents it in the router's OpenAPI document.
+func Register[I, T any](router *Router, method, path string, op Operation, handler func(context.Context, *I) (*Output[T], error), middleware ...Middleware) {
+	if _, ok := any(new(I)).(inputContract); !ok {
+		panic("REST handlers must use httpx.Input")
 	}
-	ref := registry.Schema(t, true, t.Name()).Ref
-	schema := registry.Map()[strings.TrimPrefix(ref, "#/components/schemas/")]
-	if schema == nil {
-		return
+	if op.DefaultStatus == 0 {
+		op.DefaultStatus = http.StatusOK
 	}
-	schema.Required = nil
-	schema.AdditionalProperties = true
-	for n := 0; n < t.NumField(); n++ {
-		f := t.Field(n)
-		name := strings.Split(f.Tag.Get("json"), ",")[0]
-		property := schema.Properties[name]
-		if property == nil {
-			continue
+	doc := router.options(op, documentInput[I](), documentSuccess[T](op.DefaultStatus))
+	doc.body = any(new(I)).(inputContract).bodyType()
+	router.registry.document(method, join(router.prefix, path), doc)
+	router.Handle(method, path, serve(op.DefaultStatus, handler), middleware...)
+}
+
+// serve is the HTTP handler of a typed handler: it calls it with the request, and writes its
+// output or its error
+func serve[I, T any](defaultStatus int, handler func(context.Context, *I) (*Output[T], error)) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		input := new(I)
+		any(input).(inputContract).setRequest(r)
+		output, err := handler(r.Context(), input)
+		if err != nil {
+			writeError(w, err)
+			return
 		}
-		normalizeField(schema, name, f, property)
-	}
-}
-
-// derefType is t, or what t points to, however many pointers deep
-func derefType(t reflect.Type) reflect.Type {
-	for t.Kind() == reflect.Pointer {
-		t = t.Elem()
-	}
-	return t
-}
-
-// normalizeField documents the rules of one field of a request, named name in schema
-func normalizeField(schema *huma.Schema, name string, f reflect.StructField, property *huma.Schema) {
-	// A pointer field accepts null, as the validator treats it as unset. A field the validator
-	// requires rejects null, so it opts out with `nullable:"false"`.
-	if f.Type.Kind() == reflect.Pointer && f.Tag.Get("nullable") != "false" {
-		allowNull(property)
-	}
-	rules := strings.Split(f.Tag.Get("validate"), ",")
-	reader := newRuleReader(property, f.Type, rules)
-	for _, rule := range rules {
-		reader.read(rule)
-	}
-	if reader.required {
-		markRequired(schema, name, f)
-	}
-}
-
-// ruleReader reads the rules of a validate tag onto the schema of the field, or of the items of
-// the field's list after a dive
-type ruleReader struct {
-	property  *huma.Schema
-	valueType reflect.Type
-	kind      reflect.Kind
-	// optional and required are what the rules before a dive say of the field itself
-	optional, required bool
-	// diving is whether the rules now read are the items'
-	diving bool
-}
-
-func newRuleReader(property *huma.Schema, fieldType reflect.Type, rules []string) *ruleReader {
-	reader := &ruleReader{property: property, valueType: derefType(fieldType)}
-	reader.kind = reader.valueType.Kind()
-	for _, rule := range rules {
-		if rule == "dive" {
-			break
+		if output == nil {
+			w.WriteHeader(defaultStatus)
+			return
 		}
-		if rule == "omitempty" {
-			reader.optional = true
-		}
-		if rule == "required" {
-			reader.required = true
-		}
-	}
-	return reader
-}
-
-// read documents one rule of the tag
-func (r *ruleReader) read(rule string) {
-	key, value, _ := strings.Cut(rule, "=")
-	switch key {
-	case "dive":
-		r.dive()
-	case "oneof":
-		r.oneOf(value)
-	case "email":
-		r.property.Format = "email"
-	case "hexcolor":
-		r.property.Pattern = "^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$"
-	case "min", "max":
-		r.limit(key, value)
+		output.write(w, defaultStatus)
 	}
 }
 
-// dive moves to the items of a list, for the rules after it
-func (r *ruleReader) dive() {
-	if r.property.Items != nil && (r.kind == reflect.Slice || r.kind == reflect.Array) {
-		r.property = r.property.Items
-		r.valueType = derefType(r.valueType.Elem())
-		r.kind, r.diving = r.valueType.Kind(), true
+// write sends the output: its headers, its status and its body
+func (o *Output[T]) write(w http.ResponseWriter, defaultStatus int) {
+	setHeader(w, "Content-Type", o.ContentType)
+	setHeader(w, "Cache-Control", o.CacheControl)
+	status := o.Status
+	if status == 0 {
+		status = defaultStatus
 	}
-}
-
-// oneOf documents the choices of a oneof rule as an enum, with null when the value may be null
-func (r *ruleReader) oneOf(choices string) {
-	r.property.Enum = nil
-	for _, choice := range strings.Fields(choices) {
-		r.property.Enum = append(r.property.Enum, choice)
-	}
-	if r.property.Nullable {
-		r.property.Enum = append(r.property.Enum, nil)
-	}
-}
-
-// limit documents a min or max rule as the length of a string, the size of a list or the value of
-// a number. A limit that isn't a number is left out.
-func (r *ruleReader) limit(key, value string) {
-	limit, err := strconv.ParseFloat(value, 64)
-	if err != nil {
-		return
-	}
-	isMin := key == "min"
-	if isMin && r.minRequires(limit) {
-		r.required = true
-	}
-	switch r.kind {
-	case reflect.String:
-		setBound(isMin, &r.property.MinLength, &r.property.MaxLength, int(limit))
-	case reflect.Slice:
-		setBound(isMin, &r.property.MinItems, &r.property.MaxItems, int(limit))
+	switch body := any(o.Body).(type) {
+	case Stream:
+		body(w)
+	case []byte:
+		w.WriteHeader(status)
+		_, _ = w.Write(body)
 	default:
-		setBound(isMin, &r.property.Minimum, &r.property.Maximum, limit)
+		writeBody(w, status, o.Body)
 	}
 }
 
-// minRequires is whether a min rule of limit makes the field required: a positive minimum does,
-// unless the field is optional or the rule is an item's
-func (r *ruleReader) minRequires(limit float64) bool {
-	return limit > 0 && !r.optional && !r.diving
-}
-
-// setBound points lower at v for a min rule and upper at v for a max rule
-func setBound[T any](isMin bool, lower, upper **T, v T) {
-	if isMin {
-		*lower = &v
-	} else {
-		*upper = &v
+func setHeader(w http.ResponseWriter, name string, value *string) {
+	if value != nil {
+		w.Header().Set(name, *value)
 	}
 }
 
-// markRequired lists the field as required in schema
-func markRequired(schema *huma.Schema, name string, f reflect.StructField) {
-	schema.Required = append(schema.Required, name)
-	// Validator's required rejects nil slices and empty value strings,
-	// but permits allocated empty slices and non-nil string pointers.
-	parent := schema.Properties[name]
-	if f.Type.Kind() == reflect.Slice {
-		parent.Nullable = false
+// writeError answers with a handler's error. A ResponseError gives its status, headers and body;
+// any other error is a 500 that says nothing of its cause.
+func writeError(w http.ResponseWriter, err error) {
+	var answer *ResponseError
+	if !errors.As(err, &answer) {
+		answer = &ResponseError{Status: http.StatusInternalServerError, Body: ErrorBody{Message: "Internal server error"}}
 	}
-	if f.Type.Kind() == reflect.String && (parent.MinLength == nil || *parent.MinLength < 1) {
-		minimum := 1
-		parent.MinLength = &minimum
-	}
-}
-
-func (r *Router) API() huma.API {
-	if r.registry.api == nil {
-		r.registry.api = newAPI(&Router{registry: r.registry})
-	}
-	return r.registry.api
-}
-
-func operationID(method, path string) string {
-	id := strings.ToLower(method)
-	if probePath, ok := strings.CutPrefix(path, "/probe/v1"); ok {
-		// The probe protocol's ids start with probe, so that they can't collide with the API's
-		// (probePostHello, probeGetAssignments)
-		path = probePath
-		id = "probe" + strings.ToUpper(id[:1]) + id[1:]
-	}
-	parts := strings.Split(strings.TrimPrefix(path, "/api/v1"), "/")
-	for _, part := range parts {
-		if part == "" {
-			continue
-		}
-		if strings.HasPrefix(part, "{") {
-			id += "By"
-			part = strings.Trim(part, "{}")
-		}
-		for _, word := range strings.Split(part, "-") {
-			id += strings.ToUpper(word[:1]) + word[1:]
+	for name, values := range answer.Headers {
+		for _, value := range values {
+			w.Header().Add(name, value)
 		}
 	}
-	if path == "/health" {
-		id += "Root"
-	}
-	return id
+	writeBody(w, answer.Status, answer)
 }
 
-func newAPI(router *Router) huma.API {
-	config := huma.DefaultConfig("Peekaping API", version.Version)
-	config.Servers = []*huma.Server{{URL: "/"}}
-	config.Security = []map[string][]string{}
-	config.SchemasPath = ""
-	config.CreateHooks = nil
-	config.Components.SecuritySchemes = map[string]*huma.SecurityScheme{
-		"JwtAuth":    {Type: "http", Scheme: "bearer", BearerFormat: "JWT"},
-		"ApiKeyAuth": {Type: "apiKey", In: "header", Name: "X-API-Key"},
-		"ProbeAuth":  {Type: "http", Scheme: "bearer", BearerFormat: "probe token"},
+// contentTyped is a body with its own media type
+type contentTyped interface{ ContentType(string) string }
+
+// writeBody writes body as JSON, or as it is when it is SVG. The Content-Type is the body's own,
+// or JSON, unless the handler set one. A 204 or a 304 has no body.
+func writeBody(w http.ResponseWriter, status int, body any) {
+	if w.Header().Get("Content-Type") == "" {
+		contentType := "application/json"
+		if typed, ok := body.(contentTyped); ok {
+			contentType = typed.ContentType(contentType)
+		}
+		w.Header().Set("Content-Type", contentType)
 	}
-	config.Components.Schemas = huma.NewMapRegistry("#/components/schemas/", func(t reflect.Type, hint string) string {
-		for t.Kind() == reflect.Pointer {
-			t = t.Elem()
+	w.WriteHeader(status)
+	if status == http.StatusNoContent || status == http.StatusNotModified {
+		return
+	}
+	if svg, ok := body.(SVGBody); ok {
+		_, _ = w.Write(svg)
+		return
+	}
+	b, err := json.Marshal(body)
+	if err != nil {
+		panic(err)
+	}
+	_, _ = w.Write(b)
+}
+
+// documentInput documents the request of a handler with input I
+func documentInput[I any]() []oasome.RouteOption {
+	return any(new(I)).(inputContract).document()
+}
+
+// documentSuccess documents the success response of a handler with output body T: none for
+// EmptyBody and for a 204 or a 304, SVG with its Cache-Control header, and JSON otherwise. A
+// Stream documents nothing: its operation lists the response.
+func documentSuccess[T any](status int) *Response {
+	switch reflect.TypeFor[T]() {
+	case reflect.TypeFor[Stream]():
+		return nil
+	case reflect.TypeFor[SVGBody]():
+		response := ContentResponse[SVGBody]("image/svg+xml")
+		response.Headers = []Header{StringHeader("Cache-Control", "")}
+		return response
+	case reflect.TypeFor[EmptyBody]():
+		return &Response{}
+	}
+	if status == http.StatusNoContent || status == http.StatusNotModified {
+		return &Response{}
+	}
+	return JSONResponse[T]()
+}
+
+// options are the documentation of an operation on this router: the router's own, the request,
+// the responses, the security and the operation's text
+func (r *Router) options(op Operation, request []oasome.RouteOption, success *Response) operationDoc {
+	options := append(append([]oasome.RouteOption(nil), request...), r.parameters...)
+	options = append(options, op.Options...)
+	responses := r.responses(op, success)
+	for status, response := range responses {
+		options = append(options, response.options(status)...)
+	}
+	for _, alternative := range op.Security {
+		for scheme := range alternative {
+			options = append(options, oasome.Security(scheme))
 		}
-		if t.Name() == "" {
-			return huma.DefaultSchemaNamer(t, hint)
+	}
+	options = append(options, oasome.Summary(op.Summary), oasome.Description(op.Description), oasome.Tags(op.Tags...))
+	return operationDoc{options: options, responses: responses}
+}
+
+// responses are the responses of an operation by status: the success response, the operation's
+// own, and the usual error body for each of its errors and the router's
+func (r *Router) responses(op Operation, success *Response) map[int]*Response {
+	responses := map[int]*Response{}
+	if success != nil {
+		responses[op.DefaultStatus] = success
+	}
+	for code, response := range op.Responses {
+		status, err := strconv.Atoi(code)
+		if err != nil {
+			panic("httpx: response status " + code + " is not a number")
 		}
-		name := strings.ReplaceAll(strings.ReplaceAll(t.String(), "peekaping/internal/modules/", ""), " ", "")
-		return strings.NewReplacer("shared.Monitor", "monitor.Model", "shared.Proxy", "proxy.Model", "shared.HeartBeatModel", "heartbeat.Model",
-			"interface{}", "Any", "[]", "Array_", "[", "_", "]", "", "*", "", "/", "_", ",", "_", " ", "").Replace(name)
-	})
-	config.Formats = map[string]huma.Format{"application/json": {
-		Marshal: func(w io.Writer, v any) error {
-			b, err := json.Marshal(v)
-			if err != nil {
-				return err
-			}
-			_, err = w.Write(b)
-			return err
-		},
-		Unmarshal: json.Unmarshal,
-	}}
-	return humago.New(muxBridge{router}, config)
+		responses[status] = response
+	}
+	for _, status := range append(append([]int(nil), op.Errors...), r.errors...) {
+		if responses[status] == nil {
+			responses[status] = errorResponse(status)
+		}
+	}
+	return responses
+}
+
+// errorResponse is the usual error body, with Retry-After on a 429
+func errorResponse(status int) *Response {
+	response := JSONResponse[ErrorBody]()
+	if status == http.StatusTooManyRequests {
+		response.Headers = []Header{retryAfterHeader}
+	}
+	return response
 }

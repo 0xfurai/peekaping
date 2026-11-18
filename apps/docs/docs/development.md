@@ -35,7 +35,7 @@ These install the latest release. To get the pinned version, run `npm install -g
 
 This Bun has nothing to do with `apps/server/cmd/bun`. That one is the database migration tool, built on the [uptrace/bun](https://github.com/uptrace/bun) Go library.
 
-`make dev` also runs `docs:watch`, which exports OpenAPI from the typed Huma registrations when the server source changes. There is no separate documentation annotation generator.
+`make dev` also runs `docs:watch`, which exports OpenAPI from the typed `httpx.Register` registrations when the server source changes. There is no separate documentation annotation generator.
 
 Then check your setup:
 
@@ -230,6 +230,6 @@ Partial-update models preserve omitted fields separately from explicit zero valu
 
 ### Updating the API contract
 
-REST operations use typed Huma registrations on the standard HTTP router. After changing an operation or DTO, run `bun run api:generate` and `bun run api:validate` from the repository root, then commit `apps/server/docs/openapi.json`, `openapi.yaml`, and the regenerated `apps/web/src/api` files. `bun run api:check` runs the same generation/validation and fails if committed artifacts are stale. No database or Redis process is needed for export.
+REST operations use typed `httpx.Register` registrations on the standard HTTP router; oasome builds the OpenAPI document from them. After changing an operation or DTO, run `bun run api:generate` and `bun run api:validate` from the repository root, then commit `apps/server/docs/openapi.json`, `openapi.yaml`, and the regenerated `apps/web/src/api` files. `bun run api:check` runs the same generation/validation and fails if committed artifacts are stale. No database or Redis process is needed for export.
 
 `docs:watch` watches the server source and exports the spec; run `bun run --filter web gen` after contract changes to update the client. The server serves `/openapi.json`, `/openapi.yaml`, and `/docs`. `/swagger/index.html` redirects to `/docs`; `/swagger/doc.json` now serves the same OpenAPI 3.1 document. Old Swagger UI assets are removed.
