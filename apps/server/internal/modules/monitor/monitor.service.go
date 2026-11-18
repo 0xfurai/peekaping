@@ -2,6 +2,7 @@ package monitor
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"peekaping/internal/config"
@@ -365,6 +366,22 @@ func (mr *MonitorServiceImpl) atMinimumAll(ctx context.Context, monitors []*Mode
 	return monitors, nil
 }
 
+// pushTokenFromConfig extracts the push token from a push monitor's JSON
+// config. It is used as a fallback when the top-level push_token field is
+// empty, so that FindOneByPushToken can locate the monitor. See issue 234.
+func pushTokenFromConfig(config string) string {
+	if config == "" {
+		return ""
+	}
+	var cfg struct {
+		PushToken string `json:"pushToken"`
+	}
+	if err := json.Unmarshal([]byte(config), &cfg); err != nil {
+		return ""
+	}
+	return cfg.PushToken
+}
+
 func (mr *MonitorServiceImpl) Create(ctx context.Context, workspaceID workspace.ID, monitorCreateDto *CreateUpdateDto) (*Model, error) {
 	createdModel, err := mr.CreateWithoutEvent(ctx, workspaceID, monitorCreateDto)
 	if err != nil {
@@ -392,6 +409,9 @@ func (mr *MonitorServiceImpl) CreateWithoutEvent(ctx context.Context, workspaceI
 	}
 	lowerLinkIDs(monitorCreateDto)
 	createModel := newCreateModel(workspaceID, monitorCreateDto)
+	if createModel.Type == "push" && createModel.PushToken == "" {
+		createModel.PushToken = pushTokenFromConfig(createModel.Config)
+	}
 	if err := mr.chooseCreateProbes(ctx, monitorCreateDto, createModel, workspaceLimits); err != nil {
 		return nil, err
 	}
@@ -578,6 +598,9 @@ func (mr *MonitorServiceImpl) UpdateFull(ctx context.Context, workspaceID worksp
 	}
 	lowerLinkIDs(monitor)
 	model := newFullUpdateModel(id, monitor)
+	if model.Type == "push" && model.PushToken == "" {
+		model.PushToken = pushTokenFromConfig(model.Config)
+	}
 
 	// The monitor and its links change together or not at all. The monitor is read before the
 	// update, to check its probes against the type it will have, and back after it: the response
@@ -810,7 +833,26 @@ func (mr *MonitorServiceImpl) storePartialUpdate(ctx context.Context, workspaceI
 	if err := mr.validatePartialShape(ctx, current, monitor, model); err != nil {
 		return nil, err
 	}
+	applyPartialPushToken(current, monitor, model)
 	return mr.writePartialUpdate(ctx, workspaceID, id, monitor, model, repo)
+}
+
+// applyPartialPushToken makes the push_token column follow config.pushToken when a PATCH
+// carries the config without sending push_token, as create and full update do. The type the
+// monitor has after the update decides, which the request does not always carry.
+func applyPartialPushToken(current *Model, monitor *PartialUpdateDto, model *UpdateModel) {
+	if monitor.Config == nil || monitor.PushToken != nil {
+		return
+	}
+	monitorType := current.Type
+	if monitor.Type != nil {
+		monitorType = *monitor.Type
+	}
+	if monitorType != "push" {
+		return
+	}
+	token := pushTokenFromConfig(*monitor.Config)
+	model.PushToken = &token
 }
 
 // holdForPartialUpdate holds the workspace of an update that can go over one of its limits before
