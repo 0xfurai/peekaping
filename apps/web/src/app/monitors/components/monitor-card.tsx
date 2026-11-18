@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { AlertTriangle, Pause } from "lucide-react";
 import BarHistory from "@/components/bars";
 import { useQuery } from "@tanstack/react-query";
+import { useMemo } from "react";
 import { getMonitorsByIdHeartbeatsOptions } from "@/api/@tanstack/react-query.gen";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 import { cn } from "@/lib/utils";
@@ -12,6 +13,8 @@ import StaleMarker from "./stale-marker";
 import { getMonitorStatusView } from "./monitor-status";
 import { useWorkspacePath } from "@/hooks/useWorkspacePath";
 import { monitorTypeDisabledReason } from "../monitor-types/disabled";
+import { formatMonitorTarget } from "../monitor-types/registry";
+import { parseMonitorConfig } from "../monitor-types/monitor-target";
 
 interface MonitorCardProps {
   monitor: MonitorMonitorResponseDto;
@@ -31,6 +34,11 @@ const MonitorCard = ({ monitor, probes, unsupportedProbeIds }: MonitorCardProps)
   // So does a monitor past its workspace's limit of active monitors, which nothing checks either
   const overLimit = monitor.over_limit === true;
   const paused = monitor.active === false || typeDisabled || overLimit;
+  // What the monitor checks, as its page header shows it, so monitors of one type can be told apart
+  const target = useMemo(
+    () => formatMonitorTarget(monitor.type, parseMonitorConfig(monitor.config)),
+    [monitor.type, monitor.config]
+  );
 
   const { data: heartbeats } = useQuery({
     ...getMonitorsByIdHeartbeatsOptions({
@@ -54,8 +62,8 @@ const MonitorCard = ({ monitor, probes, unsupportedProbeIds }: MonitorCardProps)
     >
       <CardContent className="px-2">
         <div className="flex justify-between flex-col md:flex-row">
-          <div className="flex items-center mb-4 md:mb-0">
-            <div className="text-sm text-gray-500 mr-4 min-w-[60px]">
+          <div className="flex items-center mb-4 md:mb-0 md:flex-1">
+            <div className="text-sm text-gray-500 mr-4 min-w-[60px] shrink-0">
               {(() => {
                 if (paused) {
                   return (
@@ -84,8 +92,19 @@ const MonitorCard = ({ monitor, probes, unsupportedProbeIds }: MonitorCardProps)
               })()}
             </div>
 
-            <div className="flex flex-col min-w-[100px]">
+            <div className="flex flex-col flex-1 min-w-[100px]">
               <h3 className="font-bold mb-1">{monitor.name}</h3>
+              {/* Plain text, not a link: a click anywhere on the card opens the monitor.
+                  contain-inline-size keeps a long target from widening the card, so it is cut short instead */}
+              {target && (
+                <p
+                  className="text-xs text-muted-foreground mb-1 truncate contain-inline-size"
+                  title={target.label}
+                  data-testid="monitor-target"
+                >
+                  {target.label}
+                </p>
+              )}
               {typeDisabled && (
                 <p className="text-xs text-amber-500 mb-1" data-testid="monitor-type-disabled">
                   {monitorTypeDisabledReason(t, monitor.type ?? "")}
