@@ -98,7 +98,11 @@ func (e *EmailSender) Send(
 	to := cfg.SMTPTo
 	auth := smtp.PlainAuth("", cfg.SMTPUsername, cfg.SMTPPassword, hostport.Bare(cfg.SMTPHost))
 	msg := []byte(fmt.Sprintf("To: %s\r\nSubject: %s\r\nFrom: %s\r\n\r\n%s", to, finalSubject, cfg.SMTPFrom, finalBody))
-	server := smtpclient.Server{Host: cfg.SMTPHost, Port: cfg.SMTPPort, Auth: auth, TLS: smtpclient.Opportunistic}
+	tlsMode := smtpclient.Opportunistic
+	if cfg.SMTPSecure {
+		tlsMode = smtpclient.TLS
+	}
+	server := smtpclient.Server{Host: cfg.SMTPHost, Port: cfg.SMTPPort, Auth: auth, TLS: tlsMode}
 	if e.guard != nil {
 		server.Dialer = e.guard.Dialer(&net.Dialer{})
 	}
