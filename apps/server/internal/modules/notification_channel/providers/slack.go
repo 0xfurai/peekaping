@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"net/url"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/shared"
@@ -36,6 +35,9 @@ const slackPostMessageURL = "https://slack.com/api/chat.postMessage"
 
 // slackErrorCode matches the reasons Slack webhooks return, such as no_service
 var slackErrorCode = regexp.MustCompile(`^[a-z_]{1,64}$`)
+
+// slackEscaper replaces the characters Slack's mrkdwn reserves with the entities it documents
+var slackEscaper = strings.NewReplacer("&", "&amp;", "<", "&lt;", ">", "&gt;")
 
 type SlackSender struct {
 	logger    *zap.SugaredLogger
@@ -85,19 +87,6 @@ func (s *SlackSender) Validate(configJSON string) error {
 	return GenericValidator(slackCfg)
 }
 
-// extractAddress extracts the URL from monitor for "Visit site" button
-func (s *SlackSender) extractAddress(monitor *monitor.Model) string {
-	if monitor == nil {
-		return ""
-	}
-
-	// Try to extract URL from monitor config JSON
-	// Since monitor.Config contains JSON configuration, we would need to parse it
-	// For now, return empty string as the config structure isn't defined
-	// This can be enhanced later based on the actual config structure
-	return ""
-}
-
 // buildActions creates action buttons for the Slack message
 func (s *SlackSender) buildActions(baseURL string, monitor *monitor.Model) []map[string]any {
 	actions := []map[string]any{}
@@ -115,20 +104,17 @@ func (s *SlackSender) buildActions(baseURL string, monitor *monitor.Model) []map
 		})
 	}
 
-	// Add "Visit site" button if monitor has a valid address
-	address := s.extractAddress(monitor)
-	if address != "" {
-		if _, err := url.Parse(address); err == nil {
-			actions = append(actions, map[string]any{
-				"type": "button",
-				"text": map[string]any{
-					"type": "plain_text",
-					"text": "Visit site",
-				},
-				"value": "Site",
-				"url":   address,
-			})
-		}
+	// Add "Visit site" button if the monitor checks an HTTP(S) URL
+	if _, _, link := shareableAddress(monitor); link != "" {
+		actions = append(actions, map[string]any{
+			"type": "button",
+			"text": map[string]any{
+				"type": "plain_text",
+				"text": "Visit site",
+			},
+			"value": "Site",
+			"url":   link,
+		})
 	}
 
 	return actions
@@ -161,6 +147,14 @@ func (s *SlackSender) buildBlocks(baseURL string, monitor *monitor.Model, heartb
 		fields = append(fields, map[string]any{
 			"type": "mrkdwn",
 			"text": timeText,
+		})
+	}
+
+	// Add what the monitor checks, such as its URL or host
+	if addressTitle, address, _ := shareableAddress(monitor); address != "" {
+		fields = append(fields, map[string]any{
+			"type": "mrkdwn",
+			"text": fmt.Sprintf("*%s*\n%s", addressTitle, slackEscaper.Replace(address)),
 		})
 	}
 
