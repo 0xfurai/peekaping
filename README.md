@@ -48,7 +48,7 @@ These images run single mode, the default for new installs. Cluster mode (Kubern
 
 MongoDB storage was removed. If you ran Peekaping on MongoDB, [move your data to SQLite or PostgreSQL](https://docs.peekaping.com/self-hosting/docker-with-mongo#move-to-sqlite-or-postgresql) before you upgrade.
 
-Prefer a managed host? [![Deploy on RepoCloud](https://d16t0pc4846x52.cloudfront.net/deploylobe.svg)](https://repocloud.io/details/peekaping/)
+Prefer a managed host? [![Deploy on RepoCloud](https://d16t0pc4846x52.cloudfront.net/deploylobe.svg)](https://repocloud.io/details/peekaping/) [![Deploy on Elestio](https://elest.io/images/logos/deploy-to-elestio-btn.svg)](https://dash.elest.io/deploy?soft=Peekaping&id=554)
 
 ## Features
 
