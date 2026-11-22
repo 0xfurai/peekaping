@@ -51,9 +51,6 @@ export default function DocHero(): ReactNode {
         <Link className={styles.btnPrimary} to="/self-hosting/docker-with-sqlite">
           Get started <span aria-hidden="true">→</span>
         </Link>
-        <Link className={styles.btnGhost} href="https://demo.peekaping.com">
-          Try the live demo
-        </Link>
       </div>
 
       <CopyCommand command={QUICKSTART} />

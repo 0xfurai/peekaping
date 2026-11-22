@@ -647,10 +647,3 @@ jobs:
         run: helm push "dist/peekaping-$VERSION.tgz" "oci://ghcr.io/$OWNER/charts"
         env:
           OWNER: ${{ github.repository_owner }}
-
-  deploy-demo:
-    needs: release
-    uses: ./.github/workflows/deploy-demo.yml
-    with:
-      version: ${{ github.event.inputs.version }}
-    secrets: inherit

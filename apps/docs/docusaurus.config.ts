@@ -89,12 +89,6 @@ const config: Config = {
           className: "header-github-link",
           "aria-label": "GitHub repository",
         },
-        {
-          href: "https://demo.peekaping.com",
-          label: "Live demo",
-          position: "right",
-          className: "navbar-cta",
-        },
       ],
     },
     footer: {
@@ -119,7 +113,6 @@ const config: Config = {
           title: "Product",
           items: [
             { label: "Website", href: "https://peekaping.com" },
-            { label: "Live demo", href: "https://demo.peekaping.com" },
             { label: "Releases", href: "https://github.com/0xfurai/peekaping/releases" },
           ],
         },
