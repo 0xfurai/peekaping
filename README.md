@@ -6,7 +6,7 @@
 
 **Open-source, self-hosted uptime monitoring. A modern, API-first Uptime Kuma alternative built with Go and React.**
 
-[Website](https://peekaping.com) · [Live demo](https://demo.peekaping.com) · [Docs](https://docs.peekaping.com) · [Discord](https://discord.gg/Xuv8b5AhPF)
+[Website](https://peekaping.com) · [Docs](https://docs.peekaping.com) · [Discord](https://discord.gg/Xuv8b5AhPF)
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Go](https://img.shields.io/badge/go-%23007d9c.svg?style=flat&logo=go&logoColor=white)

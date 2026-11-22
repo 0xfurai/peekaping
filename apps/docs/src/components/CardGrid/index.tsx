@@ -58,7 +58,6 @@ const ICONS: Record<string, ReactNode> = {
       <path d="m16 18 6-6-6-6M8 6l-6 6 6 6" />
     </>
   ),
-  activity: <path d="M22 12h-4l-3 9L9 3l-3 9H2" />,
   chart: (
     <>
       <path d="M3 3v18h18" />
