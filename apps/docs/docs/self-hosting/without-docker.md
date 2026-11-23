@@ -182,8 +182,9 @@ Build the new release as in [Build](#1-build), then:
 
 ```bash
 sudo systemctl stop peekaping
-# With SQLite, back up the database while Peekaping is stopped
-sudo cp -a /opt/peekaping/data /opt/peekaping/data.backup
+# With SQLite, back up the database while Peekaping is stopped,
+# in a new folder named after the date and time, so earlier backups stay as they are
+sudo cp -a /opt/peekaping/data "/opt/peekaping/data.backup-$(date +%Y%m%d-%H%M%S)"
 
 sudo install -m 755 apps/server/peekaping apps/server/bun /opt/peekaping/
 sudo rm -rf /opt/peekaping/web
