@@ -86,8 +86,7 @@
   margin-top: 2rem;
 }
 
-.btnPrimary,
-.btnGhost {
+.btnPrimary {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
@@ -120,17 +119,6 @@
 
 [data-theme="dark"] .btnPrimary:hover {
   color: #0b0713;
-}
-
-.btnGhost {
-  color: var(--ifm-font-color-base);
-  background: var(--pk-surface);
-  border: 1px solid var(--pk-hairline);
-}
-
-.btnGhost:hover {
-  color: var(--ifm-font-color-base);
-  border-color: var(--pk-hairline-strong);
 }
 
 .command {

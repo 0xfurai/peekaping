@@ -31,7 +31,7 @@ You need:
 - Helm 3.13 or later.
 - A PostgreSQL database, with a user that can create tables in it. The migrate Job creates the tables, not the database.
 - A Redis.
-- Servers that accept connections without TLS. Peekaping connects to PostgreSQL with `sslmode=disable` and to Redis in plain text, so a server that requires TLS doesn't work.
+- A Redis that accepts connections without TLS. Peekaping connects to Redis in plain text, so a Redis that requires TLS doesn't work. PostgreSQL can use TLS: see `DB_SSLMODE` below.
 
 ## Install
 
@@ -142,6 +142,7 @@ The database settings have no defaults. For PostgreSQL, set `DB_TYPE` (the chart
 | `CORS_ORIGINS` | the origin of `CLIENT_URL` | Origins whose pages may read the API's responses, comma-separated. The web app calls the API on its own address, which needs no entry. Set it only for a page on another origin. `*` allows any origin. |
 | `MODE` | `dev` | Set `prod`. With `dev`, the API logs every request. |
 | `TZ` | `UTC` | The server's time zone. |
+| `DB_SSLMODE` | `disable` | Whether the connection to PostgreSQL uses TLS: `disable`, `allow`, `prefer`, `require`, `verify-ca` or `verify-full`. See [External PostgreSQL and Redis](#external-postgresql-and-redis). |
 | `REDIS_HOST` | `redis` | Your Redis host. |
 | `REDIS_PORT` | `6379` | |
 | `REDIS_USERNAME` | empty | A Redis ACL user. Leave it empty for password-only authentication. |
@@ -213,7 +214,11 @@ Your Ingress or gateway must add the client's address to the end of `X-Forwarded
 
 Point the chart at a PostgreSQL and a Redis that run outside the release, such as managed services or your own. Put the hosts, ports, database name and user in `config.env`, and the passwords in the secret, as in the values file above.
 
-The pods open their connections from inside the cluster, so make sure the cluster's network can reach both servers. Both must accept connections without TLS, so passwords and data cross that network unencrypted: keep both servers on a network you trust, such as inside the cluster or a private network, or reach them through an encrypted tunnel.
+The pods open their connections from inside the cluster, so make sure the cluster's network can reach both servers.
+
+For a PostgreSQL that wants TLS, as a managed one usually does, set `DB_SSLMODE` in `config.env`. The api and the migrate Job both read it. `require` encrypts the connection without checking the server's certificate, `verify-ca` checks the certificate's chain, and `verify-full` checks the host name too. The two `verify-` modes trust only the certificate authorities in the image, so a server whose certificate comes from a private authority, as some managed services use, fails them: use `require` for it.
+
+Redis must accept connections without TLS, so its password and data cross that network unencrypted: keep it on a network you trust, such as inside the cluster or a private network, or reach it through an encrypted tunnel.
 
 The chart also lists Bitnami's PostgreSQL and Redis charts as dependencies. They are off by default. `postgresql.enabled` and `redis.enabled` turn them on, and the other values under `postgresql` and `redis` are the Bitnami charts' own. If you enable them, point `config.env` at the services they create. For a release named `peekaping` in the namespace `peekaping`, those are `peekaping-postgresql.peekaping.svc.cluster.local` and `peekaping-redis-master.peekaping.svc.cluster.local`. [Bundled PostgreSQL and Redis images](#bundled-postgresql-and-redis-images) says which images they run.
 

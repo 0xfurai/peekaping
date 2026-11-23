@@ -65,6 +65,8 @@ services:
       DB_USER: ${DB_USER:-postgres}
       DB_PASS: ${DB_PASS:-password}
       DB_NAME: ${DB_NAME:-peekaping}
+      # When the database wants TLS, set it in .env (see "Another PostgreSQL server")
+      DB_SSLMODE: ${DB_SSLMODE:-disable}
       # Behind a reverse proxy, set TRUSTED_PROXIES in .env (see Reverse proxy and HTTPS)
       TRUSTED_PROXIES: ${TRUSTED_PROXIES-}
     depends_on:
@@ -83,6 +85,8 @@ PostgreSQL's major versions are upgraded through the official image, not through
 ### Another PostgreSQL server
 
 Single mode works with any PostgreSQL, such as a managed one. Remove the `postgres` service and the `depends_on`, and set `DB_HOST` and `DB_PORT` to the server's address, with `DB_USER`, `DB_PASS` and `DB_NAME` of a database that exists. The user needs to create tables in its public schema. `peekaping` creates its tables with the migrations at start.
+
+Set `DB_SSLMODE` when the server wants TLS, as a managed one usually does: `require`, `allow` or `prefer` encrypt the connection without checking the server's certificate, `verify-ca` checks the certificate's chain, and `verify-full` checks the host name too. The default, `disable`, connects without TLS. Unlike libpq, the driver doesn't fall back to plain on `allow` and `prefer`: those still need a server that offers TLS. The two `verify-` modes trust only the certificate authorities in the image, so a server whose certificate comes from a private authority, as some managed services use, fails them: use `require` for it. The same variable is read in cluster mode, by the `api` and the `migrate` services.
 
 ### Settings
 
@@ -201,6 +205,10 @@ DB_NAME=peekaping
 DB_HOST=database
 DB_PORT=5432
 DB_TYPE=postgres
+# Whether the connection to PostgreSQL uses TLS: disable (the default), allow,
+# prefer, require, verify-ca or verify-full. A managed database usually needs
+# one of the last three.
+# DB_SSLMODE=require
 
 # Server Configuration
 # The API's port inside the Docker network. The single-mode image ignores it

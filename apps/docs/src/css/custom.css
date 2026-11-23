@@ -203,31 +203,6 @@ body {
   color: var(--ifm-color-primary);
 }
 
-.navbar-cta {
-  margin-left: 0.5rem;
-  padding: 0.4rem 1rem !important;
-  border-radius: 9999px;
-  font-weight: 600;
-  color: #fff !important;
-  background: #0b0713;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-[data-theme="dark"] .navbar-cta {
-  color: #0b0713 !important;
-  background: #fff;
-  box-shadow: 0 6px 30px -10px rgba(139, 92, 246, 0.9);
-}
-
-.navbar-cta:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 10px 40px -8px rgba(139, 92, 246, 0.9);
-}
-
-.navbar-cta svg {
-  display: none;
-}
-
 .header-github-link {
   width: 2.25rem;
   height: 2.25rem;

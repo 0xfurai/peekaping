@@ -20,6 +20,9 @@ type DBConfig struct {
 	DBUser string `env:"DB_USER"`                           // validated in validateCustomRules
 	DBPass string `env:"DB_PASS"`                           // validated in validateCustomRules
 	DBType string `env:"DB_TYPE" validate:"required,db_type"`
+	// DBSSLMode is the sslmode of the PostgreSQL connection: whether it uses TLS and how much
+	// it checks. MySQL and SQLite don't read it.
+	DBSSLMode string `env:"DB_SSLMODE" validate:"oneof=disable allow prefer require verify-ca verify-full" default:"disable"`
 }
 
 type Config struct {
@@ -35,6 +38,9 @@ type Config struct {
 	DBUser string `env:"DB_USER"`                           // validated in validateCustomRules
 	DBPass string `env:"DB_PASS"`                           // validated in validateCustomRules
 	DBType string `env:"DB_TYPE" validate:"required,db_type"`
+	// DBSSLMode is the sslmode of the PostgreSQL connection: whether it uses TLS and how much
+	// it checks. MySQL and SQLite don't read it.
+	DBSSLMode string `env:"DB_SSLMODE" validate:"oneof=disable allow prefer require verify-ca verify-full" default:"disable"`
 
 	// Which check a process that opens SQLite runs at startup: "quick" runs PRAGMA quick_check,
 	// "full" runs PRAGMA integrity_check, and "off" runs none. A finding stops startup.
@@ -443,6 +449,16 @@ func formatMinError(err validator.FieldError) string {
 		return fmt.Sprintf("%s must be at least %s", err.Field(), err.Param())
 	}
 	return fmt.Sprintf("%s must be at least %s characters", err.Field(), err.Param())
+}
+
+// PostgresSSLMode is the sslmode a PostgreSQL connection string carries: mode, or disable when
+// mode is empty. A config built without LoadConfig, as a test's, has no default applied, and an
+// empty sslmode makes pgdriver try TLS, its default.
+func PostgresSSLMode(mode string) string {
+	if mode == "" {
+		return "disable"
+	}
+	return mode
 }
 
 func ValidateDatabaseCustomRules(config *DBConfig) error {
