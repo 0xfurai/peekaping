@@ -1945,6 +1945,47 @@ components:
           format: int64
           minimum: 20
           type: integer
+        slow_response_consecutive:
+          description: Consecutive slow Up checks before sending a slow response notification (default 3, >= 1).
+          examples:
+            - 3
+          format: int64
+          type:
+            - integer
+            - "null"
+        slow_response_min_ms:
+          description: With baseline slow response mode, minimum response time floor in milliseconds (>= 0).
+          examples:
+            - 100
+          format: int64
+          type:
+            - integer
+            - "null"
+        slow_response_mode:
+          description: "Slow response notification mode while checks are Up: off (default), fixed (threshold in ms), or baseline (multiplier of 24h average)."
+          enum:
+            - "off"
+            - fixed
+            - baseline
+          examples:
+            - "off"
+          type: string
+        slow_response_multiplier:
+          description: With baseline slow response mode, multiplier over 24h average response time (> 1).
+          examples:
+            - 2
+          format: double
+          type:
+            - number
+            - "null"
+        slow_response_threshold_ms:
+          description: With fixed slow response mode, response time threshold in milliseconds (>= 1).
+          examples:
+            - 500
+          format: int64
+          type:
+            - integer
+            - "null"
         tag_ids:
           examples:
             - - 6830ad485361f19c598d6d90
@@ -2176,6 +2217,45 @@ components:
             - 60
           format: int64
           type: integer
+        slow_response_consecutive:
+          description: How many consecutive slow Up checks are required before a slow response notification is sent.
+          examples:
+            - 3
+          format: int64
+          type: integer
+        slow_response_min_ms:
+          description: With baseline slow response mode, the minimum response time floor in milliseconds below which no slow response alert is sent. Null with any other mode.
+          examples:
+            - 100
+          format: int64
+          type:
+            - integer
+            - "null"
+        slow_response_mode:
+          description: "When to send a slow response notification while checks are still Up: off (default), fixed (response time above slow_response_threshold_ms), or baseline (response time above slow_response_multiplier times the 24h average)."
+          enum:
+            - "off"
+            - fixed
+            - baseline
+          examples:
+            - "off"
+          type: string
+        slow_response_multiplier:
+          description: With baseline slow response mode, the multiplier applied to the 24h average response time (must be greater than 1). Null with any other mode.
+          examples:
+            - 2
+          format: double
+          type:
+            - number
+            - "null"
+        slow_response_threshold_ms:
+          description: With fixed slow response mode, the response time threshold in milliseconds. Null with any other mode.
+          examples:
+            - 500
+          format: int64
+          type:
+            - integer
+            - "null"
         stale_since:
           format: date-time
           type: string
@@ -2221,6 +2301,11 @@ components:
         - resend_interval
         - location_rule
         - location_threshold
+        - slow_response_mode
+        - slow_response_threshold_ms
+        - slow_response_multiplier
+        - slow_response_min_ms
+        - slow_response_consecutive
         - active
         - status
         - config
@@ -2356,6 +2441,50 @@ components:
             - 60
           format: int64
           minimum: 20
+          type:
+            - integer
+            - "null"
+        slow_response_consecutive:
+          description: Consecutive slow Up checks before alerting (>= 1).
+          examples:
+            - 3
+          format: int64
+          type:
+            - integer
+            - "null"
+        slow_response_min_ms:
+          description: With baseline slow response mode, minimum response time floor in milliseconds (>= 0).
+          examples:
+            - 100
+          format: int64
+          type:
+            - integer
+            - "null"
+        slow_response_mode:
+          description: "Slow response notification mode: off, fixed or baseline."
+          enum:
+            - "off"
+            - fixed
+            - baseline
+            - null
+          examples:
+            - "off"
+          type:
+            - string
+            - "null"
+        slow_response_multiplier:
+          description: With baseline slow response mode, multiplier over 24h average response time (> 1).
+          examples:
+            - 2
+          format: double
+          type:
+            - number
+            - "null"
+        slow_response_threshold_ms:
+          description: With fixed slow response mode, response time threshold in milliseconds (>= 1).
+          examples:
+            - 500
+          format: int64
           type:
             - integer
             - "null"
@@ -5112,6 +5241,20 @@ components:
           format: int64
           type: integer
         retryInterval:
+          format: int64
+          type: integer
+        slowResponseConsecutive:
+          format: int64
+          type: integer
+        slowResponseMinMs:
+          format: int64
+          type: integer
+        slowResponseMode:
+          type: string
+        slowResponseMultiplier:
+          format: double
+          type: number
+        slowResponseThresholdMs:
           format: int64
           type: integer
         tagRefs:

@@ -1,9 +1,11 @@
 import { FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
 import { TypographyH4 } from "@/components/ui/typography";
 import { useFormContext } from "react-hook-form";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 import { useMinCheckInterval } from "@/hooks/useMinCheckInterval";
+import SlowResponse from "./slow-response";
 
 const Intervals = () => {
   const { t } = useLocalizedTranslation();
@@ -106,6 +108,10 @@ const Intervals = () => {
           </FormItem>
         )}
       />
+
+      <Separator className="my-4" />
+
+      <SlowResponse />
     </>
   );
 };

@@ -36,17 +36,22 @@ type Result struct {
 	MonitorResendInt  int
 	// MonitorLocationRule and MonitorLocationThreshold are the monitor's location rule. No rule
 	// means any.
-	MonitorLocationRule      shared.LocationRule
-	MonitorLocationThreshold int
-	MonitorConfig            string
-	Status                   shared.MonitorStatus
-	Message                  string
-	PingMs                   int
-	StartTime                time.Time
-	EndTime                  time.Time
-	IsUnderMaintenance       bool
-	TLSInfo                  *shared.TLSInfo
-	CheckCertExpiry          bool
+	MonitorLocationRule            shared.LocationRule
+	MonitorLocationThreshold       int
+	MonitorSlowResponseMode        shared.SlowResponseMode
+	MonitorSlowResponseThresholdMs *int
+	MonitorSlowResponseMultiplier  *float64
+	MonitorSlowResponseMinMs       *int
+	MonitorSlowResponseConsecutive int
+	MonitorConfig                  string
+	Status                         shared.MonitorStatus
+	Message                        string
+	PingMs                         int
+	StartTime                      time.Time
+	EndTime                        time.Time
+	IsUnderMaintenance             bool
+	TLSInfo                        *shared.TLSInfo
+	CheckCertExpiry                bool
 }
 
 // Service turns check results into heartbeats: ADR 0002's "ingest a result". Package ingester's

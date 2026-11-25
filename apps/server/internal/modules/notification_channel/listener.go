@@ -104,6 +104,12 @@ func (l *NotificationEventListener) Subscribe(eventBus events.EventBus) {
 	events.Subscribe(subscriber, probe.ProbeOnline, func(ctx context.Context, probeEvent probe.Event) {
 		l.handleProbeEvent(ctx, probeEvent, true)
 	})
+	events.Subscribe(subscriber, events.SlowResponse, func(ctx context.Context, slowEvent shared.SlowResponseEvent) {
+		l.handleSlowResponseEvent(ctx, slowEvent, false)
+	})
+	events.Subscribe(subscriber, events.SlowResponseRecovered, func(ctx context.Context, slowEvent shared.SlowResponseEvent) {
+		l.handleSlowResponseEvent(ctx, slowEvent, true)
+	})
 }
 
 // staleTimeFormat is how stale-monitor and probe notifications show a time
@@ -266,6 +272,70 @@ func (l *NotificationEventListener) handleCertificateExpiryEvent(ctx context.Con
 	// A certificate expiry notification carries no heartbeat
 	message := l.formatCertificateExpiryMessage(&certEvent, monitorModel)
 	l.sendToChannels(ctx, notificationChannels, message, monitorModel, nil)
+}
+
+func (l *NotificationEventListener) handleSlowResponseEvent(ctx context.Context, slowEvent shared.SlowResponseEvent, recovered bool) {
+	l.logger.Infof("Slow response event received for monitor: %s (recovered: %t)", slowEvent.MonitorID, recovered)
+
+	notificationChannels, monitorModel := l.findChannels(ctx, slowEvent.MonitorID)
+	if monitorModel == nil {
+		return
+	}
+
+	message := formatSlowResponseMessage(&slowEvent, monitorModel, recovered)
+	// A slow-response notification carries no heartbeat so it doesn't masquerade as an outage status change
+	l.sendToChannels(ctx, notificationChannels, message, monitorModel, nil)
+}
+
+func slowResponseLocationSuffix(m *monitor.Model, probeID string) string {
+	if m == nil || len(m.Locations) <= 1 || probeID == "" {
+		return ""
+	}
+	probeName := probeID
+	for _, loc := range m.Locations {
+		if loc.ProbeID == probeID && loc.ProbeName != "" {
+			probeName = loc.ProbeName
+			break
+		}
+	}
+	return fmt.Sprintf(" at %s", probeName)
+}
+
+func slowResponseDetail(e *shared.SlowResponseEvent) string {
+	detail := fmt.Sprintf("threshold: %d ms", e.ThresholdMs)
+	if e.Mode == shared.SlowResponseModeBaseline && e.BaselineAvgMs != nil && e.Multiplier != nil {
+		detail = fmt.Sprintf("threshold: %d ms, %.1fx 24h avg of %.0f ms", e.ThresholdMs, *e.Multiplier, *e.BaselineAvgMs)
+	}
+	if e.ConsecutiveCount > 1 {
+		detail += fmt.Sprintf(", %d consecutive slow checks", e.ConsecutiveCount)
+	}
+	return detail
+}
+
+func formatSlowResponseMessage(e *shared.SlowResponseEvent, m *monitor.Model, recovered bool) string {
+	locationSuffix := slowResponseLocationSuffix(m, e.ProbeID)
+	monitorName := e.MonitorName
+	if monitorName == "" && m != nil {
+		monitorName = m.Name
+	}
+
+	if recovered {
+		return fmt.Sprintf(
+			"✅ Response Time Recovered: %s%s is back to normal at %d ms (threshold: %d ms)",
+			monitorName,
+			locationSuffix,
+			e.PingMs,
+			e.ThresholdMs,
+		)
+	}
+
+	return fmt.Sprintf(
+		"⚠️ Slow Response Warning: %s%s took %d ms (%s)",
+		monitorName,
+		locationSuffix,
+		e.PingMs,
+		slowResponseDetail(e),
+	)
 }
 
 // findChannels returns the notification channels linked to a monitor, and the monitor with its

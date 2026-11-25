@@ -11,22 +11,35 @@ import (
 	"peekaping/internal/modules/ingester/ingest"
 	"peekaping/internal/modules/notification_channel"
 	"peekaping/internal/modules/queue"
+	"peekaping/internal/modules/stats"
 
+	"github.com/uptrace/bun"
+	"go.uber.org/dig"
 	"go.uber.org/zap"
 )
+
+type inOrderIngesterParams struct {
+	dig.In
+
+	HeartbeatService   heartbeat.Service
+	CertificateService certificate.Service
+	Locations          ingester.LocationStore
+	EventBus           events.EventBus
+	Logger             *zap.SugaredLogger
+	DB                 *bun.DB       `optional:"true"`
+	StatsService       stats.Service `optional:"true"`
+}
 
 // provideInOrderIngester provides the ingester.Service that stores results in this process, one
 // monitor's results at a time, in order: single mode's scheduler checks and push URL, and the
 // cluster api's push URL and probe results on SQLite and PostgreSQL. The monitor's own status is
 // still judged under the location lock, which the monitor repository holds across replicas.
-func provideInOrderIngester(
-	heartbeatService heartbeat.Service,
-	certificateService certificate.Service,
-	locations ingester.LocationStore,
-	eventBus events.EventBus,
-	logger *zap.SugaredLogger,
-) ingester.Service {
-	return ingest.NewInOrderService(ingester.NewService(heartbeatService, certificateService, locations, eventBus, logger))
+func provideInOrderIngester(p inOrderIngesterParams) ingester.Service {
+	var opts []ingester.ServiceOption
+	if p.DB != nil {
+		opts = append(opts, ingester.WithSlowResponse(ingester.NewSQLSlowResponseStore(p.DB), p.StatsService))
+	}
+	return ingest.NewInOrderService(ingester.NewService(p.HeartbeatService, p.CertificateService, p.Locations, p.EventBus, p.Logger, opts...))
 }
 
 // LocalBus is an event bus whose events stay in the process that published them. The cluster api on

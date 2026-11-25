@@ -117,18 +117,23 @@ type NotificationChannel struct {
 }
 
 type Monitor struct {
-	Ref               string     `json:"ref"`
-	Name              string     `json:"name"`
-	Type              string     `json:"type"`
-	Active            bool       `json:"active"`
-	Interval          int        `json:"interval"`
-	Timeout           int        `json:"timeout"`
-	MaxRetries        int        `json:"maxRetries"`
-	RetryInterval     int        `json:"retryInterval"`
-	ResendInterval    int        `json:"resendInterval"`
-	LocationRule      string     `json:"locationRule"`
-	LocationThreshold *int       `json:"locationThreshold,omitempty"`
-	Config            ConfigJSON `json:"config"`
+	Ref                     string     `json:"ref"`
+	Name                    string     `json:"name"`
+	Type                    string     `json:"type"`
+	Active                  bool       `json:"active"`
+	Interval                int        `json:"interval"`
+	Timeout                 int        `json:"timeout"`
+	MaxRetries              int        `json:"maxRetries"`
+	RetryInterval           int        `json:"retryInterval"`
+	ResendInterval          int        `json:"resendInterval"`
+	LocationRule            string     `json:"locationRule"`
+	LocationThreshold       *int       `json:"locationThreshold,omitempty"`
+	SlowResponseMode        string     `json:"slowResponseMode,omitempty"`
+	SlowResponseThresholdMs *int       `json:"slowResponseThresholdMs,omitempty"`
+	SlowResponseMultiplier  *float64   `json:"slowResponseMultiplier,omitempty"`
+	SlowResponseMinMs       *int       `json:"slowResponseMinMs,omitempty"`
+	SlowResponseConsecutive *int       `json:"slowResponseConsecutive,omitempty"`
+	Config                  ConfigJSON `json:"config"`
 	// PushToken is the monitor's push token, which a push monitor has
 	PushToken               string   `json:"pushToken,omitempty"`
 	ProxyRef                string   `json:"proxyRef,omitempty"`

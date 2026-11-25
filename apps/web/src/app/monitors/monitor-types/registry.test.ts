@@ -20,6 +20,11 @@ const savedMonitor = (body: ReturnType<typeof serializeMonitor>): MonitorMonitor
   resend_interval: body.resend_interval ?? 0,
   location_rule: body.location_rule ?? "any",
   location_threshold: body.location_threshold ?? null,
+  slow_response_mode: body.slow_response_mode ?? "off",
+  slow_response_threshold_ms: body.slow_response_threshold_ms ?? null,
+  slow_response_multiplier: body.slow_response_multiplier ?? null,
+  slow_response_min_ms: body.slow_response_min_ms ?? null,
+  slow_response_consecutive: body.slow_response_consecutive ?? 3,
   proxy_id: body.proxy_id ?? "",
   push_token: body.push_token ?? "",
   probe_ids: body.probe_ids ?? ["local"],
@@ -188,6 +193,59 @@ describe("monitor type registry", () => {
         expect(serializeMonitor(definition.defaultValues)).toEqual(
           definition.serialize(definition.defaultValues as never)
         );
+      });
+
+      it("handles slow response alert modes and clears irrelevant fields", () => {
+        const fixedBody = definition.serialize({
+          ...definition.defaultValues,
+          slow_response_mode: "fixed",
+          slow_response_threshold_ms: 450,
+          slow_response_multiplier: 2.5,
+          slow_response_min_ms: 100,
+          slow_response_consecutive: 2,
+        } as never);
+        expect(fixedBody.slow_response_mode).toBe("fixed");
+        expect(fixedBody.slow_response_threshold_ms).toBe(450);
+        expect(fixedBody.slow_response_multiplier).toBeNull();
+        expect(fixedBody.slow_response_min_ms).toBeNull();
+        expect(fixedBody.slow_response_consecutive).toBe(2);
+
+        const baselineBody = definition.serialize({
+          ...definition.defaultValues,
+          slow_response_mode: "baseline",
+          slow_response_threshold_ms: 450,
+          slow_response_multiplier: 2.5,
+          slow_response_min_ms: 120,
+          slow_response_consecutive: 4,
+        } as never);
+        expect(baselineBody.slow_response_mode).toBe("baseline");
+        expect(baselineBody.slow_response_threshold_ms).toBeNull();
+        expect(baselineBody.slow_response_multiplier).toBe(2.5);
+        expect(baselineBody.slow_response_min_ms).toBe(120);
+        expect(baselineBody.slow_response_consecutive).toBe(4);
+      });
+
+      it("validates slow response fields according to the chosen mode", () => {
+        const parseIssues = (over: Record<string, unknown>, field: string) =>
+          checkedMonitorFormSchema
+            .safeParse({ ...definition.defaultValues, ...over })
+            .error?.issues.filter((issue) => issue.path[0] === field) ?? [];
+
+        expect(
+          parseIssues({ slow_response_mode: "fixed", slow_response_threshold_ms: 0 }, "slow_response_threshold_ms")
+        ).toHaveLength(1);
+        expect(
+          parseIssues({ slow_response_mode: "fixed", slow_response_threshold_ms: 250 }, "slow_response_threshold_ms")
+        ).toHaveLength(0);
+        expect(
+          parseIssues({ slow_response_mode: "baseline", slow_response_multiplier: 1 }, "slow_response_multiplier")
+        ).toHaveLength(1);
+        expect(
+          parseIssues({ slow_response_mode: "baseline", slow_response_multiplier: 2.2 }, "slow_response_multiplier")
+        ).toHaveLength(0);
+        expect(
+          parseIssues({ slow_response_mode: "baseline", slow_response_min_ms: -5 }, "slow_response_min_ms")
+        ).toHaveLength(1);
       });
     }
   );

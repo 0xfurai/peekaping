@@ -163,7 +163,10 @@ func (s *ServiceImpl) monitorProblem(m Monitor) error {
 	if err := s.deps.MonitorService.ValidateMonitorConfig(dto.Type, dto.Config); err != nil && !errors.As(err, &blocked) {
 		return err
 	}
-	return monitor.CheckLocationRuleShape(dto.LocationRule, dto.LocationThreshold)
+	if err := monitor.CheckLocationRuleShape(dto.LocationRule, dto.LocationThreshold); err != nil {
+		return err
+	}
+	return monitor.CheckSlowResponseShape(dto)
 }
 
 func (s *ServiceImpl) checkMaintenances(doc *Document, found *problems) {
@@ -231,6 +234,8 @@ func monitorDto(m Monitor) (*monitor.CreateUpdateDto, error) {
 		Type: m.Type, Name: m.Name, Interval: m.Interval, MaxRetries: m.MaxRetries, RetryInterval: m.RetryInterval,
 		Timeout: m.Timeout, ResendInterval: m.ResendInterval, Active: m.Active, NotificationIds: []string{}, TagIds: []string{},
 		Config: config, PushToken: m.PushToken, LocationRule: shared.LocationRule(m.LocationRule), LocationThreshold: m.LocationThreshold,
+		SlowResponseMode: shared.SlowResponseMode(m.SlowResponseMode), SlowResponseThresholdMs: m.SlowResponseThresholdMs,
+		SlowResponseMultiplier: m.SlowResponseMultiplier, SlowResponseMinMs: m.SlowResponseMinMs, SlowResponseConsecutive: m.SlowResponseConsecutive,
 	}
 	dto.ApplyPushToken()
 	return dto, nil

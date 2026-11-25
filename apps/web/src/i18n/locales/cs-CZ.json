@@ -959,6 +959,26 @@
           "selected_proxy": "Vybraný proxy server",
           "title": "Proxy"
         },
+        "slow_response": {
+          "consecutive_description": "Kolik po sobě jdoucích pomalých úspěšných kontrol (Up) spustí upozornění. Po návratu odezvy do normálu se odešle zpráva o zotavení.",
+          "consecutive_invalid": "Zadejte celé číslo, 1 nebo více",
+          "consecutive_label": "Počet pomalých kontrol v řadě",
+          "description": "Odešle upozornění, pokud je kontrola úspěšná (Up), ale trvá déle než očekávaná doba. Nemění stav monitoru ani procento uptime.",
+          "min_ms_description": "Volitelná minimální hranice v milisekundách. Pro rychlejší odezvy se alarm nespustí (doporučeno: 100 ms).",
+          "min_ms_invalid": "Zadejte celé číslo, 0 nebo více",
+          "min_ms_label": "Minimální hranice (ms)",
+          "mode_baseline": "Déle než obvykle (násobek 24h průměru)",
+          "mode_fixed": "Pevný limit (ms)",
+          "mode_label": "Režim upozornění na pomalou odezvu",
+          "mode_off": "Vypnuto",
+          "multiplier_description": "Upozorní, pokud odezva překročí tento násobek 24h průměru (vyžaduje alespoň 10 kontrol za posledních 24 h).",
+          "multiplier_invalid": "Zadejte číslo větší než 1",
+          "multiplier_label": "Násobek 24h průměru",
+          "threshold_description": "Upozorní, pokud doba odezvy překročí tuto hodnotu v milisekundách.",
+          "threshold_invalid": "Zadejte celé číslo, alespoň 1 ms",
+          "threshold_label": "Hranice doby odezvy (ms)",
+          "title": "Upozornění na pomalou odezvu"
+        },
         "run_from": {
           "default_locations": "Běží na výchozích místech",
           "label": "Spouštět z"
@@ -1116,11 +1136,26 @@
       "monitor_for": "monitor pro",
       "no_certificate_data": "Žádná data o certifikátu",
       "seconds": "sekundy",
+      "slow_response_threshold_line": "Práh: {{ms}} ms",
       "stats": {
+        "last_14_days": "Posledních 14 dní",
         "last_24_hours": "Posledních 24 hodin",
         "last_30_days": "Posledních 30 dní",
         "last_365_days": "Posledních 365 dní",
         "last_7_days": "Posledních 7 dnů"
+      },
+      "status_history": {
+        "days_ago": "před {{count}} dny",
+        "downtime": "Výpadek",
+        "hours_ago": "před {{count}} hodinami",
+        "no_data": "Bez dat",
+        "now": "Nyní",
+        "operational": "V provozu",
+        "partial_outage": "Částečný výpadek",
+        "per_bar_hours": "{{count}} h / sloupec",
+        "per_bar_minutes": "{{count}} min / sloupec",
+        "title": "Historie stavu",
+        "today": "Dnes"
       },
       "status": {
         "down": "Nedostupný",
@@ -2136,12 +2171,15 @@
   },
   "timezone": {
     "average": "Průměr",
+    "last_14_days": "Posledních 14 dní",
     "last_24_hours": "Posledních 24 hodin",
     "last_3_hours": "Poslední 3 hodiny",
     "last_3_months": "Poslední 3 měsíce",
+    "last_30_days": "Posledních 30 dní",
     "last_30_minutes": "Posledních 30 minut",
     "last_6_hours": "Posledních 6 hodin",
     "last_7_days": "Posledních 7 dní",
+    "last_90_days": "Posledních 90 dní",
     "maximum": "Maximální",
     "minimum": "Minimální",
     "ms": "ms",

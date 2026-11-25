@@ -36,14 +36,19 @@ type sqlModel struct {
 	RetryInterval  int    `bun:"retry_interval,notnull"`
 	ResendInterval int    `bun:"resend_interval,notnull"`
 	// LocationRule is any, all or at_least. LocationThreshold is set with at_least and NULL otherwise.
-	LocationRule      string               `bun:"location_rule,notnull"`
-	LocationThreshold *int                 `bun:"location_threshold"`
-	Active            bool                 `bun:"active,notnull"` // no Bun default: it would replace false with the column default
-	Status            shared.MonitorStatus `bun:"status,notnull,default:0"`
-	CreatedAt         time.Time            `bun:"created_at,nullzero,notnull,default:current_timestamp"`
-	UpdatedAt         time.Time            `bun:"updated_at,nullzero,notnull,default:current_timestamp"`
-	Config            string               `bun:"config"`
-	ProxyId           *string              `bun:"proxy_id"`
+	LocationRule            string               `bun:"location_rule,notnull"`
+	LocationThreshold       *int                 `bun:"location_threshold"`
+	SlowResponseMode        string               `bun:"slow_response_mode,notnull"`
+	SlowResponseThresholdMs *int                 `bun:"slow_response_threshold_ms"`
+	SlowResponseMultiplier  *float64             `bun:"slow_response_multiplier"`
+	SlowResponseMinMs       *int                 `bun:"slow_response_min_ms"`
+	SlowResponseConsecutive int                  `bun:"slow_response_consecutive,notnull"`
+	Active                  bool                 `bun:"active,notnull"` // no Bun default: it would replace false with the column default
+	Status                  shared.MonitorStatus `bun:"status,notnull,default:0"`
+	CreatedAt               time.Time            `bun:"created_at,nullzero,notnull,default:current_timestamp"`
+	UpdatedAt               time.Time            `bun:"updated_at,nullzero,notnull,default:current_timestamp"`
+	Config                  string               `bun:"config"`
+	ProxyId                 *string              `bun:"proxy_id"`
 	// PushToken is NULL for a monitor without one: the column is unique, which an empty string
 	// would break for the second such monitor
 	PushToken string `bun:"push_token,nullzero"`
@@ -404,24 +409,29 @@ func toDomainModelFromSQL(sm *sqlModel) *Model {
 	}
 
 	return &Model{
-		ID:                sm.ID,
-		WorkspaceID:       workspace.ID(sm.WorkspaceID),
-		Type:              sm.Type,
-		Name:              sm.Name,
-		Interval:          sm.Interval,
-		Timeout:           sm.Timeout,
-		MaxRetries:        sm.MaxRetries,
-		RetryInterval:     sm.RetryInterval,
-		ResendInterval:    sm.ResendInterval,
-		LocationRule:      shared.LocationRule(sm.LocationRule),
-		LocationThreshold: sm.LocationThreshold,
-		Active:            sm.Active,
-		Status:            sm.Status,
-		CreatedAt:         sm.CreatedAt,
-		UpdatedAt:         sm.UpdatedAt,
-		Config:            sm.Config,
-		ProxyId:           proxyId,
-		PushToken:         sm.PushToken,
+		ID:                      sm.ID,
+		WorkspaceID:             workspace.ID(sm.WorkspaceID),
+		Type:                    sm.Type,
+		Name:                    sm.Name,
+		Interval:                sm.Interval,
+		Timeout:                 sm.Timeout,
+		MaxRetries:              sm.MaxRetries,
+		RetryInterval:           sm.RetryInterval,
+		ResendInterval:          sm.ResendInterval,
+		LocationRule:            shared.LocationRule(sm.LocationRule),
+		LocationThreshold:       sm.LocationThreshold,
+		SlowResponseMode:        slowResponseModeOrOff(shared.SlowResponseMode(sm.SlowResponseMode)),
+		SlowResponseThresholdMs: sm.SlowResponseThresholdMs,
+		SlowResponseMultiplier:  sm.SlowResponseMultiplier,
+		SlowResponseMinMs:       sm.SlowResponseMinMs,
+		SlowResponseConsecutive: slowResponseConsecutiveOrDefault(sm.SlowResponseConsecutive),
+		Active:                  sm.Active,
+		Status:                  sm.Status,
+		CreatedAt:               sm.CreatedAt,
+		UpdatedAt:               sm.UpdatedAt,
+		Config:                  sm.Config,
+		ProxyId:                 proxyId,
+		PushToken:               sm.PushToken,
 
 		WorkspaceSuspended:        sm.WorkspaceSuspended,
 		WorkspaceSuspendedByAdmin: sm.WorkspaceSuspendedByAdmin,
@@ -445,24 +455,29 @@ func toSQLModel(m *Model) *sqlModel {
 	}
 
 	return &sqlModel{
-		ID:                m.ID,
-		WorkspaceID:       string(m.WorkspaceID),
-		Type:              m.Type,
-		Name:              m.Name,
-		Interval:          m.Interval,
-		Timeout:           m.Timeout,
-		MaxRetries:        m.MaxRetries,
-		RetryInterval:     m.RetryInterval,
-		ResendInterval:    m.ResendInterval,
-		LocationRule:      string(locationRuleOrAny(m.LocationRule)),
-		LocationThreshold: m.LocationThreshold,
-		Active:            m.Active,
-		Status:            m.Status,
-		CreatedAt:         m.CreatedAt,
-		UpdatedAt:         m.UpdatedAt,
-		Config:            m.Config,
-		ProxyId:           proxyId,
-		PushToken:         m.PushToken,
+		ID:                      m.ID,
+		WorkspaceID:             string(m.WorkspaceID),
+		Type:                    m.Type,
+		Name:                    m.Name,
+		Interval:                m.Interval,
+		Timeout:                 m.Timeout,
+		MaxRetries:              m.MaxRetries,
+		RetryInterval:           m.RetryInterval,
+		ResendInterval:          m.ResendInterval,
+		LocationRule:            string(locationRuleOrAny(m.LocationRule)),
+		LocationThreshold:       m.LocationThreshold,
+		SlowResponseMode:        string(slowResponseModeOrOff(m.SlowResponseMode)),
+		SlowResponseThresholdMs: m.SlowResponseThresholdMs,
+		SlowResponseMultiplier:  m.SlowResponseMultiplier,
+		SlowResponseMinMs:       m.SlowResponseMinMs,
+		SlowResponseConsecutive: slowResponseConsecutiveOrDefault(m.SlowResponseConsecutive),
+		Active:                  m.Active,
+		Status:                  m.Status,
+		CreatedAt:               m.CreatedAt,
+		UpdatedAt:               m.UpdatedAt,
+		Config:                  m.Config,
+		ProxyId:                 proxyId,
+		PushToken:               m.PushToken,
 	}
 }
 
@@ -902,6 +917,11 @@ func (r *SQLRepositoryImpl) ResetLocations(ctx context.Context, workspaceID work
 		_, err = db.NewUpdate().Model((*sqlProbeLink)(nil)).
 			Set("status = NULL").Set("last_ping = NULL").Set("last_heartbeat_at = NULL").
 			Where("monitor_id = ?", monitorID).Exec(ctx)
+		if err != nil {
+			return err
+		}
+		_, err = db.NewDelete().Table("monitor_slow_response_states").
+			Where("monitor_id = ?", monitorID).Exec(ctx)
 		return err
 	})
 }
@@ -1311,6 +1331,17 @@ func partialSets(monitor *UpdateModel) []columnSet {
 	if monitor.LocationRule != nil {
 		// The threshold goes with the rule: a rule without one clears it
 		sets = append(sets, columnSet{"location_rule", string(*monitor.LocationRule)}, columnSet{"location_threshold", monitor.LocationThreshold})
+	}
+	if monitor.SlowResponseMode != nil {
+		sets = append(sets,
+			columnSet{"slow_response_mode", string(*monitor.SlowResponseMode)},
+			columnSet{"slow_response_threshold_ms", monitor.SlowResponseThresholdMs},
+			columnSet{"slow_response_multiplier", monitor.SlowResponseMultiplier},
+			columnSet{"slow_response_min_ms", monitor.SlowResponseMinMs},
+		)
+		if monitor.SlowResponseConsecutive != nil {
+			sets = append(sets, columnSet{"slow_response_consecutive", *monitor.SlowResponseConsecutive})
+		}
 	}
 	sets = setIfGiven(sets, "active", monitor.Active)
 	sets = setIfGiven(sets, "status", monitor.Status)

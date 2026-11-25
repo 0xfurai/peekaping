@@ -226,12 +226,21 @@ func (s *ServiceImpl) addMonitors(ctx context.Context, id workspace.ID, doc *Doc
 }
 
 func exportedMonitor(m *monitor.Model) Monitor {
-	return Monitor{
+	exported := Monitor{
 		Ref: m.ID, Name: m.Name, Type: m.Type, Active: m.Active, Interval: m.Interval, Timeout: m.Timeout,
 		MaxRetries: m.MaxRetries, RetryInterval: m.RetryInterval, ResendInterval: m.ResendInterval,
 		LocationRule: string(m.LocationRule), LocationThreshold: m.LocationThreshold,
 		Config: objectConfig(m.Config), PushToken: m.PushToken,
 	}
+	if m.SlowResponseMode != "" && m.SlowResponseMode != "off" {
+		consecutive := m.SlowResponseConsecutive
+		exported.SlowResponseMode = string(m.SlowResponseMode)
+		exported.SlowResponseThresholdMs = m.SlowResponseThresholdMs
+		exported.SlowResponseMultiplier = m.SlowResponseMultiplier
+		exported.SlowResponseMinMs = m.SlowResponseMinMs
+		exported.SlowResponseConsecutive = &consecutive
+	}
+	return exported
 }
 
 // monitorLinks returns, for each monitor, the IDs of the notification channels and the tags it is

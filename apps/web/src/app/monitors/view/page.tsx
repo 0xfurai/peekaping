@@ -63,6 +63,7 @@ import StaleMarker from "../components/stale-marker";
 import { getMonitorStatusView } from "../components/monitor-status";
 import { currentStatus, hasLocations, heartbeatsOfProbe, instanceToLookUp, monitorStatusOf, sortLocations } from "../locations";
 import LocationsSection from "./locations-section";
+import { StatusHistoryBars } from "./status-history-bars";
 import { NoData } from "@/components/no-data";
 import { useWorkspacePath } from "@/hooks/useWorkspacePath";
 
@@ -759,7 +760,17 @@ const MonitorPageContent = () => {
           </CardContent>
         </Card>
 
-        <Chart id={id!} locations={showLocations ? locations : undefined} />
+        <StatusHistoryBars id={id!} locations={showLocations ? locations : undefined} />
+
+        <Chart
+          id={id!}
+          locations={showLocations ? locations : undefined}
+          slowResponseThresholdMs={
+            monitor?.slow_response_mode === "fixed"
+              ? monitor.slow_response_threshold_ms
+              : null
+          }
+        />
 
         {id && <ImportantNotificationsList monitorId={id} instanceHostnames={instanceHostnames} />}
       </div>

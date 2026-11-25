@@ -20,6 +20,11 @@ export const deserializeMonitorBase = (data: MonitorMonitorResponseDto): Monitor
   probe_ids: monitorProbeIds(data),
   location_rule: data.location_rule ?? "any",
   location_threshold: data.location_threshold ?? null,
+  slow_response_mode: data.slow_response_mode ?? "off",
+  slow_response_threshold_ms: data.slow_response_threshold_ms ?? 500,
+  slow_response_multiplier: data.slow_response_multiplier ?? 2,
+  slow_response_min_ms: data.slow_response_min_ms ?? 100,
+  slow_response_consecutive: data.slow_response_consecutive ?? 3,
 });
 
 // The request body fields every monitor type sends. The type's codec adds `type` and `config`.
@@ -38,6 +43,11 @@ export const serializeMonitorBase = (
   | "probe_ids"
   | "location_rule"
   | "location_threshold"
+  | "slow_response_mode"
+  | "slow_response_threshold_ms"
+  | "slow_response_multiplier"
+  | "slow_response_min_ms"
+  | "slow_response_consecutive"
 > => ({
   name: values.name,
   interval: values.interval,
@@ -53,4 +63,15 @@ export const serializeMonitorBase = (
   location_rule: values.location_rule,
   // The threshold is only for "at least"; the form keeps one typed before a switch to another rule
   location_threshold: values.location_rule === "at_least" ? values.location_threshold : null,
+  slow_response_mode: values.slow_response_mode,
+  slow_response_threshold_ms:
+    values.slow_response_mode === "fixed" ? values.slow_response_threshold_ms : null,
+  slow_response_multiplier:
+    values.slow_response_mode === "baseline" ? values.slow_response_multiplier : null,
+  slow_response_min_ms:
+    values.slow_response_mode === "baseline" ? values.slow_response_min_ms : null,
+  slow_response_consecutive:
+    values.slow_response_mode === "off"
+      ? 3
+      : (values.slow_response_consecutive ?? 3),
 });

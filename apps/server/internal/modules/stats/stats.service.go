@@ -250,6 +250,7 @@ type Stats struct {
 	MaxPing     *float64 `json:"maxPing"`
 	MinPing     *float64 `json:"minPing"`
 	AvgPing     *float64 `json:"avgPing"`
+	PingCount   int      `json:"-"`
 	Uptime      *float64 `json:"uptime"`
 	Maintenance *float64 `json:"maintenance"`
 }
@@ -302,6 +303,7 @@ func (s *ServiceImpl) StatPointsSummary(statsList []*Stat) *Stats {
 		MaxPing:     maxPing,
 		MinPing:     minPing,
 		AvgPing:     avgPing,
+		PingCount:   pingCount,
 		Uptime:      uptime,
 		Maintenance: maintenance,
 	}

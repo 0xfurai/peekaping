@@ -391,7 +391,11 @@ func (mr *MonitorServiceImpl) CreateWithoutEvent(ctx context.Context, workspaceI
 		return nil, err
 	}
 	lowerLinkIDs(monitorCreateDto)
-	createModel := newCreateModel(workspaceID, monitorCreateDto)
+	slowCfg, err := resolveCreateSlowResponse(monitorCreateDto)
+	if err != nil {
+		return nil, err
+	}
+	createModel := newCreateModel(workspaceID, monitorCreateDto, slowCfg)
 	if err := mr.chooseCreateProbes(ctx, monitorCreateDto, createModel, workspaceLimits); err != nil {
 		return nil, err
 	}
@@ -412,7 +416,7 @@ func (mr *MonitorServiceImpl) CreateWithoutEvent(ctx context.Context, workspaceI
 }
 
 // newCreateModel is the monitor a create request asks for, before its probes are chosen
-func newCreateModel(workspaceID workspace.ID, monitorCreateDto *CreateUpdateDto) *Model {
+func newCreateModel(workspaceID workspace.ID, monitorCreateDto *CreateUpdateDto, slowCfg slowResponseConfig) *Model {
 	return &Model{
 		WorkspaceID:    workspaceID,
 		Type:           monitorCreateDto.Type,
@@ -430,8 +434,13 @@ func newCreateModel(workspaceID workspace.ID, monitorCreateDto *CreateUpdateDto)
 		PushToken:      monitorCreateDto.PushToken,
 		ProbeIDs:       monitorCreateDto.ProbeIDs,
 
-		LocationRule:      locationRuleOrAny(monitorCreateDto.LocationRule),
-		LocationThreshold: monitorCreateDto.LocationThreshold,
+		LocationRule:            locationRuleOrAny(monitorCreateDto.LocationRule),
+		LocationThreshold:       monitorCreateDto.LocationThreshold,
+		SlowResponseMode:        slowCfg.mode,
+		SlowResponseThresholdMs: slowCfg.thresholdMs,
+		SlowResponseMultiplier:  slowCfg.multiplier,
+		SlowResponseMinMs:       slowCfg.minMs,
+		SlowResponseConsecutive: slowCfg.consecutive,
 	}
 }
 
@@ -646,8 +655,8 @@ func (mr *MonitorServiceImpl) storeFullUpdate(ctx context.Context, workspaceID w
 	return mr.findInWorkspace(ctx, workspaceID, id)
 }
 
-// validateFullShape checks the probes and the location rule against the monitor as it will be, and
-// sets the rule the update writes
+// validateFullShape checks the probes, location rule and slow response config against the monitor
+// as it will be, and sets the resolved values the update writes
 func (mr *MonitorServiceImpl) validateFullShape(ctx context.Context, current *Model, monitor *CreateUpdateDto, model *Model) error {
 	if err := mr.validateFullProbes(ctx, current, monitor); err != nil {
 		return err
@@ -656,7 +665,19 @@ func (mr *MonitorServiceImpl) validateFullShape(ctx context.Context, current *Mo
 	// keeps the monitor's
 	var err error
 	model.LocationRule, model.LocationThreshold, err = validateFullLocationRule(current, monitor)
-	return err
+	if err != nil {
+		return err
+	}
+	slowCfg, err := resolveFullSlowResponse(current, monitor)
+	if err != nil {
+		return err
+	}
+	model.SlowResponseMode = slowCfg.mode
+	model.SlowResponseThresholdMs = slowCfg.thresholdMs
+	model.SlowResponseMultiplier = slowCfg.multiplier
+	model.SlowResponseMinMs = slowCfg.minMs
+	model.SlowResponseConsecutive = slowCfg.consecutive
+	return nil
 }
 
 // requireFullUpdateAllowed refuses a full update that gives the monitor a type the install turns
@@ -901,6 +922,17 @@ func (mr *MonitorServiceImpl) validatePartialShape(ctx context.Context, current 
 	}
 	if rule, threshold, set := partialLocationRule(current, monitor); set {
 		model.LocationRule, model.LocationThreshold = &rule, threshold
+	}
+	slowCfg, slowSet, err := resolvePartialSlowResponse(current, monitor)
+	if err != nil {
+		return err
+	}
+	if slowSet {
+		model.SlowResponseMode = &slowCfg.mode
+		model.SlowResponseThresholdMs = slowCfg.thresholdMs
+		model.SlowResponseMultiplier = slowCfg.multiplier
+		model.SlowResponseMinMs = slowCfg.minMs
+		model.SlowResponseConsecutive = &slowCfg.consecutive
 	}
 	return nil
 }
