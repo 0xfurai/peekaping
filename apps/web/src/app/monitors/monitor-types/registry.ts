@@ -22,6 +22,7 @@ import { kafkaProducerMonitorType } from "./kafka-producer";
 import { smtpMonitorType } from "./smtp";
 import { locationThresholdError } from "./shared/location-rule-support";
 import { timeoutError } from "./shared/intervals-support";
+import { slowResponseErrors } from "./shared/slow-response-support";
 
 /**
  * Every monitor type, in the order the Type select lists them. This is the one list: the form
@@ -76,6 +77,9 @@ export const checkedMonitorFormSchema = monitorFormSchema.superRefine((values, c
   if (timeoutMessage) ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["timeout"], message: timeoutMessage });
   const message = locationThresholdError(values);
   if (message) ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["location_threshold"], message });
+  for (const issue of slowResponseErrors(values)) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: [issue.path], message: issue.message });
+  }
 });
 
 const byType = new Map<string, MonitorTypeDefinitions>(

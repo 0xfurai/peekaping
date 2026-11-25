@@ -434,16 +434,20 @@ func limitRefusalResponse(err error) error {
 }
 
 // probeRefusalResponse is the response for probes that don't fit the monitor, a location rule that
-// is invalid and a push token that another monitor holds, and nil for any other error
+// is invalid, a slow response config that is invalid, and a push token that another monitor holds,
+// and nil for any other error
 func probeRefusalResponse(err error) error {
 	var invalidProbes *InvalidProbesError
 	var invalidRule *InvalidLocationRuleError
+	var invalidSlow *InvalidSlowResponseError
 	var tokenTaken *PushTokenAlreadyUsedError
 	switch {
 	case errors.As(err, &invalidProbes):
 		return invalidProbesResponse(invalidProbes)
 	case errors.As(err, &invalidRule):
 		return invalidLocationRuleResponse(invalidRule)
+	case errors.As(err, &invalidSlow):
+		return badRequest(fmt.Sprintf("Invalid slow_response: %v", invalidSlow.Err))
 	case errors.As(err, &tokenTaken):
 		return pushTokenTakenResponse(tokenTaken)
 	}

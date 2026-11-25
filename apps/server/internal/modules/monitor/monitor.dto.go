@@ -32,7 +32,15 @@ type CreateUpdateDto struct {
 	// it to be Down. Without a rule a create is any and an update keeps the monitor's rule.
 	LocationRule      shared.LocationRule `json:"location_rule,omitempty" enum:"any,all,at_least" doc:"How many of the monitor's locations must be Down for the monitor to be Down: any (one is enough), all (every location that counts) or at_least (location_threshold of them). Omitted on create, the rule is any; omitted on update, the monitor keeps its rule. Locations whose probe is offline, or that haven't reported, don't count." example:"any"`
 	LocationThreshold *int                `json:"location_threshold,omitempty" doc:"With the at_least rule, how many locations must be Down: from 1 to the number of probes the monitor runs on. Required with at_least and not allowed with any other rule." example:"2"`
-	activeSet         bool
+
+	// Slow response alert settings
+	SlowResponseMode        shared.SlowResponseMode `json:"slow_response_mode,omitempty" enum:"off,fixed,baseline" doc:"Slow response notification mode while checks are Up: off (default), fixed (threshold in ms), or baseline (multiplier of 24h average)." example:"off"`
+	SlowResponseThresholdMs *int                    `json:"slow_response_threshold_ms,omitempty" doc:"With fixed slow response mode, response time threshold in milliseconds (>= 1)." example:"500"`
+	SlowResponseMultiplier  *float64                `json:"slow_response_multiplier,omitempty" doc:"With baseline slow response mode, multiplier over 24h average response time (> 1)." example:"2"`
+	SlowResponseMinMs       *int                    `json:"slow_response_min_ms,omitempty" doc:"With baseline slow response mode, minimum response time floor in milliseconds (>= 0)." example:"100"`
+	SlowResponseConsecutive *int                    `json:"slow_response_consecutive,omitempty" doc:"Consecutive slow Up checks before sending a slow response notification (default 3, >= 1)." example:"3"`
+
+	activeSet bool
 }
 
 // UnmarshalJSON records whether active was present so create requests can apply
@@ -152,6 +160,12 @@ type PartialUpdateDto struct {
 	// its rule, which is checked against the probes it has after the update.
 	LocationRule      *shared.LocationRule `json:"location_rule,omitempty" enum:"any,all,at_least" doc:"How many of the monitor's locations must be Down for the monitor to be Down: any, all or at_least. Omitted, the monitor keeps its rule." example:"any"`
 	LocationThreshold *int                 `json:"location_threshold,omitempty" doc:"With the at_least rule, how many locations must be Down: from 1 to the number of probes the monitor runs on. Sent with a rule other than at_least it is rejected; a rule sent without it has none." example:"2"`
+
+	SlowResponseMode        *shared.SlowResponseMode `json:"slow_response_mode,omitempty" enum:"off,fixed,baseline" doc:"Slow response notification mode: off, fixed or baseline." example:"off"`
+	SlowResponseThresholdMs *int                     `json:"slow_response_threshold_ms,omitempty" doc:"With fixed slow response mode, response time threshold in milliseconds (>= 1)." example:"500"`
+	SlowResponseMultiplier  *float64                 `json:"slow_response_multiplier,omitempty" doc:"With baseline slow response mode, multiplier over 24h average response time (> 1)." example:"2"`
+	SlowResponseMinMs       *int                     `json:"slow_response_min_ms,omitempty" doc:"With baseline slow response mode, minimum response time floor in milliseconds (>= 0)." example:"100"`
+	SlowResponseConsecutive *int                     `json:"slow_response_consecutive,omitempty" doc:"Consecutive slow Up checks before alerting (>= 1)." example:"3"`
 }
 
 // UptimeStatsDto represents uptime percentages for various periods

@@ -915,6 +915,26 @@ export type MonitorCreateUpdateDto = {
   push_token?: string;
   resend_interval?: number;
   retry_interval: number;
+  /**
+   * Consecutive slow Up checks before sending a slow response notification (default 3, >= 1).
+   */
+  slow_response_consecutive?: number | null;
+  /**
+   * With baseline slow response mode, minimum response time floor in milliseconds (>= 0).
+   */
+  slow_response_min_ms?: number | null;
+  /**
+   * Slow response notification mode while checks are Up: off (default), fixed (threshold in ms), or baseline (multiplier of 24h average).
+   */
+  slow_response_mode?: "off" | "fixed" | "baseline";
+  /**
+   * With baseline slow response mode, multiplier over 24h average response time (> 1).
+   */
+  slow_response_multiplier?: number | null;
+  /**
+   * With fixed slow response mode, response time threshold in milliseconds (>= 1).
+   */
+  slow_response_threshold_ms?: number | null;
   tag_ids?: Array<string> | null;
   timeout: number;
   type: string;
@@ -927,6 +947,11 @@ export type MonitorCreateUpdateDto = {
     | (number | null)
     | Array<string>
     | (Array<string> | null)
+    | (number | null)
+    | (number | null)
+    | ("off" | "fixed" | "baseline")
+    | (number | null)
+    | (number | null)
     | (Array<string> | null)
     | undefined;
 };
@@ -1033,6 +1058,26 @@ export type MonitorMonitorResponseDto = {
   push_token: string;
   resend_interval: number;
   retry_interval: number;
+  /**
+   * How many consecutive slow Up checks are required before a slow response notification is sent.
+   */
+  slow_response_consecutive: number;
+  /**
+   * With baseline slow response mode, the minimum response time floor in milliseconds below which no slow response alert is sent. Null with any other mode.
+   */
+  slow_response_min_ms: number | null;
+  /**
+   * When to send a slow response notification while checks are still Up: off (default), fixed (response time above slow_response_threshold_ms), or baseline (response time above slow_response_multiplier times the 24h average).
+   */
+  slow_response_mode: "off" | "fixed" | "baseline";
+  /**
+   * With baseline slow response mode, the multiplier applied to the 24h average response time (must be greater than 1). Null with any other mode.
+   */
+  slow_response_multiplier: number | null;
+  /**
+   * With fixed slow response mode, the response time threshold in milliseconds. Null with any other mode.
+   */
+  slow_response_threshold_ms: number | null;
   stale_since?: string;
   status: number;
   tag_ids: Array<string>;
@@ -1082,6 +1127,26 @@ export type MonitorPartialUpdateDto = {
   push_token?: string | null;
   resend_interval?: number | null;
   retry_interval?: number | null;
+  /**
+   * Consecutive slow Up checks before alerting (>= 1).
+   */
+  slow_response_consecutive?: number | null;
+  /**
+   * With baseline slow response mode, minimum response time floor in milliseconds (>= 0).
+   */
+  slow_response_min_ms?: number | null;
+  /**
+   * Slow response notification mode: off, fixed or baseline.
+   */
+  slow_response_mode?: "off" | "fixed" | "baseline" | null;
+  /**
+   * With baseline slow response mode, multiplier over 24h average response time (> 1).
+   */
+  slow_response_multiplier?: number | null;
+  /**
+   * With fixed slow response mode, response time threshold in milliseconds (>= 1).
+   */
+  slow_response_threshold_ms?: number | null;
   status?: number | null;
   tag_ids?: Array<string> | null;
   timeout?: number | null;
@@ -1099,6 +1164,11 @@ export type MonitorPartialUpdateDto = {
     | (Array<string> | null)
     | (string | null)
     | (string | null)
+    | (number | null)
+    | (number | null)
+    | (number | null)
+    | (number | null)
+    | ("off" | "fixed" | "baseline" | null)
     | (number | null)
     | (number | null)
     | (number | null)
@@ -2275,6 +2345,11 @@ export type WorkspaceportMonitor = {
   ref: string;
   resendInterval: number;
   retryInterval: number;
+  slowResponseConsecutive?: number;
+  slowResponseMinMs?: number;
+  slowResponseMode?: string;
+  slowResponseMultiplier?: number;
+  slowResponseThresholdMs?: number;
   tagRefs: Array<string> | null;
   timeout: number;
   type: string;

@@ -43,6 +43,8 @@ var queuedTopics = []string{
 	stale.MonitorStaleRecovered.Name(),
 	probe.ProbeOffline.Name(),
 	probe.ProbeOnline.Name(),
+	events.SlowResponse.Name(),
+	events.SlowResponseRecovered.Name(),
 }
 
 // queuedEvent is the payload of a notification task: the topic's name, and the event's payload

@@ -55,7 +55,12 @@ func setupTestDB(t *testing.T) *bun.DB {
 			push_token TEXT,
 			locations_status INTEGER,
 			location_rule TEXT NOT NULL DEFAULT 'any',
-			location_threshold INTEGER
+			location_threshold INTEGER,
+			slow_response_mode TEXT NOT NULL DEFAULT 'off',
+			slow_response_threshold_ms INTEGER,
+			slow_response_multiplier DOUBLE PRECISION,
+			slow_response_min_ms INTEGER,
+			slow_response_consecutive INTEGER NOT NULL DEFAULT 3
 		)
 	`)
 	require.NoError(t, err)

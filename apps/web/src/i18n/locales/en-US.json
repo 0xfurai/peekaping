@@ -959,6 +959,26 @@
           "selected_proxy": "Selected Proxy",
           "title": "Proxy"
         },
+        "slow_response": {
+          "consecutive_description": "How many consecutive slow Up checks are needed before sending a notification. A recovery message is sent once response time returns to normal.",
+          "consecutive_invalid": "Enter a whole number, 1 or more",
+          "consecutive_label": "Consecutive slow checks",
+          "description": "Send a notification when checks succeed (Up) but take longer than expected. Does not change monitor status or uptime %.",
+          "min_ms_description": "Optional floor in milliseconds. Alerts will not trigger for responses faster than this value (recommended: 100 ms).",
+          "min_ms_invalid": "Enter a whole number, 0 or more",
+          "min_ms_label": "Minimum threshold floor (ms)",
+          "mode_baseline": "Longer than usual (multiplier of 24h average)",
+          "mode_fixed": "Fixed threshold (ms)",
+          "mode_label": "Slow response alert mode",
+          "mode_off": "Off",
+          "multiplier_description": "Alert when response time exceeds this multiplier of the 24h average (requires at least 10 checks in 24h history).",
+          "multiplier_invalid": "Enter a number greater than 1",
+          "multiplier_label": "Multiplier of 24h average",
+          "threshold_description": "Alert when response time exceeds this value in milliseconds.",
+          "threshold_invalid": "Enter a whole number, 1 ms or more",
+          "threshold_label": "Response time threshold (ms)",
+          "title": "Slow Response Alert"
+        },
         "run_from": {
           "default_locations": "Runs on the default locations",
           "label": "Run from"
@@ -1116,11 +1136,26 @@
       "monitor_for": "monitor for",
       "no_certificate_data": "No certificate data",
       "seconds": "seconds",
+      "slow_response_threshold_line": "Threshold: {{ms}} ms",
       "stats": {
+        "last_14_days": "Last 14 days",
         "last_24_hours": "Last 24 hours",
         "last_30_days": "Last 30 days",
         "last_365_days": "Last 365 days",
         "last_7_days": "Last 7 days"
+      },
+      "status_history": {
+        "days_ago": "{{count}} days ago",
+        "downtime": "Downtime",
+        "hours_ago": "{{count}} hours ago",
+        "no_data": "No data",
+        "now": "Now",
+        "operational": "Operational",
+        "partial_outage": "Partial outage",
+        "per_bar_hours": "{{count}}h / bar",
+        "per_bar_minutes": "{{count}}m / bar",
+        "title": "Status History",
+        "today": "Today"
       },
       "status": {
         "down": "Down",
@@ -2136,12 +2171,15 @@
   },
   "timezone": {
     "average": "Average",
+    "last_14_days": "Last 14 days",
     "last_24_hours": "Last 24 hours",
     "last_3_hours": "Last 3 hours",
     "last_3_months": "Last 3 months",
+    "last_30_days": "Last 30 days",
     "last_30_minutes": "Last 30 minutes",
     "last_6_hours": "Last 6 hours",
     "last_7_days": "Last 7 days",
+    "last_90_days": "Last 90 days",
     "maximum": "Maximum",
     "minimum": "Minimum",
     "ms": "ms",

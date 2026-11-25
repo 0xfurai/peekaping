@@ -31,6 +31,38 @@ const (
 	LocationRuleAtLeast LocationRule = "at_least"
 )
 
+// SlowResponseMode controls when a monitor sends a slow response time notification while still Up.
+type SlowResponseMode string
+
+const (
+	// SlowResponseModeOff disables slow response notifications (the default).
+	SlowResponseModeOff SlowResponseMode = "off"
+	// SlowResponseModeFixed alerts when response time exceeds SlowResponseThresholdMs.
+	SlowResponseModeFixed SlowResponseMode = "fixed"
+	// SlowResponseModeBaseline alerts when response time exceeds SlowResponseMultiplier x 24h average
+	// (with at least SlowResponseMinMs as a floor).
+	SlowResponseModeBaseline SlowResponseMode = "baseline"
+
+	// DefaultSlowResponseConsecutive is how many consecutive slow Up checks trigger an alert by default.
+	DefaultSlowResponseConsecutive = 3
+	// DefaultSlowResponseMinMs is the default minimum response time floor (ms) in baseline mode.
+	DefaultSlowResponseMinMs = 100
+)
+
+// SlowResponseEvent is published when a monitor's response time enters or leaves the slow state.
+type SlowResponseEvent struct {
+	MonitorID        string           `json:"monitor_id"`
+	MonitorName      string           `json:"monitor_name"`
+	ProbeID          string           `json:"probe_id"`
+	Mode             SlowResponseMode `json:"mode"`
+	PingMs           int              `json:"ping_ms"`
+	ThresholdMs      int              `json:"threshold_ms"`
+	BaselineAvgMs    *float64         `json:"baseline_avg_ms,omitempty"`
+	Multiplier       *float64         `json:"multiplier,omitempty"`
+	ConsecutiveCount int              `json:"consecutive_count"`
+	Time             time.Time        `json:"time"`
+}
+
 type Monitor struct {
 	ID string `json:"id"`
 
@@ -102,6 +134,13 @@ type Monitor struct {
 
 	// LocationThreshold is the number of Down locations at_least asks for, and nil with any other rule
 	LocationThreshold *int `json:"location_threshold" nullable:"true" doc:"With the at_least rule, how many locations must be Down: from 1 to the number of probes the monitor runs on. Null with any other rule." example:"2"`
+
+	// Slow response time notification settings
+	SlowResponseMode        SlowResponseMode `json:"slow_response_mode" enum:"off,fixed,baseline" doc:"When to send a slow response notification while checks are still Up: off (default), fixed (response time above slow_response_threshold_ms), or baseline (response time above slow_response_multiplier times the 24h average)." example:"off"`
+	SlowResponseThresholdMs *int             `json:"slow_response_threshold_ms" nullable:"true" doc:"With fixed slow response mode, the response time threshold in milliseconds. Null with any other mode." example:"500"`
+	SlowResponseMultiplier  *float64         `json:"slow_response_multiplier" nullable:"true" doc:"With baseline slow response mode, the multiplier applied to the 24h average response time (must be greater than 1). Null with any other mode." example:"2"`
+	SlowResponseMinMs       *int             `json:"slow_response_min_ms" nullable:"true" doc:"With baseline slow response mode, the minimum response time floor in milliseconds below which no slow response alert is sent. Null with any other mode." example:"100"`
+	SlowResponseConsecutive int              `json:"slow_response_consecutive" doc:"How many consecutive slow Up checks are required before a slow response notification is sent." example:"3"`
 
 	Active bool          `json:"active"`
 	Status MonitorStatus `json:"status"`
@@ -205,8 +244,13 @@ type UpdateMonitor struct {
 	ResendInterval *int    `json:"resend_interval"`
 	// LocationRule and LocationThreshold replace the monitor's location rule when LocationRule is
 	// set: the threshold goes with it, nil for any rule but at_least.
-	LocationRule      *LocationRule  `json:"location_rule"`
-	LocationThreshold *int           `json:"location_threshold"`
+	LocationRule            *LocationRule     `json:"location_rule"`
+	LocationThreshold       *int              `json:"location_threshold"`
+	SlowResponseMode        *SlowResponseMode `json:"slow_response_mode"`
+	SlowResponseThresholdMs *int              `json:"slow_response_threshold_ms"`
+	SlowResponseMultiplier  *float64          `json:"slow_response_multiplier"`
+	SlowResponseMinMs       *int              `json:"slow_response_min_ms"`
+	SlowResponseConsecutive *int              `json:"slow_response_consecutive"`
 	Active            *bool          `json:"active"`
 	Status            *MonitorStatus `json:"status"`
 	Config            *string        `json:"config"`

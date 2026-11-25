@@ -100,15 +100,42 @@ export const locationRuleDefaultValues = {
   location_threshold: null as number | null,
 };
 
-// The fields every monitor type has: the general, intervals, notifications, tags, probe and
-// location rule sections. A type's schema merges this and adds its own fields; proxies are added by the types
-// that use one.
+export const SLOW_RESPONSE_MODES = ["off", "fixed", "baseline"] as const;
+
+export type SlowResponseMode = (typeof SLOW_RESPONSE_MODES)[number];
+
+const nullableNumber = z.preprocess((value) => {
+  if (value === "" || value === null || value === undefined) return null;
+  const number = Number(value);
+  return Number.isNaN(number) ? null : number;
+}, z.number().nullable()) as z.ZodType<number | null>;
+
+export const slowResponseSchema = z.object({
+  slow_response_mode: z.enum(SLOW_RESPONSE_MODES),
+  slow_response_threshold_ms: nullableNumber,
+  slow_response_multiplier: nullableNumber,
+  slow_response_min_ms: nullableNumber,
+  slow_response_consecutive: z.coerce.number().min(1),
+});
+
+export const slowResponseDefaultValues = {
+  slow_response_mode: "off" as SlowResponseMode,
+  slow_response_threshold_ms: 500 as number | null,
+  slow_response_multiplier: 2 as number | null,
+  slow_response_min_ms: 100 as number | null,
+  slow_response_consecutive: 3,
+};
+
+// The fields every monitor type has: the general, intervals, notifications, tags, probe,
+// location rule and slow response sections. A type's schema merges this and adds its own fields;
+// proxies are added by the types that use one.
 export const monitorBaseSchema = generalSchema
   .merge(intervalsSchema)
   .merge(notificationsSchema)
   .merge(tagsSchema)
   .merge(probeSchema)
-  .merge(locationRuleSchema);
+  .merge(locationRuleSchema)
+  .merge(slowResponseSchema);
 
 export type MonitorBaseValues = z.infer<typeof monitorBaseSchema>;
 
@@ -119,4 +146,5 @@ export const monitorBaseDefaultValues: MonitorBaseValues = {
   ...tagsDefaultValues,
   ...probeDefaultValues,
   ...locationRuleDefaultValues,
+  ...slowResponseDefaultValues,
 };

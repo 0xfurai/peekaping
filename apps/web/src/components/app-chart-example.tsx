@@ -6,6 +6,7 @@ import {
   Line,
   LineChart,
   ReferenceArea,
+  ReferenceLine,
   XAxis,
   YAxis,
 } from "recharts";
@@ -109,18 +110,80 @@ const chartConfig = {
 // generated, and the local probe's is "local".
 const ALL_LOCATIONS = "all-locations";
 
+export type ChartTimeRange =
+  | "30m"
+  | "3h"
+  | "6h"
+  | "24h"
+  | "1week"
+  | "14d"
+  | "30d"
+  | "90d";
+
+// Helper to map timeRange to stats-points query params
+export function getChartRangeParams(
+  range: ChartTimeRange,
+  nowInput: Date = new Date()
+) {
+  const now = new Date(nowInput);
+  // Truncate seconds and ms to the closest earlier minute
+  now.setUTCSeconds(0, 0);
+  const since = new Date(now);
+  let granularity: "minute" | "hour" | "day" = "minute";
+  switch (range) {
+    case "30m":
+      since.setUTCMinutes(now.getUTCMinutes() - 30);
+      granularity = "minute";
+      break;
+    case "3h":
+      since.setUTCHours(now.getUTCHours() - 3);
+      granularity = "minute";
+      break;
+    case "6h":
+      since.setUTCHours(now.getUTCHours() - 6);
+      granularity = "minute";
+      break;
+    case "24h":
+      since.setUTCDate(now.getUTCDate() - 1);
+      granularity = "hour";
+      break;
+    case "1week":
+      since.setUTCDate(now.getUTCDate() - 7);
+      granularity = "hour";
+      break;
+    case "14d":
+      since.setUTCDate(now.getUTCDate() - 14);
+      granularity = "hour";
+      break;
+    case "30d":
+      since.setUTCDate(now.getUTCDate() - 30);
+      granularity = "hour";
+      break;
+    case "90d":
+      since.setUTCDate(now.getUTCDate() - 90);
+      granularity = "day";
+      break;
+  }
+  since.setUTCSeconds(0, 0);
+  return {
+    since: since.toISOString(),
+    until: now.toISOString(),
+    granularity,
+  };
+}
+
 // `locations` are the monitor's, given when it runs on more than one probe: the chart can then be
-// filtered to one of them.
+// filtered to one of them. `slowResponseThresholdMs` draws a dashed threshold line when set.
 export function Chart({
   id,
   locations,
+  slowResponseThresholdMs,
 }: {
   id: string;
   locations?: MonitorModelLocation[];
+  slowResponseThresholdMs?: number | null;
 }) {
-  const [timeRange, setTimeRange] = React.useState<
-    "30m" | "3h" | "6h" | "24h" | "1week"
-  >("30m");
+  const [timeRange, setTimeRange] = React.useState<ChartTimeRange>("30m");
   const [location, setLocation] = React.useState(ALL_LOCATIONS);
   // A location the monitor no longer has, such as after its probes changed, is all of them
   const probeId = locations?.some((l) => l.probe_id === location)
@@ -129,52 +192,11 @@ export function Chart({
   const { timezone } = useTimezone();
   const { t } = useLocalizedTranslation();
 
-  // Helper to map timeRange to custom uptime params
-  function getCustomUptimeParams(range: typeof timeRange) {
-    const now = new Date();
-    // const now = new Date("2025-06-04T20:00:00Z");
-    // Truncate seconds and ms to the closest earlier minute
-    now.setSeconds(0, 0);
-    const since = new Date(now);
-    let granularity = "minute";
-    switch (range) {
-      case "30m":
-        since.setMinutes(now.getMinutes() - 30);
-        granularity = "minute";
-        break;
-      case "3h":
-        since.setHours(now.getHours() - 3);
-        granularity = "minute";
-        break;
-      case "6h":
-        since.setHours(now.getHours() - 6);
-        granularity = "minute";
-        break;
-      case "24h":
-        since.setDate(now.getDate() - 1);
-        granularity = "hour";
-        break;
-      case "1week":
-        since.setDate(now.getDate() - 7);
-        granularity = "hour";
-        break;
-      default:
-        break;
-    }
-    // Truncate seconds and ms for 'since' as well
-    since.setSeconds(0, 0);
-    return {
-      since: since.toISOString(),
-      until: now.toISOString(),
-      granularity,
-    };
-  }
-
   // Only use custom uptime endpoint
   const { data: statpointsDataRaw } = useQuery({
     ...getMonitorsByIdStatsPointsOptions({
       path: { id: id! },
-      query: { ...getCustomUptimeParams(timeRange), probe_id: probeId },
+      query: { ...getChartRangeParams(timeRange), probe_id: probeId },
     }),
     refetchInterval: 20 * 1000,
     enabled: !!id,
@@ -295,6 +317,15 @@ export function Chart({
               <SelectItem value="1week" className="rounded-lg">
                 {t("timezone.last_7_days")}
               </SelectItem>
+              <SelectItem value="14d" className="rounded-lg">
+                {t("timezone.last_14_days")}
+              </SelectItem>
+              <SelectItem value="30d" className="rounded-lg">
+                {t("timezone.last_30_days")}
+              </SelectItem>
+              <SelectItem value="90d" className="rounded-lg">
+                {t("timezone.last_90_days")}
+              </SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -317,6 +348,12 @@ export function Chart({
               axisLine={false}
               tickMargin={8}
               tickFormatter={(timestamp) => {
+                if (timeRange === "90d") {
+                  return formatDateToTimezone(timestamp, timezone, {
+                    month: "short",
+                    day: "numeric",
+                  });
+                }
                 return formatDateToTimezone(timestamp, timezone, {
                   month: "short",
                   day: "numeric",
@@ -361,7 +398,7 @@ export function Chart({
               type="monotone"
               stroke="var(--chart-4)"
               // strokeWidth={2}
-              dot={true}
+              dot={timeRange !== "14d" && timeRange !== "30d"}
               connectNulls={false}
               isAnimationActive={false}
             />
@@ -370,7 +407,7 @@ export function Chart({
               type="monotone"
               stroke="var(--chart-3)"
               // strokeWidth={2}
-              dot={true}
+              dot={timeRange !== "14d" && timeRange !== "30d"}
               connectNulls={false}
               isAnimationActive={false}
             />
@@ -379,10 +416,26 @@ export function Chart({
               type="monotone"
               stroke="var(--chart-2)"
               // strokeWidth={2}
-              dot={true}
+              dot={timeRange !== "14d" && timeRange !== "30d"}
               connectNulls={false}
               isAnimationActive={false}
             />
+            {slowResponseThresholdMs != null && slowResponseThresholdMs > 0 && (
+              <ReferenceLine
+                y={slowResponseThresholdMs}
+                stroke="#f59e0b"
+                strokeDasharray="4 4"
+                strokeWidth={1.5}
+                label={{
+                  value: t("monitors.view.slow_response_threshold_line", {
+                    ms: slowResponseThresholdMs,
+                  }),
+                  position: "insideTopRight",
+                  fill: "#f59e0b",
+                  fontSize: 12,
+                }}
+              />
+            )}
             {statusRanges
               .filter((e: { color: string | null }) => e.color !== "none")
               .map(

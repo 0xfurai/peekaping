@@ -36,9 +36,14 @@ type Result struct {
 	MonitorResendInt  int
 	// MonitorLocationRule and MonitorLocationThreshold are the monitor's location rule. No rule
 	// means any.
-	MonitorLocationRule      shared.LocationRule
-	MonitorLocationThreshold int
-	MonitorConfig            string
+	MonitorLocationRule            shared.LocationRule
+	MonitorLocationThreshold       int
+	MonitorSlowResponseMode        shared.SlowResponseMode
+	MonitorSlowResponseThresholdMs *int
+	MonitorSlowResponseMultiplier  *float64
+	MonitorSlowResponseMinMs       *int
+	MonitorSlowResponseConsecutive int
+	MonitorConfig                  string
 	Status                   shared.MonitorStatus
 	Message                  string
 	PingMs                   int

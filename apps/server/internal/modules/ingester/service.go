@@ -41,6 +41,8 @@ type ServiceImpl struct {
 	locations          LocationStore
 	eventBus           events.EventBus
 	logger             *zap.SugaredLogger
+	slowResponseStore  SlowResponseStore
+	baselineStats      BaselineStatsReader
 }
 
 // NewService creates the service that stores check results
@@ -50,14 +52,19 @@ func NewService(
 	locations LocationStore,
 	eventBus events.EventBus,
 	logger *zap.SugaredLogger,
+	opts ...ServiceOption,
 ) Service {
-	return &ServiceImpl{
+	s := &ServiceImpl{
 		heartbeatService:   heartbeatService,
 		certificateService: certificateService,
 		locations:          locations,
 		eventBus:           eventBus,
 		logger:             logger.With("component", "ingester_service"),
 	}
+	for _, opt := range opts {
+		opt(s)
+	}
+	return s
 }
 
 // importantBeats are the changes of status that make a beat important, as {previous, current}
@@ -272,6 +279,8 @@ func (s *ServiceImpl) Ingest(ctx context.Context, r *Result) error {
 
 	s.updateTLSInfo(ctx, r)
 
+	baseline := s.prepareSlowResponseBaseline(ctx, r, probeID, locationStatus)
+
 	// Create the heartbeat in the database
 	dbHb, err := s.heartbeatService.Create(ctx, hb)
 	if err != nil {
@@ -284,6 +293,7 @@ func (s *ServiceImpl) Ingest(ctx context.Context, r *Result) error {
 	}
 
 	s.publishEvents(ctx, dbHb, judged, shouldNotify)
+	s.evaluateSlowResponse(ctx, r, probeID, locationStatus, baseline)
 
 	return nil
 }

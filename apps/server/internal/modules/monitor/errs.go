@@ -88,6 +88,15 @@ func (e *InvalidLocationRuleError) Error() string { return "invalid location_rul
 
 func (e *InvalidLocationRuleError) Unwrap() error { return e.Err }
 
+// InvalidSlowResponseError is a slow response alert configuration that a monitor can't have. Err says why.
+type InvalidSlowResponseError struct {
+	Err error
+}
+
+func (e *InvalidSlowResponseError) Error() string { return "invalid slow_response: " + e.Err.Error() }
+
+func (e *InvalidSlowResponseError) Unwrap() error { return e.Err }
+
 // MonitorTypeDisabledError is a monitor type that this install turns off (DISABLED_MONITOR_TYPES,
 // PP-157), on a write that would give a monitor that type: a create, or an update that changes the
 // type. A monitor that already has the type can still be edited. The controller answers 400 with

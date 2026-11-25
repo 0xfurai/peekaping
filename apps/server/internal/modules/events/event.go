@@ -42,8 +42,14 @@ var (
 	MonitorStatusChanged = NewTopic("monitor.status.changed", heartbeatOf)
 	// ImportantHeartbeat is published when a heartbeat is important for notification purposes
 	ImportantHeartbeat = NewTopic("important.heartbeat", heartbeatOf)
+	// SlowResponse is published when a monitor's Up checks stay above its slow response threshold
+	SlowResponse = NewTopic("monitor.slow_response", slowResponseOf)
+	// SlowResponseRecovered is published when a monitor's response time returns below its slow threshold
+	SlowResponseRecovered = NewTopic("monitor.slow_response.recovered", slowResponseOf)
 )
 
 func monitorOf(m shared.Monitor) string { return m.ID }
 
 func heartbeatOf(h shared.HeartBeatModel) string { return h.MonitorID }
+
+func slowResponseOf(e shared.SlowResponseEvent) string { return e.MonitorID }
