@@ -22,7 +22,6 @@ import (
 	"peekaping/internal/utils"
 	"peekaping/internal/version"
 
-	"github.com/danielgtaylor/huma/v2"
 	"go.uber.org/dig"
 	"go.uber.org/zap"
 )
@@ -143,10 +142,7 @@ func (c *Controller) fail(err error) error {
 func tooManyInstances(owner *probe.Model) error {
 	message := "probe " + owner.Name + " already has " + strconv.Itoa(probe.MaxInstancesPerProbe) + " running instances, the most one probe may have"
 	retryAfter := strconv.Itoa(int(probe.InstanceOnlineWindow / time.Second))
-	return huma.ErrorWithHeaders(
-		httpx.Fail(http.StatusTooManyRequests, utils.NewFailResponse(message)),
-		http.Header{"Retry-After": {retryAfter}},
-	)
+	return httpx.FailWithHeaders(http.StatusTooManyRequests, utils.NewFailResponse(message), http.Header{"Retry-After": {retryAfter}})
 }
 
 // unavailable answers 503 for a request that failed because something the server shares could not

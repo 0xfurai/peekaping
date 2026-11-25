@@ -3,15 +3,21 @@ package httpx
 import (
 	"net/http"
 	"net/url"
+	"reflect"
 	"slices"
 	"strings"
 
-	"github.com/danielgtaylor/huma/v2"
+	"github.com/0xfurai/oasome"
 )
 
 type Route struct{ Method, Path string }
 type registry struct {
-	api              huma.API
+	// doc is the OpenAPI document of the operations
+	doc *oasome.Doc
+	// requestTypes are the struct types of request bodies, which document the validator's rules
+	requestTypes map[reflect.Type]bool
+	// descriptions are the responses that have their own description
+	descriptions     map[responseKey]string
 	mux              *http.ServeMux
 	routes           []Route
 	middleware       []Middleware
@@ -25,7 +31,7 @@ type Router struct {
 	prefix     string
 	middleware []Middleware
 	// parameters are documented on every operation registered after they are added
-	parameters []*huma.Param
+	parameters []oasome.RouteOption
 	// errors are error responses documented on every operation registered after they are added
 	errors []int
 }
@@ -37,13 +43,13 @@ func NewRouter(middleware ...Middleware) *Router {
 	return &Router{registry: &registry{mux: mux, middleware: middleware}}
 }
 func (r *Router) Group(prefix string) *Router {
-	return &Router{registry: r.registry, prefix: join(r.prefix, prefix), middleware: append([]Middleware(nil), r.middleware...), parameters: append([]*huma.Param(nil), r.parameters...), errors: append([]int(nil), r.errors...)}
+	return &Router{registry: r.registry, prefix: join(r.prefix, prefix), middleware: append([]Middleware(nil), r.middleware...), parameters: append([]oasome.RouteOption(nil), r.parameters...), errors: append([]int(nil), r.errors...)}
 }
 
 // Document adds parameters to the API reference of every operation that is registered on this
 // router, or on a group made from it, after the call. It documents what a middleware reads, such
 // as a header, once for the group of routes behind that middleware and not on each operation.
-func (r *Router) Document(parameters ...*huma.Param) {
+func (r *Router) Document(parameters ...oasome.RouteOption) {
 	r.parameters = append(r.parameters, parameters...)
 }
 
@@ -52,7 +58,7 @@ func (r *Router) Document(parameters ...*huma.Param) {
 // (WorkspaceAuth, WorkspaceJWTAuth) adds: the X-Workspace-ID header it reads, and the 429 with
 // Retry-After it answers when the workspace or the API key is over its API rate limit.
 func (r *Router) DocumentWorkspace() {
-	r.Document(WorkspaceIDHeader)
+	r.Document(oasome.Params[workspaceParams]())
 	r.errors = append(r.errors, http.StatusTooManyRequests)
 }
 func (r *Router) Use(middleware ...Middleware) { r.middleware = append(r.middleware, middleware...) }

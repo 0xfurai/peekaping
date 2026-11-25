@@ -24,12 +24,12 @@
           }
         },
         "required": [
-          "host",
-          "port",
-          "user",
-          "password",
           "from",
-          "tls"
+          "host",
+          "password",
+          "port",
+          "tls",
+          "user"
         ],
         "type": "object"
       },
@@ -70,14 +70,14 @@
           }
         },
         "required": [
-          "monitors",
-          "min_check_interval",
-          "status_pages",
           "custom_domains",
           "members",
+          "min_check_interval",
+          "monitors",
           "owned_workspaces",
           "probes_per_monitor",
-          "retention_days"
+          "retention_days",
+          "status_pages"
         ],
         "type": "object"
       },
@@ -106,10 +106,10 @@
           }
         },
         "required": [
-          "signupMode",
-          "publicUrl",
-          "accountSmtp",
           "accountEmails",
+          "accountSmtp",
+          "publicUrl",
+          "signupMode",
           "workspaceLimits",
           "workspaceLimitsName"
         ],
@@ -144,10 +144,10 @@
           }
         },
         "required": [
-          "value",
-          "source",
+          "envVar",
           "locked",
-          "envVar"
+          "source",
+          "value"
         ],
         "type": "object"
       },
@@ -184,10 +184,10 @@
           }
         },
         "required": [
-          "value",
-          "source",
+          "envVar",
           "locked",
-          "envVar"
+          "source",
+          "value"
         ],
         "type": "object"
       },
@@ -253,14 +253,14 @@
           }
         },
         "required": [
-          "monitors",
-          "min_check_interval",
-          "status_pages",
           "custom_domains",
           "members",
+          "min_check_interval",
+          "monitors",
           "owned_workspaces",
           "probes_per_monitor",
-          "retention_days"
+          "retention_days",
+          "status_pages"
         ],
         "type": "object"
       },
@@ -276,8 +276,8 @@
           }
         },
         "required": [
-          "link",
-          "expiresAt"
+          "expiresAt",
+          "link"
         ],
         "type": "object"
       },
@@ -310,10 +310,10 @@
           }
         },
         "required": [
-          "set",
-          "source",
+          "envVar",
           "locked",
-          "envVar"
+          "set",
+          "source"
         ],
         "type": "object"
       },
@@ -372,8 +372,8 @@
           }
         },
         "required": [
-          "message",
-          "error"
+          "error",
+          "message"
         ],
         "type": "object"
       },
@@ -405,10 +405,10 @@
           }
         },
         "required": [
-          "value",
-          "source",
+          "envVar",
           "locked",
-          "envVar"
+          "source",
+          "value"
         ],
         "type": "object"
       },
@@ -650,14 +650,14 @@
           }
         },
         "required": [
-          "id",
-          "email",
-          "instanceAdmin",
           "active",
-          "twoFactorEnabled",
-          "emailVerified",
           "createdAt",
+          "email",
+          "emailVerified",
+          "id",
+          "instanceAdmin",
           "lastLoginAt",
+          "twoFactorEnabled",
           "workspaces"
         ],
         "type": "object"
@@ -710,10 +710,10 @@
           }
         },
         "required": [
-          "users",
-          "total",
+          "limit",
           "page",
-          "limit"
+          "total",
+          "users"
         ],
         "type": "object"
       },
@@ -872,19 +872,19 @@
           }
         },
         "required": [
-          "id",
-          "name",
           "createdAt",
-          "owners",
+          "customDomains",
+          "deletionScheduledAt",
+          "id",
+          "limits",
           "memberCount",
           "monitors",
+          "name",
+          "owners",
           "statusPages",
-          "customDomains",
           "suspended",
-          "suspendedReason",
           "suspendedAt",
-          "deletionScheduledAt",
-          "limits"
+          "suspendedReason"
         ],
         "type": "object"
       },
@@ -911,10 +911,10 @@
           }
         },
         "required": [
-          "workspaces",
-          "total",
+          "limit",
           "page",
-          "limit"
+          "total",
+          "workspaces"
         ],
         "type": "object"
       },
@@ -977,15 +977,15 @@
           }
         },
         "required": [
-          "id",
-          "name",
-          "display_key",
-          "last_used",
-          "expires_at",
-          "usage_count",
-          "max_usage_count",
           "created_at",
-          "updated_at"
+          "display_key",
+          "expires_at",
+          "id",
+          "last_used",
+          "max_usage_count",
+          "name",
+          "updated_at",
+          "usage_count"
         ],
         "type": "object"
       },
@@ -1039,16 +1039,16 @@
           }
         },
         "required": [
-          "token",
-          "id",
-          "name",
-          "display_key",
-          "last_used",
-          "expires_at",
-          "usage_count",
-          "max_usage_count",
           "created_at",
-          "updated_at"
+          "display_key",
+          "expires_at",
+          "id",
+          "last_used",
+          "max_usage_count",
+          "name",
+          "token",
+          "updated_at",
+          "usage_count"
         ],
         "type": "object"
       },
@@ -1138,9 +1138,9 @@
         },
         "required": [
           "accountEmails",
+          "firstSignup",
           "signupMode",
           "signupOpen",
-          "firstSignup",
           "turnstileSiteKey"
         ],
         "type": "object"
@@ -1261,9 +1261,9 @@
           }
         },
         "required": [
-          "user",
           "accessToken",
-          "refreshToken"
+          "refreshToken",
+          "user"
         ],
         "type": "object"
       },
@@ -1324,15 +1324,15 @@
           }
         },
         "required": [
-          "user",
-          "workspaces",
-          "defaultWorkspaceId",
           "accountEmails",
+          "customDomainCnameTarget",
+          "defaultWorkspaceId",
           "disabledMonitorTypes",
           "minCheckInterval",
+          "supportContact",
+          "user",
           "verifyCustomDomains",
-          "customDomainCnameTarget",
-          "supportContact"
+          "workspaces"
         ],
         "type": "object"
       },
@@ -1353,10 +1353,10 @@
           }
         },
         "required": [
-          "id",
           "email",
-          "instanceAdmin",
-          "emailVerified"
+          "emailVerified",
+          "id",
+          "instanceAdmin"
         ],
         "type": "object"
       },
@@ -1390,12 +1390,12 @@
           }
         },
         "required": [
+          "deletionScheduledAt",
           "id",
           "name",
           "role",
           "suspended",
-          "suspendedReason",
-          "deletionScheduledAt"
+          "suspendedReason"
         ],
         "type": "object"
       },
@@ -1424,11 +1424,11 @@
           }
         },
         "required": [
-          "id",
-          "email",
           "active",
-          "twofa_status",
           "createdAt",
+          "email",
+          "id",
+          "twofa_status",
           "updatedAt"
         ],
         "type": "object"
@@ -1484,8 +1484,8 @@
           }
         },
         "required": [
-          "token",
-          "password"
+          "password",
+          "token"
         ],
         "type": "object"
       },
@@ -1538,8 +1538,8 @@
           }
         },
         "required": [
-          "secret",
-          "provisioningUri"
+          "provisioningUri",
+          "secret"
         ],
         "type": "object"
       },
@@ -1557,8 +1557,8 @@
           }
         },
         "required": [
-          "email",
-          "code"
+          "code",
+          "email"
         ],
         "type": "object"
       },
@@ -1573,8 +1573,8 @@
           }
         },
         "required": [
-          "success",
-          "message"
+          "message",
+          "success"
         ],
         "type": "object"
       },
@@ -1624,9 +1624,9 @@
           }
         },
         "required": [
-          "success",
           "message",
-          "retry_after"
+          "retry_after",
+          "success"
         ],
         "type": "object"
       },
@@ -1670,8 +1670,8 @@
           }
         },
         "required": [
-          "txt",
-          "cname"
+          "cname",
+          "txt"
         ],
         "type": "object"
       },
@@ -1728,12 +1728,12 @@
         },
         "required": [
           "domain",
-          "state",
-          "verifiedAt",
-          "lastCheckedAt",
           "failingSince",
+          "lastCheckedAt",
+          "records",
           "removeAt",
-          "records"
+          "state",
+          "verifiedAt"
         ],
         "type": "object"
       },
@@ -1866,20 +1866,20 @@
           }
         },
         "required": [
-          "id",
-          "monitor_id",
-          "probe_id",
-          "instance_id",
-          "status",
-          "msg",
-          "ping",
-          "duration",
           "down_count",
-          "retries",
-          "important",
-          "time",
+          "duration",
           "end_time",
-          "notified"
+          "id",
+          "important",
+          "instance_id",
+          "monitor_id",
+          "msg",
+          "notified",
+          "ping",
+          "probe_id",
+          "retries",
+          "status",
+          "time"
         ],
         "type": "object"
       },
@@ -1894,85 +1894,9 @@
           }
         },
         "required": [
-          "message",
-          "data"
+          "data",
+          "message"
         ],
-        "type": "object"
-      },
-      "httpx.NoBody": {
-        "additionalProperties": false,
-        "type": "object"
-      },
-      "huma.ErrorDetail": {
-        "additionalProperties": false,
-        "properties": {
-          "location": {
-            "description": "Where the error occurred, e.g. 'body.items[3].tags' or 'path.thing-id'",
-            "type": "string"
-          },
-          "message": {
-            "description": "Error message text",
-            "type": "string"
-          },
-          "value": {
-            "description": "The value at the given location"
-          }
-        },
-        "type": "object"
-      },
-      "huma.ErrorModel": {
-        "additionalProperties": false,
-        "properties": {
-          "detail": {
-            "description": "A human-readable explanation specific to this occurrence of the problem.",
-            "examples": [
-              "Property foo is required but is missing."
-            ],
-            "type": "string"
-          },
-          "errors": {
-            "description": "Optional list of individual error details",
-            "items": {
-              "$ref": "#/components/schemas/huma.ErrorDetail"
-            },
-            "type": [
-              "array",
-              "null"
-            ]
-          },
-          "instance": {
-            "description": "A URI reference that identifies the specific occurrence of the problem.",
-            "examples": [
-              "https://example.com/error-log/abc123"
-            ],
-            "format": "uri",
-            "type": "string"
-          },
-          "status": {
-            "description": "HTTP status code",
-            "examples": [
-              400
-            ],
-            "format": "int64",
-            "type": "integer"
-          },
-          "title": {
-            "description": "A short, human-readable summary of the problem type. This value should not change between occurrences of the error.",
-            "examples": [
-              "Bad Request"
-            ],
-            "type": "string"
-          },
-          "type": {
-            "default": "about:blank",
-            "description": "A URI reference to human-readable documentation for the error.",
-            "examples": [
-              "https://example.com/errors/example"
-            ],
-            "format": "uri",
-            "type": "string"
-          }
-        },
         "type": "object"
       },
       "internal.HealthResponse": {
@@ -2000,8 +1924,8 @@
           }
         },
         "required": [
-          "status",
           "stale_monitors",
+          "status",
           "watchdog_ran_at"
         ],
         "type": "object"
@@ -2076,9 +2000,9 @@
           }
         },
         "required": [
-          "message",
           "data",
-          "error"
+          "error",
+          "message"
         ],
         "type": "object"
       },
@@ -2109,9 +2033,9 @@
           }
         },
         "required": [
-          "source",
+          "installLimitsName",
           "limits",
-          "installLimitsName"
+          "source"
         ],
         "type": "object"
       },
@@ -2143,8 +2067,8 @@
         },
         "required": [
           "max",
-          "used",
-          "source"
+          "source",
+          "used"
         ],
         "type": "object"
       },
@@ -2179,14 +2103,14 @@
           }
         },
         "required": [
-          "monitors",
-          "min_check_interval",
-          "status_pages",
           "custom_domains",
           "members",
+          "min_check_interval",
+          "monitors",
           "owned_workspaces",
           "probes_per_monitor",
-          "retention_days"
+          "retention_days",
+          "status_pages"
         ],
         "type": "object"
       },
@@ -2291,8 +2215,8 @@
           }
         },
         "required": [
-          "title",
-          "strategy"
+          "strategy",
+          "title"
         ],
         "type": "object"
       },
@@ -2379,14 +2303,14 @@
           }
         },
         "required": [
-          "id",
-          "title",
-          "description",
           "active",
-          "strategy",
           "created_at",
-          "updated_at",
-          "monitor_ids"
+          "description",
+          "id",
+          "monitor_ids",
+          "strategy",
+          "title",
+          "updated_at"
         ],
         "type": "object"
       },
@@ -2464,12 +2388,12 @@
           }
         },
         "required": [
-          "id",
-          "title",
-          "description",
           "active",
-          "strategy",
           "created_at",
+          "description",
+          "id",
+          "strategy",
+          "title",
           "updated_at"
         ],
         "type": "object"
@@ -2731,12 +2655,12 @@
           }
         },
         "required": [
-          "type",
-          "name",
           "interval",
+          "name",
+          "notification_ids",
           "retry_interval",
           "timeout",
-          "notification_ids"
+          "type"
         ],
         "type": "object"
       },
@@ -2785,9 +2709,9 @@
         },
         "required": [
           "24h",
-          "7d",
           "30d",
-          "365d"
+          "365d",
+          "7d"
         ],
         "type": "object"
       },
@@ -2840,9 +2764,9 @@
           }
         },
         "required": [
-          "message",
           "data",
-          "error"
+          "error",
+          "message"
         ],
         "type": "object"
       },
@@ -2899,12 +2823,12 @@
           }
         },
         "required": [
+          "last_heartbeat_at",
+          "last_ping",
+          "online",
           "probe_id",
           "probe_name",
-          "online",
-          "status",
-          "last_ping",
-          "last_heartbeat_at"
+          "status"
         ],
         "type": "object"
       },
@@ -3068,28 +2992,28 @@
           }
         },
         "required": [
-          "type_disabled",
-          "over_limit",
-          "notification_ids",
-          "tag_ids",
+          "active",
+          "config",
+          "created_at",
           "id",
-          "type",
-          "name",
           "interval",
-          "timeout",
-          "max_retries",
-          "retry_interval",
-          "resend_interval",
           "location_rule",
           "location_threshold",
-          "active",
-          "status",
-          "config",
+          "locations",
+          "max_retries",
+          "name",
+          "notification_ids",
+          "over_limit",
+          "probe_ids",
           "proxy_id",
           "push_token",
-          "probe_ids",
-          "locations",
-          "created_at",
+          "resend_interval",
+          "retry_interval",
+          "status",
+          "tag_ids",
+          "timeout",
+          "type",
+          "type_disabled",
           "updated_at"
         ],
         "type": "object"
@@ -3134,9 +3058,9 @@
           }
         },
         "required": [
-          "message",
           "data",
-          "error"
+          "error",
+          "message"
         ],
         "type": "object"
       },
@@ -3388,13 +3312,13 @@
           }
         },
         "required": [
-          "up",
           "down",
           "maintenance",
           "ping",
-          "ping_min",
           "ping_max",
-          "timestamp"
+          "ping_min",
+          "timestamp",
+          "up"
         ],
         "type": "object"
       },
@@ -3447,10 +3371,10 @@
           }
         },
         "required": [
-          "points",
+          "avgPing",
           "maxPing",
           "minPing",
-          "avgPing",
+          "points",
           "uptime"
         ],
         "type": "object"
@@ -3533,13 +3457,13 @@
           }
         },
         "required": [
-          "id",
-          "name",
-          "type",
           "active",
-          "is_default",
           "config",
           "created_at",
+          "id",
+          "is_default",
+          "name",
+          "type",
           "updated_at"
         ],
         "type": "object"
@@ -3669,9 +3593,9 @@
           }
         },
         "required": [
-          "start",
           "end",
-          "open"
+          "open",
+          "start"
         ],
         "type": "object"
       },
@@ -3695,10 +3619,10 @@
           }
         },
         "required": [
-          "id",
+          "connections",
           "hostname",
-          "version",
-          "connections"
+          "id",
+          "version"
         ],
         "type": "object"
       },
@@ -3722,9 +3646,9 @@
           }
         },
         "required": [
-          "status",
+          "end",
           "start",
-          "end"
+          "status"
         ],
         "type": "object"
       },
@@ -3781,14 +3705,14 @@
           }
         },
         "required": [
+          "from",
+          "in_process",
+          "periods",
           "probe_id",
           "range",
-          "from",
           "to",
-          "in_process",
           "tracked_from",
-          "uptime_percent",
-          "periods"
+          "uptime_percent"
         ],
         "type": "object"
       },
@@ -3830,15 +3754,15 @@
           }
         },
         "required": [
-          "id",
-          "hostname",
-          "os",
           "arch",
-          "version",
+          "enforces_private_target_block",
+          "hostname",
+          "id",
+          "last_seen_at",
+          "os",
           "protocol_version",
           "supported_types",
-          "last_seen_at",
-          "enforces_private_target_block"
+          "version"
         ],
         "type": "object"
       },
@@ -3901,18 +3825,18 @@
           }
         },
         "required": [
-          "id",
-          "name",
-          "location",
-          "token_prefix",
-          "disabled",
-          "is_default",
-          "status",
-          "supported_types",
-          "notification_ids",
-          "instances",
           "assign_all_pending",
           "created_at",
+          "disabled",
+          "id",
+          "instances",
+          "is_default",
+          "location",
+          "name",
+          "notification_ids",
+          "status",
+          "supported_types",
+          "token_prefix",
           "updated_at"
         ],
         "type": "object"
@@ -3979,19 +3903,19 @@
           }
         },
         "required": [
-          "token",
-          "id",
-          "name",
-          "location",
-          "token_prefix",
-          "disabled",
-          "is_default",
-          "status",
-          "supported_types",
-          "notification_ids",
-          "instances",
           "assign_all_pending",
           "created_at",
+          "disabled",
+          "id",
+          "instances",
+          "is_default",
+          "location",
+          "name",
+          "notification_ids",
+          "status",
+          "supported_types",
+          "token",
+          "token_prefix",
           "updated_at"
         ],
         "type": "object"
@@ -4056,8 +3980,8 @@
           }
         },
         "required": [
-          "version",
-          "monitors"
+          "monitors",
+          "version"
         ],
         "type": "object"
       },
@@ -4140,14 +4064,14 @@
           }
         },
         "required": [
-          "protocol_version",
-          "server_version",
-          "server_time",
-          "probe",
-          "poll_timeout_ms",
-          "flush_interval_ms",
           "batch_max",
-          "buffer_max"
+          "buffer_max",
+          "flush_interval_ms",
+          "poll_timeout_ms",
+          "probe",
+          "protocol_version",
+          "server_time",
+          "server_version"
         ],
         "type": "object"
       },
@@ -4195,15 +4119,15 @@
           }
         },
         "required": [
-          "id",
-          "name",
-          "type",
-          "interval",
-          "timeout",
-          "max_retries",
-          "retry_interval",
-          "resend_interval",
           "config",
+          "id",
+          "interval",
+          "max_retries",
+          "name",
+          "resend_interval",
+          "retry_interval",
+          "timeout",
+          "type",
           "updated_at"
         ],
         "type": "object"
@@ -4223,8 +4147,8 @@
         },
         "required": [
           "id",
-          "name",
-          "location"
+          "location",
+          "name"
         ],
         "type": "object"
       },
@@ -4259,11 +4183,11 @@
           }
         },
         "required": [
-          "id",
-          "protocol",
-          "host",
-          "port",
           "auth",
+          "host",
+          "id",
+          "port",
+          "protocol",
           "updated_at"
         ],
         "type": "object"
@@ -4298,13 +4222,13 @@
           "tls_info": {}
         },
         "required": [
+          "end_time",
           "id",
-          "monitor_id",
-          "status",
           "message",
+          "monitor_id",
           "ping_ms",
           "start_time",
-          "end_time"
+          "status"
         ],
         "type": "object"
       },
@@ -4322,8 +4246,8 @@
           }
         },
         "required": [
-          "id",
-          "accepted"
+          "accepted",
+          "id"
         ],
         "type": "object"
       },
@@ -4396,9 +4320,9 @@
           }
         },
         "required": [
-          "protocol",
           "host",
-          "port"
+          "port",
+          "protocol"
         ],
         "type": "object"
       },
@@ -4437,12 +4361,12 @@
           }
         },
         "required": [
-          "id",
-          "protocol",
-          "host",
-          "port",
           "auth",
           "createdDate",
+          "host",
+          "id",
+          "port",
+          "protocol",
           "updatedAt"
         ],
         "type": "object"
@@ -4584,17 +4508,17 @@
           }
         },
         "required": [
-          "subject",
-          "issuer",
+          "certType",
+          "daysRemaining",
           "fingerprint",
           "fingerprint256",
+          "issuer",
+          "publicKeyAlgorithm",
           "serialNumber",
+          "signatureAlgorithm",
+          "subject",
           "validFrom",
           "validTo",
-          "daysRemaining",
-          "certType",
-          "signatureAlgorithm",
-          "publicKeyAlgorithm",
           "version"
         ],
         "type": "object"
@@ -4624,12 +4548,12 @@
           }
         },
         "required": [
+          "created_at",
           "id",
           "key",
-          "value",
           "type",
-          "created_at",
-          "updated_at"
+          "updated_at",
+          "value"
         ],
         "type": "object"
       },
@@ -4770,8 +4694,8 @@
           }
         },
         "required": [
-          "verificationRequired",
-          "domains"
+          "domains",
+          "verificationRequired"
         ],
         "type": "object"
       },
@@ -4819,17 +4743,17 @@
           }
         },
         "required": [
-          "id",
-          "slug",
-          "title",
-          "description",
-          "icon",
-          "theme",
-          "published",
-          "show_locations",
-          "footer_text",
           "auto_refresh_interval",
           "created_at",
+          "description",
+          "footer_text",
+          "icon",
+          "id",
+          "published",
+          "show_locations",
+          "slug",
+          "theme",
+          "title",
           "updated_at"
         ],
         "type": "object"
@@ -4893,13 +4817,13 @@
           }
         },
         "required": [
-          "heartbeats",
-          "uptime_24h",
-          "id",
-          "type",
-          "name",
           "active",
-          "status"
+          "heartbeats",
+          "id",
+          "name",
+          "status",
+          "type",
+          "uptime_24h"
         ],
         "type": "object"
       },
@@ -4927,11 +4851,11 @@
           }
         },
         "required": [
-          "id",
-          "status",
-          "time",
           "end_time",
-          "ping"
+          "id",
+          "ping",
+          "status",
+          "time"
         ],
         "type": "object"
       },
@@ -4971,10 +4895,10 @@
           }
         },
         "required": [
+          "heartbeats",
           "name",
           "status",
-          "uptime_24h",
-          "heartbeats"
+          "uptime_24h"
         ],
         "type": "object"
       },
@@ -5089,26 +5013,26 @@
           }
         },
         "required": [
-          "id",
-          "slug",
-          "title",
-          "description",
-          "icon",
-          "theme",
-          "published",
-          "show_locations",
-          "search_engine_index",
-          "show_tags",
-          "created_at",
-          "updated_at",
-          "footer_text",
-          "custom_css",
-          "show_powered_by",
-          "google_analytics_tag_id",
-          "show_certificate_expiry",
           "auto_refresh_interval",
+          "created_at",
+          "custom_css",
+          "description",
+          "domains",
+          "footer_text",
+          "google_analytics_tag_id",
+          "icon",
+          "id",
           "monitor_ids",
-          "domains"
+          "published",
+          "search_engine_index",
+          "show_certificate_expiry",
+          "show_locations",
+          "show_powered_by",
+          "show_tags",
+          "slug",
+          "theme",
+          "title",
+          "updated_at"
         ],
         "type": "object"
       },
@@ -5144,9 +5068,9 @@
           }
         },
         "required": [
-          "message",
           "data",
-          "error"
+          "error",
+          "message"
         ],
         "type": "object"
       },
@@ -5302,8 +5226,8 @@
           }
         },
         "required": [
-          "name",
-          "color"
+          "color",
+          "name"
         ],
         "type": "object"
       },
@@ -5335,11 +5259,11 @@
           }
         },
         "required": [
+          "color",
+          "created_at",
+          "description",
           "id",
           "name",
-          "color",
-          "description",
-          "created_at",
           "updated_at"
         ],
         "type": "object"
@@ -5397,9 +5321,9 @@
           }
         },
         "required": [
-          "status_pages",
           "maintenance",
-          "metrics"
+          "metrics",
+          "status_pages"
         ],
         "type": "object"
       },
@@ -5480,15 +5404,15 @@
           }
         },
         "required": [
-          "instance_id",
-          "version",
-          "mode",
           "db",
-          "os",
-          "monitors",
+          "features",
+          "instance_id",
+          "mode",
           "monitor_types",
+          "monitors",
           "notification_providers",
-          "features"
+          "os",
+          "version"
         ],
         "type": "object"
       },
@@ -5541,8 +5465,8 @@
           }
         },
         "required": [
-          "message",
-          "data"
+          "data",
+          "message"
         ],
         "type": "object"
       },
@@ -5563,8 +5487,8 @@
           }
         },
         "required": [
-          "message",
-          "data"
+          "data",
+          "message"
         ],
         "type": "object"
       },
@@ -5585,8 +5509,8 @@
           }
         },
         "required": [
-          "message",
-          "data"
+          "data",
+          "message"
         ],
         "type": "object"
       },
@@ -5607,8 +5531,8 @@
           }
         },
         "required": [
-          "message",
-          "data"
+          "data",
+          "message"
         ],
         "type": "object"
       },
@@ -5629,8 +5553,8 @@
           }
         },
         "required": [
-          "message",
-          "data"
+          "data",
+          "message"
         ],
         "type": "object"
       },
@@ -5651,8 +5575,8 @@
           }
         },
         "required": [
-          "message",
-          "data"
+          "data",
+          "message"
         ],
         "type": "object"
       },
@@ -5673,8 +5597,8 @@
           }
         },
         "required": [
-          "message",
-          "data"
+          "data",
+          "message"
         ],
         "type": "object"
       },
@@ -5695,8 +5619,8 @@
           }
         },
         "required": [
-          "message",
-          "data"
+          "data",
+          "message"
         ],
         "type": "object"
       },
@@ -5717,8 +5641,8 @@
           }
         },
         "required": [
-          "message",
-          "data"
+          "data",
+          "message"
         ],
         "type": "object"
       },
@@ -5739,8 +5663,8 @@
           }
         },
         "required": [
-          "message",
-          "data"
+          "data",
+          "message"
         ],
         "type": "object"
       },
@@ -5761,8 +5685,8 @@
           }
         },
         "required": [
-          "message",
-          "data"
+          "data",
+          "message"
         ],
         "type": "object"
       },
@@ -5783,8 +5707,8 @@
           }
         },
         "required": [
-          "message",
-          "data"
+          "data",
+          "message"
         ],
         "type": "object"
       },
@@ -5805,8 +5729,8 @@
           }
         },
         "required": [
-          "message",
-          "data"
+          "data",
+          "message"
         ],
         "type": "object"
       },
@@ -5827,8 +5751,8 @@
           }
         },
         "required": [
-          "message",
-          "data"
+          "data",
+          "message"
         ],
         "type": "object"
       },
@@ -5843,8 +5767,8 @@
           }
         },
         "required": [
-          "message",
-          "data"
+          "data",
+          "message"
         ],
         "type": "object"
       },
@@ -5859,8 +5783,8 @@
           }
         },
         "required": [
-          "message",
-          "data"
+          "data",
+          "message"
         ],
         "type": "object"
       },
@@ -5875,8 +5799,8 @@
           }
         },
         "required": [
-          "message",
-          "data"
+          "data",
+          "message"
         ],
         "type": "object"
       },
@@ -5891,8 +5815,8 @@
           }
         },
         "required": [
-          "message",
-          "data"
+          "data",
+          "message"
         ],
         "type": "object"
       },
@@ -5907,8 +5831,8 @@
           }
         },
         "required": [
-          "message",
-          "data"
+          "data",
+          "message"
         ],
         "type": "object"
       },
@@ -5923,8 +5847,8 @@
           }
         },
         "required": [
-          "message",
-          "data"
+          "data",
+          "message"
         ],
         "type": "object"
       },
@@ -5939,8 +5863,8 @@
           }
         },
         "required": [
-          "message",
-          "data"
+          "data",
+          "message"
         ],
         "type": "object"
       },
@@ -5955,8 +5879,8 @@
           }
         },
         "required": [
-          "message",
-          "data"
+          "data",
+          "message"
         ],
         "type": "object"
       },
@@ -5971,8 +5895,8 @@
           }
         },
         "required": [
-          "message",
-          "data"
+          "data",
+          "message"
         ],
         "type": "object"
       },
@@ -5987,8 +5911,8 @@
           }
         },
         "required": [
-          "message",
-          "data"
+          "data",
+          "message"
         ],
         "type": "object"
       },
@@ -6003,8 +5927,8 @@
           }
         },
         "required": [
-          "message",
-          "data"
+          "data",
+          "message"
         ],
         "type": "object"
       },
@@ -6019,8 +5943,8 @@
           }
         },
         "required": [
-          "message",
-          "data"
+          "data",
+          "message"
         ],
         "type": "object"
       },
@@ -6035,8 +5959,8 @@
           }
         },
         "required": [
-          "message",
-          "data"
+          "data",
+          "message"
         ],
         "type": "object"
       },
@@ -6051,8 +5975,8 @@
           }
         },
         "required": [
-          "message",
-          "data"
+          "data",
+          "message"
         ],
         "type": "object"
       },
@@ -6067,8 +5991,8 @@
           }
         },
         "required": [
-          "message",
-          "data"
+          "data",
+          "message"
         ],
         "type": "object"
       },
@@ -6083,8 +6007,8 @@
           }
         },
         "required": [
-          "message",
-          "data"
+          "data",
+          "message"
         ],
         "type": "object"
       },
@@ -6099,8 +6023,8 @@
           }
         },
         "required": [
-          "message",
-          "data"
+          "data",
+          "message"
         ],
         "type": "object"
       },
@@ -6115,8 +6039,8 @@
           }
         },
         "required": [
-          "message",
-          "data"
+          "data",
+          "message"
         ],
         "type": "object"
       },
@@ -6131,8 +6055,8 @@
           }
         },
         "required": [
-          "message",
-          "data"
+          "data",
+          "message"
         ],
         "type": "object"
       },
@@ -6147,8 +6071,8 @@
           }
         },
         "required": [
-          "message",
-          "data"
+          "data",
+          "message"
         ],
         "type": "object"
       },
@@ -6163,8 +6087,8 @@
           }
         },
         "required": [
-          "message",
-          "data"
+          "data",
+          "message"
         ],
         "type": "object"
       },
@@ -6179,8 +6103,8 @@
           }
         },
         "required": [
-          "message",
-          "data"
+          "data",
+          "message"
         ],
         "type": "object"
       },
@@ -6195,8 +6119,8 @@
           }
         },
         "required": [
-          "message",
-          "data"
+          "data",
+          "message"
         ],
         "type": "object"
       },
@@ -6211,8 +6135,8 @@
           }
         },
         "required": [
-          "message",
-          "data"
+          "data",
+          "message"
         ],
         "type": "object"
       },
@@ -6227,8 +6151,8 @@
           }
         },
         "required": [
-          "message",
-          "data"
+          "data",
+          "message"
         ],
         "type": "object"
       },
@@ -6243,8 +6167,8 @@
           }
         },
         "required": [
-          "message",
-          "data"
+          "data",
+          "message"
         ],
         "type": "object"
       },
@@ -6259,8 +6183,8 @@
           }
         },
         "required": [
-          "message",
-          "data"
+          "data",
+          "message"
         ],
         "type": "object"
       },
@@ -6275,8 +6199,8 @@
           }
         },
         "required": [
-          "message",
-          "data"
+          "data",
+          "message"
         ],
         "type": "object"
       },
@@ -6291,8 +6215,8 @@
           }
         },
         "required": [
-          "message",
-          "data"
+          "data",
+          "message"
         ],
         "type": "object"
       },
@@ -6307,8 +6231,8 @@
           }
         },
         "required": [
-          "message",
-          "data"
+          "data",
+          "message"
         ],
         "type": "object"
       },
@@ -6323,8 +6247,8 @@
           }
         },
         "required": [
-          "message",
-          "data"
+          "data",
+          "message"
         ],
         "type": "object"
       },
@@ -6339,8 +6263,8 @@
           }
         },
         "required": [
-          "message",
-          "data"
+          "data",
+          "message"
         ],
         "type": "object"
       },
@@ -6355,8 +6279,8 @@
           }
         },
         "required": [
-          "message",
-          "data"
+          "data",
+          "message"
         ],
         "type": "object"
       },
@@ -6371,8 +6295,8 @@
           }
         },
         "required": [
-          "message",
-          "data"
+          "data",
+          "message"
         ],
         "type": "object"
       },
@@ -6387,8 +6311,8 @@
           }
         },
         "required": [
-          "message",
-          "data"
+          "data",
+          "message"
         ],
         "type": "object"
       },
@@ -6410,8 +6334,8 @@
           }
         },
         "required": [
-          "message",
-          "data"
+          "data",
+          "message"
         ],
         "type": "object"
       },
@@ -6432,9 +6356,9 @@
           }
         },
         "required": [
-          "message",
           "data",
-          "error"
+          "error",
+          "message"
         ],
         "type": "object"
       },
@@ -6541,15 +6465,15 @@
           }
         },
         "required": [
-          "token",
-          "link",
-          "id",
+          "createdAt",
           "email",
+          "expiresAt",
+          "id",
+          "invitedBy",
+          "link",
           "role",
           "status",
-          "invitedBy",
-          "createdAt",
-          "expiresAt"
+          "token"
         ],
         "type": "object"
       },
@@ -6584,11 +6508,11 @@
           }
         },
         "required": [
-          "workspaceName",
           "email",
           "role",
+          "status",
           "valid",
-          "status"
+          "workspaceName"
         ],
         "type": "object"
       },
@@ -6632,13 +6556,13 @@
           }
         },
         "required": [
-          "id",
-          "email",
-          "role",
-          "status",
-          "invitedBy",
           "createdAt",
-          "expiresAt"
+          "email",
+          "expiresAt",
+          "id",
+          "invitedBy",
+          "role",
+          "status"
         ],
         "type": "object"
       },
@@ -6665,10 +6589,10 @@
           }
         },
         "required": [
-          "userId",
           "email",
+          "joinedAt",
           "role",
-          "joinedAt"
+          "userId"
         ],
         "type": "object"
       },
@@ -6704,9 +6628,9 @@
           }
         },
         "required": [
-          "message",
           "data",
-          "error"
+          "error",
+          "message"
         ],
         "type": "object"
       },
@@ -6851,12 +6775,12 @@
           }
         },
         "required": [
-          "tags",
-          "proxies",
-          "notificationChannels",
-          "monitors",
           "maintenances",
-          "statusPages"
+          "monitors",
+          "notificationChannels",
+          "proxies",
+          "statusPages",
+          "tags"
         ],
         "type": "object"
       },
@@ -6993,9 +6917,9 @@
           }
         },
         "required": [
-          "message",
           "data",
-          "error"
+          "error",
+          "message"
         ],
         "type": "object"
       },
@@ -7016,8 +6940,8 @@
           }
         },
         "required": [
-          "created",
-          "changes"
+          "changes",
+          "created"
         ],
         "type": "object"
       },
@@ -7096,14 +7020,14 @@
           }
         },
         "required": [
-          "ref",
-          "title",
-          "description",
           "active",
-          "strategy",
-          "weekdays",
           "daysOfMonth",
-          "monitorRefs"
+          "description",
+          "monitorRefs",
+          "ref",
+          "strategy",
+          "title",
+          "weekdays"
         ],
         "type": "object"
       },
@@ -7180,19 +7104,19 @@
           }
         },
         "required": [
-          "ref",
-          "name",
-          "type",
           "active",
-          "interval",
-          "timeout",
-          "maxRetries",
-          "retryInterval",
-          "resendInterval",
-          "locationRule",
           "config",
+          "interval",
+          "locationRule",
+          "maxRetries",
+          "name",
           "notificationChannelRefs",
-          "tagRefs"
+          "ref",
+          "resendInterval",
+          "retryInterval",
+          "tagRefs",
+          "timeout",
+          "type"
         ],
         "type": "object"
       },
@@ -7230,13 +7154,13 @@
           }
         },
         "required": [
-          "ref",
-          "name",
-          "type",
           "active",
-          "isDefault",
           "config",
-          "sensitiveFields"
+          "isDefault",
+          "name",
+          "ref",
+          "sensitiveFields",
+          "type"
         ],
         "type": "object"
       },
@@ -7262,8 +7186,8 @@
           }
         },
         "required": [
-          "record",
-          "message"
+          "message",
+          "record"
         ],
         "type": "object"
       },
@@ -7303,11 +7227,11 @@
           }
         },
         "required": [
-          "ref",
-          "protocol",
+          "auth",
           "host",
           "port",
-          "auth",
+          "protocol",
+          "ref",
           "sensitiveFields"
         ],
         "type": "object"
@@ -7331,8 +7255,8 @@
           }
         },
         "required": [
-          "dataRetentionDays",
-          "certExpiryNotifyDays"
+          "certExpiryNotifyDays",
+          "dataRetentionDays"
         ],
         "type": "object"
       },
@@ -7390,18 +7314,18 @@
           }
         },
         "required": [
-          "ref",
-          "slug",
-          "title",
-          "description",
-          "icon",
-          "theme",
-          "published",
-          "showLocations",
-          "footerText",
           "autoRefreshInterval",
+          "description",
           "domains",
-          "monitorRefs"
+          "footerText",
+          "icon",
+          "monitorRefs",
+          "published",
+          "ref",
+          "showLocations",
+          "slug",
+          "theme",
+          "title"
         ],
         "type": "object"
       },
@@ -7422,9 +7346,9 @@
           }
         },
         "required": [
-          "ref",
+          "color",
           "name",
-          "color"
+          "ref"
         ],
         "type": "object"
       },
@@ -7721,12 +7645,16 @@
         "operationId": "getAdminUsers",
         "parameters": [
           {
-            "description": "Only users whose email contains this text, ignoring case",
+            "description": "Users per page",
             "in": "query",
-            "name": "q",
+            "name": "limit",
             "schema": {
-              "description": "Only users whose email contains this text, ignoring case",
-              "type": "string"
+              "default": 20,
+              "description": "Users per page",
+              "format": "int64",
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
             }
           },
           {
@@ -7742,16 +7670,12 @@
             }
           },
           {
-            "description": "Users per page",
+            "description": "Only users whose email contains this text, ignoring case",
             "in": "query",
-            "name": "limit",
+            "name": "q",
             "schema": {
-              "default": 20,
-              "description": "Users per page",
-              "format": "int64",
-              "maximum": 100,
-              "minimum": 1,
-              "type": "integer"
+              "description": "Only users whose email contains this text, ignoring case",
+              "type": "string"
             }
           }
         ],
@@ -8178,12 +8102,16 @@
         "operationId": "getAdminWorkspaces",
         "parameters": [
           {
-            "description": "Only workspaces whose name or whose owner's email contains this text, ignoring case",
+            "description": "Workspaces per page",
             "in": "query",
-            "name": "q",
+            "name": "limit",
             "schema": {
-              "description": "Only workspaces whose name or whose owner's email contains this text, ignoring case",
-              "type": "string"
+              "default": 20,
+              "description": "Workspaces per page",
+              "format": "int64",
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
             }
           },
           {
@@ -8199,16 +8127,12 @@
             }
           },
           {
-            "description": "Workspaces per page",
+            "description": "Only workspaces whose name or whose owner's email contains this text, ignoring case",
             "in": "query",
-            "name": "limit",
+            "name": "q",
             "schema": {
-              "default": 20,
-              "description": "Workspaces per page",
-              "format": "int64",
-              "maximum": 100,
-              "minimum": 1,
-              "type": "integer"
+              "description": "Only workspaces whose name or whose owner's email contains this text, ignoring case",
+              "type": "string"
             }
           }
         ],
@@ -9865,31 +9789,21 @@
             }
           },
           {
-            "description": "Badge style",
+            "description": "Invalid options fall back to defaults.",
             "in": "query",
-            "name": "style",
+            "name": "color",
             "schema": {
-              "description": "Badge style",
+              "description": "Invalid options fall back to defaults.",
               "type": "string"
             }
           },
           {
-            "description": "Custom label",
+            "description": "Invalid options fall back to defaults.",
             "in": "query",
-            "name": "label",
+            "name": "downColor",
             "schema": {
-              "description": "Custom label",
+              "description": "Invalid options fall back to defaults.",
               "type": "string"
-            }
-          },
-          {
-            "description": "Days before expiry to show warning",
-            "in": "query",
-            "name": "warnDays",
-            "schema": {
-              "description": "Days before expiry to show warning",
-              "format": "int64",
-              "type": "integer"
             }
           },
           {
@@ -9905,33 +9819,6 @@
           {
             "description": "Invalid options fall back to defaults.",
             "in": "query",
-            "name": "color",
-            "schema": {
-              "description": "Invalid options fall back to defaults.",
-              "type": "string"
-            }
-          },
-          {
-            "description": "Invalid options fall back to defaults.",
-            "in": "query",
-            "name": "labelColor",
-            "schema": {
-              "description": "Invalid options fall back to defaults.",
-              "type": "string"
-            }
-          },
-          {
-            "description": "Invalid options fall back to defaults.",
-            "in": "query",
-            "name": "upLabel",
-            "schema": {
-              "description": "Invalid options fall back to defaults.",
-              "type": "string"
-            }
-          },
-          {
-            "description": "Invalid options fall back to defaults.",
-            "in": "query",
             "name": "downLabel",
             "schema": {
               "description": "Invalid options fall back to defaults.",
@@ -9939,18 +9826,18 @@
             }
           },
           {
-            "description": "Invalid options fall back to defaults.",
+            "description": "Custom label",
             "in": "query",
-            "name": "upColor",
+            "name": "label",
             "schema": {
-              "description": "Invalid options fall back to defaults.",
+              "description": "Custom label",
               "type": "string"
             }
           },
           {
             "description": "Invalid options fall back to defaults.",
             "in": "query",
-            "name": "downColor",
+            "name": "labelColor",
             "schema": {
               "description": "Invalid options fall back to defaults.",
               "type": "string"
@@ -9984,12 +9871,49 @@
             }
           },
           {
+            "description": "Badge style",
+            "in": "query",
+            "name": "style",
+            "schema": {
+              "description": "Badge style",
+              "type": "string"
+            }
+          },
+          {
             "description": "Invalid options fall back to defaults.",
             "in": "query",
             "name": "suffix",
             "schema": {
               "description": "Invalid options fall back to defaults.",
               "type": "string"
+            }
+          },
+          {
+            "description": "Invalid options fall back to defaults.",
+            "in": "query",
+            "name": "upColor",
+            "schema": {
+              "description": "Invalid options fall back to defaults.",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Invalid options fall back to defaults.",
+            "in": "query",
+            "name": "upLabel",
+            "schema": {
+              "description": "Invalid options fall back to defaults.",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Days before expiry to show warning",
+            "in": "query",
+            "name": "warnDays",
+            "schema": {
+              "description": "Days before expiry to show warning",
+              "format": "int64",
+              "type": "integer"
             }
           }
         ],
@@ -10006,10 +9930,7 @@
             "headers": {
               "Cache-Control": {
                 "schema": {
-                  "type": [
-                    "string",
-                    "null"
-                  ]
+                  "type": "string"
                 }
               }
             }
@@ -10076,33 +9997,6 @@
             }
           },
           {
-            "description": "Badge style",
-            "in": "query",
-            "name": "style",
-            "schema": {
-              "description": "Badge style",
-              "type": "string"
-            }
-          },
-          {
-            "description": "Custom label",
-            "in": "query",
-            "name": "label",
-            "schema": {
-              "description": "Custom label",
-              "type": "string"
-            }
-          },
-          {
-            "description": "Value suffix",
-            "in": "query",
-            "name": "suffix",
-            "schema": {
-              "description": "Value suffix",
-              "type": "string"
-            }
-          },
-          {
             "description": "Badge color",
             "in": "query",
             "name": "color",
@@ -10114,7 +10008,7 @@
           {
             "description": "Invalid options fall back to defaults.",
             "in": "query",
-            "name": "labelColor",
+            "name": "downColor",
             "schema": {
               "description": "Invalid options fall back to defaults.",
               "type": "string"
@@ -10123,7 +10017,7 @@
           {
             "description": "Invalid options fall back to defaults.",
             "in": "query",
-            "name": "upLabel",
+            "name": "downDays",
             "schema": {
               "description": "Invalid options fall back to defaults.",
               "type": "string"
@@ -10139,18 +10033,18 @@
             }
           },
           {
-            "description": "Invalid options fall back to defaults.",
+            "description": "Custom label",
             "in": "query",
-            "name": "upColor",
+            "name": "label",
             "schema": {
-              "description": "Invalid options fall back to defaults.",
+              "description": "Custom label",
               "type": "string"
             }
           },
           {
             "description": "Invalid options fall back to defaults.",
             "in": "query",
-            "name": "downColor",
+            "name": "labelColor",
             "schema": {
               "description": "Invalid options fall back to defaults.",
               "type": "string"
@@ -10184,9 +10078,27 @@
             }
           },
           {
+            "description": "Badge style",
+            "in": "query",
+            "name": "style",
+            "schema": {
+              "description": "Badge style",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Value suffix",
+            "in": "query",
+            "name": "suffix",
+            "schema": {
+              "description": "Value suffix",
+              "type": "string"
+            }
+          },
+          {
             "description": "Invalid options fall back to defaults.",
             "in": "query",
-            "name": "warnDays",
+            "name": "upColor",
             "schema": {
               "description": "Invalid options fall back to defaults.",
               "type": "string"
@@ -10195,7 +10107,16 @@
           {
             "description": "Invalid options fall back to defaults.",
             "in": "query",
-            "name": "downDays",
+            "name": "upLabel",
+            "schema": {
+              "description": "Invalid options fall back to defaults.",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Invalid options fall back to defaults.",
+            "in": "query",
+            "name": "warnDays",
             "schema": {
               "description": "Invalid options fall back to defaults.",
               "type": "string"
@@ -10215,10 +10136,7 @@
             "headers": {
               "Cache-Control": {
                 "schema": {
-                  "type": [
-                    "string",
-                    "null"
-                  ]
+                  "type": "string"
                 }
               }
             }
@@ -10295,33 +10213,6 @@
             }
           },
           {
-            "description": "Badge style",
-            "in": "query",
-            "name": "style",
-            "schema": {
-              "description": "Badge style",
-              "type": "string"
-            }
-          },
-          {
-            "description": "Custom label",
-            "in": "query",
-            "name": "label",
-            "schema": {
-              "description": "Custom label",
-              "type": "string"
-            }
-          },
-          {
-            "description": "Value suffix",
-            "in": "query",
-            "name": "suffix",
-            "schema": {
-              "description": "Value suffix",
-              "type": "string"
-            }
-          },
-          {
             "description": "Badge color",
             "in": "query",
             "name": "color",
@@ -10333,7 +10224,7 @@
           {
             "description": "Invalid options fall back to defaults.",
             "in": "query",
-            "name": "labelColor",
+            "name": "downColor",
             "schema": {
               "description": "Invalid options fall back to defaults.",
               "type": "string"
@@ -10342,7 +10233,7 @@
           {
             "description": "Invalid options fall back to defaults.",
             "in": "query",
-            "name": "upLabel",
+            "name": "downDays",
             "schema": {
               "description": "Invalid options fall back to defaults.",
               "type": "string"
@@ -10358,18 +10249,18 @@
             }
           },
           {
-            "description": "Invalid options fall back to defaults.",
+            "description": "Custom label",
             "in": "query",
-            "name": "upColor",
+            "name": "label",
             "schema": {
-              "description": "Invalid options fall back to defaults.",
+              "description": "Custom label",
               "type": "string"
             }
           },
           {
             "description": "Invalid options fall back to defaults.",
             "in": "query",
-            "name": "downColor",
+            "name": "labelColor",
             "schema": {
               "description": "Invalid options fall back to defaults.",
               "type": "string"
@@ -10403,9 +10294,27 @@
             }
           },
           {
+            "description": "Badge style",
+            "in": "query",
+            "name": "style",
+            "schema": {
+              "description": "Badge style",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Value suffix",
+            "in": "query",
+            "name": "suffix",
+            "schema": {
+              "description": "Value suffix",
+              "type": "string"
+            }
+          },
+          {
             "description": "Invalid options fall back to defaults.",
             "in": "query",
-            "name": "warnDays",
+            "name": "upColor",
             "schema": {
               "description": "Invalid options fall back to defaults.",
               "type": "string"
@@ -10414,7 +10323,16 @@
           {
             "description": "Invalid options fall back to defaults.",
             "in": "query",
-            "name": "downDays",
+            "name": "upLabel",
+            "schema": {
+              "description": "Invalid options fall back to defaults.",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Invalid options fall back to defaults.",
+            "in": "query",
+            "name": "warnDays",
             "schema": {
               "description": "Invalid options fall back to defaults.",
               "type": "string"
@@ -10434,10 +10352,7 @@
             "headers": {
               "Cache-Control": {
                 "schema": {
-                  "type": [
-                    "string",
-                    "null"
-                  ]
+                  "type": "string"
                 }
               }
             }
@@ -10504,33 +10419,6 @@
             }
           },
           {
-            "description": "Badge style",
-            "in": "query",
-            "name": "style",
-            "schema": {
-              "description": "Badge style",
-              "type": "string"
-            }
-          },
-          {
-            "description": "Custom label",
-            "in": "query",
-            "name": "label",
-            "schema": {
-              "description": "Custom label",
-              "type": "string"
-            }
-          },
-          {
-            "description": "Value suffix",
-            "in": "query",
-            "name": "suffix",
-            "schema": {
-              "description": "Value suffix",
-              "type": "string"
-            }
-          },
-          {
             "description": "Badge color",
             "in": "query",
             "name": "color",
@@ -10542,7 +10430,7 @@
           {
             "description": "Invalid options fall back to defaults.",
             "in": "query",
-            "name": "labelColor",
+            "name": "downColor",
             "schema": {
               "description": "Invalid options fall back to defaults.",
               "type": "string"
@@ -10551,7 +10439,7 @@
           {
             "description": "Invalid options fall back to defaults.",
             "in": "query",
-            "name": "upLabel",
+            "name": "downDays",
             "schema": {
               "description": "Invalid options fall back to defaults.",
               "type": "string"
@@ -10567,18 +10455,18 @@
             }
           },
           {
-            "description": "Invalid options fall back to defaults.",
+            "description": "Custom label",
             "in": "query",
-            "name": "upColor",
+            "name": "label",
             "schema": {
-              "description": "Invalid options fall back to defaults.",
+              "description": "Custom label",
               "type": "string"
             }
           },
           {
             "description": "Invalid options fall back to defaults.",
             "in": "query",
-            "name": "downColor",
+            "name": "labelColor",
             "schema": {
               "description": "Invalid options fall back to defaults.",
               "type": "string"
@@ -10612,9 +10500,27 @@
             }
           },
           {
+            "description": "Badge style",
+            "in": "query",
+            "name": "style",
+            "schema": {
+              "description": "Badge style",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Value suffix",
+            "in": "query",
+            "name": "suffix",
+            "schema": {
+              "description": "Value suffix",
+              "type": "string"
+            }
+          },
+          {
             "description": "Invalid options fall back to defaults.",
             "in": "query",
-            "name": "warnDays",
+            "name": "upColor",
             "schema": {
               "description": "Invalid options fall back to defaults.",
               "type": "string"
@@ -10623,7 +10529,16 @@
           {
             "description": "Invalid options fall back to defaults.",
             "in": "query",
-            "name": "downDays",
+            "name": "upLabel",
+            "schema": {
+              "description": "Invalid options fall back to defaults.",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Invalid options fall back to defaults.",
+            "in": "query",
+            "name": "warnDays",
             "schema": {
               "description": "Invalid options fall back to defaults.",
               "type": "string"
@@ -10643,10 +10558,7 @@
             "headers": {
               "Cache-Control": {
                 "schema": {
-                  "type": [
-                    "string",
-                    "null"
-                  ]
+                  "type": "string"
                 }
               }
             }
@@ -10713,38 +10625,11 @@
             }
           },
           {
-            "description": "Badge style (flat, flat-square, plastic, for-the-badge, social)",
+            "description": "Invalid options fall back to defaults.",
             "in": "query",
-            "name": "style",
+            "name": "color",
             "schema": {
-              "description": "Badge style (flat, flat-square, plastic, for-the-badge, social)",
-              "type": "string"
-            }
-          },
-          {
-            "description": "Label when monitor is up",
-            "in": "query",
-            "name": "upLabel",
-            "schema": {
-              "description": "Label when monitor is up",
-              "type": "string"
-            }
-          },
-          {
-            "description": "Label when monitor is down",
-            "in": "query",
-            "name": "downLabel",
-            "schema": {
-              "description": "Label when monitor is down",
-              "type": "string"
-            }
-          },
-          {
-            "description": "Color when monitor is up",
-            "in": "query",
-            "name": "upColor",
-            "schema": {
-              "description": "Color when monitor is up",
+              "description": "Invalid options fall back to defaults.",
               "type": "string"
             }
           },
@@ -10760,7 +10645,25 @@
           {
             "description": "Invalid options fall back to defaults.",
             "in": "query",
-            "name": "color",
+            "name": "downDays",
+            "schema": {
+              "description": "Invalid options fall back to defaults.",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Label when monitor is down",
+            "in": "query",
+            "name": "downLabel",
+            "schema": {
+              "description": "Label when monitor is down",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Invalid options fall back to defaults.",
+            "in": "query",
+            "name": "label",
             "schema": {
               "description": "Invalid options fall back to defaults.",
               "type": "string"
@@ -10787,15 +10690,6 @@
           {
             "description": "Invalid options fall back to defaults.",
             "in": "query",
-            "name": "label",
-            "schema": {
-              "description": "Invalid options fall back to defaults.",
-              "type": "string"
-            }
-          },
-          {
-            "description": "Invalid options fall back to defaults.",
-            "in": "query",
             "name": "labelSuffix",
             "schema": {
               "description": "Invalid options fall back to defaults.",
@@ -10812,6 +10706,15 @@
             }
           },
           {
+            "description": "Badge style (flat, flat-square, plastic, for-the-badge, social)",
+            "in": "query",
+            "name": "style",
+            "schema": {
+              "description": "Badge style (flat, flat-square, plastic, for-the-badge, social)",
+              "type": "string"
+            }
+          },
+          {
             "description": "Invalid options fall back to defaults.",
             "in": "query",
             "name": "suffix",
@@ -10821,18 +10724,27 @@
             }
           },
           {
-            "description": "Invalid options fall back to defaults.",
+            "description": "Color when monitor is up",
             "in": "query",
-            "name": "warnDays",
+            "name": "upColor",
             "schema": {
-              "description": "Invalid options fall back to defaults.",
+              "description": "Color when monitor is up",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Label when monitor is up",
+            "in": "query",
+            "name": "upLabel",
+            "schema": {
+              "description": "Label when monitor is up",
               "type": "string"
             }
           },
           {
             "description": "Invalid options fall back to defaults.",
             "in": "query",
-            "name": "downDays",
+            "name": "warnDays",
             "schema": {
               "description": "Invalid options fall back to defaults.",
               "type": "string"
@@ -10852,10 +10764,7 @@
             "headers": {
               "Cache-Control": {
                 "schema": {
-                  "type": [
-                    "string",
-                    "null"
-                  ]
+                  "type": "string"
                 }
               }
             }
@@ -10922,33 +10831,6 @@
             }
           },
           {
-            "description": "Badge style",
-            "in": "query",
-            "name": "style",
-            "schema": {
-              "description": "Badge style",
-              "type": "string"
-            }
-          },
-          {
-            "description": "Custom label",
-            "in": "query",
-            "name": "label",
-            "schema": {
-              "description": "Custom label",
-              "type": "string"
-            }
-          },
-          {
-            "description": "Value suffix",
-            "in": "query",
-            "name": "suffix",
-            "schema": {
-              "description": "Value suffix",
-              "type": "string"
-            }
-          },
-          {
             "description": "Badge color",
             "in": "query",
             "name": "color",
@@ -10960,7 +10842,7 @@
           {
             "description": "Invalid options fall back to defaults.",
             "in": "query",
-            "name": "labelColor",
+            "name": "downColor",
             "schema": {
               "description": "Invalid options fall back to defaults.",
               "type": "string"
@@ -10969,7 +10851,7 @@
           {
             "description": "Invalid options fall back to defaults.",
             "in": "query",
-            "name": "upLabel",
+            "name": "downDays",
             "schema": {
               "description": "Invalid options fall back to defaults.",
               "type": "string"
@@ -10985,18 +10867,18 @@
             }
           },
           {
-            "description": "Invalid options fall back to defaults.",
+            "description": "Custom label",
             "in": "query",
-            "name": "upColor",
+            "name": "label",
             "schema": {
-              "description": "Invalid options fall back to defaults.",
+              "description": "Custom label",
               "type": "string"
             }
           },
           {
             "description": "Invalid options fall back to defaults.",
             "in": "query",
-            "name": "downColor",
+            "name": "labelColor",
             "schema": {
               "description": "Invalid options fall back to defaults.",
               "type": "string"
@@ -11030,9 +10912,27 @@
             }
           },
           {
+            "description": "Badge style",
+            "in": "query",
+            "name": "style",
+            "schema": {
+              "description": "Badge style",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Value suffix",
+            "in": "query",
+            "name": "suffix",
+            "schema": {
+              "description": "Value suffix",
+              "type": "string"
+            }
+          },
+          {
             "description": "Invalid options fall back to defaults.",
             "in": "query",
-            "name": "warnDays",
+            "name": "upColor",
             "schema": {
               "description": "Invalid options fall back to defaults.",
               "type": "string"
@@ -11041,7 +10941,16 @@
           {
             "description": "Invalid options fall back to defaults.",
             "in": "query",
-            "name": "downDays",
+            "name": "upLabel",
+            "schema": {
+              "description": "Invalid options fall back to defaults.",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Invalid options fall back to defaults.",
+            "in": "query",
+            "name": "warnDays",
             "schema": {
               "description": "Invalid options fall back to defaults.",
               "type": "string"
@@ -11061,10 +10970,7 @@
             "headers": {
               "Cache-Control": {
                 "schema": {
-                  "type": [
-                    "string",
-                    "null"
-                  ]
+                  "type": "string"
                 }
               }
             }
@@ -11141,33 +11047,6 @@
             }
           },
           {
-            "description": "Badge style",
-            "in": "query",
-            "name": "style",
-            "schema": {
-              "description": "Badge style",
-              "type": "string"
-            }
-          },
-          {
-            "description": "Custom label",
-            "in": "query",
-            "name": "label",
-            "schema": {
-              "description": "Custom label",
-              "type": "string"
-            }
-          },
-          {
-            "description": "Value suffix",
-            "in": "query",
-            "name": "suffix",
-            "schema": {
-              "description": "Value suffix",
-              "type": "string"
-            }
-          },
-          {
             "description": "Badge color",
             "in": "query",
             "name": "color",
@@ -11179,7 +11058,7 @@
           {
             "description": "Invalid options fall back to defaults.",
             "in": "query",
-            "name": "labelColor",
+            "name": "downColor",
             "schema": {
               "description": "Invalid options fall back to defaults.",
               "type": "string"
@@ -11188,7 +11067,7 @@
           {
             "description": "Invalid options fall back to defaults.",
             "in": "query",
-            "name": "upLabel",
+            "name": "downDays",
             "schema": {
               "description": "Invalid options fall back to defaults.",
               "type": "string"
@@ -11204,18 +11083,18 @@
             }
           },
           {
-            "description": "Invalid options fall back to defaults.",
+            "description": "Custom label",
             "in": "query",
-            "name": "upColor",
+            "name": "label",
             "schema": {
-              "description": "Invalid options fall back to defaults.",
+              "description": "Custom label",
               "type": "string"
             }
           },
           {
             "description": "Invalid options fall back to defaults.",
             "in": "query",
-            "name": "downColor",
+            "name": "labelColor",
             "schema": {
               "description": "Invalid options fall back to defaults.",
               "type": "string"
@@ -11249,9 +11128,27 @@
             }
           },
           {
+            "description": "Badge style",
+            "in": "query",
+            "name": "style",
+            "schema": {
+              "description": "Badge style",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Value suffix",
+            "in": "query",
+            "name": "suffix",
+            "schema": {
+              "description": "Value suffix",
+              "type": "string"
+            }
+          },
+          {
             "description": "Invalid options fall back to defaults.",
             "in": "query",
-            "name": "warnDays",
+            "name": "upColor",
             "schema": {
               "description": "Invalid options fall back to defaults.",
               "type": "string"
@@ -11260,7 +11157,16 @@
           {
             "description": "Invalid options fall back to defaults.",
             "in": "query",
-            "name": "downDays",
+            "name": "upLabel",
+            "schema": {
+              "description": "Invalid options fall back to defaults.",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Invalid options fall back to defaults.",
+            "in": "query",
+            "name": "warnDays",
             "schema": {
               "description": "Invalid options fall back to defaults.",
               "type": "string"
@@ -11280,10 +11186,7 @@
             "headers": {
               "Cache-Control": {
                 "schema": {
-                  "type": [
-                    "string",
-                    "null"
-                  ]
+                  "type": "string"
                 }
               }
             }
@@ -11646,33 +11549,12 @@
         "operationId": "getMaintenances",
         "parameters": [
           {
-            "description": "Search query",
-            "in": "query",
-            "name": "q",
+            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
+            "in": "header",
+            "name": "X-Workspace-ID",
             "schema": {
-              "description": "Search query",
+              "format": "uuid",
               "type": "string"
-            }
-          },
-          {
-            "description": "Filter by strategy",
-            "in": "query",
-            "name": "strategy",
-            "schema": {
-              "description": "Filter by strategy",
-              "type": "string"
-            }
-          },
-          {
-            "description": "Page number",
-            "in": "query",
-            "name": "page",
-            "schema": {
-              "default": 0,
-              "description": "Page number",
-              "format": "int64",
-              "minimum": 0,
-              "type": "integer"
             }
           },
           {
@@ -11689,11 +11571,32 @@
             }
           },
           {
-            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
-            "in": "header",
-            "name": "X-Workspace-ID",
+            "description": "Page number",
+            "in": "query",
+            "name": "page",
             "schema": {
-              "format": "uuid",
+              "default": 0,
+              "description": "Page number",
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Search query",
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "description": "Search query",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Filter by strategy",
+            "in": "query",
+            "name": "strategy",
+            "schema": {
+              "description": "Filter by strategy",
               "type": "string"
             }
           }
@@ -12542,24 +12445,21 @@
         "operationId": "getMonitors",
         "parameters": [
           {
-            "description": "Search query",
-            "in": "query",
-            "name": "q",
+            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
+            "in": "header",
+            "name": "X-Workspace-ID",
             "schema": {
-              "description": "Search query",
+              "format": "uuid",
               "type": "string"
             }
           },
           {
-            "description": "Page number",
+            "description": "Active status",
             "in": "query",
-            "name": "page",
+            "name": "active",
             "schema": {
-              "default": 0,
-              "description": "Page number",
-              "format": "int64",
-              "minimum": 0,
-              "type": "integer"
+              "description": "Active status",
+              "type": "boolean"
             }
           },
           {
@@ -12576,12 +12476,24 @@
             }
           },
           {
-            "description": "Active status",
+            "description": "Page number",
             "in": "query",
-            "name": "active",
+            "name": "page",
             "schema": {
-              "description": "Active status",
-              "type": "boolean"
+              "default": 0,
+              "description": "Page number",
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Search query",
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "description": "Search query",
+              "type": "string"
             }
           },
           {
@@ -12600,15 +12512,6 @@
             "name": "tag_ids",
             "schema": {
               "description": "Comma-separated list of tag IDs to filter by",
-              "type": "string"
-            }
-          },
-          {
-            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
-            "in": "header",
-            "name": "X-Workspace-ID",
-            "schema": {
-              "format": "uuid",
               "type": "string"
             }
           }
@@ -12821,21 +12724,21 @@
         "operationId": "getMonitorsBatch",
         "parameters": [
           {
+            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
             "description": "Comma-separated list of monitor IDs",
             "in": "query",
             "name": "ids",
             "required": true,
             "schema": {
               "description": "Comma-separated list of monitor IDs",
-              "type": "string"
-            }
-          },
-          {
-            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
-            "in": "header",
-            "name": "X-Workspace-ID",
-            "schema": {
-              "format": "uuid",
               "type": "string"
             }
           }
@@ -13421,6 +13324,24 @@
             }
           },
           {
+            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Filter by important heartbeats only",
+            "in": "query",
+            "name": "important",
+            "schema": {
+              "description": "Filter by important heartbeats only",
+              "type": "boolean"
+            }
+          },
+          {
             "description": "Number of heartbeats per page",
             "in": "query",
             "name": "limit",
@@ -13446,24 +13367,6 @@
             }
           },
           {
-            "description": "Filter by important heartbeats only",
-            "in": "query",
-            "name": "important",
-            "schema": {
-              "description": "Filter by important heartbeats only",
-              "type": "boolean"
-            }
-          },
-          {
-            "description": "Reverse the order of heartbeats",
-            "in": "query",
-            "name": "reverse",
-            "schema": {
-              "description": "Reverse the order of heartbeats",
-              "type": "boolean"
-            }
-          },
-          {
             "description": "Only the heartbeats this probe made, by probe id. Omitted, the heartbeats of every probe.",
             "in": "query",
             "name": "probe_id",
@@ -13476,12 +13379,12 @@
             }
           },
           {
-            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
-            "in": "header",
-            "name": "X-Workspace-ID",
+            "description": "Reverse the order of heartbeats",
+            "in": "query",
+            "name": "reverse",
             "schema": {
-              "format": "uuid",
-              "type": "string"
+              "description": "Reverse the order of heartbeats",
+              "type": "boolean"
             }
           }
         ],
@@ -13682,23 +13585,11 @@
             }
           },
           {
-            "description": "Start time (RFC3339)",
-            "in": "query",
-            "name": "since",
-            "required": true,
+            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
+            "in": "header",
+            "name": "X-Workspace-ID",
             "schema": {
-              "description": "Start time (RFC3339)",
-              "format": "date-time",
-              "type": "string"
-            }
-          },
-          {
-            "description": "End time (RFC3339, default now)",
-            "in": "query",
-            "name": "until",
-            "schema": {
-              "description": "End time (RFC3339, default now)",
-              "format": "date-time",
+              "format": "uuid",
               "type": "string"
             }
           },
@@ -13724,11 +13615,23 @@
             }
           },
           {
-            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
-            "in": "header",
-            "name": "X-Workspace-ID",
+            "description": "Start time (RFC3339)",
+            "in": "query",
+            "name": "since",
+            "required": true,
             "schema": {
-              "format": "uuid",
+              "description": "Start time (RFC3339)",
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "description": "End time (RFC3339, default now)",
+            "in": "query",
+            "name": "until",
+            "schema": {
+              "description": "End time (RFC3339, default now)",
+              "format": "date-time",
               "type": "string"
             }
           }
@@ -13832,6 +13735,15 @@
             }
           },
           {
+            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
             "description": "Only the checks this probe ran, by probe id. Omitted, the checks of every probe count.",
             "in": "query",
             "name": "probe_id",
@@ -13840,15 +13752,6 @@
               "examples": [
                 "local"
               ],
-              "type": "string"
-            }
-          },
-          {
-            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
-            "in": "header",
-            "name": "X-Workspace-ID",
-            "schema": {
-              "format": "uuid",
               "type": "string"
             }
           }
@@ -14030,24 +13933,12 @@
         "operationId": "getNotificationChannels",
         "parameters": [
           {
-            "description": "Search query",
-            "in": "query",
-            "name": "q",
+            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
+            "in": "header",
+            "name": "X-Workspace-ID",
             "schema": {
-              "description": "Search query",
+              "format": "uuid",
               "type": "string"
-            }
-          },
-          {
-            "description": "Page number",
-            "in": "query",
-            "name": "page",
-            "schema": {
-              "default": 0,
-              "description": "Page number",
-              "format": "int64",
-              "minimum": 0,
-              "type": "integer"
             }
           },
           {
@@ -14064,11 +13955,23 @@
             }
           },
           {
-            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
-            "in": "header",
-            "name": "X-Workspace-ID",
+            "description": "Page number",
+            "in": "query",
+            "name": "page",
             "schema": {
-              "format": "uuid",
+              "default": 0,
+              "description": "Page number",
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Search query",
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "description": "Search query",
               "type": "string"
             }
           }
@@ -15536,24 +15439,12 @@
         "operationId": "getProxies",
         "parameters": [
           {
-            "description": "Search query",
-            "in": "query",
-            "name": "q",
+            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
+            "in": "header",
+            "name": "X-Workspace-ID",
             "schema": {
-              "description": "Search query",
+              "format": "uuid",
               "type": "string"
-            }
-          },
-          {
-            "description": "Page number",
-            "in": "query",
-            "name": "page",
-            "schema": {
-              "default": 0,
-              "description": "Page number",
-              "format": "int64",
-              "minimum": 0,
-              "type": "integer"
             }
           },
           {
@@ -15570,11 +15461,23 @@
             }
           },
           {
-            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
-            "in": "header",
-            "name": "X-Workspace-ID",
+            "description": "Page number",
+            "in": "query",
+            "name": "page",
             "schema": {
-              "format": "uuid",
+              "default": 0,
+              "description": "Page number",
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Search query",
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "description": "Search query",
               "type": "string"
             }
           }
@@ -16212,15 +16115,6 @@
             }
           },
           {
-            "description": "Empty, up, or 1 means Up; other values mean Down.",
-            "in": "query",
-            "name": "status",
-            "schema": {
-              "description": "Empty, up, or 1 means Up; other values mean Down.",
-              "type": "string"
-            }
-          },
-          {
             "description": "Heartbeat message; defaults to OK or Down.",
             "in": "query",
             "name": "msg",
@@ -16235,6 +16129,15 @@
             "name": "ping",
             "schema": {
               "description": "Response time in milliseconds; malformed values are ignored.",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Empty, up, or 1 means Up; other values mean Down.",
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "description": "Empty, up, or 1 means Up; other values mean Down.",
               "type": "string"
             }
           }
@@ -16642,24 +16545,12 @@
         "operationId": "getStatusPages",
         "parameters": [
           {
-            "description": "Search query",
-            "in": "query",
-            "name": "q",
+            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
+            "in": "header",
+            "name": "X-Workspace-ID",
             "schema": {
-              "description": "Search query",
+              "format": "uuid",
               "type": "string"
-            }
-          },
-          {
-            "description": "Page number",
-            "in": "query",
-            "name": "page",
-            "schema": {
-              "default": 0,
-              "description": "Page number",
-              "format": "int64",
-              "minimum": 0,
-              "type": "integer"
             }
           },
           {
@@ -16676,11 +16567,23 @@
             }
           },
           {
-            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
-            "in": "header",
-            "name": "X-Workspace-ID",
+            "description": "Page number",
+            "in": "query",
+            "name": "page",
             "schema": {
-              "format": "uuid",
+              "default": 0,
+              "description": "Page number",
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Search query",
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "description": "Search query",
               "type": "string"
             }
           }
@@ -17735,24 +17638,12 @@
         "operationId": "getTags",
         "parameters": [
           {
-            "description": "Search query",
-            "in": "query",
-            "name": "q",
+            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
+            "in": "header",
+            "name": "X-Workspace-ID",
             "schema": {
-              "description": "Search query",
+              "format": "uuid",
               "type": "string"
-            }
-          },
-          {
-            "description": "Page number",
-            "in": "query",
-            "name": "page",
-            "schema": {
-              "default": 0,
-              "description": "Page number",
-              "format": "int64",
-              "minimum": 0,
-              "type": "integer"
             }
           },
           {
@@ -17769,11 +17660,23 @@
             }
           },
           {
-            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
-            "in": "header",
-            "name": "X-Workspace-ID",
+            "description": "Page number",
+            "in": "query",
+            "name": "page",
             "schema": {
-              "format": "uuid",
+              "default": 0,
+              "description": "Page number",
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Search query",
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "description": "Search query",
               "type": "string"
             }
           }

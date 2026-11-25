@@ -9,8 +9,6 @@ import (
 	"time"
 
 	"peekaping/internal/config"
-
-	"github.com/danielgtaylor/huma/v2"
 )
 
 const (
@@ -61,16 +59,7 @@ type Records struct {
 	TXT TXTRecord `json:"txt"`
 	// CNAME is null when the install has no host to point at: its public URL is localhost or an IP
 	// address, and CUSTOM_DOMAIN_CNAME_TARGET is not set. Then only the TXT record verifies.
-	CNAME *CNAMERecord `json:"cname"`
-}
-
-// TransformSchema documents the CNAME as a record or null. Huma has no nullable object field, so
-// this does what utils.NullableApiResponse does for its data.
-func (Records) TransformSchema(_ huma.Registry, schema *huma.Schema) *huma.Schema {
-	if cname := schema.Properties["cname"]; cname != nil {
-		schema.Properties["cname"] = &huma.Schema{AnyOf: []*huma.Schema{cname, {Type: "null"}}}
-	}
-	return schema
+	CNAME *CNAMERecord `json:"cname" nullable:"true"`
 }
 
 // Status is what a workspace sees of one of its status page's custom domains

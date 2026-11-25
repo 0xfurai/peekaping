@@ -1,7 +1,6 @@
 package {{.ModuleName}}
 
 import (
-	"github.com/danielgtaylor/huma/v2"
 	"net/http"
 	"peekaping/internal/httpx"
 	"peekaping/internal/modules/middleware"
@@ -30,10 +29,10 @@ func (r *Route) ConnectRoute(
 
 	router.Use(r.middleware.AllAuth())
 
-	httpx.Register(router, "GET", "", huma.Operation{Summary: "Get {{.ModuleName | plural}}", Tags: []string{"{{.ModuleName}}"}, DefaultStatus: http.StatusOK, Security: httpx.SharedAuth, Errors: []int{http.StatusBadRequest, http.StatusInternalServerError, http.StatusUnauthorized}}, controller.FindAll)
-	httpx.Register(router, "POST", "", huma.Operation{Summary: "Create {{.ModuleName}}", Tags: []string{"{{.ModuleName}}"}, DefaultStatus: http.StatusCreated, Security: httpx.SharedAuth, Errors: []int{http.StatusBadRequest, http.StatusInternalServerError, http.StatusUnauthorized}}, controller.Create)
-	httpx.Register(router, "GET", "/{id}", huma.Operation{Summary: "Get {{.ModuleName}} by ID", Tags: []string{"{{.ModuleName}}"}, DefaultStatus: http.StatusOK, Security: httpx.SharedAuth, Errors: []int{http.StatusInternalServerError, http.StatusNotFound, http.StatusUnauthorized}}, controller.FindByID)
-	httpx.Register(router, "PUT", "/{id}", huma.Operation{Summary: "Update {{.ModuleName}}", Tags: []string{"{{.ModuleName}}"}, DefaultStatus: http.StatusOK, Security: httpx.SharedAuth, Errors: []int{http.StatusNotFound, http.StatusBadRequest, http.StatusInternalServerError, http.StatusUnauthorized}}, controller.UpdateFull)
-	httpx.Register(router, "PATCH", "/{id}", huma.Operation{Summary: "Update {{.ModuleName}}", Tags: []string{"{{.ModuleName}}"}, DefaultStatus: http.StatusOK, Security: httpx.SharedAuth, Errors: []int{http.StatusNotFound, http.StatusBadRequest, http.StatusInternalServerError, http.StatusUnauthorized}}, controller.UpdatePartial)
-	httpx.Register(router, "DELETE", "/{id}", huma.Operation{Summary: "Delete {{.ModuleName}}", Tags: []string{"{{.ModuleName}}"}, DefaultStatus: http.StatusOK, Security: httpx.SharedAuth, Errors: []int{http.StatusNotFound, http.StatusInternalServerError, http.StatusUnauthorized}}, controller.Delete)
+	httpx.Register(router, "GET", "", httpx.Operation{Summary: "Get {{.ModuleName | plural}}", Tags: []string{"{{.ModuleName}}"}, DefaultStatus: http.StatusOK, Security: httpx.SharedAuth, Errors: []int{http.StatusBadRequest, http.StatusInternalServerError, http.StatusUnauthorized}}, controller.FindAll)
+	httpx.Register(router, "POST", "", httpx.Operation{Summary: "Create {{.ModuleName}}", Tags: []string{"{{.ModuleName}}"}, DefaultStatus: http.StatusCreated, Security: httpx.SharedAuth, Errors: []int{http.StatusBadRequest, http.StatusInternalServerError, http.StatusUnauthorized}}, controller.Create)
+	httpx.Register(router, "GET", "/{id}", httpx.Operation{Summary: "Get {{.ModuleName}} by ID", Tags: []string{"{{.ModuleName}}"}, DefaultStatus: http.StatusOK, Security: httpx.SharedAuth, Errors: []int{http.StatusInternalServerError, http.StatusNotFound, http.StatusUnauthorized}}, controller.FindByID)
+	httpx.Register(router, "PUT", "/{id}", httpx.Operation{Summary: "Update {{.ModuleName}}", Tags: []string{"{{.ModuleName}}"}, DefaultStatus: http.StatusOK, Security: httpx.SharedAuth, Errors: []int{http.StatusNotFound, http.StatusBadRequest, http.StatusInternalServerError, http.StatusUnauthorized}}, controller.UpdateFull)
+	httpx.Register(router, "PATCH", "/{id}", httpx.Operation{Summary: "Update {{.ModuleName}}", Tags: []string{"{{.ModuleName}}"}, DefaultStatus: http.StatusOK, Security: httpx.SharedAuth, Errors: []int{http.StatusNotFound, http.StatusBadRequest, http.StatusInternalServerError, http.StatusUnauthorized}}, controller.UpdatePartial)
+	httpx.Register(router, "DELETE", "/{id}", httpx.Operation{Summary: "Delete {{.ModuleName}}", Tags: []string{"{{.ModuleName}}"}, DefaultStatus: http.StatusOK, Security: httpx.SharedAuth, Errors: []int{http.StatusNotFound, http.StatusInternalServerError, http.StatusUnauthorized}}, controller.Delete)
 }

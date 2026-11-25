@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"peekaping/internal"
+	"peekaping/internal/httpx"
 	"strconv"
 	"strings"
 	"testing"
@@ -16,6 +17,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/uptrace/bun"
+	"gopkg.in/yaml.v3"
 )
 
 // These cases pin behavior that automatic binding and validation can change.
@@ -162,6 +164,23 @@ func TestOpenAPI_ExportMatchesRuntime(t *testing.T) {
 	exported, err := json.Marshal(internal.OpenAPI())
 	require.NoError(t, err)
 	assert.JSONEq(t, string(exported), newApp(t).request(t, "GET", "/openapi.json", nil).Body.String())
+}
+
+// The YAML document is the JSON one, value for value: only strings that need quotes have them
+func TestOpenAPI_YAMLMatchesJSON(t *testing.T) {
+	doc := internal.OpenAPI()
+	exported, err := doc.MarshalJSON()
+	require.NoError(t, err)
+	spec, err := httpx.SpecYAML(doc)
+	require.NoError(t, err)
+	var fromYAML any
+	require.NoError(t, yaml.Unmarshal(spec, &fromYAML))
+	asJSON, err := json.Marshal(fromYAML)
+	require.NoError(t, err)
+	assert.JSONEq(t, string(exported), string(asJSON))
+	served := newApp(t).request(t, "GET", "/openapi.yaml", nil)
+	assert.Equal(t, "application/vnd.oai.openapi+yaml", served.Header().Get("Content-Type"))
+	assert.Equal(t, string(spec), served.Body.String())
 }
 
 func TestOpenAPI_ResponsesMatchSchemas(t *testing.T) {

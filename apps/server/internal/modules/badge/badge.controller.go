@@ -136,6 +136,17 @@ func (c *Controller) GetStatusBadge(ctx context.Context, input *GetStatusBadgeIn
 	}
 	return httpx.SVG(svg)
 }
+
+// GetUptimeBadgeDefault is the uptime badge of the default duration, at the path without one
+func (c *Controller) GetUptimeBadgeDefault(ctx context.Context, input *GetUptimeBadgeDefaultInput) (*httpx.Output[httpx.SVGBody], error) {
+	return c.GetUptimeBadge(ctx, &GetUptimeBadgeInput{Request: input.Request})
+}
+
+// GetPingBadgeDefault is the ping badge of the default duration, at the path without one
+func (c *Controller) GetPingBadgeDefault(ctx context.Context, input *GetPingBadgeDefaultInput) (*httpx.Output[httpx.SVGBody], error) {
+	return c.GetPingBadge(ctx, &GetPingBadgeInput{Request: input.Request})
+}
+
 func (c *Controller) GetUptimeBadge(ctx context.Context, input *GetUptimeBadgeInput) (*httpx.Output[httpx.SVGBody], error) {
 	r := input.Request
 	monitorID := r.PathValue("monitorId")

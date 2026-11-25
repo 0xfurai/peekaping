@@ -1,6 +1,6 @@
 # API contract
 
-Huma registrations and typed Go inputs/outputs define the REST contract. The server and `go run ./cmd/openapi` use the same registrations. Export does not connect to databases or Redis. `openapi.json` and `openapi.yaml` are committed artifacts; the frontend client reads `openapi.json`.
+`httpx.Register` registrations and typed Go inputs/outputs define the REST contract; [oasome](https://github.com/0xfurai/oasome) builds the OpenAPI document from them. The server and `go run ./cmd/openapi` use the same registrations. Export does not connect to databases or Redis. `openapi.json` and `openapi.yaml` are committed artifacts; the frontend client reads `openapi.json`.
 
 From the repository root:
 
@@ -10,7 +10,7 @@ bun run api:validate
 bun run api:check
 ```
 
-Generation uses pinned Huma, Hey API, and Prettier versions. CI regenerates the spec and client, validates OpenAPI 3.1, and rejects changes to generated artifacts. The exporter uses the version declared in `internal/version`; release builds may override the runtime version.
+Generation uses pinned oasome, Hey API, and Prettier versions. CI regenerates the spec and client, validates OpenAPI 3.1, and rejects changes to generated artifacts. The exporter uses the version declared in `internal/version`; release builds may override the runtime version.
 
 ## Route inventory
 
@@ -44,7 +44,6 @@ Socket.IO GET/POST polling and WebSocket upgrades are transport endpoints, exclu
 
 - `/docs`: interactive reference.
 - `/openapi.json`, `/openapi.yaml`: OpenAPI 3.1.
-- `/openapi-3.0.json`, `/openapi-3.0.yaml`: Huma's compatibility exports.
 - `/swagger/index.html`: temporary redirect (307) to `/docs`.
 - `/swagger/doc.json`: alias serving the OpenAPI 3.1 document, replacing Swagger 2.0.
 
@@ -52,8 +51,8 @@ Old Swagger UI assets return 404. Integrations requiring Swagger 2.0 must migrat
 
 ## Compatibility
 
-`httpx.Input[Body, Parameters]` declares each handler's body and parameter types. Its `Decode` method deliberately retains the existing one-value JSON decoder and endpoint validation order. Parameter models supply OpenAPI metadata; controllers retain their existing parsing, defaults, and error messages. Unknown JSON fields, empty query defaults, loose boolean parsing, and PATCH omission/null/empty distinctions remain supported. Automatic Huma binding and validation do not run ahead of these handlers. The router's `httpx.LimitBody` does: it answers 413 to a request that declares a body over 1 MiB before authentication or the handler run, and makes reading any other body fail at 1 MiB; the one exception is the workspace import, whose body may be 16 MiB.
+`httpx.Input[Body, Parameters]` declares each handler's body and parameter types. Its `Decode` method deliberately retains the existing one-value JSON decoder and endpoint validation order. Parameter models supply OpenAPI metadata; controllers retain their existing parsing, defaults, and error messages. Unknown JSON fields, empty query defaults, loose boolean parsing, and PATCH omission/null/empty distinctions remain supported. No automatic binding or validation runs ahead of these handlers. The router's `httpx.LimitBody` does: it answers 413 to a request that declares a body over 1 MiB before authentication or the handler run, and makes reading any other body fail at 1 MiB; the one exception is the workspace import, whose body may be 16 MiB.
 
-Typed `httpx.Output[T]` responses go through Huma with the existing compact JSON encoding, HTML escaping, content types, and status codes. SVG badges retain their cache headers. Authentication runs before handler decoding. Router compatibility includes wrong-method/HEAD rejection; HEAD never writes a push heartbeat. Socket.IO keeps standard HTTP handlers and upgrade-capable writers.
+Typed `httpx.Output[T]` responses are written by `httpx` with the existing compact JSON encoding, HTML escaping, content types, and status codes. SVG badges retain their cache headers. Authentication runs before handler decoding. Router compatibility includes wrong-method/HEAD rejection; HEAD never writes a push heartbeat. Socket.IO keeps standard HTTP handlers and upgrade-capable writers.
 
-The default JSON error is `{message,data:null}`. Domain conflicts, login lockout (including `Retry-After`), and bare 2FA responses have their own typed schemas. Huma Problem Details, automatic 422 responses, `$schema` fields, and `Link` headers are disabled for these operations. PP-80's documentation drift is addressed here; PP-87 retains error-model unification and internal error handling changes.
+The default JSON error is `{message,data:null}`. Domain conflicts, login lockout (including `Retry-After`), and bare 2FA responses have their own typed schemas. There are no Problem Details, automatic 422 responses, `$schema` fields, or `Link` headers. A handler error that is not an `httpx.ResponseError` answers 500 with `{message,data:null}` and does not show its cause. PP-80's documentation drift is addressed here; PP-87 retains error-model unification and internal error handling changes.

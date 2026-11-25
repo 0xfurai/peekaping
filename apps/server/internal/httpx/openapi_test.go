@@ -6,7 +6,6 @@ import (
 	"peekaping/internal/httpx"
 	"testing"
 
-	"github.com/danielgtaylor/huma/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -42,7 +41,7 @@ type rulesParams struct{}
 
 func specOf(t *testing.T, router *httpx.Router) map[string]any {
 	t.Helper()
-	raw, err := json.Marshal(router.API().OpenAPI())
+	raw, err := json.Marshal(router.OpenAPI())
 	require.NoError(t, err)
 	var spec map[string]any
 	require.NoError(t, json.Unmarshal(raw, &spec))
@@ -51,7 +50,7 @@ func specOf(t *testing.T, router *httpx.Router) map[string]any {
 
 func TestOpenAPI_RequestRulesAreDocumentedFromValidateTags(t *testing.T) {
 	router := httpx.NewRouter()
-	httpx.Register(router, "POST", "/rules", huma.Operation{},
+	httpx.Register(router, "POST", "/rules", httpx.Operation{},
 		func(context.Context, *httpx.Input[rulesRequest, rulesParams]) (*httpx.Output[struct{}], error) {
 			return httpx.Reply(200, struct{}{})
 		})
@@ -64,7 +63,7 @@ func TestOpenAPI_RequestRulesAreDocumentedFromValidateTags(t *testing.T) {
 	assert.JSONEq(t, `{
 		"type": "object",
 		"additionalProperties": true,
-		"required": ["name", "count", "ratio", "tags", "numbers", "required"],
+		"required": ["count", "name", "numbers", "ratio", "required", "tags"],
 		"properties": {
 			"Unnamed": {"type": "string"},
 			"broken": {"type": "string"},
@@ -91,16 +90,16 @@ func TestOpenAPI_RequestRulesAreDocumentedFromValidateTags(t *testing.T) {
 // A body that is not a named object has no rules to read
 func TestOpenAPI_ABodyThatIsNotANamedObjectKeepsItsPlainSchema(t *testing.T) {
 	router := httpx.NewRouter()
-	httpx.Register(router, "PUT", "/names", huma.Operation{},
+	httpx.Register(router, "PUT", "/names", httpx.Operation{},
 		func(context.Context, *httpx.Input[[]string, rulesParams]) (*httpx.Output[struct{}], error) {
 			return httpx.Reply(200, struct{}{})
 		})
-	httpx.Register(router, "PUT", "/labels", huma.Operation{},
+	httpx.Register(router, "PUT", "/labels", httpx.Operation{},
 		func(context.Context, *httpx.Input[map[string]string, rulesParams]) (*httpx.Output[struct{}], error) {
 			return httpx.Reply(200, struct{}{})
 		})
 
-	httpx.Register(router, "PUT", "/inline", huma.Operation{},
+	httpx.Register(router, "PUT", "/inline", httpx.Operation{},
 		func(context.Context, *httpx.Input[struct {
 			Name string `json:"name" validate:"required"`
 		}, rulesParams]) (*httpx.Output[struct{}], error) {
@@ -110,26 +109,22 @@ func TestOpenAPI_ABodyThatIsNotANamedObjectKeepsItsPlainSchema(t *testing.T) {
 	paths := specOf(t, router)["paths"].(map[string]any)
 
 	for path, want := range map[string]string{
-		"/names":  `{"type": ["array", "null"], "items": {"type": "string"}}`,
+		"/names":  `{"type": "array", "items": {"type": "string"}}`,
 		"/labels": `{"type": "object", "additionalProperties": {"type": "string"}}`,
-		"/inline": `{"$ref": "#/components/schemas/PutInlineRequest"}`,
+		"/inline": `{"type": "object", "additionalProperties": false, "properties": {"name": {"type": "string"}}, "required": ["name"]}`,
 	} {
 		put := paths[path].(map[string]any)["put"].(map[string]any)
 		body, err := json.Marshal(put["requestBody"].(map[string]any)["content"].(map[string]any)["application/json"].(map[string]any)["schema"])
 		require.NoError(t, err)
+		// A struct without a name has no schema of its own to loosen
 		assert.JSONEq(t, want, string(body), path)
 	}
-	schema, err := json.Marshal(specOf(t, router)["components"].(map[string]any)["schemas"].(map[string]any)["PutInlineRequest"])
-	require.NoError(t, err)
-	assert.JSONEq(t, `{"type": "object", "additionalProperties": false, "properties": {"name": {"type": "string"}}, "required": ["name"]}`, string(schema),
-		"a struct without a name has no schema of its own to loosen")
 }
 
 type opParams struct {
 	ID    string `path:"id" doc:"The thing"`
 	Page  int    `query:"page" doc:"Page number"`
 	Token string `query:"token" required:"true"`
-	Alias string `path:"alias"`
 	Plain string
 }
 
@@ -141,17 +136,17 @@ func TestOpenAPI_OperationsDocumentTheirParametersAndResponses(t *testing.T) {
 	router := httpx.NewRouter()
 	group := router.Group("/api/v1")
 	group.DocumentWorkspace()
-	httpx.Register(group, "GET", "/things/{id}", huma.Operation{Errors: []int{404}},
+	httpx.Register(group, "GET", "/things/{id}", httpx.Operation{Errors: []int{404}},
 		func(context.Context, *httpx.Input[httpx.NoBody, opParams]) (*httpx.Output[opBody], error) {
 			return httpx.Reply(200, opBody{})
 		})
-	httpx.Register(group, "DELETE", "/things/{id}", huma.Operation{DefaultStatus: 204, Responses: map[string]*huma.Response{
-		"304": {Description: "Not Modified", Content: map[string]*huma.MediaType{"application/json": {}}, Headers: map[string]*huma.Param{"ETag": {}}},
+	httpx.Register(group, "DELETE", "/things/{id}", httpx.Operation{DefaultStatus: 204, Responses: map[string]*httpx.Response{
+		"304": {Description: "Not modified: nothing changed"},
 	}},
 		func(context.Context, *httpx.Input[opBody, opParams]) (*httpx.Output[httpx.NoBody], error) {
 			return httpx.Reply(204, httpx.NoBody{})
 		})
-	httpx.Register(group, "GET", "/badge", huma.Operation{},
+	httpx.Register(group, "GET", "/badge", httpx.Operation{},
 		func(context.Context, *httpx.Input[httpx.NoBody, rulesParams]) (*httpx.Output[httpx.SVGBody], error) {
 			return httpx.SVG("<svg/>")
 		})
@@ -162,8 +157,9 @@ func TestOpenAPI_OperationsDocumentTheirParametersAndResponses(t *testing.T) {
 	require.NoError(t, err)
 	workspace := `{"name": "X-Workspace-ID", "in": "header", "schema": {"type": "string", "format": "uuid"},
 		"description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace."}`
-	thing := `{"name": "id", "in": "path", "required": true, "description": "The thing", "schema": {"type": "string", "description": "The thing"}},
-		{"name": "page", "in": "query", "description": "Page number", "schema": {"type": "integer", "format": "int64", "description": "Page number"}},
+	// oasome lists the parameters by location: path, header, query
+	thingPath := `{"name": "id", "in": "path", "required": true, "description": "The thing", "schema": {"type": "string", "description": "The thing"}}`
+	thingQuery := `{"name": "page", "in": "query", "description": "Page number", "schema": {"type": "integer", "format": "int64", "description": "Page number"}},
 		{"name": "token", "in": "query", "required": true, "schema": {"type": "string"}}`
 	tooMany := `{"description": "Too Many Requests",
 		"content": {"application/json": {"schema": {"$ref": "#/components/schemas/httpx.ErrorBody"}}},
@@ -174,14 +170,14 @@ func TestOpenAPI_OperationsDocumentTheirParametersAndResponses(t *testing.T) {
 			"parameters": [`+workspace+`],
 			"responses": {
 				"200": {"description": "OK", "content": {"image/svg+xml": {"schema": {"type": "string"}}},
-					"headers": {"Cache-Control": {"schema": {"type": ["string", "null"]}}}},
+					"headers": {"Cache-Control": {"schema": {"type": "string"}}}},
 				"429": `+tooMany+`
 			}
 		}},
 		"/api/v1/things/{id}": {
 			"get": {
 				"operationId": "getThingsById",
-				"parameters": [`+thing+`, `+workspace+`],
+				"parameters": [`+thingPath+`, `+workspace+`, `+thingQuery+`],
 				"responses": {
 					"200": {"description": "OK", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/httpx_test.opBody"}}}},
 					"404": {"description": "Not Found", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/httpx.ErrorBody"}}}},
@@ -190,11 +186,11 @@ func TestOpenAPI_OperationsDocumentTheirParametersAndResponses(t *testing.T) {
 			},
 			"delete": {
 				"operationId": "deleteThingsById",
-				"parameters": [`+thing+`, `+workspace+`],
+				"parameters": [`+thingPath+`, `+workspace+`, `+thingQuery+`],
 				"requestBody": {"required": true, "content": {"application/json": {"schema": {"$ref": "#/components/schemas/httpx_test.opBody"}}}},
 				"responses": {
 					"204": {"description": "No Content"},
-					"304": {"description": "Not Modified"},
+					"304": {"description": "Not modified: nothing changed"},
 					"429": `+tooMany+`
 				}
 			}

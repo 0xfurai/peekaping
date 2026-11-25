@@ -24,7 +24,6 @@ import (
 	"peekaping/internal/reporting"
 	"peekaping/internal/utils"
 
-	"github.com/danielgtaylor/huma/v2"
 	"github.com/google/uuid"
 )
 
@@ -312,7 +311,7 @@ func (c *Controller) retryLater(probeID, message string) error {
 	c.logger.Infow("Asked a probe to send a batch again", "probeId", probeID, "why", message,
 		"retryAfter", PendingRetryAfter.String())
 	retryAfter := http.Header{"Retry-After": {strconv.Itoa(int(PendingRetryAfter / time.Second))}}
-	return huma.ErrorWithHeaders(httpx.Fail(http.StatusServiceUnavailable, utils.NewFailResponse(message)), retryAfter)
+	return httpx.FailWithHeaders(http.StatusServiceUnavailable, utils.NewFailResponse(message), retryAfter)
 }
 
 // dealtMonitors are the monitors that the instance may send results for, by id: the active monitors
