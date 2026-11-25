@@ -23,13 +23,14 @@ export const slowResponseErrors = (values: {
   slow_response_threshold_ms: number | null;
   slow_response_multiplier: number | null;
   slow_response_min_ms: number | null;
-  slow_response_consecutive: number;
+  slow_response_consecutive: number | null;
 }): SlowResponseError[] => {
   if (values.slow_response_mode === "off") return [];
 
   const issues: SlowResponseError[] = [];
 
   if (
+    values.slow_response_consecutive === null ||
     !Number.isInteger(values.slow_response_consecutive) ||
     values.slow_response_consecutive < 1
   ) {

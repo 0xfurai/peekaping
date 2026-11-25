@@ -117,15 +117,15 @@ type NotificationChannel struct {
 }
 
 type Monitor struct {
-	Ref               string     `json:"ref"`
-	Name              string     `json:"name"`
-	Type              string     `json:"type"`
-	Active            bool       `json:"active"`
-	Interval          int        `json:"interval"`
-	Timeout           int        `json:"timeout"`
-	MaxRetries        int        `json:"maxRetries"`
-	RetryInterval     int        `json:"retryInterval"`
-	ResendInterval    int        `json:"resendInterval"`
+	Ref                     string     `json:"ref"`
+	Name                    string     `json:"name"`
+	Type                    string     `json:"type"`
+	Active                  bool       `json:"active"`
+	Interval                int        `json:"interval"`
+	Timeout                 int        `json:"timeout"`
+	MaxRetries              int        `json:"maxRetries"`
+	RetryInterval           int        `json:"retryInterval"`
+	ResendInterval          int        `json:"resendInterval"`
 	LocationRule            string     `json:"locationRule"`
 	LocationThreshold       *int       `json:"locationThreshold,omitempty"`
 	SlowResponseMode        string     `json:"slowResponseMode,omitempty"`

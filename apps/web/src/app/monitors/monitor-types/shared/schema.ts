@@ -115,7 +115,7 @@ export const slowResponseSchema = z.object({
   slow_response_threshold_ms: nullableNumber,
   slow_response_multiplier: nullableNumber,
   slow_response_min_ms: nullableNumber,
-  slow_response_consecutive: z.coerce.number().min(1),
+  slow_response_consecutive: nullableNumber,
 });
 
 export const slowResponseDefaultValues = {
@@ -123,7 +123,7 @@ export const slowResponseDefaultValues = {
   slow_response_threshold_ms: 500 as number | null,
   slow_response_multiplier: 2 as number | null,
   slow_response_min_ms: 100 as number | null,
-  slow_response_consecutive: 3,
+  slow_response_consecutive: 3 as number | null,
 };
 
 // The fields every monitor type has: the general, intervals, notifications, tags, probe,

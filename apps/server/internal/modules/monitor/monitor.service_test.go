@@ -499,22 +499,22 @@ func TestMonitorService_Create(t *testing.T) {
 		assert.Equal(t, time.UTC, saved.CreatedAt.Location())
 		saved.CreatedAt = time.Time{}
 		assert.Equal(t, &Model{
-			WorkspaceID:    testWorkspace,
-			Type:           "http",
-			Name:           "Test Monitor",
-			Interval:       60,
-			Timeout:        16,
-			MaxRetries:     3,
-			RetryInterval:  45,
-			ResendInterval: 10,
+			WorkspaceID:             testWorkspace,
+			Type:                    "http",
+			Name:                    "Test Monitor",
+			Interval:                60,
+			Timeout:                 16,
+			MaxRetries:              3,
+			RetryInterval:           45,
+			ResendInterval:          10,
 			LocationRule:            shared.LocationRuleAny,
 			SlowResponseMode:        shared.SlowResponseModeOff,
 			SlowResponseConsecutive: shared.DefaultSlowResponseConsecutive,
 			Active:                  true,
-			Status:         shared.MonitorStatusPending,
-			Config:         "{}",
-			ProxyId:        "6a1b8d34-0a1e-4f4b-9a63-0f6d2c3a5e11",
-			PushToken:      "token123",
+			Status:                  shared.MonitorStatusPending,
+			Config:                  "{}",
+			ProxyId:                 "6a1b8d34-0a1e-4f4b-9a63-0f6d2c3a5e11",
+			PushToken:               "token123",
 		}, saved, "the repository gets every field of the request, in the request's workspace, and the monitor starts Pending")
 		mockRepo.AssertExpectations(t)
 		notifications.AssertExpectations(t)

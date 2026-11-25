@@ -44,11 +44,11 @@ type sqlModel struct {
 	SlowResponseMinMs       *int                 `bun:"slow_response_min_ms"`
 	SlowResponseConsecutive int                  `bun:"slow_response_consecutive,notnull"`
 	Active                  bool                 `bun:"active,notnull"` // no Bun default: it would replace false with the column default
-	Status            shared.MonitorStatus `bun:"status,notnull,default:0"`
-	CreatedAt         time.Time            `bun:"created_at,nullzero,notnull,default:current_timestamp"`
-	UpdatedAt         time.Time            `bun:"updated_at,nullzero,notnull,default:current_timestamp"`
-	Config            string               `bun:"config"`
-	ProxyId           *string              `bun:"proxy_id"`
+	Status                  shared.MonitorStatus `bun:"status,notnull,default:0"`
+	CreatedAt               time.Time            `bun:"created_at,nullzero,notnull,default:current_timestamp"`
+	UpdatedAt               time.Time            `bun:"updated_at,nullzero,notnull,default:current_timestamp"`
+	Config                  string               `bun:"config"`
+	ProxyId                 *string              `bun:"proxy_id"`
 	// PushToken is NULL for a monitor without one: the column is unique, which an empty string
 	// would break for the second such monitor
 	PushToken string `bun:"push_token,nullzero"`
@@ -409,15 +409,15 @@ func toDomainModelFromSQL(sm *sqlModel) *Model {
 	}
 
 	return &Model{
-		ID:                sm.ID,
-		WorkspaceID:       workspace.ID(sm.WorkspaceID),
-		Type:              sm.Type,
-		Name:              sm.Name,
-		Interval:          sm.Interval,
-		Timeout:           sm.Timeout,
-		MaxRetries:        sm.MaxRetries,
-		RetryInterval:     sm.RetryInterval,
-		ResendInterval:    sm.ResendInterval,
+		ID:                      sm.ID,
+		WorkspaceID:             workspace.ID(sm.WorkspaceID),
+		Type:                    sm.Type,
+		Name:                    sm.Name,
+		Interval:                sm.Interval,
+		Timeout:                 sm.Timeout,
+		MaxRetries:              sm.MaxRetries,
+		RetryInterval:           sm.RetryInterval,
+		ResendInterval:          sm.ResendInterval,
 		LocationRule:            shared.LocationRule(sm.LocationRule),
 		LocationThreshold:       sm.LocationThreshold,
 		SlowResponseMode:        slowResponseModeOrOff(shared.SlowResponseMode(sm.SlowResponseMode)),
@@ -426,12 +426,12 @@ func toDomainModelFromSQL(sm *sqlModel) *Model {
 		SlowResponseMinMs:       sm.SlowResponseMinMs,
 		SlowResponseConsecutive: slowResponseConsecutiveOrDefault(sm.SlowResponseConsecutive),
 		Active:                  sm.Active,
-		Status:            sm.Status,
-		CreatedAt:         sm.CreatedAt,
-		UpdatedAt:         sm.UpdatedAt,
-		Config:            sm.Config,
-		ProxyId:           proxyId,
-		PushToken:         sm.PushToken,
+		Status:                  sm.Status,
+		CreatedAt:               sm.CreatedAt,
+		UpdatedAt:               sm.UpdatedAt,
+		Config:                  sm.Config,
+		ProxyId:                 proxyId,
+		PushToken:               sm.PushToken,
 
 		WorkspaceSuspended:        sm.WorkspaceSuspended,
 		WorkspaceSuspendedByAdmin: sm.WorkspaceSuspendedByAdmin,
@@ -455,15 +455,15 @@ func toSQLModel(m *Model) *sqlModel {
 	}
 
 	return &sqlModel{
-		ID:                m.ID,
-		WorkspaceID:       string(m.WorkspaceID),
-		Type:              m.Type,
-		Name:              m.Name,
-		Interval:          m.Interval,
-		Timeout:           m.Timeout,
-		MaxRetries:        m.MaxRetries,
-		RetryInterval:     m.RetryInterval,
-		ResendInterval:    m.ResendInterval,
+		ID:                      m.ID,
+		WorkspaceID:             string(m.WorkspaceID),
+		Type:                    m.Type,
+		Name:                    m.Name,
+		Interval:                m.Interval,
+		Timeout:                 m.Timeout,
+		MaxRetries:              m.MaxRetries,
+		RetryInterval:           m.RetryInterval,
+		ResendInterval:          m.ResendInterval,
 		LocationRule:            string(locationRuleOrAny(m.LocationRule)),
 		LocationThreshold:       m.LocationThreshold,
 		SlowResponseMode:        string(slowResponseModeOrOff(m.SlowResponseMode)),
@@ -472,12 +472,12 @@ func toSQLModel(m *Model) *sqlModel {
 		SlowResponseMinMs:       m.SlowResponseMinMs,
 		SlowResponseConsecutive: slowResponseConsecutiveOrDefault(m.SlowResponseConsecutive),
 		Active:                  m.Active,
-		Status:            m.Status,
-		CreatedAt:         m.CreatedAt,
-		UpdatedAt:         m.UpdatedAt,
-		Config:            m.Config,
-		ProxyId:           proxyId,
-		PushToken:         m.PushToken,
+		Status:                  m.Status,
+		CreatedAt:               m.CreatedAt,
+		UpdatedAt:               m.UpdatedAt,
+		Config:                  m.Config,
+		ProxyId:                 proxyId,
+		PushToken:               m.PushToken,
 	}
 }
 

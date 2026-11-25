@@ -251,11 +251,11 @@ type UpdateMonitor struct {
 	SlowResponseMultiplier  *float64          `json:"slow_response_multiplier"`
 	SlowResponseMinMs       *int              `json:"slow_response_min_ms"`
 	SlowResponseConsecutive *int              `json:"slow_response_consecutive"`
-	Active            *bool          `json:"active"`
-	Status            *MonitorStatus `json:"status"`
-	Config            *string        `json:"config"`
-	ProxyId           *string        `json:"proxy_id"`
-	PushToken         *string        `json:"push_token"`
+	Active                  *bool             `json:"active"`
+	Status                  *MonitorStatus    `json:"status"`
+	Config                  *string           `json:"config"`
+	ProxyId                 *string           `json:"proxy_id"`
+	PushToken               *string           `json:"push_token"`
 	// ProbeIDs replace the probes that run the monitor. Nil leaves them as they are.
 	ProbeIDs []string `json:"probe_ids"`
 

@@ -287,19 +287,33 @@ func (l *NotificationEventListener) handleSlowResponseEvent(ctx context.Context,
 	l.sendToChannels(ctx, notificationChannels, message, monitorModel, nil)
 }
 
-func formatSlowResponseMessage(e *shared.SlowResponseEvent, m *monitor.Model, recovered bool) string {
-	locationSuffix := ""
-	if m != nil && len(m.Locations) > 1 && e.ProbeID != "" {
-		probeName := e.ProbeID
-		for _, loc := range m.Locations {
-			if loc.ProbeID == e.ProbeID && loc.ProbeName != "" {
-				probeName = loc.ProbeName
-				break
-			}
-		}
-		locationSuffix = fmt.Sprintf(" at %s", probeName)
+func slowResponseLocationSuffix(m *monitor.Model, probeID string) string {
+	if m == nil || len(m.Locations) <= 1 || probeID == "" {
+		return ""
 	}
+	probeName := probeID
+	for _, loc := range m.Locations {
+		if loc.ProbeID == probeID && loc.ProbeName != "" {
+			probeName = loc.ProbeName
+			break
+		}
+	}
+	return fmt.Sprintf(" at %s", probeName)
+}
 
+func slowResponseDetail(e *shared.SlowResponseEvent) string {
+	detail := fmt.Sprintf("threshold: %d ms", e.ThresholdMs)
+	if e.Mode == shared.SlowResponseModeBaseline && e.BaselineAvgMs != nil && e.Multiplier != nil {
+		detail = fmt.Sprintf("threshold: %d ms, %.1fx 24h avg of %.0f ms", e.ThresholdMs, *e.Multiplier, *e.BaselineAvgMs)
+	}
+	if e.ConsecutiveCount > 1 {
+		detail += fmt.Sprintf(", %d consecutive slow checks", e.ConsecutiveCount)
+	}
+	return detail
+}
+
+func formatSlowResponseMessage(e *shared.SlowResponseEvent, m *monitor.Model, recovered bool) string {
+	locationSuffix := slowResponseLocationSuffix(m, e.ProbeID)
 	monitorName := e.MonitorName
 	if monitorName == "" && m != nil {
 		monitorName = m.Name
@@ -315,20 +329,12 @@ func formatSlowResponseMessage(e *shared.SlowResponseEvent, m *monitor.Model, re
 		)
 	}
 
-	detail := fmt.Sprintf("threshold: %d ms", e.ThresholdMs)
-	if e.Mode == shared.SlowResponseModeBaseline && e.BaselineAvgMs != nil && e.Multiplier != nil {
-		detail = fmt.Sprintf("threshold: %d ms, %.1fx 24h avg of %.0f ms", e.ThresholdMs, *e.Multiplier, *e.BaselineAvgMs)
-	}
-	if e.ConsecutiveCount > 1 {
-		detail += fmt.Sprintf(", %d consecutive slow checks", e.ConsecutiveCount)
-	}
-
 	return fmt.Sprintf(
 		"⚠️ Slow Response Warning: %s%s took %d ms (%s)",
 		monitorName,
 		locationSuffix,
 		e.PingMs,
-		detail,
+		slowResponseDetail(e),
 	)
 }
 

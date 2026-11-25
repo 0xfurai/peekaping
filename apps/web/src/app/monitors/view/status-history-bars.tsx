@@ -110,9 +110,9 @@ export function getStatusHistoryRangeParams(
       break;
   }
 
-  // Rightmost bucket holds the current time slot.
-  const currentBucketStart = Math.floor(alignedNowMs / bucketMs) * bucketMs;
-  const windowEndMs = currentBucketStart + bucketMs;
+  // Anchor the window end to the current minute so all 48 buckets cover the full requested
+  // history window in the past without spilling hours into the future.
+  const windowEndMs = alignedNowMs + MINUTE_MS;
   const windowStartMs = windowEndMs - ALIGNED_BUCKET_COUNT * bucketMs;
 
   // Keep minute query within the backend's 1441-point cap (1439 minutes = 1440 points).
@@ -435,10 +435,12 @@ const PeriodRow: React.FC<PeriodRowProps> = ({
                 <TooltipTrigger asChild>
                   <div
                     role="listitem"
+                    tabIndex={0}
+                    aria-label={`${formatBucketRange(bucket.startMs, bucket.endMs)}: ${statusLabel(status)}`}
                     data-testid={`status-history-bar-${period}`}
                     data-status={status}
                     style={slotStyle}
-                    className="h-full flex items-end cursor-default group"
+                    className="h-full flex items-end cursor-default group focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring rounded-[2px]"
                   >
                     <div
                       className={cn(

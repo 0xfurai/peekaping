@@ -33,6 +33,26 @@ func slowResponseConsecutiveOrDefault(consecutive int) int {
 	return consecutive
 }
 
+func validateFixedSlowResponse(cfg slowResponseConfig) (slowResponseConfig, error) {
+	if cfg.thresholdMs == nil || *cfg.thresholdMs < 1 {
+		return cfg, &InvalidSlowResponseError{Err: errors.New("fixed mode requires slow_response_threshold_ms of at least 1 ms")}
+	}
+	cfg.multiplier = nil
+	cfg.minMs = nil
+	return cfg, nil
+}
+
+func validateBaselineSlowResponse(cfg slowResponseConfig) (slowResponseConfig, error) {
+	if cfg.multiplier == nil || math.IsNaN(*cfg.multiplier) || math.IsInf(*cfg.multiplier, 0) || *cfg.multiplier <= 1.0 {
+		return cfg, &InvalidSlowResponseError{Err: errors.New("baseline mode requires slow_response_multiplier greater than 1")}
+	}
+	if cfg.minMs != nil && *cfg.minMs < 0 {
+		return cfg, &InvalidSlowResponseError{Err: errors.New("slow_response_min_ms must be 0 or more")}
+	}
+	cfg.thresholdMs = nil
+	return cfg, nil
+}
+
 // validateSlowResponse checks a monitor's slow response settings and normalizes irrelevant fields
 // for the chosen mode to nil.
 func validateSlowResponse(cfg slowResponseConfig) (slowResponseConfig, error) {
@@ -46,21 +66,9 @@ func validateSlowResponse(cfg slowResponseConfig) (slowResponseConfig, error) {
 		cfg.minMs = nil
 		return cfg, nil
 	case shared.SlowResponseModeFixed:
-		if cfg.thresholdMs == nil || *cfg.thresholdMs < 1 {
-			return cfg, &InvalidSlowResponseError{Err: errors.New("fixed mode requires slow_response_threshold_ms of at least 1 ms")}
-		}
-		cfg.multiplier = nil
-		cfg.minMs = nil
-		return cfg, nil
+		return validateFixedSlowResponse(cfg)
 	case shared.SlowResponseModeBaseline:
-		if cfg.multiplier == nil || math.IsNaN(*cfg.multiplier) || math.IsInf(*cfg.multiplier, 0) || *cfg.multiplier <= 1.0 {
-			return cfg, &InvalidSlowResponseError{Err: errors.New("baseline mode requires slow_response_multiplier greater than 1")}
-		}
-		if cfg.minMs != nil && *cfg.minMs < 0 {
-			return cfg, &InvalidSlowResponseError{Err: errors.New("slow_response_min_ms must be 0 or more")}
-		}
-		cfg.thresholdMs = nil
-		return cfg, nil
+		return validateBaselineSlowResponse(cfg)
 	default:
 		return cfg, &InvalidSlowResponseError{Err: fmt.Errorf("%q is not a slow_response_mode: use off, fixed or baseline", cfg.mode)}
 	}
@@ -88,22 +96,29 @@ func CheckSlowResponseShape(dto *CreateUpdateDto) error {
 	return err
 }
 
-// resolveFullSlowResponse resolves and validates slow response settings for a full update.
-// An older client that omits all slow response fields keeps the monitor's existing settings.
-func resolveFullSlowResponse(current *Model, update *CreateUpdateDto) (slowResponseConfig, error) {
-	hasAny := update.SlowResponseMode != "" ||
+func slowResponseConfigFromModel(current *Model) slowResponseConfig {
+	return slowResponseConfig{
+		mode:        slowResponseModeOrOff(current.SlowResponseMode),
+		thresholdMs: current.SlowResponseThresholdMs,
+		multiplier:  current.SlowResponseMultiplier,
+		minMs:       current.SlowResponseMinMs,
+		consecutive: slowResponseConsecutiveOrDefault(current.SlowResponseConsecutive),
+	}
+}
+
+func hasFullSlowResponseFields(update *CreateUpdateDto) bool {
+	return update.SlowResponseMode != "" ||
 		update.SlowResponseThresholdMs != nil ||
 		update.SlowResponseMultiplier != nil ||
 		update.SlowResponseMinMs != nil ||
 		update.SlowResponseConsecutive != nil
-	if !hasAny {
-		return slowResponseConfig{
-			mode:        slowResponseModeOrOff(current.SlowResponseMode),
-			thresholdMs: current.SlowResponseThresholdMs,
-			multiplier:  current.SlowResponseMultiplier,
-			minMs:       current.SlowResponseMinMs,
-			consecutive: slowResponseConsecutiveOrDefault(current.SlowResponseConsecutive),
-		}, nil
+}
+
+// resolveFullSlowResponse resolves and validates slow response settings for a full update.
+// An older client that omits all slow response fields keeps the monitor's existing settings.
+func resolveFullSlowResponse(current *Model, update *CreateUpdateDto) (slowResponseConfig, error) {
+	if !hasFullSlowResponseFields(update) {
+		return slowResponseConfigFromModel(current), nil
 	}
 	mode := update.SlowResponseMode
 	if mode == "" {
@@ -122,24 +137,15 @@ func resolveFullSlowResponse(current *Model, update *CreateUpdateDto) (slowRespo
 	})
 }
 
-// resolvePartialSlowResponse resolves and validates slow response settings for a partial update.
-// Returns set=false when the update includes no slow response fields.
-func resolvePartialSlowResponse(current *Model, update *PartialUpdateDto) (slowResponseConfig, bool, error) {
-	hasAny := update.SlowResponseMode != nil ||
+func hasPartialSlowResponseFields(update *PartialUpdateDto) bool {
+	return update.SlowResponseMode != nil ||
 		update.SlowResponseThresholdMs != nil ||
 		update.SlowResponseMultiplier != nil ||
 		update.SlowResponseMinMs != nil ||
 		update.SlowResponseConsecutive != nil
-	if !hasAny {
-		return slowResponseConfig{}, false, nil
-	}
-	cfg := slowResponseConfig{
-		mode:        slowResponseModeOrOff(current.SlowResponseMode),
-		thresholdMs: current.SlowResponseThresholdMs,
-		multiplier:  current.SlowResponseMultiplier,
-		minMs:       current.SlowResponseMinMs,
-		consecutive: slowResponseConsecutiveOrDefault(current.SlowResponseConsecutive),
-	}
+}
+
+func applyPartialSlowResponse(cfg slowResponseConfig, update *PartialUpdateDto) slowResponseConfig {
 	if update.SlowResponseMode != nil {
 		cfg.mode = *update.SlowResponseMode
 	}
@@ -155,6 +161,16 @@ func resolvePartialSlowResponse(current *Model, update *PartialUpdateDto) (slowR
 	if update.SlowResponseConsecutive != nil {
 		cfg.consecutive = *update.SlowResponseConsecutive
 	}
+	return cfg
+}
+
+// resolvePartialSlowResponse resolves and validates slow response settings for a partial update.
+// Returns set=false when the update includes no slow response fields.
+func resolvePartialSlowResponse(current *Model, update *PartialUpdateDto) (slowResponseConfig, bool, error) {
+	if !hasPartialSlowResponseFields(update) {
+		return slowResponseConfig{}, false, nil
+	}
+	cfg := applyPartialSlowResponse(slowResponseConfigFromModel(current), update)
 	resolved, err := validateSlowResponse(cfg)
 	return resolved, true, err
 }

@@ -164,21 +164,10 @@ func (s *ServiceImpl) evaluateSlowResponse(ctx context.Context, r *Result, probe
 	if s.slowResponseStore == nil {
 		return
 	}
-	mode := r.MonitorSlowResponseMode
-	if mode == "" || mode == shared.SlowResponseModeOff {
-		return
-	}
-
-	// Any non-Up check (Down, Pending, Maintenance) resets slow tracking so a subsequent Up
-	// starts fresh and never emits a spurious latency recovery right after an outage recovery.
-	if storedStatus != shared.MonitorStatusUp {
-		if err := s.slowResponseStore.Reset(ctx, r.MonitorID, probeID); err != nil {
-			s.logger.Warnw("Failed to reset slow response state",
-				"monitor_id", r.MonitorID,
-				"probe_id", probeID,
-				"error", err,
-			)
-		}
+	// Disabled alerting or any non-Up check (Down, Pending, Maintenance) resets slow tracking so
+	// re-enabling alerts or recovering from an outage starts fresh without a spurious recovery.
+	if r.MonitorSlowResponseMode == "" || r.MonitorSlowResponseMode == shared.SlowResponseModeOff || storedStatus != shared.MonitorStatusUp {
+		s.resetSlowResponseState(ctx, r.MonitorID, probeID)
 		return
 	}
 
@@ -187,107 +176,140 @@ func (s *ServiceImpl) evaluateSlowResponse(ctx context.Context, r *Result, probe
 		return
 	}
 
-	state, err := s.slowResponseStore.Get(ctx, r.MonitorID, probeID)
-	if err != nil {
-		s.logger.Warnw("Failed to read slow response state",
-			"monitor_id", r.MonitorID,
-			"probe_id", probeID,
-			"error", err,
-		)
+	state, ok := s.loadSlowResponseState(ctx, r.MonitorID, probeID)
+	if !ok {
 		return
-	}
-	if state == nil {
-		state = &SlowResponseState{MonitorID: r.MonitorID, ProbeID: probeID}
 	}
 
 	eventTime := r.StartTime
 	if eventTime.IsZero() {
 		eventTime = time.Now().UTC()
 	}
+
+	if r.PingMs > thresholdMs {
+		s.recordSlowCheck(ctx, r, probeID, state, thresholdMs, baselineAvgMs, eventTime)
+		return
+	}
+	s.recordNormalCheck(ctx, r, probeID, state, thresholdMs, baselineAvgMs, eventTime)
+}
+
+func (s *ServiceImpl) resetSlowResponseState(ctx context.Context, monitorID, probeID string) {
+	if err := s.slowResponseStore.Reset(ctx, monitorID, probeID); err != nil {
+		s.logger.Warnw("Failed to reset slow response state",
+			"monitor_id", monitorID,
+			"probe_id", probeID,
+			"error", err,
+		)
+	}
+}
+
+func (s *ServiceImpl) loadSlowResponseState(ctx context.Context, monitorID, probeID string) (*SlowResponseState, bool) {
+	state, err := s.slowResponseStore.Get(ctx, monitorID, probeID)
+	if err != nil {
+		s.logger.Warnw("Failed to read slow response state",
+			"monitor_id", monitorID,
+			"probe_id", probeID,
+			"error", err,
+		)
+		return nil, false
+	}
+	if state == nil {
+		state = &SlowResponseState{MonitorID: monitorID, ProbeID: probeID}
+	}
+	return state, true
+}
+
+func buildSlowResponseEvent(r *Result, probeID string, thresholdMs int, baselineAvgMs *float64, consecutiveCount int, eventTime time.Time) shared.SlowResponseEvent {
+	return shared.SlowResponseEvent{
+		MonitorID:        r.MonitorID,
+		MonitorName:      r.MonitorName,
+		ProbeID:          probeID,
+		Mode:             r.MonitorSlowResponseMode,
+		PingMs:           r.PingMs,
+		ThresholdMs:      thresholdMs,
+		BaselineAvgMs:    baselineAvgMs,
+		Multiplier:       r.MonitorSlowResponseMultiplier,
+		ConsecutiveCount: consecutiveCount,
+		Time:             eventTime,
+	}
+}
+
+func (s *ServiceImpl) recordSlowCheck(ctx context.Context, r *Result, probeID string, state *SlowResponseState, thresholdMs int, baselineAvgMs *float64, eventTime time.Time) {
 	required := r.MonitorSlowResponseConsecutive
 	if required < 1 {
 		required = shared.DefaultSlowResponseConsecutive
 	}
 
-	isSlow := r.PingMs > thresholdMs
-	if isSlow {
-		state.ConsecutiveCount++
-		state.LastPingMs = r.PingMs
-		state.ThresholdMs = thresholdMs
-		state.UpdatedAt = eventTime
+	state.ConsecutiveCount++
+	state.LastPingMs = r.PingMs
+	state.ThresholdMs = thresholdMs
+	state.UpdatedAt = eventTime
 
-		shouldAlert := !state.Alerting && state.ConsecutiveCount >= required
-		if shouldAlert {
-			state.Alerting = true
-		}
-		if err := s.slowResponseStore.Upsert(ctx, state); err != nil {
-			s.logger.Warnw("Failed to save slow response state",
-				"monitor_id", r.MonitorID,
-				"probe_id", probeID,
-				"error", err,
-			)
-			return
-		}
-		if shouldAlert {
-			s.publishSlowResponse(ctx, events.SlowResponse, shared.SlowResponseEvent{
-				MonitorID:        r.MonitorID,
-				MonitorName:      r.MonitorName,
-				ProbeID:          probeID,
-				Mode:             mode,
-				PingMs:           r.PingMs,
-				ThresholdMs:      thresholdMs,
-				BaselineAvgMs:    baselineAvgMs,
-				Multiplier:       r.MonitorSlowResponseMultiplier,
-				ConsecutiveCount: state.ConsecutiveCount,
-				Time:             eventTime,
-			})
-		}
+	shouldAlert := !state.Alerting && state.ConsecutiveCount >= required
+	if shouldAlert {
+		state.Alerting = true
+	}
+	if err := s.slowResponseStore.Upsert(ctx, state); err != nil {
+		s.logger.Warnw("Failed to save slow response state",
+			"monitor_id", r.MonitorID,
+			"probe_id", probeID,
+			"error", err,
+		)
+		return
+	}
+	if shouldAlert {
+		s.publishSlowResponse(ctx, events.SlowResponse, buildSlowResponseEvent(r, probeID, thresholdMs, baselineAvgMs, state.ConsecutiveCount, eventTime))
+	}
+}
+
+func (s *ServiceImpl) recordNormalCheck(ctx context.Context, r *Result, probeID string, state *SlowResponseState, thresholdMs int, baselineAvgMs *float64, eventTime time.Time) {
+	wasAlerting := state.Alerting
+	if !wasAlerting && state.ConsecutiveCount == 0 {
 		return
 	}
 
-	// Response time is within threshold.
-	if state.Alerting {
-		state.Alerting = false
-		state.ConsecutiveCount = 0
-		state.LastPingMs = r.PingMs
-		state.ThresholdMs = thresholdMs
-		state.UpdatedAt = eventTime
-		if err := s.slowResponseStore.Upsert(ctx, state); err != nil {
-			s.logger.Warnw("Failed to save recovered slow response state",
-				"monitor_id", r.MonitorID,
-				"probe_id", probeID,
-				"error", err,
-			)
-			return
-		}
-		s.publishSlowResponse(ctx, events.SlowResponseRecovered, shared.SlowResponseEvent{
-			MonitorID:        r.MonitorID,
-			MonitorName:      r.MonitorName,
-			ProbeID:          probeID,
-			Mode:             mode,
-			PingMs:           r.PingMs,
-			ThresholdMs:      thresholdMs,
-			BaselineAvgMs:    baselineAvgMs,
-			Multiplier:       r.MonitorSlowResponseMultiplier,
-			ConsecutiveCount: 0,
-			Time:             eventTime,
-		})
+	state.Alerting = false
+	state.ConsecutiveCount = 0
+	state.LastPingMs = r.PingMs
+	state.ThresholdMs = thresholdMs
+	state.UpdatedAt = eventTime
+	if err := s.slowResponseStore.Upsert(ctx, state); err != nil {
+		s.logger.Warnw("Failed to save recovered slow response state",
+			"monitor_id", r.MonitorID,
+			"probe_id", probeID,
+			"error", err,
+		)
 		return
 	}
-
-	if state.ConsecutiveCount > 0 {
-		state.ConsecutiveCount = 0
-		state.LastPingMs = r.PingMs
-		state.ThresholdMs = thresholdMs
-		state.UpdatedAt = eventTime
-		if err := s.slowResponseStore.Upsert(ctx, state); err != nil {
-			s.logger.Warnw("Failed to clear slow response streak",
-				"monitor_id", r.MonitorID,
-				"probe_id", probeID,
-				"error", err,
-			)
-		}
+	if wasAlerting {
+		s.publishSlowResponse(ctx, events.SlowResponseRecovered, buildSlowResponseEvent(r, probeID, thresholdMs, baselineAvgMs, 0, eventTime))
 	}
+}
+
+func computeFixedSlowThreshold(r *Result) (int, bool) {
+	if r.MonitorSlowResponseThresholdMs == nil || *r.MonitorSlowResponseThresholdMs < 1 {
+		return 0, false
+	}
+	return *r.MonitorSlowResponseThresholdMs, true
+}
+
+func computeBaselineSlowThreshold(r *Result, baseline *stats.Stats) (int, *float64, bool) {
+	if r.MonitorSlowResponseMultiplier == nil || *r.MonitorSlowResponseMultiplier <= 1.0 {
+		return 0, nil, false
+	}
+	if baseline == nil || baseline.AvgPing == nil || baseline.PingCount < MinBaselineSamples || *baseline.AvgPing <= 0 {
+		return 0, nil, false
+	}
+	avg := *baseline.AvgPing
+	dynamic := int(math.Round(avg * *r.MonitorSlowResponseMultiplier))
+	minMs := 0
+	if r.MonitorSlowResponseMinMs == nil {
+		minMs = shared.DefaultSlowResponseMinMs
+	} else if *r.MonitorSlowResponseMinMs > 0 {
+		minMs = *r.MonitorSlowResponseMinMs
+	}
+	effective := max(dynamic, minMs, 1)
+	return effective, &avg, true
 }
 
 // computeSlowThreshold calculates the effective threshold in milliseconds for the result.
@@ -295,28 +317,10 @@ func (s *ServiceImpl) evaluateSlowResponse(ctx context.Context, r *Result, probe
 func computeSlowThreshold(r *Result, baseline *stats.Stats) (thresholdMs int, baselineAvgMs *float64, ok bool) {
 	switch r.MonitorSlowResponseMode {
 	case shared.SlowResponseModeFixed:
-		if r.MonitorSlowResponseThresholdMs == nil || *r.MonitorSlowResponseThresholdMs < 1 {
-			return 0, nil, false
-		}
-		return *r.MonitorSlowResponseThresholdMs, nil, true
+		threshold, valid := computeFixedSlowThreshold(r)
+		return threshold, nil, valid
 	case shared.SlowResponseModeBaseline:
-		if r.MonitorSlowResponseMultiplier == nil || *r.MonitorSlowResponseMultiplier <= 1.0 {
-			return 0, nil, false
-		}
-		if baseline == nil || baseline.AvgPing == nil || baseline.PingCount < MinBaselineSamples || *baseline.AvgPing <= 0 {
-			return 0, nil, false
-		}
-		avg := *baseline.AvgPing
-		dynamic := int(math.Round(avg * *r.MonitorSlowResponseMultiplier))
-		minMs := 0
-		if r.MonitorSlowResponseMinMs != nil && *r.MonitorSlowResponseMinMs > 0 {
-			minMs = *r.MonitorSlowResponseMinMs
-		}
-		effective := max(dynamic, minMs)
-		if effective < 1 {
-			effective = 1
-		}
-		return effective, &avg, true
+		return computeBaselineSlowThreshold(r, baseline)
 	default:
 		return 0, nil, false
 	}

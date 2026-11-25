@@ -110,8 +110,8 @@ const SlowResponse = () => {
                 <FormControl>
                   <Input
                     type="number"
-                    min={1.1}
-                    step={0.1}
+                    min={1}
+                    step="any"
                     placeholder="2"
                     name={field.name}
                     ref={field.ref}

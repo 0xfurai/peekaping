@@ -44,14 +44,14 @@ type Result struct {
 	MonitorSlowResponseMinMs       *int
 	MonitorSlowResponseConsecutive int
 	MonitorConfig                  string
-	Status                   shared.MonitorStatus
-	Message                  string
-	PingMs                   int
-	StartTime                time.Time
-	EndTime                  time.Time
-	IsUnderMaintenance       bool
-	TLSInfo                  *shared.TLSInfo
-	CheckCertExpiry          bool
+	Status                         shared.MonitorStatus
+	Message                        string
+	PingMs                         int
+	StartTime                      time.Time
+	EndTime                        time.Time
+	IsUnderMaintenance             bool
+	TLSInfo                        *shared.TLSInfo
+	CheckCertExpiry                bool
 }
 
 // Service turns check results into heartbeats: ADR 0002's "ingest a result". Package ingester's

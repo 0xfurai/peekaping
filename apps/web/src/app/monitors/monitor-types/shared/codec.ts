@@ -70,5 +70,8 @@ export const serializeMonitorBase = (
     values.slow_response_mode === "baseline" ? values.slow_response_multiplier : null,
   slow_response_min_ms:
     values.slow_response_mode === "baseline" ? values.slow_response_min_ms : null,
-  slow_response_consecutive: values.slow_response_consecutive,
+  slow_response_consecutive:
+    values.slow_response_mode === "off"
+      ? 3
+      : (values.slow_response_consecutive ?? 3),
 });

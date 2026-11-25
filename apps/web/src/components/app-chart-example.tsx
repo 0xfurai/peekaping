@@ -423,6 +423,7 @@ export function Chart({
             {slowResponseThresholdMs != null && slowResponseThresholdMs > 0 && (
               <ReferenceLine
                 y={slowResponseThresholdMs}
+                ifOverflow="extendDomain"
                 stroke="#f59e0b"
                 strokeDasharray="4 4"
                 strokeWidth={1.5}
