@@ -783,9 +783,11 @@ func (h *HTTPExecutor) fetchOAuth2Token(ctx context.Context, cfg *HTTPConfig) (s
 	var tokenData struct {
 		AccessToken string `json:"access_token"`
 	}
-	err = json.NewDecoder(tokenResp.Body).Decode(&tokenData)
-	if err != nil || tokenData.AccessToken == "" {
+	if err := json.NewDecoder(tokenResp.Body).Decode(&tokenData); err != nil {
 		return "", fmt.Errorf("failed to parse oauth2 token response: %w", err)
+	}
+	if tokenData.AccessToken == "" {
+		return "", fmt.Errorf("oauth2 token response has no access_token")
 	}
 	return tokenData.AccessToken, nil
 }
