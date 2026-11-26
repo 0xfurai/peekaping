@@ -120,7 +120,7 @@ status.example.com {
 }
 ```
 
-Set `CLIENT_URL` to the address people open, such as `https://status.example.com`, so links in notifications point there.
+Set `CLIENT_URL` to the address people open, such as `https://status.example.com`, so links in notifications point there. [Reverse proxy](./reverse-proxy.md) has complete Traefik and Caddy recipes.
 
 The login lockout counts failed logins per client address. A client can send any `X-Forwarded-For` header it likes, so Peekaping believes that header (and `X-Real-IP`, when there is no `X-Forwarded-For`) only on requests from an address listed in `TRUSTED_PROXIES`. The list is comma-separated IP addresses and CIDR ranges. The setting is empty unless you set it, as in this image, and every request then counts as coming from the address it connected from. (The cluster Compose files and the Helm chart set loopback and the private ranges when it is unset, and an explicitly empty value there trusts nobody.) Behind a reverse proxy, set it up like this:
 

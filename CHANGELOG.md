@@ -40,6 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - feat: `SUPPORT_CONTACT` is how a member of a suspended workspace gets in touch with whoever runs the install: free text, an email address or a URL, empty by default. `GET /api/v1/me` returns it as `supportContact` (`null` when unset), for the suspension banner.
 - feat: `METRICS_PORT` serves `/metrics` on a port of its own, on a second plain-HTTP listener, and the API port (and single mode's port) then doesn't serve it. It needs `METRICS_ENABLED=true` and a port other than `SERVER_PORT`, else startup stops, and so does a port that is taken. Unset, which is the default, nothing changes. The Helm chart adds a `metrics` port to the api Pod and Service. See [Prometheus Metrics](apps/docs/docs/architecture/api-server.md#prometheus-metrics)
 - docs: install Peekaping without Docker: build `peekaping`, the `bun` migration tool and the web app from source, and run single mode under systemd with SQLite or PostgreSQL, with the ping sysctl, a reverse proxy and upgrades. See [Without Docker](apps/docs/docs/self-hosting/without-docker.md) (#189)
+- docs: a Reverse proxy page under Self-hosting, with ready-to-use Traefik and Caddy recipes for the single-mode image: one router or one site block in front of port 8383, what to set for `CLIENT_URL` and `TRUSTED_PROXIES` in each setup, and troubleshooting (#186)
 
 ### Changed
 
