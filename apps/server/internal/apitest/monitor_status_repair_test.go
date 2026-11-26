@@ -26,7 +26,7 @@ type storedMonitor struct {
 func (a *app) storeStatus(t *testing.T, monitorID string, status shared.MonitorStatus) {
 	t.Helper()
 	require.NoError(t, a.container.Invoke(func(monitors monitor.Service) error {
-		_, err := monitors.UpdatePartial(context.Background(), monitorID, &monitor.PartialUpdateDto{Status: &status}, true)
+		_, err := monitors.UpdatePartialAnyWorkspace(context.Background(), monitorID, &monitor.PartialUpdateDto{Status: &status}, true)
 		return err
 	}))
 }
@@ -46,7 +46,7 @@ func (a *app) repairStoredStatuses(t *testing.T) int {
 	var repaired int
 	require.NoError(t, a.container.Invoke(func(monitors monitor.Service) error {
 		var err error
-		repaired, err = monitors.RepairStoredStatuses(context.Background())
+		repaired, err = monitors.RepairStoredStatusesAnyWorkspace(context.Background())
 		return err
 	}))
 	return repaired
@@ -127,6 +127,7 @@ func TestRepairStoredStatuses_StoredStatusFollowsTheLatestHeartbeat(t *testing.T
 }
 
 func TestRepairStoredStatuses_WalksEveryPageOfMonitors(t *testing.T) {
+	parallel(t)
 	// A full last page is followed by an empty one, so the sweep has to stop on that too
 	for _, count := range []int{monitor.StatusRepairPageSize, monitor.StatusRepairPageSize + 1} {
 		t.Run(strconv.Itoa(count)+" monitors", func(t *testing.T) {
@@ -153,8 +154,9 @@ func TestRepairStoredStatuses_WalksEveryPageOfMonitors(t *testing.T) {
 func (a *app) createStoredMonitor(t *testing.T, name string) string {
 	t.Helper()
 	var id string
+	workspaceID := a.firstWorkspace(t)
 	require.NoError(t, a.container.Invoke(func(monitors monitor.Service) error {
-		created, err := monitors.Create(context.Background(), &monitor.CreateUpdateDto{
+		created, err := monitors.Create(context.Background(), workspaceID, &monitor.CreateUpdateDto{
 			Type: "push", Name: name, Interval: 60, Timeout: 16, RetryInterval: 60, Active: true,
 			PushToken: "token-" + name, Config: fmt.Sprintf(`{"pushToken":"token-%s"}`, name),
 		})

@@ -1,47 +1,47 @@
 package apitest
 
 import (
+	"context"
 	"encoding/json"
-	"errors"
 	"net/http"
+	"slices"
 	"testing"
 
+	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/shared"
 
-	"github.com/hibiken/asynq"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-// queuedHeartbeats returns the heartbeats waiting for the ingester.
-func (a *app) queuedHeartbeats(t *testing.T) []*asynq.TaskInfo {
+// storedHeartbeats are the heartbeats stored for the monitor, oldest first. A cluster api on
+// SQLite or PostgreSQL stores a push or a probe's result itself, on the replica that took the
+// request.
+func (a *app) storedHeartbeats(t *testing.T, monitorID string) []*heartbeat.Model {
 	t.Helper()
-	var tasks []*asynq.TaskInfo
-	require.NoError(t, a.container.Invoke(func(inspector *asynq.Inspector) error {
+	var beats []*heartbeat.Model
+	require.NoError(t, a.container.Invoke(func(heartbeats heartbeat.Service) error {
 		var err error
-		tasks, err = inspector.ListPendingTasks("ingester")
-		if errors.Is(err, asynq.ErrQueueNotFound) {
-			return nil
-		}
+		beats, err = heartbeats.FindByMonitorIDPaginated(context.Background(), monitorID, 1000, 0, nil, false)
 		return err
 	}))
-	return tasks
+	slices.SortStableFunc(beats, func(x, y *heartbeat.Model) int { return x.Time.Compare(y.Time) })
+	return beats
 }
 
-// clearQueuedHeartbeats drops the heartbeats waiting for the ingester, so a
-// test can inspect the next push's task on its own.
-func (a *app) clearQueuedHeartbeats(t *testing.T) {
+// hasHeartbeats reports whether any heartbeat is stored, of any monitor
+func (a *app) hasHeartbeats(t *testing.T) bool {
 	t.Helper()
-	require.NoError(t, a.container.Invoke(func(inspector *asynq.Inspector) error {
-		_, err := inspector.DeleteAllPendingTasks("ingester")
-		if errors.Is(err, asynq.ErrQueueNotFound) {
-			return nil
-		}
+	var any bool
+	require.NoError(t, a.container.Invoke(func(heartbeats heartbeat.Service) error {
+		var err error
+		any, err = heartbeats.HasAny(context.Background())
 		return err
 	}))
+	return any
 }
 
-func TestPush_QueuesHeartbeatForPushMonitor(t *testing.T) {
+func TestPush_StoresAHeartbeatForAPushMonitor(t *testing.T) {
 	a := newAppWithAdmin(t)
 	monitorID := a.createMonitor(t, "Nightly backup", "backup-push-token")
 
@@ -49,38 +49,137 @@ func TestPush_QueuesHeartbeatForPushMonitor(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, w.Code)
 	assert.JSONEq(t, `{"ok":"true"}`, w.Body.String())
-	tasks := a.queuedHeartbeats(t)
-	require.Len(t, tasks, 1)
-	assert.Equal(t, "monitor:ingest", tasks[0].Type)
-	var heartbeat struct {
-		MonitorID string `json:"monitor_id"`
-		Status    int    `json:"status"`
-		Message   string `json:"message"`
-		PingMs    int    `json:"ping_ms"`
+	beats := a.storedHeartbeats(t, monitorID)
+	require.Len(t, beats, 1, "stored by the replica that took the push, before it answered")
+	assert.Equal(t, shared.MonitorStatusDown, beats[0].Status)
+	assert.Equal(t, "disk full", beats[0].Msg)
+	assert.Equal(t, 12, beats[0].Ping)
+	assert.Equal(t, shared.LocalProbeID, beats[0].ProbeID)
+}
+
+// createdPushMonitor is the part of a created monitor that carries its push token
+type createdPushMonitor struct {
+	ID        string `json:"id"`
+	PushToken string `json:"push_token"`
+	Config    string `json:"config"`
+}
+
+// createPushMonitorWithout creates a push monitor from the body with the given token fields
+// replaced, so a test can leave the token out the way an API client does
+func (a *app) createPushMonitorWithout(t *testing.T, fields map[string]any) createdPushMonitor {
+	t.Helper()
+	body := pushMonitorBody("Nightly backup", "")
+	delete(body, "push_token")
+	delete(body, "config")
+	for k, v := range fields {
+		body[k] = v
 	}
-	require.NoError(t, json.Unmarshal(tasks[0].Payload, &heartbeat))
-	assert.Equal(t, monitorID, heartbeat.MonitorID)
-	assert.Equal(t, 0, heartbeat.Status)
-	assert.Equal(t, "disk full", heartbeat.Message)
-	assert.Equal(t, 12, heartbeat.PingMs)
+	return decode[createdPushMonitor](t, a.request(t, http.MethodPost, "/api/v1/monitors", body, a.asAdmin), http.StatusCreated)
+}
+
+func configToken(t *testing.T, config string) string {
+	t.Helper()
+	var cfg struct {
+		PushToken string `json:"pushToken"`
+	}
+	require.NoError(t, json.Unmarshal([]byte(config), &cfg), config)
+	return cfg.PushToken
+}
+
+func TestPush_APIClientCreatesAPushMonitorWithoutAToken(t *testing.T) {
+	parallel(t)
+	for name, fields := range map[string]map[string]any{
+		"no config":        {},
+		"empty config":     {"config": ""},
+		"empty object":     {"config": "{}"},
+		"empty token":      {"config": `{"pushToken":""}`},
+		"empty push_token": {"push_token": "", "config": `{"pushToken":""}`},
+	} {
+		t.Run(name, func(t *testing.T) {
+			a := newAppWithAdmin(t)
+
+			monitor := a.createPushMonitorWithout(t, fields)
+
+			assert.NotEmpty(t, monitor.PushToken)
+			assert.Equal(t, monitor.PushToken, configToken(t, monitor.Config), "config.pushToken holds the same token")
+
+			w := a.request(t, http.MethodGet, "/api/v1/push/"+monitor.PushToken+"?status=up&msg=done", nil)
+			assert.Equal(t, http.StatusOK, w.Code, w.Body.String())
+			beats := a.storedHeartbeats(t, monitor.ID)
+			require.Len(t, beats, 1)
+			assert.Equal(t, shared.MonitorStatusUp, beats[0].Status)
+			assert.Equal(t, "done", beats[0].Msg)
+		})
+	}
+}
+
+func TestPush_TwoMonitorsCreatedWithoutATokenGetDifferentTokens(t *testing.T) {
+	a := newAppWithAdmin(t)
+
+	first := a.createPushMonitorWithout(t, nil)
+	second := a.createPushMonitorWithout(t, nil)
+
+	assert.NotEmpty(t, first.PushToken)
+	assert.NotEmpty(t, second.PushToken)
+	assert.NotEqual(t, first.PushToken, second.PushToken)
+}
+
+func TestPush_APIClientCreatesAPushMonitorWithTheTokenOnlyAtTheTopLevel(t *testing.T) {
+	a := newAppWithAdmin(t)
+
+	monitor := a.createPushMonitorWithout(t, map[string]any{"push_token": "top-level-token"})
+
+	assert.Equal(t, "top-level-token", monitor.PushToken)
+	assert.Equal(t, "top-level-token", configToken(t, monitor.Config))
+	assert.Equal(t, http.StatusOK, a.request(t, http.MethodGet, "/api/v1/push/top-level-token", nil).Code)
+	assert.Len(t, a.storedHeartbeats(t, monitor.ID), 1)
+}
+
+func TestPush_APIClientCreatesAPushMonitorWithTheTokenOnlyInConfig(t *testing.T) {
+	a := newAppWithAdmin(t)
+
+	monitor := a.createPushMonitorWithout(t, map[string]any{"config": `{"pushToken":"config-only-token"}`})
+
+	assert.Equal(t, "config-only-token", monitor.PushToken)
+	assert.Equal(t, "config-only-token", configToken(t, monitor.Config))
+	assert.Equal(t, http.StatusOK, a.request(t, http.MethodGet, "/api/v1/push/config-only-token?status=up&msg=done", nil).Code)
+	beats := a.storedHeartbeats(t, monitor.ID)
+	require.Len(t, beats, 1)
+	assert.Equal(t, shared.MonitorStatusUp, beats[0].Status)
+	assert.Equal(t, "done", beats[0].Msg)
+}
+
+func TestPush_CreateKeepsATokenTheClientSends(t *testing.T) {
+	a := newAppWithAdmin(t)
+
+	monitor := a.createPushMonitorWithout(t, map[string]any{"push_token": "client-token", "config": `{"pushToken":"client-token"}`})
+
+	assert.Equal(t, "client-token", monitor.PushToken)
+	assert.Equal(t, `{"pushToken":"client-token"}`, monitor.Config)
+}
+
+func TestPush_CreateStillRejectsAConfigThatIsNotJSON(t *testing.T) {
+	a := newAppWithAdmin(t)
+	body := pushMonitorBody("Nightly backup", "")
+	delete(body, "push_token")
+	body["config"] = "not json"
+
+	w := a.request(t, http.MethodPost, "/api/v1/monitors", body, a.asAdmin)
+
+	assert.Equal(t, http.StatusBadRequest, w.Code, w.Body.String())
 }
 
 func TestPush_IgnoresMalformedResponseTime(t *testing.T) {
 	a := newAppWithAdmin(t)
-	a.createMonitor(t, "Nightly backup", "backup-push-token")
+	monitorID := a.createMonitor(t, "Nightly backup", "backup-push-token")
 
 	w := a.request(t, http.MethodGet, "/api/v1/push/backup-push-token?ping=fast", nil)
 
 	assert.Equal(t, http.StatusOK, w.Code, w.Body.String())
-	tasks := a.queuedHeartbeats(t)
-	require.Len(t, tasks, 1)
-	var heartbeat struct {
-		Status int `json:"status"`
-		PingMs int `json:"ping_ms"`
-	}
-	require.NoError(t, json.Unmarshal(tasks[0].Payload, &heartbeat))
-	assert.Equal(t, 1, heartbeat.Status)
-	assert.Equal(t, 0, heartbeat.PingMs)
+	beats := a.storedHeartbeats(t, monitorID)
+	require.Len(t, beats, 1)
+	assert.Equal(t, shared.MonitorStatusUp, beats[0].Status)
+	assert.Equal(t, 0, beats[0].Ping)
 }
 
 func TestPush_RefusesUnknownAndPausedTokens(t *testing.T) {
@@ -99,7 +198,7 @@ func TestPush_RefusesUnknownAndPausedTokens(t *testing.T) {
 			assert.NotContains(t, w.Body.String(), paused)
 		})
 	}
-	assert.Empty(t, a.queuedHeartbeats(t))
+	assert.Empty(t, a.storedHeartbeats(t, paused))
 }
 
 func TestPush_RecordsMaintenanceDuringMaintenanceWindow(t *testing.T) {
@@ -109,35 +208,72 @@ func TestPush_RecordsMaintenanceDuringMaintenanceWindow(t *testing.T) {
 	body["monitor_ids"] = []string{monitorID}
 	maintenanceID := decode[created](t, a.request(t, http.MethodPost, "/api/v1/maintenances", body, a.asAdmin), http.StatusCreated).ID
 
-	type heartbeat struct {
-		Status             int    `json:"status"`
-		Message            string `json:"message"`
-		PingMs             int    `json:"ping_ms"`
-		IsUnderMaintenance bool   `json:"is_under_maintenance"`
-	}
-	push := func(t *testing.T, query string) heartbeat {
+	// push sends a push and returns the heartbeat it stored
+	push := func(t *testing.T, query string) *heartbeat.Model {
 		t.Helper()
+		before := len(a.storedHeartbeats(t, monitorID))
 		w := a.request(t, http.MethodGet, "/api/v1/push/backup-push-token?"+query, nil)
 		require.Equal(t, http.StatusOK, w.Code, w.Body.String())
-		tasks := a.queuedHeartbeats(t)
-		require.Len(t, tasks, 1)
-		var hb heartbeat
-		require.NoError(t, json.Unmarshal(tasks[0].Payload, &hb))
-		a.clearQueuedHeartbeats(t)
-		return hb
+		beats := a.storedHeartbeats(t, monitorID)
+		require.Len(t, beats, before+1)
+		return beats[len(beats)-1]
 	}
 
 	hb := push(t, "status=down&msg=disk%20full&ping=12")
-	assert.Equal(t, int(shared.MonitorStatusMaintenance), hb.Status)
-	assert.Equal(t, "Monitor under maintenance", hb.Message)
-	assert.Equal(t, 0, hb.PingMs)
-	assert.True(t, hb.IsUnderMaintenance)
+	assert.Equal(t, shared.MonitorStatusMaintenance, hb.Status)
+	assert.Equal(t, "Monitor under maintenance", hb.Msg)
+	assert.Equal(t, 0, hb.Ping)
 
 	// A window that is no longer active stops overriding the pushed status.
 	decode[any](t, a.request(t, http.MethodPatch, "/api/v1/maintenances/"+maintenanceID+"/pause", nil, a.asAdmin), http.StatusOK)
 	hb = push(t, "status=down&msg=disk%20full&ping=12")
-	assert.Equal(t, int(shared.MonitorStatusDown), hb.Status)
-	assert.Equal(t, "disk full", hb.Message)
-	assert.Equal(t, 12, hb.PingMs)
-	assert.False(t, hb.IsUnderMaintenance)
+	assert.Equal(t, shared.MonitorStatusDown, hb.Status)
+	assert.Equal(t, "disk full", hb.Msg)
+	assert.Equal(t, 12, hb.Ping)
+}
+
+// A monitor that is not a push monitor has no token, and any number of them can
+func TestPush_MonitorsWithoutATokenCoexistAndReadBackEmpty(t *testing.T) {
+	a := newAppWithAdmin(t)
+
+	first := a.createHTTPMonitor(t, "First", "")
+	second := a.createHTTPMonitor(t, "Second", "")
+
+	for _, id := range []string{first, second} {
+		got := decode[createdPushMonitor](t, a.request(t, http.MethodGet, "/api/v1/monitors/"+id, nil, a.asAdmin), http.StatusOK)
+		assert.Empty(t, got.PushToken)
+	}
+}
+
+// pushTokenTaken is the answer to a write with a push token another monitor holds
+type pushTokenTaken struct {
+	Error struct {
+		Code string `json:"code"`
+	} `json:"error"`
+}
+
+func TestPush_ATokenAnotherMonitorHoldsIsRefused(t *testing.T) {
+	a := newAppWithAdmin(t)
+	a.createMonitor(t, "Holder", "held-token")
+	other := a.createMonitor(t, "Other", "other-token")
+	path := "/api/v1/monitors/" + other
+
+	for name, c := range map[string]call{
+		"create":         {method: http.MethodPost, path: "/api/v1/monitors", body: pushMonitorBody("Newcomer", "held-token")},
+		"full update":    {method: http.MethodPut, path: path, body: pushMonitorBody("Other", "held-token")},
+		"partial update": {method: http.MethodPatch, path: path, body: map[string]any{"push_token": "held-token"}},
+	} {
+		t.Run(name, func(t *testing.T) {
+			w := a.request(t, c.method, c.path, c.body, a.asAdmin)
+
+			require.Equal(t, http.StatusBadRequest, w.Code, w.Body.String())
+			var got pushTokenTaken
+			require.NoError(t, json.Unmarshal(w.Body.Bytes(), &got), w.Body.String())
+			assert.Equal(t, "PUSH_TOKEN_EXISTS", got.Error.Code)
+			assert.NotContains(t, w.Body.String(), "held-token", "the response doesn't repeat the token")
+		})
+	}
+
+	kept := decode[createdPushMonitor](t, a.request(t, http.MethodGet, path, nil, a.asAdmin), http.StatusOK)
+	assert.Equal(t, "other-token", kept.PushToken, "a refused write changes nothing")
 }

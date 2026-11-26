@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { createNewPasswordSchema } from "@/lib/password";
 import { Button } from "@/components/ui/button";
 import { PasswordInput } from "@/components/ui/password-input";
 import {
@@ -20,8 +21,14 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { postAuthRegisterMutation } from "@/api/@tanstack/react-query.gen";
-import { useMutation } from "@tanstack/react-query";
+import {
+  getErrorReportingQueryKey,
+  getTelemetryQueryKey,
+  postAuthRegisterMutation,
+  putErrorReportingMutation,
+  putTelemetryMutation,
+} from "@/api/@tanstack/react-query.gen";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { isAxiosError } from "axios";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -32,11 +39,25 @@ import { useAuthStore } from "@/store/auth";
 import type { AuthModel } from "@/api/types.gen";
 import { Link } from "react-router-dom";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { TelemetryDocsLink } from "@/components/telemetry-docs-link";
+import { TurnstileWidget } from "@/components/turnstile-widget";
+import {
+  canSubmitRegister,
+  registerBody,
+  registerDescriptionKey,
+  registerFailureKey,
+  registerSubmitKey,
+  shownRegisterFailure,
+  showInstallPreferences,
+  type RegisterFailure,
+} from "@/lib/signup";
 
-const createFormSchema = (t: (key: string) => string) => z
+const createRegisterSchema = (t: (key: string) => string) => z
   .object({
     email: z.string().email(t("forms.validation.email_invalid")),
-    password: z.string().min(8, t("forms.validation.password_min_length")),
+    password: createNewPasswordSchema(t),
     confirmPassword: z
       .string()
       .min(8, t("forms.validation.password_min_length")),
@@ -46,20 +67,90 @@ const createFormSchema = (t: (key: string) => string) => z
     path: ["confirmPassword"],
   });
 
-type FormValues = z.infer<ReturnType<typeof createFormSchema>>;
+type RegisterFormValues = z.infer<ReturnType<typeof createRegisterSchema>>;
+
+// The answer to a failed signup. When the address has an account, a link to sign in follows it.
+export function RegisterErrorAlert({ message, signInLink }: { message: string; signInLink: boolean }) {
+  const { t } = useLocalizedTranslation();
+  return (
+    <Alert variant="destructive">
+      <AlertCircle className="h-4 w-4" />
+      <AlertTitle>{t("common.error")}</AlertTitle>
+      <AlertDescription>
+        {message}
+        {signInLink && (
+          <>
+            {" "}
+            <Link to="/login" className="font-medium underline">
+              {t("auth.register.errors.sign_in_instead")}
+            </Link>
+          </>
+        )}
+      </AlertDescription>
+    </Alert>
+  );
+}
 
 export function RegisterForm({
   className,
+  turnstileSiteKey,
+  signupMode,
+  firstSignup,
   ...props
-}: React.ComponentPropsWithoutRef<"div">) {
+}: React.ComponentPropsWithoutRef<"div"> & {
+  // The key of the Turnstile widget the install asks for, or null without one
+  turnstileSiteKey?: string | null;
+  // The install's signup mode. Open mode signs up strangers, who are not admins after the first.
+  signupMode?: "invite" | "open";
+  // Whether the install has no user yet, so that this signup becomes its instance admin
+  firstSignup?: boolean;
+}) {
   const { t } = useLocalizedTranslation();
-  const [serverError, setServerError] = React.useState<string | null>(null);
+  // The install's first signup becomes its admin and chooses for the install; anyone else may not
+  const installPreferences = showInstallPreferences(firstSignup);
+  // A refused signup's message. One the visitor can fix by signing in gets a link beside it.
+  const [failure, setFailure] = React.useState<RegisterFailure | null>(null);
+  const [turnstileToken, setTurnstileToken] = React.useState<string | null>(null);
+  const [turnstileReset, setTurnstileReset] = React.useState(0);
   const setTokens = useAuthStore(
     (state: {
       setTokens: (accessToken: string, refreshToken: string) => void;
     }) => state.setTokens
   );
   const setUser = useAuthStore((state: { setUser: (user: AuthModel | null) => void }) => state.setUser);
+  const queryClient = useQueryClient();
+  // On until the admin unticks it (ADR 0003). It is not part of the register request.
+  const [sendUsageStatistics, setSendUsageStatistics] = React.useState(true);
+  // Its own choice, on until unticked, and independent of the usage statistics.
+  const [sendErrorReports, setSendErrorReports] = React.useState(true);
+
+  const telemetryMutation = useMutation({
+    ...putTelemetryMutation(),
+    // The answer says the upgrade notice is out of the way, so the app doesn't show it
+    onSuccess: (state) => {
+      queryClient.setQueryData(getTelemetryQueryKey(), state);
+    },
+    // Setup has already succeeded, so a failure here only costs the admin a visit to Settings.
+    // The toast tells them, as the console is not where they look.
+    onError: (error) => {
+      console.error("Failed to save the usage statistics choice", error);
+      toast.warning(t("telemetry.not_saved"));
+    },
+  });
+
+  const errorReportingMutation = useMutation({
+    ...putErrorReportingMutation(),
+    onSuccess: (state) => {
+      queryClient.setQueryData(getErrorReportingQueryKey(), state);
+      // The notice is part of the usage statistics state, and this choice answered it too
+      queryClient.invalidateQueries({ queryKey: getTelemetryQueryKey() });
+    },
+    // Like the usage statistics: setup has succeeded, and Settings is where to try again.
+    onError: (error) => {
+      console.error("Failed to save the error reports choice", error);
+      toast.warning(t("error_reporting.not_saved"));
+    },
+  });
 
   const registerMutation = useMutation({
     ...postAuthRegisterMutation(),
@@ -67,29 +158,46 @@ export function RegisterForm({
       if (response.data?.accessToken && response.data?.refreshToken) {
         setTokens(response.data.accessToken, response.data.refreshToken);
         setUser(response.data.user ?? null);
+        if (installPreferences) {
+          // Storing the tokens signs the API client in, so these requests are the admin's. Both
+          // send the choice, on or off: an unticked box is an opt-out to store, not nothing.
+          telemetryMutation.mutate({ body: { enabled: sendUsageStatistics } });
+          errorReportingMutation.mutate({ body: { enabled: sendErrorReports } });
+        }
         toast.success(t("messages.register_success"));
       } else {
         toast.error(t("messages.register_no_tokens"));
       }
     },
-    onError: (error) => {
-      if (isAxiosError(error)) {
+    onError: (error, variables) => {
+      // A token is good for one check, so a refused signup needs a new one
+      if (turnstileSiteKey) {
+        setTurnstileToken(null);
+        setTurnstileReset((n) => n + 1);
+      }
+      const email = variables.body.email;
+      const failureKey = registerFailureKey(error);
+      if (failureKey) {
+        const errorMessage = t(failureKey);
+        setFailure({ message: errorMessage, emailTaken: failureKey === "auth.register.errors.email_taken", email });
+        toast.error(errorMessage);
+      } else if (isAxiosError(error)) {
         const errorMessage =
           error.response?.data.message ||
           t("messages.register_error");
-        setServerError(errorMessage);
+        setFailure({ message: errorMessage, emailTaken: false, email });
         toast.error(errorMessage);
       } else {
         const errorMessage = t("messages.unexpected_error");
-        setServerError(errorMessage);
+        setFailure({ message: errorMessage, emailTaken: false, email });
         console.error(error);
       }
     },
   });
 
-  const formSchema = React.useMemo(() => createFormSchema(t), [t]);
+  const formSchema = React.useMemo(() => createRegisterSchema(t), [t]);
   
-  const form = useForm<FormValues>({
+  const form = useForm<RegisterFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       email: "",
@@ -98,10 +206,13 @@ export function RegisterForm({
     },
   });
 
-  function onSubmit(data: FormValues) {
-    setServerError(null);
+  // The refused signup shows while the email field holds its address
+  const shownFailure = shownRegisterFailure(failure, form.watch("email"));
+
+  function onSubmit(data: RegisterFormValues) {
+    setFailure(null);
     registerMutation.mutate({
-      body: data,
+      body: registerBody(data, turnstileSiteKey ? turnstileToken : null),
     });
   }
 
@@ -110,7 +221,7 @@ export function RegisterForm({
       <Card>
         <CardHeader className="text-center">
           <CardTitle className="text-xl">{t("auth.register.title")}</CardTitle>
-          <CardDescription>{t("auth.register.description")}</CardDescription>
+          <CardDescription>{t(registerDescriptionKey(signupMode, firstSignup))}</CardDescription>
         </CardHeader>
 
         <CardContent>
@@ -164,16 +275,63 @@ export function RegisterForm({
                 )}
               />
 
-              {serverError && (
-                <Alert variant="destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertTitle>{t("common.error")}</AlertTitle>
-                  <AlertDescription>{serverError}</AlertDescription>
-                </Alert>
+              {installPreferences && (
+                <div className="grid gap-2">
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="send-usage-statistics"
+                      checked={sendUsageStatistics}
+                      onCheckedChange={(checked) =>
+                        setSendUsageStatistics(checked === true)
+                      }
+                    />
+                    <Label
+                      htmlFor="send-usage-statistics"
+                      className="text-xs text-muted-foreground font-normal"
+                    >
+                      {t("telemetry.label")}
+                    </Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="send-error-reports"
+                      checked={sendErrorReports}
+                      onCheckedChange={(checked) =>
+                        setSendErrorReports(checked === true)
+                      }
+                    />
+                    <Label
+                      htmlFor="send-error-reports"
+                      className="text-xs text-muted-foreground font-normal"
+                    >
+                      {t("error_reporting.label")}
+                    </Label>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {t("auth.register.telemetry_note")}{" "}
+                    <TelemetryDocsLink>
+                      {t("auth.register.telemetry_whats_sent")}
+                    </TelemetryDocsLink>
+                  </p>
+                </div>
               )}
 
-              <Button type="submit" className="w-full">
-                {t("auth.register.submit")}
+              {turnstileSiteKey && (
+                <TurnstileWidget
+                  siteKey={turnstileSiteKey}
+                  onToken={setTurnstileToken}
+                  resetKey={turnstileReset}
+                />
+              )}
+
+              {shownFailure && <RegisterErrorAlert message={shownFailure.message} signInLink={shownFailure.emailTaken} />}
+
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={!canSubmitRegister(turnstileSiteKey, turnstileToken, registerMutation.isPending)}
+              >
+                {t(registerSubmitKey(registerMutation.isPending))}
               </Button>
 
               <div className="text-center text-sm text-muted-foreground">

@@ -65,10 +65,14 @@ func TestDocumentationHTTP(t *testing.T) {
 func TestSocketIOThroughAPIRouter(t *testing.T) {
 	a := newAppWithAdmin(t)
 	// Development logging must retain the writer's upgrade interfaces too.
-	srv := httptest.NewServer(httpx.Logger(zap.NewNop().Sugar())(a.router))
+	srv := httptest.NewServer(httpx.Logger(zap.NewNop().Sugar(), nil)(a.router))
 	t.Cleanup(func() { srv.CloseClientConnections(); srv.Close() })
 	client := &http.Client{Timeout: 3 * time.Second}
-	base := srv.URL + "/socket.io/?EIO=4&transport=polling&token=" + url.QueryEscape(a.accessToken)
+	// The token travels in the auth payload of the CONNECT packet, not in the query string.
+	auth, err := json.Marshal(map[string]string{"token": a.accessToken})
+	require.NoError(t, err)
+	connect := "40" + string(auth)
+	base := srv.URL + "/socket.io/?EIO=4&transport=polling"
 	resp, err := client.Get(base)
 	require.NoError(t, err)
 	data, err := io.ReadAll(resp.Body)
@@ -82,7 +86,7 @@ func TestSocketIOThroughAPIRouter(t *testing.T) {
 	require.NoError(t, json.Unmarshal(data[1:], &open))
 	require.NotEmpty(t, open.SID)
 	base += "&sid=" + url.QueryEscape(open.SID)
-	resp, err = client.Post(base, "text/plain", strings.NewReader("40"))
+	resp, err = client.Post(base, "text/plain", strings.NewReader(connect))
 	require.NoError(t, err)
 	resp.Body.Close()
 	require.Equal(t, 200, resp.StatusCode)
@@ -105,7 +109,7 @@ func TestSocketIOThroughAPIRouter(t *testing.T) {
 	require.Equal(t, "3probe", string(data))
 	require.NoError(t, upgraded.WriteMessage(websocket.TextMessage, []byte("5")))
 
-	wsURL := "ws" + strings.TrimPrefix(srv.URL, "http") + "/socket.io/?EIO=4&transport=websocket&token=" + url.QueryEscape(a.accessToken)
+	wsURL := "ws" + strings.TrimPrefix(srv.URL, "http") + "/socket.io/?EIO=4&transport=websocket"
 	conn, _, err := dialer.Dial(wsURL, nil)
 	require.NoError(t, err)
 	defer conn.Close()
@@ -113,16 +117,16 @@ func TestSocketIOThroughAPIRouter(t *testing.T) {
 	_, data, err = conn.ReadMessage()
 	require.NoError(t, err)
 	require.True(t, strings.HasPrefix(string(data), "0"), string(data))
-	require.NoError(t, conn.WriteMessage(websocket.TextMessage, []byte("40")))
+	require.NoError(t, conn.WriteMessage(websocket.TextMessage, []byte(connect)))
 	_, data, err = conn.ReadMessage()
 	require.NoError(t, err)
 	require.True(t, strings.HasPrefix(string(data), "40"), string(data))
 }
 
-func TestPush_HEADDoesNotQueueHeartbeat(t *testing.T) {
+func TestPush_HEADDoesNotStoreAHeartbeat(t *testing.T) {
 	a := newAppWithAdmin(t)
-	a.createMonitor(t, "Backup", "head-push-token")
+	monitorID := a.createMonitor(t, "Backup", "head-push-token")
 	w := a.request(t, http.MethodHead, "/api/v1/push/head-push-token", nil)
 	assert.Equal(t, http.StatusNotFound, w.Code)
-	assert.Empty(t, a.queuedHeartbeats(t))
+	assert.Empty(t, a.storedHeartbeats(t, monitorID))
 }

@@ -1,0 +1,14 @@
+POST https://events.pagerduty.com/v2/enqueue
+Content-Type: application/json
+User-Agent: Peekaping-PagerDuty/<version>
+
+{
+  "dedup_key": "Peekaping/mon-1",
+  "event_action": "trigger",
+  "payload": {
+    "severity": "warning",
+    "source": "https://api.example.com/health",
+    "summary": "[Peekaping Monitor 🔴 Down] [Public API] connection refused"
+  },
+  "routing_key": "routing-key"
+}

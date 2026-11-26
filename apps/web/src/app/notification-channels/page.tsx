@@ -3,7 +3,6 @@ import type { NotificationChannelModel } from "@/api";
 import {
   getNotificationChannelsInfiniteOptions,
   deleteNotificationChannelsByIdMutation,
-  getNotificationChannelsInfiniteQueryKey,
 } from "@/api/@tanstack/react-query.gen";
 import Layout from "@/layout";
 import {
@@ -27,18 +26,22 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import NotificationChannelCard from "./components/notification-channel-card";
+import { invalidateChannelLists } from "./channel-queries";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useSearchParams } from "@/hooks/useSearchParams";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { commonMutationErrorHandler } from "@/lib/utils";
 import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
+import { useDelayedLoading } from "@/hooks/useDelayedLoading";
 import EmptyList from "@/components/empty-list";
 import { Button } from "@/components/ui/button";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
+import { useWorkspacePath } from "@/hooks/useWorkspacePath";
 
 const NotifiersPage = () => {
   const navigate = useNavigate();
+  const workspacePath = useWorkspacePath();
   const queryClient = useQueryClient();
   const { t } = useLocalizedTranslation();
   const { getParam, updateSearchParams, clearAllParams, hasParams } =
@@ -78,13 +81,13 @@ const NotifiersPage = () => {
       enabled: true,
     });
 
+  const shouldShowSkeleton = useDelayedLoading(isLoading, 200);
+
   const deleteMutation = useMutation({
     ...deleteNotificationChannelsByIdMutation(),
     onSuccess: () => {
       toast.success(t("messages.notifier_delete_success"));
-      queryClient.invalidateQueries({
-        queryKey: getNotificationChannelsInfiniteQueryKey(),
-      });
+      invalidateChannelLists(queryClient);
       setShowConfirmDelete(false);
       setNotifierToDelete(null);
     },
@@ -128,7 +131,7 @@ const NotifiersPage = () => {
   return (
     <Layout
       pageName={t("navigation.notification_channels")}
-      onCreate={() => navigate("/notification-channels/new")}
+      onCreate={() => navigate(workspacePath("/notification-channels/new"))}
     >
       <div>
         <div className="mb-4 space-y-4">
@@ -158,7 +161,7 @@ const NotifiersPage = () => {
           </div>
         </div>
 
-        {notificationChannels.length === 0 && isLoading && (
+        {notificationChannels.length === 0 && shouldShowSkeleton && (
           <div className="flex flex-col space-y-2 mb-2">
             {Array.from({ length: 7 }, (_, id) => (
               <Skeleton className="h-[68px] w-full rounded-xl" key={id} />
@@ -171,7 +174,7 @@ const NotifiersPage = () => {
             key={notifier.id}
             notifier={notifier}
             onClick={() =>
-              navigate(`/notification-channels/${notifier.id}/edit`)
+              navigate(workspacePath(`/notification-channels/${notifier.id}/edit`))
             }
             onDelete={() => handleDeleteClick(notifier)}
           />
@@ -191,7 +194,7 @@ const NotifiersPage = () => {
             title={t("notifications.empty_state.title")}
             text={t("notifications.empty_state.description")}
             actionText={t("notifications.empty_state.action")}
-            onClick={() => navigate("/notification-channels/new")}
+            onClick={() => navigate(workspacePath("/notification-channels/new"))}
           />
         )}
       </div>

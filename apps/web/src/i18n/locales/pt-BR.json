@@ -3,20 +3,294 @@
     "cancel": "Cancelar",
     "saving": "Salvando..."
   },
+  "admin": {
+    "nav": {
+      "back_to_workspace": "Voltar para {{name}}",
+      "probes": "Sondas",
+      "title": "Administração",
+      "users": "Usuários",
+      "workspaces": "Espaços de trabalho",
+      "settings": "Configurações"
+    },
+    "users": {
+      "actions": {
+        "delete": "Excluir usuário",
+        "disable": "Desativar usuário",
+        "disableTwoFactor": "Desativar 2FA",
+        "enable": "Ativar usuário",
+        "grantAdmin": "Tornar administrador da instância",
+        "resetLink": "Gerar link de redefinição",
+        "revokeAdmin": "Remover administrador da instância"
+      },
+      "actions_aria": "Ações para {{email}}",
+      "columns": {
+        "created": "Criado em",
+        "email": "E-mail",
+        "email_verified": "E-mail verificado",
+        "instance_admin": "Administrador da instância",
+        "last_sign_in": "Último login",
+        "status": "Status",
+        "two_factor": "2FA",
+        "workspaces": "Espaços de trabalho"
+      },
+      "confirm": {
+        "cancel": "Cancelar",
+        "delete": {
+          "confirm": "Excluir usuário",
+          "description": "Excluir {{email}}? A conta será removida, assim como as vagas em espaços de trabalho. Isso não pode ser desfeito.",
+          "title": "Excluir usuário"
+        },
+        "disable": {
+          "confirm": "Desativar",
+          "description": "{{email}} não poderá fazer login e será desconectado de todos os lugares agora. Os espaços de trabalho dele continuam funcionando. Você pode ativá-lo novamente depois.",
+          "title": "Desativar usuário"
+        },
+        "disableTwoFactor": {
+          "confirm": "Desativar 2FA",
+          "description": "{{email}} fará login apenas com a senha e poderá configurar o 2FA novamente. Faça isso somente quando tiver certeza de que é a própria pessoa que está pedindo.",
+          "title": "Desativar 2FA"
+        }
+      },
+      "description": "Todas as pessoas com conta nesta instalação. Os administradores da instância gerenciam a própria instalação, como sondas e usuários. A função de um usuário em um espaço de trabalho é definida pelos proprietários desse espaço.",
+      "empty": "Nenhum usuário encontrado",
+      "errors": {
+        "last_instance_admin": "A instalação precisa de pelo menos um administrador da instância.",
+        "last_owner": "O usuário é o último proprietário de {{workspaces}}. Torne outra pessoa proprietária ou exclua o espaço de trabalho primeiro.",
+        "self": "Você não pode fazer isso com a sua própria conta."
+      },
+      "load_failed": "Não foi possível carregar os usuários.",
+      "messages": {
+        "admin_granted": "{{email}} agora é administrador da instância",
+        "admin_revoked": "{{email}} não é mais administrador da instância",
+        "deleted": "{{email}} foi excluído",
+        "disabled": "{{email}} foi desativado e desconectado",
+        "enabled": "{{email}} foi ativado",
+        "two_factor_off": "O 2FA de {{email}} foi desativado",
+        "update_failed": "Não foi possível atualizar o usuário."
+      },
+      "never": "Nunca",
+      "none": "Nenhum",
+      "page_name": "Usuários",
+      "paging": {
+        "next": "Próxima",
+        "page": "Página {{page}} de {{pages}}",
+        "previous": "Anterior"
+      },
+      "reset_link": {
+        "close": "Fechar",
+        "copied": "Link copiado",
+        "copy": "Copiar link",
+        "copy_failed": "Não foi possível copiar o link. Selecione-o e copie manualmente.",
+        "description": "Um link para {{email}} escolher uma nova senha. Copie-o e repasse agora: ele é exibido apenas uma vez.",
+        "emailed": "Esta instalação envia e-mails de conta, então o usuário é avisado por e-mail de que um link foi gerado para ele.",
+        "expires": "O link funciona uma vez e expira {{when}}.",
+        "failed": "Não foi possível gerar o link.",
+        "label": "Link",
+        "making": "Gerando o link...",
+        "signs_out": "Usar o link desconecta o usuário de todos os lugares.",
+        "title": "Link de redefinição de senha"
+      },
+      "search_label": "Pesquisar usuários por e-mail",
+      "search_placeholder": "Pesquisar por e-mail",
+      "total": "{{total}} encontrado(s)",
+      "values": {
+        "active": "Ativo",
+        "disabled": "Desativado",
+        "no": "Não",
+        "two_factor_off": "Desativado",
+        "two_factor_on": "Ativado",
+        "yes": "Sim"
+      },
+      "you": "você"
+    },
+    "workspaces": {
+      "actions": {
+        "delete": "Excluir espaço de trabalho",
+        "resume": "Retomar espaço de trabalho",
+        "suspend": "Suspender espaço de trabalho",
+        "limits": "Limites"
+      },
+      "actions_aria": "Ações para {{name}}",
+      "columns": {
+        "created": "Criado em",
+        "custom_domains": "Domínios personalizados",
+        "members": "Membros",
+        "monitors": "Monitores",
+        "name": "Nome",
+        "owners": "Proprietários",
+        "status": "Status",
+        "status_pages": "Páginas de status",
+        "limits": "Limites"
+      },
+      "confirm": {
+        "cancel": "Cancelar",
+        "delete": {
+          "confirm": "Excluir espaço de trabalho",
+          "description": "Excluir {{name}}? Tudo o que há nele será removido: os monitores e seu histórico, as páginas de status, os canais de notificação e o acesso dos membros. Isso não pode ser desfeito.",
+          "name_label": "Digite o nome do espaço de trabalho para confirmar: {{name}}",
+          "title": "Excluir espaço de trabalho"
+        },
+        "resume": {
+          "confirm": "Retomar",
+          "description": "Os monitores de {{name}} voltam a funcionar no estado em que estavam, e os membros podem usá-lo como antes. Um espaço de trabalho que aguarda a verificação do e-mail do proprietário continua aguardando.",
+          "title": "Retomar espaço de trabalho"
+        },
+        "suspend": {
+          "confirm": "Suspender",
+          "description": "Os monitores de {{name}} param de funcionar, as páginas de status públicas informam que estão indisponíveis e os membros veem que ele está suspenso. Nada é excluído, e você pode retomá-lo depois.",
+          "title": "Suspender espaço de trabalho"
+        }
+      },
+      "description": "Todos os espaços de trabalho desta instalação, com seus proprietários, seus membros e quanto cada um contém. Apenas as contagens são exibidas, nada do conteúdo de um espaço de trabalho.",
+      "empty": "Nenhum espaço de trabalho encontrado",
+      "load_failed": "Não foi possível carregar os espaços de trabalho.",
+      "messages": {
+        "deleted": "{{name}} foi excluído",
+        "failed": "Não foi possível alterar o espaço de trabalho.",
+        "resumed": "{{name}} foi retomado",
+        "suspended": "{{name}} foi suspenso"
+      },
+      "monitors": "{{active}} ativos, {{paused}} pausados",
+      "none": "Nenhum",
+      "page_name": "Espaços de trabalho",
+      "paging": {
+        "next": "Próxima",
+        "page": "Página {{page}} de {{pages}}",
+        "previous": "Anterior"
+      },
+      "search_label": "Pesquisar espaços de trabalho por nome ou e-mail do proprietário",
+      "search_placeholder": "Pesquisar por nome ou e-mail do proprietário",
+      "status": {
+        "running": "Em execução",
+        "suspended_admin": "Suspenso por um administrador",
+        "suspended_unverified": "Suspenso até o proprietário verificar o e-mail"
+      },
+      "total": "{{total}} encontrado(s)",
+      "limits": {
+        "item": "{{name}}: {{value}}",
+        "more": "+{{number}} mais",
+        "unlimited": "Sem limites",
+        "source": {
+          "workspace": "Próprios",
+          "install": "Padrões da instalação",
+          "none": "Nenhum definido"
+        },
+        "dialog": {
+          "title": "Limites de {{name}}",
+          "description": "A que este espaço de trabalho está sujeito. Reduzir um limite não pausa nem exclui nada: os monitores mais recentes acima do limite deixam de ser executados até haver espaço novamente.",
+          "own": "Limites próprios",
+          "own_help": "Estes substituem os padrões da instalação. Deixe um limite em branco para não ter nenhum.",
+          "unlimited": "Sem limites",
+          "unlimited_help": "Nenhum limite, não importa o que os padrões da instalação digam.",
+          "defaults": "Usar os padrões da instalação",
+          "defaults_help": "Os limites padrão de Administração → Configurações, ou nenhum quando a instalação não define nenhum.",
+          "save": "Salvar limites",
+          "cancel": "Cancelar",
+          "saved": "Os limites de {{name}} foram salvos",
+          "failed": "Não foi possível salvar os limites."
+        }
+      }
+    },
+    "settings": {
+      "page_name": "Configurações",
+      "description": "Configurações de toda a instalação. Um valor definido pelo ambiente do servidor fica bloqueado aqui.",
+      "load_failed": "Não foi possível carregar as configurações.",
+      "saved": "Configurações salvas",
+      "save_failed": "As configurações não foram salvas.",
+      "locked": "Definido pelo ambiente do servidor",
+      "source": {
+        "environment": "Do ambiente do servidor",
+        "saved": "Salvo aqui",
+        "default": "Padrão"
+      },
+      "signup": {
+        "title": "Cadastro",
+        "description": "Quem pode criar uma conta nesta instalação.",
+        "label": "Modo de cadastro",
+        "invite": "Somente por convite",
+        "open": "Aberto",
+        "invite_help": "O primeiro usuário se cadastra, e todos depois dele entram em um espaço de trabalho por um convite.",
+        "open_help": "Qualquer pessoa pode se cadastrar e recebe um espaço de trabalho próprio. Contas novas verificam o endereço de e-mail, então é preciso um remetente de e-mail."
+      },
+      "sender": {
+        "title": "Remetente de e-mail",
+        "description": "O servidor SMTP que envia os e-mails da conta: links de redefinição de senha, verificação de e-mail e convites.",
+        "on": "Os e-mails da conta estão ativados.",
+        "off": "Os e-mails da conta estão desativados: não há host SMTP.",
+        "host": "Host SMTP",
+        "port": "Porta",
+        "tls": "Segurança",
+        "tls_starttls": "STARTTLS",
+        "tls_tls": "TLS",
+        "tls_none": "Nenhuma",
+        "user": "Usuário",
+        "password": "Senha",
+        "password_set": "Há uma senha definida. Digite para substituí-la.",
+        "password_not_set": "Nenhuma senha definida",
+        "password_removed": "A senha será removida quando você salvar.",
+        "password_reenter": "Alterar o host, a porta, a segurança ou o usuário remove a senha salva. Digite-a novamente.",
+        "remove_password": "Remover senha",
+        "keep_password": "Manter senha",
+        "from": "Endereço do remetente"
+      },
+      "public_url": {
+        "title": "URL pública",
+        "description": "O endereço do aplicativo web, que os links dos e-mails e notificações abrem.",
+        "label": "URL pública"
+      },
+      "test_email": {
+        "title": "Enviar um e-mail de teste",
+        "description": "Envia um e-mail curto pelo remetente salvo, para verificar se ele funciona.",
+        "to": "Enviar para",
+        "send": "Enviar um e-mail de teste",
+        "sending": "Enviando…",
+        "sent": "E-mail de teste enviado para {{to}}.",
+        "failed": "O e-mail de teste não foi enviado.",
+        "unsaved": "O remetente tem alterações não salvas. O teste usa o remetente salvo, então salve primeiro."
+      },
+      "validation": {
+        "port": "Informe uma porta de 1 a 65535, ou deixe em branco para o padrão."
+      },
+      "errors": {
+        "locked": "{{field}} é definido pelo ambiente do servidor e não pode ser alterado aqui.",
+        "open_needs_sender": "O cadastro aberto precisa de um remetente de e-mail, porque contas novas verificam o endereço de e-mail. Configure o remetente primeiro, ou no mesmo salvamento.",
+        "sender_needed": "O cadastro está aberto, e contas novas precisam do remetente para verificar o endereço de e-mail. Mude o cadastro para somente por convite primeiro.",
+        "no_sender": "Não há remetente de e-mail. Salve um remetente primeiro."
+      },
+      "limits": {
+        "title": "Limites padrão",
+        "description": "Os limites de cada espaço de trabalho que não tem limites próprios. Deixe um limite em branco para não ter nenhum. Os limites dados a um espaço de trabalho na página Espaços de trabalho substituem estes.",
+        "name_label": "Nome dos limites padrão",
+        "name_help": "Exibido na página de Uso de um espaço de trabalho, como Plano gratuito. Se ficar em branco, a página informa que o administrador definiu os limites."
+      }
+    }
+  },
   "auth": {
     "login": {
       "description": "Faça login com seu e-mail",
       "no_account": "Não tem conta?",
       "sign_up": "Cadastre-se",
       "submit": "Entrar",
-      "title": "Bem-vindo de volta"
+      "title": "Bem-vindo de volta",
+      "forgot_password": "Esqueceu a senha?",
+      "ask_admin": "Peça um convite a um administrador desta instalação"
     },
     "register": {
       "description": "Crie sua conta de administrador",
+      "description_open": "Crie sua conta",
       "have_account": "Já tem uma conta?",
       "sign_in": "Entrar",
       "submit": "Criar",
-      "title": "Olá"
+      "title": "Olá",
+      "telemetry_note": "Anônimo: sem nomes de monitores, URLs ou hosts. Você pode mudar isso depois em “Configurações”.",
+      "telemetry_whats_sent": "O que é enviado",
+      "errors": {
+        "rate_limited": "Cadastros demais vindos da sua rede. Tente de novo em uma hora.",
+        "email_taken": "Já existe uma conta com este e-mail.",
+        "sign_in_instead": "Entre com ela.",
+        "check_failed": "A verificação não passou. Tente de novo.",
+        "check_load_failed": "Não foi possível carregar a verificação. Confira sua conexão e tente de novo."
+      }
     },
     "twofa": {
       "code_label": "Código 2FA",
@@ -25,11 +299,51 @@
       "title": "Autenticação de Dois Fatores Requerida",
       "verify_button": "Verificar 2FA",
       "verifying": "Verificando..."
+    },
+    "forgot": {
+      "title": "Redefinir a senha",
+      "description": "Informe o e-mail da sua conta e enviaremos um link.",
+      "submit": "Enviar link",
+      "sent": "Se existir uma conta com este e-mail, enviamos um link. Ele vale por uma hora.",
+      "back_to_login": "Voltar para o login"
+    },
+    "reset": {
+      "title": "Escolha uma nova senha",
+      "description": "Informe uma nova senha para a sua conta.",
+      "submit": "Definir senha",
+      "success": "Sua senha foi alterada e você foi desconectado de todos os lugares. Entre com a nova senha.",
+      "sign_in": "Entrar",
+      "invalid_link": "Este link já foi usado ou expirou.",
+      "request_new": "Solicitar um novo link"
+    },
+    "verify": {
+      "title": "Verifique seu e-mail",
+      "verifying": "Verificando seu e-mail...",
+      "success": "Seu e-mail foi verificado.",
+      "open_app": "Abrir o Peekaping",
+      "invalid_link": "Este link já foi usado ou expirou."
+    },
+    "errors": {
+      "rate_limited": "Muitas solicitações. Tente novamente mais tarde.",
+      "generic": "Algo deu errado. Tente novamente.",
+      "already_verified": "Seu e-mail já foi verificado."
+    },
+    "resend": {
+      "button": "Reenviar",
+      "sent": "Enviamos um novo link. Confira sua caixa de entrada."
+    },
+    "verification_banner": {
+      "message": "Verifique seu e-mail: enviamos um link para {{email}}."
+    },
+    "suspension_notice": {
+      "message": "Seus monitores começam depois que você verificar seu e-mail.",
+      "member_message": "Os monitores deste espaço de trabalho começam depois que o proprietário verificar o e-mail dele."
     }
   },
   "bars": {
     "down_count": "Contagem de Falhas",
     "important": "Importante",
+    "instance": "Instância",
     "interval": "Intervalo",
     "message": "Mensagem",
     "ms": "ms",
@@ -65,10 +379,12 @@
     "loading": "Carregando...",
     "logout": "Sair",
     "maintenance": "Manutenção",
+    "no_data": "Sem dados",
     "no_options_found": "Nenhuma opção encontrada",
     "no_tags_available": "Nenhum rótulo disponível",
     "please_refresh_page": "Atualize a página, por favor.",
     "required": "Obrigatório",
+    "retry": "Tentar novamente",
     "save": "Salvar",
     "saving": "Salvando...",
     "search": "Pesquisar",
@@ -83,6 +399,12 @@
     "up": "Ativo",
     "update": "Atualizar",
     "verifying": "Verificando..."
+  },
+  "error_reporting": {
+    "label": "Enviar relatórios de erro",
+    "never_sent": "Nunca são enviados: mensagens de erro, URLs, cabeçalhos, URLs de webhook, nomes nem nomes de host. Um relatório não contém nenhum endereço IP, e o projeto Sentry do Peekaping está configurado para não armazenar o IP do remetente.",
+    "not_saved": "Sua escolha sobre os relatórios de erro não foi salva. Confira em “Configurações”.",
+    "sent": "Enviado somente quando o próprio Peekaping falha. Um relatório contém o tipo do erro e o ponto do código onde ele ocorreu, a versão do Peekaping, o modo único ou de cluster, o backend de armazenamento e o sistema operacional."
   },
   "forms": {
     "labels": {
@@ -113,7 +435,35 @@
       "email_invalid": "Por favor, insira um endereço de e‑mail válido",
       "password_required": "A senha é obrigatória",
       "password_min_length": "A senha deve ter pelo menos 8 caracteres",
+      "password_complexity": "A senha deve incluir uma letra maiúscula, uma minúscula, um número e um caractere especial",
       "passwords_mismatch": "As senhas não coincidem"
+    }
+  },
+  "invite": {
+    "accept": "Aceitar convite",
+    "accepting": "Entrando...",
+    "creating": "Criando...",
+    "description": "Você foi convidado para entrar em {{workspace}} como {{role}}.",
+    "enter_failed": "Você entrou no espaço de trabalho, mas não foi possível abri-lo. Tente novamente.",
+    "errors": {
+      "other_email": "Este convite é para outro endereço de e-mail."
+    },
+    "for_email": "Este convite é para {{email}}.",
+    "have_account": "Já tem uma conta?",
+    "open_app": "Abrir o Peekaping",
+    "other_account": "Você está conectado como {{current}}, mas este convite é para {{invited}}. Saia e depois entre ou cadastre-se com {{invited}} para aceitá-lo.",
+    "sign_in_instead": "Entrar",
+    "sign_out": "Sair",
+    "signup_description": "Escolha uma senha para criar sua conta e entrar em {{workspace}} como {{role}}.",
+    "signup_submit": "Criar conta e entrar",
+    "title": "Entrar em {{workspace}}",
+    "unavailable": {
+      "accepted": "Este convite já foi usado.",
+      "expired": "Este convite expirou. Peça um novo.",
+      "not_found": "Este link de convite não existe. Verifique se você copiou o link inteiro.",
+      "revoked": "Este convite foi revogado. Peça um novo.",
+      "title": "Este convite não pode ser usado",
+      "unknown": "Este convite não pode ser usado. Peça um novo."
     }
   },
   "maintenance": {
@@ -221,6 +571,79 @@
       "wed": "Qua"
     }
   },
+  "members": {
+    "change_role_aria": "Alterar a função de {{email}}",
+    "errors": {
+      "account_exists": "Já existe uma conta com este e-mail. Entre e aceite o convite.",
+      "already_member": "Esta pessoa já é membro deste espaço de trabalho.",
+      "forbidden": "Sua função neste espaço de trabalho não permite isso.",
+      "generic": "Algo deu errado. Tente novamente.",
+      "last_owner": "Um espaço de trabalho precisa de pelo menos um proprietário.",
+      "member_not_found": "Este membro não está mais no espaço de trabalho."
+    },
+    "invite": {
+      "copied": "Link copiado",
+      "copy": "Copiar",
+      "creating": "Criando...",
+      "description": "Crie um link para um endereço de e-mail e uma função. Nenhum e-mail é enviado: copie o link e envie você mesmo.",
+      "done": "Concluído",
+      "email_label": "E-mail",
+      "link_note": "Este link funciona uma vez e expira em 7 dias. Ele é exibido só agora, então copie-o antes de sair desta página.",
+      "link_title": "Link de convite",
+      "role_label": "Função",
+      "submit": "Criar link de convite",
+      "title": "Convidar alguém"
+    },
+    "leave": {
+      "button": "Sair do espaço de trabalho",
+      "confirm": "Sair",
+      "description": "Você perde o acesso a este espaço de trabalho e aos dados dele imediatamente.",
+      "done": "Você saiu do espaço de trabalho",
+      "last_owner": "Você é o último proprietário, então não pode sair. Torne outro membro proprietário primeiro.",
+      "refresh_failed": "Você saiu do espaço de trabalho, mas não foi possível carregar seus espaços de trabalho. Tente novamente.",
+      "title": "Sair deste espaço de trabalho"
+    },
+    "list": {
+      "description": "Todos que trabalham neste espaço de trabalho e suas funções.",
+      "email": "E-mail",
+      "joined": "Entrou em",
+      "role": "Função",
+      "title": "Membros",
+      "you": "você"
+    },
+    "page_name": "Membros",
+    "pending": {
+      "description": "Convites que ainda não foram usados. O link de um convite revogado deixa de funcionar.",
+      "email": "E-mail",
+      "empty": "Nenhum convite pendente.",
+      "expired": "Expirado",
+      "expires": "Expira em",
+      "revoke": "Revogar",
+      "revoke_aria": "Revogar o convite de {{email}}",
+      "revoked": "Convite revogado",
+      "role": "Função",
+      "title": "Convites pendentes"
+    },
+    "remove": "Remover",
+    "remove_aria": "Remover {{email}}",
+    "remove_dialog": {
+      "confirm": "Remover",
+      "description": "{{email}} perde o acesso a este espaço de trabalho imediatamente.",
+      "title": "Remover membro"
+    },
+    "removed": "Membro removido",
+    "role_updated": "Função atualizada",
+    "roles": {
+      "admin": "Administrador",
+      "member": "Membro",
+      "owner": "Proprietário"
+    },
+    "settings_card": {
+      "description": "Veja quem trabalha neste espaço de trabalho e, se você for administrador ou proprietário, convide pessoas e gerencie as funções delas.",
+      "open": "Abrir membros",
+      "title": "Membros"
+    }
+  },
   "messages": {
     "login_error": "Ocorreu um erro durante o login.",
     "login_no_tokens": "Login bem-sucedido, mas nenhum token recebido.",
@@ -248,6 +671,7 @@
     },
     "empty_state": {
       "action": "Criar seu primeiro monitor",
+      "add_channel": "Adicionar um canal de notificação",
       "description": "Comece criando seu primeiro monitor para acompanhar a saúde dos seus serviços.",
       "title": "Nenhum monitor encontrado"
     },
@@ -490,12 +914,25 @@
       "shared": {
         "intervals": {
           "heartbeat_retry": "Intervalo de reenvio do heartbeat (Reenviar a cada {{seconds}} segundos)",
+          "interval_too_short": "Não pode ser menor que {{minimum}} segundos",
           "max_retries_description": "Número máximo de tentativas antes que o serviço seja marcado como indisponível e uma notificação seja enviada",
           "request_timeout": "Tempo limite de solicitação (Tempo limite após {{seconds}} segundos)",
-          "resend_notification": "Reenviar notificação se ficar fora do ar X vezes consecutivas (Reenviar desativado)"
+          "resend_notification": "Reenviar notificação se ficar fora do ar X vezes consecutivas (Reenviar desativado)",
+          "timeout_too_long": "Não pode ser maior que 80% do intervalo de verificação"
+        },
+        "location_rule": {
+          "all": "todas as localizações estiverem indisponíveis",
+          "any": "qualquer localização estiver indisponível",
+          "at_least": "pelo menos N localizações estiverem indisponíveis",
+          "description": "Uma localização cuja sonda está offline, ou que ainda não reportou, não conta.",
+          "label": "Marcar o monitor como indisponível quando",
+          "threshold_invalid": "Informe um número inteiro, 1 ou mais",
+          "threshold_label": "Número de localizações",
+          "threshold_too_high": "Não pode ser maior que o número de sondas escolhidas"
         },
         "notifications": {
           "add_notifier": "Adicionar notificador",
+          "load_failed": "Não foi possível carregar os canais de notificação",
           "new_notifier": "+ Novo Notificador",
           "no_channels": "Nenhum canal de notificação encontrado, crie um primeiro.",
           "no_channels_available": "Nenhum canal disponível",
@@ -503,6 +940,15 @@
           "select_notifier_placeholder": "Selecionar notificador",
           "selected_channels": "Canais de notificação selecionados",
           "title": "Canais de notificação"
+        },
+        "probe": {
+          "description": "O monitor é executado em cada sonda escolhida e mostra os resultados de cada uma como uma localização.",
+          "label": "Sonda",
+          "option_unsupported": "{{name}} (não executa este tipo)",
+          "placeholder": "Selecionar sonda",
+          "push_fixed": "Um monitor Push sempre é executado na sonda local.",
+          "required": "Escolha pelo menos uma sonda",
+          "unsupported": "Esta sonda não executa este tipo de monitor. Selecione outra sonda."
         },
         "proxy": {
           "add_proxy": "Adicionar Proxy",
@@ -512,6 +958,10 @@
           "select_proxy_placeholder": "Selecionar Proxy",
           "selected_proxy": "Proxy Selecionado",
           "title": "Proxy"
+        },
+        "run_from": {
+          "default_locations": "Executa nos locais padrão",
+          "label": "Executar de"
         },
         "tags": {
           "label": "Etiquetas",
@@ -563,6 +1013,8 @@
         "docker": "Contêiner Docker",
         "grpc": "Monitor de Palavras-chave gRPC",
         "http": "Monitor HTTP(S)",
+        "http_json_query": "HTTP(s) - Consulta JSON",
+        "http_keyword": "HTTP(s) - Palavra-chave",
         "kafka": "Monitor de Produtor Kafka",
         "mongodb": "Monitor de Banco de Dados MongoDB",
         "mqtt": "Monitor de Broker MQTT",
@@ -617,9 +1069,12 @@
     "toasts": {
       "deleted": "Monitor excluído",
       "paused": "Monitor pausado",
+      "push_token_already_used": "Outro monitor já usa este token de push. Gere um novo.",
       "reset_success": "Dados do monitor redefinidos com sucesso",
       "resumed": "Monitoramento retomado"
     },
+    "type_disabled": "O tipo {{type}} está desativado nesta instalação",
+    "over_limit": "Não verificado: o espaço de trabalho tem mais monitores ativos do que seu limite permite",
     "view": {
       "buttons": {
         "clone": "Clonar",
@@ -649,6 +1104,15 @@
       "expiring_soon": "Expira em breve",
       "for": "para",
       "live_status": "Status ao Vivo",
+      "locations": {
+        "all": "Todas as localizações",
+        "no_result": "Ainda sem resultado",
+        "probe_offline": "Sonda offline",
+        "probe_unsupported": "Não executa este tipo",
+        "response_time": "Tempo de resposta",
+        "select_label": "Localização",
+        "title": "Localizações"
+      },
       "monitor_for": "Monitorar",
       "no_certificate_data": "Sem dados de certificado",
       "seconds": "segundos",
@@ -671,9 +1135,11 @@
     }
   },
   "navigation": {
+    "admin": "Administração",
     "maintenance": "Manutenção",
     "monitors": "Monitores",
     "notification_channels": "Canais de Notificação",
+    "probes": "Sondas",
     "proxies": "Proxies",
     "settings": "Configurações",
     "status_pages": "Páginas de Status",
@@ -854,9 +1320,9 @@
       "pagerduty": {
         "auto_resolve_acknowledge": "Reconhecer automaticamente",
         "auto_resolve_acknowledge_description": "Reconhecer automaticamente o incidente",
-        "auto_resolve_description": "Escolha a ação a executar quando um monitor voltar online",
+        "auto_resolve_description": "Escolha o que enviar quando um monitor voltar a funcionar ou uma sonda voltar online",
         "auto_resolve_do_nothing": "Não fazer nada",
-        "auto_resolve_do_nothing_description": "Nenhuma ação tomada no status UP",
+        "auto_resolve_do_nothing_description": "Nada é enviado quando um monitor volta a funcionar ou uma sonda volta online, então o incidente continua aberto até você resolvê-lo no PagerDuty",
         "auto_resolve_label": "Auto Resolver ou Reconhecer",
         "auto_resolve_placeholder": "Selecionar comportamento de auto-resolução",
         "auto_resolve_resolve": "Auto resolver",
@@ -879,7 +1345,7 @@
         "authentication_token_description": "Token de autenticação opcional para maior segurança. Este será enviado no cabeçalho pagertree-token.",
         "authentication_token_label": "Token de Autenticação (Opcional)",
         "authentication_token_placeholder": "Digite o token de autenticação se necessário",
-        "auto_resolve_alerts_description": "Resolver automaticamente alertas do PagerTree quando o monitor se recupera",
+        "auto_resolve_alerts_description": "Resolver automaticamente alertas do PagerTree quando um monitor voltar a funcionar ou uma sonda voltar online",
         "auto_resolve_alerts_label": "Resolver alertas automaticamente",
         "how_to_get_integration_url_label": "Como obter a URL de integração",
         "integration_url_description": "Digite a URL do webhook de integração do PagerTree.",
@@ -1082,6 +1548,12 @@
         "signing_secret_docs_link": "Como verificar a assinatura",
         "signing_secret_label": "Segredo de assinatura",
         "signing_secret_placeholder": "Deixe em branco para enviar solicitações sem assinatura"
+      },
+      "install_email": {
+        "description": "Enviado por esta instalação, sem precisar de um servidor SMTP.",
+        "to_description": "Um membro deste espaço de trabalho. As notificações são enviadas depois que ele verificar o endereço.",
+        "to_label": "Destinatário",
+        "to_placeholder": "Escolha um membro"
       }
     },
     "important": "Notificações Importantes",
@@ -1100,13 +1572,150 @@
       "updated_success": "Notificador atualizado com sucesso"
     },
     "new": {
-      "title": "Novo Canal de Notificação"
+      "title": "Novo Canal de Notificação",
+      "default_hint": "Este canal será marcado nos novos monitores."
     },
     "no_important": "Nenhuma notificação importante encontrada.",
     "placeholders": {
       "select_type": "Selecione o tipo de notificador"
     },
-    "search_placeholder": "Pesquisar canais de notificação por nome..."
+    "search_placeholder": "Pesquisar canais de notificação por nome...",
+    "secret": {
+      "reenter_error": "Digite este segredo novamente ou remova-o: o destino do envio mudou",
+      "reenter_hint": "Digite este segredo novamente: o destino do envio mudou",
+      "reenter_url_error": "Digite novamente as credenciais desta URL: a URL mudou desde que foi salva",
+      "remove": "Remover",
+      "saved_hint": "Salvo — digite para substituir"
+    }
+  },
+  "probes": {
+    "default": {
+      "description": "Um monitor criado sem escolher sondas é executado nas sondas padrão que não estão desativadas e executam o seu tipo, e na sonda local quando nenhuma o faz. Os monitores existentes mantêm suas sondas.",
+      "failed": "Não foi possível alterar se a sonda é padrão.",
+      "label": "Sonda padrão",
+      "off": "{{name}} não é mais uma sonda padrão",
+      "on": "{{name}} agora é uma sonda padrão",
+      "title": "Padrão para novos monitores"
+    },
+    "default_badge": "Padrão",
+    "page_name": "Sondas",
+    "description": "As sondas executam as verificações dos monitores a partir dos locais onde estão instaladas. A sonda local é o próprio Peekaping.",
+    "local_name": "Local",
+    "monitor_probe": "Sonda: {{name}}",
+    "monitor_probe_unsupported": "{{name}} não executa monitores {{type}}",
+    "empty_list": {
+      "title": "Nenhuma sonda encontrada",
+      "text": "Crie uma sonda para executar verificações a partir de outro lugar.",
+      "action_text": "Crie sua primeira sonda"
+    },
+    "table": {
+      "headers": {
+        "name": "Nome",
+        "location": "Localização",
+        "status": "Status",
+        "disabled": "Desativada",
+        "token": "Token",
+        "instances": "Instâncias",
+        "actions": "Ações"
+      },
+      "status": {
+        "online": "Online",
+        "offline": "Offline"
+      },
+      "disabled": "Desativada",
+      "no_instances": "Ainda não há instâncias",
+      "last_seen": "vista pela última vez em {{date}}",
+      "actions": {
+        "edit": "Editar a sonda {{name}}",
+        "rotate": "Renovar o token da sonda {{name}}",
+        "assign_all": "Atribuir a sonda {{name}} a todos os monitores",
+        "delete": "Excluir a sonda {{name}}"
+      }
+    },
+    "create_dialog": {
+      "title": "Criar sonda",
+      "description": "Uma sonda executa verificações a partir do local onde você a instala. O token dela é exibido apenas uma vez, depois que você a cria.",
+      "submit": "Criar sonda",
+      "creating": "Criando..."
+    },
+    "assign_all": {
+      "warning": "O token lê a configuração de cada monitor atribuído à sonda, incluindo as credenciais.",
+      "docs_link": "O que o token pode ler"
+    },
+    "assign_all_dialog": {
+      "title": "Atribuir a todos os monitores",
+      "description": "Adiciona a sonda {{name}} a todos os monitores que ela pode executar, exceto os monitores push. Uma sonda sem instâncias é adicionada quando a primeira instância se conecta.",
+      "confirm": "Atribuir a todos os monitores",
+      "assigning": "Atribuindo..."
+    },
+    "edit_dialog": {
+      "title": "Editar sonda",
+      "description": "Altere as configurações de {{name}}."
+    },
+    "form": {
+      "name_label": "Nome",
+      "name_placeholder": "ex.: Frankfurt",
+      "location_label": "Localização (opcional)",
+      "location_placeholder": "ex.: Frankfurt, Alemanha",
+      "assign_all_label": "Atribuir a todos os monitores",
+      "assign_all_description": "Quando a primeira instância se conectar, a sonda será adicionada a todos os monitores que ela pode executar, exceto os monitores push.",
+      "name_required": "O nome é obrigatório",
+      "name_too_long": "O nome é muito longo",
+      "location_too_long": "A localização é muito longa",
+      "disabled_label": "Desativada",
+      "disabled_description": "O token de uma sonda desativada deixa de funcionar até que você a ative novamente.",
+      "notifications_hint": "Deixe vazio para notificar os canais dos monitores desta sonda."
+    },
+    "rotate_dialog": {
+      "title": "Renovar token",
+      "description": "O token antigo da sonda {{name}} deixa de funcionar imediatamente. As instâncias dela precisam ser reiniciadas com o novo token.",
+      "confirm": "Renovar token",
+      "rotating": "Renovando..."
+    },
+    "delete_dialog": {
+      "title": "Excluir sonda",
+      "description": "Tem certeza de que deseja excluir a sonda \"{{name}}\"? O token dela deixará de funcionar. Esta ação não pode ser desfeita."
+    },
+    "token_alert": {
+      "title_created": "Sonda {{name}} criada",
+      "title_rotated": "Novo token para a sonda {{name}}",
+      "note": "Este token lê as configurações dos monitores atribuídos à sonda. Ele é exibido apenas uma vez.",
+      "token_label": "Token",
+      "docker_label": "Inicie a sonda com o Docker",
+      "copy_token": "Copiar token",
+      "copy_command": "Copiar comando docker"
+    },
+    "messages": {
+      "created_successfully": "Sonda criada com sucesso",
+      "updated_successfully": "Sonda atualizada com sucesso",
+      "rotated_successfully": "Token renovado com sucesso",
+      "assigned_successfully": "Monitores adicionados: {{added}}",
+      "assign_pending": "Ela será adicionada a todos os monitores que executa quando se conectar",
+      "deleted_successfully": "Sonda excluída com sucesso",
+      "failed_to_create": "Falha ao criar a sonda",
+      "failed_to_update": "Falha ao atualizar a sonda",
+      "failed_to_rotate": "Falha ao renovar o token",
+      "failed_to_assign": "Não foi possível atribuir a sonda a todos os monitores",
+      "failed_to_delete": "Falha ao excluir a sonda",
+      "failed_to_load": "Falha ao carregar as sondas",
+      "copy_success": "Copiado para a área de transferência",
+      "copy_failed": "Não foi possível copiar para a área de transferência"
+    },
+    "detail": {
+      "assign_all_pending": "Aguardando a primeira instância: ela será adicionada a todos os monitores que executa quando se conectar.",
+      "not_found": "Sonda não encontrada"
+    },
+    "availability": {
+      "title": "Disponibilidade",
+      "range_label": "Intervalo de tempo",
+      "bar_label": "Histórico de disponibilidade",
+      "instance_bar_label": "Conexões de {{name}}",
+      "no_data": "Sem dados",
+      "now": "Agora",
+      "instances_title": "Instâncias, últimas 24 horas",
+      "in_process_note": "O próprio Peekaping verifica os monitores da sonda local, então ela não tem histórico de disponibilidade.",
+      "connected_since": "Conectada desde {{start}}"
+    }
   },
   "proxies": {
     "delete_dialog": {
@@ -1145,6 +1754,20 @@
     "search_placeholder": "Pesquisar proxies por host..."
   },
   "security": {
+    "delete_account": {
+      "button": "Excluir conta",
+      "description": "Exclui sua conta e encerra suas sessões. Você sai de todos os espaços de trabalho em que está. Isso não pode ser desfeito.",
+      "dialog_description": "Sua conta é excluída na hora e você é desconectado. Você sai de todos os espaços de trabalho em que está. Isso não pode ser desfeito.",
+      "errors": {
+        "last_instance_admin": "Você é o último administrador da instância desta instalação. É preciso outro administrador da instância antes de você poder excluir sua conta.",
+        "last_owner": "Você é o único proprietário de {{workspaces}}. Torne outro membro proprietário ou exclua o espaço de trabalho antes.",
+        "wrong_password": "A senha está incorreta"
+      },
+      "failed": "Falha ao excluir a conta",
+      "password_label": "Sua senha",
+      "success": "Sua conta foi excluída",
+      "title": "Excluir conta"
+    },
     "enable_2fa": {
       "form": {
         "authenticator_code_label": "Código do autenticador",
@@ -1267,10 +1890,35 @@
     "to_email_label": "Para e-mail"
   },
   "settings": {
+    "danger_zone": {
+      "button": "Excluir espaço de trabalho",
+      "description": "Excluir este espaço de trabalho apaga definitivamente tudo o que há nele: monitores, heartbeats, páginas de status e o resto. A exclusão acontece 7 dias depois de você confirmar. Os monitores param na hora, e um proprietário pode cancelar a exclusão até lá.",
+      "dialog_description": "Isto exclui {{name}} e tudo o que há nele, daqui a 7 dias. Os monitores param na hora, e você pode cancelar a exclusão até lá.",
+      "failed": "Falha ao agendar a exclusão",
+      "name_label": "Digite o nome do espaço de trabalho, {{name}}, para confirmar",
+      "scheduled": "Este espaço de trabalho será excluído em {{date}}. Os monitores não são executados até lá. Cancele a exclusão para restaurar tudo.",
+      "title": "Zona de perigo"
+    },
     "data_retention": {
       "days_label": "Dias",
       "description": "Defina quantos dias manter os dados (KEEP_DATA_PERIOD_DAYS).",
-      "title": "Período de Retenção de Dados"
+      "read_only": "Somente um administrador ou proprietário do espaço de trabalho pode alterar isto.",
+      "title": "Período de Retenção de Dados",
+      "capped": "Até {{max}} dias neste espaço de trabalho"
+    },
+    "error_reporting": {
+      "cluster_note": "No modo cluster, uma alteração chega a todos os processos em até um minuto.",
+      "description": "Envie um relatório ao Sentry quando o servidor falhar. Ativado por padrão; você pode desativar aqui a qualquer momento.",
+      "forced_off": "A variável de ambiente ERROR_REPORTING=off desativa isto. Nada é enviado, seja qual for esta configuração.",
+      "title": "Relatórios de erro"
+    },
+    "telemetry": {
+      "description": "Envie estatísticas anônimas sobre como esta instalação está configurada, no máximo uma vez por dia. Ativado por padrão; você pode desativar aqui a qualquer momento.",
+      "forced_off": "A variável de ambiente TELEMETRY=off desativa isto. Nada é enviado, seja qual for esta configuração.",
+      "id_note": "O ID da instância é criado enquanto isto está ativado e excluído quando você desativa. Ao ativar de novo, um novo ID é criado.",
+      "payload_off": "Nada é enviado enquanto isto estiver desativado. Isto é o que um ping de uso conteria se você ativasse.",
+      "payload_title": "O que o próximo ping de uso envia",
+      "title": "Estatísticas de uso"
     },
     "timezone": {
       "description": "Selecione seu fuso horário preferido para exibir todos os horários no aplicativo.",
@@ -1282,6 +1930,73 @@
     },
     "validation": {
       "min_days": "Deve ter no mínimo 1 dia"
+    },
+    "workspace_name": {
+      "description": "O nome exibido no seletor de espaços de trabalho e para os membros.",
+      "title": "Nome do espaço de trabalho"
+    },
+    "workspace_export": {
+      "title": "Exportar",
+      "description": "Baixe a configuração deste espaço de trabalho em um único arquivo JSON: as configurações, tags, proxies, canais de notificação, monitores, janelas de manutenção e páginas de status. Um proprietário pode importar o arquivo em outro espaço de trabalho.",
+      "warning_title": "O arquivo contém segredos salvos",
+      "warning": "Tokens de bot, senhas e URLs de webhook dos seus canais de notificação e proxies estão nele por completo, sem ocultação. Guarde o arquivo como uma senha e não o compartilhe com quem não deveria ter acesso a eles.",
+      "download_workspace": "Baixar espaço de trabalho",
+      "download_heartbeats": "Baixar histórico de heartbeats",
+      "heartbeats_note": "O histórico de heartbeats é um arquivo separado e pode ser grande. Ele tem uma linha para cada verificação de cada monitor.",
+      "downloading": "Baixando...",
+      "failed": "Falha ao baixar o espaço de trabalho",
+      "heartbeats_failed": "Falha ao baixar o histórico de heartbeats"
+    },
+    "workspace_import": {
+      "title": "Importar",
+      "description": "Adicione os registros de um arquivo de exportação de espaço de trabalho a este espaço de trabalho. Nada é substituído: eles entram ao lado dos que já estão aqui.",
+      "file_label": "Arquivo de exportação do espaço de trabalho (.json)",
+      "choose": "Escolher um arquivo",
+      "not_json": "Este arquivo não é um JSON válido, então nada foi enviado.",
+      "too_large": "Este arquivo é maior que 16 MB, o máximo que uma importação aceita, então nada foi enviado.",
+      "unreadable": "Não foi possível ler este arquivo. Escolha-o novamente ou verifique se ele ainda existe.",
+      "confirm_title": "Importar {{file}}?",
+      "confirm_description": "Os registros dele são adicionados ao lado dos que já estão neste espaço de trabalho. Nada é substituído, e importar o mesmo arquivo duas vezes os adiciona duas vezes. Os monitores começam a rodar assim que são adicionados.",
+      "confirm_button": "Importar",
+      "importing": "Importando...",
+      "failed": "Falha ao importar o arquivo",
+      "problems_title": "Não foi possível importar o arquivo",
+      "problems_description": "Nada foi adicionado a este espaço de trabalho. Corrija estes problemas no arquivo e importe-o novamente:",
+      "result_title": "Importação concluída",
+      "created_title": "Adicionado a este espaço de trabalho",
+      "nothing_created": "Nada foi adicionado.",
+      "changes_title": "Alterado para se adequar a este espaço de trabalho",
+      "no_changes": "Tudo entrou como está no arquivo.",
+      "close": "Fechar",
+      "created": {
+        "tags": "Tags",
+        "proxies": "Proxies",
+        "notificationChannels": "Canais de notificação",
+        "monitors": "Monitores",
+        "maintenances": "Janelas de manutenção",
+        "statusPages": "Páginas de status"
+      },
+      "changes": {
+        "tag_reused": "A tag \"{{name}}\" já existe neste espaço de trabalho, então os monitores dela a usam.",
+        "proxy_skipped_target_not_allowed": "O proxy {{name}} foi deixado de fora: esta instalação bloqueia o endereço dele.",
+        "monitor_proxy_dropped": "O monitor \"{{name}}\" entra sem o proxy {{from}}, que foi deixado de fora.",
+        "channel_skipped": "O canal de notificação \"{{name}}\" foi deixado de fora: esta instalação ou espaço de trabalho não pode aceitá-lo.",
+        "channel_skipped_target_not_allowed": "O canal de notificação \"{{name}}\" foi deixado de fora: esta instalação bloqueia o endereço para onde ele envia.",
+        "channel_skipped_no_install_sender": "O canal de notificação \"{{name}}\" foi deixado de fora: esta instalação não tem remetente para e-mails.",
+        "channel_skipped_recipient_not_member": "O canal de notificação \"{{name}}\" foi deixado de fora: o destinatário do e-mail não é membro deste espaço de trabalho.",
+        "monitor_skipped_type_disabled": "O monitor \"{{name}}\" foi deixado de fora: esta instalação desativa monitores do tipo {{reason}}.",
+        "monitor_skipped_target_not_allowed": "O monitor \"{{name}}\" foi deixado de fora: esta instalação bloqueia o destino dele, {{reason}}.",
+        "monitor_interval_raised": "O monitor \"{{name}}\" verifica a cada {{to}} segundos em vez de {{from}}, o menor intervalo que esta instalação permite.",
+        "monitor_retry_interval_raised": "O monitor \"{{name}}\" tenta de novo uma verificação com falha a cada {{to}} segundos em vez de {{from}}, o menor intervalo que esta instalação permite.",
+        "push_token_replaced": "O monitor \"{{name}}\" recebeu um novo token de push, já que outro monitor tem o que está no arquivo. Atualize o endereço para o qual seu job envia.",
+        "monitor_paused_over_limit": "O monitor \"{{name}}\" entra pausado: o plano deste espaço de trabalho não tem espaço para mais um monitor em execução.",
+        "status_page_slug_changed": "A página de status \"{{name}}\" tem o endereço {{to}} em vez de {{from}}, já que esse está em uso.",
+        "status_page_skipped_over_limit": "A página de status \"{{name}}\" foi deixada de fora: o plano deste espaço de trabalho não tem espaço para mais uma.",
+        "custom_domain_dropped": "O domínio personalizado {{name}} foi deixado de fora: outra página de status o utiliza.",
+        "custom_domain_dropped_over_limit": "O domínio personalizado {{name}} foi deixado de fora: o plano deste espaço de trabalho não tem espaço para mais um.",
+        "retention_capped": "O período de retenção de dados é de {{to}} dias em vez de {{from}}, o máximo que o plano deste espaço de trabalho permite.",
+        "unknown": "A importação alterou {{subject}} ({{kind}})."
+      }
     }
   },
   "status": {
@@ -1291,12 +2006,14 @@
       "last_updated": "Última Atualização",
       "maintenance": "Manutenção",
       "no_monitors_configured": "Nenhum monitor configurado para esta página de status.",
+      "not_monitored": "Não monitorado",
       "operational": "Operacional",
       "partial_system_outage": "Falha parcial do sistema",
       "powered_by": "Desenvolvido por",
       "refresh_in": "Atualizar em",
       "refresh_now": "Atualizar agora",
       "status_page_not_found": "Página de status não encontrada ou não publicada.",
+      "status_page_unavailable": "Esta página de status está indisponível",
       "under_maintenance": "Em Manutenção",
       "unknown": "Desconhecido"
     }
@@ -1315,7 +2032,35 @@
     "description": "Digite a descrição da página de status",
     "domain_already_used": "O domínio {{domain}} já está em uso por outra página de status",
     "domain_host_warning": "Este domínio é o mesmo que a URL do seu host atual. Isso pode causar conflitos.",
+    "domain_verification": {
+      "add_one_record": "Adicione um destes registros no seu provedor de DNS. Um deles basta.",
+      "check_failed": "Não foi possível verificar {{domain}}",
+      "check_now": "Verificar agora",
+      "checking": "Verificando...",
+      "cname_record": "Registro CNAME",
+      "copy": "Copiar {{label}}",
+      "copy_failed": "Não foi possível copiar para a área de transferência",
+      "copy_success": "Copiado para a área de transferência",
+      "info": "Cada domínio serve esta página quando um registro DNS comprova que ele aponta para o Peekaping.",
+      "last_checked": "Última verificação: {{time}}",
+      "name": "Nome",
+      "not_checked": "Ainda não verificado",
+      "pending_note": "Um domínio pendente não serve esta página e não recebe certificado.",
+      "records_load_failed": "Não foi possível carregar os registros DNS",
+      "records_missing_note": "Os registros DNS estão ausentes desde {{time}}. Após 24 horas, o domínio volta a pendente.",
+      "removed_on": "Será removido em {{date}} se não for verificado",
+      "save_to_see_records": "Salve a página para ver os registros DNS a adicionar",
+      "state": {
+        "pending": "Pendente",
+        "records_missing": "Registros ausentes",
+        "verified": "Verificado"
+      },
+      "target": "Aponta para",
+      "txt_record": "Registro TXT",
+      "value": "Valor"
+    },
     "domains": "Domínios",
+    "domains_docs_link": "Domínios personalizados e HTTPS",
     "domains_info_warning": "Não esqueça de adicionar os registros CNAME ao seu DNS para cada domínio.",
     "draft_status": "Rascunho",
     "edit_page_name": "Editar Página de Status",
@@ -1338,6 +2083,9 @@
     "published_status": "Publicado",
     "search_label": "Pesquisar",
     "search_placeholder": "Pesquisar páginas de status por título...",
+    "show_locations": "Mostrar cada localização",
+    "show_locations_info": "Para monitores verificados de várias localizações, mostra o status e o histórico de cada uma",
+    "slug_already_used": "Outra página de status já usa este endereço",
     "update_status_page": "Atualizar Página de Status",
     "view_page": "Ver Página"
   },
@@ -1368,6 +2116,18 @@
     "new_page_name": "Nova Tag",
     "search_placeholder": "Pesquisar tags..."
   },
+  "telemetry": {
+    "docs_link": "O que é enviado e como desativar",
+    "label": "Enviar estatísticas de uso anônimas",
+    "not_saved": "Sua escolha sobre as estatísticas de uso não foi salva. Confira em “Configurações”."
+  },
+  "telemetry_notice": {
+    "error_reports": "Os relatórios de erro estão ativados. Se o Peekaping falhar, ele envia o tipo do erro e o ponto do código onde ocorreu, a própria versão, o modo, o backend de armazenamento e o sistema operacional. Nunca envia mensagens de erro, URLs ou nomes de host.",
+    "settings_errors": "Desativar os relatórios de erro em “Configurações”",
+    "settings_usage": "Desativar as estatísticas de uso em “Configurações”",
+    "title": "O envio de dados anônimos está ativado por padrão",
+    "usage_statistics": "As estatísticas de uso estão ativadas. No máximo uma vez por dia, o Peekaping envia um ID de instância aleatório, a própria versão, o modo, o backend de armazenamento e o sistema operacional, uma faixa para o número de monitores, os tipos de monitores e de canais de notificação que você usa e se você usa páginas de status, janelas de manutenção e métricas. Nunca envia nomes, URLs, hosts ou configurações."
+  },
   "theme": {
     "dark": "Escuro",
     "light": "Claro",
@@ -1391,5 +2151,123 @@
   "ui": {
     "general": "Geral",
     "intervals_retries": "Intervalos, Tentativas, Timeouts"
+  },
+  "workspaces": {
+    "create": "Criar espaço de trabalho",
+    "create_error": "Falha ao criar o espaço de trabalho",
+    "create_first": "Criar um espaço de trabalho",
+    "creating": "Criando...",
+    "deletion": {
+      "cancel": "Cancelar exclusão",
+      "cancel_failed": "Falha ao cancelar a exclusão",
+      "cancelled": "Exclusão cancelada",
+      "member_message": "Este espaço de trabalho será excluído em {{date}}. Os monitores não são executados e as páginas de status ficam indisponíveis. Um proprietário pode cancelar a exclusão até lá.",
+      "message": "Este espaço de trabalho será excluído em {{date}}. Os monitores não são executados e as páginas de status ficam indisponíveis. Você pode cancelar a exclusão até lá."
+    },
+    "enter": "Abrir espaço de trabalho",
+    "entering": "Abrindo...",
+    "entry_failed": "O espaço de trabalho foi criado, mas não foi possível abri-lo. Tente novamente.",
+    "name_label": "Nome",
+    "name_placeholder": "Minha equipe",
+    "name_required": "Informe um nome",
+    "new": "Novo espaço de trabalho",
+    "new_description": "Um espaço de trabalho tem seus próprios monitores, canais de notificação, páginas de status e membros. Você será o proprietário.",
+    "new_title": "Novo espaço de trabalho",
+    "none_description": "Sua conta não é membro de nenhum espaço de trabalho, então não há nada para mostrar aqui. Peça a quem administra um espaço de trabalho para adicionar você.",
+    "none_title": "Você ainda não está em nenhum espaço de trabalho",
+    "refresh_failed": "Não foi possível carregar seus espaços de trabalho. Verifique sua conexão e tente novamente.",
+    "rename_error": "Falha ao renomear o espaço de trabalho",
+    "rename_success": "Espaço de trabalho renomeado",
+    "suspended_banner": {
+      "contact": "Para entrar em contato:",
+      "message": "Este espaço de trabalho foi suspenso pelo administrador desta instalação. Os monitores não estão em execução e as páginas de status estão indisponíveis.",
+      "no_contact": "Entre em contato com a pessoa responsável por esta instalação."
+    },
+    "switcher_label": "Trocar de espaço de trabalho"
+  },
+  "get_started": {
+    "page_name": "Primeiros passos",
+    "skip": "Pular configuração",
+    "step_of": "Etapa {{current}} de {{total}}",
+    "name": {
+      "description": "Aqui ficam seus monitores, canais de notificação e páginas de status. Você pode renomeá-lo depois em Configurações.",
+      "title": "Dê um nome ao seu espaço de trabalho"
+    },
+    "monitor": {
+      "create": "Criar monitor",
+      "create_failed": "Falha ao criar o monitor",
+      "creating": "Criando...",
+      "description": "Informe o endereço de um site ou API. O Peekaping o verifica e avisa quando ele deixar de responder.",
+      "full_form": "Ou configure um monitor com todas as opções",
+      "title": "Adicione seu primeiro monitor",
+      "url_invalid": "Informe um endereço que comece com http:// ou https://",
+      "url_label": "Endereço a monitorar"
+    },
+    "channel": {
+      "continue_unlinked": "Continuar sem vincular",
+      "description": "Escolha para onde o Peekaping envia um alerta quando seu monitor cair. Ele será o padrão dos novos monitores.",
+      "link_failed": "O canal foi salvo, mas não foi possível vinculá-lo ao seu monitor. Adicione-o na página de edição do monitor.",
+      "retry_link": "Tentar vincular novamente",
+      "title": "Receba notificações"
+    },
+    "done": {
+      "description": "O Peekaping está monitorando seu serviço. Veja o que você pode fazer em seguida.",
+      "title": "Tudo pronto",
+      "unverified": "Seu monitor será executado depois que seu e-mail for verificado. Procure o link de verificação na sua caixa de entrada.",
+      "links": {
+        "members": "Convidar sua equipe",
+        "monitor": "Abrir seu monitor",
+        "monitors": "Ir para os monitores",
+        "probes": "Gerenciar sondas",
+        "status_pages": "Publicar uma página de status"
+      }
+    }
+  },
+  "limits": {
+    "reached": {
+      "monitors": "Este espaço de trabalho pode ter no máximo {{max}} monitores em execução",
+      "status_pages": "Este espaço de trabalho pode ter no máximo {{max}} páginas de status",
+      "custom_domains": "As páginas de status deste espaço de trabalho podem ter no máximo {{max}} domínios personalizados no total",
+      "members": "Este espaço de trabalho pode ter no máximo {{max}} membros, incluindo convites pendentes",
+      "owned_workspaces": "Você pode ser proprietário de no máximo {{max}} espaços de trabalho",
+      "probes": "Um monitor deste espaço de trabalho pode ser executado em no máximo {{max}} sondas",
+      "retention_days": "Este espaço de trabalho pode manter os dados por no máximo {{max}} dias"
+    },
+    "names": {
+      "monitors": "Monitores ativos",
+      "min_check_interval": "Menor intervalo de verificação (segundos)",
+      "status_pages": "Páginas de status",
+      "custom_domains": "Domínios personalizados",
+      "members": "Membros",
+      "owned_workspaces": "Espaços de trabalho que um usuário pode ter",
+      "probes_per_monitor": "Sondas por monitor",
+      "retention_days": "Retenção de dados (dias)"
+    },
+    "none": "Sem limite",
+    "invalid": "Digite um número inteiro igual ou maior que 1, ou deixe em branco para não ter limite.",
+    "retention_too_long": "Não pode ser maior que {{max}} dias"
+  },
+  "usage": {
+    "title": "Uso",
+    "description": "Quanto este espaço de trabalho usa dos seus limites.",
+    "open": "Abrir uso",
+    "plan": "Plano",
+    "set_by_admin": "Definido pelo seu administrador",
+    "count": {
+      "monitors": "{{used}} de {{max}} monitores",
+      "status_pages": "{{used}} de {{max}} páginas de status",
+      "custom_domains": "{{used}} de {{max}} domínios personalizados",
+      "members": "{{used}} de {{max}} membros, incluindo convites pendentes",
+      "owned_workspaces": "Você é proprietário de {{used}} de {{max}} espaços de trabalho",
+      "probes_per_monitor": "Até {{used}} de {{max}} sondas em um monitor"
+    },
+    "labels": {
+      "min_check_interval": "Menor intervalo de verificação",
+      "retention_days": "Maior retenção de dados"
+    },
+    "seconds": "{{value}} segundos",
+    "days": "{{value}} dias",
+    "near": "Perto do limite",
+    "reached": "No limite"
   }
 }

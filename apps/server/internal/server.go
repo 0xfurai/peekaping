@@ -5,26 +5,35 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/danielgtaylor/huma/v2"
 	"peekaping/internal/config"
 	"peekaping/internal/httpx"
+	"peekaping/internal/modules/admin"
 	"peekaping/internal/modules/api_key"
 	"peekaping/internal/modules/auth"
 	"peekaping/internal/modules/badge"
+	"peekaping/internal/modules/error_reporting"
 	"peekaping/internal/modules/healthcheck"
 	"peekaping/internal/modules/heartbeat"
+	"peekaping/internal/modules/ingester"
 	"peekaping/internal/modules/maintenance"
 	"peekaping/internal/modules/metrics"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/notification_channel"
+	"peekaping/internal/modules/probe"
+	"peekaping/internal/modules/probe/protocol"
 	"peekaping/internal/modules/proxy"
-	"peekaping/internal/modules/queue"
 	"peekaping/internal/modules/setting"
 	"peekaping/internal/modules/stale"
 	"peekaping/internal/modules/status_page"
 	"peekaping/internal/modules/tag"
+	"peekaping/internal/modules/telemetry"
 	"peekaping/internal/modules/websocket"
+	"peekaping/internal/modules/workspace/workspacehttp"
+	"peekaping/internal/modules/workspaceport"
+	"peekaping/internal/probeproto"
 	"peekaping/internal/version"
+
+	"github.com/danielgtaylor/huma/v2"
 
 	"go.uber.org/zap"
 )
@@ -49,7 +58,7 @@ type HealthResponse struct {
 
 // newHealthHandler answers 200 while the server is up, so the docker healthcheck only
 // watches the API. An external watcher alerts on stale_monitors or an old watchdog_ran_at.
-func newHealthHandler(store *stale.Store, logger *zap.SugaredLogger) func(context.Context, *SystemInput) (*httpx.Output[HealthResponse], error) {
+func newHealthHandler(store stale.Store, logger *zap.SugaredLogger) func(context.Context, *SystemInput) (*httpx.Output[HealthResponse], error) {
 	return func(ctx context.Context, input *SystemInput) (*httpx.Output[HealthResponse], error) {
 		reqCtx, cancel := context.WithTimeout(ctx, 2*time.Second)
 		defer cancel()
@@ -74,9 +83,34 @@ type Server struct {
 	Cfg    *config.Config
 }
 
+// maxRequestBody is the most a request to the API may send, 1 MiB: no route takes more but the
+// import of a workspace (requestBodyLimit). A route with a smaller limit of its own keeps it.
+const maxRequestBody = 1 << 20
+
+// requestBodyLimit is the most the request may send: maxRequestBody, and more for the import of a
+// workspace, whose body is the whole setup in one file
+func requestBodyLimit(r *http.Request) int64 {
+	if r.Method == http.MethodPost && r.URL.Path == "/api/v1/"+workspaceport.ImportPath {
+		return workspaceport.MaxImportBody
+	}
+	return maxRequestBody
+}
+
+// ProvideTrustedProxies parses TRUSTED_PROXIES, which stops startup when an entry is invalid.
+func ProvideTrustedProxies(cfg *config.Config) (*httpx.TrustedProxies, error) {
+	return httpx.ParseTrustedProxies(cfg.TrustedProxies)
+}
+
+// ProvideCORSOrigins parses CORS_ORIGINS, which stops startup when an entry is invalid.
+func ProvideCORSOrigins(cfg *config.Config) (*httpx.CORSOrigins, error) {
+	return httpx.ParseCORSOrigins(cfg.CORSOrigins, cfg.ClientURL)
+}
+
 func ProvideServer(
 	logger *zap.SugaredLogger,
 	cfg *config.Config,
+	trustedProxies *httpx.TrustedProxies,
+	corsOrigins *httpx.CORSOrigins,
 	monitorRoute *monitor.MonitorRoute,
 	monitorController *monitor.MonitorController,
 	authRoute *auth.Route,
@@ -90,7 +124,7 @@ func ProvideServer(
 	settingController *setting.Controller,
 	heartbeatService heartbeat.Service,
 	monitorService monitor.Service,
-	queueService queue.Service,
+	ingesterService ingester.Service,
 	maintenanceRoute *maintenance.Route,
 	maintenanceController *maintenance.Controller,
 	maintenanceService maintenance.Service,
@@ -98,24 +132,35 @@ func ProvideServer(
 	statusPageController *status_page.Controller,
 	tagRoute *tag.Route,
 	tagController *tag.Controller,
+	telemetryRoute *telemetry.Route,
+	telemetryController *telemetry.Controller,
+	errorReportingRoute *error_reporting.Route,
+	errorReportingController *error_reporting.Controller,
 	badgeRoute *badge.Route,
 	badgeController *badge.Controller,
 	apiKeyRoute *api_key.Route,
 	apiKeyController *api_key.Controller,
-	staleStore *stale.Store,
+	probeRoute *probe.Route,
+	probeController *probe.Controller,
+	probeProtocolRoute *protocol.Route,
+	probeProtocolController *protocol.Controller,
+	workspaceRoute *workspacehttp.Route,
+	workspaceController *workspacehttp.Controller,
+	workspacePortRoute *workspaceport.Route,
+	workspacePortController *workspaceport.Controller,
+	adminRoute *admin.Route,
+	adminController *admin.Controller,
+	staleStore stale.Store,
 	metricsCollector *metrics.Collector,
 ) *Server {
-	middleware := []httpx.Middleware{httpx.Recovery(logger), httpx.CORS}
-	if cfg.Mode == "dev" {
-		middleware = append([]httpx.Middleware{httpx.Logger(logger)}, middleware...)
-	}
-	server := httpx.NewRouter(middleware...)
+	server := httpx.NewRouter(httpx.RequestID, httpx.Logger(logger, trustedProxies), httpx.Recovery(logger), httpx.CORS(corsOrigins), httpx.LimitBodyBy(requestBodyLimit))
 
 	healthHandler := newHealthHandler(staleStore, logger)
 	httpx.Register(server, "GET", "/health", huma.Operation{Summary: "Get server health", Tags: []string{"System"}}, healthHandler)
 
-	// Prometheus metrics endpoint (unauthenticated, like /health and /version)
-	if cfg.MetricsEnabled {
+	// Prometheus metrics endpoint (unauthenticated, like /health and /version). With METRICS_PORT
+	// set, the binary serves it on that port instead, and this router doesn't.
+	if cfg.MetricsEnabled && cfg.MetricsPort == "" {
 		server.Handle("GET", "/metrics", metricsCollector.Handler())
 	}
 
@@ -132,11 +177,21 @@ func ProvideServer(
 	maintenanceRoute.ConnectRoute(router, maintenanceController)
 	statusPageRoute.ConnectRoute(router, statusPageController)
 	tagRoute.ConnectRoute(router, tagController)
+	telemetryRoute.ConnectRoute(router, telemetryController)
+	errorReportingRoute.ConnectRoute(router, errorReportingController)
 	badgeRoute.ConnectRoute(router, badgeController)
 	apiKeyRoute.ConnectRoute(router, apiKeyController)
+	workspaceRoute.ConnectRoute(router, workspaceController)
+	workspacePortRoute.ConnectRoute(router, workspacePortController)
+	adminRoute.ConnectRoute(router, adminController)
+	probeRoute.ConnectRoute(router, probeController)
+
+	// The probe protocol is a sibling of the API, not under /api/v1: the probes speak it with their
+	// own token, and the admin's credentials don't open it
+	probeProtocolRoute.ConnectRoute(server.Group(probeproto.PathPrefix), probeProtocolController)
 
 	// Register push endpoint
-	healthcheck.RegisterPushEndpoint(router, monitorService, heartbeatService, queueService, maintenanceService, logger)
+	healthcheck.RegisterPushEndpoint(router, monitorService, heartbeatService, ingesterService, maintenanceService, logger)
 
 	// Compatibility entry points; generated documentation lives at /docs.
 	server.Handle("GET", "/swagger/{any...}", swaggerHandler(server.API()))

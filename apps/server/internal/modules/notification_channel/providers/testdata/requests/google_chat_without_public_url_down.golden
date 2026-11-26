@@ -1,0 +1,32 @@
+POST https://chat.googleapis.com/v1/spaces/AAA/messages?key=k&token=t
+Content-Type: application/json
+User-Agent: Peekaping-GoogleChat/<version>
+
+{
+  "cardsV2": [
+    {
+      "card": {
+        "header": {
+          "title": "🔴 Public API went down"
+        },
+        "sections": [
+          {
+            "widgets": [
+              {
+                "textParagraph": {
+                  "text": "\u003cb\u003eMessage:\u003c/b\u003e\nconnection refused"
+                }
+              },
+              {
+                "textParagraph": {
+                  "text": "\u003cb\u003eTime:\u003c/b\u003e\n2026-10-17 09:30:00"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "fallbackText": "🔴 Public API went down"
+}

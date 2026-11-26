@@ -6,12 +6,13 @@ import (
 	"fmt"
 	"net/url"
 	"peekaping/internal/modules/shared"
-	"peekaping/internal/utils"
+	"peekaping/internal/validation"
+	"slices"
 	"time"
 )
 
 func GenericValidator[T any](cfg *T) error {
-	return utils.Validate.Struct(cfg)
+	return validation.Validate.Struct(cfg)
 }
 
 func GenericUnmarshal[T any](configJSON string) (*T, error) {
@@ -50,48 +51,55 @@ func ValidateConnectionStringWithOptions(connectionString string, supportedSchem
 		return fmt.Errorf("invalid connection string format: %w", err)
 	}
 
-	// Check if the scheme is supported
-	schemeSupported := false
-	for _, scheme := range supportedSchemes {
-		if parsedURL.Scheme == scheme {
-			schemeSupported = true
-			break
-		}
+	if err := validateConnectionScheme(parsedURL.Scheme, supportedSchemes); err != nil {
+		return err
 	}
 
-	if !schemeSupported {
-		if len(supportedSchemes) == 1 {
-			return fmt.Errorf("connection string must use %s:// scheme, got: %s", supportedSchemes[0], parsedURL.Scheme)
-		} else {
-			return fmt.Errorf("connection string must use one of %v schemes, got: %s", supportedSchemes, parsedURL.Scheme)
-		}
-	}
-
-	if parsedURL.Host == "" || parsedURL.Hostname() == "" {
-		return fmt.Errorf("connection string must include host")
-	}
-
-	// Only require username if allowNoUsername is false
-	if !allowNoUsername {
-		if parsedURL.User == nil {
-			return fmt.Errorf("connection string must include username")
-		}
-
-		if parsedURL.User.Username() == "" {
-			return fmt.Errorf("connection string must include username")
-		}
+	if err := validateConnectionAuthority(parsedURL, allowNoUsername); err != nil {
+		return err
 	}
 
 	if parsedURL.Path == "" || parsedURL.Path == "/" {
 		return fmt.Errorf("connection string must include database name")
 	}
 
-	// Validate port if provided
-	if port := parsedURL.Port(); port != "" {
-		if port == "0" {
-			return fmt.Errorf("invalid port: 0")
-		}
+	if parsedURL.Port() == "0" {
+		return fmt.Errorf("invalid port: 0")
 	}
 
 	return nil
+}
+
+// validateConnectionScheme checks that the scheme is one of the supported ones
+func validateConnectionScheme(scheme string, supportedSchemes []string) error {
+	if slices.Contains(supportedSchemes, scheme) {
+		return nil
+	}
+	if len(supportedSchemes) == 1 {
+		return fmt.Errorf("connection string must use %s:// scheme, got: %s", supportedSchemes[0], scheme)
+	}
+	return fmt.Errorf("connection string must use one of %v schemes, got: %s", supportedSchemes, scheme)
+}
+
+// validateConnectionAuthority checks the host, and the username unless allowNoUsername is set
+func validateConnectionAuthority(parsedURL *url.URL, allowNoUsername bool) error {
+	if parsedURL.Host == "" || parsedURL.Hostname() == "" {
+		return fmt.Errorf("connection string must include host")
+	}
+
+	if !allowNoUsername && (parsedURL.User == nil || parsedURL.User.Username() == "") {
+		return fmt.Errorf("connection string must include username")
+	}
+
+	return nil
+}
+
+// connectionStringHosts returns the host of a connection string written as a URL, such as a
+// postgres:// or mysql:// one. A string that isn't a URL has none: the check reports it.
+func connectionStringHosts(connectionString string) []string {
+	u, err := url.Parse(connectionString)
+	if err != nil || u.Hostname() == "" {
+		return nil
+	}
+	return []string{u.Hostname()}
 }

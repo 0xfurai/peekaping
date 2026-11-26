@@ -28,7 +28,7 @@ print_usage() {
 
 start_rabbitmq() {
     echo -e "${GREEN}Starting RabbitMQ containers...${NC}"
-    docker-compose -f "$COMPOSE_FILE" up -d
+    docker compose -f "$COMPOSE_FILE" up -d
 
     echo -e "${YELLOW}Waiting for RabbitMQ to be ready...${NC}"
     sleep 10
@@ -46,7 +46,7 @@ start_rabbitmq() {
 
 stop_rabbitmq() {
     echo -e "${RED}Stopping RabbitMQ containers...${NC}"
-    docker-compose -f "$COMPOSE_FILE" down
+    docker compose -f "$COMPOSE_FILE" down
 }
 
 restart_rabbitmq() {
@@ -57,12 +57,12 @@ restart_rabbitmq() {
 
 show_status() {
     echo -e "${GREEN}RabbitMQ Container Status:${NC}"
-    docker-compose -f "$COMPOSE_FILE" ps
+    docker compose -f "$COMPOSE_FILE" ps
 }
 
 show_logs() {
     echo -e "${GREEN}RabbitMQ Container Logs:${NC}"
-    docker-compose -f "$COMPOSE_FILE" logs -f
+    docker compose -f "$COMPOSE_FILE" logs -f
 }
 
 test_endpoints() {

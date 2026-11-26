@@ -2,15 +2,58 @@ package monitor
 
 import (
 	"peekaping/internal/config"
+	"peekaping/internal/dbtx"
+	"peekaping/internal/limits"
+	"peekaping/internal/modules/events"
+	"peekaping/internal/modules/healthcheck/executor"
+	"peekaping/internal/modules/heartbeat"
+	"peekaping/internal/modules/monitor_notification"
+	"peekaping/internal/modules/monitor_tag"
+	"peekaping/internal/modules/stats"
 	"peekaping/internal/utils"
 
 	"go.uber.org/dig"
+	"go.uber.org/zap"
 )
 
-func RegisterDependencies(container *dig.Container, cfg *config.Config) {
-	utils.RegisterRepositoryByDBType(container, cfg, NewSQLRepository, NewMongoRepository)
-	container.Provide(NewMonitorService)
-	container.Provide(NewMonitorController)
-	container.Provide(NewMonitorRoute)
-	container.Provide(NewMonitorEventListener)
+func RegisterDependencies(container *dig.Container) error {
+	// The dbtx.Transactor is provided here, beside the repository, so that it resolves wherever the
+	// monitor service does: it writes a monitor and its links in one transaction
+	return utils.Provide(container, provideSQLRepository, dbtx.NewSQLTransactor,
+		provideMonitorService, NewMonitorController, NewMonitorRoute, NewMonitorEventListener)
+}
+
+// serviceParams are what NewMonitorService takes
+type serviceParams struct {
+	dig.In
+
+	Repository       MonitorRepository
+	Transactor       dbtx.Transactor
+	Heartbeats       heartbeat.Service
+	EventBus         events.EventBus
+	Notifications    monitor_notification.Service
+	Tags             monitor_tag.Service
+	ExecutorRegistry *executor.ExecutorRegistry
+	Stats            stats.Service
+	// Probes is provided by internal/app, with the probe module. A container without it has no
+	// probes but the local one.
+	Probes ProbeLookup `optional:"true"`
+	Logger *zap.SugaredLogger
+	// Config is the install's settings. A container without it disables no monitor type and sets no minimum interval.
+	Config *config.Config `optional:"true"`
+	// Limits are the workspaces' limits, from package limits. A container without them has none.
+	Limits limits.Source `optional:"true"`
+}
+
+func provideMonitorService(p serviceParams) Service {
+	opts := []ServiceOption{WithServiceLimits(p.Limits)}
+	if p.Config != nil {
+		opts = append(opts, WithServiceDisabledTypes(p.Config.DisabledMonitorTypeList()))
+		// 20 is the DTOs' own minimum, which the controllers enforce: the service adds nothing
+		// until the install raises it, so that with MIN_CHECK_INTERVAL unset nothing changes
+		if minimum := p.Config.MinCheckIntervalSeconds(); minimum > config.AbsoluteMinCheckInterval {
+			opts = append(opts, WithServiceMinCheckInterval(minimum))
+		}
+	}
+	return NewMonitorService(p.Repository, p.Transactor, p.Heartbeats, p.EventBus, p.Notifications, p.Tags, p.ExecutorRegistry, p.Stats, p.Probes, p.Logger, opts...)
 }

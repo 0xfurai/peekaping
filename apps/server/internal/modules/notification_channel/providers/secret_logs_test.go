@@ -1,0 +1,366 @@
+package providers
+
+import (
+	"cmp"
+	"context"
+	"fmt"
+	"io"
+	"net/http"
+	"net/http/httptest"
+	"os"
+	"strings"
+	"testing"
+
+	"peekaping/internal/config"
+	"peekaping/internal/installsettings"
+	"peekaping/internal/modules/heartbeat"
+	"peekaping/internal/modules/monitor"
+	"peekaping/internal/modules/shared"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zaptest/observer"
+)
+
+// loggedText returns everything the observed logger wrote, one entry per line: each message
+// and its fields
+func loggedText(logs *observer.ObservedLogs) string {
+	var lines []string
+	for _, entry := range logs.All() {
+		line := entry.Message
+		for key, value := range entry.ContextMap() {
+			line += fmt.Sprintf(" %s=%v", key, value)
+		}
+		lines = append(lines, line)
+	}
+	return strings.Join(lines, "\n")
+}
+
+// A send to a channel whose URL is the credential must leave that URL out of its logs, at
+// every level, and still log which channel it sent to and how it went
+func TestSenders_DoNotLogSecretURLs(t *testing.T) {
+	cases := []struct {
+		name string
+		// send runs a send of the channel against serverURL
+		send func(logger *zap.SugaredLogger, serverURL string) error
+		// secrets are the parts of the channel's config that must not show up in its logs
+		secrets func(serverURL string) []string
+		// channel is how the logs name the channel
+		channel string
+		// sentLog is what the logs say once the send went through, when it isn't "<channel> notification sent"
+		sentLog string
+		// logsHost is set when the logs must still say which host the send went to
+		logsHost bool
+	}{
+		{
+			name: "telegram",
+			send: func(logger *zap.SugaredLogger, serverURL string) error {
+				cfg := `{"bot_token": "123456:secret-bot-token", "chat_id": "42", "server_url": "` + serverURL + `"}`
+				return NewTelegramSender(logger, NewHTTPClient()).Send(context.Background(), cfg, "Monitor is down", testMonitor(), testHeartbeat())
+			},
+			secrets: func(serverURL string) []string { return []string{"123456:secret-bot-token", serverURL, "sendMessage"} },
+			channel: "telegram",
+		},
+		{
+			name: "webhook",
+			send: func(logger *zap.SugaredLogger, serverURL string) error {
+				cfg := `{"webhook_url": "` + serverURL + `/hook/secret-webhook-path", "webhook_content_type": "json",` +
+					` "webhook_additional_headers": "{\"Authorization\": \"Bearer secret-header-token\"}"}`
+				return NewWebhookSender(logger, NewHTTPClient()).Send(context.Background(), cfg, "Monitor is down", testMonitor(), testHeartbeat())
+			},
+			secrets: func(serverURL string) []string {
+				return []string{"secret-webhook-path", "secret-header-token", "Authorization", serverURL}
+			},
+			channel: "webhook",
+		},
+		{
+			name: "google chat",
+			send: func(logger *zap.SugaredLogger, serverURL string) error {
+				cfg := `{"webhook_url": "` + serverURL + `/v1/spaces/AAA/messages?key=secret-chat-key&token=secret-chat-token"}`
+				return NewGoogleChatSender(logger, installsettings.Static(&config.Config{}), NewHTTPClient()).Send(context.Background(), cfg, "Monitor is down", testMonitor(), testHeartbeat())
+			},
+			secrets: func(serverURL string) []string { return []string{"secret-chat-key", "secret-chat-token", serverURL} },
+			channel: "google chat",
+		},
+		{
+			name: "wecom",
+			send: func(logger *zap.SugaredLogger, serverURL string) error {
+				cfg := `{"webhook_url": "` + serverURL + `/cgi-bin/webhook/send?key=secret-wecom-key"}`
+				return NewWeComSender(logger, NewHTTPClient()).Send(context.Background(), cfg, "Monitor is down", testMonitor(), testHeartbeat())
+			},
+			secrets: func(serverURL string) []string { return []string{"secret-wecom-key", serverURL} },
+			channel: "wecom",
+		},
+		{
+			name: "grafana oncall",
+			send: func(logger *zap.SugaredLogger, serverURL string) error {
+				cfg := `{"grafana_oncall_url": "` + serverURL + `/integrations/v1/webhook/secret-oncall-token/"}`
+				return NewGrafanaOncallSender(logger, NewHTTPClient()).Send(context.Background(), cfg, "Monitor is down", testMonitor(), testHeartbeat())
+			},
+			secrets: func(serverURL string) []string { return []string{"secret-oncall-token", serverURL} },
+			channel: "grafana oncall",
+		},
+		{
+			// On a public ntfy server the topic works as the password, and the server URL can carry
+			// credentials as userinfo
+			name: "ntfy",
+			send: func(logger *zap.SugaredLogger, serverURL string) error {
+				cfg := `{"server_url": "` + ntfyServerURLWithUserinfo(serverURL) + `", "topic": "secret-ntfy-topic", "authentication_type": "none"}`
+				return NewNTFYSender(logger, NewHTTPClient()).Send(context.Background(), cfg, "Monitor is down", testMonitor(), testHeartbeat())
+			},
+			secrets: func(serverURL string) []string {
+				return []string{"secret-ntfy-topic", "secret-pass", ntfyServerURLWithUserinfo(serverURL), serverURL}
+			},
+			channel: "ntfy",
+		},
+		{
+			// PagerDuty's integration URL can carry userinfo and a query, and its key is the credential
+			name: "pagerduty",
+			send: func(logger *zap.SugaredLogger, serverURL string) error {
+				cfg := `{"pagerduty_integration_key": "secret-pd-key", "pagerduty_integration_url": "` +
+					withUserinfo(serverURL, "pd-user:secret-pd-pass") + `/v2/enqueue?routing=secret-pd-query"}`
+				return NewPagerDutySender(logger, installsettings.Static(&config.Config{}), NewHTTPClient()).Send(context.Background(), cfg, "Monitor is down", testMonitor(), testHeartbeat())
+			},
+			secrets: func(serverURL string) []string {
+				return []string{"secret-pd-key", "secret-pd-pass", "secret-pd-query", "/v2/enqueue", serverURL}
+			},
+			channel:  "pagerduty",
+			logsHost: true,
+		},
+		{
+			// The card's "View in Peekaping" button holds server_url, which can carry userinfo and a query
+			name: "teams",
+			send: func(logger *zap.SugaredLogger, serverURL string) error {
+				cfg := `{"webhook_url": "` + serverURL + `/webhook/secret-teams-path", "server_url": "https://teams-user:secret-teams-pass@peekaping.example/base?key=secret-teams-query"}`
+				return NewTeamsSender(logger, installsettings.Static(&config.Config{}), NewHTTPClient()).Send(context.Background(), cfg, "Monitor is down", testMonitor(), testHeartbeat())
+			},
+			secrets: func(serverURL string) []string {
+				return []string{"secret-teams-pass", "secret-teams-query", "secret-teams-path", "peekaping.example/base", serverURL}
+			},
+			channel: "teams",
+			sentLog: "teams message sent",
+		},
+		{
+			name: "signal",
+			send: func(logger *zap.SugaredLogger, serverURL string) error {
+				cfg := `{"signal_url": "` + withUserinfo(serverURL, "sig-user:secret-signal-pass") + `/v2/send?apikey=secret-signal-query",` +
+					` "signal_number": "+10000000000", "signal_recipients": "+10000000001"}`
+				return NewSignalSender(logger, NewHTTPClient()).Send(context.Background(), cfg, "Monitor is down", testMonitor(), testHeartbeat())
+			},
+			secrets: func(serverURL string) []string {
+				return []string{"secret-signal-pass", "secret-signal-query", "/v2/send", serverURL}
+			},
+			channel:  "signal",
+			sentLog:  "signal message sent",
+			logsHost: true,
+		},
+		{
+			name: "gotify",
+			send: func(logger *zap.SugaredLogger, serverURL string) error {
+				cfg := `{"server_url": "` + withUserinfo(serverURL, "got-user:secret-gotify-pass") + `/secret-gotify-path", "application_token": "secret-gotify-token"}`
+				return NewGotifySender(logger, NewHTTPClient()).Send(context.Background(), cfg, "Monitor is down", testMonitor(), testHeartbeat())
+			},
+			secrets: func(serverURL string) []string {
+				return []string{"secret-gotify-pass", "secret-gotify-path", "secret-gotify-token", serverURL}
+			},
+			channel:  "gotify",
+			logsHost: true,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(http.StatusOK)
+			}))
+			defer server.Close()
+			core, logs := observer.New(zap.DebugLevel)
+
+			require.NoError(t, tc.send(zap.New(core).Sugar(), server.URL))
+
+			logged := loggedText(logs)
+			for _, secret := range tc.secrets(server.URL) {
+				assert.NotContains(t, logged, secret)
+			}
+			sentLog := cmp.Or(tc.sentLog, tc.channel+" notification sent")
+			assert.Contains(t, strings.ToLower(logged), sentLog, "the log says which channel the send went to and that it succeeded")
+			if tc.logsHost {
+				assert.Contains(t, logged, strings.TrimPrefix(server.URL, "http://"), "the log says which host the send went to")
+			}
+		})
+	}
+}
+
+// Opsgenie sends to a fixed endpoint of its region, and an Up alert closes the alert named after
+// the monitor: that URL has a path and a query, and the logs name only its host
+func TestOpsgenieSender_LogsOnlyTheHostOfItsRequests(t *testing.T) {
+	var requested []string
+	client := &http.Client{Transport: urlNotingTransport{urls: &requested}}
+	core, logs := observer.New(zap.DebugLevel)
+	up := &heartbeat.Model{MonitorID: "mon-1", Status: shared.MonitorStatusUp}
+
+	err := NewOpsgenieSender(zap.New(core).Sugar(), client).Send(context.Background(),
+		`{"region": "eu", "api_key": "secret-opsgenie-key", "priority": 3}`, "Monitor is up", testMonitor(), up)
+
+	require.NoError(t, err)
+	require.Len(t, requested, 1)
+	assert.Contains(t, requested[0], "identifierType=alias", "the send still goes to the close URL")
+	logged := loggedText(logs)
+	for _, secret := range []string{"secret-opsgenie-key", "identifierType", "/close", "/v2/alerts"} {
+		assert.NotContains(t, logged, secret)
+	}
+	assert.Contains(t, logged, "api.eu.opsgenie.com", "the log says which host the send went to")
+}
+
+// A URL that does not parse could hold a password anywhere, so the logs show none of it
+func TestSignalSender_UnparsableURLIsNotLogged(t *testing.T) {
+	core, logs := observer.New(zap.DebugLevel)
+	cfg := `{"signal_url": "http://user:secret-bad-pass@bad host/v2/send", "signal_number": "+10000000000", "signal_recipients": "+10000000001"}`
+
+	err := NewSignalSender(zap.New(core).Sugar(), &http.Client{Transport: stubTransport{}}).Send(context.Background(), cfg, "Monitor is down", testMonitor(), testHeartbeat())
+
+	require.Error(t, err)
+	assert.NotContains(t, loggedText(logs), "secret-bad-pass")
+}
+
+// An email send must write nothing to stdout, and must leave the message (recipient, subject and
+// body) out of its logs, at every level
+func TestEmailSender_DoesNotPrintOrLogTheMessage(t *testing.T) {
+	server := startFakeSMTPServer(t)
+	config := withSMTPServer(t, `{"username": "alerts@example.com", "password": "smtp-pass", "from": "alerts@example.com", "to": "oncall@example.com",`+
+		` "custom_subject": "secret-subject", "custom_body": "secret-email-body"}`, server.port())
+	core, logs := observer.New(zap.DebugLevel)
+
+	stdout := captureStdout(t, func() {
+		require.NoError(t, NewEmailSender(zap.New(core).Sugar()).Send(context.Background(), config, "Monitor is down", testMonitor(), testHeartbeat()))
+	})
+
+	assert.Empty(t, stdout)
+	logged := loggedText(logs)
+	for _, secret := range []string{"secret-email-body", "secret-subject", "oncall@example.com", "smtp-pass"} {
+		assert.NotContains(t, logged, secret)
+	}
+	assert.Contains(t, strings.ToLower(logged), "email notification sent", "the log says which channel the send went to and that it succeeded")
+	assert.Contains(t, <-server.sessions, "secret-email-body", "the message still reaches the SMTP server")
+}
+
+// captureStdout returns what fn wrote to os.Stdout
+func captureStdout(t *testing.T, fn func()) string {
+	t.Helper()
+	reader, writer, err := os.Pipe()
+	require.NoError(t, err)
+	original := os.Stdout
+	os.Stdout = writer
+	defer func() { os.Stdout = original }()
+
+	fn()
+
+	require.NoError(t, writer.Close())
+	out, err := io.ReadAll(reader)
+	require.NoError(t, err)
+	return string(out)
+}
+
+// withUserinfo is serverURL with userinfo (user:password) in front of its host
+func withUserinfo(serverURL, userinfo string) string {
+	return strings.Replace(serverURL, "://", "://"+userinfo+"@", 1)
+}
+
+// urlNotingTransport answers every request with 200 and notes its URL
+type urlNotingTransport struct{ urls *[]string }
+
+func (r urlNotingTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	*r.urls = append(*r.urls, req.URL.String())
+	return stubTransport{}.RoundTrip(req)
+}
+
+// ntfyServerURLWithUserinfo is serverURL with credentials in front of its host
+func ntfyServerURLWithUserinfo(serverURL string) string {
+	return strings.Replace(serverURL, "://", "://user:secret-pass@", 1)
+}
+
+// stubTransport answers every request with 200, so a sender with a fixed endpoint (LINE,
+// Slack's API) can run without the network
+type stubTransport struct{}
+
+func (stubTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	return &http.Response{
+		StatusCode: http.StatusOK,
+		Status:     "200 OK",
+		Body:       io.NopCloser(strings.NewReader(`{"ok": true}`)),
+		Header:     http.Header{},
+		Request:    req,
+	}, nil
+}
+
+// Template bindings hold the whole monitor: its config (basic auth password, tokens, DSNs) and
+// push token. A channel that renders a template must not dump them into its debug logs.
+func TestSenders_DoNotLogTheMonitorsConfig(t *testing.T) {
+	client := &http.Client{Transport: stubTransport{}}
+	m := &monitor.Model{
+		ID:        "mon-1",
+		Name:      "Public API",
+		Type:      "http",
+		Config:    `{"url": "https://example.com", "authMethod": "basic", "basic_auth_pass": "secret-monitor-password"}`,
+		PushToken: "secret-push-token",
+	}
+
+	cases := []struct {
+		name string
+		send func(logger *zap.SugaredLogger) error
+	}{
+		{"slack", func(logger *zap.SugaredLogger) error {
+			cfg := `{"slack_webhook_url": "https://hooks.slack.com/services/T000/B000/xxx"}`
+			return NewSlackSender(logger, installsettings.Static(&config.Config{}), client).Send(context.Background(), cfg, "Monitor is down", m, testHeartbeat())
+		}},
+		{"telegram", func(logger *zap.SugaredLogger) error {
+			cfg := `{"bot_token": "123456:token", "chat_id": "42", "use_template": true, "template": "{{ name }} is {{ status }}"}`
+			return NewTelegramSender(logger, client).Send(context.Background(), cfg, "Monitor is down", m, testHeartbeat())
+		}},
+		{"line", func(logger *zap.SugaredLogger) error {
+			cfg := `{"channel_access_token": "token", "user_id": "user", "template": "{{ name }} is {{ status }}"}`
+			return NewLineSender(logger, client).Send(context.Background(), cfg, "Monitor is down", m, testHeartbeat())
+		}},
+		{"discord", func(logger *zap.SugaredLogger) error {
+			cfg := `{"webhook_url": "https://discord.com/api/webhooks/1/xxx"}`
+			return NewDiscordSender(logger, client).Send(context.Background(), cfg, "Monitor is down", m, testHeartbeat())
+		}},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			core, logs := observer.New(zap.DebugLevel)
+
+			require.NoError(t, tc.send(zap.New(core).Sugar()))
+
+			logged := loggedText(logs)
+			assert.NotContains(t, logged, "secret-monitor-password")
+			assert.NotContains(t, logged, "secret-push-token")
+			assert.NotContains(t, logged, "basic_auth_pass")
+		})
+	}
+}
+
+func TestWebhookSender_InvalidAdditionalHeadersErrorDoesNotEchoTheHeaders(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer server.Close()
+	// Not JSON, so the send fails while it parses them
+	cfg := `{"webhook_url": "` + server.URL + `", "webhook_content_type": "json", "webhook_additional_headers": "Authorization: Bearer secret-header-token"}`
+
+	err := NewWebhookSender(zap.NewNop().Sugar(), NewHTTPClient()).Send(context.Background(), cfg, "Monitor is down", testMonitor(), testHeartbeat())
+
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "additional Headers is not a valid JSON")
+	assert.NotContains(t, err.Error(), "secret-header-token")
+}
+
+func testMonitor() *monitor.Model {
+	return &monitor.Model{ID: "mon-1", Name: "Public API", Type: "http", Config: `{"url": "https://example.com"}`}
+}
+
+func testHeartbeat() *heartbeat.Model {
+	return &heartbeat.Model{MonitorID: "mon-1", Status: shared.MonitorStatusDown, Msg: "connection refused"}
+}

@@ -1,0 +1,8 @@
+POST https://mattermost.example.com/hooks/abc
+Content-Type: application/json
+User-Agent: Peekaping-Mattermost/<version>
+
+{
+  "text": "Heads up: 🚨 Certificate Expiry Warning\n\nMonitor: Public API\nCertificate: api.example.com (server)\nExpires in: 7 days\nValid until: 2026-10-24 09:30:00\nNotification threshold: 7 days\nValid for: api.example.com\nIssuer: CN=R11,O=Let's Encrypt,C=US",
+  "username": "Peekaping"
+}

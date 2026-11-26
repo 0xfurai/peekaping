@@ -3,20 +3,294 @@
     "cancel": "Ezeztatu",
     "saving": "Gordetzen..."
   },
+  "admin": {
+    "nav": {
+      "back_to_workspace": "Itzuli hona: {{name}}",
+      "probes": "Zundak",
+      "title": "Administrazioa",
+      "users": "Erabiltzaileak",
+      "workspaces": "Lan-eremuak",
+      "settings": "Ezarpenak"
+    },
+    "users": {
+      "actions": {
+        "delete": "Ezabatu erabiltzailea",
+        "disable": "Desgaitu erabiltzailea",
+        "disableTwoFactor": "Desaktibatu 2FA",
+        "enable": "Gaitu erabiltzailea",
+        "grantAdmin": "Egin instalazioaren administratzaile",
+        "resetLink": "Sortu berrezartzeko esteka",
+        "revokeAdmin": "Kendu instalazioaren administratzaile izaera"
+      },
+      "actions_aria": "{{email}} erabiltzailearen ekintzak",
+      "columns": {
+        "created": "Sortua",
+        "email": "Helbide elektronikoa",
+        "email_verified": "Helbide elektronikoa egiaztatuta",
+        "instance_admin": "Instalazioaren administratzailea",
+        "last_sign_in": "Azken saio-hasiera",
+        "status": "Egoera",
+        "two_factor": "2FA",
+        "workspaces": "Lan-eremuak"
+      },
+      "confirm": {
+        "cancel": "Ezeztatu",
+        "delete": {
+          "confirm": "Ezabatu erabiltzailea",
+          "description": "{{email}} ezabatu? Bere kontua kenduko da, baita lan-eremuetako bere lekuak ere. Ezin da desegin.",
+          "title": "Ezabatu erabiltzailea"
+        },
+        "disable": {
+          "confirm": "Desgaitu",
+          "description": "{{email}} ezin da saioa hasi eta orain nonahi itxi zaio saioa. Bere lan-eremuek martxan jarraitzen dute. Geroago berriro gaitu dezakezu.",
+          "title": "Desgaitu erabiltzailea"
+        },
+        "disableTwoFactor": {
+          "confirm": "Desaktibatu 2FA",
+          "description": "{{email}} pasahitzarekin soilik hasiko du saioa, eta 2FA berriro konfigura dezake. Egin hau eskatzen ari dena benetan hura dela ziur zaudenean soilik.",
+          "title": "Desaktibatu 2FA"
+        }
+      },
+      "description": "Instalazio honetan kontua duten guztiak. Instalazioaren administratzaileek instalazioa bera kudeatzen dute, adibidez zundak eta erabiltzaileak. Erabiltzaile baten rola lan-eremu batean lan-eremu horretako jabeek ezartzen dute.",
+      "empty": "Ez da erabiltzailerik aurkitu",
+      "errors": {
+        "last_instance_admin": "Instalazioak instalazioaren administratzaile bat behar du gutxienez.",
+        "last_owner": "Erabiltzailea lan-eremu hauen azken jabea da: {{workspaces}}. Egin lehenengo beste norbait jabe, edo ezabatu lan-eremua.",
+        "self": "Ezin duzu hau zure kontuarekin egin."
+      },
+      "load_failed": "Ezin izan dira erabiltzaileak kargatu.",
+      "messages": {
+        "admin_granted": "{{email}} instalazioaren administratzailea da orain",
+        "admin_revoked": "{{email}} ez da jada instalazioaren administratzailea",
+        "deleted": "{{email}} ezabatu da",
+        "disabled": "{{email}} desgaituta dago eta saioa itxi du",
+        "enabled": "{{email}} gaituta dago",
+        "two_factor_off": "2FA desaktibatuta dago {{email}} erabiltzailearentzat",
+        "update_failed": "Ezin izan da erabiltzailea eguneratu."
+      },
+      "never": "Inoiz ez",
+      "none": "Bat ere ez",
+      "page_name": "Erabiltzaileak",
+      "paging": {
+        "next": "Hurrengoa",
+        "page": "{{page}}. orria, {{pages}} orritatik",
+        "previous": "Aurrekoa"
+      },
+      "reset_link": {
+        "close": "Itxi",
+        "copied": "Esteka kopiatu da",
+        "copy": "Kopiatu esteka",
+        "copy_failed": "Ezin izan da esteka kopiatu. Hautatu eta kopiatu eskuz.",
+        "description": "{{email}} erabiltzaileak pasahitz berri bat aukeratzeko esteka. Kopiatu eta eman orain: behin bakarrik erakusten da.",
+        "emailed": "Instalazio honek kontuko mezu elektronikoak bidaltzen ditu, beraz erabiltzaileari posta elektronikoz jakinarazten zaio berarentzat esteka bat sortu dela.",
+        "expires": "Estekak behin bakarrik funtzionatzen du. Iraungitze-data: {{when}}.",
+        "failed": "Ezin izan da esteka sortu.",
+        "label": "Esteka",
+        "making": "Esteka sortzen...",
+        "signs_out": "Estekaren erabilerak erabiltzailearen saioa nonahi ixten du.",
+        "title": "Pasahitza berrezartzeko esteka"
+      },
+      "search_label": "Bilatu erabiltzaileak helbide elektronikoaren bidez",
+      "search_placeholder": "Bilatu helbide elektronikoaren bidez",
+      "total": "{{total}} aurkitu dira",
+      "values": {
+        "active": "Aktibo",
+        "disabled": "Desgaituta",
+        "no": "Ez",
+        "two_factor_off": "Desaktibatuta",
+        "two_factor_on": "Aktibatuta",
+        "yes": "Bai"
+      },
+      "you": "zu"
+    },
+    "workspaces": {
+      "actions": {
+        "delete": "Ezabatu lan-eremua",
+        "resume": "Berrekin lan-eremuari",
+        "suspend": "Eten lan-eremua",
+        "limits": "Mugak"
+      },
+      "actions_aria": "{{name}} lan-eremuaren ekintzak",
+      "columns": {
+        "created": "Sortua",
+        "custom_domains": "Domeinu pertsonalizatuak",
+        "members": "Kideak",
+        "monitors": "Monitoreak",
+        "name": "Izena",
+        "owners": "Jabeak",
+        "status": "Egoera",
+        "status_pages": "Egoera-orriak",
+        "limits": "Mugak"
+      },
+      "confirm": {
+        "cancel": "Ezeztatu",
+        "delete": {
+          "confirm": "Ezabatu lan-eremua",
+          "description": "{{name}} ezabatu? Barruan dagoen guztia desagertuko da: bere monitoreak eta haien historia, egoera-orriak, jakinarazpen-kanalak eta bere kideen sarbidea. Ezin da desegin.",
+          "name_label": "Berresteko, idatzi lan-eremuaren izena: {{name}}",
+          "title": "Ezabatu lan-eremua"
+        },
+        "resume": {
+          "confirm": "Berrekin",
+          "description": "{{name}} lan-eremuko monitoreak berriro abiatuko dira lehen zuten egoeran, eta bere kideek lehen bezala erabil dezakete. Jabeak helbide elektronikoa egiazta dezan zain dagoen lan-eremu batek zain jarraituko du.",
+          "title": "Berrekin lan-eremuari"
+        },
+        "suspend": {
+          "confirm": "Eten",
+          "description": "{{name}} lan-eremuko monitoreak gelditu egingo dira, bere egoera-orri publikoek erabilgarri ez daudela esango dute, eta bere kideek etenda dagoela ikusiko dute. Ez da ezer ezabatzen, eta geroago berriro martxan jar dezakezu.",
+          "title": "Eten lan-eremua"
+        }
+      },
+      "description": "Instalazio honetako lan-eremu guztiak, beren jabe eta kideekin, eta zenbat duten. Kopuruak bakarrik erakusten dira, ez lan-eremu baten barruko ezer.",
+      "empty": "Ez da lan-eremurik aurkitu",
+      "load_failed": "Ezin izan dira lan-eremuak kargatu.",
+      "messages": {
+        "deleted": "{{name}} ezabatu da",
+        "failed": "Ezin izan da lan-eremua aldatu.",
+        "resumed": "{{name}} berriro martxan dago",
+        "suspended": "{{name}} etenda dago"
+      },
+      "monitors": "{{active}} aktibo, {{paused}} pausatuta",
+      "none": "Bat ere ez",
+      "page_name": "Lan-eremuak",
+      "paging": {
+        "next": "Hurrengoa",
+        "page": "{{page}}. orria, {{pages}} orritatik",
+        "previous": "Aurrekoa"
+      },
+      "search_label": "Bilatu lan-eremuak izenaren edo jabearen helbide elektronikoaren bidez",
+      "search_placeholder": "Bilatu izenaren edo jabearen helbide elektronikoaren bidez",
+      "status": {
+        "running": "Martxan",
+        "suspended_admin": "Administratzaile batek etenda",
+        "suspended_unverified": "Etenda, jabeak bere helbide elektronikoa egiaztatu arte"
+      },
+      "total": "{{total}} aurkitu dira",
+      "limits": {
+        "item": "{{name}}: {{value}}",
+        "more": "+{{number}} gehiago",
+        "unlimited": "Mugarik gabe",
+        "source": {
+          "workspace": "Berarenak",
+          "install": "Instalazioaren lehenespenak",
+          "none": "Ezarri gabe"
+        },
+        "dialog": {
+          "title": "{{name}} lan-eremuaren mugak",
+          "description": "Zeren mende dagoen lan-eremu hau. Muga bat jaisteak ez du ezer geldiarazten ez ezabatzen: mugaren gainetik dauden monitore berrienak gelditu egiten dira, berriro tokia egon arte.",
+          "own": "Bere mugak",
+          "own_help": "Hauek instalazioaren lehenespenak ordezkatzen dituzte. Utzi muga hutsik mugarik ez izateko.",
+          "unlimited": "Mugarik gabe",
+          "unlimited_help": "Inolako mugarik ez, instalazioaren lehenespenek zer esaten duten axola gabe.",
+          "defaults": "Erabili instalazioaren lehenespenak",
+          "defaults_help": "Administrazioa → Ezarpenak atalaren muga lehenetsiak, edo bat ere ez instalazioak batere ezartzen ez badu.",
+          "save": "Gorde mugak",
+          "cancel": "Ezeztatu",
+          "saved": "{{name}} lan-eremuaren mugak gorde dira",
+          "failed": "Ezin izan dira mugak gorde."
+        }
+      }
+    },
+    "settings": {
+      "page_name": "Ezarpenak",
+      "description": "Instalazio osoaren ezarpenak. Zerbitzariaren inguruneak ezarritako balioa blokeatuta dago hemen.",
+      "load_failed": "Ezin izan dira ezarpenak kargatu.",
+      "saved": "Ezarpenak gordeta",
+      "save_failed": "Ezarpenak ez dira gorde.",
+      "locked": "Zerbitzariaren inguruneak ezarria",
+      "source": {
+        "environment": "Zerbitzariaren ingurunetik",
+        "saved": "Hemen gordea",
+        "default": "Lehenetsia"
+      },
+      "signup": {
+        "title": "Izen-ematea",
+        "description": "Nork sor dezakeen kontu bat instalazio honetan.",
+        "label": "Izen-emate modua",
+        "invite": "Gonbidapenarekin soilik",
+        "open": "Irekia",
+        "invite_help": "Lehen erabiltzaileak izena ematen du, eta ondorengo guztiak gonbidapen baten bidez sartzen dira lan-eremu batean.",
+        "open_help": "Edonork eman dezake izena eta bere lan-eremua jasotzen du. Kontu berriek beren helbide elektronikoa egiaztatzen dute, beraz posta-igorle bat behar da."
+      },
+      "sender": {
+        "title": "Posta-igorlea",
+        "description": "Kontuko mezuak bidaltzen dituen SMTP zerbitzaria: pasahitza berrezartzeko estekak, helbidearen egiaztapena eta gonbidapenak.",
+        "on": "Kontuko mezuak aktibatuta daude.",
+        "off": "Kontuko mezuak desaktibatuta daude: ez dago SMTP ostalaririk.",
+        "host": "SMTP Ostalaria",
+        "port": "Ataka",
+        "tls": "Segurtasuna",
+        "tls_starttls": "STARTTLS",
+        "tls_tls": "TLS",
+        "tls_none": "Bat ere ez",
+        "user": "Erabiltzailea",
+        "password": "Pasahitza",
+        "password_set": "Pasahitz bat ezarrita dago. Idatzi ordezkatzeko.",
+        "password_not_set": "Ez dago pasahitzik ezarrita",
+        "password_removed": "Pasahitza kenduko da gordetzean.",
+        "password_reenter": "Ostalaria, ataka, segurtasuna edo erabiltzailea aldatzean, gordetako pasahitza kentzen da. Idatzi berriro.",
+        "remove_password": "Kendu pasahitza",
+        "keep_password": "Mantendu pasahitza",
+        "from": "Igorlearen helbidea"
+      },
+      "public_url": {
+        "title": "URL publikoa",
+        "description": "Web aplikazioaren helbidea, mezuetako eta jakinarazpenetako estekek irekitzen dutena.",
+        "label": "URL publikoa"
+      },
+      "test_email": {
+        "title": "Bidali proba-mezu bat",
+        "description": "Mezu labur bat bidaltzen du gordetako igorlearen bidez, funtzionatzen duela egiaztatzeko.",
+        "to": "Bidali hona",
+        "send": "Bidali proba-mezu bat",
+        "sending": "Bidaltzen…",
+        "sent": "Proba-mezua bidali da hona: {{to}}.",
+        "failed": "Proba-mezua ez da bidali.",
+        "unsaved": "Igorleak gorde gabeko aldaketak ditu. Probak gordetako igorlea erabiltzen du, beraz gorde lehenik."
+      },
+      "validation": {
+        "port": "Sartu 1 eta 65535 arteko ataka bat, edo utzi hutsik lehenetsia erabiltzeko."
+      },
+      "errors": {
+        "locked": "{{field}} zerbitzariaren inguruneak ezartzen du eta ezin da hemen aldatu.",
+        "open_needs_sender": "Izen-emate irekiak posta-igorle bat behar du, kontu berriek beren helbide elektronikoa egiaztatzen dutelako. Konfiguratu igorlea lehenik, edo gordetze berean.",
+        "sender_needed": "Izen-ematea irekia dago, eta kontu berriek igorlea behar dute beren helbide elektronikoa egiaztatzeko. Aldatu lehenik izen-ematea gonbidapenarekin soilik modura.",
+        "no_sender": "Ez dago posta-igorlerik. Gorde igorle bat lehenik."
+      },
+      "limits": {
+        "title": "Muga lehenetsiak",
+        "description": "Berezko mugarik ez duen lan-eremu bakoitzaren mugak. Utzi muga hutsik mugarik ez izateko. Lan-eremu bati Lan-eremuak orrian ematen zaizkion mugek hauek ordezkatzen dituzte.",
+        "name_label": "Lehenetsitako mugen izena",
+        "name_help": "Lan-eremu baten Erabilera orrian bistaratzen da, adibidez Doako plana. Hutsik utziz gero, orriak dio zure administratzaileak ezarri dituela mugak."
+      }
+    }
+  },
   "auth": {
     "login": {
       "description": "Hasi saioa zure epostarekin",
       "no_account": "Ez duzu konturik?",
       "sign_up": "Erregistratu",
       "submit": "Saioa hasi",
-      "title": "Berriz ongi etorri"
+      "title": "Berriz ongi etorri",
+      "forgot_password": "Pasahitza ahaztu duzu?",
+      "ask_admin": "Eskatu gonbidapen bat instalazio honen administratzaile bati"
     },
     "register": {
       "description": "Sortu zure administratzaile kontua",
+      "description_open": "Sortu zure kontua",
       "have_account": "Kontu bat baduzu?",
       "sign_in": "Sartu",
       "submit": "Sortu",
-      "title": "Kaixo"
+      "title": "Kaixo",
+      "telemetry_note": "Anonimoa: monitoreen izenik, URLrik edo ostalaririk gabe. Geroago aldatu dezakezu «Ezarpenak» atalean.",
+      "telemetry_whats_sent": "Zer bidaltzen den",
+      "errors": {
+        "rate_limited": "Zure sareatik izen-emate gehiegi. Saiatu berriro ordubete barru.",
+        "email_taken": "Badago kontu bat posta elektroniko honekin.",
+        "sign_in_instead": "Hobe saioa hasi.",
+        "check_failed": "Egiaztapenak ez du gainditu. Saiatu berriro.",
+        "check_load_failed": "Ezin izan da egiaztapena kargatu. Egiaztatu zure konexioa eta saiatu berriro."
+      }
     },
     "twofa": {
       "code_label": "2FA kodea",
@@ -25,11 +299,51 @@
       "title": "Bi faktoreko autentifikazioa beharrezkoa",
       "verify_button": "Egiaztatu 2FA",
       "verifying": "Egiaztatzen..."
+    },
+    "forgot": {
+      "title": "Berrezarri pasahitza",
+      "description": "Idatzi zure kontuaren helbide elektronikoa eta esteka bat bidaliko dizugu.",
+      "submit": "Bidali esteka",
+      "sent": "Helbide elektroniko honekin konturik badago, esteka bat bidali dugu. Ordubetez dabil.",
+      "back_to_login": "Itzuli saioa hastera"
+    },
+    "reset": {
+      "title": "Aukeratu pasahitz berri bat",
+      "description": "Idatzi zure kontuaren pasahitz berria.",
+      "submit": "Ezarri pasahitza",
+      "success": "Zure pasahitza aldatu da eta leku guztietatik saioa itxi da. Hasi saioa pasahitz berriarekin.",
+      "sign_in": "Hasi saioa",
+      "invalid_link": "Esteka hau erabilita dago edo iraungi da.",
+      "request_new": "Eskatu esteka berri bat"
+    },
+    "verify": {
+      "title": "Egiaztatu zure helbide elektronikoa",
+      "verifying": "Zure helbide elektronikoa egiaztatzen...",
+      "success": "Zure helbide elektronikoa egiaztatu da.",
+      "open_app": "Ireki Peekaping",
+      "invalid_link": "Esteka hau erabilita dago edo iraungi da."
+    },
+    "errors": {
+      "rate_limited": "Eskaera gehiegi. Saiatu berriro geroago.",
+      "generic": "Zerbait gaizki joan da. Saiatu berriro.",
+      "already_verified": "Zure helbide elektronikoa lehendik ere egiaztatuta dago."
+    },
+    "resend": {
+      "button": "Bidali berriro",
+      "sent": "Esteka berri bat bidali dugu. Begiratu zure sarrera-ontzia."
+    },
+    "verification_banner": {
+      "message": "Egiaztatu zure helbide elektronikoa: esteka bat bidali dugu {{email}} helbidera."
+    },
+    "suspension_notice": {
+      "message": "Zure monitoreak martxan jarriko dira posta elektronikoa egiaztatzen duzunean.",
+      "member_message": "Lan-eremu honen monitoreak martxan jarriko dira bere jabeak posta elektronikoa egiaztatzen duenean."
     }
   },
   "bars": {
     "down_count": "Jaitutako kopurua",
     "important": "Garrantzitsua",
+    "instance": "Instantzia",
     "interval": "Tartea",
     "message": "Mezua",
     "ms": "sm",
@@ -65,10 +379,12 @@
     "loading": "Kargatzen...",
     "logout": "Saioa amaitu",
     "maintenance": "Mantentzea",
+    "no_data": "Daturik ez",
     "no_options_found": "Aukerarik ez da aurkitu",
     "no_tags_available": "Etiketarik ez dago",
     "please_refresh_page": "Mesedez, berritu orria.",
     "required": "Beharrezkoa",
+    "retry": "Saiatu berriro",
     "save": "Gorde",
     "saving": "Gordetzen...",
     "search": "Bilatu",
@@ -83,6 +399,12 @@
     "up": "Goian",
     "update": "Eguneratu",
     "verifying": "Egiaztatzen..."
+  },
+  "error_reporting": {
+    "label": "Bidali errore-txostenak",
+    "never_sent": "Ez da inoiz bidaltzen: errore-mezuak, URLak, goiburuak, webhook-en URLak, izenak edo ostalari-izenak. Txostenak ez du IP helbiderik, eta Peekaping-en Sentry proiektua bidaltzailearen IPa ez gordetzeko konfiguratuta dago.",
+    "not_saved": "Errore-txostenei buruzko aukeraketa ez da gorde. Egiaztatu «Ezarpenak» atalean.",
+    "sent": "Peekaping bera huts egiten duenean bakarrik bidaltzen da. Txosten batek errorearen mota eta kodean non gertatu den, Peekaping-en bertsioa, modu bakarra edo kluster modua, biltegiratze-backenda eta sistema eragilea ditu."
   },
   "forms": {
     "labels": {
@@ -113,7 +435,35 @@
       "email_invalid": "Mesedez, sartu baliozko eposta helbidea",
       "password_required": "Pasahitza beharrezkoa da",
       "password_min_length": "Pasahitza gutxienez 8 karaktere izan behar du",
+      "password_complexity": "Pasahitzak letra larri bat, letra xehe bat, zenbaki bat eta karaktere berezi bat izan behar ditu",
       "passwords_mismatch": "Pasahitzak ez datoz bat"
+    }
+  },
+  "invite": {
+    "accept": "Onartu gonbidapena",
+    "accepting": "Batzen...",
+    "creating": "Sortzen...",
+    "description": "{{workspace}} lan-eremura batzeko gonbidatu zaituzte, rola: {{role}}.",
+    "enter_failed": "Lan-eremura batu zara, baina ezin izan da ireki. Saiatu berriro.",
+    "errors": {
+      "other_email": "Gonbidapen hau beste helbide elektroniko baterako da."
+    },
+    "for_email": "Gonbidapen hau {{email}} helbiderako da.",
+    "have_account": "Badaukazu konturik?",
+    "open_app": "Ireki Peekaping",
+    "other_account": "{{current}} gisa hasi duzu saioa, baina gonbidapen hau {{invited}} helbiderako da. Amaitu saioa eta, ondoren, hasi saioa edo eman izena {{invited}} helbidearekin hura onartzeko.",
+    "sign_in_instead": "Hasi saioa horren ordez",
+    "sign_out": "Amaitu saioa",
+    "signup_description": "Aukeratu pasahitz bat zure kontua sortzeko eta {{workspace}} lan-eremura batzeko, rola: {{role}}.",
+    "signup_submit": "Sortu kontua eta batu",
+    "title": "Batu {{workspace}} lan-eremura",
+    "unavailable": {
+      "accepted": "Gonbidapen hau erabilita dago dagoeneko.",
+      "expired": "Gonbidapen hau iraungi da. Eskatu berri bat.",
+      "not_found": "Gonbidapen-esteka hau ez dago. Egiaztatu osorik kopiatu duzula.",
+      "revoked": "Gonbidapen hau indargabetu da. Eskatu berri bat.",
+      "title": "Gonbidapen hau ezin da erabili",
+      "unknown": "Gonbidapen hau ezin da erabili. Eskatu berri bat."
     }
   },
   "maintenance": {
@@ -221,6 +571,79 @@
       "wed": "Az"
     }
   },
+  "members": {
+    "change_role_aria": "Aldatu {{email}} erabiltzailearen rola",
+    "errors": {
+      "account_exists": "Helbide elektroniko honekin kontu bat badago jada. Hasi saioa eta onartu gonbidapena.",
+      "already_member": "Pertsona hau lan-eremu honetako kidea da dagoeneko.",
+      "forbidden": "Zure rolak ez du horretarako baimenik lan-eremu honetan.",
+      "generic": "Zerbait okerra gertatu da. Saiatu berriro.",
+      "last_owner": "Lan-eremu batek gutxienez jabe bat behar du.",
+      "member_not_found": "Kide hau ez dago jada lan-eremuan."
+    },
+    "invite": {
+      "copied": "Esteka kopiatu da",
+      "copy": "Kopiatu",
+      "creating": "Sortzen...",
+      "description": "Sortu esteka bat helbide elektroniko eta rol baterako. Ez da mezu elektronikorik bidaltzen: kopiatu esteka eta bidali zeuk.",
+      "done": "Eginda",
+      "email_label": "Helbide elektronikoa",
+      "link_note": "Esteka honek behin bakarrik funtzionatzen du eta 7 egunera iraungitzen da. Orain bakarrik erakusten da, beraz kopiatu orri hau utzi aurretik.",
+      "link_title": "Gonbidapen-esteka",
+      "role_label": "Rola",
+      "submit": "Sortu gonbidapen-esteka",
+      "title": "Gonbidatu norbait"
+    },
+    "leave": {
+      "button": "Utzi lan-eremua",
+      "confirm": "Utzi",
+      "description": "Berehala galtzen duzu lan-eremu honetarako eta bere datuetarako sarbidea.",
+      "done": "Lan-eremua utzi duzu",
+      "last_owner": "Azken jabea zara, beraz ezin duzu utzi. Egin lehenik beste kide bat jabe.",
+      "refresh_failed": "Lan-eremutik irten zara, baina ezin izan dira zure lan-eremuak kargatu. Saiatu berriro.",
+      "title": "Utzi lan-eremu hau"
+    },
+    "list": {
+      "description": "Lan-eremu honetan lan egiten duten guztiak eta haien rola.",
+      "email": "Helbide elektronikoa",
+      "joined": "Batu zen",
+      "role": "Rola",
+      "title": "Kideak",
+      "you": "zu"
+    },
+    "page_name": "Kideak",
+    "pending": {
+      "description": "Oraindik erabili gabeko gonbidapenak. Indargabetutako gonbidapen baten esteka ez da gehiago ibiltzen.",
+      "email": "Helbide elektronikoa",
+      "empty": "Ez dago zain dagoen gonbidapenik.",
+      "expired": "Iraungita",
+      "expires": "Iraungitzen da",
+      "revoke": "Indargabetu",
+      "revoke_aria": "Indargabetu {{email}} erabiltzailearen gonbidapena",
+      "revoked": "Gonbidapena indargabetu da",
+      "role": "Rola",
+      "title": "Zain dauden gonbidapenak"
+    },
+    "remove": "Kendu",
+    "remove_aria": "Kendu {{email}}",
+    "remove_dialog": {
+      "confirm": "Kendu",
+      "description": "{{email}} erabiltzaileak berehala galtzen du lan-eremu honetarako sarbidea.",
+      "title": "Kendu kidea"
+    },
+    "removed": "Kidea kendu da",
+    "role_updated": "Rola eguneratu da",
+    "roles": {
+      "admin": "Administratzailea",
+      "member": "Kidea",
+      "owner": "Jabea"
+    },
+    "settings_card": {
+      "description": "Ikusi nor ari den lan egiten lan-eremu honetan eta, administratzailea edo jabea bazara, gonbidatu jendea eta kudeatu haien rolak.",
+      "open": "Ireki kideak",
+      "title": "Kideak"
+    }
+  },
   "messages": {
     "login_error": "Saioa hasitzerakoan errorea gertatu da",
     "login_no_tokens": "Saioa arrakastaz hasi da, baina tokenak jaso gabe",
@@ -248,6 +671,7 @@
     },
     "empty_state": {
       "action": "Sortu zure lehen monitorra",
+      "add_channel": "Gehitu jakinarazpen-kanal bat",
       "description": "Hasieratu lehen monitoa sortuz, zure zerbitzuen osasuna jarraitzeko.",
       "title": "Monitoreik ez daude aurkitu"
     },
@@ -490,12 +914,25 @@
       "shared": {
         "intervals": {
           "heartbeat_retry": "Bizikuntza berriztaiteko tartea (Berriztaiteko {{seconds}} segundo)",
+          "interval_too_short": "Ezin da {{minimum}} segundo baino txikiagoa izan",
           "max_retries_description": "Gehieneko saiakera kopurua, zerbitzuak 'ez dago' bezala markatu eta abisu bat bidaltzeko",
           "request_timeout": "Eskariaren denbora-mugua ({{seconds}} segundoen ondoren)",
-          "resend_notification": "Berriz bidali abisua, X aldiz jarraian jaitsi (Berriz bidalketa desgaituta)"
+          "resend_notification": "Berriz bidali abisua, X aldiz jarraian jaitsi (Berriz bidalketa desgaituta)",
+          "timeout_too_long": "Ezin da egiaztatze-tartearen % 80 baino handiagoa izan"
+        },
+        "location_rule": {
+          "all": "kokaleku guztiak behera daudenean",
+          "any": "edozein kokaleku behera dagoenean",
+          "at_least": "N kokaleku gutxienez behera daudenean",
+          "description": "Zundak konexiorik ez duen edo oraindik emaitzarik eman ez duen kokalekua ez da kontuan hartzen.",
+          "label": "Markatu monitorea behera dagoela",
+          "threshold_invalid": "Sartu zenbaki oso bat, 1 edo gehiago",
+          "threshold_label": "Kokaleku kopurua",
+          "threshold_too_high": "Ezin da aukeratutako zunden kopurua baino handiagoa izan"
         },
         "notifications": {
           "add_notifier": "Gehitu jakinarazlea",
+          "load_failed": "Ezin izan dira jakinarazpen-kanalak kargatu",
           "new_notifier": "+ Jakinarazle berria",
           "no_channels": "Jakinarazpen-kanalerik ez da aurkitu, sortu bat lehenik",
           "no_channels_available": "Kanalerik ez dago eskuragarri",
@@ -503,6 +940,15 @@
           "select_notifier_placeholder": "Jakinarazlea aukeratu",
           "selected_channels": "Hautatutako jakinarazpen kanalak",
           "title": "Jakinarazpen kanalenak"
+        },
+        "probe": {
+          "description": "Monitoreak aukeratzen duzun zunda bakoitzean exekutatzen da, eta zunda bakoitzaren emaitzak kokaleku gisa erakusten ditu.",
+          "label": "Zunda",
+          "option_unsupported": "{{name}} (ez du mota hau exekutatzen)",
+          "placeholder": "Hautatu zunda",
+          "push_fixed": "Push monitoreak beti zunda lokalean exekutatzen da.",
+          "required": "Aukeratu zunda bat gutxienez",
+          "unsupported": "Zunda honek ez du monitore mota hau exekutatzen. Hautatu beste zunda bat."
         },
         "proxy": {
           "add_proxy": "Proxya Gehitu",
@@ -512,6 +958,10 @@
           "select_proxy_placeholder": "Proxya hautatu",
           "selected_proxy": "Hautatutako proxy",
           "title": "hatziratz"
+        },
+        "run_from": {
+          "default_locations": "Lehenetsitako kokapenetan exekutatzen da",
+          "label": "Exekutatu hemendik"
         },
         "tags": {
           "label": "Etiketak",
@@ -563,6 +1013,8 @@
         "docker": "Docker Konteinerra",
         "grpc": "gRPC gako-hizkuntza monitorra",
         "http": "HTTP(S) monitorea",
+        "http_json_query": "HTTP(s) - JSON kontsulta",
+        "http_keyword": "HTTP(s) - Gako-hitza",
         "kafka": "Kafka Erretzale Monitor",
         "mongodb": "MongoDB datu-basearen monitorea",
         "mqtt": "MQTT Broker Monitorea",
@@ -617,9 +1069,12 @@
     "toasts": {
       "deleted": "Monitorea ezabatu da",
       "paused": "Monitorea pausatuta",
+      "push_token_already_used": "Beste monitore batek dagoeneko erabiltzen du push token hau. Sortu berri bat.",
       "reset_success": "Monitoreko datuak ondo berrabiarazi dira",
       "resumed": "Monitorea berrabiarazi da"
     },
+    "type_disabled": "{{type}} mota desaktibatuta dago instalazio honetan",
+    "over_limit": "Ez da egiaztatzen: lan-eremuak bere mugak baimentzen duena baino monitore aktibo gehiago ditu",
     "view": {
       "buttons": {
         "clone": "Klonatu",
@@ -649,6 +1104,15 @@
       "expiring_soon": "Iraungitzen ari da",
       "for": "etarako",
       "live_status": "Zuzeneko egoera",
+      "locations": {
+        "all": "Kokaleku guztiak",
+        "no_result": "Oraindik ez dago emaitzarik",
+        "probe_offline": "Zundak ez du konexiorik",
+        "probe_unsupported": "Ez du mota hau exekutatzen",
+        "response_time": "Erantzun denbora",
+        "select_label": "Kokalekua",
+        "title": "Kokalekuak"
+      },
       "monitor_for": "monitoratu",
       "no_certificate_data": "Ez dago ziurtagiri daturik",
       "seconds": "segundoak",
@@ -671,9 +1135,11 @@
     }
   },
   "navigation": {
+    "admin": "Administrazioa",
     "maintenance": "Mantentzea",
     "monitors": "Monitoreak",
     "notification_channels": "Joparpen kanalak",
+    "probes": "Zundak",
     "proxies": "Proxyak",
     "settings": "Ezarpenak",
     "status_pages": "Egoera orriak",
@@ -854,9 +1320,9 @@
       "pagerduty": {
         "auto_resolve_acknowledge": "Automatikoki berretsi",
         "auto_resolve_acknowledge_description": "Automatikoki onartu insidentzia",
-        "auto_resolve_description": "Aukeratu monitor-a berriz igarotzean zein ekintza hartu behar duzu",
+        "auto_resolve_description": "Aukeratu zer bidali behar den monitorea berriro martxan dagoenean edo zunda berriro linean dagoenean",
         "auto_resolve_do_nothing": "Ez egin",
-        "auto_resolve_do_nothing_description": "Ez da ekintzarik hartu UP egoeran",
+        "auto_resolve_do_nothing_description": "Ez da ezer bidaltzen monitorea berriro martxan dagoenean edo zunda berriro linean dagoenean, beraz insidentziak irekita jarraitzen du PagerDuty-n konpontzen duzun arte",
         "auto_resolve_label": "Auto konponketa edo onarpena",
         "auto_resolve_placeholder": "Hautatu auto-berreskuratzearen portaera",
         "auto_resolve_resolve": "Automatikoki konpontzea",
@@ -879,7 +1345,7 @@
         "authentication_token_description": "Token autentifikazio aukerakoa segurtasun handiagoa lortzeko. Pagertree-token goiburuan bidaliko da.",
         "authentication_token_label": "Autentifikazio token (aukerazkoa)",
         "authentication_token_placeholder": "Sartu autentifikazio tokena, beharrezkoa bada",
-        "auto_resolve_alerts_description": "PagerTree abisuak automatikoki konpontu monitorea berreskuratzen denean",
+        "auto_resolve_alerts_description": "PagerTree abisuak automatikoki konpontu monitorea berriro martxan dagoenean edo zunda berriro linean dagoenean",
         "auto_resolve_alerts_label": "Alerta automatikoki desaktibatzea",
         "how_to_get_integration_url_label": "Integrazioaren URLa nola lortu",
         "integration_url_description": "Sartu PagerTree webhook integrazioaren URLa.",
@@ -1082,6 +1548,12 @@
         "signing_secret_docs_link": "Nola egiaztatu sinadura",
         "signing_secret_label": "Sinadura-sekretua",
         "signing_secret_placeholder": "Utzi hutsik sinatu gabeko eskaerak bidaltzeko"
+      },
+      "install_email": {
+        "description": "Instalazio honek bidaltzen du, ez da SMTP zerbitzaririk behar.",
+        "to_description": "Lan-eremu honetako kide bat. Jakinarazpenak helbidea egiaztatu ondoren bidaliko dira.",
+        "to_label": "Hartzailea",
+        "to_placeholder": "Aukeratu kide bat"
       }
     },
     "important": "Jakinarazpen garrantzitsuak",
@@ -1100,13 +1572,150 @@
       "updated_success": "Jakinarazlea ongi eguneratu da"
     },
     "new": {
-      "title": "Jakinarazpen-kanal berria"
+      "title": "Jakinarazpen-kanal berria",
+      "default_hint": "Kanal hau monitore berrietan markatuta egongo da."
     },
     "no_important": "Ez da garrantzitsuen jakinarazpenik aurkitu.",
     "placeholders": {
       "select_type": "Hautatu jakinarazpen mota"
     },
-    "search_placeholder": "Bilatu jakinarazpen kanalak izenaren arabera..."
+    "search_placeholder": "Bilatu jakinarazpen kanalak izenaren arabera...",
+    "secret": {
+      "reenter_error": "Sartu berriro sekretu hau edo kendu: bidaltzen den helmuga aldatu da",
+      "reenter_hint": "Sartu berriro sekretu hau: bidaltzen den helmuga aldatu da",
+      "reenter_url_error": "Idatzi berriro URL honen kredentzialak: URLa aldatu da gorde zenetik",
+      "remove": "Kendu",
+      "saved_hint": "Gordeta — idatzi ordezkatzeko"
+    }
+  },
+  "probes": {
+    "default": {
+      "description": "Zundak aukeratu gabe sortutako monitore bat lehenetsitako zundetan exekutatzen da, desgaituta ez daudenetan eta bere mota exekutatzen dutenetan, eta zunda lokalean bat ere ez badago. Lehendik dauden monitoreek beren zundak mantentzen dituzte.",
+      "failed": "Ezin izan da aldatu zunda lehenetsia den ala ez.",
+      "label": "Zunda lehenetsia",
+      "off": "{{name}} ez da jada zunda lehenetsia",
+      "on": "{{name}} zunda lehenetsia da orain",
+      "title": "Monitore berrietarako lehenetsia"
+    },
+    "default_badge": "Lehenetsia",
+    "page_name": "Zundak",
+    "description": "Zundek monitoreen egiaztapenak exekutatzen dituzte instalatuta dauden lekuetatik. Zunda lokala Peekaping bera da.",
+    "local_name": "Lokala",
+    "monitor_probe": "Zunda: {{name}}",
+    "monitor_probe_unsupported": "{{name}} zundak ez ditu {{type}} motako monitoreak exekutatzen",
+    "empty_list": {
+      "title": "Ez da zundarik aurkitu",
+      "text": "Sortu zunda bat egiaztapenak beste leku batetik exekutatzeko.",
+      "action_text": "Sortu zure lehen zunda"
+    },
+    "table": {
+      "headers": {
+        "name": "Izena",
+        "location": "Kokalekua",
+        "status": "Egoera",
+        "disabled": "Desgaituta",
+        "token": "Tokena",
+        "instances": "Instantziak",
+        "actions": "Ekintzak"
+      },
+      "status": {
+        "online": "Linean",
+        "offline": "Lineaz kanpo"
+      },
+      "disabled": "Desgaituta",
+      "no_instances": "Oraindik ez dago instantziarik",
+      "last_seen": "azkenekoz ikusia {{date}}",
+      "actions": {
+        "edit": "Editatu {{name}} zunda",
+        "rotate": "Aldatu {{name}} zundaren tokena",
+        "assign_all": "Esleitu {{name}} zunda monitore guztiei",
+        "delete": "Ezabatu {{name}} zunda"
+      }
+    },
+    "create_dialog": {
+      "title": "Sortu zunda",
+      "description": "Zunda batek instalatzen duzun lekutik exekutatzen ditu egiaztapenak. Bere tokena behin bakarrik erakusten da, sortu ondoren.",
+      "submit": "Sortu zunda",
+      "creating": "Sortzen..."
+    },
+    "assign_all": {
+      "warning": "Tokenak zundari esleitutako monitore guztien konfigurazioa irakurtzen du, kredentzialak barne.",
+      "docs_link": "Zer irakur dezakeen tokenak"
+    },
+    "assign_all_dialog": {
+      "title": "Esleitu monitore guztiei",
+      "description": "Gehitu {{name}} zunda exekuta dezakeen monitore guztietara, push monitoreak izan ezik. Oraindik instantziarik ez duen zunda lehen instantzia konektatzen denean gehituko da.",
+      "confirm": "Esleitu monitore guztiei",
+      "assigning": "Esleitzen..."
+    },
+    "edit_dialog": {
+      "title": "Editatu zunda",
+      "description": "Aldatu {{name}} zundaren ezarpenak."
+    },
+    "form": {
+      "name_label": "Izena",
+      "name_placeholder": "adib., Frankfurt",
+      "location_label": "Kokalekua (aukerakoa)",
+      "location_placeholder": "adib., Frankfurt, Alemania",
+      "assign_all_label": "Esleitu monitore guztiei",
+      "assign_all_description": "Bere lehen instantzia konektatzen denean, zunda gai den monitore guztietara gehituko da, push monitoreak izan ezik.",
+      "name_required": "Izena beharrezkoa da",
+      "name_too_long": "Izena luzeegia da",
+      "location_too_long": "Kokalekua luzeegia da",
+      "disabled_label": "Desgaituta",
+      "disabled_description": "Desgaitutako zunda baten tokenak funtzionatzeari uzten dio berriro gaitu arte.",
+      "notifications_hint": "Utzi hutsik zunda honen monitoreen kanaletara jakinarazteko."
+    },
+    "rotate_dialog": {
+      "title": "Aldatu tokena",
+      "description": "{{name}} zundaren token zaharrak berehala uzten dio funtzionatzeari. Bere instantziak token berriarekin berrabiarazi behar dira.",
+      "confirm": "Aldatu tokena",
+      "rotating": "Aldatzen..."
+    },
+    "delete_dialog": {
+      "title": "Ezabatu zunda",
+      "description": "Ziur zaude \"{{name}}\" zunda ezabatu nahi duzula? Bere tokenak funtzionatzeari utziko dio. Ekintza hau ezin da desegin."
+    },
+    "token_alert": {
+      "title_created": "{{name}} zunda sortu da",
+      "title_rotated": "Token berria {{name}} zundarentzat",
+      "note": "Token honek zundari esleitutako monitoreen konfigurazioak irakurtzen ditu. Behin bakarrik erakusten da.",
+      "token_label": "Tokena",
+      "docker_label": "Abiarazi zunda Dockerrekin",
+      "copy_token": "Kopiatu tokena",
+      "copy_command": "Kopiatu docker komandoa"
+    },
+    "messages": {
+      "created_successfully": "Zunda behar bezala sortu da",
+      "updated_successfully": "Zunda behar bezala eguneratu da",
+      "rotated_successfully": "Tokena behar bezala aldatu da",
+      "assigned_successfully": "Gehitutako monitoreak: {{added}}",
+      "assign_pending": "Konektatzen denean exekutatzen dituen monitore guztietara gehituko da",
+      "deleted_successfully": "Zunda behar bezala ezabatu da",
+      "failed_to_create": "Ezin izan da zunda sortu",
+      "failed_to_update": "Ezin izan da zunda eguneratu",
+      "failed_to_rotate": "Ezin izan da tokena aldatu",
+      "failed_to_assign": "Ezin izan da zunda monitore guztiei esleitu",
+      "failed_to_delete": "Ezin izan da zunda ezabatu",
+      "failed_to_load": "Ezin izan dira zundak kargatu",
+      "copy_success": "Arbelera kopiatu da",
+      "copy_failed": "Ezin izan da arbelera kopiatu"
+    },
+    "detail": {
+      "assign_all_pending": "Bere lehen instantziaren zain: konektatzen denean exekutatzen dituen monitore guztietara gehituko da.",
+      "not_found": "Ez da zunda aurkitu"
+    },
+    "availability": {
+      "title": "Erabilgarritasuna",
+      "range_label": "Denbora-tartea",
+      "bar_label": "Erabilgarritasunaren historia",
+      "instance_bar_label": "{{name}} elementuaren konexioak",
+      "no_data": "Daturik ez",
+      "now": "Orain",
+      "instances_title": "Instantziak, azken 24 orduak",
+      "in_process_note": "Peekaping-ek berak egiaztatzen ditu zunda lokalaren monitoreak, beraz ez du erabilgarritasun-historiarik.",
+      "connected_since": "{{start}}-tik konektatuta"
+    }
   },
   "proxies": {
     "delete_dialog": {
@@ -1145,6 +1754,20 @@
     "search_placeholder": "Bilatu proxieak hostean..."
   },
   "security": {
+    "delete_account": {
+      "button": "Ezabatu kontua",
+      "description": "Zure kontua ezabatzen du eta zure saioak amaitzen ditu. Zauden lan-eremu guztietatik irteten zara. Ezin da desegin.",
+      "dialog_description": "Zure kontua berehala ezabatzen da eta saioa amaitzen da. Zauden lan-eremu guztietatik irteten zara. Ezin da desegin.",
+      "errors": {
+        "last_instance_admin": "Zu zara instalazio honen azken administratzailea. Beste instalazio-administratzaile bat behar da zure kontua ezabatu aurretik.",
+        "last_owner": "Zu zara hauen jabe bakarra: {{workspaces}}. Egin jabe beste kide bat, edo ezabatu lehenengo lan-eremua.",
+        "wrong_password": "Pasahitza okerra da"
+      },
+      "failed": "Ezin izan da kontua ezabatu",
+      "password_label": "Zure pasahitza",
+      "success": "Zure kontua ezabatu da",
+      "title": "Ezabatu kontua"
+    },
     "enable_2fa": {
       "form": {
         "authenticator_code_label": "Autentifikatzaile kodea",
@@ -1267,10 +1890,35 @@
     "to_email_label": "Helbide elektronikoa"
   },
   "settings": {
+    "danger_zone": {
+      "button": "Ezabatu lan-eremua",
+      "description": "Lan-eremu hau ezabatzean, barruko guztia betiko ezabatzen da: monitoreak, taupadak, egoera orriak eta gainerakoa. Ezabaketa baieztatu eta 7 egunera gertatzen da. Bere monitoreak berehala gelditzen dira, eta jabe batek ordura arte ezeztatu dezake ezabaketa.",
+      "dialog_description": "Honek {{name}} eta barruko guztia ezabatzen ditu, hemendik 7 egunera. Bere monitoreak berehala gelditzen dira, eta ezabaketa ordura arte ezeztatu dezakezu.",
+      "failed": "Ezin izan da ezabaketa programatu",
+      "name_label": "Baieztatzeko, idatzi lan-eremuaren izena: {{name}}",
+      "scheduled": "Lan-eremu hau ezabatuko da: {{date}}. Ordura arte, bere monitoreak ez dira exekutatzen. Ezeztatu ezabaketa dena berreskuratzeko.",
+      "title": "Arrisku-eremua"
+    },
     "data_retention": {
       "days_label": "Egunak",
       "description": "Ezarri zenbat egun data mantendu (KEEP_DATA_PERIOD_DAYS).",
-      "title": "Datuen mantentze-epoa"
+      "read_only": "Lan-eremuko administratzaileak edo jabeak soilik alda dezake hau.",
+      "title": "Datuen mantentze-epoa",
+      "capped": "Gehienez {{max}} egun lan-eremu honetan"
+    },
+    "error_reporting": {
+      "cluster_note": "Kluster moduan, aldaketa prozesu guztietara iristen da minutu baten barruan.",
+      "description": "Bidali txosten bat Sentry-ra zerbitzariak huts egiten duenean. Lehenespenez aktibatuta dago; hemen desaktibatu dezakezu edonoiz.",
+      "forced_off": "ERROR_REPORTING=off ingurune-aldagaiak desaktibatzen du hau. Ez da ezer bidaltzen, ezarpen honek dioena dena delakoa.",
+      "title": "Errore-txostenak"
+    },
+    "telemetry": {
+      "description": "Bidali instalazio hau nola konfiguratuta dagoenari buruzko estatistika anonimoak, egunean behin gehienez. Lehenespenez aktibatuta dago; hemen desaktibatu dezakezu edonoiz.",
+      "forced_off": "TELEMETRY=off ingurune-aldagaiak desaktibatzen du hau. Ez da ezer bidaltzen, ezarpen honek dioena dena delakoa.",
+      "id_note": "Instantziaren IDa aktibatuta dagoen bitartean sortzen da eta desaktibatzean ezabatzen da. Berriro aktibatzen baduzu, berri bat sortzen da.",
+      "payload_off": "Ez da ezer bidaltzen hau desaktibatuta dagoen bitartean. Hau izango litzateke erabilera-pingaren edukia aktibatuko bazenu.",
+      "payload_title": "Hurrengo erabilera-pingak zer bidaliko duen",
+      "title": "Erabilera-estatistikak"
     },
     "timezone": {
       "description": "Hautatu zure gustuko den ordu-zona aplikazioan denbora guztiak erakusteko.",
@@ -1282,6 +1930,73 @@
     },
     "validation": {
       "min_days": "Gutxienez 1 egun"
+    },
+    "workspace_name": {
+      "description": "Lan-eremuen aldatzailean eta bere kideei erakusten zaien izena.",
+      "title": "Lan-eremuaren izena"
+    },
+    "workspace_export": {
+      "title": "Esportazioa",
+      "description": "Deskargatu lan-eremu honen konfigurazioa JSON fitxategi bakar batean: bere ezarpenak, etiketak, proxyak, jakinarazpen kanalak, monitoreak, mantentze-ordutegiak eta egoera orriak. Jabe batek fitxategia beste lan-eremu batean inporta dezake.",
+      "warning_title": "Fitxategiak gordetako sekretuak ditu",
+      "warning": "Zure jakinarazpen kanalen eta proxyen bot tokenak, pasahitzak eta webhook URLak osorik daude bertan, ezkutatu gabe. Gorde fitxategia pasahitz bat bezala, eta ez partekatu ikusi behar ez dituen inorekin.",
+      "download_workspace": "Deskargatu lan-eremua",
+      "download_heartbeats": "Deskargatu taupaden historia",
+      "heartbeats_note": "Taupaden historia fitxategi bereizia da eta handia izan daiteke. Monitore bakoitzaren egiaztapen bakoitzeko lerro bat dauka.",
+      "downloading": "Deskargatzen...",
+      "failed": "Ezin izan da lan-eremua deskargatu",
+      "heartbeats_failed": "Ezin izan da taupaden historia deskargatu"
+    },
+    "workspace_import": {
+      "title": "Inportazioa",
+      "description": "Gehitu lan-eremu baten esportazio fitxategiko erregistroak lan-eremu honetara. Ez da ezer ordezkatzen: hemen daudenen ondoan sartzen dira.",
+      "file_label": "Lan-eremuaren esportazio fitxategia (.json)",
+      "choose": "Aukeratu fitxategi bat",
+      "not_json": "Fitxategi hau ez da baliozko JSON bat, beraz ez da ezer bidali.",
+      "too_large": "Fitxategi hau 16 MB baino handiagoa da, inportazioak onartzen duen gehienekoa, beraz ez da ezer bidali.",
+      "unreadable": "Fitxategi hau ezin da irakurri. Aukeratu berriro, edo egiaztatu oraindik badagoela.",
+      "confirm_title": "{{file}} inportatu?",
+      "confirm_description": "Bere erregistroak lan-eremu honetan dauden erregistroen ondoan gehitzen dira. Ez da ezer ordezkatzen, eta fitxategi bera bi aldiz inportatzeak bi aldiz gehitzen ditu. Monitoreak gehitu bezain laster hasten dira exekutatzen.",
+      "confirm_button": "Inportatu",
+      "importing": "Inportatzen...",
+      "failed": "Ezin izan da fitxategia inportatu",
+      "problems_title": "Fitxategia ezin da inportatu",
+      "problems_description": "Ez da ezer gehitu lan-eremu honetara. Zuzendu arazo hauek fitxategian eta inportatu berriro:",
+      "result_title": "Inportazioa amaitu da",
+      "created_title": "Lan-eremu honetara gehitua",
+      "nothing_created": "Ez da ezer gehitu.",
+      "changes_title": "Lan-eremu honetara egokitzeko aldatua",
+      "no_changes": "Dena fitxategian dagoen bezala sartu da.",
+      "close": "Itxi",
+      "created": {
+        "tags": "Etiketak",
+        "proxies": "Proxyak",
+        "notificationChannels": "Jakinarazpen kanalak",
+        "monitors": "Monitoreak",
+        "maintenances": "Mantentze-ordutegiak",
+        "statusPages": "Egoera orriak"
+      },
+      "changes": {
+        "tag_reused": "\"{{name}}\" etiketa dagoeneko lan-eremu honetan dago, beraz monitoreek hura erabiltzen dute.",
+        "proxy_skipped_target_not_allowed": "{{name}} proxya baztertu da: instalazio honek bere helbidea blokeatzen du.",
+        "monitor_proxy_dropped": "\"{{name}}\" monitorea bere {{from}} proxyarik gabe sartzen da, baztertu baita.",
+        "channel_skipped": "\"{{name}}\" jakinarazpen kanala baztertu da: instalazio honek edo lan-eremuak ezin du onartu.",
+        "channel_skipped_target_not_allowed": "\"{{name}}\" jakinarazpen kanala baztertu da: instalazio honek bidaltzen duen helbidea blokeatzen du.",
+        "channel_skipped_no_install_sender": "\"{{name}}\" jakinarazpen kanala baztertu da: instalazio honek ez du posta elektronikoetarako igorlerik.",
+        "channel_skipped_recipient_not_member": "\"{{name}}\" jakinarazpen kanala baztertu da: bere posta-hartzailea ez da lan-eremu honetako kide.",
+        "monitor_skipped_type_disabled": "\"{{name}}\" monitorea baztertu da: instalazio honek {{reason}} motako monitoreak desgaitzen ditu.",
+        "monitor_skipped_target_not_allowed": "\"{{name}}\" monitorea baztertu da: instalazio honek bere {{reason}} helburua blokeatzen du.",
+        "monitor_interval_raised": "\"{{name}}\" monitoreak {{to}} segundoz behin egiaztatzen du {{from}} segundoren ordez, instalazio honek onartzen duen tarterik laburrena.",
+        "monitor_retry_interval_raised": "\"{{name}}\" monitoreak huts egindako egiaztapena {{to}} segundoz behin berriro saiatzen du {{from}} segundoren ordez, instalazio honek onartzen duen tarterik laburrena.",
+        "push_token_replaced": "\"{{name}}\" monitoreak push token berri bat jaso du, beste monitore batek fitxategiko tokena duelako. Eguneratu zure lanak bidaltzen duen helbidea.",
+        "monitor_paused_over_limit": "\"{{name}}\" monitorea pausatuta sartzen da: lan-eremu honen planak ez du lekurik martxan dagoen beste monitore baterako.",
+        "status_page_slug_changed": "\"{{name}}\" egoera orriak {{to}} helbidea du {{from}} ordez, hori hartuta dagoelako.",
+        "status_page_skipped_over_limit": "\"{{name}}\" egoera orria baztertu da: lan-eremu honen planak ez du lekurik beste batentzat.",
+        "custom_domain_dropped": "{{name}} domeinu pertsonalizatua baztertu da: beste egoera orri batek du.",
+        "custom_domain_dropped_over_limit": "{{name}} domeinu pertsonalizatua baztertu da: lan-eremu honen planak ez du lekurik beste batentzat.",
+        "retention_capped": "Datuen mantentze-epea {{to}} egun da {{from}} ordez, lan-eremu honen planak onartzen duen gehienekoa.",
+        "unknown": "Inportazioak {{subject}} ({{kind}}) aldatu du."
+      }
     }
   },
   "status": {
@@ -1291,12 +2006,14 @@
       "last_updated": "Azken eguneratze-data",
       "maintenance": "Mantentze",
       "no_monitors_configured": "Status orri honetarako monitorik ez dago konfiguraturik.",
+      "not_monitored": "Ez dago monitorizatuta",
       "operational": "eragitekoa",
       "partial_system_outage": "Sistemaren eragin partziala",
       "powered_by": "Powered by",
       "refresh_in": "Birritsi",
       "refresh_now": "Berritu orain",
       "status_page_not_found": "Egoera orrialdea ez da aurkitu edo argitaratu gabe dago.",
+      "status_page_unavailable": "Egoera-orri hau ez dago erabilgarri",
       "under_maintenance": "Mantentzean",
       "unknown": "Ezezaguna"
     }
@@ -1315,7 +2032,35 @@
     "description": "Sartu egoera orriaren deskribapena",
     "domain_already_used": "Domeinua {{domain}} dagoeneko beste egoera-orri batek erabiltzen du.",
     "domain_host_warning": "Domeinua zure uneko ostalariaren URLa berdina da. Gatazkak sor daitezke.",
+    "domain_verification": {
+      "add_one_record": "Gehitu erregistro hauetako bat zure DNS hornitzailearengan. Bakarra nahikoa da.",
+      "check_failed": "Ezin izan da {{domain}} egiaztatu",
+      "check_now": "Egiaztatu orain",
+      "checking": "Egiaztatzen...",
+      "cname_record": "CNAME erregistroa",
+      "copy": "Kopiatu {{label}}",
+      "copy_failed": "Ezin izan da arbelera kopiatu",
+      "copy_success": "Arbelera kopiatu da",
+      "info": "Domeinu bakoitzak orri hau zerbitzatzen du DNS erregistro batek Peekaping-era seinalatzen duela frogatzen duenean.",
+      "last_checked": "Azken egiaztapena: {{time}}",
+      "name": "Izena",
+      "not_checked": "Oraindik egiaztatu gabe",
+      "pending_note": "Zain dagoen domeinu batek ez du orri hau zerbitzatzen eta ez du ziurtagirik jasotzen.",
+      "records_load_failed": "Ezin izan dira DNS erregistroak kargatu",
+      "records_missing_note": "Bere DNS erregistroak {{time}}(e)tik falta dira. 24 ordu geroago domeinua berriro zain geratzen da.",
+      "removed_on": "{{date}}(e)an kenduko da egiaztatzen ez bada",
+      "save_to_see_records": "Gorde orria gehitu beharreko DNS erregistroak ikusteko",
+      "state": {
+        "pending": "Zain",
+        "records_missing": "Erregistroak falta dira",
+        "verified": "Egiaztatuta"
+      },
+      "target": "Hona seinalatzen du",
+      "txt_record": "TXT erregistroa",
+      "value": "Balioa"
+    },
     "domains": "Domeinuak",
+    "domains_docs_link": "Domeinu pertsonalizatuak eta HTTPS",
     "domains_info_warning": "Ez ahaztu zure DNS-era CNAME erregistroak gehitzea, domeinu bakoitzeko.",
     "draft_status": "Zirriborroa",
     "edit_page_name": "Editatu egoera orria",
@@ -1338,6 +2083,9 @@
     "published_status": "Argitaratuta",
     "search_label": "Bilatu",
     "search_placeholder": "Bilatu egoera orriak izenbururako...",
+    "show_locations": "Erakutsi kokaleku bakoitza",
+    "show_locations_info": "Hainbat kokalekutatik egiaztatzen diren monitoreetan, kokaleku bakoitzaren egoera eta historia erakusten dira",
+    "slug_already_used": "Beste egoera-orri batek helbide hau erabiltzen du dagoeneko",
     "update_status_page": "Egoera orria eguneratu",
     "view_page": "Orria ikusi"
   },
@@ -1368,6 +2116,18 @@
     "new_page_name": "Etiketa berria",
     "search_placeholder": "Etiketak bilatu…"
   },
+  "telemetry": {
+    "docs_link": "Zer bidaltzen den eta nola desaktibatu",
+    "label": "Bidali erabilera-estatistika anonimoak",
+    "not_saved": "Erabilera-estatistikei buruzko aukeraketa ez da gorde. Egiaztatu «Ezarpenak» atalean."
+  },
+  "telemetry_notice": {
+    "error_reports": "Errore-txostenak aktibatuta daude. Peekapingek huts egiten badu, errorearen mota eta kodean non gertatu den, bere bertsioa, modua, biltegiratze-backenda eta sistema eragilea bidaltzen ditu. Ez ditu inoiz errore-mezuak, URLak edo ostalari-izenak bidaltzen.",
+    "settings_errors": "Desaktibatu errore-txostenak «Ezarpenak» atalean",
+    "settings_usage": "Desaktibatu erabilera-estatistikak «Ezarpenak» atalean",
+    "title": "Datu anonimoak bidaltzea lehenespenez aktibatuta dago",
+    "usage_statistics": "Erabilera-estatistikak aktibatuta daude. Egunean behin gehienez, Peekapingek honako hauek bidaltzen ditu: instantziaren ausazko ID bat, bere bertsioa, modua, biltegiratze-backenda eta sistema eragilea, zenbat monitore dituzun adierazten duen tarte bat, erabiltzen dituzun monitore eta jakinarazpen-kanal motak, eta egoera orriak, mantentze-leihoak eta metrikak erabiltzen dituzun ala ez. Ez ditu inoiz izenak, URLak, ostalariak edo ezarpenak bidaltzen."
+  },
   "theme": {
     "dark": "Iluna",
     "light": "Argia",
@@ -1391,5 +2151,123 @@
   "ui": {
     "general": "Orokorra",
     "intervals_retries": "Ebakien, Errepikapenak, Denbora-mugak"
+  },
+  "workspaces": {
+    "create": "Sortu lan-eremua",
+    "create_error": "Ezin izan da lan-eremua sortu",
+    "create_first": "Sortu lan-eremu bat",
+    "creating": "Sortzen...",
+    "deletion": {
+      "cancel": "Ezeztatu ezabaketa",
+      "cancel_failed": "Ezin izan da ezabaketa ezeztatu",
+      "cancelled": "Ezabaketa ezeztatu da",
+      "member_message": "Lan-eremu hau ezabatuko da: {{date}}. Bere monitoreak ez dira exekutatzen eta bere egoera orriak ez daude erabilgarri. Jabe batek ordura arte ezeztatu dezake ezabaketa.",
+      "message": "Lan-eremu hau ezabatuko da: {{date}}. Bere monitoreak ez dira exekutatzen eta bere egoera orriak ez daude erabilgarri. Ezabaketa ordura arte ezeztatu dezakezu."
+    },
+    "enter": "Ireki lan-eremua",
+    "entering": "Irekitzen...",
+    "entry_failed": "Lan-eremua sortu da, baina ezin izan da ireki. Saiatu berriro.",
+    "name_label": "Izena",
+    "name_placeholder": "Nire taldea",
+    "name_required": "Sartu izen bat",
+    "new": "Lan-eremu berria",
+    "new_description": "Lan-eremu batek bere monitoreak, jakinarazpen-kanalak, egoera-orriak eta kideak ditu. Zu izango zara bere jabea.",
+    "new_title": "Lan-eremu berria",
+    "none_description": "Zure kontua ez da lan-eremu bateko kide, beraz ez dago hemen ezer erakusteko. Eskatu lan-eremu bat kudeatzen duen norbaiti zu gehitzeko.",
+    "none_title": "Oraindik ez zaude lan-eremurik batean",
+    "refresh_failed": "Ezin izan dira zure lan-eremuak kargatu. Egiaztatu konexioa eta saiatu berriro.",
+    "rename_error": "Ezin izan da lan-eremuaren izena aldatu",
+    "rename_success": "Lan-eremuaren izena aldatu da",
+    "suspended_banner": {
+      "contact": "Harremanetarako:",
+      "message": "Instalazio honetako administratzaileak lan-eremu hau eten du. Bere monitoreak ez dabiltza, eta bere egoera-orriak ez daude erabilgarri.",
+      "no_contact": "Jarri harremanetan instalazio hau kudeatzen duen pertsonarekin."
+    },
+    "switcher_label": "Aldatu lan-eremua"
+  },
+  "get_started": {
+    "page_name": "Hasteko urratsak",
+    "skip": "Saltatu konfigurazioa",
+    "step_of": "{{current}}. urratsa, guztira {{total}}",
+    "name": {
+      "description": "Hemen daude zure monitoreak, jakinarazpen-kanalak eta egoera-orriak. Izena geroago alda dezakezu Ezarpenetan.",
+      "title": "Jarri izena zure lan-eremuari"
+    },
+    "monitor": {
+      "create": "Sortu monitorea",
+      "create_failed": "Ezin izan da monitorea sortu",
+      "creating": "Sortzen...",
+      "description": "Idatzi webgune edo API baten helbidea. Peekaping-ek egiaztatzen du eta erantzuteari uzten dionean abisatzen dizu.",
+      "full_form": "Edo konfiguratu monitore bat aukera guztiekin",
+      "title": "Gehitu zure lehen monitorea",
+      "url_invalid": "Idatzi http:// edo https:// hasten den helbide bat",
+      "url_label": "Monitorizatu beharreko helbidea"
+    },
+    "channel": {
+      "continue_unlinked": "Jarraitu lotu gabe",
+      "description": "Aukeratu non bidaliko duen Peekaping-ek abisua zure monitorea erortzen denean. Monitore berrien lehenetsia izango da.",
+      "link_failed": "Kanala gorde da, baina ezin izan da zure monitorearekin lotu. Gehitu monitorearen edizio-orrian.",
+      "retry_link": "Saiatu berriro lotzen",
+      "title": "Jaso jakinarazpenak"
+    },
+    "done": {
+      "description": "Peekaping zure zerbitzua zaintzen ari da. Hau egin dezakezu orain.",
+      "title": "Dena prest",
+      "unverified": "Zure monitorea zure helbide elektronikoa egiaztatu ondoren hasiko da martxan. Begiratu sarrera-ontzian egiaztatze-esteka.",
+      "links": {
+        "members": "Gonbidatu zure taldea",
+        "monitor": "Ireki zure monitorea",
+        "monitors": "Joan monitoreetara",
+        "probes": "Kudeatu zundak",
+        "status_pages": "Argitaratu egoera-orri bat"
+      }
+    }
+  },
+  "limits": {
+    "reached": {
+      "monitors": "Lan-eremu honek gehienez {{max}} monitore ibil ditzake",
+      "status_pages": "Lan-eremu honek gehienez {{max}} egoera-orri izan ditzake",
+      "custom_domains": "Lan-eremu honen egoera-orriek, guztira, gehienez {{max}} domeinu pertsonalizatu izan ditzakete",
+      "members": "Lan-eremu honek gehienez {{max}} kide izan ditzake, zain dauden gonbidapenak barne",
+      "owned_workspaces": "Gehienez {{max}} lan-eremuren jabe izan zaitezke",
+      "probes": "Lan-eremu honetako monitore batek gehienez {{max}} zundatan ibil daiteke",
+      "retention_days": "Lan-eremu honek gehienez {{max}} egunez gorde ditzake datuak"
+    },
+    "names": {
+      "monitors": "Monitore aktiboak",
+      "min_check_interval": "Egiaztapen tarterik laburrena (segundoak)",
+      "status_pages": "Egoera-orriak",
+      "custom_domains": "Domeinu pertsonalizatuak",
+      "members": "Kideak",
+      "owned_workspaces": "Erabiltzaile batek izan ditzakeen lan-eremuak",
+      "probes_per_monitor": "Zundak monitoreko",
+      "retention_days": "Datuen mantentzea (egunak)"
+    },
+    "none": "Mugarik gabe",
+    "invalid": "Sartu 1 edo handiagoa den zenbaki oso bat, edo utzi hutsik mugarik ez izateko.",
+    "retention_too_long": "Ezin da {{max}} egun baino gehiago izan"
+  },
+  "usage": {
+    "title": "Erabilera",
+    "description": "Lan-eremu honek bere mugetatik zenbat erabiltzen duen.",
+    "open": "Ireki erabilera",
+    "plan": "Plana",
+    "set_by_admin": "Zure administratzaileak ezarria",
+    "count": {
+      "monitors": "Monitoreak: {{used}} / {{max}}",
+      "status_pages": "Egoera-orriak: {{used}} / {{max}}",
+      "custom_domains": "Domeinu pertsonalizatuak: {{used}} / {{max}}",
+      "members": "Kideak: {{used}} / {{max}}, zain dauden gonbidapenak barne",
+      "owned_workspaces": "Zure lan-eremuak: {{used}} / {{max}}",
+      "probes_per_monitor": "Monitore bakar batean {{used}} zunda, gehienez {{max}}"
+    },
+    "labels": {
+      "min_check_interval": "Egiaztapen tarterik laburrena",
+      "retention_days": "Datuen mantentze luzeena"
+    },
+    "seconds": "{{value}} segundo",
+    "days": "{{value}} egun",
+    "near": "Mugatik gertu",
+    "reached": "Mugan"
   }
 }

@@ -1,9 +1,8 @@
 // Package metrics exposes the Status of Peekaping's Monitors as Prometheus metrics.
 //
 // The collector keeps the latest Heartbeat of every active Monitor in memory, fed
-// by the event bus (Redis pub/sub in a multi-process deployment), so it sees
-// Heartbeats whichever process ran the check. A scrape reads that memory only:
-// no database round-trips, no polling of the worker.
+// by the event bus (Redis pub/sub in cluster mode), so it sees Heartbeats whichever api
+// replica stored them. A scrape reads that memory only: no database round-trips.
 package metrics
 
 import (
@@ -19,6 +18,7 @@ import (
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/shared"
+	"peekaping/internal/reporting"
 	"peekaping/internal/version"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -91,7 +91,8 @@ func NewCollector(monitorService monitor.Service, heartbeatService heartbeat.Ser
 // Handler returns an http handler serving the Prometheus exposition format from a registry
 // of its own: the Monitors, the build info, and the Go runtime and process collectors.
 // It strips the CORS headers the router adds, since Prometheus doesn't need them and they
-// would let a page on any origin read the Monitors' names.
+// would let a page on an allowed origin (any origin, with CORS_ORIGINS=*) read the Monitors'
+// names.
 func (c *Collector) Handler() http.HandlerFunc {
 	registry := prometheus.NewRegistry()
 	registry.MustRegister(
@@ -149,14 +150,20 @@ func send(ch chan<- prometheus.Metric, desc *prometheus.Desc, value float64, lab
 }
 
 // Start subscribes to the event bus and, in the background, syncs with the active Monitors
-// now and every SyncInterval until ctx is done.
-func (c *Collector) Start(ctx context.Context, eventBus events.EventBus) {
+// now and every SyncInterval until ctx is done. The channel it returns is closed once the
+// background sync has stopped, so that the database can close after it.
+func (c *Collector) Start(ctx context.Context, eventBus events.EventBus) <-chan struct{} {
 	subscriber := events.NewSubscriber(eventBus, "metrics")
 	events.Subscribe(subscriber, events.HeartbeatEvent, c.handleHeartbeat)
 	events.Subscribe(subscriber, events.MonitorUpdated, c.handleMonitorUpdated)
 	events.Subscribe(subscriber, events.MonitorDeleted, c.handleMonitorDeleted)
 
-	go c.runSync(ctx)
+	stopped := make(chan struct{})
+	reporting.Go("metrics", func() {
+		defer close(stopped)
+		c.runSync(ctx)
+	})
+	return stopped
 }
 
 func (c *Collector) runSync(ctx context.Context) {
@@ -182,7 +189,7 @@ func (c *Collector) sync(ctx context.Context) {
 	tracked := slices.Collect(maps.Keys(c.monitors))
 	c.mu.RUnlock()
 
-	active, err := c.monitorService.FindActive(ctx)
+	active, err := c.monitorService.FindActiveAnyWorkspace(ctx)
 	if err != nil {
 		c.logger.Errorw("Failed to find the active monitors", "error", err)
 		return
@@ -260,7 +267,7 @@ func (c *Collector) handleHeartbeat(ctx context.Context, hb heartbeat.Model) {
 	// The first Heartbeat of a Monitor has to name it
 	ctx, cancel := context.WithTimeout(ctx, c.lookupTimeout)
 	defer cancel()
-	mon, err := c.monitorService.FindByID(ctx, hb.MonitorID)
+	mon, err := c.monitorService.FindByIDAnyWorkspace(ctx, hb.MonitorID)
 	if err != nil {
 		c.logger.Errorw("Failed to find the monitor of a heartbeat", "monitor_id", hb.MonitorID, "error", err)
 		return

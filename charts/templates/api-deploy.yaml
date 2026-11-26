@@ -1,3 +1,4 @@
+{{- $preStopSleep := include "peekaping.preStopSleepSeconds" . | atoi -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -33,12 +34,16 @@ spec:
       
       {{- if .Values.api.apparmor.enabled }}
         container.apparmor.security.beta.kubernetes.io/{{ .Release.Name }}-api: runtime/default
+        container.apparmor.security.beta.kubernetes.io/wait-for-migrations: runtime/default
       {{- end }}
 
     spec:
       # Run with a dedicated ServiceAccount (create below)
       serviceAccountName: {{ .Release.Name }}-sa
       automountServiceAccountToken: false
+
+      # The api takes up to 30 seconds to shut down cleanly, and starts only after the preStop sleep
+      terminationGracePeriodSeconds: {{ add 35 $preStopSleep }}
 
       # Spread replicas across nodes/azs if possible
       topologySpreadConstraints:
@@ -57,9 +62,13 @@ spec:
         seccompProfile:
           type: RuntimeDefault
 
+      # Hold the pod until the migrate Job has applied every migration
+      initContainers:
+        {{- include "peekaping.waitForMigrations" . | nindent 8 }}
+
       containers:
         - name: {{ .Release.Name }}-api
-          image: {{ .Values.api.image.repository }}:{{ .Values.api.image.tag }}
+          image: {{ include "peekaping.image" (dict "image" .Values.api.image "root" .) }}
           imagePullPolicy: {{ .Values.api.image.pullPolicy }}
 
           envFrom:
@@ -70,9 +79,22 @@ spec:
                 name: {{ .Values.config.existingSecret }}
             {{- end }}
 
+          env:
+            # The local probe's token, which the api stores at startup. The probe pods send it.
+            - name: PROBE_BOOTSTRAP_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "peekaping.probeTokenSecretName" . }}
+                  key: {{ include "peekaping.probeTokenSecretKey" . }}
+
           ports:
             - containerPort: {{ .Values.api.service.port }}
               name: http
+            {{- with .Values.config.env.METRICS_PORT }}
+            # METRICS_PORT moves /metrics off the API port. Only the Service reaches it, the ingress never does.
+            - containerPort: {{ . | int }}
+              name: metrics
+            {{- end }}
 
           # Resource requests/limits to prevent noisy neighbor + OOM loops
           resources:
@@ -82,6 +104,15 @@ spec:
             limits:
               cpu: {{ .Values.api.resources.limits.cpu }}
               memory: {{ .Values.api.resources.limits.memory }}
+
+          {{- if gt $preStopSleep 0 }}
+          # Keep serving while the Service and the ingress drop this pod from their endpoints, so a
+          # rollout refuses fewer connections. The api gets SIGTERM after the sleep.
+          lifecycle:
+            preStop:
+              exec:
+                command: ["sleep", "{{ $preStopSleep }}"]
+          {{- end }}
 
           securityContext:
             allowPrivilegeEscalation: false

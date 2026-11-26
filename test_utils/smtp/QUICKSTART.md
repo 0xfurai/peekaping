@@ -22,8 +22,8 @@ This starts a single **Postfix** SMTP server with:
 make setup
 make install
 
-# Start database
-docker compose -f docker-compose.dev.mongo.yml up -d
+# Start PostgreSQL and Redis
+docker compose -f docker-compose.deps.yml --profile postgres up -d
 
 # Start application
 make dev

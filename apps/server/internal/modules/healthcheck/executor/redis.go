@@ -26,6 +26,7 @@ type RedisConfig struct {
 }
 
 type RedisExecutor struct {
+	guarded
 	logger *zap.SugaredLogger
 }
 
@@ -116,33 +117,52 @@ func isValidHostname(hostname string) bool {
 
 	// Special handling for IPv6 addresses
 	if strings.Contains(hostname, ":") {
-		// Check if it's a valid IPv6 address
-		if strings.HasPrefix(hostname, "[") && strings.HasSuffix(hostname, "]") {
-			// IPv6 in brackets format
-			ipv6 := strings.Trim(hostname, "[]")
-			return isValidIPv6(ipv6)
-		}
-		// Check if it's a valid IPv6 address without brackets
-		return isValidIPv6(hostname)
+		return isValidIPv6Host(hostname)
 	}
 
 	labels := strings.Split(hostname, ".")
 	for _, label := range labels {
-		if label == "" {
+		if !isValidHostnameLabel(label) {
 			return false
-		}
-		if strings.HasPrefix(label, "-") || strings.HasSuffix(label, "-") {
-			return false
-		}
-		for _, char := range label {
-			if !((char >= 'a' && char <= 'z') || (char >= 'A' && char <= 'Z') ||
-				(char >= '0' && char <= '9') || char == '-') {
-				return false
-			}
 		}
 	}
 
 	return true
+}
+
+// isValidIPv6Host checks if a hostname that holds a colon is a valid IPv6 address, with or without
+// brackets
+func isValidIPv6Host(hostname string) bool {
+	// Check if it's a valid IPv6 address
+	if strings.HasPrefix(hostname, "[") && strings.HasSuffix(hostname, "]") {
+		// IPv6 in brackets format
+		ipv6 := strings.Trim(hostname, "[]")
+		return isValidIPv6(ipv6)
+	}
+	// Check if it's a valid IPv6 address without brackets
+	return isValidIPv6(hostname)
+}
+
+// isValidHostnameLabel checks if a label of a hostname is not empty, doesn't start or end with a
+// hyphen, and holds only letters, digits and hyphens
+func isValidHostnameLabel(label string) bool {
+	if label == "" {
+		return false
+	}
+	if strings.HasPrefix(label, "-") || strings.HasSuffix(label, "-") {
+		return false
+	}
+	for _, char := range label {
+		if !isHostnameChar(char) {
+			return false
+		}
+	}
+	return true
+}
+
+func isHostnameChar(char rune) bool {
+	return (char >= 'a' && char <= 'z') || (char >= 'A' && char <= 'Z') ||
+		(char >= '0' && char <= '9') || char == '-'
 }
 
 // isValidIPv6 checks if a string is a valid IPv6 address
@@ -297,34 +317,52 @@ func (r *RedisExecutor) configureTLS(cfg *RedisConfig, opts *redis.Options) erro
 		r.logger.Infof("TLS certificate verification disabled (IgnoreTls=true)")
 	} else {
 		tlsConfig.InsecureSkipVerify = false
-		// Load CA certificate if provided
-		if cfg.CaCert != "" {
-			caCertPool, err := loadCACertPool(cfg.CaCert)
-			if err != nil {
-				return fmt.Errorf("failed to load CA certificate: %w", err)
-			}
-			tlsConfig.RootCAs = caCertPool
-			r.logger.Infof("CA certificate loaded for TLS verification")
-		}
-
-		// Load client certificate if provided
-		if cfg.ClientCert != "" || cfg.ClientKey != "" {
-			clientCert, err := loadClientCertificate(cfg.ClientCert, cfg.ClientKey)
-			if err != nil {
-				return fmt.Errorf("failed to load client certificate: %w", err)
-			}
-			if clientCert != nil {
-				tlsConfig.Certificates = []tls.Certificate{*clientCert}
-				r.logger.Infof("Client certificate loaded for mutual TLS")
-			}
-		}
-
-		if cfg.CaCert == "" {
-			r.logger.Warnf("No CA certificate provided for TLS connection, skipping certificate verification")
+		if err := r.loadTLSCertificates(cfg, tlsConfig); err != nil {
+			return err
 		}
 	}
 
 	opts.TLSConfig = tlsConfig
+	return nil
+}
+
+// loadTLSCertificates adds the config's CA and client certificates to the TLS configuration
+func (r *RedisExecutor) loadTLSCertificates(cfg *RedisConfig, tlsConfig *tls.Config) error {
+	// Load CA certificate if provided
+	if cfg.CaCert != "" {
+		caCertPool, err := loadCACertPool(cfg.CaCert)
+		if err != nil {
+			return fmt.Errorf("failed to load CA certificate: %w", err)
+		}
+		tlsConfig.RootCAs = caCertPool
+		r.logger.Infof("CA certificate loaded for TLS verification")
+	}
+
+	// Load client certificate if provided
+	if err := r.loadTLSClientCertificate(cfg, tlsConfig); err != nil {
+		return err
+	}
+
+	if cfg.CaCert == "" {
+		r.logger.Warnf("No CA certificate provided for TLS connection, skipping certificate verification")
+	}
+	return nil
+}
+
+// loadTLSClientCertificate adds the config's client certificate to the TLS configuration, if it has one
+func (r *RedisExecutor) loadTLSClientCertificate(cfg *RedisConfig, tlsConfig *tls.Config) error {
+	if cfg.ClientCert == "" && cfg.ClientKey == "" {
+		return nil
+	}
+
+	clientCert, err := loadClientCertificate(cfg.ClientCert, cfg.ClientKey)
+	if err != nil {
+		return fmt.Errorf("failed to load client certificate: %w", err)
+	}
+	if clientCert != nil {
+		tlsConfig.Certificates = []tls.Certificate{*clientCert}
+		r.logger.Infof("Client certificate loaded for mutual TLS")
+	}
 	return nil
 }
 
@@ -364,40 +402,60 @@ func (r *RedisExecutor) Validate(configJSON string) error {
 	return nil
 }
 
+// Targets lists the host a Redis check connects to
+func (r *RedisExecutor) Targets(configJSON string) ([]string, error) {
+	cfg, err := GenericUnmarshal[RedisConfig](configJSON)
+	if err != nil {
+		return nil, err
+	}
+	return connectionStringHosts(cfg.DatabaseConnectionString), nil
+}
+
 func (r *RedisExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Proxy) *Result {
 	cfgAny, err := r.Unmarshal(m.Config)
 	if err != nil {
-		return DownResult(err, time.Now().UTC(), time.Now().UTC())
+		return DownResult(err, time.Now(), time.Now())
 	}
 	cfg := cfgAny.(*RedisConfig)
-
-	r.logger.Debugf("execute redis cfg: %+v", cfg)
 
 	// Validate connection string before attempting connection
 	if err := r.validateRedisConnectionString(cfg.DatabaseConnectionString); err != nil {
 		r.logger.Infof("Redis connection string validation failed: %s, %s", m.Name, err.Error())
-		return DownResult(fmt.Errorf("connection string validation failed: %w", err), time.Now().UTC(), time.Now().UTC())
+		return DownResult(fmt.Errorf("connection string validation failed: %w", err), time.Now(), time.Now())
 	}
 
-	startTime := time.Now().UTC()
+	startTime := time.Now()
 
 	// Parse Redis connection string
 	opts, err := redis.ParseURL(cfg.DatabaseConnectionString)
 	if err != nil {
 		r.logger.Infof("Redis connection string parse failed: %s, %s", m.Name, err.Error())
-		return DownResult(fmt.Errorf("invalid Redis connection string: %w", err), startTime, time.Now().UTC())
+		return DownResult(fmt.Errorf("invalid Redis connection string: %w", err), startTime, time.Now())
 	}
 
 	// Configure TLS settings
 	if err := r.configureTLS(cfg, opts); err != nil {
 		r.logger.Infof("Redis TLS configuration failed: %s, %s", m.Name, err.Error())
-		return DownResult(fmt.Errorf("TLS configuration failed: %w", err), startTime, time.Now().UTC())
+		return DownResult(fmt.Errorf("TLS configuration failed: %w", err), startTime, time.Now())
 	}
 
 	// Set connection timeouts
 	opts.DialTimeout = time.Duration(m.Timeout) * time.Second
 	opts.ReadTimeout = time.Duration(m.Timeout) * time.Second
 	opts.WriteTimeout = time.Duration(m.Timeout) * time.Second
+
+	// Dial through the guard (see hasGuard). A dialer of ours replaces the one that go-redis makes,
+	// which also negotiates TLS, so that is done here, as go-redis does it.
+	if r.hasGuard() {
+		dialer := r.dialer(&net.Dialer{Timeout: opts.DialTimeout, KeepAlive: 5 * time.Minute})
+		tlsConfig := opts.TLSConfig
+		opts.Dialer = func(ctx context.Context, network, addr string) (net.Conn, error) {
+			if tlsConfig == nil {
+				return dialer.DialContext(ctx, network, addr)
+			}
+			return (&tls.Dialer{NetDialer: dialer, Config: tlsConfig}).DialContext(ctx, network, addr)
+		}
+	}
 
 	// Create Redis client
 	client := redis.NewClient(opts)
@@ -409,7 +467,7 @@ func (r *RedisExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Pro
 
 	// Perform ping
 	pong, err := client.Ping(pingCtx).Result()
-	endTime := time.Now().UTC()
+	endTime := time.Now()
 
 	if err != nil {
 		r.logger.Infof("Redis ping failed: %s, %s", m.Name, err.Error())

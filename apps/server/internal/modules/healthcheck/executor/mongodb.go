@@ -1,9 +1,14 @@
+//go:build !slim
+
 package executor
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"net"
 	"net/url"
 	"peekaping/internal/modules/shared"
 	"strconv"
@@ -24,6 +29,7 @@ type MongoDBConfig struct {
 }
 
 type MongoDBExecutor struct {
+	guarded
 	logger *zap.SugaredLogger
 }
 
@@ -32,6 +38,8 @@ func NewMongoDBExecutor(logger *zap.SugaredLogger) *MongoDBExecutor {
 		logger: logger,
 	}
 }
+
+func init() { registerOptional("mongodb", NewMongoDBExecutor) }
 
 func (m *MongoDBExecutor) Unmarshal(configJSON string) (any, error) {
 	return GenericUnmarshal[MongoDBConfig](configJSON)
@@ -45,39 +53,52 @@ func (m *MongoDBExecutor) Validate(configJSON string) error {
 
 	mongoCfg := cfg.(*MongoDBConfig)
 
-	if err := ValidateConnectionStringWithOptions(mongoCfg.ConnectionString, []string{"mongodb", "mongodb+srv"}, true); err != nil {
+	if err := validateMongoConnectionString(mongoCfg.ConnectionString); err != nil {
 		return fmt.Errorf("invalid connection string: %w", err)
 	}
 
 	return GenericValidator(mongoCfg)
 }
 
+// Targets lists the hosts a MongoDB check connects to: those of a seed list, or the name an SRV
+// record is looked up for (what it points to is checked when the driver dials it). A host that is a
+// Unix socket is left out: the dialer refuses it.
+func (m *MongoDBExecutor) Targets(configJSON string) ([]string, error) {
+	cfg, err := GenericUnmarshal[MongoDBConfig](configJSON)
+	if err != nil {
+		return nil, err
+	}
+	parsed, ok := splitMongoConnectionString(cfg.ConnectionString)
+	if !ok {
+		return nil, nil
+	}
+	var hosts []string
+	for _, entry := range parsed.hosts {
+		// An empty entry, as a trailing comma leaves, and an entry with a port only name no host
+		if host, err := url.PathUnescape(strings.TrimSpace(entry)); err == nil && !strings.HasSuffix(host, ".sock") && hostOf(host) != "" {
+			hosts = append(hosts, hostOf(host))
+		}
+	}
+	return hosts, nil
+}
+
 func (m *MongoDBExecutor) Execute(ctx context.Context, monitor *Monitor, proxyModel *Proxy) *Result {
 	cfgAny, err := m.Unmarshal(monitor.Config)
 	if err != nil {
-		return DownResult(err, time.Now().UTC(), time.Now().UTC())
+		return DownResult(err, time.Now(), time.Now())
 	}
 	cfg := cfgAny.(*MongoDBConfig)
 
-	m.logger.Debugf("execute mongodb cfg: %+v", cfg)
+	startTime := time.Now()
 
-	startTime := time.Now().UTC()
-
-	// Parse MongoDB command
-	var command bson.M
-	if cfg.Command != "" {
-		err = json.Unmarshal([]byte(cfg.Command), &command)
-		if err != nil {
-			return DownResult(fmt.Errorf("invalid MongoDB command JSON: %w", err), startTime, time.Now().UTC())
-		}
-	} else {
-		// Default to ping command
-		command = bson.M{"ping": 1}
+	command, err := parseMongoDBCommand(cfg.Command)
+	if err != nil {
+		return DownResult(fmt.Errorf("invalid MongoDB command JSON: %w", err), startTime, time.Now())
 	}
 
 	// Run MongoDB command
 	result, err := m.runMongoDBCommand(ctx, cfg.ConnectionString, command, time.Duration(monitor.Timeout)*time.Second)
-	endTime := time.Now().UTC()
+	endTime := time.Now()
 
 	if err != nil {
 		m.logger.Infof("MongoDB command failed: %s, %s", monitor.Name, err.Error())
@@ -89,85 +110,96 @@ func (m *MongoDBExecutor) Execute(ctx context.Context, monitor *Monitor, proxyMo
 		}
 	}
 
-	// Check if command was successful
-	if ok, exists := result["ok"]; !exists || !m.isValueEqual(ok, 1) {
-		m.logger.Infof("MongoDB command failed: %s, ok field is not 1", monitor.Name)
+	return m.checkCommandResult(monitor, cfg, result, startTime, endTime)
+}
+
+// parseMongoDBCommand parses the command as JSON, keeping its keys in the order they are typed: the
+// server takes the first one as the command's name, and the driver refuses a command that is
+// not ordered. An empty command is a ping.
+func parseMongoDBCommand(commandJSON string) (bson.D, error) {
+	if commandJSON == "" {
+		// Default to ping command
+		return bson.D{{Key: "ping", Value: 1}}, nil
+	}
+
+	// UnmarshalExtJSON drops what follows the first document and reads null as an empty one, so the
+	// text is checked first.
+	text := []byte(commandJSON)
+	if !json.Valid(text) {
+		return nil, errors.New("not valid JSON")
+	}
+	if !bytes.HasPrefix(bytes.TrimSpace(text), []byte("{")) {
+		return nil, errors.New("not a JSON object")
+	}
+
+	var command bson.D
+	if err := bson.UnmarshalExtJSON([]byte(commandJSON), false, &command); err != nil {
+		return nil, err
+	}
+	return command, nil
+}
+
+// checkCommandResult is the check's result for the command's reply: Down unless the command
+// succeeded and, when the config asks for it, the value at its JSON path exists and is the expected one
+func (m *MongoDBExecutor) checkCommandResult(monitor *Monitor, cfg *MongoDBConfig, result bson.M, startTime, endTime time.Time) *Result {
+	resultOf := func(status shared.MonitorStatus, message string) *Result {
 		return &Result{
-			Status:    shared.MonitorStatusDown,
-			Message:   "MongoDB command failed",
+			Status:    status,
+			Message:   message,
 			StartTime: startTime,
 			EndTime:   endTime,
 		}
+	}
+
+	// Check if command was successful
+	if ok, exists := result["ok"]; !exists || !m.isValueEqual(ok, 1) {
+		m.logger.Infof("MongoDB command failed: %s, ok field is not 1", monitor.Name)
+		return resultOf(shared.MonitorStatusDown, "MongoDB command failed")
 	}
 
 	// If no JSON path is provided, consider it successful
 	if cfg.JsonPath == "" {
 		m.logger.Infof("MongoDB command successful: %s", monitor.Name)
-		return &Result{
-			Status:    shared.MonitorStatusUp,
-			Message:   "Command executed successfully",
-			StartTime: startTime,
-			EndTime:   endTime,
-		}
+		return resultOf(shared.MonitorStatusUp, "Command executed successfully")
 	}
 
 	// Evaluate JSON path
-	var evaluatedResult interface{}
-	evaluatedResult, err = m.evaluateJsonPath(result, cfg.JsonPath)
+	evaluatedResult, err := m.evaluateJsonPath(result, cfg.JsonPath)
 	if err != nil {
 		m.logger.Infof("MongoDB JSON path evaluation failed: %s, %s", monitor.Name, err.Error())
-		return &Result{
-			Status:    shared.MonitorStatusDown,
-			Message:   fmt.Sprintf("JSON path evaluation failed: %v", err),
-			StartTime: startTime,
-			EndTime:   endTime,
-		}
+		return resultOf(shared.MonitorStatusDown, fmt.Sprintf("JSON path evaluation failed: %v", err))
 	}
 
 	if evaluatedResult == nil {
 		m.logger.Infof("MongoDB JSON path returned null: %s", monitor.Name)
-		return &Result{
-			Status:    shared.MonitorStatusDown,
-			Message:   "Queried value not found",
-			StartTime: startTime,
-			EndTime:   endTime,
-		}
+		return resultOf(shared.MonitorStatusDown, "Queried value not found")
 	}
 
 	// Check expected value if provided
 	if cfg.ExpectedValue != "" {
-		if m.isValueEqual(evaluatedResult, cfg.ExpectedValue) {
-			m.logger.Infof("MongoDB expected value matched: %s", monitor.Name)
-			return &Result{
-				Status:    shared.MonitorStatusUp,
-				Message:   "Command executed successfully and expected value was found",
-				StartTime: startTime,
-				EndTime:   endTime,
-			}
-		} else {
-			resultStr := fmt.Sprintf("%v", evaluatedResult)
-			m.logger.Infof("MongoDB expected value mismatch: %s, got %s, expected %s", monitor.Name, resultStr, cfg.ExpectedValue)
-			return &Result{
-				Status:    shared.MonitorStatusDown,
-				Message:   fmt.Sprintf("Query executed, but value is not equal to expected value, value was: [%s]", resultStr),
-				StartTime: startTime,
-				EndTime:   endTime,
-			}
-		}
+		status, message := m.checkExpectedValue(monitor, cfg, evaluatedResult)
+		return resultOf(status, message)
 	}
 
 	// JSON path evaluation successful
 	m.logger.Infof("MongoDB JSON path evaluation successful: %s", monitor.Name)
-	return &Result{
-		Status:    shared.MonitorStatusUp,
-		Message:   "Command executed successfully and the jsonata expression produces a result",
-		StartTime: startTime,
-		EndTime:   endTime,
+	return resultOf(shared.MonitorStatusUp, "Command executed successfully and the jsonata expression produces a result")
+}
+
+// checkExpectedValue is Up when the value at the JSON path is the expected one, and Down otherwise
+func (m *MongoDBExecutor) checkExpectedValue(monitor *Monitor, cfg *MongoDBConfig, evaluatedResult interface{}) (shared.MonitorStatus, string) {
+	if m.isValueEqual(evaluatedResult, cfg.ExpectedValue) {
+		m.logger.Infof("MongoDB expected value matched: %s", monitor.Name)
+		return shared.MonitorStatusUp, "Command executed successfully and expected value was found"
 	}
+
+	resultStr := fmt.Sprintf("%v", evaluatedResult)
+	m.logger.Infof("MongoDB expected value mismatch: %s, got %s, expected %s", monitor.Name, resultStr, cfg.ExpectedValue)
+	return shared.MonitorStatusDown, fmt.Sprintf("Query executed, but value is not equal to expected value, value was: [%s]", resultStr)
 }
 
 // runMongoDBCommand connects to MongoDB and executes the given command
-func (m *MongoDBExecutor) runMongoDBCommand(ctx context.Context, connectionString string, command bson.M, timeout time.Duration) (bson.M, error) {
+func (m *MongoDBExecutor) runMongoDBCommand(ctx context.Context, connectionString string, command bson.D, timeout time.Duration) (bson.M, error) {
 	// Ensure proper authentication source is set
 	enhancedConnectionString, err := m.enhanceConnectionString(connectionString)
 	if err != nil {
@@ -178,13 +210,32 @@ func (m *MongoDBExecutor) runMongoDBCommand(ctx context.Context, connectionStrin
 	clientOptions := options.Client().ApplyURI(enhancedConnectionString)
 	clientOptions.SetConnectTimeout(timeout)
 	clientOptions.SetSocketTimeout(timeout)
+	if timeout > 0 {
+		// The driver waits 30s for a server it can't select, whatever the
+		// connect timeout says. The deadline bounds connecting and the
+		// command together, so a check never outlasts the monitor's timeout.
+		clientOptions.SetServerSelectionTimeout(timeout)
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, timeout)
+		defer cancel()
+	}
+
+	// Dial through the guard: every connection the driver makes goes through the dialer, including
+	// those to the servers an SRV record or the replica set's configuration names, and a Unix
+	// socket is a connection it makes in the same way.
+	clientOptions.SetDialer(m.dialer(&net.Dialer{Timeout: timeout}))
 
 	// Connect to MongoDB
 	client, err := mongo.Connect(ctx, clientOptions)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to MongoDB: %w", err)
 	}
-	defer client.Disconnect(ctx)
+	defer func() {
+		// The deadline may have passed, which would stop a clean disconnect.
+		disconnectCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), time.Second)
+		defer cancel()
+		_ = client.Disconnect(disconnectCtx)
+	}()
 
 	// Extract database name from connection string
 	dbName, err := m.extractDatabaseName(connectionString)
@@ -205,42 +256,51 @@ func (m *MongoDBExecutor) runMongoDBCommand(ctx context.Context, connectionStrin
 	return result, nil
 }
 
-// enhanceConnectionString adds necessary authentication parameters if missing
+// enhanceConnectionString adds necessary authentication parameters if missing. The hosts and
+// options are kept as written, since the driver reads the seed list itself; the user and password
+// are written with their escapes right, which the driver insists on.
 func (m *MongoDBExecutor) enhanceConnectionString(connectionString string) (string, error) {
-	parsedURL, err := url.Parse(connectionString)
-	if err != nil {
-		return "", fmt.Errorf("invalid connection string format: %w", err)
+	connectionString = encodeMongoUserinfo(connectionString)
+	parsed, ok := splitMongoConnectionString(connectionString)
+	if !ok {
+		return "", fmt.Errorf("invalid connection string format: missing ://")
 	}
-
-	// Get existing query parameters
-	queryParams := parsedURL.Query()
 
 	// If user is provided but no authSource is specified, default to admin database
-	if parsedURL.User != nil && parsedURL.User.Username() != "" {
-		if queryParams.Get("authSource") == "" {
-			queryParams.Set("authSource", "admin")
-		}
+	user, _, _ := strings.Cut(parsed.userinfo, ":")
+	if user == "" {
+		return connectionString, nil
 	}
-
-	// Update the URL with enhanced query parameters
-	parsedURL.RawQuery = queryParams.Encode()
-
-	return parsedURL.String(), nil
+	if mongoHasOption(parsed.query, "authSource") {
+		return connectionString, nil
+	}
+	// The option goes before the fragment, which ends the string
+	withoutFragment, fragment := connectionString, ""
+	if parsed.hasFragment {
+		withoutFragment = strings.TrimSuffix(connectionString, "#"+parsed.fragment)
+		fragment = "#" + parsed.fragment
+	}
+	switch {
+	case !parsed.hasQuery:
+		withoutFragment += "?authSource=admin"
+	case parsed.query == "":
+		withoutFragment += "authSource=admin"
+	default:
+		withoutFragment += "&authSource=admin"
+	}
+	return withoutFragment + fragment, nil
 }
 
 // extractDatabaseName extracts the database name from a MongoDB connection string
 func (m *MongoDBExecutor) extractDatabaseName(connectionString string) (string, error) {
-	parsedURL, err := url.Parse(connectionString)
-	if err != nil {
-		return "", fmt.Errorf("invalid connection string format: %w", err)
+	parsed, ok := splitMongoConnectionString(connectionString)
+	if !ok {
+		return "", fmt.Errorf("invalid connection string format: missing ://")
 	}
 
-	// Extract database name from path (remove leading slash)
-	dbName := strings.TrimPrefix(parsedURL.Path, "/")
-
-	// Remove any additional path segments and query parameters
-	if idx := strings.Index(dbName, "?"); idx != -1 {
-		dbName = dbName[:idx]
+	dbName, err := url.PathUnescape(parsed.database)
+	if err != nil {
+		return "", fmt.Errorf("invalid connection string format: %w", err)
 	}
 
 	if dbName == "" {

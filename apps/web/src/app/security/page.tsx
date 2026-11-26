@@ -2,6 +2,7 @@ import Layout from "@/layout";
 import UpdatePassword from "./components/update-password";
 import Enable2FA from "./components/enable-2fa";
 import APIKeys from "./components/api-keys";
+import DeleteAccount from "./components/delete-account";
 import { useAuthStore } from "@/store/auth";
 import {
   Card,
@@ -20,9 +21,12 @@ import { toast } from "sonner";
 import { commonMutationErrorHandler } from "@/lib/utils";
 import { PasswordInput } from "@/components/ui/password-input";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
+import { useCurrentAccess } from "@/hooks/useCurrentAccess";
 
 const SecurityPage = () => {
   const { t } = useLocalizedTranslation();
+  // API keys act as an admin of the workspace, so only an admin or owner manages them
+  const { canManageWorkspace } = useCurrentAccess();
   const user = useAuthStore((s) => s.user);
   const setUser = useAuthStore((s) => s.setUser);
   const [showDisable, setShowDisable] = useState(false);
@@ -133,7 +137,9 @@ const SecurityPage = () => {
         <Enable2FA />
       )}
 
-      <APIKeys />
+      {canManageWorkspace && <APIKeys />}
+
+      <DeleteAccount />
     </Layout>
   );
 };

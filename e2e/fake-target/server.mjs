@@ -3,16 +3,18 @@
 // runs straight from the node image.
 //
 //   GET  /health         200, for the start-up wait
-//   PUT  /targets/<id>   {"status": 500} sets the code /targets/<id> answers with
+//   PUT  /targets/<id>   {"status": 500, "rejectContentType": true} sets the code
+//                        /targets/<id> answers with and optionally rejects a
+//                        bodyless request that carries Content-Type
 //   *    /targets/<id>   answers with that code (200 until set)
-//   POST /webhooks/<id>  records the request
+//   POST /webhooks/<id>  records the request: headers, parsed body and raw body
 //   GET  /webhooks/<id>  the recorded requests, oldest first
 //
 // Tests pick a random id each, so they don't see each other's state.
 import { createServer } from "node:http";
 
 const port = Number(process.env.PORT ?? 3033);
-const targetStatus = new Map();
+const targetConfig = new Map();
 const webhookRequests = new Map();
 
 const readBody = async (req) => {
@@ -43,14 +45,23 @@ const handle = async (req, res) => {
 
   if (resource === "targets") {
     if (req.method === "PUT") {
-      const { status } = parseJSON(body) ?? {};
+      const { status, rejectContentType = false } = parseJSON(body) ?? {};
       if (!Number.isInteger(status) || status < 100 || status > 599) {
         return send(res, 400, { error: "status must be an HTTP status code" });
       }
-      targetStatus.set(id, status);
-      return send(res, 200, { status });
+      if (typeof rejectContentType !== "boolean") {
+        return send(res, 400, { error: "rejectContentType must be a boolean" });
+      }
+      targetConfig.set(id, { status, rejectContentType });
+      return send(res, 200, { status, rejectContentType });
     }
-    const status = targetStatus.get(id) ?? 200;
+    const { status, rejectContentType } = targetConfig.get(id) ?? {
+      status: 200,
+      rejectContentType: false,
+    };
+    if (rejectContentType && !body && req.headers["content-type"]) {
+      return send(res, 400, { error: "bodyless request must not send Content-Type" });
+    }
     return send(res, status, { status });
   }
 
@@ -61,6 +72,7 @@ const handle = async (req, res) => {
         receivedAt: new Date().toISOString(),
         headers: req.headers,
         body: parseJSON(body),
+        rawBody: body,
       });
       webhookRequests.set(id, received);
       return send(res, 200, { ok: true });

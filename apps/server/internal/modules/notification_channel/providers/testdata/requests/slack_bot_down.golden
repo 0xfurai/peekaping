@@ -1,0 +1,9 @@
+POST https://slack.com/api/chat.postMessage
+Authorization: Bearer xoxb-token
+Content-Type: application/json
+User-Agent: Peekaping-Slack/<version>
+
+{
+  "channel": "#alerts",
+  "text": "connection refused"
+}

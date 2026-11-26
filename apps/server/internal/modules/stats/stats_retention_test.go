@@ -18,7 +18,7 @@ import (
 // bucketStarts returns the start of every stat row the monitor has for period.
 func bucketStarts(t *testing.T, svc stats.Service, monitorID string, period stats.StatPeriod, now time.Time) []time.Time {
 	t.Helper()
-	rows, err := svc.FindStatsByMonitorIDAndTimeRange(context.Background(), monitorID, now.AddDate(-5, 0, 0), now, period)
+	rows, err := svc.FindStatsByMonitorIDAndTimeRange(context.Background(), monitorID, "", now.AddDate(-5, 0, 0), now, period)
 	require.NoError(t, err)
 	starts := make([]time.Time, 0, len(rows))
 	for _, row := range rows {
@@ -77,7 +77,7 @@ func TestDeleteExpiredKeepsEveryStatUptimeAndBadgesRead(t *testing.T) {
 
 		// Each window still counts its own Down check, the shorter windows' ones and the Up check.
 		for i, window := range windows {
-			summary, err := svc.Summarize(context.Background(), monitorID, now.Add(-window), now)
+			summary, err := svc.Summarize(context.Background(), monitorID, "", now.Add(-window), now)
 			require.NoError(t, err)
 			require.NotNil(t, summary.Uptime, window)
 			assert.InDelta(t, 100/float64(i+2), *summary.Uptime, 1e-9, window)

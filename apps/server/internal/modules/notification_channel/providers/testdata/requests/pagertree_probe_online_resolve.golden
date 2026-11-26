@@ -1,0 +1,20 @@
+POST https://api.pagertree.com/integration/int_123
+Content-Type: application/json
+
+{
+  "event_type": "resolve",
+  "id": "Peekaping/probe-1",
+  "title": "Probe Frankfurt is online",
+  "description": "Probe Frankfurt is online",
+  "urgency": "medium",
+  "tags": [
+    "peekaping",
+    "monitor-type:probe"
+  ],
+  "meta": {
+    "monitor_id": "probe-1",
+    "monitor_name": "Probe Frankfurt",
+    "monitor_type": "probe",
+    "status": 1
+  }
+}

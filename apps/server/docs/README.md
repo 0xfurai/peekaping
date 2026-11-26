@@ -14,7 +14,7 @@ Generation uses pinned Huma, Hey API, and Prettier versions. CI regenerates the 
 
 ## Route inventory
 
-All 75 REST operations are represented, including non-JSON responses:
+All 92 REST operations are represented, including non-JSON responses:
 
 | Area | Operations |
 | --- | ---: |
@@ -25,12 +25,18 @@ All 75 REST operations are represented, including non-JSON responses:
 | Notification channels | 7 |
 | SVG badges | 7 |
 | API keys | 6 |
+| Probes | 8 |
 | Proxies | 6 |
 | Tags | 6 |
 | Settings | 3 |
+| Telemetry | 3 |
+| Error reporting | 2 |
+| Probe protocol (`/probe/v1`) | 4 |
 | Push URL | 1 |
 | API health/version | 2 |
 | Root `/health` alias | 1 |
+
+The probe protocol is served under `/probe/v1`, beside `/api/v1`, and listed under the `ProbeAuth` bearer scheme: a probe sends its token as `Authorization: Bearer <token>` and its instance id as `X-Probe-Instance`, and the admin's JWT and API keys open none of these routes. Its request and reply bodies are the messages of `internal/probeproto`, not the `{message,data}` envelope; its errors keep the envelope. A body may be gzipped, up to 1 MB once decompressed, and replies are gzipped when `Accept-Encoding` allows it. Operation IDs start with `probe` (`probePostHello`).
 
 Socket.IO GET/POST polling and WebSocket upgrades are transport endpoints, excluded from the REST specification. Documentation/spec/schema endpoints are also excluded. Unknown-method responses and CORS preflight behavior remain router/middleware concerns. Tests compare the actual REST route manifest with the specification and verify security against the authentication allowlists.
 
@@ -46,7 +52,7 @@ Old Swagger UI assets return 404. Integrations requiring Swagger 2.0 must migrat
 
 ## Compatibility
 
-`httpx.Input[Body, Parameters]` declares each handler's body and parameter types. Its `Decode` method deliberately retains the existing one-value JSON decoder and endpoint validation order. Parameter models supply OpenAPI metadata; controllers retain their existing parsing, defaults, and error messages. Unknown JSON fields, empty query defaults, loose boolean parsing, and PATCH omission/null/empty distinctions remain supported. Automatic Huma binding, body limits, and validation do not run ahead of these handlers.
+`httpx.Input[Body, Parameters]` declares each handler's body and parameter types. Its `Decode` method deliberately retains the existing one-value JSON decoder and endpoint validation order. Parameter models supply OpenAPI metadata; controllers retain their existing parsing, defaults, and error messages. Unknown JSON fields, empty query defaults, loose boolean parsing, and PATCH omission/null/empty distinctions remain supported. Automatic Huma binding and validation do not run ahead of these handlers. The router's `httpx.LimitBody` does: it answers 413 to a request that declares a body over 1 MiB before authentication or the handler run, and makes reading any other body fail at 1 MiB; the one exception is the workspace import, whose body may be 16 MiB.
 
 Typed `httpx.Output[T]` responses go through Huma with the existing compact JSON encoding, HTML escaping, content types, and status codes. SVG badges retain their cache headers. Authentication runs before handler decoding. Router compatibility includes wrong-method/HEAD rejection; HEAD never writes a push heartbeat. Socket.IO keeps standard HTTP handlers and upgrade-capable writers.
 

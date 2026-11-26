@@ -1,0 +1,130 @@
+networks:
+  appnet:
+
+services:
+  redis:
+    image: redis:7
+    restart: unless-stopped
+    networks:
+      - appnet
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 2s
+      retries: 5
+      start_period: 5s
+
+  # The Peekaping images run as user 65532. This one-shot service makes the
+  # data folder theirs before the migration starts: Docker creates a missing
+  # ./.data/sqlite as root, and a database from an earlier version belongs to root.
+  data-permissions:
+    image: alpine
+    restart: "no"
+    command: ["chown", "-R", "65532:65532", "/app/data"]
+    volumes:
+      - ./.data/sqlite:/app/data
+
+  migrate:
+    image: 0xfurai/peekaping-migrate:latest
+    restart: "no"
+    env_file:
+      - .env
+    volumes:
+      - ./.data/sqlite:/app/data
+    depends_on:
+      data-permissions:
+        condition: service_completed_successfully
+
+  api:
+    image: 0xfurai/peekaping-api:latest
+    restart: unless-stopped
+    # the api takes up to 30 seconds to shut down cleanly
+    stop_grace_period: 35s
+    env_file:
+      - .env
+    environment:
+      # The api isn't published: only the gateway and the other services on this network reach
+      # it, all from private addresses. The gateway (nginx.conf) sets X-Forwarded-For to the
+      # client's address, and the api believes that header from these addresses only. Set
+      # TRUSTED_PROXIES in .env to change them; an empty TRUSTED_PROXIES= trusts nobody.
+      TRUSTED_PROXIES: "${TRUSTED_PROXIES-127.0.0.0/8,::1/128,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,fc00::/7}"
+      # The local probe's token: the api stores it, and the probe sends it. Without it no
+      # monitor is checked.
+      PROBE_BOOTSTRAP_TOKEN: "${PROBE_BOOTSTRAP_TOKEN:?PROBE_BOOTSTRAP_TOKEN is not set: add it to .env as a random string of at least 32 characters, such as the output of openssl rand -hex 32}"
+    volumes:
+      - ./.data/sqlite:/app/data
+    depends_on:
+      redis:
+        condition: service_started
+      migrate:
+        condition: service_completed_successfully
+    networks:
+      - appnet
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget -qO - http://localhost:8034/api/v1/health || exit 1",
+        ]
+      interval: 30s
+      timeout: 2s
+      retries: 5
+      start_period: 5s
+
+  # The local probe: its instances run the checks of the monitors that run on the local probe.
+  # They connect to the api, so they need no database, no Redis and no volume. Run more of
+  # them with `docker compose up -d --scale probe=3`: the monitors are dealt among them.
+  probe:
+    image: 0xfurai/peekaping-probe:latest
+    restart: unless-stopped
+    # the probe takes up to 25 seconds to shut down cleanly
+    stop_grace_period: 30s
+    environment:
+      PEEKAPING_URL: http://api:8034
+      # The probe refuses a plain http:// address to another host unless told otherwise.
+      # This one stays on the compose network.
+      PROBE_ALLOW_INSECURE: "true"
+      # The token the api stores on the local probe (PROBE_BOOTSTRAP_TOKEN)
+      PROBE_TOKEN: "${PROBE_BOOTSTRAP_TOKEN:?PROBE_BOOTSTRAP_TOKEN is not set: add it to .env as a random string of at least 32 characters, such as the output of openssl rand -hex 32}"
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - appnet
+
+  web:
+    image: 0xfurai/peekaping-web:latest
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - appnet
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:80 || exit 1"]
+      interval: 30s
+      timeout: 2s
+      retries: 5
+      start_period: 5s
+
+  gateway:
+    image: nginx:latest
+    restart: unless-stopped
+    ports:
+      - "8383:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      api:
+        condition: service_healthy
+      web:
+        condition: service_healthy
+    networks:
+      - appnet
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:80 || exit 1"]
+      interval: 30s
+      timeout: 2s
+      retries: 5
+      start_period: 5s

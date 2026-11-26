@@ -13,10 +13,13 @@ The API Server handles:
 - **HTTP API**: RESTful endpoints for all CRUD operations
 - **Authentication**: User login, registration, JWT token management, and 2FA
 - **Authorization**: Role-based access control and API key validation
-- **WebSocket Server**: Real-time bidirectional communication with web clients
+- **WebSocket Server**: A socket.io server that pushes heartbeats to web clients in real time
 - **API Documentation**: Auto-generated OpenAPI documentation
 - **Security**: Brute force protection, rate limiting, CORS handling
 - **Push Endpoint**: Receives heartbeats from push-based monitors
+- **Probe Protocol**: Deals each probe's monitors among its instances and takes their results (`/probe/v1/`). See [Remote probes](../self-hosting/remote-probes.md)
+- **Ingest**: Stores the results that probes and push monitors send, as heartbeats (cluster mode on SQLite and PostgreSQL, and single mode)
+- **Leader Jobs**: The stale-monitor watchdog, the probe offline sweep and the push monitors' checks, on the replica that holds the leader lock (cluster mode on SQLite and PostgreSQL)
 - **Cleanup Tasks**: Scheduled cleanup of old data
 - **Prometheus Metrics**: Exposes per-monitor metrics for scraping
 
@@ -26,7 +29,35 @@ The API Server handles:
 The API server uses Uber's Dig for dependency injection, registering all modules and their dependencies at startup.
 
 ### Event-Driven Communication
-The API server subscribes to Redis pub/sub events and broadcasts them to connected WebSocket clients for real-time updates.
+The API server subscribes to the event bus and sends each heartbeat to the sockets in its rooms for real-time updates (see [WebSocket Connection](#websocket-connection)). In cluster mode the bus is Redis pub/sub, so every API replica gets every event and sends it to its own sockets. In single mode it is in memory, inside the one process, with no Redis.
+
+### Notifications
+Redis pub/sub gives every API server a copy of an event, so notifications don't travel that way, or each replica would send them all. The API server that stores a heartbeat puts a monitor going Down or Up, or a certificate close to expiring, on the `notification` queue. The leader's watchdog does the same for a stale monitor and for the same monitor checked again. Each API server takes tasks from that queue, and a task goes to one of them, so a notification is sent once to each of the monitor's notification channels however many replicas run. A notification queued while no API server is running is sent when the first one starts.
+
+In single mode the `peekaping` binary is the only process and sends them itself, with no queue.
+
+### Ingest
+In cluster mode on SQLite and PostgreSQL, the API server stores what it receives itself: a push to a push monitor's URL, and the results a probe sends. Each replica stores a monitor's results one at a time, in the order it got them, so a push and a check of the same monitor that reach one replica never overtake each other. The replicas don't order results among themselves. A probe instance sends its batches in order and to one replica at a time, and the database's lock serializes the monitor's location updates, so two replicas never change the same monitor's locations at once. The replica that took the request judges the monitor's status, publishes the heartbeat and counts it in the stats. Nothing goes through a queue.
+
+- **Stats** are aggregated by the replica that stored the heartbeat. The heartbeat reaches the other replicas' websockets and metrics through Redis pub/sub, but only the replica that stored it counts it in the stats.
+- **Retried batches.** A probe that doesn't get an answer sends its batch again, possibly to another replica. Each replica records the ids of the results it took in a Redis key that lasts an hour, so a batch retried within the hour is answered as a duplicate and stored once. A result's id is claimed for 2 minutes before it is stored and kept for the hour once it is. A retry that finds an id that is claimed and not kept (the first replica may still be storing it, or may have died) is not answered as a duplicate, which the probe drops for good: the replica stores the rest of the batch and answers 503 with a `Retry-After` of 5 seconds, and the probe sends the batch again. A request stores for 90 seconds at the most, so that it is over before its claims run out: past that it keeps the ids of what it stored, gives back the rest and answers the same 503. If a replica can't reach Redis for that record, it answers 503, and the probe sends the batch again.
+- **Speed.** One API server stores about 2,000 probe results a second on PostgreSQL 17 and on SQLite. The ingester queue it replaced stored about 1,350 a second on PostgreSQL.
+
+
+### Leader Jobs
+Three jobs must run on one replica at a time. In cluster mode on SQLite and PostgreSQL they run on the API replica that holds the leader lock, the Redis key `peekaping:producer:leader`. The lock lasts 10 seconds and its holder renews it every 5.
+
+| Job | What it does |
+| --- | --- |
+| Stale-monitor watchdog | Every minute, finds active monitors that stopped being checked, records them for the health endpoint and notifies their channels. It skips a monitor whose probe is offline. It can't make a probe check again, so it notifies once the wait has passed. |
+| Probe offline sweep | Every 30 seconds, marks a probe offline when none of its instances has been heard from for `PROBE_OFFLINE_AFTER`, and online again when one is. It tells the probe's notification channels, or its active monitors' channels when it has none. See [When a probe is offline](../self-hosting/remote-probes.md#when-a-probe-is-offline). |
+| Push monitors' checks | Finds a push monitor that got no push within its interval and stores a Down heartbeat. |
+
+The sweep also looks for a local probe that has active monitors and no instance, which is what a cluster upgraded without deploying probes looks like. It reports that probe offline once, after `PROBE_OFFLINE_AFTER` from the moment the replica took the lock, and logs `the local probe has N active monitors and no instance: deploy peekaping-probe with PROBE_TOKEN set to PROBE_BOOTSTRAP_TOKEN`. The API also logs it at startup. See [Upgrading to probes](../self-hosting/upgrading-to-probes.md).
+
+When the leader stops, it releases the lock and another replica takes it at once, and starts the jobs. When the leader is killed, the lock runs out and another replica takes it within about 15 seconds. Each replica's log says when it starts or stops running the jobs.
+
+In single mode the `peekaping` process is always the leader, and runs the jobs itself.
 
 ## Environment Variables
 
@@ -35,17 +66,28 @@ The API server subscribes to Redis pub/sub events and broadcasts them to connect
 | Variable | Type | Required | Default | Description |
 |----------|------|----------|---------|-------------|
 | `SERVER_PORT` | string | Yes | `8034` | Port the API server listens on |
-| `CLIENT_URL` | string | Yes | `http://localhost:3000` | Frontend URL for CORS configuration |
+| `CLIENT_URL` | string | Yes | `http://localhost:3000` | The address people open. Notifications and account emails link to it, and its origin is the one `CORS_ORIGINS` allows when it is unset. It can also be set in Admin → Settings as the public URL (see [Install settings](#install-settings)); the origin `CORS_ORIGINS` allows stays the environment's (or the default) |
 | `MODE` | string | Yes | `dev` | Runtime mode: `dev`, `prod`, or `test` |
 | `LOG_LEVEL` | string | No | `info` | Logging level: `debug`, `info`, `warn`, `error` |
 | `TZ` | string | Yes | `UTC` | Timezone for the server |
 | `SERVICE_NAME` | string | Yes | `peekaping:api` | Service identifier for logging and monitoring |
 
+### Web App Configuration (single mode)
+
+Only the `peekaping` binary (single mode) reads these. With `WEB_DIR` set, it serves the web app on `SERVER_PORT` beside the API, so one port serves the UI, `/api/*` and `/socket.io/*`.
+
+| Variable | Type | Required | Default | Description |
+|----------|------|----------|---------|-------------|
+| `WEB_DIR` | string | No | `""` | Directory of the web app's build, with its `index.html`. Unset, `peekaping` serves the API alone. A directory without `index.html` stops it at startup |
+| `API_URL` | string | No | `""` | Where the web app reaches the API, written to the `/env.js` that `peekaping` generates. Empty means the web app's own origin |
+
+With `WEB_DIR` set, only `/api/*`, `/socket.io/*` and, when `METRICS_ENABLED` is `true` and `METRICS_PORT` is unset, `/metrics` reach the API. With `METRICS_PORT` set, `/metrics` is served on that port instead. `/docs`, `/swagger/*` and `/health` get the web app instead, so check the health at `/api/v1/health`.
+
 ### Database Configuration
 
 | Variable | Type | Required | Default | Description |
 |----------|------|----------|---------|-------------|
-| `DB_TYPE` | string | Yes | - | Storage backend: `postgres`, `mysql`, `sqlite`, `mongo`, `mongodb` (MongoDB storage is [deprecated](../self-hosting/docker-with-mongo.md)) |
+| `DB_TYPE` | string | Yes | - | Storage backend: `postgres`, `mysql` or `sqlite`. MongoDB storage was removed: `mongo` and `mongodb` [stop the API at startup](../self-hosting/docker-with-mongo.md) |
 | `DB_HOST` | string | Conditional | - | Database host (not required for SQLite) |
 | `DB_PORT` | string | Conditional | - | Database port (not required for SQLite) |
 | `DB_NAME` | string | Yes | - | Database name or SQLite file path |
@@ -53,6 +95,10 @@ The API server subscribes to Redis pub/sub events and broadcasts them to connect
 | `DB_PASS` | string | Conditional | - | Database password (not required for SQLite) |
 
 ### Redis Configuration
+
+:::note Single mode
+These are required in cluster mode, where the API replicas reach each other through Redis. The probes don't use Redis. In single mode, the `peekaping` binary runs the API and the checks in one process with no Redis, so it doesn't need `REDIS_HOST`. It ignores the `REDIS_*` variables and logs once when one is set.
+:::
 
 | Variable | Type | Required | Default | Description |
 |----------|------|----------|---------|-------------|
@@ -66,22 +112,255 @@ The API server subscribes to Redis pub/sub events and broadcasts them to connect
 
 | Variable | Type | Required | Default | Description |
 |----------|------|----------|---------|-------------|
-| `QUEUE_CONCURRENCY` | int | No | `128` | Maximum concurrent queue operations |
-| `PRODUCER_CONCURRENCY` | int | No | `10` | Concurrent producers for push endpoint (1-128) |
+| `QUEUE_CONCURRENCY` | int | No | `128` | Maximum concurrent tasks of the `notification` queue |
+
+### Local Probe Configuration
+
+`PROBE_OFFLINE_AFTER` applies in both modes. `PROBE_BOOTSTRAP_TOKEN` is for cluster mode: in single mode `peekaping` doesn't store it, and logs a warning when it is set, because its own process checks the local probe's monitors and it refuses a `peekaping-probe` that uses the local probe's token.
+
+| Variable | Type | Required | Default | Description |
+|----------|------|----------|---------|-------------|
+| `PROBE_BOOTSTRAP_TOKEN` | string | In cluster mode on SQLite and PostgreSQL | `""` | The token of the local probe, at least 32 characters, such as the output of `openssl rand -hex 32`. The API stores it at startup. The probe instances send the same value as `PROBE_TOKEN`. It gives access to the config of the monitors on the local probe, so keep it secret. The Compose files and the Helm chart require it and set it for the API and the probe together, but the API itself starts without it. Without it the API stores no token for the local probe, so unless an earlier start stored one, no probe instance can connect and the local probe's monitors are not checked. Remote probes use their own tokens |
+| `PROBE_OFFLINE_AFTER` | duration | No | `3m` | How long an online probe's instances may all go unseen before the probe counts as offline, from `2m` to `24h`. The leader's sweep reads it. Any replica can become the leader, so set it on every replica |
 
 ### Security Configuration
 
 | Variable | Type | Required | Default | Description |
 |----------|------|----------|---------|-------------|
-| `BRUTEFORCE_MAX_ATTEMPTS` | int | No | `20` | Maximum login attempts before lockout |
+| `BRUTEFORCE_MAX_ATTEMPTS` | int | No | `20` | Maximum failed logins for one client address and email before lockout |
 | `BRUTEFORCE_WINDOW` | duration | No | `1m` | Time window for counting failed attempts |
 | `BRUTEFORCE_LOCKOUT` | duration | No | `1m` | Lockout duration after max attempts |
+| `BRUTEFORCE_ACCOUNT_MAX_ATTEMPTS` | int | No | `100` | Failed logins for one account, from any addresses, that lock it. A successful login resets this count and the one above |
+| `BRUTEFORCE_ACCOUNT_WINDOW` | duration | No | `10m` | How long the count of an account's failed logins is kept, from the first of them. Until it has passed, each further failure after a lock ends locks the account again |
+| `BRUTEFORCE_ACCOUNT_LOCKOUT` | duration | No | `1m` | How long one lock lasts. After an attack stops, the owner is back in within `BRUTEFORCE_ACCOUNT_WINDOW` at most. An attacker who keeps going can keep the account locked |
+| `TRUSTED_PROXIES` | string | No | empty | Comma-separated IP addresses and CIDR ranges of the proxies whose `X-Forwarded-For` and `X-Real-IP` headers are believed, such as `127.0.0.1,10.0.0.0/8`. The login lockout counts failures per client address. A request from any other address counts as coming from the address it connected from, so with the setting empty (its own default, and the single-mode bundles' setting) no header is believed. The cluster Compose files and the Helm chart set loopback and the private ranges when it is unset, and an explicitly empty value there trusts nobody. For a request from a listed proxy, the client is the last `X-Forwarded-For` address that isn't listed here (the leftmost when all are), or `X-Real-IP` when there is no `X-Forwarded-For`; an `X-Forwarded-For` it can't read makes the client the proxy's own address. An invalid entry stops startup |
+| `CORS_ORIGINS` | string | No | empty | Comma-separated origins whose pages may read the API's responses, such as `https://status.example.com,http://localhost:8383`. Empty (the default) allows the origin of `CLIENT_URL`: its scheme, host and port, without a path. A default port (`:80` for `http`, `:443` for `https`) is left out, as browsers leave it out. A request from any other origin is still served, but its browser won't hand the response to the page. `*` alone allows any origin. Responses never allow credentials, since the API takes its token in the `Authorization` header. The web app calling the API on its own origin needs no entry. With `API_URL` set to another origin, list the web app's origin and those of your status page custom domains. `/metrics` is never readable from another origin. An entry that isn't an origin (`https://x.example/path`, `example.com`, or `*` next to other entries) stops startup |
+
+### Install settings
+
+The signup mode (`SIGNUP_MODE`), the sender of account emails (`ACCOUNT_SMTP_HOST`, `ACCOUNT_SMTP_PORT`, `ACCOUNT_SMTP_USER`, `ACCOUNT_SMTP_PASSWORD`, `ACCOUNT_SMTP_FROM`, `ACCOUNT_SMTP_TLS`), the public URL (`CLIENT_URL`), the default limits of a workspace (`WORKSPACE_LIMIT_*`, see [Limits](#limits)) and the install's name for them (`WORKSPACE_LIMITS_NAME`) are install settings: an instance admin can change each of them in the web app, under Admin → Settings, with no restart. Each value comes from the environment first, then from the value saved there, then from the default:
+
+- **A variable that is set wins**, from the system environment or the `.env` file. A variable set to an empty string (`ACCOUNT_SMTP_HOST=`) counts as unset: it doesn't lock its setting. The setting shows "set by the server's environment" and can't be changed in the web app, and `PUT /api/v1/admin/settings` refuses it with 409 `SETTING_LOCKED`. A shared install that wants its settings pinned sets the variables. The sender is one setting here: when any `ACCOUNT_SMTP_*` variable is set, the environment sets the whole sender, so every field of it is locked and a field whose variable is unset takes its default, never a saved value. A password from the environment is never sent to a saved host.
+- **An install that sets nothing and saves nothing** behaves as before: invite signup, no sender, `http://localhost:3000`, and no limits.
+- **A saved change** takes effect at once on the server that saved it, and on the other api replicas within 5 seconds, how long each keeps the saved values.
+- **The SMTP password is write-only.** `GET /api/v1/admin/settings` says only whether one is set. A change that leaves it out keeps it; an empty one clears it. The saved password is kept only while the host, port, TLS mode and user stay as they are: a change of any of them that doesn't send a password in the same request clears it, and the admin enters it again, so that it is never sent to another server.
+- **Open signup needs a sender.** Saving `open` with no sender, and removing the sender while signup is open, are refused (400 `OPEN_SIGNUP_NEEDS_SENDER`, `SENDER_NEEDED_FOR_OPEN_SIGNUP`). The startup checks below still apply to the variables that are set: `SIGNUP_MODE=open` in the environment needs `ACCOUNT_SMTP_HOST` in it too.
+- **Send a test email** (`POST /api/v1/admin/settings/test-email`) sends a fixed message through the sender as it is now.
+
+The saved values are in the `settings` table, under `install.signup_mode`, `install.public_url`, `install.account_smtp.*`, `install.workspace_limits.*` and `install.workspace_limits_name`. The SMTP password is stored as entered, as it is in an SMTP notification channel. Every other variable (Turnstile, the JWT and token settings, the database and the rest) stays in the environment only.
+
+### Account Emails Configuration
+
+One sender sends the account emails of the whole install: the password reset link, the email verification link and the invite emails. It is separate from the SMTP settings of an email notification channel, which belong to the channel. Leave `ACCOUNT_SMTP_HOST` unset, and save no host in Admin → Settings, to switch account emails off: the sign-in page shows no "Forgot password" link, no one is asked to verify an address and invites are copied, not emailed. `GET /api/v1/auth/config` tells the web app which it is. They apply to the api and to `peekaping`.
+
+| Variable | Type | Required | Default | Description |
+|----------|------|----------|---------|-------------|
+| `ACCOUNT_SMTP_HOST` | string | No | empty | The SMTP server. Setting it turns account emails on. Each `ACCOUNT_SMTP_*` setting can also be set in Admin → Settings (see [Install settings](#install-settings)) |
+| `ACCOUNT_SMTP_PORT` | int | No | `587` | The SMTP port, from 1 to 65535. Use `465` with `ACCOUNT_SMTP_TLS=tls` |
+| `ACCOUNT_SMTP_USER` | string | No | empty | The login. Empty means the server needs none |
+| `ACCOUNT_SMTP_PASSWORD` | string | No | empty | The password for `ACCOUNT_SMTP_USER`. It is masked in the startup log |
+| `ACCOUNT_SMTP_FROM` | string | When the host is set | empty | The address the emails come from, such as `no-reply@example.com` or `Peekaping <no-reply@example.com>`. A host without it stops startup |
+| `ACCOUNT_SMTP_TLS` | string | No | `starttls` | `starttls` upgrades the connection and refuses to send when the server doesn't offer it, `tls` wraps the connection in TLS from the first byte (port 465), and `none` sends in the clear, for a relay on the same host or network. With `ACCOUNT_SMTP_USER` and `ACCOUNT_SMTP_PASSWORD` set it is meant only for a relay on loopback (`localhost`, `127.0.0.1`): Go's `net/smtp` refuses to send credentials over an unencrypted connection to any other host, so the send fails. A remote server with a login needs `starttls` or `tls` |
+
+Each link is a single-use token with a lifetime: a password reset link expires after one hour, a verification link after three days, and an invite after seven. The server stores only a hash of a token. Using a reset link sets the new password and ends every session of the user: refresh tokens and access tokens issued before are refused. Asking for a reset link or a new verification link is limited to 5 emails an hour per address and 20 requests an hour per client address (see `TRUSTED_PROXIES`), counted in the memory of each API replica. A request for a reset link answers the same whether or not the address has an account. The emails are in English, and the links open the web app at the public URL (`CLIENT_URL`, or the one saved in Admin → Settings), so set it to the address people use.
+
+An install that upgrades counts its existing users as verified.
+
+### Signup Configuration
+
+`SIGNUP_MODE` says who may create an account. They apply to the api and to `peekaping`. `SIGNUP_MODE` can also be set in Admin → Settings (see [Install settings](#install-settings)); the Turnstile keys are read from the environment only.
+
+| Variable | Type | Required | Default | Description |
+|----------|------|----------|---------|-------------|
+| `SIGNUP_MODE` | string | No | `invite` | `invite`: the first user signs up and gets the first workspace, as its owner and an instance admin, and everyone after joins a workspace through an invite. `open`: anyone may sign up and gets a workspace of their own, as its owner; only the install's very first user is an instance admin. Someone who signs up through an invite joins the inviting workspace instead, in both modes. Any other value stops startup. `open` needs [account emails](#account-emails-configuration), because each new account must verify its email address: without `ACCOUNT_SMTP_HOST` startup stops and says so. Behind a reverse proxy, `open` also needs `TRUSTED_PROXIES` (see below) |
+| `SIGNUP_TURNSTILE_SITE_KEY` | string | With the secret | empty | The public key of a [Cloudflare Turnstile](https://developers.cloudflare.com/turnstile/) widget. `GET /api/v1/auth/config` returns it as `turnstileSiteKey` in `open` mode, for the web app to show the widget |
+| `SIGNUP_TURNSTILE_SECRET` | string | With the site key | empty | The widget's secret. With both set, `POST /api/v1/auth/register` in `open` mode needs a `turnstileToken` that the server checks with Cloudflare (5-second timeout). A missing or refused token, and a Cloudflare that cannot be reached, answer 400 and create no account. Set both or neither: one alone stops startup. The secret is masked in the startup log |
+
+In `open` mode, the workspace of a new account is suspended until its owner has verified their email address by following the link, or by resetting the password with the emailed link. A suspended workspace keeps its monitors, and its members can create, edit and read them, but none runs: no checks, no missed-push detection, no notifications, and a probe is dealt none of them. `GET /api/v1/me` marks the workspace `suspended` with `suspendedReason` `unverified`. Its public status pages and badges answer 503 "unavailable", as for a [suspended workspace](#suspended-workspaces). A push to a suspended workspace's push URL answers 403 and is not stored. A result that was on its way when the workspace was suspended is dropped, and sends no notification. Verifying lifts the suspension, and so does making a user with a verified address an owner of the workspace (by a role change, or an invite for the owner role); the monitors start running. A workspace of an `invite` install, or of one upgraded to workspaces, is never suspended.
+
+Signups without an invite are limited to 5 an hour per client address (see `TRUSTED_PROXIES`) in `open` mode, counted in the memory of each API replica; more answer 429. Behind a reverse proxy, set `TRUSTED_PROXIES` to the proxy's address or range (such as `127.0.0.1,10.0.0.0/8`) when you use `open` mode: without it every signup comes from the proxy's address and all visitors share one limit of 5 an hour, so the sixth signup of any visitor is refused. The server logs a warning at startup, and when an instance admin saves `open`, when signup is open and `TRUSTED_PROXIES` is empty. A signup through an invite is not limited and needs no Turnstile answer: the invite is the proof that the visitor is wanted. In `open` mode, signing up with an email that already has an account answers 409, which tells the visitor that the address is registered; the limit of 5 signups an hour per client address and the Turnstile check (when set) are what hold back someone who tries addresses one by one, and "Forgot password" stays silent about which addresses have accounts. `GET /api/v1/auth/config` also returns `signupMode` and `signupOpen`: true in `open` mode, and in `invite` mode while the install has no user.
+
+### Suspended workspaces
+
+An instance admin lists the install's workspaces with `GET /api/v1/admin/workspaces` and suspends or resumes one with `PATCH /api/v1/admin/workspaces/{id}` and `{"suspended": true}` or `false`. Both are for an instance admin signed in as a user: anyone else, and any API key, gets 403. The list shows counts and metadata only (name, owners' emails, members, active and paused monitors, status pages, custom domains, and whether, why and since when the workspace is suspended), never a monitor's target, a channel or anything else inside a workspace. Each suspend and resume is logged with who did it.
+
+| Variable | Type | Required | Default | Description |
+|----------|------|----------|---------|-------------|
+| `SUPPORT_CONTACT` | string | No | empty | How a member of a suspended workspace gets in touch with whoever runs the install: free text, an email address or a URL. `GET /api/v1/me` returns it as `supportContact` (`null` when unset), for the banner the web app shows |
+
+It applies to the api and to `peekaping`.
+
+- While a workspace is suspended by an admin its monitors are kept and listed, but none runs: no checks, no missed-push detection, no notifications, and a push answers 403 (naming the install's administrator) and is not stored. `GET /api/v1/me` marks the workspace `suspended` with `suspendedReason` `admin`. Nothing is deleted.
+- Its public status pages (by slug and by custom domain, with their monitors) and the badges of its monitors answer 503 with `{"error":{"code":"STATUS_PAGE_UNAVAILABLE"}}` and the message "This status page is unavailable", and say nothing of why. A page that is not published is still 404. A new account's workspace answers the same while it waits for its owner's email verification.
+- Resuming lifts only the admin's hold: the monitors run again in the state they had, and a workspace that still waits for its owner's email verification keeps waiting (`suspendedReason` `unverified`).
+
+### Deleting a workspace
+
+An instance admin deletes a workspace with `DELETE /api/v1/admin/workspaces/{id}`, which answers 204 (404 for a workspace that does not exist; anyone else, and any API key, gets 403). It is for good: the workspace's monitors with their heartbeats and stats, notification channels, proxies, tags, maintenance windows, status pages and custom domains, API keys, invites and settings all go with it, by cascade. Its monitors stop at once, its public status pages and badges are gone (404), and its members' open sockets leave its rooms. Its members keep their accounts and their other workspaces; a member who had only this workspace signs in to an empty account (`GET /api/v1/me` answers an empty `workspaces` list). An admin may delete a workspace they are a member of. The delete is logged with who did it.
+
+### Monitor Types Configuration
+
+`DISABLED_MONITOR_TYPES` turns monitor types off for the whole install. It applies to the api and to `peekaping`. Use it where a type would reach something it should not: the Docker monitor reads the Docker socket of the machine the server runs on, which on a shared install is the host's own containers.
+
+| Variable | Type | Required | Default | Description |
+|----------|------|----------|---------|-------------|
+| `DISABLED_MONITOR_TYPES` | string | No | empty | Comma-separated monitor types to turn off, such as `docker` or `docker,snmp`. Spaces are trimmed and case is ignored. The types are the ones in the monitor type list: `dns`, `docker`, `http`, `http-json-query`, `http-keyword`, `grpc-keyword`, `kafka-producer`, `mongodb`, `mqtt`, `mysql`, `ping`, `postgres`, `push`, `rabbitmq`, `redis`, `smtp`, `snmp`, `sqlserver` and `tcp`. A type the server does not know stops startup and lists the known ones. Empty (the default) turns nothing off |
+
+With a type turned off:
+
+- `POST /api/v1/monitors` for that type answers 400 with the code `MONITOR_TYPE_DISABLED` and a message that names the type, and so does a `PUT` or `PATCH` that changes a monitor's type to it. Editing a monitor that already has the type, without changing it, still works, and so does moving it to another type.
+- Monitors that already have the type are kept and listed with `type_disabled: true`, but none runs: no checks by the scheduler or by remote probes, no missed-push detection, no notifications, and a push to one of them answers 403. Nothing is changed in the monitor itself (`active`, its probes, its history), so removing the type from the list makes it run again. A result that was on its way when the type was turned off is dropped.
+- `GET /api/v1/me` returns `disabledMonitorTypes`, and the web app leaves those types out of the monitor type list and shows a monitor of one as paused, with the reason.
+
+### Blocking private targets
+
+`BLOCK_PRIVATE_TARGETS` keeps monitors from reaching the internal network and the cloud's metadata service. It applies to the api, to `peekaping` and to `peekaping-probe`. A self-hosted install usually monitors its own network and leaves it off; turn it on where the people who create monitors should not be able to point the server at the machine it runs on.
+
+| Variable | Type | Required | Default | Description |
+|----------|------|----------|---------|-------------|
+| `BLOCK_PRIVATE_TARGETS` | bool | No | `false` | `true` blocks the addresses listed below. `false` or unset leaves checks unrestricted. Any other value that `strconv.ParseBool` doesn't read, such as `yes` or `on`, stops startup |
+
+With it on, these addresses are blocked: loopback (`127.0.0.0/8`, `::1`), the private ranges `10.0.0.0/8`, `172.16.0.0/12` and `192.168.0.0/16`, carrier-grade NAT (`100.64.0.0/10`), `0.0.0.0/8` and the unspecified address, link-local addresses (`169.254.0.0/16`, which holds the metadata service at `169.254.169.254`, and `fe80::/10`), IPv6 unique-local addresses (`fc00::/7`), multicast, and the broadcast address. An IPv4-mapped IPv6 address counts as its IPv4 address. Unix sockets are blocked too.
+
+- The address a check connects to is what is checked, after the name is resolved. A hostname that resolves only to blocked addresses, an HTTP redirect to one, and a DNS answer that changes between lookups are all refused, and the check is Down with "target address is not allowed". A hostname with both blocked and allowed answers is not refused as a whole: the check refuses each blocked address and may connect to an allowed one, and ping drops the blocked answers and fails only when none is left. Such a check can then be Down with a connection error, from an allowed address that didn't answer, rather than "target address is not allowed". The target and redirect checks apply to the connections a check makes itself: behind a proxy, the check connects only to the proxy, so the proxy's address is what is checked, and the proxy dials the target and any redirect.
+- This covers every monitor type that connects out: HTTP, keyword and JSON query (including the OAuth token request, mTLS, NTLM and the proxy), TCP, ping, DNS, SMTP, SNMP, PostgreSQL, MySQL, SQL Server, MongoDB, Redis, MQTT, RabbitMQ, Kafka, gRPC and Docker. For an HTTP monitor behind a proxy, the address checked is the proxy's: the proxy connects to the target. A Kafka monitor's brokers are checked too when the cluster announces them, an MQTT monitor ignores the `all_proxy` of the environment, a gRPC target that names a DNS server (`dns://server/host:port`) is refused, and a Docker monitor over a Unix socket (the `socket` connection type) is Down.
+- Saving a monitor whose target is an IP address that is blocked answers 400 with the code `TARGET_NOT_ALLOWED`, on create, `PUT` and `PATCH`. So does saving a proxy whose host is one. A hostname is saved, since what it resolves to can change and is checked at each check. A monitor or proxy stored before the setting was turned on is kept, and its checks are refused.
+- Notification channels connect to addresses users type, so they are covered too: the webhook, Slack, Discord, Teams, Google Chat, Mattermost, WeCom, ntfy, Gotify, Matrix, Signal, Telegram, WhatsApp, PagerDuty, PagerTree and Grafana OnCall channels send through the same check, and so does the SMTP channel's server. A webhook, a redirect from one, or a host name that resolves to a blocked address sends nothing. Saving or testing a channel whose URL or SMTP host is a blocked IP address answers 400 with the code `TARGET_NOT_ALLOWED`; a name is saved, and a test that dials one that resolves to a blocked address answers 400 with "target address is not allowed". The account emails (`ACCOUNT_SMTP_*`) and the install email channel, which sends through them, are the install's own setting and are not checked. A proxy set in the server's environment (`HTTPS_PROXY`, `HTTP_PROXY`) is the install's too, so the channel connects to it even at a private address. What the proxy would dial is checked before the request goes to it instead: a URL or a redirect whose host is a blocked address, or a name that resolves to one, sends nothing, and the proxy never sees it. The proxy resolves the name again when it dials, though, so split DNS (the proxy's resolver answering differently from the server's) or DNS rebinding can still reach a private address through it. An install that turns `BLOCK_PRIVATE_TARGETS` on and sends notifications through a proxy must enforce the destination rules at the proxy, or leave `HTTPS_PROXY` (and `HTTP_PROXY`) unset for the server.
+- A remote probe blocks private targets when its own `BLOCK_PRIVATE_TARGETS` is on, or when the server it connects to has it on: the server states its setting when the probe says hello, and the probe follows it at each hello. A server from before the setting leaves it out, which means off. A probe from before the setting ignores it, so its hello doesn't say that it blocks private targets (`enforces_private_target_block`): a server with `BLOCK_PRIVATE_TARGETS` on deals such an instance no monitors, logs a warning once for each, and lists it in the probe API with `enforces_private_target_block: false`. Upgrade the probes (in cluster mode, the local probe's `peekaping-probe` instances too) before turning the setting on, or they get no work.
+
+### Verifying custom domains
+
+`VERIFY_CUSTOM_DOMAINS` makes a custom domain prove that it points at this install before it serves its status page or gets a certificate. A self-hosted install trusts its people to add their own domains and leaves it off; turn it on where one workspace must not be able to hold a domain it doesn't own. It applies to the api and to `peekaping`.
+
+| Variable | Type | Required | Default | Description |
+|----------|------|----------|---------|-------------|
+| `VERIFY_CUSTOM_DOMAINS` | bool | No | `false` | `true` serves a custom domain only once it is verified. `false` or unset serves every domain, as before. `1`, `t`, `TRUE` and the other forms Go's `strconv.ParseBool` reads count too. Any other value, such as `yes` or `on`, stops startup, so a mistyped value never leaves verification off |
+| `CUSTOM_DOMAIN_CNAME_TARGET` | string | No | empty | The host a domain may be a `CNAME` to. Empty means the host of the public URL (`CLIENT_URL`, or the address an instance admin saved), without its port. A public URL on `localhost` or at an IP address gives no target, and then only the TXT record verifies a domain. A value that isn't a host name stops startup |
+
+With it on:
+
+- A domain is **Pending** when it is added, and **Verified** once either record is found: a `TXT` record at `_peekaping-verify.<domain>` with the value `peekaping-verify=<token>` (the token is the domain's own, shown to the workspace), or a `CNAME` from the domain to the target. A Pending domain answers like an unknown one: `GET /api/v1/status-pages/domain/<domain>` is `404` and the TLS ask endpoint answers `404`, so no certificate is issued. A domain keeps its name while Pending: no other status page can add it.
+- A check runs every 5 minutes, on the leader api replica in cluster mode. It looks up every Pending domain, and every Verified domain not checked for an hour. A lookup that fails counts as the records not being there.
+- A Verified domain whose records have been missing for 24 hours goes back to Pending and stops serving. A Pending domain is removed from its status page after 7 days of checks that found it unverified, which frees the name. Days when no check ran don't count: a domain added while verification was off starts that clock at its first check after verification is turned on, and a pause of more than an hour in the checks (verification turned off, or the server down) starts it again at the first check after.
+- Turning it on leaves Pending every domain that hasn't been verified. Domains that already point at the install are verified by the next check, within 5 minutes. A domain checked with "Check now" while the setting was off, with its records in place, is already Verified, and is re-checked within the hour like any Verified domain.
+- `GET /api/v1/status-pages/domains/{id}` shows each domain of a status page of the workspace with its state, the records to add, the last check and when a Pending domain will be removed. `POST /api/v1/status-pages/domains/{id}/{domain}/verify` runs a check now. Both work with the setting off. `GET /api/v1/me` returns `verifyCustomDomains` and `customDomainCnameTarget`.
+
+### API rate limits
+
+`API_RATE_LIMIT_PER_WORKSPACE` and `API_RATE_LIMIT_PER_API_KEY` cap how many requests a workspace, and one of its API keys, may make. They apply to the api and to `peekaping`. Both are off by default, so a self-hosted install is unchanged; turn them on where a workspace's scripts should not be able to take the server from the others.
+
+| Variable | Type | Required | Default | Description |
+|----------|------|----------|---------|-------------|
+| `API_RATE_LIMIT_PER_WORKSPACE` | int | No | `0` | Requests per minute one workspace may make, all of its users and API keys together. `0` is off |
+| `API_RATE_LIMIT_PER_API_KEY` | int | No | `0` | Requests per minute one API key may make. `0` is off. Every request of a key also counts toward its workspace's limit |
+
+A negative value stops startup with a configuration error.
+
+- A request over either limit answers 429 with the body `{"message": "Too many requests, try again later", "data": null}` and a `Retry-After` header: the seconds until the oldest request leaves the minute, rounded up, and at least 1. The same header comes with the 429 of an invite, a password reset or verification email, and an open signup.
+- The count is a sliding minute: the limit is how many requests were made in the last 60 seconds. A request that is refused is not counted, so a client that keeps trying gets in as soon as the wait is over. A request that its API key's limit refuses is not counted for the workspace, so one key that keeps trying uses up none of the requests the workspace's other keys and users need. A request that the workspace's limit refuses has already counted toward its key's.
+- Only a request that runs in a workspace is counted, once it is signed in or its API key is accepted. The routes that run in no workspace are not: `GET /api/v1/me`, `/api/v1/auth/*`, `/api/v1/admin/*`, `POST /api/v1/workspaces`, and viewing or accepting an invite. A request with no or bad credentials is not counted either; the login lockout and the limits on the account routes guard those.
+- Each api replica keeps its own count, in memory, and forgets it when it restarts. An install with several replicas therefore allows each replica's share: with 3 replicas and a limit of 600, a workspace may make up to 1,800 requests a minute if the load balancer spreads them evenly. The limit guards against a script that runs away, and is not an exact quota.
+
+### Spacing checks to one host
+
+`CHECKS_PER_HOST_PER_MINUTE` caps how many checks to one target host run per minute, across all monitors and workspaces. It applies to the api, to `peekaping` and to `peekaping-probe`. It is off by default, so a self-hosted install is unchanged; turn it on where many workspaces may point monitors at the same host, so that together they can't hammer it.
+
+| Variable | Type | Required | Default | Description |
+|----------|------|----------|---------|-------------|
+| `CHECKS_PER_HOST_PER_MINUTE` | int | No | `0` | The most checks to one target host that one checking process starts per minute. `0` is off |
+
+A negative value stops startup with a configuration error.
+
+- The host is the one the check dials: the host of an HTTP URL, a TCP, ping, database or broker host, a DNS monitor's resolver. Host names are compared in lower case. A monitor that dials several hosts takes a turn on each and waits for the latest. A push monitor dials nothing and is never limited, and neither is a monitor under maintenance.
+- Checks to one host are spaced evenly: at 60 a minute, they start a second apart. A check whose turn is at most a few seconds away (a quarter of its check interval, at most 5 seconds) waits for it, before its own timeout starts. A check whose turn is further away skips that tick: it makes no heartbeat, no Down and no notification, takes no check slot, and logs at debug level with the host. The monitor is checked again on its next tick. The first skip for a host, and then at most one a minute, is logged at info with how many checks were skipped.
+- The cap is per checking process: the scheduler of `peekaping`, the push checks of the api, and each `peekaping-probe` instance count for themselves. With 3 probe instances and a cap of 60, a host may see up to 180 checks a minute.
+- A remote probe uses the stricter of its own `CHECKS_PER_HOST_PER_MINUTE` and the server's (the smaller one that is not 0, or whichever is set). The server states its value when the probe says hello, and the probe follows it at each hello. A server or probe from before the setting left it out, which means off.
+- If more monitors want a host than the cap allows, some skip every tick: the cap and the number of monitors on one host have to fit the check intervals. Raise the cap, or give those monitors longer intervals.
+
+### Minimum check interval
+
+`MIN_CHECK_INTERVAL` is the smallest check interval and retry interval a monitor can be saved with. It applies to the api and to `peekaping`. The default is the smallest a monitor can have, so a self-hosted install is unchanged; raise it where many workspaces share the install and short intervals would cost too much.
+
+| Variable | Type | Required | Default | Description |
+|----------|------|----------|---------|-------------|
+| `MIN_CHECK_INTERVAL` | int | No | `20` | The smallest `interval` and `retry_interval`, in seconds |
+
+A value below 20 stops startup with a configuration error: the timeout minimum (16 seconds) and the rule that a timeout is at most 0.8 times the interval rely on it.
+
+- Creating a monitor, or updating one with `PUT` or `PATCH`, with an `interval` or `retry_interval` below the minimum answers 400 with the code `INTERVAL_TOO_SHORT`, the `field` (`interval` or `retry_interval`) and the `minimum`, and a message that names the minimum in seconds. A `PATCH` that sends neither field is not refused because of a lower stored value, so a monitor stored with less can still be renamed or paused.
+- A monitor stored with less, because it was saved before the minimum was raised or imported, is checked at the minimum: the scheduler of `peekaping`, the stale-monitor watchdog and the assignments a remote probe is dealt use the minimum in its place. The API still shows the stored values, and the timeout is kept as stored; a longer interval only loosens the 0.8 rule.
+- `GET /api/v1/me` returns the minimum as `minCheckInterval`. The monitor form uses it as the minimum and the default for the interval and the retry interval, and so does Get started when it creates the first monitor.
+- A workspace can have a minimum of its own, as one of its [limits](#limits). Then the stricter of the two applies, on save and in the checks, and `INTERVAL_TOO_SHORT` names it as the `minimum`.
+
+### Limits
+
+A workspace's limits are what it is held to: how many active monitors it may have, its shortest check interval, how many probes one of its monitors runs on, and so on. On Peekaping Cloud they are the free tier. A self-hosted install has none unless its admin sets them, so an install that sets nothing is unchanged.
+
+A workspace's limits come from the first of these that has any:
+
+1. **The workspace's own limits**, which an instance admin sets for it. They replace the install's defaults whole, and "no limits" is a value of its own: a workspace given no limits has none, whatever the defaults say.
+2. **The install's defaults**, which are [install settings](#install-settings): each is its variable below when the environment sets it, else the value saved in Admin → Settings, else none.
+3. **None.**
+
+| Variable | Type | Required | Default | Description |
+|----------|------|----------|---------|-------------|
+| `WORKSPACE_LIMIT_MONITORS` | int | No | `0` | How many active monitors a workspace may have. A paused monitor doesn't count |
+| `WORKSPACE_LIMIT_MIN_CHECK_INTERVAL` | int | No | `0` | The smallest `interval` and `retry_interval` of a workspace's monitors, in seconds, beside `MIN_CHECK_INTERVAL`: the stricter applies |
+| `WORKSPACE_LIMIT_PROBES_PER_MONITOR` | int | No | `0` | How many probes one monitor runs on |
+| `WORKSPACE_LIMIT_STATUS_PAGES` | int | No | `0` | How many status pages a workspace may have |
+| `WORKSPACE_LIMIT_CUSTOM_DOMAINS` | int | No | `0` | How many custom domains a workspace's status pages may have, together |
+| `WORKSPACE_LIMIT_MEMBERS` | int | No | `0` | How many members a workspace may have, with its pending invites counted |
+| `WORKSPACE_LIMIT_OWNED_WORKSPACES` | int | No | `0` | How many workspaces one user may own. It is counted per user against this default alone: a workspace's own limits don't change it |
+| `WORKSPACE_LIMIT_RETENTION_DAYS` | int | No | `0` | The longest data retention period a workspace may keep, in days |
+| `WORKSPACE_LIMITS_NAME` | string | No | empty | The install's name for these defaults, free text such as `Free tier` (at most 100 characters). A workspace's Usage page shows it as where its limits come from; unset, the page says an administrator set them. It is also an install setting |
+
+`0`, or a variable left unset, is no limit. A negative value stops startup with a configuration error. They apply to the api and to `peekaping`, and every api replica should set the same values.
+
+A default whose variable is unset can be saved under Admin → Settings, "Default limits", or with `PUT /api/v1/admin/settings` and a `workspaceLimits` object of the same names as a workspace's own limits: `{"workspaceLimits": {"monitors": 10, "members": null}}` saves 10 active monitors and clears the members default, so that there is none, and a limit left out stays as it is. A saved default is a whole number of 1 or more; `min_check_interval` is at least `MIN_CHECK_INTERVAL`, and `retention_days` at most 36500. Anything else is 400 `INVALID_SETTING`, and a default whose variable is set is 409 `SETTING_LOCKED`. `GET /api/v1/admin/settings` shows each default with its value (`null` for none), where it comes from and whether it is locked. A saved default applies to every workspace without limits of its own at once on the api that saved it, and on the other replicas within 5 seconds, with no restart.
+
+- A write over a limit answers 403 with the code `LIMIT_REACHED`, the `limit` and its value as `max`, and a message that names them: `{"message": "the workspace has reached its limit of 10 active monitors", "data": null, "error": {"code": "LIMIT_REACHED", "limit": "monitors", "max": 10}}`.
+- **Monitors.** Creating an active monitor, or resuming a paused one (`PATCH` or `PUT` with `active: true`), while the workspace has as many active monitors as its limit is refused. Creating a paused monitor, pausing one, and every other edit are not. Two such writes at once are counted one after the other, so they can't both take the last place.
+- **Over the limit.** Lowering a limit pauses and deletes nothing. When a workspace has more active monitors than its limit, the oldest ones up to the limit run, by when they were created, and the newer ones don't: they make no checks and no notifications, a push to one answers 403, and the API says `over_limit: true` on each, which the app shows as paused with the reason. Their `active` setting is left as it is, so they run again once they are within the limit: when the limit is raised, or the owner pauses or deletes older monitors to choose which ones stay. The scheduler picks such a change up within its reconcile interval (30 seconds).
+- **Probes.** A monitor created or updated with more `probe_ids` than the limit is refused with the `limit` `probes`; a save that keeps the probes a monitor has is not. A monitor created without probes runs on the first default probes, as many as the limit, in their order. Assigning a probe to every monitor skips a monitor that runs on as many probes as its workspace allows, and logs how many it skipped.
+- **Status pages and custom domains.** Creating a status page while the workspace has as many as its limit is refused with the `limit` `status_pages`. Custom domains count across all the workspace's status pages: creating a page, or updating one with `domains`, that would take the workspace past its limit is refused with the `limit` `custom_domains`, and nothing of the request is stored. Swapping one domain for another keeps the count, and an update that adds no domain is never refused, so a workspace above a lowered limit can still remove domains.
+- **Members.** Inviting someone while the workspace's members and pending invites (neither used, revoked nor expired) are as many as its limit is refused with the `limit` `members`. Inviting a pending address again replaces its invite and takes no more room. Accepting an invite, signed in or by signing up through it, counts the members alone, so an invite that was counted when it was made can be accepted at the limit; once the workspace has as many members as its limit, it is refused and no account is made.
+- **Data retention.** Saving a data retention period (`PUT /api/v1/settings/key/KEEP_DATA_PERIOD_DAYS`) longer than the workspace's limit is refused with the `limit` `retention_days`; one at the limit is saved. The hourly cleanup deletes each workspace's heartbeats older than the shorter of its own period and its limit, so a period saved before the limit was lowered is cut to it on the next run, and the probes' status changes follow the longest of those. Stats keep their fixed retention for the whole install.
+- **Owned workspaces.** Creating a workspace (`POST /api/v1/workspaces`) while the user owns as many as the install's default (`WORKSPACE_LIMIT_OWNED_WORKSPACES`, or the one saved in Admin → Settings) is refused with the `limit` `owned_workspaces`. The workspace an open signup makes is never refused: the new user owns none yet.
+- Two writes at once are counted one after the other: on PostgreSQL the write holds the workspace's row (the user's, for owned workspaces) until it commits, and SQLite has one writer. So two writes can't both take the last place.
+- **Reading them.** `GET /api/v1/workspace/limits` answers, to any member of the workspace and its API keys, where its limits come from (`source`: `workspace`, `install` or `none`) and for each limit its value as `max` (`null` for none), what the workspace has of it as `used`, and the `source`. `used` is the active monitors, the status pages, the custom domains, the members with the pending invites, the workspaces the caller owns (`0` for an API key), the most probes any monitor runs on, the shortest interval that applies (the stricter of `MIN_CHECK_INTERVAL` and the limit) and the workspace's data retention period. `owned_workspaces` always comes from the install's defaults. An install that sets no limits answers `null` for each. `installLimitsName` is the install's name for its defaults (`WORKSPACE_LIMITS_NAME`, or the one saved in Admin → Settings), `null` when it has none. An owner or admin of a workspace with any limit sees them under Settings → Usage: each count against its limit with a bar that warns from 80% and at the limit, the shortest interval and the retention as values, and where the limits come from.
+- **A workspace's own limits.** An instance admin sets them with `PATCH /api/v1/admin/workspaces/{id}`: `{"limits": {"monitors": 50, "members": 10}}` replaces the install's defaults whole, so a limit left out (or `0`) is none and `{"limits": {}}` is a workspace with no limits at all; `{"clearLimits": true}` removes them, and the install's defaults apply again. A value below 0, or `limits` with `clearLimits`, is 400, and `owned_workspaces` is not one of them. It can come with `suspended` in the same request. Each set and clear is logged (`set_workspace_limits`, `clear_workspace_limits`) with who did it. The admin list (`GET /api/v1/admin/workspaces`) shows each workspace's `limits`: their `source` and every value, `null` for none.
+- The api reads the limits at most every 5 seconds. A change made through one api replica applies there at once, and on the other replicas within those 5 seconds.
 
 ### Metrics Configuration
 
 | Variable | Type | Required | Default | Description |
 |----------|------|----------|---------|-------------|
 | `METRICS_ENABLED` | bool | No | `false` | Serve the unauthenticated Prometheus `/metrics` endpoint, see [Prometheus Metrics](#prometheus-metrics) |
+| `METRICS_PORT` | int | No | unset | A TCP port from 1 to 65535. Serve `/metrics` on this port, on a second plain-HTTP listener, and no longer on the main port. It needs `METRICS_ENABLED=true` and can't be `SERVER_PORT`. Startup stops with an error otherwise. Both the API server and `peekaping` read it. See [Prometheus Metrics](#prometheus-metrics) |
+
+### Cleanup Configuration
+
+Every hour, at the top of the hour in UTC, the API server deletes the heartbeats older than the data retention period, the expired stats, the old notification history and the old TLS information. The data retention period is set per workspace, in Settings, by an admin or owner, and its `retention_days` limit can cap it (see [Limits](#limits)). An upgrade keeps the install's value for its one workspace. The two variables below set how long the last two are kept.
+
+| Variable | Type | Required | Default | Description |
+|----------|------|----------|---------|-------------|
+| `NOTIFICATION_HISTORY_RETENTION_DAYS` | int | No | `90` | How many days notification history is kept. At least `30`: the history stops a certificate expiry notification from being sent twice, and the default thresholds are 21, 14 and 7 days before expiry. If you set a threshold above this value, that notification can be sent again |
+| `TLS_INFO_RETENTION_DAYS` | int | No | `30` | How many days monitors' TLS information is kept. At least `1` |
+
+A value below its minimum stops startup with a configuration error. `0` counts as unset and gives the default.
+
+In cluster mode every API replica schedules the cleanup, and the first one to claim an hour runs it, so each hour's cleanup runs once however many replicas run. Only that replica logs `Running the hourly cleanup` with the hour; the others log at debug level that another replica has it. The claim is a Redis key, `peekaping:cleanup:<hour>` (the time rounded to the nearest hour, in UTC), that expires after two hours, so replicas whose clocks are less than an hour apart still share one claim per hour. If a replica can't reach Redis when the hour starts, it logs an error and skips that hour's cleanup instead of running it unguarded. The next hour tries again.
+
+In single mode the `peekaping` binary runs the cleanup itself every hour, with no Redis.
+
+### Usage Statistics and Error Reporting Configuration
+
+The anonymous usage ping and the error reports are both on until an admin turns them off, each with its own switch. These variables switch them off whatever the admin chose. See [Usage statistics and error reporting](../self-hosting/telemetry.md).
+
+| Variable | Type | Required | Default | Description |
+|----------|------|----------|---------|-------------|
+| `TELEMETRY` | string | No | `""` | `off` (also `false`, `0` or `no`) turns the usage ping off |
+| `ERROR_REPORTING` | string | No | `""` | `off` (also `false`, `0` or `no`) turns error reports off. In cluster mode, set it on the API. The probe sends no error reports. |
 
 ## API Endpoints
 
@@ -89,7 +368,7 @@ The API server subscribes to Redis pub/sub events and broadcasts them to connect
 
 The API server exposes the following endpoint groups:
 
-- `/api/v1/auth` - Authentication (login, register, logout, 2FA)
+- `/api/v1/auth` - Authentication (login, register, logout, 2FA), and with [account emails](#account-emails-configuration) the password reset (`forgot-password`, `reset-password`) and email verification (`verify-email`, `verify-email/resend`) routes. `GET /api/v1/auth/config` is public and says whether account emails are on
 - `/api/v1/monitors` - Monitor management
 - `/api/v1/heartbeats` - Heartbeat data retrieval
 - `/api/v1/notification-channels` - Notification channel configuration
@@ -102,6 +381,7 @@ The API server exposes the following endpoint groups:
 - `/api/v1/maintenances` - Maintenance window management
 - `/api/v1/health` - Health check endpoint
 - `/api/v1/push/:id` - Push monitor heartbeat receiver
+- `/probe/v1/*` - The probe protocol, which probes call with their token. See [Remote probes](../self-hosting/remote-probes.md)
 
 ### Pagination
 
@@ -118,12 +398,90 @@ http://localhost:8034/docs
 
 ## WebSocket Connection
 
-The API server provides WebSocket endpoints for real-time updates:
+The API server runs a [socket.io](https://socket.io) server for real-time updates. It is not a plain WebSocket endpoint, so a bare WebSocket client can't talk to it: use a socket.io client (`socket.io-client` for JavaScript). The endpoint is the path `/socket.io/` on the server's address, which the client adds itself:
 
 ```
-ws://localhost:8034/api/v1/ws
+http://localhost:8034/socket.io/
 ```
 
+In single mode the same path is on the one port the `peekaping` binary serves, 8383 by default. Connect to the address without the path. By default the client starts with HTTP long polling and upgrades to a WebSocket; the web app passes `transports: ["websocket"]` to use a WebSocket only, and both work. With more than one API replica, the long-polling requests of one socket.io session must all reach the same replica, so the default client can fail to connect without session affinity at the proxy. For several replicas, pass `transports: ["websocket"]`, as the web app does, or configure session affinity at the proxy. A reverse proxy in front of the server must pass `/socket.io/` with WebSocket upgrades. The web app uses this connection for its live updates.
+
+The connection is one way: **the server pushes heartbeats, and the client never sends data.** The only messages a client sends are the two that choose its rooms, `join_room` and `leave_room`. Anything else a client emits is ignored.
+
+### Authentication
+
+Send an access token (the `accessToken` that `POST /api/v1/auth/login` returns) in the `auth` payload of the socket.io connection:
+
+```js
+import { io } from "socket.io-client";
+
+const socket = io("http://localhost:8034", { auth: { token: accessToken } });
+```
+
+The server checks the token when the socket connects, and then keeps checking that the user's session is still open. A refresh token, an API key or a token in the query string doesn't work, since proxies write query strings to their access logs. The connection is refused with the `connect_error` message `access_token is required` when there is no token, and `Unauthorized` when the token is not a valid access token. When the user's session ends (the account is disabled or deleted, or the sessions are ended, as by a password reset), the server closes the socket, and the client has to connect again with a new token.
+
+### Rooms
+
+A socket receives nothing until it joins a room. There are two kinds, and each takes a UUID in lower case (an ID in capitals is taken as the lower-case one):
+
+| Room | Heartbeats it delivers |
+| --- | --- |
+| `workspace:<workspace id>` | Those of every monitor of the workspace |
+| `monitor:<monitor id>` | Those of that one monitor |
+
+A user may join the rooms of the workspaces they are a member of, and of the monitors in those workspaces. `GET /api/v1/me` lists the user's workspaces and their ids, and the monitors endpoints list the monitors' ids. A heartbeat goes to the room of its monitor and to the room of its workspace, so a socket in both gets it once under each event name. The install-wide room `monitor:all` that older versions had is gone: the server refuses it.
+
+Send `join_room` or `leave_room` with the room name as the first argument. Add an acknowledgement callback to get the answer, which is `{ "status": "ok" }`, or `{ "status": "error", "message": "not allowed" }` when the room is refused:
+
+```js
+socket.on("connect", () => {
+  socket.emit("join_room", `workspace:${workspaceId}`, (answer) => {
+    // answer is { status: "ok" } once the socket is in the room
+  });
+});
+```
+
+`join_room` is refused (`not allowed`) for a name that is not one of the two kinds or has an ID that is not a UUID, for a workspace the user is not a member of, for a monitor that does not exist or is in another workspace, and when the session has ended. `leave_room` is refused only for a name that is not a room or not a string; it answers `ok` for a valid room the socket is not in. A user who leaves a workspace, or whom a workspace removes, is taken out of its rooms when the server gets the event that they left, with no reconnect. In cluster mode that event travels over Redis, so a replica that is disconnected from Redis can miss it and leave the socket in the room. A socket starts outside every room, so join again after each reconnect.
+
+### Events
+
+The only event the server sends is the heartbeat. A room delivers it under the room's name followed by `:heartbeat`:
+
+| Room | Event |
+| --- | --- |
+| `workspace:<workspace id>` | `workspace:<workspace id>:heartbeat` |
+| `monitor:<monitor id>` | `monitor:<monitor id>:heartbeat` |
+
+```js
+socket.on(`workspace:${workspaceId}:heartbeat`, (heartbeat) => {
+  console.log(heartbeat.monitor_id, heartbeat.status, heartbeat.ping);
+});
+```
+
+The payload is one heartbeat, a JSON object:
+
+```json
+{
+  "id": "20b149e6-fe1c-4ca1-898f-8cd8c92cb06b",
+  "monitor_id": "f34e3a03-5d62-4284-898d-f19167d98d3c",
+  "probe_id": "local",
+  "instance_id": null,
+  "status": 1,
+  "msg": "200 - 200 OK",
+  "ping": 1,
+  "duration": 0,
+  "down_count": 0,
+  "retries": 0,
+  "important": false,
+  "time": "2026-10-30T17:29:00.010556Z",
+  "end_time": "2026-10-30T17:29:00.011593Z",
+  "notified": false
+}
+```
+
+`status` is `0` Down, `1` Up, `2` Pending or `3` Maintenance. `probe_id` is `local` for the local probe, otherwise the id of the remote probe that ran the check. `instance_id` is the probe instance that ran it, or `null` for a push, for a check the `peekaping` process ran itself in single mode, and for a heartbeat stored before instances were recorded.
+
+Heartbeats are not replayed, and delivery is best effort: a socket gets the ones that are stored while it is in the room, and a connected socket can still miss one. A client reads the REST API to fill gaps and to get the history.
 
 ## Authentication Methods
 
@@ -139,7 +497,7 @@ Used for programmatic API access.
 
 ## Health Check
 
-The API server exposes a health check endpoint:
+The API server exposes a health check endpoint. It needs no credentials:
 
 ```http
 GET /api/v1/health
@@ -148,10 +506,19 @@ GET /api/v1/health
 Response:
 ```json
 {
-  "status": "ok",
-  "timestamp": "2024-01-01T00:00:00Z"
+  "status": "success",
+  "stale_monitors": 0,
+  "watchdog_ran_at": "2026-10-19T12:00:42.318Z"
 }
 ```
+
+- `status` is always `success`. The endpoint answers `200` whenever the API server is up, so a Docker healthcheck on it only tells you that the API server is running.
+- `stale_monitors` is how many active monitors Peekaping has stopped checking. It is `null` if the API server can't read the count, in cluster mode when it can't reach Redis.
+- `watchdog_ran_at` is when the watchdog last ran. The watchdog looks for stale monitors every minute. It is `null` until the watchdog has run once, and also when the API server can't read it.
+
+To be told when monitors stop being checked, alert on a `stale_monitors` above `0`, or on a `watchdog_ran_at` that is more than a few minutes old.
+
+`/api/v1/health` stays public on the API port, whatever you set for `METRICS_PORT`. It shows only the install-wide count of stale monitors and when the watchdog last ran, never a monitor name.
 
 ## Prometheus Metrics
 
@@ -164,12 +531,23 @@ GET /metrics
 :::warning
 `/metrics` needs no credentials, and it lists the name and type of every active monitor. Scrape it over a private network, and leave `METRICS_ENABLED` off if that information shouldn't be readable by whoever can reach the API port.
 
-The gateway (Caddy in the bundle image, nginx in front of the separate web image) doesn't forward `/metrics`, so it isn't served on the web address. Scrape the API port (`8034` by default) directly, for example `api:8034` on the Docker Compose network or `<release>-api:8034` in Kubernetes. The development Compose files publish that port; the production ones and the bundle image don't, so publish it or run Prometheus on the same network.
+Set `METRICS_PORT` on any install whose API port is public. Then `/metrics` is served only on a second listener on that port, and the main port no longer serves it: it answers like any other unknown path (404 on the API, the web app in single mode). Publish the metrics port only to the network Prometheus scrapes from, never to the internet:
+
+```bash
+METRICS_ENABLED=true
+METRICS_PORT=9100
+```
+
+Prometheus then scrapes `api:9100/metrics`, or `<release>-api.<namespace>.svc.cluster.local:9100/metrics` in Kubernetes, where the Helm chart adds a `metrics` port to the API pod and Service. Without `METRICS_PORT`, `/metrics` is on the main port as described below.
+
+In cluster mode, the gateway (nginx in front of the separate web image) doesn't forward `/metrics`, so it isn't served on the web address. Scrape the API port (`8034` by default) directly, for example `api:8034` on the Docker Compose network or `<release>-api:8034` in Kubernetes. The development Compose files publish that port; the production ones don't, so publish it or run Prometheus on the same network.
+
+In single mode, the `peekaping` binary has one port unless you set `METRICS_PORT`. In Docker or Compose, don't publish the metrics port (leave it out of `ports`), and scrape it from a container on the same network, for example `peekaping:9100/metrics`. Without `METRICS_PORT`, with `WEB_DIR` set and `METRICS_ENABLED=true`, it serves `/metrics` there beside the web app, so whoever can open the web app can read it. The single-mode image (`0xfurai/peekaping`) runs single mode, so with `METRICS_ENABLED=true` it serves `/metrics` on port 8383.
 :::
 
 ### How it works
 
-The API server keeps the latest heartbeat of each active monitor in memory, fed by the heartbeat and monitor events on the Redis event bus. It sees heartbeats whichever process ran the check, and a scrape reads that memory only: no database queries and no calls to the worker.
+The API server keeps the latest heartbeat of each active monitor in memory, fed by the heartbeat and monitor events on the event bus (Redis pub/sub in cluster mode, in memory in single mode). It sees heartbeats whichever probe ran the check and whichever replica stored it, and a scrape reads that memory only: no database queries and no calls to a probe.
 
 - After a restart, the metrics come back from each monitor's latest heartbeat without waiting for its next check.
 - Every 5 minutes the API server re-checks the active monitors. A pause, rename or delete whose event was missed is corrected, and a monitor with no metrics gets its latest heartbeat loaded.
@@ -220,6 +598,6 @@ The second rule fires for a monitor whose latest heartbeat is more than 5 minute
 
 ## Related Components
 
-- [Producer](./producer.md) - Schedules monitor health checks
-- [Worker](./worker.md) - Executes health checks
-- [Ingester](./ingester.md) - Processes health check results
+- [Probe](./probe.md) - Executes health checks and sends the results
+- [Migrate](./migrate.md) - Sets up the database
+

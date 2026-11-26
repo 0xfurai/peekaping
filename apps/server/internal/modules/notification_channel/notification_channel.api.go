@@ -37,4 +37,4 @@ type DeleteInput = httpx.Input[httpx.NoBody, DeleteParams]
 
 type TestParams struct {
 }
-type TestInput = httpx.Input[*CreateUpdateDto, TestParams]
+type TestInput = httpx.Input[*TestDto, TestParams]

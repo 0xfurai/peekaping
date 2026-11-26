@@ -68,6 +68,13 @@ export const last = <T>(arr: T[]): T | undefined => {
   return arr[arr.length - 1];
 };
 
+// The code of a structured error body, `{ error: { code } }`, or undefined when the error has none
+export const apiErrorCode = (error: unknown): string | undefined => {
+  if (!isAxiosError(error)) return undefined;
+  const code = (error.response?.data as { error?: { code?: unknown } } | undefined)?.error?.code;
+  return typeof code === "string" ? code : undefined;
+};
+
 export const commonMutationErrorHandler =
   (fallbackMessage: string) => (error: unknown) => {
     if (isAxiosError(error)) {

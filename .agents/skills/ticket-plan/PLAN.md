@@ -21,8 +21,8 @@ alternative was rejected, say which and why in one line.>
 | AC1 | <service / API (internal/apitest) / repository / e2e> | <test name or file, red first for a bug> |
 
 **PR stack**
-1. `<type>/<n>-<slug>` → main: <what it does>; covers AC1, AC2
-2. `<type>/<n>-<slug>-<part>` → PR 1: ...
+1. `<type>/pp-<n>-<slug>` → main: <what it does>; covers AC1, AC2
+2. `<type>/pp-<n>-<slug>-<part>` → PR 1: ...
 
 **Out of scope**
 - <thing someone might expect, and where it goes instead>
@@ -45,7 +45,7 @@ Rules for the content:
 The user runs several sessions at once and hasn't seen your research. The brief gives them what they need to decide in one read. Print it as text, then ask the questions.
 
 ```markdown
-**#<n>: <title>**
+**PP-<n>: <title>**
 
 **Context.** <What the ticket asks for and why, in 2 or 3 sentences.>
 

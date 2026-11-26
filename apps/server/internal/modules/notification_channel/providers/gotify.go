@@ -17,8 +17,8 @@ import (
 
 // GotifyConfig holds the configuration for Gotify notifications
 type GotifyConfig struct {
-	ServerURL        string `json:"server_url" validate:"required,url"`
-	ApplicationToken string `json:"application_token" validate:"required"`
+	ServerURL        string `json:"server_url" validate:"required,url" endpoint:"true" urlCredentials:"true" target:"url"`
+	ApplicationToken string `json:"application_token" validate:"required" secret:"true"`
 	Priority         *int   `json:"priority" validate:"omitempty,min=0,max=10"`
 	Title            string `json:"title"`
 	CustomMessage    string `json:"custom_message"`
@@ -50,6 +50,25 @@ func (g *GotifySender) Validate(configJSON string) error {
 	return GenericValidator(cfg.(*GotifyConfig))
 }
 
+// renderTemplate renders text as a template. Text that can't be rendered is used as it was
+// written, and what names it in the warning.
+func (g *GotifySender) renderTemplate(engine *liquid.Engine, bindings map[string]any, text, what string) string {
+	rendered, err := engine.ParseAndRenderString(text, bindings)
+	if err != nil {
+		g.logger.Warnf("Failed to render %s template: %v", what, err)
+		return text // Fallback to the original text
+	}
+	return rendered
+}
+
+// gotifyPriority is the configured priority, and 8 if there is none
+func gotifyPriority(cfg *GotifyConfig) int {
+	if cfg.Priority != nil {
+		return *cfg.Priority
+	}
+	return 8 // Default priority
+}
+
 // Send sends a notification to Gotify
 func (g *GotifySender) Send(
 	ctx context.Context,
@@ -75,37 +94,21 @@ func (g *GotifySender) Send(
 	title := "Peekaping"
 	if cfg.Title != "" {
 		// Use liquid templating for title
-		if rendered, err := engine.ParseAndRenderString(cfg.Title, bindings); err == nil {
-			title = rendered
-		} else {
-			g.logger.Warnf("Failed to render title template: %v", err)
-			title = cfg.Title // Fallback to original title
-		}
+		title = g.renderTemplate(engine, bindings, cfg.Title, "title")
 	}
 
 	// Prepare message content
 	finalMessage := message
 	if cfg.CustomMessage != "" {
 		// Use liquid templating for custom message
-		if rendered, err := engine.ParseAndRenderString(cfg.CustomMessage, bindings); err == nil {
-			finalMessage = rendered
-		} else {
-			g.logger.Warnf("Failed to render custom message template: %v", err)
-			finalMessage = cfg.CustomMessage // Fallback to original custom message
-		}
-	}
-
-	// Set default priority if not specified
-	priority := 8 // Default priority
-	if cfg.Priority != nil {
-		priority = *cfg.Priority
+		finalMessage = g.renderTemplate(engine, bindings, cfg.CustomMessage, "custom message")
 	}
 
 	// Prepare request payload
 	payload := map[string]interface{}{
 		"title":    title,
 		"message":  finalMessage,
-		"priority": priority,
+		"priority": gotifyPriority(cfg),
 	}
 
 	// Convert payload to JSON
@@ -128,7 +131,7 @@ func (g *GotifySender) Send(
 	req.Header.Set("User-Agent", "Peekaping-Gotify/"+version.Version)
 
 	// Send request
-	g.logger.Infof("Sending Gotify notification to %s", serverURL)
+	g.logger.Infof("Sending Gotify notification to %s", logHost(serverURL))
 	resp, err := g.client.Do(req)
 	if err != nil {
 		return fmt.Errorf("failed to send Gotify request: %w", err)
@@ -140,6 +143,6 @@ func (g *GotifySender) Send(
 		return fmt.Errorf("Gotify request failed with status %d", resp.StatusCode)
 	}
 
-	g.logger.Infof("Gotify notification sent successfully to %s", serverURL)
+	g.logger.Infof("Gotify notification sent successfully to %s", logHost(serverURL))
 	return nil
 }

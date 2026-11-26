@@ -12,11 +12,12 @@ on:
       - 'bun.lock'
       - '.dockerignore'
       - 'docker-compose.dev.*.yml'
-      - 'docker-compose.bundle.*.yml'
+      - 'docker-compose.single.*.yml'
       - 'docker-compose.e2e.yml'
-      - 'Dockerfile.bundle.*'
-      - 'startup.bundle.*.sh'
-      - 'supervisord.bundle.*.conf'
+      - 'Dockerfile.single'
+      - 'startup.single.sh'
+      - 'startup.single.user.sh'
+      - 'scripts/test-single-user.sh'
       - 'Caddyfile'
       - '.github/workflows/playwright.yml'
       - '!**/*.md'
@@ -31,15 +32,29 @@ on:
       - 'bun.lock'
       - '.dockerignore'
       - 'docker-compose.dev.*.yml'
-      - 'docker-compose.bundle.*.yml'
+      - 'docker-compose.single.*.yml'
       - 'docker-compose.e2e.yml'
-      - 'Dockerfile.bundle.*'
-      - 'startup.bundle.*.sh'
-      - 'supervisord.bundle.*.conf'
+      - 'Dockerfile.single'
+      - 'startup.single.sh'
+      - 'startup.single.user.sh'
+      - 'scripts/test-single-user.sh'
       - 'Caddyfile'
       - '.github/workflows/playwright.yml'
       - '!**/*.md'
     branches: [ main, master ]
+  # Nightly, for the combinations a PR skips (dev PostgreSQL, the single stacks) and for
+  # flaky tests. The other test workflows run at the same time
+  schedule:
+    - cron: '17 3 * * *'
+  workflow_dispatch:
+
+# A new push to a PR replaces its run in progress, which would otherwise keep
+# its runners busy testing a commit nobody waits for. Other runs, the nightly one
+# and those started by hand included, get a group of their own: a shared one would
+# cancel the queued runs of busy pushes to main.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
 
 env:
   # Compose names the images it builds <project>-<service>. Pinning the project
@@ -47,24 +62,73 @@ env:
   COMPOSE_PROJECT_NAME: peekaping
 
 jobs:
+  # The single jobs check how the single-image bundles are packaged, which only
+  # their own files change. A PR runs them when it touches those files; pushes to
+  # main, the nightly run and a run started by hand always run them, so an app
+  # change that breaks a bundle fails there.
+  changes:
+    name: Detect single-mode changes
+    runs-on: ubuntu-24.04
+    outputs:
+      single: ${{ github.event_name != 'pull_request' || steps.diff.outputs.single }}
+      # The e2e combinations to run, as a matrix. A job's `if` can't read `matrix`, so the
+      # combinations an event skips are left out of the matrix itself.
+      e2e: ${{ steps.e2e.outputs.matrix }}
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - name: Check for single-mode files
+      id: diff
+      if: ${{ github.event_name == 'pull_request' }}
+      run: |
+        if git diff --name-only "origin/${{ github.base_ref }}...HEAD" | grep -qE '^(Dockerfile\.single$|startup\.single\.|docker-compose\.single\.|scripts/test-single-user\.sh$|Caddyfile$|\.github/workflows/playwright\.yml$)'; then
+          echo "single=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "single=false" >> "$GITHUB_OUTPUT"
+        fi
+    # Every PR runs the dev SQLite stack, with the critical specs (@critical: sign-in, a monitor's
+    # create, edit and delete, the status page, logout, API keys, members and 2FA) and the cloud suite
+    # (the open-signup install of e2e/onboarding.spec.ts: SIGNUP_MODE=open and Mailpit as its mail
+    # server, running only the @cloud specs). The whole suite and the dev PostgreSQL stack run after
+    # the merge, nightly and by hand; the single stacks also run, with the critical specs, on a PR
+    # that changes them.
+    - name: Pick the e2e combinations
+      id: e2e
+      env:
+        EVENT: ${{ github.event_name }}
+        SINGLE: ${{ github.event_name != 'pull_request' || steps.diff.outputs.single == 'true' }}
+      run: |
+        suite=default
+        if [ "$EVENT" = pull_request ]; then
+          suite=critical
+        fi
+        include='{"config":"dev","database":"sqlite","suite":"'"$suite"'"},{"config":"dev","database":"sqlite","suite":"cloud"}'
+        if [ "$EVENT" != pull_request ]; then
+          include="$include"',{"config":"dev","database":"postgres","suite":"default"}'
+        fi
+        if [ "$SINGLE" = true ]; then
+          include="$include"',{"config":"single","database":"sqlite","suite":"'"$suite"'"},{"config":"single","database":"postgres","suite":"'"$suite"'"}'
+        fi
+        echo "matrix={\"include\":[$include]}" | tee -a "$GITHUB_OUTPUT"
+
   # Build each image once, on its own runner, and share it with the test jobs.
-  # The dev images don't depend on the database, so all three dev jobs reuse them.
+  # The dev images don't depend on the database, so both dev jobs reuse them.
   build-images:
     name: Build ${{ matrix.name }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
         include:
           - { name: dev-api, tag: peekaping-api, context: apps/server, file: apps/server/infra/Dockerfile.api }
-          - { name: dev-producer, tag: peekaping-producer, context: apps/server, file: apps/server/infra/Dockerfile.producer }
-          - { name: dev-worker, tag: peekaping-worker, context: apps/server, file: apps/server/infra/Dockerfile.worker }
-          - { name: dev-ingester, tag: peekaping-ingester, context: apps/server, file: apps/server/infra/Dockerfile.ingester }
+          # The dev SQLite and PostgreSQL stacks run it as their `probe` service (it is the local probe's
+          # instances), and the e2e jobs run it as a remote probe (e2e/remote-probe.spec.ts). Named without
+          # "dev-" because the single jobs need it too, and they don't download image-dev-*; every e2e job
+          # asks for it by name.
+          - { name: probe, tag: peekaping-probe, context: apps/server, file: apps/server/infra/Dockerfile.probe }
           - { name: dev-migrate, tag: peekaping-migrate, context: apps/server, file: apps/server/infra/Dockerfile.migrate }
           - { name: dev-web, tag: peekaping-web, context: ., file: apps/web/Dockerfile }
-          - { name: bundle-postgres, tag: peekaping-peekaping, context: ., file: Dockerfile.bundle.postgres }
-          - { name: bundle-mongo, tag: peekaping-peekaping, context: ., file: Dockerfile.bundle.mongo }
-          - { name: bundle-sqlite, tag: peekaping-peekaping, context: ., file: Dockerfile.bundle.sqlite }
     steps:
     - uses: actions/checkout@v4
     - uses: docker/setup-buildx-action@v3
@@ -85,21 +149,74 @@ jobs:
         # Image layers are already compressed.
         compression-level: 0
 
+  # The single image, built like the others, only when the single jobs run. One image serves both
+  # databases: the postgres job starts the compose file's postgres service beside it. It is a job
+  # of its own because a job's `if` can't read `matrix`.
+  build-single-images:
+    name: Build single
+    needs: changes
+    if: ${{ needs.changes.outputs.single == 'true' }}
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v4
+    - uses: docker/setup-buildx-action@v3
+    - name: Build single image
+      uses: docker/build-push-action@v6
+      with:
+        context: .
+        file: Dockerfile.single
+        tags: peekaping-peekaping
+        outputs: type=docker,dest=${{ runner.temp }}/single.tar
+        cache-from: type=gha,scope=e2e-single
+        cache-to: type=gha,scope=e2e-single,mode=max
+    - uses: actions/upload-artifact@v4
+      with:
+        name: image-single
+        path: ${{ runner.temp }}/single.tar
+        retention-days: 1
+        # Image layers are already compressed.
+        compression-level: 0
+
+  # How the single image runs: the user, PUID/PGID, the Docker socket, port 8383, ping and Docker
+  # monitors, docker run --user and docker stop. It runs with SQLite, once for both databases:
+  # the e2e jobs below run it with PostgreSQL.
+  single-user:
+    name: Single user
+    needs: [changes, build-single-images]
+    if: ${{ !cancelled() && needs.changes.outputs.single == 'true' }}
+    timeout-minutes: 30
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v4
+    - name: Download image
+      uses: actions/download-artifact@v4
+      with:
+        name: image-single
+        path: ${{ runner.temp }}/images
+    - name: Load image
+      run: docker load --input "$RUNNER_TEMP/images/single.tar"
+    - name: Test the single image's user, ports and shutdown
+      run: scripts/test-single-user.sh peekaping-peekaping
+
   playwright-tests:
-    name: E2E ${{ matrix.config }} ${{ matrix.database }}
-    needs: build-images
-    # Run every combination whose images built, even if another image failed.
+    name: E2E ${{ matrix.config }} ${{ matrix.database }}${{ matrix.suite == 'cloud' && ' cloud' || matrix.suite == 'critical' && ' critical' || '' }}
+    needs: [changes, build-images, build-single-images]
+    # Run every combination whose images built, even if another image failed or the single images
+    # were skipped.
     if: ${{ !cancelled() }}
     timeout-minutes: 60
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
-      matrix:
-        database: [postgres, mongo, sqlite]
-        config: [dev, bundle]
+      # The combinations the changes job picked for this event
+      matrix: ${{ fromJSON(needs.changes.outputs.e2e) }}
     env:
-      # Every docker compose command below runs the stack plus the e2e target.
+      # Every docker compose command below runs the stack plus the e2e target and Mailpit. The
+      # default suites set no sender in the environment, so Admin → Settings can save one that
+      # sends to Mailpit (e2e/admin-settings.spec.ts).
       COMPOSE_FILE: docker-compose.${{ matrix.config }}.${{ matrix.database }}.yml:docker-compose.e2e.yml
+      # Where the specs read the mail the install sent
+      E2E_MAILPIT_URL: http://localhost:8025
     steps:
     # Prepare environment and dependencies
     - uses: actions/checkout@v4
@@ -111,14 +228,34 @@ jobs:
         bun-version-file: package.json
     - name: Install dependencies
       run: bun install --frozen-lockfile
+    # The browser download has taken over 7 minutes on a slow runner. The browser
+    # build follows the Playwright version, which bun.lock pins.
+    - name: Cache Playwright browsers
+      id: playwright-cache
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/ms-playwright
+        key: playwright-${{ runner.os }}-${{ hashFiles('bun.lock') }}
     - name: Install Playwright Browsers
+      if: steps.playwright-cache.outputs.cache-hit != 'true'
       run: bunx playwright install --with-deps chromium
+    # A cached browser still needs the system libraries, which live outside the cache.
+    - name: Install Playwright system dependencies
+      if: steps.playwright-cache.outputs.cache-hit == 'true'
+      run: bunx playwright install-deps chromium
     - name: Download images
       uses: actions/download-artifact@v4
       with:
-        pattern: ${{ matrix.config == 'dev' && 'image-dev-*' || format('image-bundle-{0}', matrix.database) }}
+        pattern: ${{ matrix.config == 'dev' && 'image-dev-*' || 'image-single' }}
         path: ${{ runner.temp }}/images
         merge-multiple: true
+    # The dev stack runs this image as its `probe` service, and the remote probe specs start it
+    # themselves.
+    - name: Download the probe image
+      uses: actions/download-artifact@v4
+      with:
+        name: image-probe
+        path: ${{ runner.temp }}/images
     - name: Load images
       run: |
         for image in "$RUNNER_TEMP"/images/*.tar; do
@@ -132,9 +269,9 @@ jobs:
         # Database Configuration
         DB_TYPE=${{ matrix.database }}
         DB_HOST=database
-        DB_PORT=${{ matrix.database == 'postgres' && '5432' || matrix.database == 'mongo' && '27017' }}
+        DB_PORT=${{ matrix.database == 'postgres' && '5432' }}
         DB_NAME=${{ matrix.database == 'sqlite' && '/app/data/peekaping.db' || 'peekaping' }}
-        DB_USER=${{ matrix.database == 'postgres' && 'peekaping' || matrix.database == 'mongo' && 'root' || 'root' }}
+        DB_USER=${{ matrix.database == 'postgres' && 'peekaping' || 'root' }}
         DB_PASS=password
 
         REDIS_HOST="redis"
@@ -142,21 +279,50 @@ jobs:
         REDIS_PASSWORD=""
         REDIS_DB=0
 
+        # The shortest time before a remote probe that stopped is reported offline (default 3m).
+        PROBE_OFFLINE_AFTER=2m
+
+        # The local probe's token: the api stores it and the dev stack's probe service sends it. The
+        # dev SQLite and PostgreSQL compose files refuse to start without it. The single images have no use
+        # for it, so they don't get it.
+        ${{ matrix.config == 'dev' && 'PROBE_BOOTSTRAP_TOKEN=e2e-local-probe-token-0123456789abcdef0123456789' || '' }}
+
         # Server Configuration
         CLIENT_URL=http://localhost:8383
         SERVER_PORT=8034
         BUNDEBUG=2
+
+        # The usage ping and error reports are on by default. A test run must not send either to
+        # Peekaping, so both point at an address nothing listens on. The DSN must not be empty:
+        # an empty one means Peekaping's own Sentry project.
+        TELEMETRY_URL=http://127.0.0.1:9/v1/ping
+        ERROR_REPORTING_DSN=http://public@127.0.0.1:9/1
+        EOF
+
+    # The cloud suite's install lets anyone sign up and sends its account emails to Mailpit, which
+    # catches them (the emails don't leave the network, and no real address gets one). The other
+    # suites leave the sender out of the environment: a variable that is set locks its setting in
+    # Admin → Settings, which e2e/admin-settings.spec.ts changes.
+    - name: Add the cloud suite's settings to .env
+      if: ${{ matrix.suite == 'cloud' }}
+      run: |
+        cat >> .env << EOF
+
+        # Open signup, with Mailpit as the sender of account emails
+        SIGNUP_MODE=open
+        ACCOUNT_SMTP_HOST=mailpit
+        ACCOUNT_SMTP_PORT=1025
+        ACCOUNT_SMTP_FROM=peekaping@e2e.test
+        ACCOUNT_SMTP_TLS=none
         EOF
 
     # Create and prepare data directories with proper permissions
     - name: Prepare data directories
       run: |
-        mkdir -p .data/postgres .data/mongodb .data/logs .data/caddy-data .data/caddy-config
-        sudo chown -R 999:999 .data/postgres .data/logs  # postgres user is typically uid 999
-        sudo chown -R 999:999 .data/mongodb              # mongodb user is typically uid 999
+        mkdir -p .data/postgres .data/postgres17 .data/logs .data/caddy-data .data/caddy-config
+        sudo chown -R 999:999 .data/postgres .data/postgres17 .data/logs  # postgres user is typically uid 999
         sudo chmod -R 755 .data/logs
-        sudo chmod -R 700 .data/postgres
-        sudo chmod -R 755 .data/mongodb
+        sudo chmod -R 700 .data/postgres .data/postgres17
         ls -la .data/
         echo "Directory permissions set successfully"
 
@@ -173,7 +339,7 @@ jobs:
 
     - name: Wait for services to be ready
       run: |
-        HEALTH_URL="http://localhost:${{ matrix.config == 'bundle' && '8383' || '8034' }}/api/v1/health"
+        HEALTH_URL="http://localhost:${{ matrix.config == 'single' && '8383' || '8034' }}/api/v1/health"
         if ! timeout 120 bash -c "until curl -sf $HEALTH_URL && curl -sf http://localhost:8383/ && curl -sf http://localhost:3033/health; do sleep 2; done" >/dev/null; then
           echo "::error::The stack wasn't healthy after 120 seconds"
           docker compose ps
@@ -182,12 +348,25 @@ jobs:
         fi
         echo "The stack is healthy"
 
-    - name: Run Playwright tests
-      run: bunx playwright test
+    - name: Wait for the mail catcher
+      run: |
+        if ! timeout 60 bash -c "until curl -sf $E2E_MAILPIT_URL/readyz; do sleep 2; done" >/dev/null; then
+          echo "::error::Mailpit wasn't ready after 60 seconds"
+          docker compose ps
+          docker compose logs mailpit
+          exit 1
+        fi
+        echo "Mailpit is ready"
 
-    # The suite must also pass on the database the first run left behind.
+    - name: Run Playwright tests
+      run: bunx playwright test ${{ matrix.suite == 'cloud' && '--grep @cloud' || matrix.suite == 'critical' && '--grep @critical' || '' }}
+
+    # The suite must also pass on the database the first run left behind. It
+    # doubles the run time, so PRs skip it and main checks it after the merge, nightly and in a
+    # run started by hand.
     - name: Run Playwright tests again on the same database
-      run: bunx playwright test
+      if: ${{ github.event_name != 'pull_request' }}
+      run: bunx playwright test ${{ matrix.suite == 'cloud' && '--grep @cloud' || matrix.suite == 'critical' && '--grep @critical' || '' }}
       env:
         PLAYWRIGHT_HTML_OUTPUT_DIR: playwright-report-rerun
 
@@ -204,7 +383,7 @@ jobs:
     - uses: actions/upload-artifact@v4
       if: ${{ !cancelled() }}
       with:
-        name: playwright-report-${{ matrix.config }}-${{ matrix.database }}
+        name: playwright-report-${{ matrix.config }}-${{ matrix.database }}${{ matrix.suite == 'cloud' && '-cloud' || matrix.suite == 'critical' && '-critical' || '' }}
         path: |
           playwright-report/
           playwright-report-rerun/

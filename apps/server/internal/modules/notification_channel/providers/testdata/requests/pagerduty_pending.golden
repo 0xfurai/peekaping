@@ -1,0 +1,16 @@
+POST https://events.pagerduty.com/v2/enqueue
+Content-Type: application/json
+User-Agent: Peekaping-PagerDuty/<version>
+
+{
+  "client": "Peekaping",
+  "client_url": "https://peekaping.example.com/monitors/mon-1",
+  "dedup_key": "Peekaping/mon-1",
+  "event_action": "trigger",
+  "payload": {
+    "severity": "warning",
+    "source": "https://api.example.com/health",
+    "summary": "[Peekaping Monitor ⏳ Pending] [Public API] slow response"
+  },
+  "routing_key": "routing-key"
+}

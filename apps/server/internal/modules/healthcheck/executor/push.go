@@ -36,7 +36,7 @@ func (s *PushExecutor) Validate(configJSON string) error {
 
 func (s *PushExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Proxy) *Result {
 	// Check for the latest heartbeat for this monitor
-	var startTime, endTime = time.Now().UTC(), time.Now().UTC()
+	var startTime, endTime = time.Now(), time.Now()
 
 	var status shared.MonitorStatus
 	var message string

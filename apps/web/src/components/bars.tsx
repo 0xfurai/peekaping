@@ -1,4 +1,3 @@
-import type { HeartbeatModel } from "@/api";
 import React, { useEffect, useRef, useState } from "react";
 import {
   Tooltip,
@@ -10,9 +9,8 @@ import { useTimezone } from "../context/timezone-context";
 import { formatDateToTimezone } from "../lib/formatDateToTimezone";
 import { cn } from "@/lib/utils";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
-
-type HistoryHeartbeat = Pick<HeartbeatModel, "id" | "time" | "end_time" | "ping" | "status"> &
-  Partial<HeartbeatModel>;
+import { instanceLabel } from "@/app/monitors/locations";
+import HeartbeatTooltipBody, { type HistoryHeartbeat } from "./heartbeat-tooltip-body";
 
 type BarHistoryProps = {
   data: HistoryHeartbeat[];
@@ -21,6 +19,9 @@ type BarHistoryProps = {
   barHeight?: number;
   borderRadius?: number;
   tooltip?: boolean;
+  // The hostname of every probe instance on record, by id. A heartbeat's tooltip names its instance
+  // by the hostname here, else by the first 8 characters of the id.
+  instanceHostnames?: ReadonlyMap<string, string>;
 };
 
 const BarHistory: React.FC<BarHistoryProps> = ({
@@ -30,6 +31,7 @@ const BarHistory: React.FC<BarHistoryProps> = ({
   barHeight = 24,
   borderRadius = 3,
   tooltip = true,
+  instanceHostnames,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [visibleCount, setVisibleCount] = useState(0);
@@ -52,8 +54,11 @@ const BarHistory: React.FC<BarHistoryProps> = ({
     };
 
     updateCount();
-    window.addEventListener("resize", updateCount);
-    return () => window.removeEventListener("resize", updateCount);
+    // Watch the container, not the window: opening or closing the sidebar changes
+    // the container's width without a window resize.
+    const observer = new ResizeObserver(updateCount);
+    if (containerRef.current) observer.observe(containerRef.current);
+    return () => observer.disconnect();
   }, [segmentWidth, gap]);
 
   const trimmedData = data.slice(-visibleCount);
@@ -80,6 +85,7 @@ const BarHistory: React.FC<BarHistoryProps> = ({
               <Tooltip key={idx}>
                 <TooltipTrigger asChild>
                   <div
+                    data-testid="heartbeat-bar-segment"
                     className={cn("flex-shrink-0 h-full bg-gray-300", {
                       "bg-green-500": value?.status === 1,
                       "bg-red-500": value?.status === 0 || value?.status === 2,
@@ -95,45 +101,13 @@ const BarHistory: React.FC<BarHistoryProps> = ({
 
                 {value && value.time && tooltip && (
                   <TooltipContent className="max-w-xs">
-                    <div className="grid grid-cols-3 gap-x-3 gap-y-1">
-                      <div className="font-semibold">ID:</div>
-                      <div className="col-span-2">{value.id}</div>
-
-                      <div className="font-semibold">{t("bars.time")}:</div>
-                      <div className="col-span-2">{formatDateToTimezone(value.time, timezone)}</div>
-
-                      <div className="font-semibold">{t("bars.status")}:</div>
-                      <div className="col-span-2">{value.status}</div>
-
-                      <div className="font-semibold">{t("bars.ping")}:</div>
-                      <div className="col-span-2">{value.ping} ms</div>
-
-                      <div className="font-semibold">{t("bars.important")}:</div>
-                      <div className="col-span-2">{value.important?.toString()}</div>
-
-                      <div className="font-semibold">{t("bars.message")}:</div>
-                      <div className="col-span-2 break-words">{value.msg}</div>
-
-                      <div className="font-semibold">{t("bars.retries")}:</div>
-                      <div className="col-span-2">{value.retries}</div>
-
-                      <div className="font-semibold">{t("bars.down_count")}:</div>
-                      <div className="col-span-2">{value.down_count}</div>
-
-                      <div className="font-semibold">{t("bars.notified")}:</div>
-                      <div className="col-span-2">{value.notified?.toString()}</div>
-
-                      {prev && prev?.time && (
-                        <>
-                          <div className="font-semibold">{t("bars.interval")}:</div>
-                          <div className="col-span-2">
-                            {new Date(value.time!).getTime() -
-                              new Date(prev.time!).getTime()}{" "}
-                            {t("bars.ms")}
-                          </div>
-                        </>
-                      )}
-                    </div>
+                    <HeartbeatTooltipBody
+                      value={value}
+                      prev={prev}
+                      timeText={formatDateToTimezone(value.time, timezone)}
+                      instance={instanceLabel(value.instance_id, instanceHostnames)}
+                      t={(key) => t(key)}
+                    />
                   </TooltipContent>
                 )}
               </Tooltip>

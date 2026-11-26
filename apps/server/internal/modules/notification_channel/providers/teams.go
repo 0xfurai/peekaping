@@ -9,7 +9,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"peekaping/internal/config"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/shared"
@@ -21,7 +20,7 @@ import (
 )
 
 type TeamsConfig struct {
-	WebhookURL string `json:"webhook_url" validate:"required,url"`
+	WebhookURL string `json:"webhook_url" validate:"required,url" secret:"true" endpoint:"true" target:"url"`
 	ServerURL  string `json:"server_url" validate:"omitempty,url"`
 }
 
@@ -32,17 +31,17 @@ const teamsLogoURL = "https://peekaping.com/logo-mascot.png"
 var teamsErrorCode = regexp.MustCompile(`^[A-Za-z][A-Za-z0-9_.]{0,63}$`)
 
 type TeamsSender struct {
-	logger *zap.SugaredLogger
-	config *config.Config
-	client *http.Client
+	logger    *zap.SugaredLogger
+	publicURL PublicURLSource
+	client    *http.Client
 }
 
 // NewTeamsSender creates a TeamsSender
-func NewTeamsSender(logger *zap.SugaredLogger, config *config.Config, client *http.Client) *TeamsSender {
+func NewTeamsSender(logger *zap.SugaredLogger, publicURL PublicURLSource, client *http.Client) *TeamsSender {
 	return &TeamsSender{
-		logger: logger,
-		config: config,
-		client: client,
+		logger:    logger,
+		publicURL: publicURL,
+		client:    client,
 	}
 }
 
@@ -66,14 +65,11 @@ func (s *TeamsSender) Validate(configJSON string) error {
 }
 
 // getServerURL returns the server URL to use for links
-func (s *TeamsSender) getServerURL(cfg *TeamsConfig) string {
+func (s *TeamsSender) getServerURL(ctx context.Context, cfg *TeamsConfig) string {
 	if cfg.ServerURL != "" {
 		return strings.TrimRight(cfg.ServerURL, "/")
 	}
-	if s.config != nil && s.config.ClientURL != "" {
-		return strings.TrimRight(s.config.ClientURL, "/")
-	}
-	return ""
+	return strings.TrimRight(publicURL(ctx, s.publicURL), "/")
 }
 
 // getTitle returns the card title and the container style that colors it
@@ -102,28 +98,6 @@ func (s *TeamsSender) getTitle(monitor *monitor.Model, heartbeat *heartbeat.Mode
 	}
 }
 
-// getAddress returns the fact title and value for what the monitor checks, plus a link
-// when it is an HTTP(S) URL. The card is visible to the whole channel, so credentials,
-// query and fragment are dropped from URLs.
-func (s *TeamsSender) getAddress(monitor *monitor.Model) (title, value, link string) {
-	address := monitorAddress(monitor)
-	if address == "" {
-		return "", "", ""
-	}
-
-	u, err := url.Parse(address)
-	if err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" {
-		// A host or host:port, which isn't a link
-		return "Host", address, ""
-	}
-	u.User = nil
-	u.RawQuery = ""
-	u.ForceQuery = false
-	u.Fragment = ""
-	u.RawFragment = ""
-	return "URL", u.String(), u.String()
-}
-
 // formatText keeps a message's line breaks. Teams renders card text as markdown,
 // where a single newline can fold into a space, so lines are separated by blank lines.
 func formatText(message string) string {
@@ -136,54 +110,46 @@ func formatText(message string) string {
 	return strings.Join(lines, "\n\n")
 }
 
-// buildAdaptiveCard builds the Microsoft Teams adaptive card
-func (s *TeamsSender) buildAdaptiveCard(
-	cfg *TeamsConfig,
-	monitor *monitor.Model,
-	heartbeat *heartbeat.Model,
-	message string,
-) map[string]any {
-	title, style := s.getTitle(monitor, heartbeat)
-
-	body := []map[string]any{
-		{
-			"type":  "Container",
-			"style": style,
-			"bleed": true,
-			"items": []map[string]any{
-				{
-					"type": "ColumnSet",
-					"columns": []map[string]any{
-						{
-							"type":  "Column",
-							"width": "auto",
-							"items": []map[string]any{
-								{
-									"type":    "Image",
-									"url":     teamsLogoURL,
-									"size":    "Small",
-									"style":   "Person",
-									"altText": "Peekaping",
-								},
+// teamsHeader is the container at the top of the card: the logo, the title, and the style that
+// colors it by status
+func teamsHeader(title, style string) map[string]any {
+	return map[string]any{
+		"type":  "Container",
+		"style": style,
+		"bleed": true,
+		"items": []map[string]any{
+			{
+				"type": "ColumnSet",
+				"columns": []map[string]any{
+					{
+						"type":  "Column",
+						"width": "auto",
+						"items": []map[string]any{
+							{
+								"type":    "Image",
+								"url":     teamsLogoURL,
+								"size":    "Small",
+								"style":   "Person",
+								"altText": "Peekaping",
 							},
 						},
-						{
-							"type":  "Column",
-							"width": "stretch",
-							"items": []map[string]any{
-								{
-									"type":   "TextBlock",
-									"text":   title,
-									"weight": "Bolder",
-									"size":   "Medium",
-									"wrap":   true,
-								},
-								{
-									"type":     "TextBlock",
-									"text":     "Peekaping Alert",
-									"isSubtle": true,
-									"spacing":  "None",
-								},
+					},
+					{
+						"type":  "Column",
+						"width": "stretch",
+						"items": []map[string]any{
+							{
+								"type":   "TextBlock",
+								"text":   title,
+								"weight": "Bolder",
+								"size":   "Medium",
+								"wrap":   true,
+							},
+							{
+								"type":     "TextBlock",
+								"text":     "Peekaping Alert",
+								"isSubtle": true,
+								"spacing":  "None",
 							},
 						},
 					},
@@ -191,21 +157,15 @@ func (s *TeamsSender) buildAdaptiveCard(
 			},
 		},
 	}
+}
 
-	if text := formatText(message); text != "" {
-		body = append(body, map[string]any{
-			"type": "TextBlock",
-			"text": text,
-			"wrap": true,
-		})
-	}
-
+// teamsFacts are the facts of the card: the monitor's name, what it checks and the time of the heartbeat
+func teamsFacts(monitor *monitor.Model, heartbeat *heartbeat.Model, addressTitle, address string) []map[string]string {
 	facts := []map[string]string{}
 	if monitor != nil && monitor.Name != "" {
 		facts = append(facts, map[string]string{"title": "Monitor", "value": monitor.Name})
 	}
 
-	addressTitle, address, addressLink := s.getAddress(monitor)
 	if address != "" {
 		facts = append(facts, map[string]string{"title": addressTitle, "value": address})
 	}
@@ -217,22 +177,19 @@ func (s *TeamsSender) buildAdaptiveCard(
 			"value": heartbeat.Time.UTC().Format("2006-01-02 15:04:05 UTC"),
 		})
 	}
+	return facts
+}
 
-	if len(facts) > 0 {
-		body = append(body, map[string]any{
-			"type":  "FactSet",
-			"facts": facts,
-		})
-	}
-
+// buildActions are the buttons of the card: one to the monitor's page, and one to what it checks
+func (s *TeamsSender) buildActions(ctx context.Context, cfg *TeamsConfig, monitor *monitor.Model, addressLink string) []map[string]any {
 	actions := []map[string]any{}
 
 	// Test notifications use a monitor that isn't saved, so there is no page to link to
-	if serverURL := s.getServerURL(cfg); serverURL != "" && monitor != nil && monitor.ID != "" {
+	if link := peekapingLink(s.getServerURL(ctx, cfg), monitor); link != "" && monitor.ID != "" {
 		actions = append(actions, map[string]any{
 			"type":  "Action.OpenUrl",
 			"title": "View in Peekaping",
-			"url":   fmt.Sprintf("%s/monitors/%s", serverURL, monitor.ID),
+			"url":   link,
 		})
 	}
 
@@ -241,6 +198,36 @@ func (s *TeamsSender) buildAdaptiveCard(
 			"type":  "Action.OpenUrl",
 			"title": "Visit site",
 			"url":   addressLink,
+		})
+	}
+	return actions
+}
+
+// buildAdaptiveCard builds the Microsoft Teams adaptive card
+func (s *TeamsSender) buildAdaptiveCard(
+	ctx context.Context,
+	cfg *TeamsConfig,
+	monitor *monitor.Model,
+	heartbeat *heartbeat.Model,
+	message string,
+) map[string]any {
+	title, style := s.getTitle(monitor, heartbeat)
+
+	body := []map[string]any{teamsHeader(title, style)}
+
+	if text := formatText(message); text != "" {
+		body = append(body, map[string]any{
+			"type": "TextBlock",
+			"text": text,
+			"wrap": true,
+		})
+	}
+
+	addressTitle, address, addressLink := shareableAddress(monitor)
+	if facts := teamsFacts(monitor, heartbeat, addressTitle, address); len(facts) > 0 {
+		body = append(body, map[string]any{
+			"type":  "FactSet",
+			"facts": facts,
 		})
 	}
 
@@ -252,7 +239,7 @@ func (s *TeamsSender) buildAdaptiveCard(
 		"body":         body,
 	}
 
-	if len(actions) > 0 {
+	if actions := s.buildActions(ctx, cfg, monitor, addressLink); len(actions) > 0 {
 		card["actions"] = actions
 	}
 
@@ -300,7 +287,7 @@ func (s *TeamsSender) Send(
 		"attachments": []map[string]any{
 			{
 				"contentType": "application/vnd.microsoft.card.adaptive",
-				"content":     s.buildAdaptiveCard(cfg, monitor, heartbeat, message),
+				"content":     s.buildAdaptiveCard(ctx, cfg, monitor, heartbeat, message),
 			},
 		},
 	}
@@ -309,8 +296,6 @@ func (s *TeamsSender) Send(
 	if err != nil {
 		return fmt.Errorf("failed to marshal Teams payload: %w", err)
 	}
-
-	s.logger.Debugf("Teams payload: %s", string(jsonPayload))
 
 	// The webhook URL is a secret, so it is never logged
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, cfg.WebhookURL, bytes.NewReader(jsonPayload))

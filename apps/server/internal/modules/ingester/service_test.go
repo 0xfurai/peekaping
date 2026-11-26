@@ -1,0 +1,109 @@
+package ingester
+
+import (
+	"context"
+	"testing"
+
+	"peekaping/internal/modules/events"
+	"peekaping/internal/modules/shared"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+)
+
+func TestService_IngestStoresTheResultAndPublishesItsEvents(t *testing.T) {
+	ti := newTestIngester()
+	result := checkResult(monitorSettings{}, down)
+
+	require.NoError(t, ti.service.Ingest(context.Background(), &result))
+
+	got := ti.heartbeats.latest()
+	require.NotNil(t, got)
+	assert.Equal(t, monitorID, got.MonitorID)
+	assert.Equal(t, down, got.Status)
+	assert.Equal(t, "check message", got.Msg)
+	assert.Equal(t, 12, got.Ping)
+	assert.Equal(t, result.StartTime, got.Time)
+	assert.Equal(t, result.EndTime, got.EndTime)
+	assert.Equal(t, []string{events.MonitorStatusChanged.Name(), events.ImportantHeartbeat.Name()}, ti.bus.TakeTopics())
+}
+
+func TestService_IngestRecordsTheProbeThatRanTheCheck(t *testing.T) {
+	ti := newTestIngester()
+
+	fromLocal := checkResult(monitorSettings{}, up)
+	require.NoError(t, ti.service.Ingest(context.Background(), &fromLocal))
+	assert.Equal(t, "local", ti.heartbeats.latest().ProbeID, "a result with no probe came from the local probe")
+
+	fromRemote := checkResult(monitorSettings{}, up)
+	fromRemote.ProbeID = "probe-frankfurt"
+	require.NoError(t, ti.service.Ingest(context.Background(), &fromRemote))
+	assert.Equal(t, "probe-frankfurt", ti.heartbeats.latest().ProbeID)
+}
+
+func TestService_IngestRecordsTheProbeInstanceThatRanTheCheck(t *testing.T) {
+	ti := newTestIngester()
+
+	fromInstance := checkResult(monitorSettings{}, up)
+	fromInstance.ProbeID, fromInstance.InstanceID = "probe-frankfurt", "instance-1"
+	require.NoError(t, ti.service.Ingest(context.Background(), &fromInstance))
+	require.NotNil(t, ti.heartbeats.latest().InstanceID)
+	assert.Equal(t, "instance-1", *ti.heartbeats.latest().InstanceID)
+
+	noInstance := checkResult(monitorSettings{}, up)
+	require.NoError(t, ti.service.Ingest(context.Background(), &noInstance))
+	assert.Nil(t, ti.heartbeats.latest().InstanceID, "a check no probe instance ran (single mode, a push) stores none")
+}
+
+func TestService_IngestSeesThePreviousResult(t *testing.T) {
+	ti := newTestIngester()
+	monitor := monitorSettings{maxRetries: 1}
+
+	first, second := checkResult(monitor, up), checkResult(monitor, down)
+	require.NoError(t, ti.service.Ingest(context.Background(), &first))
+	require.NoError(t, ti.service.Ingest(context.Background(), &second))
+
+	require.Len(t, ti.heartbeats.stored, 2)
+	assert.Equal(t, pending, ti.heartbeats.latest().Status, "the first failure is Pending while retries are left")
+}
+
+func TestService_IngestReturnsAFailedWrite(t *testing.T) {
+	ti := newTestIngester()
+	ti.heartbeats.createErr = assert.AnError
+	result := checkResult(monitorSettings{}, up)
+
+	assert.ErrorIs(t, ti.service.Ingest(context.Background(), &result), assert.AnError)
+	assert.Empty(t, ti.bus.TakeTopics())
+}
+
+// PP-157: a result for a monitor whose type the install turned off since the check was dealt is
+// dropped the same way
+func TestService_IngestDropsAResultForAMonitorOfADisabledType(t *testing.T) {
+	ti := newTestIngester()
+	ti.locations.err = shared.ErrMonitorTypeDisabled
+	result := checkResult(monitorSettings{}, down)
+	result.TLSInfo = &shared.TLSInfo{}
+	result.CheckCertExpiry = true
+
+	require.NoError(t, ti.service.Ingest(context.Background(), &result))
+
+	assert.Nil(t, ti.heartbeats.latest())
+	assert.Empty(t, ti.bus.TakeTopics())
+	assert.Empty(t, ti.certs.checked, "its certificate is not looked at either")
+}
+
+// PP-155: a result for a monitor of a suspended workspace, in flight or from a probe that was dealt
+// the monitor before the suspension, is dropped: no heartbeat, no status change, no notification
+func TestService_IngestDropsAResultForAMonitorOfASuspendedWorkspace(t *testing.T) {
+	ti := newTestIngester()
+	ti.locations.err = shared.ErrWorkspaceSuspended
+	result := checkResult(monitorSettings{}, down)
+	result.TLSInfo = &shared.TLSInfo{}
+	result.CheckCertExpiry = true
+
+	require.NoError(t, ti.service.Ingest(context.Background(), &result))
+
+	assert.Nil(t, ti.heartbeats.latest())
+	assert.Empty(t, ti.bus.TakeTopics())
+	assert.Empty(t, ti.certs.checked, "its certificate is not looked at either")
+}

@@ -9,6 +9,7 @@ import { useState, useCallback, useEffect } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useSearchParams } from "@/hooks/useSearchParams";
 import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
+import { useDelayedLoading } from "@/hooks/useDelayedLoading";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
@@ -36,10 +37,12 @@ import {
   invalidateByPartialQueryKey,
 } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
+import { useWorkspacePath } from "@/hooks/useWorkspacePath";
 
 const TagsPage = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const workspacePath = useWorkspacePath();
   const { t } = useLocalizedTranslation();
   const { getParam, updateSearchParams, clearAllParams, hasParams } =
     useSearchParams();
@@ -79,7 +82,9 @@ const TagsPage = () => {
       enabled: true,
     });
 
-  const tags = (data?.pages.flatMap((page) => page.data || []) ||
+  const shouldShowSkeleton = useDelayedLoading(isLoading, 200);
+
+  const tags =(data?.pages.flatMap((page) => page.data || []) ||
     []) as TagModel[];
 
   // Delete mutation
@@ -109,7 +114,7 @@ const TagsPage = () => {
     useIntersectionObserver<HTMLDivElement>(handleObserver);
 
   const handleEdit = (tag: TagModel) => {
-    navigate(`/tags/${tag.id}/edit`);
+    navigate(workspacePath(`/tags/${tag.id}/edit`));
   };
 
   const handleDelete = (tag: TagModel) => {
@@ -118,7 +123,7 @@ const TagsPage = () => {
   };
 
   const handleCreate = () => {
-    navigate("/tags/new");
+    navigate(workspacePath("/tags/new"));
   };
 
   return (
@@ -152,7 +157,7 @@ const TagsPage = () => {
         </div>
 
         {/* Tags list */}
-        {tags.length === 0 && isLoading && (
+        {tags.length === 0 && shouldShowSkeleton && (
           <div className="space-y-4">
             {Array.from({ length: 6 }, (_, id) => (
               <Skeleton className="h-[68px] w-full rounded-xl" key={id} />

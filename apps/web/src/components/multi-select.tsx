@@ -61,6 +61,8 @@ interface MultiSelectProps
     value: string;
     /** Optional icon component to display alongside the option. */
     icon?: React.ComponentType<{ className?: string }>;
+    /** A disabled option can't be selected. A selected one can still be unselected. */
+    disabled?: boolean;
   }[];
 
   /**
@@ -190,10 +192,58 @@ export const MultiSelect = React.forwardRef<
       );
     }, [options, search, selectedValues]);
 
+    // The option the keyboard points at, by value, so that it survives a change of the list. It is
+    // only active while the list shows it.
+    const [activeValue, setActiveValue] = React.useState<string | null>(null);
+    const listId = React.useId();
+    const activeIndex = filteredOptions.findIndex(
+      (option) => option.value === activeValue
+    );
+    const optionId = (index: number) => `${listId}-option-${index}`;
+    // A disabled option that isn't selected can't be chosen, so the arrow keys pass over it
+    const canToggle = (option: (typeof options)[number]) =>
+      !option.disabled || selectedValues.includes(option.value);
+
+    React.useEffect(() => {
+      if (!isPopoverOpen) setActiveValue(null);
+    }, [isPopoverOpen]);
+
+    React.useEffect(() => {
+      if (activeIndex < 0) return;
+      document
+        .getElementById(optionId(activeIndex))
+        ?.scrollIntoView?.({ block: "nearest" });
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [activeIndex]);
+
+    const moveActive = (step: 1 | -1) => {
+      const count = filteredOptions.length;
+      for (let i = 1; i <= count; i++) {
+        // From no active option, ArrowDown starts at the first and ArrowUp at the last
+        const from = activeIndex < 0 ? (step === 1 ? -1 : count) : activeIndex;
+        const index = (((from + step * i) % count) + count) % count;
+        if (canToggle(filteredOptions[index])) {
+          setActiveValue(filteredOptions[index].value);
+          return;
+        }
+      }
+    };
+
     const handleInputKeyDown = (
       event: React.KeyboardEvent<HTMLInputElement>
     ) => {
-      if (event.key === "Enter") {
+      if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+        event.preventDefault();
+        moveActive(event.key === "ArrowDown" ? 1 : -1);
+      } else if (
+        activeIndex >= 0 &&
+        (event.key === "Enter" ||
+          // A space is a character of the search, so it only picks while the search is empty
+          (event.key === " " && !event.currentTarget.value))
+      ) {
+        event.preventDefault();
+        toggleOption(filteredOptions[activeIndex].value);
+      } else if (event.key === "Enter") {
         setIsPopoverOpen(true);
       } else if (event.key === "Backspace" && !event.currentTarget.value) {
         const newSelectedValues = [...selectedValues];
@@ -204,6 +254,8 @@ export const MultiSelect = React.forwardRef<
     };
 
     const toggleOption = (option: string) => {
+      const disabled = options.find((o) => o.value === option)?.disabled;
+      if (disabled && !selectedValues.includes(option)) return;
       const newSelectedValues = selectedValues.includes(option)
         ? selectedValues.filter((value) => value !== option)
         : [...selectedValues, option];
@@ -325,22 +377,39 @@ export const MultiSelect = React.forwardRef<
         >
           <Input
             placeholder="Search..."
+            role="combobox"
+            aria-expanded
+            aria-controls={listId}
+            aria-activedescendant={
+              activeIndex >= 0 ? optionId(activeIndex) : undefined
+            }
             onKeyDown={handleInputKeyDown}
             value={search}
             onChange={(e) => onSearchChange?.(e.target.value)}
             className="border-none rounded-none border-b focus-visible:ring-0"
           />
 
-          <div className="max-h-[300px] overflow-y-auto">
-            {filteredOptions.map((option) => {
+          <div
+            id={listId}
+            role="listbox"
+            aria-multiselectable
+            className="max-h-[300px] overflow-y-auto"
+          >
+            {filteredOptions.map((option, index) => {
               const isSelected = selectedValues.includes(option.value);
               return (
                 <div
                   key={option.value}
+                  id={optionId(index)}
+                  role="option"
+                  aria-selected={isSelected}
+                  aria-disabled={option.disabled && !isSelected ? true : undefined}
                   onClick={() => toggleOption(option.value)}
                   className={cn(
                     "cursor-pointer flex items-center gap-2 px-3 py-2.5 text-sm text-foreground/90 hover:bg-muted/80 hover:text-foreground transition-colors duration-150 ease-in-out rounded-sm",
-                    isSelected && "bg-muted/50"
+                    isSelected && "bg-muted/50",
+                    index === activeIndex && "bg-muted text-foreground",
+                    option.disabled && !isSelected && "cursor-not-allowed opacity-50 hover:bg-transparent"
                   )}
                 >
                   <div

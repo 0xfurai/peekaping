@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"peekaping/internal/dbtx"
+
 	"go.uber.org/zap"
 )
 
@@ -64,6 +66,11 @@ func (s *ServiceImpl) RecordNotificationSent(ctx context.Context, notificationTy
 	}
 
 	err := s.repository.RecordSent(ctx, model)
+	if dbtx.IsForeignKeyViolation(err) {
+		// The monitor was deleted while its check was being handled: there is nothing to keep it for
+		s.logger.Debugf("Skipped recording a notification sent for monitor %s: the monitor no longer exists", monitorID)
+		return nil
+	}
 	if err != nil {
 		return fmt.Errorf("failed to record notification sent: %w", err)
 	}

@@ -3,20 +3,294 @@
     "cancel": "Atšaukti",
     "saving": "Išsaugoma..."
   },
+  "admin": {
+    "nav": {
+      "back_to_workspace": "Atgal į {{name}}",
+      "probes": "Zondai",
+      "title": "Administravimas",
+      "users": "Naudotojai",
+      "workspaces": "Darbo erdvės",
+      "settings": "Nustatymai"
+    },
+    "users": {
+      "actions": {
+        "delete": "Ištrinti naudotoją",
+        "disable": "Išjungti naudotoją",
+        "disableTwoFactor": "Išjungti 2FA",
+        "enable": "Įjungti naudotoją",
+        "grantAdmin": "Padaryti diegimo administratoriumi",
+        "resetLink": "Sukurti atstatymo nuorodą",
+        "revokeAdmin": "Panaikinti diegimo administratoriaus teises"
+      },
+      "actions_aria": "{{email}} veiksmai",
+      "columns": {
+        "created": "Sukurta",
+        "email": "El. paštas",
+        "email_verified": "El. paštas patvirtintas",
+        "instance_admin": "Diegimo administratorius",
+        "last_sign_in": "Paskutinis prisijungimas",
+        "status": "Būsena",
+        "two_factor": "2FA",
+        "workspaces": "Darbo erdvės"
+      },
+      "confirm": {
+        "cancel": "Atšaukti",
+        "delete": {
+          "confirm": "Ištrinti naudotoją",
+          "description": "Ištrinti {{email}}? Paskyra bus pašalinta, kaip ir jo vietos darbo erdvėse. Šio veiksmo anuliuoti negalima.",
+          "title": "Ištrinti naudotoją"
+        },
+        "disable": {
+          "confirm": "Išjungti",
+          "description": "{{email}} nebegali prisijungti ir dabar atjungiamas visur. Jo darbo erdvės toliau veikia. Vėliau galėsite jį vėl įjungti.",
+          "title": "Išjungti naudotoją"
+        },
+        "disableTwoFactor": {
+          "confirm": "Išjungti 2FA",
+          "description": "{{email}} prisijungs tik su slaptažodžiu ir galės vėl nustatyti 2FA. Tai darykite tik įsitikinę, kad prašo būtent šis asmuo.",
+          "title": "Išjungti 2FA"
+        }
+      },
+      "description": "Visi, turintys paskyrą šiame diegime. Diegimo administratoriai valdo patį diegimą, pavyzdžiui, zondus ir naudotojus. Naudotojo vaidmenį darbo erdvėje nustato tos darbo erdvės savininkai.",
+      "empty": "Naudotojų nerasta",
+      "errors": {
+        "last_instance_admin": "Diegime turi būti bent vienas diegimo administratorius.",
+        "last_owner": "Naudotojas yra paskutinis šių darbo erdvių savininkas: {{workspaces}}. Pirmiausia paskirkite kitą savininką arba ištrinkite darbo erdvę.",
+        "self": "Šio veiksmo negalite atlikti su savo paskyra."
+      },
+      "load_failed": "Nepavyko įkelti naudotojų.",
+      "messages": {
+        "admin_granted": "{{email}} dabar yra diegimo administratorius",
+        "admin_revoked": "{{email}} nebėra diegimo administratorius",
+        "deleted": "{{email}} ištrintas",
+        "disabled": "{{email}} išjungtas ir atjungtas",
+        "enabled": "{{email}} įjungtas",
+        "two_factor_off": "{{email}} 2FA išjungta",
+        "update_failed": "Nepavyko atnaujinti naudotojo."
+      },
+      "never": "Niekada",
+      "none": "Nėra",
+      "page_name": "Naudotojai",
+      "paging": {
+        "next": "Kitas",
+        "page": "{{page}} puslapis iš {{pages}}",
+        "previous": "Ankstesnis"
+      },
+      "reset_link": {
+        "close": "Uždaryti",
+        "copied": "Nuoroda nukopijuota",
+        "copy": "Kopijuoti nuorodą",
+        "copy_failed": "Nepavyko nukopijuoti nuorodos. Pažymėkite ją ir nukopijuokite rankiniu būdu.",
+        "description": "Nuoroda, kuria {{email}} pasirinks naują slaptažodį. Nukopijuokite ir perduokite ją dabar: ji rodoma tik vieną kartą.",
+        "emailed": "Šis diegimas siunčia paskyros laiškus, todėl naudotojui el. paštu pranešama, kad jam sukurta nuoroda.",
+        "expires": "Nuoroda veikia vieną kartą ir baigia galioti {{when}}.",
+        "failed": "Nepavyko sukurti nuorodos.",
+        "label": "Nuoroda",
+        "making": "Kuriama nuoroda...",
+        "signs_out": "Panaudojus nuorodą naudotojas atjungiamas visur.",
+        "title": "Slaptažodžio atstatymo nuoroda"
+      },
+      "search_label": "Ieškoti naudotojų pagal el. paštą",
+      "search_placeholder": "Ieškoti pagal el. paštą",
+      "total": "Rasta: {{total}}",
+      "values": {
+        "active": "Aktyvus",
+        "disabled": "Išjungtas",
+        "no": "Ne",
+        "two_factor_off": "Išjungta",
+        "two_factor_on": "Įjungta",
+        "yes": "Taip"
+      },
+      "you": "jūs"
+    },
+    "workspaces": {
+      "actions": {
+        "delete": "Ištrinti darbo erdvę",
+        "resume": "Tęsti darbo erdvės veiklą",
+        "suspend": "Sustabdyti darbo erdvę",
+        "limits": "Ribos"
+      },
+      "actions_aria": "{{name}} veiksmai",
+      "columns": {
+        "created": "Sukurta",
+        "custom_domains": "Pasirinktiniai domenai",
+        "members": "Nariai",
+        "monitors": "Monitoriai",
+        "name": "Pavadinimas",
+        "owners": "Savininkai",
+        "status": "Būsena",
+        "status_pages": "Būsenos puslapiai",
+        "limits": "Ribos"
+      },
+      "confirm": {
+        "cancel": "Atšaukti",
+        "delete": {
+          "confirm": "Ištrinti darbo erdvę",
+          "description": "Ištrinti {{name}}? Bus pašalinta viskas, kas joje yra: monitoriai ir jų istorija, būsenos puslapiai, pranešimų kanalai ir narių prieiga. Šio veiksmo anuliuoti negalima.",
+          "name_label": "Norėdami patvirtinti, įveskite darbo erdvės pavadinimą: {{name}}",
+          "title": "Ištrinti darbo erdvę"
+        },
+        "resume": {
+          "confirm": "Tęsti",
+          "description": "{{name}} monitoriai vėl veiks tokios būsenos, kokios buvo, o nariai galės ja naudotis kaip anksčiau. Darbo erdvė, laukianti, kol savininkas patvirtins el. paštą, ir toliau lauks.",
+          "title": "Tęsti darbo erdvės veiklą"
+        },
+        "suspend": {
+          "confirm": "Sustabdyti",
+          "description": "{{name}} monitoriai nustoja veikti, jos vieši būsenos puslapiai praneša, kad yra nepasiekiami, o nariai mato, kad ji sustabdyta. Niekas neištrinama, vėliau galėsite jos veiklą tęsti.",
+          "title": "Sustabdyti darbo erdvę"
+        }
+      },
+      "description": "Visos šio diegimo darbo erdvės su jų savininkais, nariais ir tuo, kiek jose yra. Rodomi tik skaičiai, o ne darbo erdvių turinys.",
+      "empty": "Darbo erdvių nerasta",
+      "load_failed": "Nepavyko įkelti darbo erdvių.",
+      "messages": {
+        "deleted": "{{name}} ištrinta",
+        "failed": "Nepavyko pakeisti darbo erdvės.",
+        "resumed": "{{name}} veikla tęsiama",
+        "suspended": "{{name}} sustabdyta"
+      },
+      "monitors": "Aktyvių: {{active}}, pristabdytų: {{paused}}",
+      "none": "Nėra",
+      "page_name": "Darbo erdvės",
+      "paging": {
+        "next": "Kitas",
+        "page": "{{page}} puslapis iš {{pages}}",
+        "previous": "Ankstesnis"
+      },
+      "search_label": "Ieškoti darbo erdvių pagal pavadinimą arba savininko el. paštą",
+      "search_placeholder": "Ieškoti pagal pavadinimą arba savininko el. paštą",
+      "status": {
+        "running": "Veikia",
+        "suspended_admin": "Sustabdė administratorius",
+        "suspended_unverified": "Sustabdyta, kol savininkas patvirtins el. paštą"
+      },
+      "total": "Rasta: {{total}}",
+      "limits": {
+        "item": "{{name}}: {{value}}",
+        "more": "+{{number}} daugiau",
+        "unlimited": "Be ribų",
+        "source": {
+          "workspace": "Savos",
+          "install": "Diegimo numatytosios",
+          "none": "Nenustatyta"
+        },
+        "dialog": {
+          "title": "{{name}} ribos",
+          "description": "Kuo ši darbo erdvė apribota. Sumažinus ribą niekas nesustabdoma ir neištrinama: naujausi ribą viršijantys monitoriai nustoja veikti, kol vėl atsiras vietos.",
+          "own": "Savos ribos",
+          "own_help": "Jos pakeičia diegimo numatytąsias. Palikite ribą tuščią, jei jos nereikia.",
+          "unlimited": "Be ribų",
+          "unlimited_help": "Jokios ribos, ką bebūtų nustačiusios diegimo numatytosios.",
+          "defaults": "Naudoti diegimo numatytąsias",
+          "defaults_help": "Numatytosios ribos skiltyje Administravimas → Nustatymai arba jokių, jei diegimas jų nenustato.",
+          "save": "Išsaugoti ribas",
+          "cancel": "Atšaukti",
+          "saved": "{{name}} ribos išsaugotos",
+          "failed": "Ribų išsaugoti nepavyko."
+        }
+      }
+    },
+    "settings": {
+      "page_name": "Nustatymai",
+      "description": "Visos diegimo sistemos nustatymai. Serverio aplinkos nustatyta reikšmė čia užrakinta.",
+      "load_failed": "Nepavyko įkelti nustatymų.",
+      "saved": "Nustatymai išsaugoti",
+      "save_failed": "Nustatymai nebuvo išsaugoti.",
+      "locked": "Nustatyta serverio aplinkos",
+      "source": {
+        "environment": "Iš serverio aplinkos",
+        "saved": "Išsaugota čia",
+        "default": "Numatytasis"
+      },
+      "signup": {
+        "title": "Registracija",
+        "description": "Kas gali susikurti paskyrą šioje diegimo sistemoje.",
+        "label": "Registracijos režimas",
+        "invite": "Tik su kvietimu",
+        "open": "Atvira",
+        "invite_help": "Pirmasis naudotojas užsiregistruoja, o visi kiti prisijungia prie darbo srities per kvietimą.",
+        "open_help": "Bet kas gali užsiregistruoti ir gauna savo darbo sritį. Naujos paskyros patvirtina savo el. pašto adresą, todėl reikia el. laiškų siuntėjo."
+      },
+      "sender": {
+        "title": "El. laiškų siuntėjas",
+        "description": "SMTP serveris, siunčiantis paskyros laiškus: slaptažodžio atkūrimo nuorodas, el. pašto patvirtinimą ir kvietimus.",
+        "on": "Paskyros laiškai įjungti.",
+        "off": "Paskyros laiškai išjungti: nėra SMTP serverio.",
+        "host": "SMTP serveris",
+        "port": "Portas",
+        "tls": "Saugumas",
+        "tls_starttls": "STARTTLS",
+        "tls_tls": "TLS",
+        "tls_none": "Nėra",
+        "user": "Vartotojas",
+        "password": "slaptažodis",
+        "password_set": "Slaptažodis nustatytas. Įveskite naują, kad jį pakeistumėte.",
+        "password_not_set": "Slaptažodis nenustatytas",
+        "password_removed": "Išsaugojus slaptažodis bus pašalintas.",
+        "password_reenter": "Pakeitus serverį, prievadą, saugumą ar naudotoją, išsaugotas slaptažodis pašalinamas. Įveskite jį iš naujo.",
+        "remove_password": "Pašalinti slaptažodį",
+        "keep_password": "Palikti slaptažodį",
+        "from": "Siuntėjo adresas"
+      },
+      "public_url": {
+        "title": "Viešas URL",
+        "description": "Žiniatinklio programos adresas, kurį atveria nuorodos laiškuose ir pranešimuose.",
+        "label": "Viešas URL"
+      },
+      "test_email": {
+        "title": "Siųsti bandomąjį laišką",
+        "description": "Išsiunčia trumpą laišką per išsaugotą siuntėją, kad patikrintų, ar jis veikia.",
+        "to": "Siųsti adresu",
+        "send": "Siųsti bandomąjį laišką",
+        "sending": "Siunčiama…",
+        "sent": "Bandomasis laiškas išsiųstas adresu {{to}}.",
+        "failed": "Bandomasis laiškas nebuvo išsiųstas.",
+        "unsaved": "Siuntėjas turi neišsaugotų pakeitimų. Bandymas naudoja išsaugotą siuntėją, todėl pirmiausia išsaugokite."
+      },
+      "validation": {
+        "port": "Įveskite prievadą nuo 1 iki 65535 arba palikite tuščią numatytajai reikšmei."
+      },
+      "errors": {
+        "locked": "{{field}} nustato serverio aplinka, todėl čia to pakeisti negalima.",
+        "open_needs_sender": "Atvirai registracijai reikia el. laiškų siuntėjo, nes naujos paskyros patvirtina savo el. pašto adresą. Pirmiausia nustatykite siuntėją arba tai padarykite tame pačiame išsaugojime.",
+        "sender_needed": "Registracija atvira, o naujoms paskyroms reikia siuntėjo el. pašto adresui patvirtinti. Pirmiausia perjunkite registraciją į tik su kvietimu.",
+        "no_sender": "Nėra el. laiškų siuntėjo. Pirmiausia išsaugokite siuntėją."
+      },
+      "limits": {
+        "title": "Numatytosios ribos",
+        "description": "Kiekvienos darbo erdvės, neturinčios savų ribų, ribos. Palikite ribą tuščią, jei jos nereikia. Darbo erdvių puslapyje darbo erdvei suteiktos ribos pakeičia šias.",
+        "name_label": "Numatytųjų apribojimų pavadinimas",
+        "name_help": "Rodomas darbo erdvės puslapyje Naudojimas, pavyzdžiui, Nemokamas planas. Jei paliekama tuščia, puslapyje nurodoma, kad apribojimus nustatė jūsų administratorius."
+      }
+    }
+  },
   "auth": {
     "login": {
       "description": "Prisijunkite su el. paštu",
       "no_account": "Neturite paskyros?",
       "sign_up": "Registruotis",
       "submit": "Prisijungti",
-      "title": "Sveiki atvykę"
+      "title": "Sveiki atvykę",
+      "forgot_password": "Pamiršote slaptažodį?",
+      "ask_admin": "Paprašykite šio diegimo administratoriaus kvietimo"
     },
     "register": {
       "description": "Sukurkite savo administratoriaus paskyrą",
+      "description_open": "Sukurkite savo paskyrą",
       "have_account": "Ar jau turite paskyrą?",
       "sign_in": "Prisijungti",
       "submit": "Sukurti",
-      "title": "Sveiki"
+      "title": "Sveiki",
+      "telemetry_note": "Anonimiškai: be monitorių pavadinimų, URL ar serverių. Vėliau tai galite pakeisti skiltyje „Nustatymai“.",
+      "telemetry_whats_sent": "Kas siunčiama",
+      "errors": {
+        "rate_limited": "Per daug registracijų iš jūsų tinklo. Bandykite dar kartą po valandos.",
+        "email_taken": "Paskyra su šiuo el. pašto adresu jau yra.",
+        "sign_in_instead": "Geriau prisijunkite.",
+        "check_failed": "Patikra neįveikta. Bandykite dar kartą.",
+        "check_load_failed": "Nepavyko įkelti patikros. Patikrinkite ryšį ir bandykite dar kartą."
+      }
     },
     "twofa": {
       "code_label": "2FA kodas",
@@ -25,11 +299,51 @@
       "title": "Dviejų veiksnių autentifikacija reikalaujama",
       "verify_button": "Patvirtinti 2FA",
       "verifying": "Patikrinama..."
+    },
+    "forgot": {
+      "title": "Atkurti slaptažodį",
+      "description": "Įveskite savo paskyros el. paštą, ir atsiųsime nuorodą.",
+      "submit": "Siųsti nuorodą",
+      "sent": "Jei paskyra su šiuo el. paštu yra, nuorodą išsiuntėme. Ji galioja valandą.",
+      "back_to_login": "Grįžti į prisijungimą"
+    },
+    "reset": {
+      "title": "Pasirinkite naują slaptažodį",
+      "description": "Įveskite naują savo paskyros slaptažodį.",
+      "submit": "Nustatyti slaptažodį",
+      "success": "Jūsų slaptažodis pakeistas, o jūs buvote atjungti visur. Prisijunkite naujuoju slaptažodžiu.",
+      "sign_in": "Prisijungti",
+      "invalid_link": "Ši nuoroda jau panaudota arba nebegalioja.",
+      "request_new": "Prašyti naujos nuorodos"
+    },
+    "verify": {
+      "title": "Patvirtinkite el. paštą",
+      "verifying": "Tvirtinamas jūsų el. paštas...",
+      "success": "Jūsų el. paštas patvirtintas.",
+      "open_app": "Atidaryti Peekaping",
+      "invalid_link": "Ši nuoroda jau panaudota arba nebegalioja."
+    },
+    "errors": {
+      "rate_limited": "Per daug užklausų. Bandykite vėliau.",
+      "generic": "Kažkas nepavyko. Bandykite dar kartą.",
+      "already_verified": "Jūsų el. paštas jau patvirtintas."
+    },
+    "resend": {
+      "button": "Siųsti dar kartą",
+      "sent": "Išsiuntėme naują nuorodą. Patikrinkite gautuosius."
+    },
+    "verification_banner": {
+      "message": "Patvirtinkite el. paštą: nuorodą išsiuntėme adresu {{email}}."
+    },
+    "suspension_notice": {
+      "message": "Jūsų stebėjimai pradės veikti, kai patvirtinsite el. pašto adresą.",
+      "member_message": "Šios darbo erdvės stebėjimai pradės veikti, kai jos savininkas patvirtins el. pašto adresą."
     }
   },
   "bars": {
     "down_count": "Neveikimo skaičius",
     "important": "Svarbu",
+    "instance": "Egzempliorius",
     "interval": "Intervalas",
     "message": "Žinutė",
     "ms": "ms",
@@ -65,10 +379,12 @@
     "loading": "Įkeliama...",
     "logout": "Atsijungti",
     "maintenance": "Priežiūra",
+    "no_data": "Nėra duomenų",
     "no_options_found": "Nerasta galimų variantų",
     "no_tags_available": "Žymų nėra",
     "please_refresh_page": "Prašome atnaujinti puslapį.",
     "required": "Privaloma",
+    "retry": "Bandyti dar kartą",
     "save": "Išsaugoti",
     "saving": "Išsaugoma...",
     "search": "Paieška",
@@ -83,6 +399,12 @@
     "up": "Veikia",
     "update": "Atnaujinti",
     "verifying": "Tikrinama..."
+  },
+  "error_reporting": {
+    "label": "Siųsti pranešimus apie klaidas",
+    "never_sent": "Niekada nesiunčiama: klaidų pranešimai, URL, antraštės, webhook URL, pavadinimai ar serverių pavadinimai. Pranešime nėra IP adreso, o Peekaping Sentry projektas nustatytas taip, kad nesaugotų siuntėjo IP.",
+    "not_saved": "Jūsų pasirinkimas dėl pranešimų apie klaidas neišsaugotas. Patikrinkite jį skiltyje „Nustatymai“.",
+    "sent": "Siunčiama tik tada, kai sugenda pats Peekaping. Pranešime yra klaidos tipas ir vieta kode, kurioje ji įvyko, Peekaping versija, vieno proceso ar klasterio režimas, saugyklos pagrindas ir operacinė sistema."
   },
   "forms": {
     "labels": {
@@ -113,7 +435,35 @@
       "email_invalid": "Įveskite galiojantį el. pašto adresą",
       "password_required": "Slaptažodis yra privalomas",
       "password_min_length": "Slaptažodis turi būti ne trumpesnis nei 8 simboliai.",
+      "password_complexity": "Slaptažodyje turi būti didžioji raidė, mažoji raidė, skaičius ir specialusis simbolis.",
       "passwords_mismatch": "Slaptažodžiai nesutampa"
+    }
+  },
+  "invite": {
+    "accept": "Priimti kvietimą",
+    "accepting": "Jungiamasi...",
+    "creating": "Kuriama...",
+    "description": "Esate pakviesti prisijungti prie {{workspace}} kaip {{role}}.",
+    "enter_failed": "Prisijungėte prie darbo srities, bet jos atidaryti nepavyko. Bandykite dar kartą.",
+    "errors": {
+      "other_email": "Šis kvietimas skirtas kitam el. pašto adresui."
+    },
+    "for_email": "Šis kvietimas skirtas {{email}}.",
+    "have_account": "Jau turite paskyrą?",
+    "open_app": "Atidaryti Peekaping",
+    "other_account": "Esate prisijungę kaip {{current}}, bet šis kvietimas skirtas {{invited}}. Atsijunkite, tada prisijunkite arba užsiregistruokite su {{invited}}, kad jį priimtumėte.",
+    "sign_in_instead": "Prisijungti",
+    "sign_out": "Atsijungti",
+    "signup_description": "Pasirinkite slaptažodį, kad sukurtumėte paskyrą ir prisijungtumėte prie {{workspace}} kaip {{role}}.",
+    "signup_submit": "Sukurti paskyrą ir prisijungti",
+    "title": "Prisijunkite prie {{workspace}}",
+    "unavailable": {
+      "accepted": "Šis kvietimas jau panaudotas.",
+      "expired": "Šio kvietimo galiojimas baigėsi. Paprašykite naujo.",
+      "not_found": "Tokios kvietimo nuorodos nėra. Patikrinkite, ar nukopijavote ją visą.",
+      "revoked": "Šis kvietimas buvo atšauktas. Paprašykite naujo.",
+      "title": "Šio kvietimo naudoti negalima",
+      "unknown": "Šio kvietimo naudoti negalima. Paprašykite naujo."
     }
   },
   "maintenance": {
@@ -221,6 +571,79 @@
       "wed": "Tre"
     }
   },
+  "members": {
+    "change_role_aria": "Pakeisti {{email}} rolę",
+    "errors": {
+      "account_exists": "Paskyra su šiuo el. pašto adresu jau egzistuoja. Prisijunkite ir priimkite kvietimą.",
+      "already_member": "Šis asmuo jau yra šios darbo erdvės narys.",
+      "forbidden": "Jūsų rolė šioje darbo erdvėje neleidžia to daryti.",
+      "generic": "Kažkas nepavyko. Bandykite dar kartą.",
+      "last_owner": "Darbo erdvė turi turėti bent vieną savininką.",
+      "member_not_found": "Šio nario šioje darbo erdvėje jau nebėra."
+    },
+    "invite": {
+      "copied": "Nuoroda nukopijuota",
+      "copy": "Kopijuoti",
+      "creating": "Kuriama...",
+      "description": "Sukurkite nuorodą el. pašto adresui ir rolei. Laiškas nesiunčiamas: nukopijuokite nuorodą ir išsiųskite patys.",
+      "done": "Atlikta",
+      "email_label": "El. paštas",
+      "link_note": "Ši nuoroda veikia tik vieną kartą ir baigia galioti po 7 dienų. Ji rodoma tik dabar, todėl nukopijuokite ją prieš išeidami iš šio puslapio.",
+      "link_title": "Kvietimo nuoroda",
+      "role_label": "Rolė",
+      "submit": "Sukurti kvietimo nuorodą",
+      "title": "Pakviesti žmogų"
+    },
+    "leave": {
+      "button": "Palikti darbo erdvę",
+      "confirm": "Palikti",
+      "description": "Iškart prarasite prieigą prie šios darbo erdvės ir jos duomenų.",
+      "done": "Palikote darbo erdvę",
+      "last_owner": "Esate paskutinis savininkas, todėl negalite išeiti. Pirmiausia paskirkite kitą narį savininku.",
+      "refresh_failed": "Išėjote iš darbo srities, bet nepavyko įkelti jūsų darbo sričių. Bandykite dar kartą.",
+      "title": "Palikti šią darbo erdvę"
+    },
+    "list": {
+      "description": "Visi, kurie dirba šioje darbo erdvėje, ir jų rolės.",
+      "email": "El. paštas",
+      "joined": "Prisijungė",
+      "role": "Rolė",
+      "title": "Nariai",
+      "you": "jūs"
+    },
+    "page_name": "Nariai",
+    "pending": {
+      "description": "Kvietimai, kurie dar nepanaudoti. Atšauktų kvietimų nuorodos nustoja veikti.",
+      "email": "El. paštas",
+      "empty": "Laukiančių kvietimų nėra.",
+      "expired": "Nebegalioja",
+      "expires": "Baigia galioti",
+      "revoke": "Atšaukti",
+      "revoke_aria": "Atšaukti kvietimą, skirtą {{email}}",
+      "revoked": "Kvietimas atšauktas",
+      "role": "Rolė",
+      "title": "Laukiantys kvietimai"
+    },
+    "remove": "Pašalinti",
+    "remove_aria": "Pašalinti {{email}}",
+    "remove_dialog": {
+      "confirm": "Pašalinti",
+      "description": "{{email}} iškart praranda prieigą prie šios darbo erdvės.",
+      "title": "Pašalinti narį"
+    },
+    "removed": "Narys pašalintas",
+    "role_updated": "Rolė atnaujinta",
+    "roles": {
+      "admin": "Administratorius",
+      "member": "Narys",
+      "owner": "Savininkas"
+    },
+    "settings_card": {
+      "description": "Peržiūrėkite, kas dirba šioje darbo erdvėje, o jei esate administratorius ar savininkas, kvieskite žmones ir valdykite jų roles.",
+      "open": "Atidaryti narius",
+      "title": "Nariai"
+    }
+  },
   "messages": {
     "login_error": "Prisijungimo metu įvyko klaida",
     "login_no_tokens": "Prisijungimas sėkmingas, bet tokenai nebuvo gauti.",
@@ -248,6 +671,7 @@
     },
     "empty_state": {
       "action": "Sukurkite pirmą monitorių",
+      "add_channel": "Pridėti pranešimų kanalą",
       "description": "Pradėkite, sukūrę savo pirmąjį stebėsenos įrašą, ir stebėkite paslaugų būklę.",
       "title": "Nerasta monitorių"
     },
@@ -490,12 +914,25 @@
       "shared": {
         "intervals": {
           "heartbeat_retry": "Širdies ritmų bandymo intervalas (bandykite kas {{seconds}} sekundžių)",
+          "interval_too_short": "Negali būti mažesnis nei {{minimum}} s",
           "max_retries_description": "Maksimalus bandymų skaičius, kol paslauga pažymima neveikiančia ir siunčiamas pranešimas.",
           "request_timeout": "Užklausos timeout (Baigiasi po {{seconds}} sekundžių)",
-          "resend_notification": "Persiųsti pranešimą, jei neveikia X kartus iš eilės (Persiuntimas išjungtas)"
+          "resend_notification": "Persiųsti pranešimą, jei neveikia X kartus iš eilės (Persiuntimas išjungtas)",
+          "timeout_too_long": "Negali būti didesnis nei 80 % tikrinimo intervalo"
+        },
+        "location_rule": {
+          "all": "neveikia visos vietos",
+          "any": "neveikia bet kuri vieta",
+          "at_least": "neveikia bent N vietų",
+          "description": "Vieta, kurios zondas atsijungęs arba dar nepateikė rezultato, neskaičiuojama.",
+          "label": "Pažymėti monitorių kaip neveikiantį, kai",
+          "threshold_invalid": "Įveskite sveikąjį skaičių, 1 arba daugiau",
+          "threshold_label": "Vietų skaičius",
+          "threshold_too_high": "Negali būti didesnis už pasirinktų zondų skaičių"
         },
         "notifications": {
           "add_notifier": "Pridėti pranešimo kanalą",
+          "load_failed": "Nepavyko įkelti pranešimų kanalų",
           "new_notifier": "+ Naujas pranešėjas",
           "no_channels": "Nerasta pranešimų kanalų, pirmiausia sukurkite vieną.",
           "no_channels_available": "Nėra kanalų",
@@ -503,6 +940,15 @@
           "select_notifier_placeholder": "Pasirinkite notifikatorių",
           "selected_channels": "Pasirinkti pranešimų kanalai",
           "title": "Pranešimų kanalai"
+        },
+        "probe": {
+          "description": "Monitorius veikia kiekviename pasirinktame zonde ir kiekvieno rezultatus rodo kaip vietą.",
+          "label": "Zondas",
+          "option_unsupported": "{{name}} (nevykdo šio tipo)",
+          "placeholder": "Pasirinkite zondą",
+          "push_fixed": "Push monitorius visada veikia vietiniame zonde.",
+          "required": "Pasirinkite bent vieną zondą",
+          "unsupported": "Šis zondas nevykdo šio tipo monitoriaus. Pasirinkite kitą zondą."
         },
         "proxy": {
           "add_proxy": "Pridėti proxy",
@@ -512,6 +958,10 @@
           "select_proxy_placeholder": "Pasirinkite tarpinį serverį",
           "selected_proxy": "Pasirinktas tarpininkas",
           "title": "Proksi"
+        },
+        "run_from": {
+          "default_locations": "Vykdoma numatytosiose vietose",
+          "label": "Vykdyti iš"
         },
         "tags": {
           "label": "Žymės",
@@ -563,6 +1013,8 @@
         "docker": "Docker konteineris",
         "grpc": "gRPC raktinių žodžių monitorius",
         "http": "HTTP(S) stebėjas",
+        "http_json_query": "HTTP(s) - JSON užklausa",
+        "http_keyword": "HTTP(s) - Raktinis žodis",
         "kafka": "Kafka gamintojo monitorius",
         "mongodb": "MongoDB duomenų bazės monitorius",
         "mqtt": "MQTT brokerio monitorius",
@@ -617,9 +1069,12 @@
     "toasts": {
       "deleted": "Monitorius pašalintas",
       "paused": "Stebėjimas pristabdytas",
+      "push_token_already_used": "Kitas monitorius jau naudoja šį push raktą. Sugeneruokite naują.",
       "reset_success": "Monitorio duomenys sėkmingai atstatyti",
       "resumed": "Monitoringas tęsiamas"
     },
+    "type_disabled": "Tipas {{type}} šioje diegtyje išjungtas",
+    "over_limit": "Netikrinama: darbo srityje yra daugiau aktyvių stebėjimų, nei leidžia jos riba",
     "view": {
       "buttons": {
         "clone": "Klonuoti",
@@ -649,6 +1104,15 @@
       "expiring_soon": "Artėja baigti",
       "for": "skirta",
       "live_status": "Gyva būsena",
+      "locations": {
+        "all": "Visos vietos",
+        "no_result": "Rezultato dar nėra",
+        "probe_offline": "Zondas atsijungęs",
+        "probe_unsupported": "Nevykdo šio tipo",
+        "response_time": "Atsakymo laikas",
+        "select_label": "Vieta",
+        "title": "Vietos"
+      },
       "monitor_for": "Steigti",
       "no_certificate_data": "Nėra sertifikato duomenų",
       "seconds": "sekundės",
@@ -671,9 +1135,11 @@
     }
   },
   "navigation": {
+    "admin": "Administravimas",
     "maintenance": "Priežiūra",
     "monitors": "Monitoriai",
     "notification_channels": "Pranešimo kanalai",
+    "probes": "Zondai",
     "proxies": "Tarpiniai serveriai",
     "settings": "Nustatymai",
     "status_pages": "Statuso puslapiai",
@@ -854,9 +1320,9 @@
       "pagerduty": {
         "auto_resolve_acknowledge": "Automatinis pripažinimas",
         "auto_resolve_acknowledge_description": "Automatiškai pripažinkite incidentą",
-        "auto_resolve_description": "Pasirinkite, ką daryti, kai monitorius vėl įsigalioja",
+        "auto_resolve_description": "Pasirinkite, ką siųsti, kai monitorius vėl pradeda veikti arba zondas vėl prisijungia",
         "auto_resolve_do_nothing": "Nieko nedaryti",
-        "auto_resolve_do_nothing_description": "Nėra veiksmo, kai statusas yra „Veikia“",
+        "auto_resolve_do_nothing_description": "Nieko nesiunčiama, kai monitorius vėl pradeda veikti arba zondas vėl prisijungia, todėl incidentas lieka atviras, kol jo neišspręsite sistemoje PagerDuty",
         "auto_resolve_label": "Automatiškai išspręsti arba prisiimti",
         "auto_resolve_placeholder": "Pasirinkite automatinio išsprendimo elgesį",
         "auto_resolve_resolve": "Automatinis išsprendimas",
@@ -879,7 +1345,7 @@
         "authentication_token_description": "Neprivalomas autentifikacijos žetonas pagerintam saugumui. Tai bus siunčiama pagertree-token antraštėje.",
         "authentication_token_label": "Autentifikacijos žetonas (neprivalomas)",
         "authentication_token_placeholder": "Įveskite autorizacijos žetoną, jei reikalingas",
-        "auto_resolve_alerts_description": "Automatiškai išspręsti PagerTree įspėjimus, kai monitorius atsigaukia",
+        "auto_resolve_alerts_description": "Automatiškai išspręsti PagerTree įspėjimus, kai monitorius vėl pradeda veikti arba zondas vėl prisijungia",
         "auto_resolve_alerts_label": "Automatinis įspėjimų išsprendimas",
         "how_to_get_integration_url_label": "Kaip gauti integracijos URL",
         "integration_url_description": "Įveskite savo PagerTree webhook integracijos URL.",
@@ -1082,6 +1548,12 @@
         "signing_secret_docs_link": "Kaip patikrinti parašą",
         "signing_secret_label": "Pasirašymo paslaptis",
         "signing_secret_placeholder": "Palikite tuščią, kad būtų siunčiamos nepasirašytos užklausos"
+      },
+      "install_email": {
+        "description": "Siunčia šis diegimas, SMTP serverio nereikia.",
+        "to_description": "Šios darbo erdvės narys. Pranešimai siunčiami, kai jis patvirtina adresą.",
+        "to_label": "Gavėjas",
+        "to_placeholder": "Pasirinkite narį"
       }
     },
     "important": "Svarbūs pranešimai",
@@ -1100,13 +1572,150 @@
       "updated_success": "Pranešiklis sėkmingai atnaujintas"
     },
     "new": {
-      "title": "Naujas pranešimų kanalas"
+      "title": "Naujas pranešimų kanalas",
+      "default_hint": "Šis kanalas bus pažymėtas naujuose monitoriuose."
     },
     "no_important": "Nėra svarbių pranešimų.",
     "placeholders": {
       "select_type": "Pasirinkite pranešimo tipą"
     },
-    "search_placeholder": "Paieška kanalų pagal pavadinimą..."
+    "search_placeholder": "Paieška kanalų pagal pavadinimą...",
+    "secret": {
+      "reenter_error": "Įveskite šią paslaptį iš naujo arba pašalinkite ją: pasikeitė vieta, į kurią siunčiama",
+      "reenter_hint": "Įveskite šią paslaptį iš naujo: pasikeitė vieta, į kurią siunčiama",
+      "reenter_url_error": "Įveskite šio URL prisijungimo duomenis iš naujo: URL pasikeitė po išsaugojimo",
+      "remove": "Pašalinti",
+      "saved_hint": "Išsaugota — įveskite, kad pakeistumėte"
+    }
+  },
+  "probes": {
+    "default": {
+      "description": "Monitorius, sukurtas nepasirinkus zondų, veikia numatytuosiuose zonduose, kurie nėra išjungti ir vykdo jo tipą, o jei tokių nėra – vietiniame zonde. Esami monitoriai pasilieka savo zondus.",
+      "failed": "Nepavyko pakeisti, ar zondas yra numatytasis.",
+      "label": "Numatytasis zondas",
+      "off": "{{name}} nebėra numatytasis zondas",
+      "on": "{{name}} dabar yra numatytasis zondas",
+      "title": "Numatytasis naujiems monitoriams"
+    },
+    "default_badge": "Numatytasis",
+    "page_name": "Zondai",
+    "description": "Zondai atlieka monitorių patikras iš vietų, kuriose jie įdiegti. Vietinis zondas yra pats Peekaping.",
+    "local_name": "Vietinis",
+    "monitor_probe": "Zondas: {{name}}",
+    "monitor_probe_unsupported": "{{name}} nevykdo {{type}} tipo monitorių",
+    "empty_list": {
+      "title": "Zondų nerasta",
+      "text": "Sukurkite zondą, kad atliktumėte patikras iš kitos vietos.",
+      "action_text": "Sukurkite savo pirmąjį zondą"
+    },
+    "table": {
+      "headers": {
+        "name": "Pavadinimas",
+        "location": "Vieta",
+        "status": "Būsena",
+        "disabled": "Išjungtas",
+        "token": "Žetonas",
+        "instances": "Egzemplioriai",
+        "actions": "Veiksmai"
+      },
+      "status": {
+        "online": "Prisijungęs",
+        "offline": "Atsijungęs"
+      },
+      "disabled": "Išjungtas",
+      "no_instances": "Egzempliorių dar nėra",
+      "last_seen": "paskutinį kartą matytas {{date}}",
+      "actions": {
+        "edit": "Redaguoti zondą {{name}}",
+        "rotate": "Pakeisti zondo {{name}} žetoną",
+        "assign_all": "Priskirti zondą {{name}} visiems monitoriams",
+        "delete": "Ištrinti zondą {{name}}"
+      }
+    },
+    "create_dialog": {
+      "title": "Sukurti zondą",
+      "description": "Zondas atlieka patikras iš vietos, kurioje jį įdiegiate. Jo žetonas rodomas tik vieną kartą, po sukūrimo.",
+      "submit": "Sukurti zondą",
+      "creating": "Kuriama..."
+    },
+    "assign_all": {
+      "warning": "Žetonas skaito kiekvieno zondui priskirto monitoriaus konfigūraciją, įskaitant prisijungimo duomenis.",
+      "docs_link": "Ką gali skaityti žetonas"
+    },
+    "assign_all_dialog": {
+      "title": "Priskirti visiems monitoriams",
+      "description": "Pridėti zondą {{name}} prie kiekvieno monitoriaus, kurį jis gali vykdyti, išskyrus push monitorius. Zondas, kuris dar neturi egzempliorių, pridedamas, kai prisijungia pirmasis jo egzempliorius.",
+      "confirm": "Priskirti visiems monitoriams",
+      "assigning": "Priskiriama..."
+    },
+    "edit_dialog": {
+      "title": "Redaguoti zondą",
+      "description": "Pakeiskite {{name}} nustatymus."
+    },
+    "form": {
+      "name_label": "Pavadinimas",
+      "name_placeholder": "pvz., Frankfurtas",
+      "location_label": "Vieta (neprivaloma)",
+      "location_placeholder": "pvz., Frankfurtas, Vokietija",
+      "assign_all_label": "Priskirti visiems monitoriams",
+      "assign_all_description": "Prisijungus pirmajam zondo egzemplioriui, zondas pridedamas prie kiekvieno monitoriaus, kurį gali vykdyti, išskyrus push monitorius.",
+      "name_required": "Pavadinimas privalomas",
+      "name_too_long": "Pavadinimas per ilgas",
+      "location_too_long": "Vieta per ilga",
+      "disabled_label": "Išjungtas",
+      "disabled_description": "Išjungto zondo žetonas nustoja veikti, kol vėl jį įjungsite.",
+      "notifications_hint": "Palikite tuščią, kad pranešimai būtų siunčiami šio zondo monitorių kanalams."
+    },
+    "rotate_dialog": {
+      "title": "Pakeisti žetoną",
+      "description": "Senas zondo {{name}} žetonas iškart nustoja veikti. Jo egzempliorius reikia paleisti iš naujo su nauju žetonu.",
+      "confirm": "Pakeisti žetoną",
+      "rotating": "Keičiama..."
+    },
+    "delete_dialog": {
+      "title": "Ištrinti zondą",
+      "description": "Ar tikrai norite ištrinti zondą „{{name}}“? Jo žetonas nustos veikti. Šio veiksmo atšaukti negalima."
+    },
+    "token_alert": {
+      "title_created": "Zondas {{name}} sukurtas",
+      "title_rotated": "Naujas zondo {{name}} žetonas",
+      "note": "Šis žetonas skaito zondui priskirtų monitorių konfigūracijas. Jis rodomas tik vieną kartą.",
+      "token_label": "Žetonas",
+      "docker_label": "Paleiskite zondą naudodami Docker",
+      "copy_token": "Kopijuoti žetoną",
+      "copy_command": "Kopijuoti docker komandą"
+    },
+    "messages": {
+      "created_successfully": "Zondas sėkmingai sukurtas",
+      "updated_successfully": "Zondas sėkmingai atnaujintas",
+      "rotated_successfully": "Žetonas sėkmingai pakeistas",
+      "assigned_successfully": "Pridėta monitorių: {{added}}",
+      "assign_pending": "Jam prisijungus, jis bus pridėtas prie kiekvieno monitoriaus, kurį vykdo",
+      "deleted_successfully": "Zondas sėkmingai ištrintas",
+      "failed_to_create": "Nepavyko sukurti zondo",
+      "failed_to_update": "Nepavyko atnaujinti zondo",
+      "failed_to_rotate": "Nepavyko pakeisti žetono",
+      "failed_to_assign": "Nepavyko priskirti zondo visiems monitoriams",
+      "failed_to_delete": "Nepavyko ištrinti zondo",
+      "failed_to_load": "Nepavyko įkelti zondų",
+      "copy_success": "Nukopijuota į iškarpinę",
+      "copy_failed": "Nepavyko nukopijuoti į iškarpinę"
+    },
+    "detail": {
+      "assign_all_pending": "Laukiama pirmojo egzemplioriaus: jam prisijungus, zondas bus pridėtas prie kiekvieno monitoriaus, kurį vykdo.",
+      "not_found": "Zondas nerastas"
+    },
+    "availability": {
+      "title": "Pasiekiamumas",
+      "range_label": "Laikotarpis",
+      "bar_label": "Pasiekiamumo istorija",
+      "instance_bar_label": "{{name}} ryšiai",
+      "no_data": "Nėra duomenų",
+      "now": "Dabar",
+      "instances_title": "Egzemplioriai, paskutiniai 24 valandos",
+      "in_process_note": "Vietinio zondo monitorius tikrina pats Peekaping, todėl jis neturi pasiekiamumo istorijos.",
+      "connected_since": "Prisijungęs nuo {{start}}"
+    }
   },
   "proxies": {
     "delete_dialog": {
@@ -1145,6 +1754,20 @@
     "search_placeholder": "Ieškoti proksų pagal hostą..."
   },
   "security": {
+    "delete_account": {
+      "button": "Ištrinti paskyrą",
+      "description": "Jūsų paskyra bus ištrinta, o jūsų sesijos baigtos. Išeisite iš visų darbo erdvių, kuriose esate. Šio veiksmo atšaukti negalima.",
+      "dialog_description": "Jūsų paskyra ištrinama iš karto ir jūs atsijungiate. Išeisite iš visų darbo erdvių, kuriose esate. Šio veiksmo atšaukti negalima.",
+      "errors": {
+        "last_instance_admin": "Esate paskutinis šio diegimo administratorius. Kad galėtumėte ištrinti paskyrą, reikia kito diegimo administratoriaus.",
+        "last_owner": "Esate vienintelis {{workspaces}} savininkas. Pirmiausia paskirkite savininku kitą narį arba ištrinkite darbo erdvę.",
+        "wrong_password": "Slaptažodis neteisingas"
+      },
+      "failed": "Nepavyko ištrinti paskyros",
+      "password_label": "Jūsų slaptažodis",
+      "success": "Jūsų paskyra ištrinta",
+      "title": "Ištrinti paskyrą"
+    },
     "enable_2fa": {
       "form": {
         "authenticator_code_label": "Autentifikatoriaus kodas",
@@ -1267,10 +1890,35 @@
     "to_email_label": "El. pašto adresas"
   },
   "settings": {
+    "danger_zone": {
+      "button": "Ištrinti darbo erdvę",
+      "description": "Ištrynus šią darbo erdvę, viskas, kas joje yra, bus ištrinta visam laikui: monitoriai, širdies ritmai, statuso puslapiai ir kita. Ištrynimas įvyksta praėjus 7 dienoms po patvirtinimo. Jos monitoriai sustoja iš karto, o savininkas gali atšaukti ištrynimą iki tol.",
+      "dialog_description": "Po 7 dienų bus ištrinta darbo erdvė {{name}} ir viskas, kas joje yra. Jos monitoriai sustoja iš karto, o iki tol galite atšaukti ištrynimą.",
+      "failed": "Nepavyko suplanuoti ištrynimo",
+      "name_label": "Kad patvirtintumėte, įveskite darbo erdvės pavadinimą: {{name}}",
+      "scheduled": "Ši darbo erdvė bus ištrinta {{date}}. Iki tol jos monitoriai neveikia. Atšaukite ištrynimą, kad viskas būtų atkurta.",
+      "title": "Pavojaus zona"
+    },
     "data_retention": {
       "days_label": "Dienos",
       "description": "Nustatykite, kiek dienų laikyti duomenis (KEEP_DATA_PERIOD_DAYS).",
-      "title": "Duomenų saugojimo laikotarpis"
+      "read_only": "Tai gali pakeisti tik darbo srities administratorius arba savininkas.",
+      "title": "Duomenų saugojimo laikotarpis",
+      "capped": "Šioje darbo erdvėje ne daugiau kaip {{max}} d."
+    },
+    "error_reporting": {
+      "cluster_note": "Klasterio režimu pakeitimas pasiekia kiekvieną procesą per minutę.",
+      "description": "Siųsti pranešimą į Sentry, kai sugenda serveris. Pagal numatytuosius nustatymus įjungta; čia tai galite išjungti bet kada.",
+      "forced_off": "Aplinkos kintamasis ERROR_REPORTING=off tai išjungia. Niekas nesiunčiama, ką bebūtų nurodęs šis nustatymas.",
+      "title": "Pranešimai apie klaidas"
+    },
+    "telemetry": {
+      "description": "Siųsti anonimišką statistiką apie tai, kaip sukonfigūruotas šis diegimas, ne dažniau kaip kartą per dieną. Pagal numatytuosius nustatymus įjungta; čia tai galite išjungti bet kada.",
+      "forced_off": "Aplinkos kintamasis TELEMETRY=off tai išjungia. Niekas nesiunčiama, ką bebūtų nurodęs šis nustatymas.",
+      "id_note": "Egzemplioriaus ID sukuriamas, kol tai įjungta, ir ištrinamas, kai išjungiate. Įjungus iš naujo, sukuriamas naujas.",
+      "payload_off": "Kol tai išjungta, niekas nesiunčiama. Štai ką naudojimo pingas turėtų, jei tai įjungtumėte.",
+      "payload_title": "Ką išsiųs kitas naudojimo pingas",
+      "title": "Naudojimo statistika"
     },
     "timezone": {
       "description": "Pasirinkite pageidaujamą laiko juostą, pagal kurią bus rodomi visi laikai programoje.",
@@ -1282,6 +1930,73 @@
     },
     "validation": {
       "min_days": "Turi būti ne mažiau kaip 1 diena"
+    },
+    "workspace_name": {
+      "description": "Pavadinimas, rodomas darbo erdvių perjungiklyje ir jos nariams.",
+      "title": "Darbo erdvės pavadinimas"
+    },
+    "workspace_export": {
+      "title": "Eksportas",
+      "description": "Atsisiųskite šios darbo erdvės sąranką vienu JSON failu: nustatymus, tagus, proksi, pranešimų kanalus, monitorius, priežiūros laikotarpius ir būsenos puslapius. Savininkas gali šį failą importuoti į kitą darbo erdvę.",
+      "warning_title": "Faile yra išsaugotų paslapčių",
+      "warning": "Pranešimų kanalų ir proksi botų raktai, slaptažodžiai ir webhook URL faile yra pilni, nepaslėpti. Saugokite failą kaip slaptažodį ir nesidalykite juo su tais, kurie jų žinoti neturėtų.",
+      "download_workspace": "Atsisiųsti darbo erdvę",
+      "download_heartbeats": "Atsisiųsti širdies ritmų istoriją",
+      "heartbeats_note": "Širdies ritmų istorija yra atskiras failas ir gali būti didelė. Joje yra po vieną eilutę kiekvienam kiekvieno monitoriaus patikrinimui.",
+      "downloading": "Atsisiunčiama...",
+      "failed": "Nepavyko atsisiųsti darbo erdvės",
+      "heartbeats_failed": "Nepavyko atsisiųsti širdies ritmų istorijos"
+    },
+    "workspace_import": {
+      "title": "Importas",
+      "description": "Pridėkite darbo erdvės eksporto failo įrašus prie šios darbo erdvės. Niekas nepakeičiama: jie įtraukiami šalia čia jau esančių.",
+      "file_label": "Darbo erdvės eksporto failas (.json)",
+      "choose": "Pasirinkti failą",
+      "not_json": "Šis failas nėra tinkamas JSON, todėl nieko nesiųsta.",
+      "too_large": "Šis failas didesnis nei 16 MB – tiek daugiausia priima importas, todėl nieko nesiųsta.",
+      "unreadable": "Šio failo nepavyksta perskaityti. Pasirinkite jį iš naujo arba patikrinkite, ar jis vis dar yra.",
+      "confirm_title": "Importuoti {{file}}?",
+      "confirm_description": "Jo įrašai pridedami šalia jau esančių šioje darbo erdvėje. Niekas nepakeičiama, o importavus tą patį failą du kartus, jie pridedami du kartus. Monitoriai pradeda veikti iškart, kai tik pridedami.",
+      "confirm_button": "Importuoti",
+      "importing": "Importuojama...",
+      "failed": "Nepavyko importuoti failo",
+      "problems_title": "Failo importuoti negalima",
+      "problems_description": "Į šią darbo erdvę nieko nepridėta. Ištaisykite šias failo problemas ir importuokite jį dar kartą:",
+      "result_title": "Importas baigtas",
+      "created_title": "Pridėta į šią darbo erdvę",
+      "nothing_created": "Nieko nepridėta.",
+      "changes_title": "Pakeista, kad tiktų šiai darbo erdvei",
+      "no_changes": "Viskas įtraukta tokia, kokia yra faile.",
+      "close": "Uždaryti",
+      "created": {
+        "tags": "Tagai",
+        "proxies": "Proksi",
+        "notificationChannels": "Pranešimų kanalai",
+        "monitors": "Monitoriai",
+        "maintenances": "Priežiūros laikotarpiai",
+        "statusPages": "Būsenos puslapiai"
+      },
+      "changes": {
+        "tag_reused": "Tagas \"{{name}}\" jau yra šioje darbo erdvėje, todėl jo monitoriai naudoja jį.",
+        "proxy_skipped_target_not_allowed": "Proksi {{name}} praleistas: šis diegimas blokuoja jo adresą.",
+        "monitor_proxy_dropped": "Monitorius \"{{name}}\" įtrauktas be proksi {{from}}, kuris buvo praleistas.",
+        "channel_skipped": "Pranešimų kanalas \"{{name}}\" praleistas: šis diegimas ar darbo erdvė jo priimti negali.",
+        "channel_skipped_target_not_allowed": "Pranešimų kanalas \"{{name}}\" praleistas: šis diegimas blokuoja adresą, į kurį jis siunčia.",
+        "channel_skipped_no_install_sender": "Pranešimų kanalas \"{{name}}\" praleistas: šiame diegime nėra el. laiškų siuntėjo.",
+        "channel_skipped_recipient_not_member": "Pranešimų kanalas \"{{name}}\" praleistas: jo el. laiško gavėjas nėra šios darbo erdvės narys.",
+        "monitor_skipped_type_disabled": "Monitorius \"{{name}}\" praleistas: šis diegimas išjungia šio tipo monitorius: {{reason}}.",
+        "monitor_skipped_target_not_allowed": "Monitorius \"{{name}}\" praleistas: šis diegimas blokuoja jo tikslą {{reason}}.",
+        "monitor_interval_raised": "Monitorius \"{{name}}\" tikrina kas {{to}} sek. vietoj {{from}} sek. – tai trumpiausias šio diegimo leidžiamas intervalas.",
+        "monitor_retry_interval_raised": "Monitorius \"{{name}}\" kartoja nepavykusį patikrinimą kas {{to}} sek. vietoj {{from}} sek. – tai trumpiausias šio diegimo leidžiamas intervalas.",
+        "push_token_replaced": "Monitorius \"{{name}}\" gavo naują push raktą, nes failo raktą jau turi kitas monitorius. Atnaujinkite adresą, į kurį siunčia jūsų užduotis.",
+        "monitor_paused_over_limit": "Monitorius \"{{name}}\" įtrauktas pristabdytas: šios darbo erdvės plane nebėra vietos dar vienam veikiančiam monitoriui.",
+        "status_page_slug_changed": "Būsenos puslapio \"{{name}}\" adresas yra {{to}}, o ne {{from}}, nes šis jau užimtas.",
+        "status_page_skipped_over_limit": "Būsenos puslapis \"{{name}}\" praleistas: šios darbo erdvės plane nebėra vietos dar vienam.",
+        "custom_domain_dropped": "Pasirinktinis domenas {{name}} praleistas: jį jau turi kitas būsenos puslapis.",
+        "custom_domain_dropped_over_limit": "Pasirinktinis domenas {{name}} praleistas: šios darbo erdvės plane nebėra vietos dar vienam.",
+        "retention_capped": "Duomenų saugojimo laikotarpis yra {{to}} d., o ne {{from}} d. – tai daugiausia, ką leidžia šios darbo erdvės planas.",
+        "unknown": "Importas pakeitė: {{subject}} ({{kind}})."
+      }
     }
   },
   "status": {
@@ -1291,12 +2006,14 @@
       "last_updated": "Paskutinis atnaujinimas",
       "maintenance": "Priežiūra",
       "no_monitors_configured": "Šiam būsenos puslapiui nebuvo sukonfigūruojamų monitorių.",
+      "not_monitored": "Nestebima",
       "operational": "Veikia",
       "partial_system_outage": "Dalinis sistemos sutrikimas",
       "powered_by": "Sąskaitą palaiko",
       "refresh_in": "Per",
       "refresh_now": "Atnaujinti dabar",
       "status_page_not_found": "Statuso puslapis nerastas arba nebuvo paskelbtas.",
+      "status_page_unavailable": "Šis būsenos puslapis nepasiekiamas",
       "under_maintenance": "Priežiūroje",
       "unknown": "Nežinoma"
     }
@@ -1315,7 +2032,35 @@
     "description": "Įveskite puslapio būklės aprašymą",
     "domain_already_used": "Domenas {{domain}} jau naudojamas kito statuso puslapio.",
     "domain_host_warning": "Šis domenas yra tas pats, kaip jūsų dabartinis hosto URL. Tai gali sukelti konfliktų.",
+    "domain_verification": {
+      "add_one_record": "Pridėkite vieną iš šių įrašų pas savo DNS teikėją. Pakanka vieno.",
+      "check_failed": "Nepavyko patikrinti {{domain}}",
+      "check_now": "Tikrinti dabar",
+      "checking": "Tikrinama...",
+      "cname_record": "CNAME įrašas",
+      "copy": "Kopijuoti: {{label}}",
+      "copy_failed": "Nepavyko nukopijuoti į iškarpinę",
+      "copy_success": "Nukopijuota į iškarpinę",
+      "info": "Kiekvienas domenas pateikia šį puslapį, kai DNS įrašas įrodo, kad jis nukreipia į Peekaping.",
+      "last_checked": "Paskutinį kartą tikrinta: {{time}}",
+      "name": "Pavadinimas",
+      "not_checked": "Dar netikrinta",
+      "pending_note": "Laukiantis domenas šio puslapio nepateikia ir negauna sertifikato.",
+      "records_load_failed": "Nepavyko įkelti DNS įrašų",
+      "records_missing_note": "Jo DNS įrašų trūksta nuo {{time}}. Po 24 valandų domenas vėl taps laukiančiu.",
+      "removed_on": "Bus pašalintas {{date}}, jei nebus patvirtintas",
+      "save_to_see_records": "Išsaugokite puslapį, kad pamatytumėte pridėtinus DNS įrašus",
+      "state": {
+        "pending": "Laukiama",
+        "records_missing": "Trūksta įrašų",
+        "verified": "Patvirtintas"
+      },
+      "target": "Nukreipia į",
+      "txt_record": "TXT įrašas",
+      "value": "Reikšmė"
+    },
     "domains": "Domenai",
+    "domains_docs_link": "Pasirinktiniai domenai ir HTTPS",
     "domains_info_warning": "Neužmirškite pridėti CNAME įrašų į savo DNS kiekvienam domenui.",
     "draft_status": "Juodraštis",
     "edit_page_name": "Redaguoti būsenos puslapį",
@@ -1338,6 +2083,9 @@
     "published_status": "Paskelbta",
     "search_label": "Paieška",
     "search_placeholder": "Ieškoti būsenų puslapių pagal pavadinimą...",
+    "show_locations": "Rodyti kiekvieną vietą",
+    "show_locations_info": "Stebėjimams, tikrinamiems iš kelių vietų, rodoma kiekvienos vietos būsena ir istorija",
+    "slug_already_used": "Šį adresą jau naudoja kitas būsenos puslapis",
     "update_status_page": "Atnaujinti statuso puslapį",
     "view_page": "Peržiūrėti puslapį"
   },
@@ -1368,6 +2116,18 @@
     "new_page_name": "Nauja žyma",
     "search_placeholder": "Ieškoti žymų..."
   },
+  "telemetry": {
+    "docs_link": "Kas siunčiama ir kaip tai išjungti",
+    "label": "Siųsti anonimišką naudojimo statistiką",
+    "not_saved": "Jūsų pasirinkimas dėl naudojimo statistikos neišsaugotas. Patikrinkite jį skiltyje „Nustatymai“."
+  },
+  "telemetry_notice": {
+    "error_reports": "Pranešimai apie klaidas įjungti. Jei Peekaping sugenda, jis siunčia klaidos tipą ir vietą kode, kurioje ji įvyko, savo versiją, režimą, saugyklos pagrindą ir operacinę sistemą. Niekada nesiunčia klaidų pranešimų, URL ar pagrindinių kompiuterių pavadinimų.",
+    "settings_errors": "Išjungti pranešimus apie klaidas skiltyje „Nustatymai“",
+    "settings_usage": "Išjungti naudojimo statistiką skiltyje „Nustatymai“",
+    "title": "Anoniminių duomenų siuntimas pagal numatytuosius nustatymus įjungtas",
+    "usage_statistics": "Naudojimo statistika įjungta. Ne dažniau kaip kartą per dieną Peekaping siunčia atsitiktinį egzemplioriaus ID, savo versiją, režimą, saugyklos pagrindą ir operacinę sistemą, monitorių skaičiaus intervalą, naudojamų monitorių ir pranešimų kanalų rūšis bei tai, ar naudojate būsenos puslapius, priežiūros langus ir metrikas. Niekada nesiunčia pavadinimų, URL, pagrindinių kompiuterių ar nustatymų."
+  },
   "theme": {
     "dark": "Tamsus",
     "light": "Šviesus",
@@ -1391,5 +2151,123 @@
   "ui": {
     "general": "Bendros",
     "intervals_retries": "Intervalai, bandymai, terminai"
+  },
+  "workspaces": {
+    "create": "Sukurti darbo erdvę",
+    "create_error": "Nepavyko sukurti darbo erdvės",
+    "create_first": "Sukurti darbo sritį",
+    "creating": "Kuriama...",
+    "deletion": {
+      "cancel": "Atšaukti ištrynimą",
+      "cancel_failed": "Nepavyko atšaukti ištrynimo",
+      "cancelled": "Ištrynimas atšauktas",
+      "member_message": "Ši darbo erdvė bus ištrinta {{date}}. Jos monitoriai neveikia, o statuso puslapiai nepasiekiami. Iki tol savininkas gali atšaukti ištrynimą.",
+      "message": "Ši darbo erdvė bus ištrinta {{date}}. Jos monitoriai neveikia, o statuso puslapiai nepasiekiami. Iki tol galite atšaukti ištrynimą."
+    },
+    "enter": "Atidaryti darbo erdvę",
+    "entering": "Atidaroma...",
+    "entry_failed": "Darbo erdvė sukurta, bet jos atidaryti nepavyko. Bandykite dar kartą.",
+    "name_label": "Pavadinimas",
+    "name_placeholder": "Mano komanda",
+    "name_required": "Įveskite pavadinimą",
+    "new": "Nauja darbo erdvė",
+    "new_description": "Darbo erdvė turi savo monitorius, pranešimų kanalus, būsenos puslapius ir narius. Būsite jos savininkas.",
+    "new_title": "Nauja darbo erdvė",
+    "none_description": "Jūsų paskyra nėra jokios darbo erdvės narė, todėl čia nėra ką rodyti. Paprašykite darbo erdvę valdančio asmens jus pridėti.",
+    "none_title": "Dar nesate jokioje darbo erdvėje",
+    "refresh_failed": "Nepavyko įkelti jūsų darbo sričių. Patikrinkite ryšį ir bandykite dar kartą.",
+    "rename_error": "Nepavyko pervadinti darbo erdvės",
+    "rename_success": "Darbo erdvė pervadinta",
+    "suspended_banner": {
+      "contact": "Susisiekti:",
+      "message": "Šią darbo erdvę sustabdė šio diegimo administratorius. Jos monitoriai neveikia, o būsenos puslapiai nepasiekiami.",
+      "no_contact": "Susisiekite su asmeniu, kuris prižiūri šį diegimą."
+    },
+    "switcher_label": "Perjungti darbo erdvę"
+  },
+  "get_started": {
+    "page_name": "Pradžia",
+    "skip": "Praleisti sąranką",
+    "step_of": "{{current}} žingsnis iš {{total}}",
+    "name": {
+      "description": "Čia yra jūsų stebėjimai, pranešimų kanalai ir būsenos puslapiai. Pavadinimą vėliau galėsite pakeisti nustatymuose.",
+      "title": "Pavadinkite savo darbo erdvę"
+    },
+    "monitor": {
+      "create": "Sukurti monitorių",
+      "create_failed": "Nepavyko sukurti monitoriaus",
+      "creating": "Kuriama...",
+      "description": "Įveskite svetainės ar API adresą. „Peekaping“ jį tikrina ir praneša, kai jis nustoja atsakyti.",
+      "full_form": "Arba nustatykite monitorių su visomis parinktimis",
+      "title": "Pridėkite pirmąjį monitorių",
+      "url_invalid": "Įveskite adresą, prasidedantį http:// arba https://",
+      "url_label": "Stebimas adresas"
+    },
+    "channel": {
+      "continue_unlinked": "Tęsti nesusiejus",
+      "description": "Pasirinkite, kur „Peekaping“ siunčia įspėjimą, kai jūsų monitorius neveikia. Tai taps numatytuoju naujiems monitoriams.",
+      "link_failed": "Kanalas išsaugotas, bet susieti jo su monitoriumi nepavyko. Pridėkite jį monitoriaus redagavimo puslapyje.",
+      "retry_link": "Bandyti susieti dar kartą",
+      "title": "Gaukite pranešimus"
+    },
+    "done": {
+      "description": "„Peekaping“ stebi jūsų paslaugą. Štai ką galite daryti toliau.",
+      "title": "Viskas paruošta",
+      "unverified": "Jūsų monitorius veiks, kai bus patvirtintas el. pašto adresas. Patvirtinimo nuorodą rasite gautuosiuose.",
+      "links": {
+        "members": "Pakviesti savo komandą",
+        "monitor": "Atidaryti monitorių",
+        "monitors": "Eiti į monitorius",
+        "probes": "Tvarkyti zondus",
+        "status_pages": "Paskelbti būsenos puslapį"
+      }
+    }
+  },
+  "limits": {
+    "reached": {
+      "monitors": "Didžiausias šioje darbo erdvėje veikiančių monitorių skaičius: {{max}}",
+      "status_pages": "Didžiausias šios darbo erdvės būsenos puslapių skaičius: {{max}}",
+      "custom_domains": "Didžiausias bendras visų šios darbo erdvės būsenos puslapių pasirinktinių domenų skaičius: {{max}}",
+      "members": "Didžiausias šios darbo erdvės narių skaičius, įskaitant laukiančius kvietimus: {{max}}",
+      "owned_workspaces": "Didžiausias darbo erdvių, kurių savininkas galite būti, skaičius: {{max}}",
+      "probes": "Didžiausias zondų, kuriuose gali veikti šios darbo erdvės monitorius, skaičius: {{max}}",
+      "retention_days": "Ilgiausias šios darbo erdvės duomenų saugojimo laikotarpis (dienomis): {{max}}"
+    },
+    "names": {
+      "monitors": "Aktyvūs monitoriai",
+      "min_check_interval": "Trumpiausias patikrinimo intervalas (sekundėmis)",
+      "status_pages": "Būsenos puslapiai",
+      "custom_domains": "Pasirinktiniai domenai",
+      "members": "Nariai",
+      "owned_workspaces": "Darbo erdvės, kurias gali turėti vienas naudotojas",
+      "probes_per_monitor": "Zondai vienam monitoriui",
+      "retention_days": "Duomenų saugojimas (dienomis)"
+    },
+    "none": "Be ribos",
+    "invalid": "Įveskite sveikąjį skaičių nuo 1 arba palikite tuščią, jei ribos nereikia.",
+    "retention_too_long": "Negali būti daugiau nei {{max}} d."
+  },
+  "usage": {
+    "title": "Naudojimas",
+    "description": "Kiek ši darbo erdvė naudoja iš savo apribojimų.",
+    "open": "Atidaryti naudojimą",
+    "plan": "Planas",
+    "set_by_admin": "Nustatė jūsų administratorius",
+    "count": {
+      "monitors": "Monitoriai: {{used}} iš {{max}}",
+      "status_pages": "Būsenos puslapiai: {{used}} iš {{max}}",
+      "custom_domains": "Pasirinktiniai domenai: {{used}} iš {{max}}",
+      "members": "Nariai: {{used}} iš {{max}}, įskaitant laukiančius kvietimus",
+      "owned_workspaces": "Darbo erdvės, kurių savininkas esate: {{used}} iš {{max}}",
+      "probes_per_monitor": "Zondai viename monitoriuje: iki {{used}} iš {{max}}"
+    },
+    "labels": {
+      "min_check_interval": "Trumpiausias patikrinimo intervalas",
+      "retention_days": "Ilgiausias duomenų saugojimas"
+    },
+    "seconds": "{{value}} s",
+    "days": "{{value}} d.",
+    "near": "Arti apribojimo",
+    "reached": "Pasiektas apribojimas"
   }
 }

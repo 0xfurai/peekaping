@@ -4,6 +4,9 @@ import (
 	"context"
 	"time"
 
+	"peekaping/internal/dbtx"
+	"peekaping/internal/modules/workspace"
+
 	"github.com/google/uuid"
 	"github.com/uptrace/bun"
 )
@@ -52,7 +55,7 @@ func (r *SQLRepositoryImpl) Create(ctx context.Context, model *Model) (*Model, e
 	sm.CreatedAt = time.Now()
 	sm.UpdatedAt = time.Now()
 
-	_, err := r.db.NewInsert().Model(sm).Returning("*").Exec(ctx)
+	_, err := dbtx.DB(ctx, r.db).NewInsert().Model(sm).Returning("*").Exec(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -62,7 +65,7 @@ func (r *SQLRepositoryImpl) Create(ctx context.Context, model *Model) (*Model, e
 
 func (r *SQLRepositoryImpl) FindByID(ctx context.Context, id string) (*Model, error) {
 	sm := new(sqlModel)
-	err := r.db.NewSelect().Model(sm).Where("id = ?", id).Scan(ctx)
+	err := dbtx.DB(ctx, r.db).NewSelect().Model(sm).Where("id = ?", id).Scan(ctx)
 	if err != nil {
 		if err.Error() == "sql: no rows in result set" {
 			return nil, nil
@@ -74,7 +77,7 @@ func (r *SQLRepositoryImpl) FindByID(ctx context.Context, id string) (*Model, er
 
 func (r *SQLRepositoryImpl) FindByMonitorID(ctx context.Context, monitorID string) ([]*Model, error) {
 	var sms []*sqlModel
-	err := r.db.NewSelect().
+	err := dbtx.DB(ctx, r.db).NewSelect().
 		Model(&sms).
 		Where("monitor_id = ?", monitorID).
 		Order("created_at DESC").
@@ -92,7 +95,7 @@ func (r *SQLRepositoryImpl) FindByMonitorID(ctx context.Context, monitorID strin
 
 func (r *SQLRepositoryImpl) FindByMaintenanceID(ctx context.Context, maintenanceID string) ([]*Model, error) {
 	var sms []*sqlModel
-	err := r.db.NewSelect().
+	err := dbtx.DB(ctx, r.db).NewSelect().
 		Model(&sms).
 		Where("maintenance_id = ?", maintenanceID).
 		Order("created_at DESC").
@@ -109,16 +112,28 @@ func (r *SQLRepositoryImpl) FindByMaintenanceID(ctx context.Context, maintenance
 }
 
 func (r *SQLRepositoryImpl) Delete(ctx context.Context, id string) error {
-	_, err := r.db.NewDelete().Model((*sqlModel)(nil)).Where("id = ?", id).Exec(ctx)
+	_, err := dbtx.DB(ctx, r.db).NewDelete().Model((*sqlModel)(nil)).Where("id = ?", id).Exec(ctx)
 	return err
 }
 
 func (r *SQLRepositoryImpl) DeleteByMonitorID(ctx context.Context, monitorID string) error {
-	_, err := r.db.NewDelete().Model((*sqlModel)(nil)).Where("monitor_id = ?", monitorID).Exec(ctx)
+	_, err := dbtx.DB(ctx, r.db).NewDelete().Model((*sqlModel)(nil)).Where("monitor_id = ?", monitorID).Exec(ctx)
 	return err
 }
 
 func (r *SQLRepositoryImpl) DeleteByMaintenanceID(ctx context.Context, maintenanceID string) error {
-	_, err := r.db.NewDelete().Model((*sqlModel)(nil)).Where("maintenance_id = ?", maintenanceID).Exec(ctx)
+	_, err := dbtx.DB(ctx, r.db).NewDelete().Model((*sqlModel)(nil)).Where("maintenance_id = ?", maintenanceID).Exec(ctx)
 	return err
+}
+
+func (r *SQLRepositoryImpl) FindMonitorIDsInWorkspace(ctx context.Context, workspaceID workspace.ID, ids []string) ([]string, error) {
+	if len(ids) == 0 {
+		return nil, nil
+	}
+	var found []string
+	err := dbtx.DB(ctx, r.db).NewSelect().Table("monitors").Column("id").
+		Where("workspace_id = ?", string(workspaceID)).
+		Where("id IN (?)", bun.In(ids)).
+		Scan(ctx, &found)
+	return found, err
 }

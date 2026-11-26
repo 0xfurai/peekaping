@@ -34,19 +34,24 @@ import { Link } from "react-router-dom";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 import { PasswordInput } from "@/components/ui/password-input";
+import { useAccountEmails } from "@/hooks/useAccountEmails";
+import { useAuthConfig } from "@/hooks/useAuthConfig";
+import { loginSignupOffer } from "@/lib/signup";
 
-const formSchema = z.object({
+const loginSchema = z.object({
   email: z.string().email("forms.validation.email_invalid"),
   password: z.string().min(1, "forms.validation.password_required"),
 });
 
-type FormValues = z.infer<typeof formSchema>;
+type LoginFormValues = z.infer<typeof loginSchema>;
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<"div">) {
   const { t } = useLocalizedTranslation();
+  const accountEmails = useAccountEmails();
+  const signupOffer = loginSignupOffer(useAuthConfig().config);
   const [serverError, setServerError] = React.useState<string | null>(null);
 
   const setTokens = useAuthStore(
@@ -95,15 +100,15 @@ export function LoginForm({
     },
   });
 
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
     defaultValues: {
       email: "",
       password: "",
     },
   });
 
-  function onSubmit(data: FormValues) {
+  function onSubmit(data: LoginFormValues) {
     setServerError(null);
     loginMutation.mutate({
       body: data,
@@ -165,6 +170,16 @@ export function LoginForm({
                       <FormControl>
                         <PasswordInput {...field} placeholder="********" />
                       </FormControl>
+                      {accountEmails && (
+                        <div className="text-right text-sm">
+                          <Link
+                            to="/forgot-password"
+                            className="text-muted-foreground hover:text-primary hover:underline"
+                          >
+                            {t("auth.login.forgot_password")}
+                          </Link>
+                        </div>
+                      )}
                       <FormMessage />
                     </FormItem>
                   )}
@@ -186,15 +201,22 @@ export function LoginForm({
                   {t("auth.login.submit")}
                 </Button>
 
-                <div className="text-center text-sm text-muted-foreground">
-                  {t("auth.login.no_account")}{" "}
-                  <Link
-                    to="/register"
-                    className="font-medium text-primary hover:underline"
-                  >
-                    {t("auth.login.sign_up")}
-                  </Link>
-                </div>
+                {signupOffer === "register" && (
+                  <div className="text-center text-sm text-muted-foreground">
+                    {t("auth.login.no_account")}{" "}
+                    <Link
+                      to="/register"
+                      className="font-medium text-primary hover:underline"
+                    >
+                      {t("auth.login.sign_up")}
+                    </Link>
+                  </div>
+                )}
+                {signupOffer === "ask_admin" && (
+                  <div className="text-center text-sm text-muted-foreground">
+                    {t("auth.login.ask_admin")}
+                  </div>
+                )}
               </form>
             </Form>
           </CardContent>

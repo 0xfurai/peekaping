@@ -8,7 +8,6 @@ import {
 } from "@/components/ui/card";
 import TimezoneSelector from "../../components/TimezoneSelector";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -23,23 +22,75 @@ import {
 import { toast } from "sonner";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
+  getWorkspaceLimitsOptions,
   getSettingsKeyByKeyOptions,
   putSettingsKeyByKeyMutation,
   getSettingsKeyByKeyQueryKey,
 } from "@/api/@tanstack/react-query.gen";
+import { dataRetentionSchema, MAX_DATA_RETENTION_DAYS, retentionCap } from "@/lib/data-retention";
+import { showLimitReached } from "@/lib/limit-errors";
 import React from "react";
+import { Link } from "react-router-dom";
 import { commonMutationErrorHandler } from "@/lib/utils";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
+import { useCurrentAccess } from "@/hooks/useCurrentAccess";
+import { useWorkspacePath } from "@/hooks/useWorkspacePath";
+import { Label } from "@/components/ui/label";
+import { WorkspaceNameForm } from "@/components/workspace-name-form";
+import { useCurrentWorkspace } from "@/hooks/useCurrentWorkspace";
+import { useSaveWorkspaceName } from "@/hooks/useSaveWorkspaceName";
+import { workspaceErrorMessage } from "@/lib/workspace-errors";
+import { canSeeUsage } from "@/lib/workspace-usage";
+import { DangerZoneCard } from "./danger-zone-card";
+import { ExportCard } from "./export-card";
+import { ImportCard } from "./import-card";
+
+// The workspace's name, which an admin or owner changes. A member doesn't get the card: the
+// switcher shows them the name.
+const WorkspaceNameSetting = () => {
+  const { t } = useLocalizedTranslation();
+  const workspace = useCurrentWorkspace();
+  const { save, pending } = useSaveWorkspaceName();
+  if (!workspace) return null;
+
+  const submit = async (name: string) => {
+    try {
+      const result = await save(name, workspace.name);
+      if (result.kind === "renamed") toast.success(t("workspaces.rename_success"));
+    } catch (error) {
+      console.error(error);
+      toast.error(workspaceErrorMessage(error, t, t("workspaces.rename_error")));
+    }
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{t("settings.workspace_name.title")}</CardTitle>
+        <CardDescription>{t("settings.workspace_name.description")}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        {/* Keyed by the name so that a rename shown in /me resets the field to it */}
+        <WorkspaceNameForm
+          key={workspace.name}
+          name={workspace.name}
+          submitLabel={pending ? t("common.saving") : t("common.save")}
+          pending={pending}
+          onSubmit={submit}
+        />
+      </CardContent>
+    </Card>
+  );
+};
 
 const KeepDataPeriodSetting = () => {
   const { t } = useLocalizedTranslation();
-  const keepDataPeriodSchema = z.object({
-    value: z.coerce
-      .number()
-      .int()
-      .min(1, { message: t("settings.validation.min_days") }),
-  });
+  // The workspace's plan can cap the period (PP-161): the field takes it as its maximum
+  const cap = retentionCap(useQuery(getWorkspaceLimitsOptions()).data);
+  const keepDataPeriodSchema = dataRetentionSchema(t, cap);
   const KEEP_DATA_KEY = "KEEP_DATA_PERIOD_DAYS";
+  // A member sees the period but only an admin or owner changes it
+  const { canManageWorkspace } = useCurrentAccess();
   const queryClient = useQueryClient();
   const { data, isLoading } = useQuery(
     getSettingsKeyByKeyOptions({ path: { key: KEEP_DATA_KEY } })
@@ -49,6 +100,12 @@ const KeepDataPeriodSetting = () => {
     resolver: zodResolver(keepDataPeriodSchema),
     defaultValues: { value: 365 },
   });
+  const capNote =
+    cap === null ? null : (
+      <p className="text-sm text-muted-foreground">
+        {t("settings.data_retention.capped", { max: cap })}
+      </p>
+    );
 
   // Reset form when data is loaded
   React.useEffect(() => {
@@ -67,7 +124,7 @@ const KeepDataPeriodSetting = () => {
         }),
       });
     },
-    onError: commonMutationErrorHandler(t("messages.setting_update_error")),
+    onError: showLimitReached(t, commonMutationErrorHandler(t("messages.setting_update_error"))),
   });
 
   function onSubmit(values: { value: number }) {
@@ -89,6 +146,22 @@ const KeepDataPeriodSetting = () => {
       <CardContent>
         {isLoading ? (
           <div className="h-10 flex items-center">{t("common.loading")}</div>
+        ) : !canManageWorkspace ? (
+          <div className="flex flex-col gap-2 max-w-xs">
+            <Label htmlFor="keep-data-period">
+              {t("settings.data_retention.days_label")}
+            </Label>
+            <Input
+              id="keep-data-period"
+              type="number"
+              readOnly
+              value={data?.data?.value ?? ""}
+            />
+            {capNote}
+            <p className="text-sm text-muted-foreground">
+              {t("settings.data_retention.read_only")}
+            </p>
+          </div>
         ) : (
           <Form {...form}>
             <form
@@ -105,11 +178,12 @@ const KeepDataPeriodSetting = () => {
                       <Input
                         type="number"
                         min={1}
-                        max={36500}
+                        max={cap ?? MAX_DATA_RETENTION_DAYS}
                         {...field}
                         disabled={isLoading}
                       />
                     </FormControl>
+                    {capNote}
                     <FormMessage />
                   </FormItem>
                 )}
@@ -125,11 +199,37 @@ const KeepDataPeriodSetting = () => {
   );
 };
 
+
+// The way to the Usage page (PP-163), for an owner or admin of a workspace with limits
+const UsageEntry = () => {
+  const { t } = useLocalizedTranslation();
+  const { role, canManageWorkspace } = useCurrentAccess();
+  const workspacePath = useWorkspacePath();
+  const { data } = useQuery({ ...getWorkspaceLimitsOptions(), enabled: canManageWorkspace });
+  if (!canSeeUsage(role, data?.data)) return null;
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{t("usage.title")}</CardTitle>
+        <CardDescription>{t("usage.description")}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Button asChild variant="outline">
+          <Link to={workspacePath("/settings/usage")}>{t("usage.open")}</Link>
+        </Button>
+      </CardContent>
+    </Card>
+  );
+};
+
 const SettingsPage = () => {
   const { t } = useLocalizedTranslation();
+  const { canManageWorkspace } = useCurrentAccess();
+  const workspacePath = useWorkspacePath();
   return (
     <Layout pageName={t("navigation.settings")}>
       <div className="max-w-xl flex flex-col gap-6">
+        {canManageWorkspace && <WorkspaceNameSetting />}
         <Card>
           <CardHeader>
             <CardTitle>{t("settings.timezone.title")}</CardTitle>
@@ -142,6 +242,26 @@ const SettingsPage = () => {
           </CardContent>
         </Card>
         <KeepDataPeriodSetting />
+        <Card>
+          <CardHeader>
+            <CardTitle>{t("members.settings_card.title")}</CardTitle>
+            <CardDescription>
+              {t("members.settings_card.description")}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button asChild variant="outline">
+              <Link to={workspacePath("/settings/members")}>
+                {t("members.settings_card.open")}
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+        <UsageEntry />
+        <ExportCard />
+        <ImportCard />
+        <DangerZoneCard />
+        {/* The usage ping and error reports belong to the install: they are on Admin → Settings */}
       </div>
     </Layout>
   );

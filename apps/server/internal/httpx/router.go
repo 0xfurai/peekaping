@@ -24,6 +24,10 @@ type Router struct {
 	registry   *registry
 	prefix     string
 	middleware []Middleware
+	// parameters are documented on every operation registered after they are added
+	parameters []*huma.Param
+	// errors are error responses documented on every operation registered after they are added
+	errors []int
 }
 
 func NewRouter(middleware ...Middleware) *Router {
@@ -33,7 +37,23 @@ func NewRouter(middleware ...Middleware) *Router {
 	return &Router{registry: &registry{mux: mux, middleware: middleware}}
 }
 func (r *Router) Group(prefix string) *Router {
-	return &Router{registry: r.registry, prefix: join(r.prefix, prefix), middleware: append([]Middleware(nil), r.middleware...)}
+	return &Router{registry: r.registry, prefix: join(r.prefix, prefix), middleware: append([]Middleware(nil), r.middleware...), parameters: append([]*huma.Param(nil), r.parameters...), errors: append([]int(nil), r.errors...)}
+}
+
+// Document adds parameters to the API reference of every operation that is registered on this
+// router, or on a group made from it, after the call. It documents what a middleware reads, such
+// as a header, once for the group of routes behind that middleware and not on each operation.
+func (r *Router) Document(parameters ...*huma.Param) {
+	r.parameters = append(r.parameters, parameters...)
+}
+
+// DocumentWorkspace documents, on every operation registered on this router or on a group made
+// from it after the call, what the middleware of a route group whose records belong to a workspace
+// (WorkspaceAuth, WorkspaceJWTAuth) adds: the X-Workspace-ID header it reads, and the 429 with
+// Retry-After it answers when the workspace or the API key is over its API rate limit.
+func (r *Router) DocumentWorkspace() {
+	r.Document(WorkspaceIDHeader)
+	r.errors = append(r.errors, http.StatusTooManyRequests)
 }
 func (r *Router) Use(middleware ...Middleware) { r.middleware = append(r.middleware, middleware...) }
 func join(prefix, suffix string) string {
@@ -73,6 +93,7 @@ func (r *Router) Handle(method, path string, handler http.HandlerFunc, middlewar
 			NotFound(w, req)
 			return
 		}
+		setRoute(req.Context(), pattern)
 		wrapped.ServeHTTP(w, req)
 	}))
 }
@@ -87,36 +108,45 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		// Gin matched the decoded path without cleaning it. Encode literal dot
 		// segments for ServeMux, and discard RawPath so encoded slashes remain
 		// separators. Do not redirect malformed or trailing-slash paths.
-		catchAllPrefix := ""
-		for _, prefix := range r.registry.catchAllPrefixes {
-			if strings.HasPrefix(req.URL.Path, prefix) {
-				catchAllPrefix = prefix
-				break
-			}
-		}
+		catchAllPrefix := r.catchAllPrefixOf(req.URL.Path)
 		if strings.Contains(req.URL.Path, "//") && catchAllPrefix == "" {
 			NotFound(w, req)
 			return
 		}
-		parts := strings.Split(req.URL.Path, "/")
-		for i, part := range parts {
-			if part == "." || part == ".." {
-				parts[i] = strings.ReplaceAll(part, ".", "%2E")
-			} else {
-				parts[i] = url.PathEscape(part)
-			}
-		}
 		copyReq := req.Clone(req.Context())
-		copyReq.URL.RawPath = strings.Join(parts, "/")
-		if catchAllPrefix != "" {
-			tail := strings.TrimPrefix(req.URL.Path, catchAllPrefix)
-			escapedTail := url.PathEscape(tail)
-			if tail == "." || tail == ".." {
-				escapedTail = strings.ReplaceAll(tail, ".", "%2E")
-			}
-			copyReq.URL.RawPath = catchAllPrefix + escapedTail
-		}
+		copyReq.URL.RawPath = rawPath(req.URL.Path, catchAllPrefix)
 		r.registry.mux.ServeHTTP(w, copyReq)
 	})
 	Chain(handler, r.registry.middleware...).ServeHTTP(w, req)
+}
+
+// catchAllPrefixOf is the first catch-all route prefix that path starts with, or "" for none
+func (r *Router) catchAllPrefixOf(path string) string {
+	for _, prefix := range r.registry.catchAllPrefixes {
+		if strings.HasPrefix(path, prefix) {
+			return prefix
+		}
+	}
+	return ""
+}
+
+// rawPath is the path ServeMux matches. Each segment is escaped, and so is the tail after a
+// catch-all prefix as a whole, with its slashes.
+func rawPath(path, catchAllPrefix string) string {
+	if catchAllPrefix != "" {
+		return catchAllPrefix + escapeSegment(strings.TrimPrefix(path, catchAllPrefix))
+	}
+	parts := strings.Split(path, "/")
+	for i, part := range parts {
+		parts[i] = escapeSegment(part)
+	}
+	return strings.Join(parts, "/")
+}
+
+// escapeSegment escapes a path segment, and a dot segment as %2E so that ServeMux doesn't clean it
+func escapeSegment(segment string) string {
+	if segment == "." || segment == ".." {
+		return strings.ReplaceAll(segment, ".", "%2E")
+	}
+	return url.PathEscape(segment)
 }

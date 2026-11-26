@@ -20,17 +20,43 @@ export async function adminAPI(page: Page): Promise<APIRequestContext> {
   return request.newContext({ baseURL, extraHTTPHeaders: { Authorization: `Bearer ${accessToken}` } });
 }
 
-// Creates an HTTP monitor checked every 20 seconds, the minimum. A monitor that
-// is Up and then starts failing spends its max retries in Pending, one failed
-// check each, before it is Down. One whose first check fails is Down at once, and
-// that failure already counts as one of its retries (PP-135).
+// Creates an HTTP monitor checked every 20 seconds, the minimum. Pass active: false for a paused
+// one, which is never checked and so has no heartbeats. A monitor that
+// starts failing spends its max retries in Pending, one failed check each, before
+// it is Down, whether its first check fails or a later one (PP-135). With max retries 0 (the
+// default here) a failed check is Down at once.
 export async function createHTTPMonitor(
   api: APIRequestContext,
   name: string,
   url: string,
-  { maxRetries = 0 } = {},
+  {
+    maxRetries = 0,
+    probeIds,
+    notificationIds = [],
+    tagIds = [],
+    active = true,
+  }: { maxRetries?: number; probeIds?: string[]; notificationIds?: string[]; tagIds?: string[]; active?: boolean } = {},
 ): Promise<{ id: string }> {
-  const response = await api.post('monitors', { data: httpMonitorBody(name, url, maxRetries) });
+  const response = await api.post('monitors', {
+    data: { ...httpMonitorBody(name, url, maxRetries), active, notification_ids: notificationIds, tag_ids: tagIds, probe_ids: probeIds },
+  });
+  expect(response.status(), await response.text()).toBe(201);
+  return (await response.json()).data;
+}
+
+// Creates an active webhook notification channel that posts JSON to url (see webhookURL in
+// fake-target.ts, which reads back what it received). Delete it with
+// deleteCreated(api, `notification-channels/${id}`).
+export async function createWebhookChannel(api: APIRequestContext, name: string, url: string): Promise<{ id: string }> {
+  const response = await api.post('notification-channels', {
+    data: {
+      name,
+      type: 'webhook',
+      active: true,
+      is_default: false,
+      config: JSON.stringify({ webhook_url: url, webhook_content_type: 'json' }),
+    },
+  });
   expect(response.status(), await response.text()).toBe(201);
   return (await response.json()).data;
 }
@@ -71,10 +97,20 @@ function httpMonitorBody(name: string, url: string, maxRetries: number) {
   };
 }
 
-// Deletes what a spec created, e.g. "monitors/<id>", so reruns start clean.
+// How long cleanup keeps trying: a monitor delete can answer 500 "database is locked" while
+// heartbeats are being written (#261), and the delete is safe to send again.
+export const cleanupRetry = { timeout: 15000, intervals: [250, 500, 1000, 2000] };
+
+// Deletes what a spec created, e.g. "monitors/<id>", so reruns start clean. A failed delete is
+// sent again for a few seconds; a 404 on a later attempt means an earlier one got through.
 export async function deleteCreated(api: APIRequestContext, path: string) {
-  const response = await api.delete(path);
-  expect(response.ok(), `DELETE ${path}: ${await response.text()}`).toBeTruthy();
+  let attempts = 0;
+  await expect(async () => {
+    attempts++;
+    const response = await api.delete(path);
+    if (response.status() === 404 && attempts > 1) return;
+    expect(response.ok(), `DELETE ${path}: ${response.status()} ${await response.text()}`).toBeTruthy();
+  }).toPass(cleanupRetry);
 }
 
 export const randomID = () => Math.random().toString(36).substring(2, 12);

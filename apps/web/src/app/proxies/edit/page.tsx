@@ -11,13 +11,15 @@ import Layout from "@/layout";
 import { toast } from "sonner";
 import CreateEditProxy from "../components/create-edit-proxy";
 import type { ProxyCreateUpdateDto } from "@/api/types.gen";
-import { type ProxyForm } from "../components/create-edit-proxy";
+import { type ProxyFormValues } from "../components/create-edit-proxy";
 import { commonMutationErrorHandler } from "@/lib/utils";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
+import { useWorkspacePath } from "@/hooks/useWorkspacePath";
 
 const EditProxy = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const workspacePath = useWorkspacePath();
   const queryClient = useQueryClient();
   const { t } = useLocalizedTranslation();
 
@@ -43,7 +45,7 @@ const EditProxy = () => {
         })
       });
 
-      navigate("/proxies");
+      navigate(workspacePath("/proxies"));
     },
     onError: commonMutationErrorHandler(t("proxies.messages.update_failed")),
   });
@@ -64,7 +66,7 @@ const EditProxy = () => {
     password: proxy.password || "",
   };
 
-  const handleSubmit = (formData: ProxyForm) => {
+  const handleSubmit = (formData: ProxyFormValues) => {
     const proxyData: ProxyCreateUpdateDto = {
       protocol: formData.protocol,
       host: formData.host,

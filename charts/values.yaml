@@ -1,24 +1,84 @@
+# Bundled PostgreSQL and Redis (Bitnami subcharts). Both are off by default.
+# They suit trying the chart. For production, leave both off and point
+# config.env at an external PostgreSQL and Redis.
+#
+# Images: both run Bitnami's free images, registry-1.docker.io/bitnami/postgresql
+# and .../redis. Bitnami's free repo no longer publishes version tags (they
+# moved to bitnamilegacy/, which gets no updates). It has only `latest`, and
+# `latest` floats: PostgreSQL's major version can change, and a new major does
+# not start on an existing data directory. So the chart pins each image by the
+# digest of the `latest` image it was tested with (the tag is then ignored).
+# The digests below are PostgreSQL 18 and Redis 8, for amd64 and arm64.
+#
+# To move to newer images and subcharts, run scripts/update-chart-deps.sh. It
+# lists what is behind, and --write updates the versions in Chart.yaml and the
+# two digests below. It refuses a new major version of a subchart or an image.
+# A major version change needs a dump and restore: the data of an older
+# PostgreSQL does not start on a newer major version.
+#
+# To run images of your own, set postgresql.image.digest and redis.image.digest
+# in your values file. A digest from another repository also needs
+# image.registry and image.repository, or it is pulled from the bitnami/
+# repository above and the pull fails. Bitnami's charts also refuse an image
+# they don't recognize, so set global.security.allowInsecureImages: true.
+#
+# helm uninstall keeps the PersistentVolumeClaims data-<release>-postgresql-0
+# and redis-data-<release>-redis-master-0. Delete them to start with empty data.
+#
+# To try it: set enabled: true and uncomment the settings below, then
+# uncomment DB_HOST to REDIS_PORT under config.env and create the secret
+# described there. The example is for release `peekaping` in namespace
+# `peekaping`.
 postgresql:
   enabled: false
+  image:
+    digest: sha256:9834b9d958f73a6c79457af08ebdbb8651fcb51e5efbad22b96636637316c26e # PostgreSQL 18.6.0
   # auth:
-  #   enablePostgresUser: false
   #   username: peekaping
   #   password: peekaping
   #   database: peekaping
 
 redis:
   enabled: false
+  image:
+    digest: sha256:37c559e3894161f1b1122353a54938e30299383ae801417debda7d3e7d69490a # Redis 8.10.3
+  # Standalone avoids the subchart's default replicas.
+  # architecture: standalone
   # auth:
   #   password: peekaping
 
 # See docs for configuration details
 # https://docs.peekaping.com/architecture/api-server
+#
+# config.env is rendered into a ConfigMap, so credentials go in existingSecret.
+# Create it in the release's namespace. With the bundled databases it holds
+# these keys, matching postgresql.auth and redis.auth above:
+#   kubectl -n peekaping create secret generic peekaping-config \
+#     --from-literal=DB_USER=peekaping --from-literal=DB_PASS=peekaping \
+#     --from-literal=DB_NAME=peekaping --from-literal=REDIS_PASSWORD=peekaping
+# An external PostgreSQL and Redis use the same keys with your own values.
+# Keep DB_TYPE out of this Secret. The api loads the ConfigMap first and the Secret second, so a
+# DB_TYPE key in the Secret replaces the ConfigMap's. Helm can't read a Secret at render time, and
+# the chart checks config.env.DB_TYPE only: a DB_TYPE of sqlite, mongo or mongodb in the Secret
+# would pass the check the chart makes for those values.
 config:
   existingSecret: "peekaping-config"
   env:
+    # Quote every value, numbers included: Helm reads an unquoted 1000000 as a float and renders
+    # it as 1e+06, which a number setting refuses at startup.
+    # The chart supports PostgreSQL only: it refuses DB_TYPE sqlite, since it has no
+    # volume for the file and each pod would get a database of its own. For SQLite, use the single-mode image.
+    # It refuses mongo and mongodb too: MongoDB storage was removed. Move to PostgreSQL with
+    # bun db import-mongo first.
     DB_TYPE: "postgres"
+    # Bundled service hosts: <release>-postgresql and <release>-redis-master in
+    # the release's namespace (here release and namespace are both "peekaping").
+    # For an external PostgreSQL and Redis, set your own hosts and ports.
     # DB_HOST: "peekaping-postgresql.peekaping.svc.cluster.local"
     # DB_PORT: "5432"
+    # TLS to PostgreSQL: disable (the default), allow, prefer, require, verify-ca or verify-full.
+    # A managed PostgreSQL usually wants require or verify-full.
+    # DB_SSLMODE: "require"
     # REDIS_HOST: "peekaping-redis-master.peekaping.svc.cluster.local"
     # REDIS_PORT: "6379"
     # Redis ACL username. Optional: set it for a Redis ACL user, omit it for password-only/default user auth.
@@ -26,14 +86,91 @@ config:
     # REDIS_USERNAME: "peekaping"
     # Serve the unauthenticated Prometheus /metrics endpoint on the API port (off by default).
     # METRICS_ENABLED: "true"
+    # Serve /metrics on this port instead of the API port, and not on the API port at all. Needs
+    # METRICS_ENABLED: "true". The api Pod and Service get a "metrics" port, and Prometheus scrapes
+    # <release>-api.<namespace>.svc.cluster.local:<port>/metrics. The ingress never routes it, so
+    # /metrics stays inside the cluster. Set it on any install whose API is public.
+    # METRICS_PORT: "9100"
+    # How many days the hourly cleanup keeps notification history (default 90, at least 30)
+    # and monitor TLS info (default 30, at least 1).
+    # NOTIFICATION_HISTORY_RETENTION_DAYS: "90"
+    # TLS_INFO_RETENTION_DAYS: "30"
+    # Monitor types to turn off, comma-separated (empty by default). A monitor of one can't be
+    # created, and existing ones are kept but not checked. "docker" keeps the Docker monitor from
+    # reading the Docker socket of the node.
+    # DISABLED_MONITOR_TYPES: "docker"
+    # Keep monitors and notification channels from reaching loopback, private and link-local addresses and cloud metadata
+    # (169.254.169.254). Off by default, since a self-hosted install usually monitors its own
+    # network. A remote probe blocks them too when the server it connects to has this on.
+    # BLOCK_PRIVATE_TARGETS: "true"
+    # Serve a custom domain only once its owner proves it points at this install: a TXT record at
+    # _peekaping-verify.<domain> holding the domain's token, or a CNAME to the host below. Off by
+    # default. A pending domain is not served and gets no certificate, and is removed from its page
+    # after 7 days.
+    # VERIFY_CUSTOM_DOMAINS: "true"
+    # The host a verified domain may be a CNAME to. Empty, the default, is the host of the public
+    # URL (CLIENT_URL); when that is localhost or an IP address, only the TXT record verifies.
+    # CUSTOM_DOMAIN_CNAME_TARGET: "status.example.com"
+    # Requests per minute a workspace, and one of its API keys, may make; over either the API
+    # answers 429 with Retry-After. 0, the default, is off. Each api replica counts for itself.
+    # API_RATE_LIMIT_PER_WORKSPACE: "600"
+    # API_RATE_LIMIT_PER_API_KEY: "120"
+    # Checks per minute to one target host that one checking process runs (the server, or one
+    # remote probe), all workspaces together. A check whose turn is a few seconds away waits for it;
+    # one further out skips that tick. 0, the default, is off.
+    # CHECKS_PER_HOST_PER_MINUTE: "60"
+    # The smallest check interval and retry interval, in seconds, a monitor can be saved with. 20,
+    # the default, is the smallest a monitor can have; a lower value stops startup. A monitor
+    # stored with less is checked at the minimum.
+    # MIN_CHECK_INTERVAL: "60"
+    # A workspace's limits, for a workspace that has none of its own (an instance admin can give
+    # it some). Unset or 0, the default, is no limit. A write over one answers 403 with the code
+    # LIMIT_REACHED; active monitors over the limit are kept but not run, the newest first. The
+    # minimum check interval applies beside MIN_CHECK_INTERVAL: the stricter wins. The last five
+    # are enforced from a later release. Set the same values on every api replica.
+    # WORKSPACE_LIMIT_MONITORS: "10"
+    # WORKSPACE_LIMIT_MIN_CHECK_INTERVAL: "300"
+    # WORKSPACE_LIMIT_PROBES_PER_MONITOR: "2"
+    # WORKSPACE_LIMIT_STATUS_PAGES: "1"
+    # WORKSPACE_LIMIT_CUSTOM_DOMAINS: "1"
+    # WORKSPACE_LIMIT_MEMBERS: "3"
+    # WORKSPACE_LIMIT_OWNED_WORKSPACES: "1"
+    # WORKSPACE_LIMIT_RETENTION_DAYS: "30"
+    # The install's name for these defaults, shown on a workspace's Usage page. Unset, the
+    # page says an administrator set the limits.
+    # WORKSPACE_LIMITS_NAME: "Free tier"
+    # How a member of a suspended workspace gets in touch with whoever runs the install: free
+    # text, an email address or a URL. Unset by default.
+    # SUPPORT_CONTACT: "support@example.com"
+    # Proxies whose X-Forwarded-For and X-Real-IP the API believes: IP addresses and
+    # CIDR ranges, comma-separated. The login lockout counts failed logins per client
+    # address, and a client can send those headers itself, so the API ignores them from
+    # any address outside this list and counts the address it connected from instead.
+    # These are loopback and the private ranges, which is where your ingress or gateway
+    # reaches the API from: the API Service is not exposed outside the cluster, and the
+    # ingress or gateway appends the client's address to X-Forwarded-For (or replaces the
+    # header), so a client's own entries sit to its left and are ignored. If your ingress
+    # passes a client's X-Forwarded-For through unchanged, set "" to trust no header (every
+    # login then counts as coming from the ingress, and only the per-account limit
+    # protects it). If your ingress pods are outside these ranges, add their addresses.
+    TRUSTED_PROXIES: "127.0.0.0/8,::1/128,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,fc00::/7"
 
+# Images: every component's image.tag is empty, and an empty tag means the
+# chart's appVersion. That is the release the chart was published with, so one
+# chart version installs one release (`latest` when you install from a checkout
+# of the repository). Set a component's image.tag only to run another build of
+# that component.
 api:
   replicaCount: 3
+  # Seconds a stopping api pod keeps serving before it gets SIGTERM, so the Service and the ingress
+  # stop routing to it first. The pod's terminationGracePeriodSeconds is this plus 35. 0 is
+  # no sleep.
+  preStopSleepSeconds: 5
   apparmor:
     enabled: false
   image:
     repository: 0xfurai/peekaping-api
-    tag: latest
+    tag: ""
     pullPolicy: IfNotPresent
   service:
     port: 8034
@@ -60,13 +197,16 @@ api:
       failureThreshold: 30
       periodSeconds: 2
 
-ingester:
+# The probe runs the checks of the monitors on the local probe: peekaping-probe instances that
+# connect to the api, get their monitors and send the results back. The monitors are dealt
+# among the replicas, and the others take over those of a replica that stops.
+probe:
   replicaCount: 3
   apparmor:
     enabled: false
   image:
-    repository: 0xfurai/peekaping-ingester
-    tag: latest
+    repository: 0xfurai/peekaping-probe
+    tag: ""
     pullPolicy: IfNotPresent
   resources:
     requests:
@@ -75,44 +215,34 @@ ingester:
     limits:
       cpu: "500m"
       memory: "512Mi"
-
-producer:
-  replicaCount: 3
-  apparmor:
-    enabled: false
-  image:
-    repository: 0xfurai/peekaping-producer
-    tag: latest
-    pullPolicy: IfNotPresent
-  resources:
-    requests:
-      cpu: "100m"
-      memory: "256Mi"
-    limits:
-      cpu: "500m"
-      memory: "512Mi"
-
-worker:
-  replicaCount: 3
-  apparmor:
-    enabled: false
-  image:
-    repository: 0xfurai/peekaping-worker
-    tag: latest
-    pullPolicy: IfNotPresent
-  resources:
-    requests:
-      cpu: "100m"
-      memory: "256Mi"
-    limits:
-      cpu: "500m"
-      memory: "512Mi"
-  # Pod sysctls. ping_group_range lets the non-root worker send ICMP echo
+  # Pod sysctls. ping_group_range lets the non-root probe send ICMP echo
   # requests for ping monitors without the NET_RAW capability. Kubernetes
   # allows it as a safe sysctl. Set to [] to leave the node default.
   sysctls:
     - name: net.ipv4.ping_group_range
       value: "0 2147483647"
+  # The port of the probe's /ready endpoint, which the readiness probe asks. It answers 503
+  # until the probe has its first assignment from the api.
+  readyPort: 8081
+  probes:
+    readiness:
+      initialDelaySeconds: 5
+      periodSeconds: 10
+      timeoutSeconds: 2
+      failureThreshold: 6
+  # The token of the local probe. The api stores it at startup (PROBE_BOOTSTRAP_TOKEN) and the
+  # probe pods send it (PROBE_TOKEN). It gives access to the config of the monitors on the local
+  # probe, so keep it secret. By default the chart makes a Secret named <release>-probe-token
+  # with a random token, and keeps that token across upgrades. That takes a render that can look
+  # at the cluster: `helm template`, or a tool that renders without the cluster, such as Argo CD,
+  # gets a new token every time. For those, make the Secret yourself, with a token of at least
+  # 32 characters, and name it here:
+  #   kubectl -n peekaping create secret generic peekaping-probe-token \
+  #     --from-literal=PROBE_BOOTSTRAP_TOKEN="$(openssl rand -hex 32)"
+  # The api and the probe pods read the token when they start: restart them after you change it.
+  token:
+    existingSecret: ""
+    existingSecretKey: PROBE_BOOTSTRAP_TOKEN
 
 web:
   replicaCount: 3
@@ -120,7 +250,7 @@ web:
     enabled: false
   image:
     repository: 0xfurai/peekaping-web
-    tag: latest
+    tag: ""
     pullPolicy: IfNotPresent
   service:
     port: 80
@@ -131,6 +261,12 @@ web:
     limits:
       cpu: "250m"
       memory: "256Mi"
+  # Pod sysctls. ip_unprivileged_port_start lets the non-root nginx bind
+  # port 80 on any container runtime. Kubernetes allows it as a safe sysctl.
+  # Set to [] to leave the node default.
+  sysctls:
+    - name: net.ipv4.ip_unprivileged_port_start
+      value: "0"
   probes:
     path: /
     readiness:
@@ -145,14 +281,15 @@ web:
       failureThreshold: 5
 
 migrate:
-  backoffLimit: 3
+  # Retries double their delay (10 s, 20 s, 40 s, ...): 6 tries outlast a bundled PostgreSQL restart; activeDeadlineSeconds caps the total.
+  backoffLimit: 6
   activeDeadlineSeconds: 600
   ttlSecondsAfterFinished: 3600
   apparmor:
     enabled: false
   image:
     repository: 0xfurai/peekaping-migrate
-    tag: "latest"
+    tag: ""
     pullPolicy: IfNotPresent
   resources:
     requests:
@@ -167,7 +304,11 @@ ingress:
   # ingressClassName: "alb"
   # namespace: "istio-system"
   # host: "mydomain.com"
+  # The probe protocol (/probe) sends bodies of up to about 1 MiB (a little more when
+  # compressed). ingress-nginx refuses bodies over 1m by default, so with that controller
+  # set the proxy-body-size annotation below.
   # annotations:
+  #   nginx.ingress.kubernetes.io/proxy-body-size: "2m"
   #   alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:us-east-1:000000000000:certificate/my-certificate-arn
   #   alb.ingress.kubernetes.io/healthcheck-path: /healthz/ready
   #   alb.ingress.kubernetes.io/healthcheck-port: status-port

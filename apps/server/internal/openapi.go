@@ -2,16 +2,25 @@ package internal
 
 import (
 	"peekaping/internal/config"
+	"peekaping/internal/modules/admin"
 	"peekaping/internal/modules/api_key"
 	"peekaping/internal/modules/auth"
 	"peekaping/internal/modules/badge"
+	"peekaping/internal/modules/bruteforce"
+	"peekaping/internal/modules/error_reporting"
 	"peekaping/internal/modules/maintenance"
+	"peekaping/internal/modules/middleware"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/notification_channel"
+	"peekaping/internal/modules/probe"
+	"peekaping/internal/modules/probe/protocol"
 	"peekaping/internal/modules/proxy"
 	"peekaping/internal/modules/setting"
 	"peekaping/internal/modules/status_page"
 	"peekaping/internal/modules/tag"
+	"peekaping/internal/modules/telemetry"
+	"peekaping/internal/modules/workspace/workspacehttp"
+	"peekaping/internal/modules/workspaceport"
 
 	"github.com/danielgtaylor/huma/v2"
 	"go.uber.org/zap"
@@ -23,9 +32,9 @@ import (
 // the production server, rather than keeping a separate documentation route list.
 func OpenAPI() *huma.OpenAPI {
 	server := ProvideServer(
-		zap.NewNop().Sugar(), &config.Config{},
+		zap.NewNop().Sugar(), &config.Config{}, nil, nil,
 		monitor.NewMonitorRoute(nil, nil), nil,
-		auth.NewRoute(nil, nil, nil), nil, nil,
+		auth.NewRoute(nil, nil, nil, &bruteforce.AccountGuard{}), nil, nil,
 		notification_channel.NewRoute(nil, nil), nil,
 		proxy.NewRoute(nil, nil), nil,
 		setting.NewRoute(nil, nil), nil,
@@ -33,8 +42,16 @@ func OpenAPI() *huma.OpenAPI {
 		maintenance.NewRoute(nil, nil), nil, nil,
 		status_page.NewRoute(nil, nil), nil,
 		tag.NewRoute(nil, nil), nil,
+		telemetry.NewRoute(nil, nil), nil,
+		error_reporting.NewRoute(nil, nil), nil,
 		badge.NewRoute(nil), nil,
-		api_key.NewRoute(nil, nil), nil, nil, nil,
+		api_key.NewRoute(nil, (*middleware.AuthChain)(nil)), nil,
+		probe.NewRoute(nil, nil), nil,
+		protocol.NewRoute(nil, nil), nil,
+		workspacehttp.NewRoute(nil, (*middleware.AuthChain)(nil)), nil,
+		workspaceport.NewRoute(nil, (*middleware.AuthChain)(nil)), nil,
+		admin.NewRoute(nil, (*middleware.AuthChain)(nil)), nil,
+		nil, nil,
 	)
 	return server.Router.API().OpenAPI()
 }

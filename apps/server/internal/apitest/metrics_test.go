@@ -22,8 +22,8 @@ import (
 )
 
 // createHeartbeat records a Heartbeat the way a check does, which publishes it on the event bus,
-// and returns its time in Unix seconds. The SQL repository stamps a Heartbeat with the time it's created
-// (the Mongo one keeps the time of the check), so the time comes from the Heartbeat that was created.
+// and returns its time in Unix seconds. The SQL repository stamps a Heartbeat with the time it's
+// created, so the time comes from the Heartbeat that was created.
 func (a *app) createHeartbeat(t *testing.T, monitorID string, status shared.MonitorStatus, responseMs int) int64 {
 	t.Helper()
 	var unixSeconds int64
@@ -112,6 +112,20 @@ func TestMetrics_AreNotReadableByAPageOnAnotherOrigin(t *testing.T) {
 	for name := range w.Header() {
 		assert.False(t, strings.HasPrefix(name, "Access-Control-"), "unexpected header %s", name)
 	}
+}
+
+// The API may allow any origin (CORS_ORIGINS=*), but /metrics is unauthenticated and names the
+// Monitors, so it is never readable cross-origin.
+func TestMetrics_AreNotReadableByAPageOnAnotherOriginWhenTheAPIAllowsAny(t *testing.T) {
+	a := newApp(t, withMetrics, withCORSOrigins("*"))
+	req := httptest.NewRequest(http.MethodGet, "/metrics", nil)
+	req.Header.Set("Origin", "http://evil.example")
+	w := httptest.NewRecorder()
+
+	a.router.ServeHTTP(w, req)
+
+	require.Equal(t, http.StatusOK, w.Code, w.Body.String())
+	assert.Empty(t, accessControlHeaders(w))
 }
 
 func TestMetrics_StartupLoadsTheNewestHeartbeatOfARealRepository(t *testing.T) {

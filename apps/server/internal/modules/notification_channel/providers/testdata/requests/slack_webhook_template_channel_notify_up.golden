@@ -1,0 +1,7 @@
+POST https://hooks.slack.com/services/T/B/X
+Content-Type: application/json
+User-Agent: Peekaping-Slack/<version>
+
+{
+  "text": "Public API is UP \u003c!channel\u003e"
+}

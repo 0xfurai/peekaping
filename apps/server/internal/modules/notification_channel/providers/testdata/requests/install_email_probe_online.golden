@@ -1,0 +1,12 @@
+To: oncall@example.com
+Subject: Probe Frankfurt is online
+
+Probe: Probe Frankfurt
+Status: online
+
+Probe Frankfurt is online
+
+--- HTML
+<p>Probe: <strong>Probe Frankfurt</strong><br>
+Status: <strong>online</strong></p>
+<p>Probe Frankfurt is online</p>

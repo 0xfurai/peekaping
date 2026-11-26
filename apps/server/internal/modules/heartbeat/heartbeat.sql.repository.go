@@ -4,7 +4,9 @@ import (
 	"context"
 	"time"
 
+	"peekaping/internal/dbtx"
 	"peekaping/internal/modules/shared"
+	"peekaping/internal/modules/workspace"
 
 	"github.com/google/uuid"
 	"github.com/uptrace/bun"
@@ -13,51 +15,57 @@ import (
 type sqlModel struct {
 	bun.BaseModel `bun:"table:heartbeats,alias:h"`
 
-	ID        string    `bun:"id,pk"`
-	MonitorID string    `bun:"monitor_id,notnull"`
-	Status    int       `bun:"status,notnull"`
-	Msg       string    `bun:"msg"`
-	Ping      int       `bun:"ping"`
-	Duration  int       `bun:"duration"`
-	DownCount int       `bun:"down_count"`
-	Retries   int       `bun:"retries"`
-	Important bool      `bun:"important,notnull,default:false"`
-	Time      time.Time `bun:"time,nullzero,notnull,default:current_timestamp"`
-	EndTime   time.Time `bun:"end_time,nullzero"`
-	Notified  bool      `bun:"notified,notnull,default:false"`
+	ID         string    `bun:"id,pk"`
+	MonitorID  string    `bun:"monitor_id,notnull"`
+	ProbeID    string    `bun:"probe_id,notnull"`
+	InstanceID *string   `bun:"instance_id"`
+	Status     int       `bun:"status,notnull"`
+	Msg        string    `bun:"msg"`
+	Ping       int       `bun:"ping"`
+	Duration   int       `bun:"duration"`
+	DownCount  int       `bun:"down_count"`
+	Retries    int       `bun:"retries"`
+	Important  bool      `bun:"important,notnull,default:false"`
+	Time       time.Time `bun:"time,nullzero,notnull,default:current_timestamp"`
+	EndTime    time.Time `bun:"end_time,nullzero"`
+	Notified   bool      `bun:"notified,notnull,default:false"`
 }
 
 func toDomainModelFromSQL(sm *sqlModel) *Model {
 	return &Model{
-		ID:        sm.ID,
-		MonitorID: sm.MonitorID,
-		Status:    MonitorStatus(sm.Status),
-		Msg:       sm.Msg,
-		Ping:      sm.Ping,
-		Duration:  sm.Duration,
-		DownCount: sm.DownCount,
-		Retries:   sm.Retries,
-		Important: sm.Important,
-		Time:      sm.Time,
-		EndTime:   sm.EndTime,
-		Notified:  sm.Notified,
+		ID:         sm.ID,
+		MonitorID:  sm.MonitorID,
+		ProbeID:    sm.ProbeID,
+		InstanceID: sm.InstanceID,
+		Status:     MonitorStatus(sm.Status),
+		Msg:        sm.Msg,
+		Ping:       sm.Ping,
+		Duration:   sm.Duration,
+		DownCount:  sm.DownCount,
+		Retries:    sm.Retries,
+		Important:  sm.Important,
+		Time:       sm.Time,
+		EndTime:    sm.EndTime,
+		Notified:   sm.Notified,
 	}
 }
 
 func toSQLModel(m *Model) *sqlModel {
 	return &sqlModel{
-		ID:        m.ID,
-		MonitorID: m.MonitorID,
-		Status:    int(m.Status),
-		Msg:       m.Msg,
-		Ping:      m.Ping,
-		Duration:  m.Duration,
-		DownCount: m.DownCount,
-		Retries:   m.Retries,
-		Important: m.Important,
-		Time:      m.Time,
-		EndTime:   m.EndTime,
-		Notified:  m.Notified,
+		ID:         m.ID,
+		MonitorID:  m.MonitorID,
+		ProbeID:    m.ProbeID,
+		InstanceID: m.InstanceID,
+		Status:     int(m.Status),
+		Msg:        m.Msg,
+		Ping:       m.Ping,
+		Duration:   m.Duration,
+		DownCount:  m.DownCount,
+		Retries:    m.Retries,
+		Important:  m.Important,
+		Time:       m.Time,
+		EndTime:    m.EndTime,
+		Notified:   m.Notified,
 	}
 }
 
@@ -72,7 +80,15 @@ func NewSQLRepository(db *bun.DB) Repository {
 func (r *SQLRepositoryImpl) Create(ctx context.Context, heartbeat *Model) (*Model, error) {
 	sm := toSQLModel(heartbeat)
 	sm.ID = uuid.New().String()
-	sm.Time = time.Now()
+	// A heartbeat that names no probe was made by the local probe
+	if sm.ProbeID == "" {
+		sm.ProbeID = shared.LocalProbeID
+	}
+	// A heartbeat is stored at the time its check started; only one with no time is stamped with
+	// the insert time
+	if sm.Time.IsZero() {
+		sm.Time = time.Now()
+	}
 
 	_, err := r.db.NewInsert().Model(sm).Returning("*").Exec(ctx)
 	if err != nil {
@@ -139,6 +155,7 @@ func (r *SQLRepositoryImpl) Delete(ctx context.Context, id string) error {
 func (r *SQLRepositoryImpl) FindByMonitorIDPaginated(
 	ctx context.Context,
 	monitorID string,
+	probeID string,
 	limit int,
 	page int,
 	important *bool,
@@ -149,6 +166,10 @@ func (r *SQLRepositoryImpl) FindByMonitorIDPaginated(
 		Where("monitor_id = ?", monitorID).
 		Limit(limit).
 		Offset(page * limit)
+
+	if probeID != "" {
+		query = query.Where("probe_id = ?", probeID)
+	}
 
 	if important != nil {
 		query = query.Where("important = ?", *important)
@@ -176,13 +197,34 @@ func (r *SQLRepositoryImpl) FindByMonitorIDPaginated(
 	return models, nil
 }
 
+func (r *SQLRepositoryImpl) FindExportPage(ctx context.Context, workspaceID workspace.ID, monitorID string, after *ExportCursor, limit int) ([]*Model, error) {
+	var sms []*sqlModel
+	query := dbtx.DB(ctx, r.db).NewSelect().
+		Model(&sms).
+		Where("h.monitor_id = ?", monitorID).
+		Where("EXISTS (SELECT 1 FROM monitors AS m WHERE m.id = h.monitor_id AND m.workspace_id = ?)", string(workspaceID)).
+		OrderExpr("h.time ASC, h.id ASC").
+		Limit(limit)
+	if after != nil {
+		query = query.Where("(h.time > ? OR (h.time = ? AND h.id > ?))", after.Time, after.Time, after.ID)
+	}
+	if err := query.Scan(ctx); err != nil {
+		return nil, err
+	}
+	models := make([]*Model, len(sms))
+	for i, sm := range sms {
+		models[i] = toDomainModelFromSQL(sm)
+	}
+	return models, nil
+}
+
 func (r *SQLRepositoryImpl) FindUptimeStatsByMonitorID(
 	ctx context.Context,
 	monitorID string,
 	periods map[string]time.Duration,
 	now time.Time,
-) (map[string]float64, error) {
-	stats := make(map[string]float64)
+) (map[string]*float64, error) {
+	stats := make(map[string]*float64)
 
 	for name, duration := range periods {
 		since := now.Add(-duration)
@@ -203,10 +245,12 @@ func (r *SQLRepositoryImpl) FindUptimeStatsByMonitorID(
 			return nil, err
 		}
 
+		// A window with no heartbeats is nil, not 0%: there is nothing to be down
 		if result.Total > 0 {
-			stats[name] = float64(result.Up) / float64(result.Total) * 100
+			uptime := float64(result.Up) / float64(result.Total) * 100
+			stats[name] = &uptime
 		} else {
-			stats[name] = 0
+			stats[name] = nil
 		}
 	}
 
@@ -217,15 +261,39 @@ func (r *SQLRepositoryImpl) FindUptimeStatsByMonitorID(
 // large backlog never holds SQLite's single connection for long.
 const deleteBatchSize = 5000
 
-// DeleteOlderThan deletes the oldest heartbeats in batches through
-// idx_heartbeats_time, so each batch reads only the rows it deletes, whatever
-// order they were written in.
-func (r *SQLRepositoryImpl) DeleteOlderThan(ctx context.Context, cutoff time.Time) (int64, error) {
+// DeleteOlderThan deletes the heartbeats of the workspace's monitors older than cutoff, one monitor
+// at a time and in batches, so each batch is served by the (monitor_id, time) index and reads only
+// the rows it deletes, whatever order they were written in. Going through idx_heartbeats_time with
+// the workspace's monitors as a filter would walk the old rows of every other workspace first.
+func (r *SQLRepositoryImpl) DeleteOlderThan(ctx context.Context, workspaceID workspace.ID, cutoff time.Time) (int64, error) {
+	var monitorIDs []string
+	err := r.db.NewSelect().
+		TableExpr("monitors").
+		Column("id").
+		Where("workspace_id = ?", string(workspaceID)).
+		Scan(ctx, &monitorIDs)
+	if err != nil {
+		return 0, err
+	}
+	var deleted int64
+	for _, monitorID := range monitorIDs {
+		n, err := r.deleteMonitorOlderThan(ctx, monitorID, cutoff)
+		deleted += n
+		if err != nil {
+			return deleted, err
+		}
+	}
+	return deleted, nil
+}
+
+// deleteMonitorOlderThan deletes the monitor's heartbeats older than cutoff, deleteBatchSize at a time
+func (r *SQLRepositoryImpl) deleteMonitorOlderThan(ctx context.Context, monitorID string, cutoff time.Time) (int64, error) {
 	var deleted int64
 	for {
 		batch := r.db.NewSelect().
 			Model((*sqlModel)(nil)).
 			Column("id").
+			Where("monitor_id = ?", monitorID).
 			Where("time < ?", cutoff).
 			OrderExpr("time").
 			Limit(deleteBatchSize)
@@ -252,7 +320,7 @@ func (r *SQLRepositoryImpl) HasAny(ctx context.Context) (bool, error) {
 }
 
 func (r *SQLRepositoryImpl) DeleteByMonitorID(ctx context.Context, monitorID string) error {
-	_, err := r.db.NewDelete().
+	_, err := dbtx.DB(ctx, r.db).NewDelete().
 		Model((*sqlModel)(nil)).
 		Where("monitor_id = ?", monitorID).
 		Exec(ctx)

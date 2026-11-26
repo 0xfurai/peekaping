@@ -46,7 +46,7 @@ func TestHealth_ReportsStaleMonitors(t *testing.T) {
 	ranAt := time.Date(2026, 10, 18, 12, 0, 0, 0, time.UTC)
 	require.NoError(t, a.container.Invoke(func(rdb *redis.Client) error {
 		ctx := context.Background()
-		store := stale.NewStore(rdb)
+		store := stale.NewRedisStore(rdb)
 		for _, id := range []string{"mon-1", "mon-2"} {
 			if err := store.Put(ctx, stale.Entry{MonitorID: id, Since: ranAt.Add(-time.Hour), DetectedAt: ranAt}); err != nil {
 				return err

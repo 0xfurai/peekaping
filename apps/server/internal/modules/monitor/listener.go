@@ -39,8 +39,10 @@ func (l *MonitorEventListener) handleMonitorStatusChanged(ctx context.Context, h
 
 	l.logger.Infof("Monitor status changed event received for monitor: %s, new status: %d", monitorID, newStatus)
 
+	// A heartbeat names its monitor and nothing else, and the monitor's status is stored whatever its
+	// workspace
 	// Get the current monitor to check if status actually changed
-	currentMonitor, err := l.monitorService.FindByID(ctx, monitorID)
+	currentMonitor, err := l.monitorService.FindByIDAnyWorkspace(ctx, monitorID)
 	if err != nil {
 		l.logger.Errorf("Failed to get monitor %s: %v", monitorID, err)
 		return
@@ -62,7 +64,7 @@ func (l *MonitorEventListener) handleMonitorStatusChanged(ctx context.Context, h
 		Status: &newStatus,
 	}
 
-	_, err = l.monitorService.UpdatePartial(ctx, monitorID, updateModel, true)
+	_, err = l.monitorService.UpdatePartialAnyWorkspace(ctx, monitorID, updateModel, true)
 	if err != nil {
 		l.logger.Errorf("Failed to update monitor %s status to %d: %v", monitorID, newStatus, err)
 		return

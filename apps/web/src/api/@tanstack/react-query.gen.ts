@@ -2,6 +2,17 @@
 
 import {
   type Options,
+  getAdminSettings,
+  putAdminSettings,
+  postAdminSettingsTestEmail,
+  getAdminUsers,
+  deleteAdminUsersById,
+  patchAdminUsersById,
+  postAdminUsersByIdDisable2Fa,
+  postAdminUsersByIdResetLink,
+  getAdminWorkspaces,
+  deleteAdminWorkspacesById,
+  patchAdminWorkspacesById,
   getApiKeys,
   postApiKeys,
   getApiKeysConfig,
@@ -11,10 +22,16 @@ import {
   postAuth2FaDisable,
   postAuth2FaSetup,
   postAuth2FaVerify,
+  getAuthConfig,
+  postAuthForgotPassword,
   postAuthLogin,
+  deleteAuthMe,
   putAuthPassword,
   postAuthRefresh,
   postAuthRegister,
+  postAuthResetPassword,
+  postAuthVerifyEmail,
+  postAuthVerifyEmailResend,
   getBadgeByMonitorIdCertExp,
   getBadgeByMonitorIdPing,
   getBadgeByMonitorIdPingByDuration,
@@ -22,7 +39,11 @@ import {
   getBadgeByMonitorIdStatus,
   getBadgeByMonitorIdUptime,
   getBadgeByMonitorIdUptimeByDuration,
+  getErrorReporting,
+  putErrorReporting,
   getHealth,
+  getInvitesByToken,
+  postInvitesByTokenAccept,
   getMaintenances,
   postMaintenances,
   deleteMaintenancesById,
@@ -31,6 +52,7 @@ import {
   putMaintenancesById,
   patchMaintenancesByIdPause,
   patchMaintenancesByIdResume,
+  getMe,
   getMonitors,
   postMonitors,
   getMonitorsBatch,
@@ -50,6 +72,15 @@ import {
   getNotificationChannelsById,
   patchNotificationChannelsById,
   putNotificationChannelsById,
+  getProbes,
+  postProbes,
+  getProbesAvailability,
+  deleteProbesById,
+  getProbesById,
+  putProbesById,
+  postProbesByIdAssignAllMonitors,
+  getProbesByIdAvailability,
+  postProbesByIdRotateToken,
   getProxies,
   postProxies,
   deleteProxiesById,
@@ -63,9 +94,12 @@ import {
   getStatusPages,
   postStatusPages,
   getStatusPagesDomainByDomain,
+  getStatusPagesDomainsById,
+  postStatusPagesDomainsByIdByDomainVerify,
   getStatusPagesSlugBySlug,
   getStatusPagesSlugBySlugMonitors,
   getStatusPagesSlugBySlugMonitorsHomepage,
+  getStatusPagesTlsAsk,
   deleteStatusPagesById,
   getStatusPagesById,
   patchStatusPagesById,
@@ -75,8 +109,30 @@ import {
   getTagsById,
   patchTagsById,
   putTagsById,
+  getTelemetry,
+  putTelemetry,
+  postTelemetryNotice,
   getVersion,
+  patchWorkspace,
+  deleteWorkspaceDeletion,
+  postWorkspaceDeletion,
+  getWorkspaceExport,
+  getWorkspaceExportHeartbeats,
+  postWorkspaceImport,
+  getWorkspaceInvites,
+  postWorkspaceInvites,
+  deleteWorkspaceInvitesById,
+  postWorkspaceLeave,
+  getWorkspaceLimits,
+  getWorkspaceMembers,
+  deleteWorkspaceMembersByUserId,
+  patchWorkspaceMembersByUserId,
+  postWorkspaces,
   getHealthRoot,
+  probeGetAssignments,
+  probePostBye,
+  probePostHello,
+  probePostResults,
 } from "../sdk.gen";
 import {
   queryOptions,
@@ -85,6 +141,37 @@ import {
   type InfiniteData,
 } from "@tanstack/react-query";
 import type {
+  GetAdminSettingsData,
+  PutAdminSettingsData,
+  PutAdminSettingsError,
+  PutAdminSettingsResponse,
+  PostAdminSettingsTestEmailData,
+  PostAdminSettingsTestEmailError,
+  PostAdminSettingsTestEmailResponse,
+  GetAdminUsersData,
+  GetAdminUsersError,
+  GetAdminUsersResponse,
+  DeleteAdminUsersByIdData,
+  DeleteAdminUsersByIdError,
+  DeleteAdminUsersByIdResponse,
+  PatchAdminUsersByIdData,
+  PatchAdminUsersByIdError,
+  PatchAdminUsersByIdResponse,
+  PostAdminUsersByIdDisable2FaData,
+  PostAdminUsersByIdDisable2FaError,
+  PostAdminUsersByIdDisable2FaResponse,
+  PostAdminUsersByIdResetLinkData,
+  PostAdminUsersByIdResetLinkError,
+  PostAdminUsersByIdResetLinkResponse,
+  GetAdminWorkspacesData,
+  GetAdminWorkspacesError,
+  GetAdminWorkspacesResponse,
+  DeleteAdminWorkspacesByIdData,
+  DeleteAdminWorkspacesByIdError,
+  DeleteAdminWorkspacesByIdResponse,
+  PatchAdminWorkspacesByIdData,
+  PatchAdminWorkspacesByIdError,
+  PatchAdminWorkspacesByIdResponse,
   GetApiKeysData,
   PostApiKeysData,
   PostApiKeysError,
@@ -106,9 +193,16 @@ import type {
   PostAuth2FaVerifyData,
   PostAuth2FaVerifyError,
   PostAuth2FaVerifyResponse,
+  GetAuthConfigData,
+  PostAuthForgotPasswordData,
+  PostAuthForgotPasswordError,
+  PostAuthForgotPasswordResponse,
   PostAuthLoginData,
   PostAuthLoginError,
   PostAuthLoginResponse,
+  DeleteAuthMeData,
+  DeleteAuthMeError,
+  DeleteAuthMeResponse,
   PutAuthPasswordData,
   PutAuthPasswordError,
   PutAuthPasswordResponse,
@@ -118,6 +212,15 @@ import type {
   PostAuthRegisterData,
   PostAuthRegisterError,
   PostAuthRegisterResponse,
+  PostAuthResetPasswordData,
+  PostAuthResetPasswordError,
+  PostAuthResetPasswordResponse,
+  PostAuthVerifyEmailData,
+  PostAuthVerifyEmailError,
+  PostAuthVerifyEmailResponse,
+  PostAuthVerifyEmailResendData,
+  PostAuthVerifyEmailResendError,
+  PostAuthVerifyEmailResendResponse,
   GetBadgeByMonitorIdCertExpData,
   GetBadgeByMonitorIdPingData,
   GetBadgeByMonitorIdPingByDurationData,
@@ -125,7 +228,15 @@ import type {
   GetBadgeByMonitorIdStatusData,
   GetBadgeByMonitorIdUptimeData,
   GetBadgeByMonitorIdUptimeByDurationData,
+  GetErrorReportingData,
+  PutErrorReportingData,
+  PutErrorReportingError,
+  PutErrorReportingResponse,
   GetHealthData,
+  GetInvitesByTokenData,
+  PostInvitesByTokenAcceptData,
+  PostInvitesByTokenAcceptError,
+  PostInvitesByTokenAcceptResponse,
   GetMaintenancesData,
   GetMaintenancesError,
   GetMaintenancesResponse,
@@ -148,6 +259,7 @@ import type {
   PatchMaintenancesByIdResumeData,
   PatchMaintenancesByIdResumeError,
   PatchMaintenancesByIdResumeResponse,
+  GetMeData,
   GetMonitorsData,
   GetMonitorsError,
   GetMonitorsResponse,
@@ -193,6 +305,25 @@ import type {
   PutNotificationChannelsByIdData,
   PutNotificationChannelsByIdError,
   PutNotificationChannelsByIdResponse,
+  GetProbesData,
+  PostProbesData,
+  PostProbesError,
+  PostProbesResponse,
+  GetProbesAvailabilityData,
+  DeleteProbesByIdData,
+  DeleteProbesByIdError,
+  DeleteProbesByIdResponse,
+  GetProbesByIdData,
+  PutProbesByIdData,
+  PutProbesByIdError,
+  PutProbesByIdResponse,
+  PostProbesByIdAssignAllMonitorsData,
+  PostProbesByIdAssignAllMonitorsError,
+  PostProbesByIdAssignAllMonitorsResponse,
+  GetProbesByIdAvailabilityData,
+  PostProbesByIdRotateTokenData,
+  PostProbesByIdRotateTokenError,
+  PostProbesByIdRotateTokenResponse,
   GetProxiesData,
   GetProxiesError,
   GetProxiesResponse,
@@ -224,9 +355,14 @@ import type {
   PostStatusPagesError,
   PostStatusPagesResponse,
   GetStatusPagesDomainByDomainData,
+  GetStatusPagesDomainsByIdData,
+  PostStatusPagesDomainsByIdByDomainVerifyData,
+  PostStatusPagesDomainsByIdByDomainVerifyError,
+  PostStatusPagesDomainsByIdByDomainVerifyResponse,
   GetStatusPagesSlugBySlugData,
   GetStatusPagesSlugBySlugMonitorsData,
   GetStatusPagesSlugBySlugMonitorsHomepageData,
+  GetStatusPagesTlsAskData,
   DeleteStatusPagesByIdData,
   DeleteStatusPagesByIdError,
   DeleteStatusPagesByIdResponse,
@@ -250,8 +386,60 @@ import type {
   PutTagsByIdData,
   PutTagsByIdError,
   PutTagsByIdResponse,
+  GetTelemetryData,
+  PutTelemetryData,
+  PutTelemetryError,
+  PutTelemetryResponse,
+  PostTelemetryNoticeData,
+  PostTelemetryNoticeError,
+  PostTelemetryNoticeResponse,
   GetVersionData,
+  PatchWorkspaceData,
+  PatchWorkspaceError,
+  PatchWorkspaceResponse,
+  DeleteWorkspaceDeletionData,
+  DeleteWorkspaceDeletionError,
+  DeleteWorkspaceDeletionResponse,
+  PostWorkspaceDeletionData,
+  PostWorkspaceDeletionError,
+  PostWorkspaceDeletionResponse,
+  GetWorkspaceExportData,
+  GetWorkspaceExportHeartbeatsData,
+  PostWorkspaceImportData,
+  PostWorkspaceImportError,
+  PostWorkspaceImportResponse,
+  GetWorkspaceInvitesData,
+  PostWorkspaceInvitesData,
+  PostWorkspaceInvitesError,
+  PostWorkspaceInvitesResponse,
+  DeleteWorkspaceInvitesByIdData,
+  DeleteWorkspaceInvitesByIdError,
+  DeleteWorkspaceInvitesByIdResponse,
+  PostWorkspaceLeaveData,
+  PostWorkspaceLeaveError,
+  PostWorkspaceLeaveResponse,
+  GetWorkspaceLimitsData,
+  GetWorkspaceMembersData,
+  DeleteWorkspaceMembersByUserIdData,
+  DeleteWorkspaceMembersByUserIdError,
+  DeleteWorkspaceMembersByUserIdResponse,
+  PatchWorkspaceMembersByUserIdData,
+  PatchWorkspaceMembersByUserIdError,
+  PatchWorkspaceMembersByUserIdResponse,
+  PostWorkspacesData,
+  PostWorkspacesError,
+  PostWorkspacesResponse,
   GetHealthRootData,
+  ProbeGetAssignmentsData,
+  ProbePostByeData,
+  ProbePostByeError,
+  ProbePostByeResponse,
+  ProbePostHelloData,
+  ProbePostHelloError,
+  ProbePostHelloResponse,
+  ProbePostResultsData,
+  ProbePostResultsError,
+  ProbePostResultsResponse,
 } from "../types.gen";
 import type { AxiosError } from "axios";
 import { client as _heyApiClient } from "../client.gen";
@@ -288,6 +476,517 @@ const createQueryKey = <TOptions extends Options>(
     params.query = options.query;
   }
   return [params];
+};
+
+export const getAdminSettingsQueryKey = (
+  options?: Options<GetAdminSettingsData>
+) => createQueryKey("getAdminSettings", options);
+
+/**
+ * Get the install settings
+ * Only an instance admin may do this: any other user and any API key get 403. The signup mode (SIGNUP_MODE), the sender of account emails (ACCOUNT_SMTP_*), the public URL (CLIENT_URL), the default limits of a workspace (workspaceLimits, WORKSPACE_LIMIT_*) and the install's name for them (workspaceLimitsName, WORKSPACE_LIMITS_NAME), each with its value, where the value comes from (environment, saved or default) and whether it is locked. A setting whose environment variable is set takes the environment's value and is locked: it can't be changed here. The SMTP password is never returned, only whether one is set. accountEmails is whether the install has a sender now. A default limit is the limit of every workspace without limits of its own; its value is null for none. The name of the default limits is free text, such as Free tier, which a workspace's Usage page shows; empty for none.
+ */
+export const getAdminSettingsOptions = (
+  options?: Options<GetAdminSettingsData>
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getAdminSettings({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getAdminSettingsQueryKey(options),
+  });
+};
+
+/**
+ * Change the install settings
+ * Only an instance admin may do this. A partial change: a field left out stays as it is, and an empty string (a port of 0) clears the saved value, so that the setting falls back to its default. The password changes only when it is sent. In workspaceLimits a number saves a default limit, null clears it (no limit) and a limit left out stays: each is a whole number of 1 or more, min_check_interval at least MIN_CHECK_INTERVAL and retention_days at most 36500. workspaceLimitsName is one line of at most 100 characters, and empty clears it. A setting the server's environment sets is refused with 409 and the code SETTING_LOCKED, naming it in field. A value a setting can't hold is 400 INVALID_SETTING with the field. Open signup without a sender for account emails is 400 OPEN_SIGNUP_NEEDS_SENDER, and removing the sender while signup is open is 400 SENDER_NEEDED_FOR_OPEN_SIGNUP. A refused change saves nothing. A saved change takes effect at once on this server, and on the other api replicas within a few seconds, a default limit as well. The answer is the settings as GET shows them.
+ */
+export const putAdminSettingsMutation = (
+  options?: Partial<Options<PutAdminSettingsData>>
+): UseMutationOptions<
+  PutAdminSettingsResponse,
+  AxiosError<PutAdminSettingsError>,
+  Options<PutAdminSettingsData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PutAdminSettingsResponse,
+    AxiosError<PutAdminSettingsError>,
+    Options<PutAdminSettingsData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await putAdminSettings({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const postAdminSettingsTestEmailQueryKey = (
+  options: Options<PostAdminSettingsTestEmailData>
+) => createQueryKey("postAdminSettingsTestEmail", options);
+
+/**
+ * Send a test email
+ * Only an instance admin may do this. Sends a fixed test message to the address through the install's sender for account emails as it is now, and answers once the SMTP server took it. Without a sender it answers 400 with the code NO_SENDER. A send that fails answers 502 with the SMTP reply code or the kind of failure, never the server's text.
+ */
+export const postAdminSettingsTestEmailOptions = (
+  options: Options<PostAdminSettingsTestEmailData>
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await postAdminSettingsTestEmail({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: postAdminSettingsTestEmailQueryKey(options),
+  });
+};
+
+/**
+ * Send a test email
+ * Only an instance admin may do this. Sends a fixed test message to the address through the install's sender for account emails as it is now, and answers once the SMTP server took it. Without a sender it answers 400 with the code NO_SENDER. A send that fails answers 502 with the SMTP reply code or the kind of failure, never the server's text.
+ */
+export const postAdminSettingsTestEmailMutation = (
+  options?: Partial<Options<PostAdminSettingsTestEmailData>>
+): UseMutationOptions<
+  PostAdminSettingsTestEmailResponse,
+  AxiosError<PostAdminSettingsTestEmailError>,
+  Options<PostAdminSettingsTestEmailData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PostAdminSettingsTestEmailResponse,
+    AxiosError<PostAdminSettingsTestEmailError>,
+    Options<PostAdminSettingsTestEmailData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await postAdminSettingsTestEmail({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const getAdminUsersQueryKey = (options?: Options<GetAdminUsersData>) =>
+  createQueryKey("getAdminUsers", options);
+
+/**
+ * List the users of the install
+ * Only an instance admin may do this: any other user and any API key get 403. Every user with their email, when they signed up and last signed in, whether their email is verified, whether they are an instance admin, whether they are disabled, whether they have 2FA on, and their workspaces with their role in each. q finds the users whose email contains it, ignoring case. The oldest user is first.
+ */
+export const getAdminUsersOptions = (options?: Options<GetAdminUsersData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getAdminUsers({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getAdminUsersQueryKey(options),
+  });
+};
+
+const createInfiniteParams = <
+  K extends Pick<QueryKey<Options>[0], "body" | "headers" | "path" | "query">,
+>(
+  queryKey: QueryKey<Options>,
+  page: K
+) => {
+  const params = {
+    ...queryKey[0],
+  };
+  if (page.body) {
+    params.body = {
+      ...(queryKey[0].body as any),
+      ...(page.body as any),
+    };
+  }
+  if (page.headers) {
+    params.headers = {
+      ...queryKey[0].headers,
+      ...page.headers,
+    };
+  }
+  if (page.path) {
+    params.path = {
+      ...(queryKey[0].path as any),
+      ...(page.path as any),
+    };
+  }
+  if (page.query) {
+    params.query = {
+      ...(queryKey[0].query as any),
+      ...(page.query as any),
+    };
+  }
+  return params as unknown as typeof page;
+};
+
+export const getAdminUsersInfiniteQueryKey = (
+  options?: Options<GetAdminUsersData>
+): QueryKey<Options<GetAdminUsersData>> =>
+  createQueryKey("getAdminUsers", options, true);
+
+/**
+ * List the users of the install
+ * Only an instance admin may do this: any other user and any API key get 403. Every user with their email, when they signed up and last signed in, whether their email is verified, whether they are an instance admin, whether they are disabled, whether they have 2FA on, and their workspaces with their role in each. q finds the users whose email contains it, ignoring case. The oldest user is first.
+ */
+export const getAdminUsersInfiniteOptions = (
+  options?: Options<GetAdminUsersData>
+) => {
+  return infiniteQueryOptions<
+    GetAdminUsersResponse,
+    AxiosError<GetAdminUsersError>,
+    InfiniteData<GetAdminUsersResponse>,
+    QueryKey<Options<GetAdminUsersData>>,
+    | number
+    | Pick<
+        QueryKey<Options<GetAdminUsersData>>[0],
+        "body" | "headers" | "path" | "query"
+      >
+  >(
+    // @ts-ignore
+    {
+      queryFn: async ({ pageParam, queryKey, signal }) => {
+        // @ts-ignore
+        const page: Pick<
+          QueryKey<Options<GetAdminUsersData>>[0],
+          "body" | "headers" | "path" | "query"
+        > =
+          typeof pageParam === "object"
+            ? pageParam
+            : {
+                query: {
+                  page: pageParam,
+                },
+              };
+        const params = createInfiniteParams(queryKey, page);
+        const { data } = await getAdminUsers({
+          ...options,
+          ...params,
+          signal,
+          throwOnError: true,
+        });
+        return data;
+      },
+      queryKey: getAdminUsersInfiniteQueryKey(options),
+    }
+  );
+};
+
+/**
+ * Delete a user
+ * Only an instance admin may do this. The user's memberships go with them. It is refused (409) for yourself, for the last instance admin, and while the user is the last owner of a workspace: that answer is {"error":{"code":"LAST_OWNER","workspaces":[{"id","name"}]}}, listing the workspaces whose only owner the user is. The other refusals answer with a message.
+ */
+export const deleteAdminUsersByIdMutation = (
+  options?: Partial<Options<DeleteAdminUsersByIdData>>
+): UseMutationOptions<
+  DeleteAdminUsersByIdResponse,
+  AxiosError<DeleteAdminUsersByIdError>,
+  Options<DeleteAdminUsersByIdData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    DeleteAdminUsersByIdResponse,
+    AxiosError<DeleteAdminUsersByIdError>,
+    Options<DeleteAdminUsersByIdData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await deleteAdminUsersById({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+/**
+ * Change a user
+ * Only an instance admin may do this. instanceAdmin gives or takes the instance admin flag: the last instance admin can't lose it (409). active false disables the user: they can't sign in, their sessions end at once and their workspaces keep running; an admin can't disable themselves (409). active true enables them again. A field left out stays as it is.
+ */
+export const patchAdminUsersByIdMutation = (
+  options?: Partial<Options<PatchAdminUsersByIdData>>
+): UseMutationOptions<
+  PatchAdminUsersByIdResponse,
+  AxiosError<PatchAdminUsersByIdError>,
+  Options<PatchAdminUsersByIdData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PatchAdminUsersByIdResponse,
+    AxiosError<PatchAdminUsersByIdError>,
+    Options<PatchAdminUsersByIdData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await patchAdminUsersById({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const postAdminUsersByIdDisable2FaQueryKey = (
+  options: Options<PostAdminUsersByIdDisable2FaData>
+) => createQueryKey("postAdminUsersByIdDisable2Fa", options);
+
+/**
+ * Turn off a user's 2FA
+ * Only an instance admin may do this. The user signs in with their password alone, and can set 2FA up again.
+ */
+export const postAdminUsersByIdDisable2FaOptions = (
+  options: Options<PostAdminUsersByIdDisable2FaData>
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await postAdminUsersByIdDisable2Fa({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: postAdminUsersByIdDisable2FaQueryKey(options),
+  });
+};
+
+/**
+ * Turn off a user's 2FA
+ * Only an instance admin may do this. The user signs in with their password alone, and can set 2FA up again.
+ */
+export const postAdminUsersByIdDisable2FaMutation = (
+  options?: Partial<Options<PostAdminUsersByIdDisable2FaData>>
+): UseMutationOptions<
+  PostAdminUsersByIdDisable2FaResponse,
+  AxiosError<PostAdminUsersByIdDisable2FaError>,
+  Options<PostAdminUsersByIdDisable2FaData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PostAdminUsersByIdDisable2FaResponse,
+    AxiosError<PostAdminUsersByIdDisable2FaError>,
+    Options<PostAdminUsersByIdDisable2FaData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await postAdminUsersByIdDisable2Fa({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const postAdminUsersByIdResetLinkQueryKey = (
+  options: Options<PostAdminUsersByIdResetLinkData>
+) => createQueryKey("postAdminUsersByIdResetLink", options);
+
+/**
+ * Make a password reset link for a user
+ * Only an instance admin may do this. The answer holds a single-use link to the web app's reset page, once: copy it to the user. It works without a sender for account emails, expires in an hour, and ends all the user's sessions when it is used.
+ */
+export const postAdminUsersByIdResetLinkOptions = (
+  options: Options<PostAdminUsersByIdResetLinkData>
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await postAdminUsersByIdResetLink({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: postAdminUsersByIdResetLinkQueryKey(options),
+  });
+};
+
+/**
+ * Make a password reset link for a user
+ * Only an instance admin may do this. The answer holds a single-use link to the web app's reset page, once: copy it to the user. It works without a sender for account emails, expires in an hour, and ends all the user's sessions when it is used.
+ */
+export const postAdminUsersByIdResetLinkMutation = (
+  options?: Partial<Options<PostAdminUsersByIdResetLinkData>>
+): UseMutationOptions<
+  PostAdminUsersByIdResetLinkResponse,
+  AxiosError<PostAdminUsersByIdResetLinkError>,
+  Options<PostAdminUsersByIdResetLinkData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PostAdminUsersByIdResetLinkResponse,
+    AxiosError<PostAdminUsersByIdResetLinkError>,
+    Options<PostAdminUsersByIdResetLinkData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await postAdminUsersByIdResetLink({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const getAdminWorkspacesQueryKey = (
+  options?: Options<GetAdminWorkspacesData>
+) => createQueryKey("getAdminWorkspaces", options);
+
+/**
+ * List the workspaces of the install
+ * Only an instance admin may do this: any other user and any API key get 403. Every workspace with its name, when it was created, its owners' emails, how many members it has, how many monitors are active and paused, how many status pages and custom domains it has, and whether and why it is suspended ("admin" when an instance admin suspended it, "unverified" when it waits for its owner to verify their email address) and since when, and its limits: each value, null for none, and where they come from (its own, the install's defaults or none; owned_workspaces is always the install's). Counts and metadata only: never a monitor's target, a channel or anything else inside a workspace. q finds the workspaces whose name or whose owner's email contains it, ignoring case. The oldest workspace is first.
+ */
+export const getAdminWorkspacesOptions = (
+  options?: Options<GetAdminWorkspacesData>
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getAdminWorkspaces({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getAdminWorkspacesQueryKey(options),
+  });
+};
+
+export const getAdminWorkspacesInfiniteQueryKey = (
+  options?: Options<GetAdminWorkspacesData>
+): QueryKey<Options<GetAdminWorkspacesData>> =>
+  createQueryKey("getAdminWorkspaces", options, true);
+
+/**
+ * List the workspaces of the install
+ * Only an instance admin may do this: any other user and any API key get 403. Every workspace with its name, when it was created, its owners' emails, how many members it has, how many monitors are active and paused, how many status pages and custom domains it has, and whether and why it is suspended ("admin" when an instance admin suspended it, "unverified" when it waits for its owner to verify their email address) and since when, and its limits: each value, null for none, and where they come from (its own, the install's defaults or none; owned_workspaces is always the install's). Counts and metadata only: never a monitor's target, a channel or anything else inside a workspace. q finds the workspaces whose name or whose owner's email contains it, ignoring case. The oldest workspace is first.
+ */
+export const getAdminWorkspacesInfiniteOptions = (
+  options?: Options<GetAdminWorkspacesData>
+) => {
+  return infiniteQueryOptions<
+    GetAdminWorkspacesResponse,
+    AxiosError<GetAdminWorkspacesError>,
+    InfiniteData<GetAdminWorkspacesResponse>,
+    QueryKey<Options<GetAdminWorkspacesData>>,
+    | number
+    | Pick<
+        QueryKey<Options<GetAdminWorkspacesData>>[0],
+        "body" | "headers" | "path" | "query"
+      >
+  >(
+    // @ts-ignore
+    {
+      queryFn: async ({ pageParam, queryKey, signal }) => {
+        // @ts-ignore
+        const page: Pick<
+          QueryKey<Options<GetAdminWorkspacesData>>[0],
+          "body" | "headers" | "path" | "query"
+        > =
+          typeof pageParam === "object"
+            ? pageParam
+            : {
+                query: {
+                  page: pageParam,
+                },
+              };
+        const params = createInfiniteParams(queryKey, page);
+        const { data } = await getAdminWorkspaces({
+          ...options,
+          ...params,
+          signal,
+          throwOnError: true,
+        });
+        return data;
+      },
+      queryKey: getAdminWorkspacesInfiniteQueryKey(options),
+    }
+  );
+};
+
+/**
+ * Delete a workspace
+ * Only an instance admin may do this. The workspace and everything in it are deleted for good: its monitors, with their heartbeats and stats, its notification channels, proxies, tags, maintenance windows, status pages and custom domains, its API keys, invites and settings. Its monitors stop at once, its public status pages and badges are gone, and its members' open sockets leave its rooms. Its members keep their accounts and their other workspaces; one who had only this workspace is left with none. An admin may delete a workspace they are a member of. Deleting a workspace that does not exist answers 404.
+ */
+export const deleteAdminWorkspacesByIdMutation = (
+  options?: Partial<Options<DeleteAdminWorkspacesByIdData>>
+): UseMutationOptions<
+  DeleteAdminWorkspacesByIdResponse,
+  AxiosError<DeleteAdminWorkspacesByIdError>,
+  Options<DeleteAdminWorkspacesByIdData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    DeleteAdminWorkspacesByIdResponse,
+    AxiosError<DeleteAdminWorkspacesByIdError>,
+    Options<DeleteAdminWorkspacesByIdData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await deleteAdminWorkspacesById({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+/**
+ * Suspend or resume a workspace, or set its limits
+ * Only an instance admin may do this. suspended true suspends the workspace: its monitors stop running, its public status pages and badges answer 503 with the code STATUS_PAGE_UNAVAILABLE, and its members see that it is suspended. Nothing is deleted. suspended false resumes it: the monitors keep the state they had and run again, unless the workspace still waits for its owner to verify their email address, which is a hold of its own that resuming leaves. Suspending a suspended workspace, and resuming one that is not held by an admin, change nothing. limits gives the workspace limits of its own, which replace the install's defaults (Admin → Settings, or WORKSPACE_LIMIT_*) whole: a limit left out, or 0, is none, so {} is a workspace with no limits at all; a value below 0 is 400. clearLimits true removes them, and the install's defaults apply again. A limit that is lowered pauses and deletes nothing. Each set and clear is logged. Name at least one of suspended, limits and clearLimits, and not both limits and clearLimits (400). The answer is the workspace as the list shows it.
+ */
+export const patchAdminWorkspacesByIdMutation = (
+  options?: Partial<Options<PatchAdminWorkspacesByIdData>>
+): UseMutationOptions<
+  PatchAdminWorkspacesByIdResponse,
+  AxiosError<PatchAdminWorkspacesByIdError>,
+  Options<PatchAdminWorkspacesByIdData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PatchAdminWorkspacesByIdResponse,
+    AxiosError<PatchAdminWorkspacesByIdError>,
+    Options<PatchAdminWorkspacesByIdData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await patchAdminWorkspacesById({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
 };
 
 export const getApiKeysQueryKey = (options?: Options<GetApiKeysData>) =>
@@ -611,6 +1310,81 @@ export const postAuth2FaVerifyMutation = (
   return mutationOptions;
 };
 
+export const getAuthConfigQueryKey = (options?: Options<GetAuthConfigData>) =>
+  createQueryKey("getAuthConfig", options);
+
+/**
+ * Get the install's account email setting
+ * Whether the install sends account emails (a password reset link, an email verification link and emailed invites): accountEmails is true when ACCOUNT_SMTP_HOST is set. When it is false the app offers none of them. signupMode is SIGNUP_MODE (invite or open), signupOpen is whether to offer a sign-up form (always in open mode, and in invite mode while the install has no user), firstSignup is whether the install has no user yet in either mode (the next signup becomes its instance admin), and turnstileSiteKey is the public key of the Turnstile widget that open signup shows, or null.
+ */
+export const getAuthConfigOptions = (options?: Options<GetAuthConfigData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getAuthConfig({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getAuthConfigQueryKey(options),
+  });
+};
+
+export const postAuthForgotPasswordQueryKey = (
+  options: Options<PostAuthForgotPasswordData>
+) => createQueryKey("postAuthForgotPassword", options);
+
+/**
+ * Ask for a password reset link
+ * Emails a single-use link that resets the password and expires in one hour, if an account has the email. The answer is 202 with the same body whether it does or not, so it does not tell which addresses have accounts. At most 5 emails per hour go to one address (the request is answered the same and sends nothing past that), and a client address that asks more than 20 times an hour gets 429. 404 when the install sends no account emails.
+ */
+export const postAuthForgotPasswordOptions = (
+  options: Options<PostAuthForgotPasswordData>
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await postAuthForgotPassword({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: postAuthForgotPasswordQueryKey(options),
+  });
+};
+
+/**
+ * Ask for a password reset link
+ * Emails a single-use link that resets the password and expires in one hour, if an account has the email. The answer is 202 with the same body whether it does or not, so it does not tell which addresses have accounts. At most 5 emails per hour go to one address (the request is answered the same and sends nothing past that), and a client address that asks more than 20 times an hour gets 429. 404 when the install sends no account emails.
+ */
+export const postAuthForgotPasswordMutation = (
+  options?: Partial<Options<PostAuthForgotPasswordData>>
+): UseMutationOptions<
+  PostAuthForgotPasswordResponse,
+  AxiosError<PostAuthForgotPasswordError>,
+  Options<PostAuthForgotPasswordData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PostAuthForgotPasswordResponse,
+    AxiosError<PostAuthForgotPasswordError>,
+    Options<PostAuthForgotPasswordData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await postAuthForgotPassword({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
 export const postAuthLoginQueryKey = (options: Options<PostAuthLoginData>) =>
   createQueryKey("postAuthLogin", options);
 
@@ -660,6 +1434,34 @@ export const postAuthLoginMutation = (
 };
 
 /**
+ * Delete the signed-in user's own account
+ * The body holds the user's password (400 when it is wrong). The user, their memberships and their sessions are gone at once; the workspaces stay, and so does every other member's account. It is refused (409) for the last instance admin, with a message, and while the user is the only owner of a workspace that is not scheduled for deletion: that answer is {"error":{"code":"LAST_OWNER","workspaces":[{"id","name"}]}}, listing those workspaces. Make another member an owner or schedule the workspace's deletion first. An API key is refused (401).
+ */
+export const deleteAuthMeMutation = (
+  options?: Partial<Options<DeleteAuthMeData>>
+): UseMutationOptions<
+  DeleteAuthMeResponse,
+  AxiosError<DeleteAuthMeError>,
+  Options<DeleteAuthMeData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    DeleteAuthMeResponse,
+    AxiosError<DeleteAuthMeError>,
+    Options<DeleteAuthMeData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await deleteAuthMe({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+/**
  * Update user password
  */
 export const putAuthPasswordMutation = (
@@ -692,6 +1494,7 @@ export const postAuthRefreshQueryKey = (
 
 /**
  * Refresh access token
+ * Refuses a refresh token issued before the user's last password change or password reset.
  */
 export const postAuthRefreshOptions = (
   options: Options<PostAuthRefreshData>
@@ -712,6 +1515,7 @@ export const postAuthRefreshOptions = (
 
 /**
  * Refresh access token
+ * Refuses a refresh token issued before the user's last password change or password reset.
  */
 export const postAuthRefreshMutation = (
   options?: Partial<Options<PostAuthRefreshData>>
@@ -743,6 +1547,7 @@ export const postAuthRegisterQueryKey = (
 
 /**
  * Register new admin
+ * Who may register depends on SIGNUP_MODE. In invite mode (the default) it creates the install's first user, who is its instance admin and the owner of its first workspace, and refuses once the install has a user (400). In open mode anyone may register: it creates the user and a workspace of their own, "My workspace", that they own. Only the install's very first user is an instance admin. The new workspace is suspended until the user verifies their email address (GET /me says so), and the verification email is sent. In open mode a client address may register 5 times an hour (429), an email that has an account is refused (409), and when the install uses Cloudflare Turnstile the body needs turnstileToken, which the server checks: a missing, refused or unchecked answer is 400. With inviteToken, the token of an invite link, it creates the user the invite names instead: they join the inviting workspace with the invite's role, get no workspace of their own and no instance admin flag. The email must be the invited one (403), and the invite must exist (404) and not be used, expired or revoked (410). An email that has an account already is refused (409): sign in and accept the invite. A workspace that has as many members as its limit refuses it (403 LIMIT_REACHED, limit members), and no account is made.
  */
 export const postAuthRegisterOptions = (
   options: Options<PostAuthRegisterData>
@@ -763,6 +1568,7 @@ export const postAuthRegisterOptions = (
 
 /**
  * Register new admin
+ * Who may register depends on SIGNUP_MODE. In invite mode (the default) it creates the install's first user, who is its instance admin and the owner of its first workspace, and refuses once the install has a user (400). In open mode anyone may register: it creates the user and a workspace of their own, "My workspace", that they own. Only the install's very first user is an instance admin. The new workspace is suspended until the user verifies their email address (GET /me says so), and the verification email is sent. In open mode a client address may register 5 times an hour (429), an email that has an account is refused (409), and when the install uses Cloudflare Turnstile the body needs turnstileToken, which the server checks: a missing, refused or unchecked answer is 400. With inviteToken, the token of an invite link, it creates the user the invite names instead: they join the inviting workspace with the invite's role, get no workspace of their own and no instance admin flag. The email must be the invited one (403), and the invite must exist (404) and not be used, expired or revoked (410). An email that has an account already is refused (409): sign in and accept the invite. A workspace that has as many members as its limit refuses it (403 LIMIT_REACHED, limit members), and no account is made.
  */
 export const postAuthRegisterMutation = (
   options?: Partial<Options<PostAuthRegisterData>>
@@ -778,6 +1584,165 @@ export const postAuthRegisterMutation = (
   > = {
     mutationFn: async (localOptions) => {
       const { data } = await postAuthRegister({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const postAuthResetPasswordQueryKey = (
+  options: Options<PostAuthResetPasswordData>
+) => createQueryKey("postAuthResetPassword", options);
+
+/**
+ * Reset the password with a reset link's token
+ * Sets the new password (the signup rules apply), marks the token used and ends every session of the user: refresh tokens and access tokens issued before are refused. The user's other unused reset links stop working. A token that is unknown, used or expired answers 400. At most 20 requests per hour from one client address; more answer 429.
+ */
+export const postAuthResetPasswordOptions = (
+  options: Options<PostAuthResetPasswordData>
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await postAuthResetPassword({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: postAuthResetPasswordQueryKey(options),
+  });
+};
+
+/**
+ * Reset the password with a reset link's token
+ * Sets the new password (the signup rules apply), marks the token used and ends every session of the user: refresh tokens and access tokens issued before are refused. The user's other unused reset links stop working. A token that is unknown, used or expired answers 400. At most 20 requests per hour from one client address; more answer 429.
+ */
+export const postAuthResetPasswordMutation = (
+  options?: Partial<Options<PostAuthResetPasswordData>>
+): UseMutationOptions<
+  PostAuthResetPasswordResponse,
+  AxiosError<PostAuthResetPasswordError>,
+  Options<PostAuthResetPasswordData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PostAuthResetPasswordResponse,
+    AxiosError<PostAuthResetPasswordError>,
+    Options<PostAuthResetPasswordData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await postAuthResetPassword({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const postAuthVerifyEmailQueryKey = (
+  options: Options<PostAuthVerifyEmailData>
+) => createQueryKey("postAuthVerifyEmail", options);
+
+/**
+ * Verify an email address with a verification link's token
+ * Records that the account's address was verified and marks the token used. A token that is unknown, used or expired answers 400. At most 20 requests per hour from one client address; more answer 429.
+ */
+export const postAuthVerifyEmailOptions = (
+  options: Options<PostAuthVerifyEmailData>
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await postAuthVerifyEmail({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: postAuthVerifyEmailQueryKey(options),
+  });
+};
+
+/**
+ * Verify an email address with a verification link's token
+ * Records that the account's address was verified and marks the token used. A token that is unknown, used or expired answers 400. At most 20 requests per hour from one client address; more answer 429.
+ */
+export const postAuthVerifyEmailMutation = (
+  options?: Partial<Options<PostAuthVerifyEmailData>>
+): UseMutationOptions<
+  PostAuthVerifyEmailResponse,
+  AxiosError<PostAuthVerifyEmailError>,
+  Options<PostAuthVerifyEmailData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PostAuthVerifyEmailResponse,
+    AxiosError<PostAuthVerifyEmailError>,
+    Options<PostAuthVerifyEmailData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await postAuthVerifyEmail({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const postAuthVerifyEmailResendQueryKey = (
+  options?: Options<PostAuthVerifyEmailResendData>
+) => createQueryKey("postAuthVerifyEmailResend", options);
+
+/**
+ * Send the verification link again
+ * Emails the signed-in user a new verification link; the earlier ones stop working. 409 when the address is verified already, 404 when the install sends no account emails, and 429 past 5 requests per hour for the address or 20 per client address.
+ */
+export const postAuthVerifyEmailResendOptions = (
+  options?: Options<PostAuthVerifyEmailResendData>
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await postAuthVerifyEmailResend({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: postAuthVerifyEmailResendQueryKey(options),
+  });
+};
+
+/**
+ * Send the verification link again
+ * Emails the signed-in user a new verification link; the earlier ones stop working. 409 when the address is verified already, 404 when the install sends no account emails, and 429 past 5 requests per hour for the address or 20 per client address.
+ */
+export const postAuthVerifyEmailResendMutation = (
+  options?: Partial<Options<PostAuthVerifyEmailResendData>>
+): UseMutationOptions<
+  PostAuthVerifyEmailResendResponse,
+  AxiosError<PostAuthVerifyEmailResendError>,
+  Options<PostAuthVerifyEmailResendData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PostAuthVerifyEmailResendResponse,
+    AxiosError<PostAuthVerifyEmailResendError>,
+    Options<PostAuthVerifyEmailResendData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await postAuthVerifyEmailResend({
         ...options,
         ...localOptions,
         throwOnError: true,
@@ -956,6 +1921,59 @@ export const getBadgeByMonitorIdUptimeByDurationOptions = (
   });
 };
 
+export const getErrorReportingQueryKey = (
+  options?: Options<GetErrorReportingData>
+) => createQueryKey("getErrorReporting", options);
+
+/**
+ * Get the error reporting state
+ * Whether error reports are on (they are, until an admin opts out), and whether the ERROR_REPORTING environment variable forces them off.
+ */
+export const getErrorReportingOptions = (
+  options?: Options<GetErrorReportingData>
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getErrorReporting({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getErrorReportingQueryKey(options),
+  });
+};
+
+/**
+ * Opt in or out of error reports
+ * Error reports are crash reports: the error type, the stack frames, the release and the install's mode, storage backend, OS and architecture. In cluster mode a change made on one api replica reaches the others within a minute. The choice is stored while the environment forces error reports off, and the environment still wins. Any choice also marks the one-time usage ping and error reports notice as seen.
+ */
+export const putErrorReportingMutation = (
+  options?: Partial<Options<PutErrorReportingData>>
+): UseMutationOptions<
+  PutErrorReportingResponse,
+  AxiosError<PutErrorReportingError>,
+  Options<PutErrorReportingData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PutErrorReportingResponse,
+    AxiosError<PutErrorReportingError>,
+    Options<PutErrorReportingData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await putErrorReporting({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
 export const getHealthQueryKey = (options?: Options<GetHealthData>) =>
   createQueryKey("getHealth", options);
 
@@ -975,6 +1993,84 @@ export const getHealthOptions = (options?: Options<GetHealthData>) => {
     },
     queryKey: getHealthQueryKey(options),
   });
+};
+
+export const getInvitesByTokenQueryKey = (
+  options: Options<GetInvitesByTokenData>
+) => createQueryKey("getInvitesByToken", options);
+
+/**
+ * Look at an invite
+ * What the holder of an invite link may see: the workspace's name, the invited email, the role and whether the invite can still be used. It needs no sign-in.
+ */
+export const getInvitesByTokenOptions = (
+  options: Options<GetInvitesByTokenData>
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getInvitesByToken({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getInvitesByTokenQueryKey(options),
+  });
+};
+
+export const postInvitesByTokenAcceptQueryKey = (
+  options: Options<PostInvitesByTokenAcceptData>
+) => createQueryKey("postInvitesByTokenAccept", options);
+
+/**
+ * Accept an invite
+ * A signed-in user whose account email is the invited one joins the workspace with the invite's role. A used, expired or revoked invite is refused (410), and so is one for another email (403). Someone without an account signs up through the invite instead (POST /auth/register with inviteToken). An invite counted against the members limit when it was made can be accepted; a workspace that has as many members as its limit refuses it (403 LIMIT_REACHED, limit members).
+ */
+export const postInvitesByTokenAcceptOptions = (
+  options: Options<PostInvitesByTokenAcceptData>
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await postInvitesByTokenAccept({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: postInvitesByTokenAcceptQueryKey(options),
+  });
+};
+
+/**
+ * Accept an invite
+ * A signed-in user whose account email is the invited one joins the workspace with the invite's role. A used, expired or revoked invite is refused (410), and so is one for another email (403). Someone without an account signs up through the invite instead (POST /auth/register with inviteToken). An invite counted against the members limit when it was made can be accepted; a workspace that has as many members as its limit refuses it (403 LIMIT_REACHED, limit members).
+ */
+export const postInvitesByTokenAcceptMutation = (
+  options?: Partial<Options<PostInvitesByTokenAcceptData>>
+): UseMutationOptions<
+  PostInvitesByTokenAcceptResponse,
+  AxiosError<PostInvitesByTokenAcceptError>,
+  Options<PostInvitesByTokenAcceptData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PostInvitesByTokenAcceptResponse,
+    AxiosError<PostInvitesByTokenAcceptError>,
+    Options<PostInvitesByTokenAcceptData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await postInvitesByTokenAccept({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
 };
 
 export const getMaintenancesQueryKey = (
@@ -999,42 +2095,6 @@ export const getMaintenancesOptions = (
     },
     queryKey: getMaintenancesQueryKey(options),
   });
-};
-
-const createInfiniteParams = <
-  K extends Pick<QueryKey<Options>[0], "body" | "headers" | "path" | "query">,
->(
-  queryKey: QueryKey<Options>,
-  page: K
-) => {
-  const params = {
-    ...queryKey[0],
-  };
-  if (page.body) {
-    params.body = {
-      ...(queryKey[0].body as any),
-      ...(page.body as any),
-    };
-  }
-  if (page.headers) {
-    params.headers = {
-      ...queryKey[0].headers,
-      ...page.headers,
-    };
-  }
-  if (page.path) {
-    params.path = {
-      ...(queryKey[0].path as any),
-      ...(page.path as any),
-    };
-  }
-  if (page.query) {
-    params.query = {
-      ...(queryKey[0].query as any),
-      ...(page.query as any),
-    };
-  }
-  return params as unknown as typeof page;
 };
 
 export const getMaintenancesInfiniteQueryKey = (
@@ -1296,6 +2356,28 @@ export const patchMaintenancesByIdResumeMutation = (
     },
   };
   return mutationOptions;
+};
+
+export const getMeQueryKey = (options?: Options<GetMeData>) =>
+  createQueryKey("getMe", options);
+
+/**
+ * Get the signed-in user and their workspaces
+ * The user, the workspaces they are a member of with their role in each, and the default workspace: the one they joined first, which a request without X-Workspace-ID runs in. A user in no workspace gets an empty list and a null default.
+ */
+export const getMeOptions = (options?: Options<GetMeData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getMe({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getMeQueryKey(options),
+  });
 };
 
 export const getMonitorsQueryKey = (options?: Options<GetMonitorsData>) =>
@@ -2027,6 +3109,312 @@ export const putNotificationChannelsByIdMutation = (
   return mutationOptions;
 };
 
+export const getProbesQueryKey = (options?: Options<GetProbesData>) =>
+  createQueryKey("getProbes", options);
+
+/**
+ * Get probes
+ * Every probe, the local probe first. A user who is not an instance admin, and an API key, see each probe with its name, location, status and supported monitor types, but its instances come with an empty hostname, OS, architecture and version and a protocol version of 0, and notification_ids is an empty list.
+ */
+export const getProbesOptions = (options?: Options<GetProbesData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getProbes({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getProbesQueryKey(options),
+  });
+};
+
+export const postProbesQueryKey = (options: Options<PostProbesData>) =>
+  createQueryKey("postProbes", options);
+
+/**
+ * Create probe
+ * Only an instance admin may do this: any other user and any API key get 403.
+ */
+export const postProbesOptions = (options: Options<PostProbesData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await postProbes({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: postProbesQueryKey(options),
+  });
+};
+
+/**
+ * Create probe
+ * Only an instance admin may do this: any other user and any API key get 403.
+ */
+export const postProbesMutation = (
+  options?: Partial<Options<PostProbesData>>
+): UseMutationOptions<
+  PostProbesResponse,
+  AxiosError<PostProbesError>,
+  Options<PostProbesData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PostProbesResponse,
+    AxiosError<PostProbesError>,
+    Options<PostProbesData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await postProbes({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const getProbesAvailabilityQueryKey = (
+  options?: Options<GetProbesAvailabilityData>
+) => createQueryKey("getProbesAvailability", options);
+
+/**
+ * Get the availability of every probe
+ * Every probe's online and offline periods over the range, and its uptime, without its instances.
+ */
+export const getProbesAvailabilityOptions = (
+  options?: Options<GetProbesAvailabilityData>
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getProbesAvailability({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getProbesAvailabilityQueryKey(options),
+  });
+};
+
+/**
+ * Delete probe
+ * Only an instance admin may do this: any other user and any API key get 403.
+ */
+export const deleteProbesByIdMutation = (
+  options?: Partial<Options<DeleteProbesByIdData>>
+): UseMutationOptions<
+  DeleteProbesByIdResponse,
+  AxiosError<DeleteProbesByIdError>,
+  Options<DeleteProbesByIdData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    DeleteProbesByIdResponse,
+    AxiosError<DeleteProbesByIdError>,
+    Options<DeleteProbesByIdData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await deleteProbesById({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const getProbesByIdQueryKey = (options: Options<GetProbesByIdData>) =>
+  createQueryKey("getProbesById", options);
+
+/**
+ * Get probe
+ * A user who is not an instance admin, and an API key, see the probe's name, location, status and supported monitor types, but its instances come with an empty hostname, OS, architecture and version and a protocol version of 0, and notification_ids is an empty list.
+ */
+export const getProbesByIdOptions = (options: Options<GetProbesByIdData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getProbesById({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getProbesByIdQueryKey(options),
+  });
+};
+
+/**
+ * Update probe
+ * Only an instance admin may do this: any other user and any API key get 403. A field left out stays as it is. is_default marks the probe as one that a monitor created without probe_ids runs on.
+ */
+export const putProbesByIdMutation = (
+  options?: Partial<Options<PutProbesByIdData>>
+): UseMutationOptions<
+  PutProbesByIdResponse,
+  AxiosError<PutProbesByIdError>,
+  Options<PutProbesByIdData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PutProbesByIdResponse,
+    AxiosError<PutProbesByIdError>,
+    Options<PutProbesByIdData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await putProbesById({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const postProbesByIdAssignAllMonitorsQueryKey = (
+  options: Options<PostProbesByIdAssignAllMonitorsData>
+) => createQueryKey("postProbesByIdAssignAllMonitors", options);
+
+/**
+ * Assign all monitors to a probe
+ * Only an instance admin may do this: any other user and any API key get 403. Adds the probe to every monitor it can run now: push monitors are left out, and so are the types the probe's online instances don't run. A probe with no instance yet is assigned every monitor by its first hello instead, and the answer says it is pending.
+ */
+export const postProbesByIdAssignAllMonitorsOptions = (
+  options: Options<PostProbesByIdAssignAllMonitorsData>
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await postProbesByIdAssignAllMonitors({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: postProbesByIdAssignAllMonitorsQueryKey(options),
+  });
+};
+
+/**
+ * Assign all monitors to a probe
+ * Only an instance admin may do this: any other user and any API key get 403. Adds the probe to every monitor it can run now: push monitors are left out, and so are the types the probe's online instances don't run. A probe with no instance yet is assigned every monitor by its first hello instead, and the answer says it is pending.
+ */
+export const postProbesByIdAssignAllMonitorsMutation = (
+  options?: Partial<Options<PostProbesByIdAssignAllMonitorsData>>
+): UseMutationOptions<
+  PostProbesByIdAssignAllMonitorsResponse,
+  AxiosError<PostProbesByIdAssignAllMonitorsError>,
+  Options<PostProbesByIdAssignAllMonitorsData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PostProbesByIdAssignAllMonitorsResponse,
+    AxiosError<PostProbesByIdAssignAllMonitorsError>,
+    Options<PostProbesByIdAssignAllMonitorsData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await postProbesByIdAssignAllMonitors({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const getProbesByIdAvailabilityQueryKey = (
+  options: Options<GetProbesByIdAvailabilityData>
+) => createQueryKey("getProbesByIdAvailability", options);
+
+/**
+ * Get the availability of a probe
+ * A probe's online and offline periods over the range and its uptime, with its instances and when each was connected over the last 24 hours. A user who is not an instance admin, and an API key, see each instance with an empty hostname and version.
+ */
+export const getProbesByIdAvailabilityOptions = (
+  options: Options<GetProbesByIdAvailabilityData>
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getProbesByIdAvailability({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getProbesByIdAvailabilityQueryKey(options),
+  });
+};
+
+export const postProbesByIdRotateTokenQueryKey = (
+  options: Options<PostProbesByIdRotateTokenData>
+) => createQueryKey("postProbesByIdRotateToken", options);
+
+/**
+ * Rotate probe token
+ * Only an instance admin may do this: any other user and any API key get 403.
+ */
+export const postProbesByIdRotateTokenOptions = (
+  options: Options<PostProbesByIdRotateTokenData>
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await postProbesByIdRotateToken({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: postProbesByIdRotateTokenQueryKey(options),
+  });
+};
+
+/**
+ * Rotate probe token
+ * Only an instance admin may do this: any other user and any API key get 403.
+ */
+export const postProbesByIdRotateTokenMutation = (
+  options?: Partial<Options<PostProbesByIdRotateTokenData>>
+): UseMutationOptions<
+  PostProbesByIdRotateTokenResponse,
+  AxiosError<PostProbesByIdRotateTokenError>,
+  Options<PostProbesByIdRotateTokenData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PostProbesByIdRotateTokenResponse,
+    AxiosError<PostProbesByIdRotateTokenError>,
+    Options<PostProbesByIdRotateTokenData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await postProbesByIdRotateToken({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
 export const getProxiesQueryKey = (options?: Options<GetProxiesData>) =>
   createQueryKey("getProxies", options);
 
@@ -2254,6 +3642,7 @@ export const getPushByTokenQueryKey = (options: Options<GetPushByTokenData>) =>
 
 /**
  * Send a heartbeat to a push monitor
+ * Stores the push as the monitor's heartbeat. 404 when no monitor has the token, 400 when the monitor is paused, and 403 when the monitor's workspace is suspended (a new account's workspace is, until its owner verifies their email address, and an instance admin can suspend one), when its type is turned off on this install (DISABLED_MONITOR_TYPES), or when it is past its workspace's limit of active monitors: the push is not stored and sends no notification.
  */
 export const getPushByTokenOptions = (options: Options<GetPushByTokenData>) => {
   return queryOptions({
@@ -2272,6 +3661,7 @@ export const getPushByTokenOptions = (options: Options<GetPushByTokenData>) => {
 
 /**
  * Delete setting by key
+ * Admins and owners of the request's workspace can delete it; a member gets 403.
  */
 export const deleteSettingsKeyByKeyMutation = (
   options?: Partial<Options<DeleteSettingsKeyByKeyData>>
@@ -2303,6 +3693,7 @@ export const getSettingsKeyByKeyQueryKey = (
 
 /**
  * Get setting by key
+ * A setting of the request's workspace; any member can read it.
  */
 export const getSettingsKeyByKeyOptions = (
   options: Options<GetSettingsKeyByKeyData>
@@ -2323,7 +3714,7 @@ export const getSettingsKeyByKeyOptions = (
 
 /**
  * Set setting by key
- * Only KEEP_DATA_PERIOD_DAYS can be set, with type int and a whole number of days from 1 to 36500. Every other key returns 404.
+ * Only KEEP_DATA_PERIOD_DAYS can be set, with type int and a whole number of days from 1 to 36500. Every other key returns 404. It is a setting of the request's workspace: members read it, admins and owners change it, and a member's change returns 403. A period longer than the workspace's retention_days limit is refused (403 LIMIT_REACHED, limit retention_days); one at the limit is saved.
  */
 export const putSettingsKeyByKeyMutation = (
   options?: Partial<Options<PutSettingsKeyByKeyData>>
@@ -2480,6 +3871,7 @@ export const getStatusPagesDomainByDomainQueryKey = (
 
 /**
  * Get a status page by domain name
+ * Answers 503 with the code STATUS_PAGE_UNAVAILABLE and the message "This status page is unavailable" when the page is published and its workspace is suspended, whether by an instance admin, while it waits for its owner to verify their email address, or because its owner scheduled its deletion. It does not say which, and a page that is not published is still 404.
  */
 export const getStatusPagesDomainByDomainOptions = (
   options: Options<GetStatusPagesDomainByDomainData>
@@ -2498,12 +3890,91 @@ export const getStatusPagesDomainByDomainOptions = (
   });
 };
 
+export const getStatusPagesDomainsByIdQueryKey = (
+  options: Options<GetStatusPagesDomainsByIdData>
+) => createQueryKey("getStatusPagesDomainsById", options);
+
+/**
+ * Get the custom domains of a status page with their verification state
+ * Each domain's state (verified or pending), when it was last checked, when its records went missing (failingSince), when a pending domain is removed from the page (removeAt) and the DNS records that verify it: a TXT record, or a CNAME to the install (null when the install has no host to point at). verificationRequired says whether a pending domain is held back from serving (VERIFY_CUSTOM_DOMAINS). Any member of the workspace may ask.
+ */
+export const getStatusPagesDomainsByIdOptions = (
+  options: Options<GetStatusPagesDomainsByIdData>
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getStatusPagesDomainsById({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getStatusPagesDomainsByIdQueryKey(options),
+  });
+};
+
+export const postStatusPagesDomainsByIdByDomainVerifyQueryKey = (
+  options: Options<PostStatusPagesDomainsByIdByDomainVerifyData>
+) => createQueryKey("postStatusPagesDomainsByIdByDomainVerify", options);
+
+/**
+ * Check a custom domain's DNS records now
+ * Looks up the domain's TXT record and CNAME right away, whether verification is on or not, and answers the domain's state after the check. Answers 404 when the page is not in the workspace or does not list the domain. A check never removes a domain: one that stayed pending for 7 days is removed by the scheduled check.
+ */
+export const postStatusPagesDomainsByIdByDomainVerifyOptions = (
+  options: Options<PostStatusPagesDomainsByIdByDomainVerifyData>
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await postStatusPagesDomainsByIdByDomainVerify({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: postStatusPagesDomainsByIdByDomainVerifyQueryKey(options),
+  });
+};
+
+/**
+ * Check a custom domain's DNS records now
+ * Looks up the domain's TXT record and CNAME right away, whether verification is on or not, and answers the domain's state after the check. Answers 404 when the page is not in the workspace or does not list the domain. A check never removes a domain: one that stayed pending for 7 days is removed by the scheduled check.
+ */
+export const postStatusPagesDomainsByIdByDomainVerifyMutation = (
+  options?: Partial<Options<PostStatusPagesDomainsByIdByDomainVerifyData>>
+): UseMutationOptions<
+  PostStatusPagesDomainsByIdByDomainVerifyResponse,
+  AxiosError<PostStatusPagesDomainsByIdByDomainVerifyError>,
+  Options<PostStatusPagesDomainsByIdByDomainVerifyData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PostStatusPagesDomainsByIdByDomainVerifyResponse,
+    AxiosError<PostStatusPagesDomainsByIdByDomainVerifyError>,
+    Options<PostStatusPagesDomainsByIdByDomainVerifyData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await postStatusPagesDomainsByIdByDomainVerify({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
 export const getStatusPagesSlugBySlugQueryKey = (
   options: Options<GetStatusPagesSlugBySlugData>
 ) => createQueryKey("getStatusPagesSlugBySlug", options);
 
 /**
  * Get a status page by slug
+ * Answers 503 with the code STATUS_PAGE_UNAVAILABLE and the message "This status page is unavailable" when the page is published and its workspace is suspended, whether by an instance admin, while it waits for its owner to verify their email address, or because its owner scheduled its deletion. It does not say which, and a page that is not published is still 404.
  */
 export const getStatusPagesSlugBySlugOptions = (
   options: Options<GetStatusPagesSlugBySlugData>
@@ -2528,6 +3999,7 @@ export const getStatusPagesSlugBySlugMonitorsQueryKey = (
 
 /**
  * Get monitors for a status page by slug with heartbeats and uptime
+ * Answers 503 with the code STATUS_PAGE_UNAVAILABLE and the message "This status page is unavailable" when the page is published and its workspace is suspended, whether by an instance admin, while it waits for its owner to verify their email address, or because its owner scheduled its deletion. It does not say which, and a page that is not published is still 404.
  */
 export const getStatusPagesSlugBySlugMonitorsOptions = (
   options: Options<GetStatusPagesSlugBySlugMonitorsData>
@@ -2552,6 +4024,7 @@ export const getStatusPagesSlugBySlugMonitorsHomepageQueryKey = (
 
 /**
  * Get monitors for a status page by slug for homepage
+ * Answers 503 with the code STATUS_PAGE_UNAVAILABLE and the message "This status page is unavailable" when the page is published and its workspace is suspended, whether by an instance admin, while it waits for its owner to verify their email address, or because its owner scheduled its deletion. It does not say which, and a page that is not published is still 404.
  */
 export const getStatusPagesSlugBySlugMonitorsHomepageOptions = (
   options: Options<GetStatusPagesSlugBySlugMonitorsHomepageData>
@@ -2567,6 +4040,31 @@ export const getStatusPagesSlugBySlugMonitorsHomepageOptions = (
       return data;
     },
     queryKey: getStatusPagesSlugBySlugMonitorsHomepageQueryKey(options),
+  });
+};
+
+export const getStatusPagesTlsAskQueryKey = (
+  options: Options<GetStatusPagesTlsAskData>
+) => createQueryKey("getStatusPagesTlsAsk", options);
+
+/**
+ * Ask whether a host may get a certificate
+ * For Caddy's on_demand_tls ask option: 200 with no body when the domain is on a status page's custom domain list, published or not, and 404 when it is not. With VERIFY_CUSTOM_DOMAINS on, a domain on the list must also be verified, and a pending one answers 404. The domain is compared in lower case and without a trailing dot. It reveals nothing beyond yes or no.
+ */
+export const getStatusPagesTlsAskOptions = (
+  options: Options<GetStatusPagesTlsAskData>
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getStatusPagesTlsAsk({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getStatusPagesTlsAskQueryKey(options),
   });
 };
 
@@ -2867,6 +4365,109 @@ export const putTagsByIdMutation = (
   return mutationOptions;
 };
 
+export const getTelemetryQueryKey = (options?: Options<GetTelemetryData>) =>
+  createQueryKey("getTelemetry", options);
+
+/**
+ * Get the usage ping state
+ * Whether the anonymous usage ping is on (it is, until an admin opts out), whether the TELEMETRY environment variable forces it off, whether the one-time notice about the ping and error reports is still to be shown, and the exact payload the next ping would send.
+ */
+export const getTelemetryOptions = (options?: Options<GetTelemetryData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getTelemetry({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getTelemetryQueryKey(options),
+  });
+};
+
+/**
+ * Opt in or out of the usage ping
+ * Opting in creates a new random instance ID unless there is one. Opting out deletes it, so opting in again gives a new one. The choice is stored while the environment forces the ping off, and the environment still wins. Any choice also marks the one-time notice as seen.
+ */
+export const putTelemetryMutation = (
+  options?: Partial<Options<PutTelemetryData>>
+): UseMutationOptions<
+  PutTelemetryResponse,
+  AxiosError<PutTelemetryError>,
+  Options<PutTelemetryData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PutTelemetryResponse,
+    AxiosError<PutTelemetryError>,
+    Options<PutTelemetryData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await putTelemetry({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const postTelemetryNoticeQueryKey = (
+  options?: Options<PostTelemetryNoticeData>
+) => createQueryKey("postTelemetryNotice", options);
+
+/**
+ * Dismiss the usage ping and error reports notice
+ * An install that upgraded to a version with the usage ping and error reports on by default shows its admin a one-time notice. This marks it seen so it stops showing. It is not a choice: both features stay as they were. Making a choice with PUT /telemetry or PUT /error-reporting marks it seen too.
+ */
+export const postTelemetryNoticeOptions = (
+  options?: Options<PostTelemetryNoticeData>
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await postTelemetryNotice({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: postTelemetryNoticeQueryKey(options),
+  });
+};
+
+/**
+ * Dismiss the usage ping and error reports notice
+ * An install that upgraded to a version with the usage ping and error reports on by default shows its admin a one-time notice. This marks it seen so it stops showing. It is not a choice: both features stay as they were. Making a choice with PUT /telemetry or PUT /error-reporting marks it seen too.
+ */
+export const postTelemetryNoticeMutation = (
+  options?: Partial<Options<PostTelemetryNoticeData>>
+): UseMutationOptions<
+  PostTelemetryNoticeResponse,
+  AxiosError<PostTelemetryNoticeError>,
+  Options<PostTelemetryNoticeData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PostTelemetryNoticeResponse,
+    AxiosError<PostTelemetryNoticeError>,
+    Options<PostTelemetryNoticeData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await postTelemetryNotice({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
 export const getVersionQueryKey = (options?: Options<GetVersionData>) =>
   createQueryKey("getVersion", options);
 
@@ -2888,6 +4489,533 @@ export const getVersionOptions = (options?: Options<GetVersionData>) => {
   });
 };
 
+/**
+ * Rename the workspace
+ * An admin or owner (or an API key) renames the workspace the request runs in. The name is trimmed and must be 1 to 255 characters. A member is refused (403).
+ */
+export const patchWorkspaceMutation = (
+  options?: Partial<Options<PatchWorkspaceData>>
+): UseMutationOptions<
+  PatchWorkspaceResponse,
+  AxiosError<PatchWorkspaceError>,
+  Options<PatchWorkspaceData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PatchWorkspaceResponse,
+    AxiosError<PatchWorkspaceError>,
+    Options<PatchWorkspaceData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await patchWorkspace({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+/**
+ * Cancel the deletion of the workspace
+ * An owner cancels the scheduled deletion, which lifts that hold and brings the workspace back as it was: its monitors run again, and its status pages answer. A hold of an instance admin or the email verification stays. 404 when no deletion is scheduled.
+ */
+export const deleteWorkspaceDeletionMutation = (
+  options?: Partial<Options<DeleteWorkspaceDeletionData>>
+): UseMutationOptions<
+  DeleteWorkspaceDeletionResponse,
+  AxiosError<DeleteWorkspaceDeletionError>,
+  Options<DeleteWorkspaceDeletionData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    DeleteWorkspaceDeletionResponse,
+    AxiosError<DeleteWorkspaceDeletionError>,
+    Options<DeleteWorkspaceDeletionData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await deleteWorkspaceDeletion({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const postWorkspaceDeletionQueryKey = (
+  options: Options<PostWorkspaceDeletionData>
+) => createQueryKey("postWorkspaceDeletion", options);
+
+/**
+ * Schedule the deletion of the workspace
+ * An owner of the workspace schedules its deletion by typing its exact name in the body (400 WORKSPACE_NAME_MISMATCH otherwise). The workspace is held for 7 days as a suspended one is: its monitors are kept but none runs, no notification is sent, a push to one answers 403, and its public status pages and badges answer 503. After the 7 days the workspace and everything in it is deleted; its members keep their accounts. The answer is the date it will be deleted. Scheduling again keeps the first date. An admin or a member is refused (403), and so is an API key (401), since a deletion is a user's act. Every member sees the date on GET /me (deletionScheduledAt).
+ */
+export const postWorkspaceDeletionOptions = (
+  options: Options<PostWorkspaceDeletionData>
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await postWorkspaceDeletion({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: postWorkspaceDeletionQueryKey(options),
+  });
+};
+
+/**
+ * Schedule the deletion of the workspace
+ * An owner of the workspace schedules its deletion by typing its exact name in the body (400 WORKSPACE_NAME_MISMATCH otherwise). The workspace is held for 7 days as a suspended one is: its monitors are kept but none runs, no notification is sent, a push to one answers 403, and its public status pages and badges answer 503. After the 7 days the workspace and everything in it is deleted; its members keep their accounts. The answer is the date it will be deleted. Scheduling again keeps the first date. An admin or a member is refused (403), and so is an API key (401), since a deletion is a user's act. Every member sees the date on GET /me (deletionScheduledAt).
+ */
+export const postWorkspaceDeletionMutation = (
+  options?: Partial<Options<PostWorkspaceDeletionData>>
+): UseMutationOptions<
+  PostWorkspaceDeletionResponse,
+  AxiosError<PostWorkspaceDeletionError>,
+  Options<PostWorkspaceDeletionData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PostWorkspaceDeletionResponse,
+    AxiosError<PostWorkspaceDeletionError>,
+    Options<PostWorkspaceDeletionData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await postWorkspaceDeletion({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const getWorkspaceExportQueryKey = (
+  options?: Options<GetWorkspaceExportData>
+) => createQueryKey("getWorkspaceExport", options);
+
+/**
+ * Download the workspace's setup
+ * An owner of the workspace downloads one JSON file (peekaping-workspace-<date>.json) with its settings, tags, proxies, notification channels, monitors, maintenance windows and status pages, and the links between them. Records point to each other by ref, not by database ID. The file holds saved secrets in full (containsSecrets is always true), and each channel and proxy lists which of its fields are sensitive: keep the file as safe as the secrets are. Monitor and channel configs are JSON objects. It holds no members, invites, API keys, stats, probe assignments or heartbeats. Only a signed-in owner may download it: an admin or a member is refused (403), and so is an API key (401), since a download is a user's act.
+ */
+export const getWorkspaceExportOptions = (
+  options?: Options<GetWorkspaceExportData>
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getWorkspaceExport({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getWorkspaceExportQueryKey(options),
+  });
+};
+
+export const getWorkspaceExportHeartbeatsQueryKey = (
+  options?: Options<GetWorkspaceExportHeartbeatsData>
+) => createQueryKey("getWorkspaceExportHeartbeats", options);
+
+/**
+ * Download the workspace's heartbeat history
+ * An owner of the workspace downloads the heartbeats of its monitors as NDJSON (peekaping-heartbeats-<date>.ndjson): the first line is a header (format peekaping-heartbeats, version, exportedAt), then one line for each heartbeat, ordered by monitor (as in the workspace document) and then by time. The server streams the file in batches, so a large history is never held in memory. A monitorRef is the ref the monitor has in the workspace document. If the server fails part way, the connection is cut, so a file that ends early is not complete. The same rules as the workspace document apply: owner only, 403 for an admin or a member, 401 for an API key.
+ */
+export const getWorkspaceExportHeartbeatsOptions = (
+  options?: Options<GetWorkspaceExportHeartbeatsData>
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getWorkspaceExportHeartbeats({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getWorkspaceExportHeartbeatsQueryKey(options),
+  });
+};
+
+export const postWorkspaceImportQueryKey = (
+  options: Options<PostWorkspaceImportData>
+) => createQueryKey("postWorkspaceImport", options);
+
+/**
+ * Import a workspace's setup
+ * An owner of the workspace uploads a workspace document (the file of the export route) and its records are added to the workspace in one transaction, beside the ones there. Nothing is written if the file is invalid: format must be peekaping-workspace, version one this server reads, every ref set and used once, every link pointing at a record of the file, and every record valid as the API would take it. All problems come back together (400, code INVALID_WORKSPACE_FILE). What the workspace or the install can't take as it is is changed or left out, and listed in changes, never an error: a tag whose name the workspace has is reused; a proxy or a notification channel the install refuses (private target block, install email channel without a sender or a member recipient) and a monitor of a disabled type or at a blocked target are skipped, with their links; a monitor's proxy that is skipped is dropped; an interval below the minimum is raised to it; a push token that another monitor holds is replaced; active monitors past the plan's limit come in paused; a status page past the plan's limit is skipped, a taken slug gets -2, -3 and so on, and a taken custom domain, or one past the plan's limit, is dropped; a data retention period above the plan's cap is capped. Imported monitors run on the install's default probes. The workspace's name is not changed, and saved secrets are stored as the file has them. Monitors are scheduled once the transaction has committed. The body may be up to 16 MiB. Only a signed-in owner may import: an admin or a member is refused (403), and so is an API key (401).
+ */
+export const postWorkspaceImportOptions = (
+  options: Options<PostWorkspaceImportData>
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await postWorkspaceImport({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: postWorkspaceImportQueryKey(options),
+  });
+};
+
+/**
+ * Import a workspace's setup
+ * An owner of the workspace uploads a workspace document (the file of the export route) and its records are added to the workspace in one transaction, beside the ones there. Nothing is written if the file is invalid: format must be peekaping-workspace, version one this server reads, every ref set and used once, every link pointing at a record of the file, and every record valid as the API would take it. All problems come back together (400, code INVALID_WORKSPACE_FILE). What the workspace or the install can't take as it is is changed or left out, and listed in changes, never an error: a tag whose name the workspace has is reused; a proxy or a notification channel the install refuses (private target block, install email channel without a sender or a member recipient) and a monitor of a disabled type or at a blocked target are skipped, with their links; a monitor's proxy that is skipped is dropped; an interval below the minimum is raised to it; a push token that another monitor holds is replaced; active monitors past the plan's limit come in paused; a status page past the plan's limit is skipped, a taken slug gets -2, -3 and so on, and a taken custom domain, or one past the plan's limit, is dropped; a data retention period above the plan's cap is capped. Imported monitors run on the install's default probes. The workspace's name is not changed, and saved secrets are stored as the file has them. Monitors are scheduled once the transaction has committed. The body may be up to 16 MiB. Only a signed-in owner may import: an admin or a member is refused (403), and so is an API key (401).
+ */
+export const postWorkspaceImportMutation = (
+  options?: Partial<Options<PostWorkspaceImportData>>
+): UseMutationOptions<
+  PostWorkspaceImportResponse,
+  AxiosError<PostWorkspaceImportError>,
+  Options<PostWorkspaceImportData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PostWorkspaceImportResponse,
+    AxiosError<PostWorkspaceImportError>,
+    Options<PostWorkspaceImportData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await postWorkspaceImport({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const getWorkspaceInvitesQueryKey = (
+  options?: Options<GetWorkspaceInvitesData>
+) => createQueryKey("getWorkspaceInvites", options);
+
+/**
+ * List the invites of the workspace
+ * The invites that were neither used nor revoked. An admin or owner sees them. They hold no token: that is shown once, when the invite is made.
+ */
+export const getWorkspaceInvitesOptions = (
+  options?: Options<GetWorkspaceInvitesData>
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getWorkspaceInvites({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getWorkspaceInvitesQueryKey(options),
+  });
+};
+
+export const postWorkspaceInvitesQueryKey = (
+  options: Options<PostWorkspaceInvitesData>
+) => createQueryKey("postWorkspaceInvites", options);
+
+/**
+ * Invite someone to the workspace
+ * An admin or owner invites an email with a role; only an owner invites an owner. The answer holds the invite's link, once. It works once, for 7 days, for the account with that email. The link is also emailed to the invited address when the install sends account emails (ACCOUNT_SMTP_HOST is set); otherwise copy it to the person you invite. An earlier invite for the same email is revoked. Each invite can send an email, so a caller (a user, or the API keys of a workspace together) makes at most 20 an hour and one address gets at most 3 an hour; past either the answer is 429. A caller that may not invite is refused before either limit counts. A workspace whose members and pending invites are as many as its members limit is refused (403 LIMIT_REACHED, limit members); inviting a pending address again replaces its invite and takes no more room.
+ */
+export const postWorkspaceInvitesOptions = (
+  options: Options<PostWorkspaceInvitesData>
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await postWorkspaceInvites({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: postWorkspaceInvitesQueryKey(options),
+  });
+};
+
+/**
+ * Invite someone to the workspace
+ * An admin or owner invites an email with a role; only an owner invites an owner. The answer holds the invite's link, once. It works once, for 7 days, for the account with that email. The link is also emailed to the invited address when the install sends account emails (ACCOUNT_SMTP_HOST is set); otherwise copy it to the person you invite. An earlier invite for the same email is revoked. Each invite can send an email, so a caller (a user, or the API keys of a workspace together) makes at most 20 an hour and one address gets at most 3 an hour; past either the answer is 429. A caller that may not invite is refused before either limit counts. A workspace whose members and pending invites are as many as its members limit is refused (403 LIMIT_REACHED, limit members); inviting a pending address again replaces its invite and takes no more room.
+ */
+export const postWorkspaceInvitesMutation = (
+  options?: Partial<Options<PostWorkspaceInvitesData>>
+): UseMutationOptions<
+  PostWorkspaceInvitesResponse,
+  AxiosError<PostWorkspaceInvitesError>,
+  Options<PostWorkspaceInvitesData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PostWorkspaceInvitesResponse,
+    AxiosError<PostWorkspaceInvitesError>,
+    Options<PostWorkspaceInvitesData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await postWorkspaceInvites({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+/**
+ * Revoke an invite
+ * An admin or owner revokes an invite that was neither used nor revoked; its link stops working.
+ */
+export const deleteWorkspaceInvitesByIdMutation = (
+  options?: Partial<Options<DeleteWorkspaceInvitesByIdData>>
+): UseMutationOptions<
+  DeleteWorkspaceInvitesByIdResponse,
+  AxiosError<DeleteWorkspaceInvitesByIdError>,
+  Options<DeleteWorkspaceInvitesByIdData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    DeleteWorkspaceInvitesByIdResponse,
+    AxiosError<DeleteWorkspaceInvitesByIdError>,
+    Options<DeleteWorkspaceInvitesByIdData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await deleteWorkspaceInvitesById({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const postWorkspaceLeaveQueryKey = (
+  options?: Options<PostWorkspaceLeaveData>
+) => createQueryKey("postWorkspaceLeave", options);
+
+/**
+ * Leave the workspace
+ * The signed-in user leaves the workspace and loses access to it at once. The last owner can't leave (409).
+ */
+export const postWorkspaceLeaveOptions = (
+  options?: Options<PostWorkspaceLeaveData>
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await postWorkspaceLeave({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: postWorkspaceLeaveQueryKey(options),
+  });
+};
+
+/**
+ * Leave the workspace
+ * The signed-in user leaves the workspace and loses access to it at once. The last owner can't leave (409).
+ */
+export const postWorkspaceLeaveMutation = (
+  options?: Partial<Options<PostWorkspaceLeaveData>>
+): UseMutationOptions<
+  PostWorkspaceLeaveResponse,
+  AxiosError<PostWorkspaceLeaveError>,
+  Options<PostWorkspaceLeaveData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PostWorkspaceLeaveResponse,
+    AxiosError<PostWorkspaceLeaveError>,
+    Options<PostWorkspaceLeaveData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await postWorkspaceLeave({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const getWorkspaceLimitsQueryKey = (
+  options?: Options<GetWorkspaceLimitsData>
+) => createQueryKey("getWorkspaceLimits", options);
+
+/**
+ * Get the limits of the workspace
+ * Every member of the workspace (and an API key) sees its limits: for each, its value (null for none), what the workspace has of it and where it comes from: the workspace's own limits, which an instance admin sets, the install's defaults (Admin → Settings, or WORKSPACE_LIMIT_*) or none. An install that sets no limits answers null for each. installLimitsName is the install's name for its default limits, such as Free tier (WORKSPACE_LIMITS_NAME), or null when it has none. members counts the pending invites beside the members; owned_workspaces counts the caller's own workspaces (0 for an API key) against the install's defaults alone; min_check_interval is used as the shortest interval that applies, the stricter of MIN_CHECK_INTERVAL and the limit; retention_days as the workspace's data retention period.
+ */
+export const getWorkspaceLimitsOptions = (
+  options?: Options<GetWorkspaceLimitsData>
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getWorkspaceLimits({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getWorkspaceLimitsQueryKey(options),
+  });
+};
+
+export const getWorkspaceMembersQueryKey = (
+  options?: Options<GetWorkspaceMembersData>
+) => createQueryKey("getWorkspaceMembers", options);
+
+/**
+ * List the members of the workspace
+ * Every member of the workspace sees who is in it and with which role.
+ */
+export const getWorkspaceMembersOptions = (
+  options?: Options<GetWorkspaceMembersData>
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getWorkspaceMembers({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getWorkspaceMembersQueryKey(options),
+  });
+};
+
+/**
+ * Remove a member
+ * An admin or owner removes a member or an admin. Only an owner removes an owner, and the last owner can't be removed (409). The removed user loses access to the workspace at once.
+ */
+export const deleteWorkspaceMembersByUserIdMutation = (
+  options?: Partial<Options<DeleteWorkspaceMembersByUserIdData>>
+): UseMutationOptions<
+  DeleteWorkspaceMembersByUserIdResponse,
+  AxiosError<DeleteWorkspaceMembersByUserIdError>,
+  Options<DeleteWorkspaceMembersByUserIdData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    DeleteWorkspaceMembersByUserIdResponse,
+    AxiosError<DeleteWorkspaceMembersByUserIdError>,
+    Options<DeleteWorkspaceMembersByUserIdData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await deleteWorkspaceMembersByUserId({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+/**
+ * Change a member's role
+ * An admin or owner changes the role of a member or an admin. Only an owner makes an owner or changes one, and the last owner stays an owner (409).
+ */
+export const patchWorkspaceMembersByUserIdMutation = (
+  options?: Partial<Options<PatchWorkspaceMembersByUserIdData>>
+): UseMutationOptions<
+  PatchWorkspaceMembersByUserIdResponse,
+  AxiosError<PatchWorkspaceMembersByUserIdError>,
+  Options<PatchWorkspaceMembersByUserIdData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PatchWorkspaceMembersByUserIdResponse,
+    AxiosError<PatchWorkspaceMembersByUserIdError>,
+    Options<PatchWorkspaceMembersByUserIdData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await patchWorkspaceMembersByUserId({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const postWorkspacesQueryKey = (options: Options<PostWorkspacesData>) =>
+  createQueryKey("postWorkspaces", options);
+
+/**
+ * Create a workspace
+ * Any signed-in user makes a workspace and becomes its owner. It starts with the default settings of a new workspace. A user who owns as many workspaces as the install's default limit of owned workspaces (Admin → Settings, or WORKSPACE_LIMIT_OWNED_WORKSPACES) is refused (403 LIMIT_REACHED, limit owned_workspaces).
+ */
+export const postWorkspacesOptions = (options: Options<PostWorkspacesData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await postWorkspaces({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: postWorkspacesQueryKey(options),
+  });
+};
+
+/**
+ * Create a workspace
+ * Any signed-in user makes a workspace and becomes its owner. It starts with the default settings of a new workspace. A user who owns as many workspaces as the install's default limit of owned workspaces (Admin → Settings, or WORKSPACE_LIMIT_OWNED_WORKSPACES) is refused (403 LIMIT_REACHED, limit owned_workspaces).
+ */
+export const postWorkspacesMutation = (
+  options?: Partial<Options<PostWorkspacesData>>
+): UseMutationOptions<
+  PostWorkspacesResponse,
+  AxiosError<PostWorkspacesError>,
+  Options<PostWorkspacesData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PostWorkspacesResponse,
+    AxiosError<PostWorkspacesError>,
+    Options<PostWorkspacesData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await postWorkspaces({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
 export const getHealthRootQueryKey = (options?: Options<GetHealthRootData>) =>
   createQueryKey("getHealthRoot", options);
 
@@ -2907,4 +5035,182 @@ export const getHealthRootOptions = (options?: Options<GetHealthRootData>) => {
     },
     queryKey: getHealthRootQueryKey(options),
   });
+};
+
+export const probeGetAssignmentsQueryKey = (
+  options: Options<ProbeGetAssignmentsData>
+) => createQueryKey("probeGetAssignments", options);
+
+/**
+ * Get the monitors this instance runs
+ * A long poll. The answer is the monitors this instance of the probe runs, and a version that names the probe's assignment: its active monitors that are not push monitors and are of a type the probe supports, with their proxies, dealt among the probe's instances seen in the last 60 seconds so that each monitor runs on exactly one of them. Send the version you hold. If it is not the current one, or you send none, the server answers 200 at once. If it is, the server holds the request until a monitor of the probe is created, updated or deleted, or an instance of the probe joins or leaves, and answers 200 then; after 25 seconds without a change it answers 304 with no body, and the instance polls again. The reply is gzipped when Accept-Encoding allows it.
+ */
+export const probeGetAssignmentsOptions = (
+  options: Options<ProbeGetAssignmentsData>
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await probeGetAssignments({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: probeGetAssignmentsQueryKey(options),
+  });
+};
+
+export const probePostByeQueryKey = (options: Options<ProbePostByeData>) =>
+  createQueryKey("probePostBye", options);
+
+/**
+ * Say bye
+ * Tells the server that this instance is stopping, so that it takes the instance out of the dealing at once. The instance stays listed, and the probe counts as offline only after PROBE_OFFLINE_AFTER without any instance, so a restart is not an outage. An instance that never said hello is answered 409.
+ */
+export const probePostByeOptions = (options: Options<ProbePostByeData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await probePostBye({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: probePostByeQueryKey(options),
+  });
+};
+
+/**
+ * Say bye
+ * Tells the server that this instance is stopping, so that it takes the instance out of the dealing at once. The instance stays listed, and the probe counts as offline only after PROBE_OFFLINE_AFTER without any instance, so a restart is not an outage. An instance that never said hello is answered 409.
+ */
+export const probePostByeMutation = (
+  options?: Partial<Options<ProbePostByeData>>
+): UseMutationOptions<
+  ProbePostByeResponse,
+  AxiosError<ProbePostByeError>,
+  Options<ProbePostByeData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    ProbePostByeResponse,
+    AxiosError<ProbePostByeError>,
+    Options<ProbePostByeData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await probePostBye({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const probePostHelloQueryKey = (options: Options<ProbePostHelloData>) =>
+  createQueryKey("probePostHello", options);
+
+/**
+ * Say hello
+ * The first call of every probe instance. It records the instance and the monitor types its probe can run, and answers with the server's version and time, the probe's name and location, and the limits the probe works within. A protocol version below the server's minimum is answered 426. A probe holds at most 64 instances. A hello from a new instance past that replaces the probe's oldest instance that has not been seen for a minute, and is answered 429 with Retry-After: 60 when all 64 are running. A hello from an instance the probe already holds is never refused for this. The body may be gzipped (Content-Encoding: gzip), up to 1 MB once decompressed, and the reply is gzipped when Accept-Encoding allows it.
+ */
+export const probePostHelloOptions = (options: Options<ProbePostHelloData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await probePostHello({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: probePostHelloQueryKey(options),
+  });
+};
+
+/**
+ * Say hello
+ * The first call of every probe instance. It records the instance and the monitor types its probe can run, and answers with the server's version and time, the probe's name and location, and the limits the probe works within. A protocol version below the server's minimum is answered 426. A probe holds at most 64 instances. A hello from a new instance past that replaces the probe's oldest instance that has not been seen for a minute, and is answered 429 with Retry-After: 60 when all 64 are running. A hello from an instance the probe already holds is never refused for this. The body may be gzipped (Content-Encoding: gzip), up to 1 MB once decompressed, and the reply is gzipped when Accept-Encoding allows it.
+ */
+export const probePostHelloMutation = (
+  options?: Partial<Options<ProbePostHelloData>>
+): UseMutationOptions<
+  ProbePostHelloResponse,
+  AxiosError<ProbePostHelloError>,
+  Options<ProbePostHelloData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    ProbePostHelloResponse,
+    AxiosError<ProbePostHelloError>,
+    Options<ProbePostHelloData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await probePostHello({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const probePostResultsQueryKey = (
+  options: Options<ProbePostResultsData>
+) => createQueryKey("probePostResults", options);
+
+/**
+ * Send check results
+ * Sends the results of the checks this instance ran, at most 500 in one request. The answer holds one outcome for each result, in the order sent: accepted, or rejected with a reason. A rejected result is not stored and is not worth sending again, with one exception: the answer to a request that failed tells nothing, so the instance sends the whole batch again, and the results of it that were stored the first time are answered duplicate. A request fails with 500, or with 503 when the server could not take it just now, and also when another request holds the id of one of the results and has not stored it yet (it may still be at it, or it died), or when storing took longer than 90 seconds; that 503 carries a Retry-After of 5 seconds, which the instance waits before it sends the batch again. The reasons: unknown_monitor (there is no such monitor), not_assigned (the monitor is not one of this probe's active monitors that it can run), too_old (the check started more than an hour ago), duplicate (the server stored a result with this id from this probe in the last hour) and invalid (the result is malformed, or its start is more than a minute ahead of the server's clock). An accepted result is stored with the monitor's settings and maintenance state as they are now, in the order of the checks' start times for each monitor. The answer comes after the results are stored, by the API replica that took the request. The body may be gzipped (Content-Encoding: gzip), up to 1 MB once decompressed, and the reply is gzipped when Accept-Encoding allows it.
+ */
+export const probePostResultsOptions = (
+  options: Options<ProbePostResultsData>
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await probePostResults({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: probePostResultsQueryKey(options),
+  });
+};
+
+/**
+ * Send check results
+ * Sends the results of the checks this instance ran, at most 500 in one request. The answer holds one outcome for each result, in the order sent: accepted, or rejected with a reason. A rejected result is not stored and is not worth sending again, with one exception: the answer to a request that failed tells nothing, so the instance sends the whole batch again, and the results of it that were stored the first time are answered duplicate. A request fails with 500, or with 503 when the server could not take it just now, and also when another request holds the id of one of the results and has not stored it yet (it may still be at it, or it died), or when storing took longer than 90 seconds; that 503 carries a Retry-After of 5 seconds, which the instance waits before it sends the batch again. The reasons: unknown_monitor (there is no such monitor), not_assigned (the monitor is not one of this probe's active monitors that it can run), too_old (the check started more than an hour ago), duplicate (the server stored a result with this id from this probe in the last hour) and invalid (the result is malformed, or its start is more than a minute ahead of the server's clock). An accepted result is stored with the monitor's settings and maintenance state as they are now, in the order of the checks' start times for each monitor. The answer comes after the results are stored, by the API replica that took the request. The body may be gzipped (Content-Encoding: gzip), up to 1 MB once decompressed, and the reply is gzipped when Accept-Encoding allows it.
+ */
+export const probePostResultsMutation = (
+  options?: Partial<Options<ProbePostResultsData>>
+): UseMutationOptions<
+  ProbePostResultsResponse,
+  AxiosError<ProbePostResultsError>,
+  Options<ProbePostResultsData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    ProbePostResultsResponse,
+    AxiosError<ProbePostResultsError>,
+    Options<ProbePostResultsData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await probePostResults({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
 };

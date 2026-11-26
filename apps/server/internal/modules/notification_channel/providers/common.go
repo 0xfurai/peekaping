@@ -1,17 +1,33 @@
 package providers
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
-	"net"
+	"net/url"
+	"peekaping/internal/hostport"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
-	"peekaping/internal/utils"
-	"strconv"
+	"peekaping/internal/validation"
+	"strings"
 )
 
 func GenericValidator[T any](cfg *T) error {
-	return utils.Validate.Struct(cfg)
+	return validation.Validate.Struct(cfg)
+}
+
+// unknownLogHost stands in for the host of a URL that has none or does not parse
+const unknownLogHost = "[unknown host]"
+
+// logHost is the only part of a channel's URL its logs may show: the host and port. The rest can
+// carry a secret: userinfo with a password, a query token, a webhook token in the path. A URL
+// that does not parse gives no host rather than its own text, since the text could hold any of them.
+func logHost(rawURL string) string {
+	parsed, err := url.Parse(rawURL)
+	if err != nil || parsed.Host == "" {
+		return unknownLogHost
+	}
+	return parsed.Host
 }
 
 func GenericUnmarshal[T any](configJSON string) (*T, error) {
@@ -20,6 +36,39 @@ func GenericUnmarshal[T any](configJSON string) (*T, error) {
 		return nil, fmt.Errorf("failed to parse config: %w", err)
 	}
 	return &cfg, nil
+}
+
+// PublicURLSource gives the address of the web app at the moment of a send, for the links a
+// notification carries: CLIENT_URL, or the public URL an instance admin saved.
+// *installsettings.Resolver is one. A nil source gives no links.
+type PublicURLSource interface {
+	PublicURL(ctx context.Context) string
+}
+
+// publicURL is the source's address now, or "" without a source
+func publicURL(ctx context.Context, source PublicURLSource) string {
+	if source == nil {
+		return ""
+	}
+	return source.PublicURL(ctx)
+}
+
+// unknownMonitorName names the monitor of a notification that comes with none
+const unknownMonitorName = "Unknown Monitor"
+
+// peekapingLink returns the page of Peekaping that a notification links to: the Probes page for a
+// probe's notification, whose stand-in monitor has no page of its own, and otherwise the
+// monitor's page. baseURL is where the web app is served; with none, or with no monitor, there is
+// no link and it returns "".
+func peekapingLink(baseURL string, m *monitor.Model) string {
+	baseURL = strings.TrimRight(baseURL, "/")
+	if baseURL == "" || m == nil {
+		return ""
+	}
+	if m.IsProbeEvent() {
+		return baseURL + "/probes"
+	}
+	return baseURL + "/monitors/" + m.ID
 }
 
 // monitorAddress returns what a monitor checks: the URL of an HTTP monitor, or the host of a
@@ -43,7 +92,7 @@ func monitorAddress(m *monitor.Model) string {
 		return cfg.URL
 	case "tcp":
 		if cfg.Host != "" && cfg.Port > 0 {
-			return net.JoinHostPort(cfg.Host, strconv.Itoa(cfg.Port))
+			return hostport.Join(cfg.Host, cfg.Port)
 		}
 		return cfg.Host
 	case "ping", "dns":
@@ -52,6 +101,28 @@ func monitorAddress(m *monitor.Model) string {
 	default:
 		return ""
 	}
+}
+
+// shareableAddress returns a title and value for what the monitor checks, plus a link when it is
+// an HTTP(S) URL. Notifications are seen by everyone in the channel, so credentials, query and
+// fragment are dropped from URLs. It returns "" for all three when there is no address.
+func shareableAddress(m *monitor.Model) (title, value, link string) {
+	address := monitorAddress(m)
+	if address == "" {
+		return "", "", ""
+	}
+
+	u, err := url.Parse(address)
+	if err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" {
+		// A host or host:port, which isn't a link
+		return "Host", address, ""
+	}
+	u.User = nil
+	u.RawQuery = ""
+	u.ForceQuery = false
+	u.Fragment = ""
+	u.RawFragment = ""
+	return "URL", u.String(), u.String()
 }
 
 // PrepareTemplateBindings converts monitor and heartbeat objects to JSON representation
@@ -75,6 +146,10 @@ func PrepareTemplateBindings(monitor *monitor.Model, heartbeat *heartbeat.Model,
 		}
 
 		bindings["monitor"] = monitorJSON
+		// Where the monitor is Down, for templates: the names of the locations that are, and how many
+		// the monitor has
+		bindings["locations_down"] = LocationsDown(monitor)
+		bindings["locations_total"] = LocationsTotal(monitor)
 		// Use JSON field name for consistency
 		if name, ok := monitorJSON["name"].(string); ok {
 			bindings["name"] = name

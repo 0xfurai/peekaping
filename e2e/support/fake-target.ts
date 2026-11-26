@@ -13,8 +13,15 @@ export const targetURL = (id: string) => `http://${targetHost}:${targetPort}/tar
 // A URL a webhook notification channel can post to; receivedWebhooks reads it back.
 export const webhookURL = (id: string) => `http://${targetHost}:${targetPort}/webhooks/${id}`;
 
-export async function setTargetStatus(request: APIRequestContext, id: string, status: number) {
-  const response = await request.put(`${targetControlURL}/targets/${id}`, { data: { status } });
+export async function setTargetStatus(
+  request: APIRequestContext,
+  id: string,
+  status: number,
+  { rejectContentType = false }: { rejectContentType?: boolean } = {},
+) {
+  const response = await request.put(`${targetControlURL}/targets/${id}`, {
+    data: { status, rejectContentType },
+  });
   expect(response.ok(), `set e2e target ${id} to ${status}`).toBeTruthy();
 }
 
@@ -24,6 +31,8 @@ export type ReceivedWebhook = {
   // Webhook channels with the JSON body send {heartbeat, monitor, msg}.
   // heartbeat.time is an RFC 3339 timestamp with up to nanosecond precision.
   body: { heartbeat: { status: number; msg: string; time: string }; monitor: { name: string }; msg: string };
+  // The body as it was sent, for checking a signature over it.
+  rawBody: string;
 };
 
 export async function receivedWebhooks(request: APIRequestContext, id: string): Promise<ReceivedWebhook[]> {

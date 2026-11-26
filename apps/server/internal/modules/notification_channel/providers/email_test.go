@@ -9,6 +9,8 @@ import (
 	"testing"
 	"time"
 
+	"peekaping/internal/modules/heartbeat"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -22,7 +24,12 @@ type fakeSMTPServer struct {
 
 func startFakeSMTPServer(t *testing.T) *fakeSMTPServer {
 	t.Helper()
-	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	return startFakeSMTPServerOn(t, "127.0.0.1:0")
+}
+
+func startFakeSMTPServerOn(t *testing.T, addr string) *fakeSMTPServer {
+	t.Helper()
+	listener, err := net.Listen("tcp", addr)
 	require.NoError(t, err)
 	s := &fakeSMTPServer{listener: listener, sessions: make(chan string, 1)}
 	t.Cleanup(func() { _ = listener.Close() })
@@ -94,6 +101,9 @@ func (s *fakeSMTPServer) serve() {
 // smtpConfig is an SMTP channel's config without its server, which tests fill in
 const smtpConfig = `{"username": "alerts@example.com", "password": "smtp-pass", "from": "alerts@example.com", "to": "oncall@example.com"}`
 
+// smtpSecureConfig is smtpConfig with the SSL/TLS switch on
+const smtpSecureConfig = `{"smtp_secure": true, "username": "alerts@example.com", "password": "smtp-pass", "from": "alerts@example.com", "to": "oncall@example.com"}`
+
 // emailGoldenCases have no sender; they all use EmailSender. Their configs leave out the
 // SMTP server, which the test fills in.
 var emailGoldenCases = []goldenCase{
@@ -111,13 +121,47 @@ func TestEmailSender_SendGoldenRequests(t *testing.T) {
 			server := startFakeSMTPServer(t)
 			config := withSMTPServer(t, tc.config, server.port())
 			sender := NewEmailSender(nopLogger())
-			message, hb := goldenNotification(tc.event)
+			message, mon, hb := goldenNotification(tc.event)
 
 			require.NoError(t, sender.Validate(config), "the case's config must pass validation, as the listener checks it first")
-			require.NoError(t, sender.Send(context.Background(), config, message, goldenMonitor, hb))
+			require.NoError(t, sender.Send(context.Background(), config, message, mon, hb))
 
 			assertGolden(t, tc.name, <-server.sessions)
 		})
+	}
+}
+
+// TestEmailSender_SendToIPv6Host checks that an IPv6 address works as the SMTP host, bare or in brackets
+func TestEmailSender_SendToIPv6Host(t *testing.T) {
+	if l, err := net.Listen("tcp", "[::1]:0"); err != nil {
+		t.Skipf("no IPv6 loopback: %v", err)
+	} else {
+		_ = l.Close()
+	}
+	for _, host := range []string{"::1", "[::1]"} {
+		t.Run(host, func(t *testing.T) {
+			server := startFakeSMTPServerOn(t, "[::1]:0")
+			config := strings.Replace(withSMTPServer(t, emailGoldenCases[1].config, server.port()), "127.0.0.1", host, 1)
+			message, mon, hb := goldenNotification(emailGoldenCases[1].event)
+
+			require.NoError(t, NewEmailSender(nopLogger()).Send(context.Background(), config, message, mon, hb))
+
+			assert.Contains(t, <-server.sessions, "EHLO")
+		})
+	}
+}
+
+// TestEmailSender_SendWithoutAMonitor checks that a template that names the monitor renders, and
+// doesn't panic, when the notification has none
+func TestEmailSender_SendWithoutAMonitor(t *testing.T) {
+	for _, withHeartbeat := range []*heartbeat.Model{nil, goldenDown, goldenUp} {
+		server := startFakeSMTPServer(t)
+		config := withSMTPServer(t, emailGoldenCases[1].config, server.port())
+
+		require.NotPanics(t, func() {
+			assert.NoError(t, NewEmailSender(nopLogger()).Send(context.Background(), config, "A message with no monitor", nil, withHeartbeat))
+		})
+		assert.Contains(t, <-server.sessions, "A message with no monitor")
 	}
 }
 
@@ -126,6 +170,19 @@ func withSMTPServer(t *testing.T, config string, port int) string {
 	t.Helper()
 	require.True(t, strings.HasPrefix(config, "{"))
 	return fmt.Sprintf(`{"smtp_host": "127.0.0.1", "smtp_port": %d, %s`, port, config[1:])
+}
+
+// TestEmailSender_SecureSpeaksTLSFirst checks that the SSL/TLS switch wraps the connection in TLS
+// from the first byte: against a server that answers in the clear, the send must fail in the TLS
+// handshake, not in an SMTP exchange as it would if the switch only asked for STARTTLS
+func TestEmailSender_SecureSpeaksTLSFirst(t *testing.T) {
+	server := startFakeSMTPServer(t)
+	config := withSMTPServer(t, smtpSecureConfig, server.port())
+
+	err := NewEmailSender(nopLogger()).Send(context.Background(), config, "Monitor is down", testMonitor(), testHeartbeat())
+
+	require.Error(t, err, "the fake server answers in the clear, so the TLS handshake must fail")
+	assert.NotContains(t, err.Error(), "STARTTLS")
 }
 
 func TestEmailSender_SendStopsAtContextDeadline(t *testing.T) {

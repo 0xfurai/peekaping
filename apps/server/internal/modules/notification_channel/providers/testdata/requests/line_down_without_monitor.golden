@@ -1,0 +1,13 @@
+POST https://api.line.me/v2/bot/message/push
+Authorization: Bearer line-token
+Content-Type: application/json
+
+{
+  "messages": [
+    {
+      "text": "Peekaping Alert: [🔴 Down]\nName: Unknown Monitor\nconnection refused\nTime: 2026-10-17T09:30:00Z",
+      "type": "text"
+    }
+  ],
+  "to": "U123"
+}

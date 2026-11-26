@@ -3,20 +3,294 @@
     "cancel": "Batal",
     "saving": "Menyimpan..."
   },
+  "admin": {
+    "nav": {
+      "back_to_workspace": "Kembali ke {{name}}",
+      "probes": "Probe",
+      "title": "Admin",
+      "users": "Pengguna",
+      "workspaces": "Ruang kerja",
+      "settings": "Pengaturan"
+    },
+    "users": {
+      "actions": {
+        "delete": "Hapus pengguna",
+        "disable": "Nonaktifkan pengguna",
+        "disableTwoFactor": "Matikan 2FA",
+        "enable": "Aktifkan pengguna",
+        "grantAdmin": "Jadikan admin instans",
+        "resetLink": "Buat tautan reset",
+        "revokeAdmin": "Cabut admin instans"
+      },
+      "actions_aria": "Tindakan untuk {{email}}",
+      "columns": {
+        "created": "Dibuat",
+        "email": "Email",
+        "email_verified": "Email terverifikasi",
+        "instance_admin": "Admin instans",
+        "last_sign_in": "Login terakhir",
+        "status": "Status",
+        "two_factor": "2FA",
+        "workspaces": "Ruang kerja"
+      },
+      "confirm": {
+        "cancel": "Batal",
+        "delete": {
+          "confirm": "Hapus pengguna",
+          "description": "Hapus {{email}}? Akunnya dihapus, begitu juga posisinya di ruang kerja. Tindakan ini tidak bisa dibatalkan.",
+          "title": "Hapus pengguna"
+        },
+        "disable": {
+          "confirm": "Nonaktifkan",
+          "description": "{{email}} tidak bisa login dan kini dikeluarkan dari semua sesi. Ruang kerjanya tetap berjalan. Anda bisa mengaktifkannya lagi nanti.",
+          "title": "Nonaktifkan pengguna"
+        },
+        "disableTwoFactor": {
+          "confirm": "Matikan 2FA",
+          "description": "{{email}} akan login hanya dengan kata sandi dan bisa menyiapkan 2FA lagi. Lakukan ini hanya setelah Anda yakin memang dia yang meminta.",
+          "title": "Matikan 2FA"
+        }
+      },
+      "description": "Semua orang yang punya akun di instalasi ini. Admin instans mengelola instalasi itu sendiri, seperti probe dan pengguna. Peran pengguna di sebuah ruang kerja ditentukan oleh pemilik ruang kerja tersebut.",
+      "empty": "Pengguna tidak ditemukan",
+      "errors": {
+        "last_instance_admin": "Instalasi memerlukan setidaknya satu admin instans.",
+        "last_owner": "Pengguna ini adalah pemilik terakhir {{workspaces}}. Jadikan orang lain pemilik, atau hapus ruang kerjanya, terlebih dahulu.",
+        "self": "Anda tidak bisa melakukan ini pada akun Anda sendiri."
+      },
+      "load_failed": "Gagal memuat pengguna.",
+      "messages": {
+        "admin_granted": "{{email}} kini menjadi admin instans",
+        "admin_revoked": "{{email}} tidak lagi menjadi admin instans",
+        "deleted": "{{email}} dihapus",
+        "disabled": "{{email}} dinonaktifkan dan dikeluarkan dari sesi",
+        "enabled": "{{email}} diaktifkan",
+        "two_factor_off": "2FA dimatikan untuk {{email}}",
+        "update_failed": "Gagal memperbarui pengguna."
+      },
+      "never": "Belum pernah",
+      "none": "Tidak ada",
+      "page_name": "Pengguna",
+      "paging": {
+        "next": "Berikutnya",
+        "page": "Halaman {{page}} dari {{pages}}",
+        "previous": "Sebelumnya"
+      },
+      "reset_link": {
+        "close": "Tutup",
+        "copied": "Tautan disalin",
+        "copy": "Salin tautan",
+        "copy_failed": "Gagal menyalin tautan. Pilih lalu salin secara manual.",
+        "description": "Tautan bagi {{email}} untuk memilih kata sandi baru. Salin dan berikan sekarang: tautan ini hanya ditampilkan sekali.",
+        "emailed": "Instalasi ini mengirim email akun, jadi pengguna diberi tahu lewat email bahwa tautan dibuat untuk mereka.",
+        "expires": "Tautan hanya berlaku sekali dan kedaluwarsa {{when}}.",
+        "failed": "Gagal membuat tautan.",
+        "label": "Tautan",
+        "making": "Membuat tautan...",
+        "signs_out": "Memakai tautan ini akan mengeluarkan pengguna dari semua sesi.",
+        "title": "Tautan reset kata sandi"
+      },
+      "search_label": "Cari pengguna berdasarkan email",
+      "search_placeholder": "Cari berdasarkan email",
+      "total": "{{total}} ditemukan",
+      "values": {
+        "active": "Aktif",
+        "disabled": "Nonaktif",
+        "no": "Tidak",
+        "two_factor_off": "Nonaktif",
+        "two_factor_on": "Aktif",
+        "yes": "Ya"
+      },
+      "you": "Anda"
+    },
+    "workspaces": {
+      "actions": {
+        "delete": "Hapus ruang kerja",
+        "resume": "Aktifkan kembali ruang kerja",
+        "suspend": "Tangguhkan ruang kerja",
+        "limits": "Batas"
+      },
+      "actions_aria": "Tindakan untuk {{name}}",
+      "columns": {
+        "created": "Dibuat",
+        "custom_domains": "Domain kustom",
+        "members": "Anggota",
+        "monitors": "Pengawasan",
+        "name": "Nama",
+        "owners": "Pemilik",
+        "status": "Status",
+        "status_pages": "Halaman status",
+        "limits": "Batas"
+      },
+      "confirm": {
+        "cancel": "Batal",
+        "delete": {
+          "confirm": "Hapus ruang kerja",
+          "description": "Hapus {{name}}? Semua isinya ikut terhapus: pengawasan beserta riwayatnya, halaman status, saluran pemberitahuan, dan akses anggotanya. Tindakan ini tidak bisa dibatalkan.",
+          "name_label": "Ketik nama ruang kerja untuk mengonfirmasi: {{name}}",
+          "title": "Hapus ruang kerja"
+        },
+        "resume": {
+          "confirm": "Aktifkan kembali",
+          "description": "Pengawasan di {{name}} berjalan lagi dengan status seperti sebelumnya, dan anggotanya bisa menggunakannya seperti biasa. Ruang kerja yang menunggu verifikasi email pemiliknya tetap menunggu.",
+          "title": "Aktifkan kembali ruang kerja"
+        },
+        "suspend": {
+          "confirm": "Tangguhkan",
+          "description": "Pengawasan di {{name}} berhenti berjalan, halaman status publiknya menyatakan tidak tersedia, dan anggotanya melihat bahwa ruang kerja ini ditangguhkan. Tidak ada yang dihapus, dan Anda bisa mengaktifkannya kembali nanti.",
+          "title": "Tangguhkan ruang kerja"
+        }
+      },
+      "description": "Semua ruang kerja di instalasi ini, beserta pemilik, anggota, dan seberapa banyak isinya. Hanya jumlah yang ditampilkan, bukan isi ruang kerja.",
+      "empty": "Ruang kerja tidak ditemukan",
+      "load_failed": "Gagal memuat ruang kerja.",
+      "messages": {
+        "deleted": "{{name}} dihapus",
+        "failed": "Gagal mengubah ruang kerja.",
+        "resumed": "{{name}} diaktifkan kembali",
+        "suspended": "{{name}} ditangguhkan"
+      },
+      "monitors": "{{active}} aktif, {{paused}} dijeda",
+      "none": "Tidak ada",
+      "page_name": "Ruang kerja",
+      "paging": {
+        "next": "Berikutnya",
+        "page": "Halaman {{page}} dari {{pages}}",
+        "previous": "Sebelumnya"
+      },
+      "search_label": "Cari ruang kerja berdasarkan nama atau email pemilik",
+      "search_placeholder": "Cari berdasarkan nama atau email pemilik",
+      "status": {
+        "running": "Berjalan",
+        "suspended_admin": "Ditangguhkan oleh admin",
+        "suspended_unverified": "Ditangguhkan sampai pemilik memverifikasi emailnya"
+      },
+      "total": "{{total}} ditemukan",
+      "limits": {
+        "item": "{{name}}: {{value}}",
+        "more": "+{{number}} lagi",
+        "unlimited": "Tanpa batas",
+        "source": {
+          "workspace": "Milik sendiri",
+          "install": "Default instalasi",
+          "none": "Belum diatur"
+        },
+        "dialog": {
+          "title": "Batas {{name}}",
+          "description": "Hal yang membatasi ruang kerja ini. Menurunkan batas tidak menjeda atau menghapus apa pun: monitor terbaru yang melewati batas berhenti berjalan sampai ada ruang lagi.",
+          "own": "Batas sendiri",
+          "own_help": "Ini menggantikan default instalasi. Kosongkan batas jika tidak ingin ada batas.",
+          "unlimited": "Tanpa batas",
+          "unlimited_help": "Sama sekali tanpa batas, apa pun kata default instalasi.",
+          "defaults": "Gunakan default instalasi",
+          "defaults_help": "Batas default di Admin → Pengaturan, atau tanpa batas jika instalasi tidak menetapkannya.",
+          "save": "Simpan batas",
+          "cancel": "Batal",
+          "saved": "Batas {{name}} telah disimpan",
+          "failed": "Batas tidak dapat disimpan."
+        }
+      }
+    },
+    "settings": {
+      "page_name": "Pengaturan",
+      "description": "Pengaturan seluruh instalasi. Nilai yang diatur oleh lingkungan server dikunci di sini.",
+      "load_failed": "Pengaturan tidak dapat dimuat.",
+      "saved": "Pengaturan disimpan",
+      "save_failed": "Pengaturan tidak disimpan.",
+      "locked": "Diatur oleh lingkungan server",
+      "source": {
+        "environment": "Dari lingkungan server",
+        "saved": "Disimpan di sini",
+        "default": "Bawaan"
+      },
+      "signup": {
+        "title": "Pendaftaran",
+        "description": "Siapa yang boleh membuat akun di instalasi ini.",
+        "label": "Mode pendaftaran",
+        "invite": "Hanya dengan undangan",
+        "open": "Terbuka",
+        "invite_help": "Pengguna pertama mendaftar, dan semua orang setelahnya bergabung ke ruang kerja melalui undangan.",
+        "open_help": "Siapa pun bisa mendaftar dan mendapat ruang kerja sendiri. Akun baru memverifikasi alamat emailnya, jadi ini memerlukan pengirim email."
+      },
+      "sender": {
+        "title": "Pengirim email",
+        "description": "Server SMTP yang mengirim email akun: tautan atur ulang kata sandi, verifikasi email, dan undangan.",
+        "on": "Email akun aktif.",
+        "off": "Email akun nonaktif: tidak ada host SMTP.",
+        "host": "Host SMTP",
+        "port": "Port",
+        "tls": "Keamanan",
+        "tls_starttls": "STARTTLS",
+        "tls_tls": "TLS",
+        "tls_none": "Tidak ada",
+        "user": "Pengguna",
+        "password": "Kata Sandi",
+        "password_set": "Kata sandi sudah diatur. Ketik untuk menggantinya.",
+        "password_not_set": "Belum ada kata sandi",
+        "password_removed": "Kata sandi dihapus saat Anda menyimpan.",
+        "password_reenter": "Mengubah host, port, keamanan, atau pengguna akan menghapus kata sandi yang tersimpan. Masukkan lagi.",
+        "remove_password": "Hapus kata sandi",
+        "keep_password": "Pertahankan kata sandi",
+        "from": "Alamat pengirim"
+      },
+      "public_url": {
+        "title": "URL publik",
+        "description": "Alamat aplikasi web, yang dibuka oleh tautan di email dan notifikasi.",
+        "label": "URL publik"
+      },
+      "test_email": {
+        "title": "Kirim email uji",
+        "description": "Mengirim email singkat melalui pengirim yang disimpan, untuk memeriksa apakah berfungsi.",
+        "to": "Kirim ke",
+        "send": "Kirim email uji",
+        "sending": "Mengirim…",
+        "sent": "Email uji dikirim ke {{to}}.",
+        "failed": "Email uji tidak terkirim.",
+        "unsaved": "Pengirim memiliki perubahan yang belum disimpan. Pengujian memakai pengirim yang disimpan, jadi simpan dulu."
+      },
+      "validation": {
+        "port": "Masukkan port dari 1 hingga 65535, atau biarkan kosong untuk nilai bawaan."
+      },
+      "errors": {
+        "locked": "{{field}} diatur oleh lingkungan server dan tidak dapat diubah di sini.",
+        "open_needs_sender": "Pendaftaran terbuka memerlukan pengirim email, karena akun baru memverifikasi alamat emailnya. Atur pengirim terlebih dahulu, atau dalam penyimpanan yang sama.",
+        "sender_needed": "Pendaftaran terbuka, dan akun baru memerlukan pengirim untuk memverifikasi alamat emailnya. Ubah pendaftaran ke hanya dengan undangan terlebih dahulu.",
+        "no_sender": "Tidak ada pengirim email. Simpan pengirim terlebih dahulu."
+      },
+      "limits": {
+        "title": "Batas default",
+        "description": "Batas setiap ruang kerja yang tidak punya batas sendiri. Kosongkan batas jika tidak ingin ada batas. Batas yang diberikan ke ruang kerja di halaman Ruang kerja menggantikan batas ini.",
+        "name_label": "Nama batas default",
+        "name_help": "Ditampilkan di halaman Penggunaan ruang kerja, misalnya Paket gratis. Jika dikosongkan, halaman menyatakan bahwa administrator Anda yang menetapkan batas."
+      }
+    }
+  },
   "auth": {
     "login": {
       "description": "Masuk dengan email Anda",
       "no_account": "Tidak punya akun?",
       "sign_up": "Daftar",
       "submit": "Masuk",
-      "title": "Selamat datang kembali"
+      "title": "Selamat datang kembali",
+      "forgot_password": "Lupa kata sandi?",
+      "ask_admin": "Minta undangan dari admin instalasi ini"
     },
     "register": {
       "description": "Buat akun admin Anda",
+      "description_open": "Buat akun Anda",
       "have_account": "Sudah punya akun?",
       "sign_in": "Masuk",
       "submit": "Buat",
-      "title": "Halo"
+      "title": "Halo",
+      "telemetry_note": "Anonim: tanpa nama pengawasan, URL, atau host. Anda dapat mengubahnya nanti di “Pengaturan”.",
+      "telemetry_whats_sent": "Apa yang dikirim",
+      "errors": {
+        "rate_limited": "Terlalu banyak pendaftaran dari jaringan Anda. Coba lagi dalam satu jam.",
+        "email_taken": "Sudah ada akun dengan email ini.",
+        "sign_in_instead": "Masuk saja.",
+        "check_failed": "Pemeriksaan tidak lolos. Coba lagi.",
+        "check_load_failed": "Pemeriksaan gagal dimuat. Periksa koneksi Anda dan coba lagi."
+      }
     },
     "twofa": {
       "code_label": "Kode 2FA",
@@ -25,11 +299,51 @@
       "title": "Autentikasi Dua Faktor Diperlukan",
       "verify_button": "Verifikasi 2FA",
       "verifying": "Memverifikasi..."
+    },
+    "forgot": {
+      "title": "Atur ulang kata sandi",
+      "description": "Masukkan email akun Anda dan kami akan mengirimkan tautan.",
+      "submit": "Kirim tautan",
+      "sent": "Jika ada akun dengan email ini, kami telah mengirim tautan. Tautan berlaku selama satu jam.",
+      "back_to_login": "Kembali ke halaman masuk"
+    },
+    "reset": {
+      "title": "Pilih kata sandi baru",
+      "description": "Masukkan kata sandi baru untuk akun Anda.",
+      "submit": "Atur kata sandi",
+      "success": "Kata sandi Anda telah diubah dan Anda dikeluarkan dari semua perangkat. Masuk dengan kata sandi baru.",
+      "sign_in": "Masuk",
+      "invalid_link": "Tautan ini sudah dipakai atau kedaluwarsa.",
+      "request_new": "Minta tautan baru"
+    },
+    "verify": {
+      "title": "Verifikasi email Anda",
+      "verifying": "Memverifikasi email Anda...",
+      "success": "Email Anda sudah terverifikasi.",
+      "open_app": "Buka Peekaping",
+      "invalid_link": "Tautan ini sudah dipakai atau kedaluwarsa."
+    },
+    "errors": {
+      "rate_limited": "Terlalu banyak permintaan. Coba lagi nanti.",
+      "generic": "Terjadi kesalahan. Coba lagi.",
+      "already_verified": "Email Anda sudah terverifikasi."
+    },
+    "resend": {
+      "button": "Kirim ulang",
+      "sent": "Kami telah mengirim tautan baru. Periksa kotak masuk Anda."
+    },
+    "verification_banner": {
+      "message": "Verifikasi email Anda: kami telah mengirim tautan ke {{email}}."
+    },
+    "suspension_notice": {
+      "message": "Monitor Anda mulai berjalan setelah Anda memverifikasi email.",
+      "member_message": "Monitor ruang kerja ini mulai berjalan setelah pemiliknya memverifikasi email."
     }
   },
   "bars": {
     "down_count": "Jumlah Downtime",
     "important": "Penting",
+    "instance": "Instans",
     "interval": "Interval",
     "message": "Pesan",
     "ms": "ms",
@@ -65,10 +379,12 @@
     "loading": "Memuat...",
     "logout": "Keluar",
     "maintenance": "Pemeliharaan",
+    "no_data": "Tidak ada data",
     "no_options_found": "Tidak ada opsi yang ditemukan",
     "no_tags_available": "Tidak ada tag tersedia",
     "please_refresh_page": "Silakan muat ulang halaman.",
     "required": "Wajib",
+    "retry": "Coba lagi",
     "save": "Simpan",
     "saving": "Menyimpan...",
     "search": "Cari",
@@ -83,6 +399,12 @@
     "up": "Berjalan",
     "update": "Perbarui",
     "verifying": "Memverifikasi..."
+  },
+  "error_reporting": {
+    "label": "Kirim laporan kesalahan",
+    "never_sent": "Tidak pernah dikirim: pesan kesalahan, URL, header, URL webhook, nama, atau nama host. Laporan tidak berisi alamat IP, dan proyek Sentry milik Peekaping diatur agar tidak menyimpan IP pengirim.",
+    "not_saved": "Pilihan Anda tentang laporan kesalahan tidak tersimpan. Periksa di “Pengaturan”.",
+    "sent": "Hanya dikirim saat Peekaping sendiri mengalami crash. Laporan berisi jenis kesalahan dan lokasi di dalam kode tempat terjadinya, versi Peekaping, mode tunggal atau klaster, backend penyimpanan, serta sistem operasi."
   },
   "forms": {
     "labels": {
@@ -113,7 +435,35 @@
       "email_invalid": "Silakan masukkan alamat email yang valid",
       "password_required": "Kata sandi wajib diisi",
       "password_min_length": "Kata sandi harus minimal 8 karakter",
+      "password_complexity": "Kata sandi harus mengandung huruf besar, huruf kecil, angka, dan karakter khusus",
       "passwords_mismatch": "Kata sandi tidak cocok"
+    }
+  },
+  "invite": {
+    "accept": "Terima undangan",
+    "accepting": "Bergabung...",
+    "creating": "Membuat...",
+    "description": "Anda diundang untuk bergabung dengan {{workspace}} sebagai {{role}}.",
+    "enter_failed": "Anda telah bergabung dengan ruang kerja, tetapi gagal membukanya. Coba lagi.",
+    "errors": {
+      "other_email": "Undangan ini untuk alamat email lain."
+    },
+    "for_email": "Undangan ini untuk {{email}}.",
+    "have_account": "Sudah punya akun?",
+    "open_app": "Buka Peekaping",
+    "other_account": "Anda masuk sebagai {{current}}, tetapi undangan ini untuk {{invited}}. Keluar, lalu masuk atau daftar dengan {{invited}} untuk menerimanya.",
+    "sign_in_instead": "Masuk saja",
+    "sign_out": "Keluar",
+    "signup_description": "Pilih kata sandi untuk membuat akun Anda dan bergabung dengan {{workspace}} sebagai {{role}}.",
+    "signup_submit": "Buat akun dan bergabung",
+    "title": "Bergabung dengan {{workspace}}",
+    "unavailable": {
+      "accepted": "Undangan ini sudah digunakan.",
+      "expired": "Undangan ini sudah kedaluwarsa. Minta yang baru.",
+      "not_found": "Tautan undangan ini tidak ada. Pastikan Anda menyalinnya secara lengkap.",
+      "revoked": "Undangan ini telah dicabut. Minta yang baru.",
+      "title": "Undangan ini tidak dapat digunakan",
+      "unknown": "Undangan ini tidak dapat digunakan. Minta yang baru."
     }
   },
   "maintenance": {
@@ -221,6 +571,79 @@
       "wed": "Rabu"
     }
   },
+  "members": {
+    "change_role_aria": "Ubah peran {{email}}",
+    "errors": {
+      "account_exists": "Akun dengan email ini sudah ada. Masuk dan terima undangan.",
+      "already_member": "Orang ini sudah menjadi anggota ruang kerja ini.",
+      "forbidden": "Peran Anda di ruang kerja ini tidak mengizinkan hal ini.",
+      "generic": "Terjadi kesalahan. Silakan coba lagi.",
+      "last_owner": "Ruang kerja memerlukan setidaknya satu pemilik.",
+      "member_not_found": "Anggota ini sudah tidak ada di ruang kerja."
+    },
+    "invite": {
+      "copied": "Tautan disalin",
+      "copy": "Salin",
+      "creating": "Membuat...",
+      "description": "Buat tautan untuk alamat email dan peran. Tidak ada email yang dikirim: salin tautan dan kirim sendiri.",
+      "done": "Selesai",
+      "email_label": "Email",
+      "link_note": "Tautan ini hanya berlaku sekali dan kedaluwarsa dalam 7 hari. Tautan hanya ditampilkan sekarang, jadi salin sebelum Anda meninggalkan halaman ini.",
+      "link_title": "Tautan undangan",
+      "role_label": "Peran",
+      "submit": "Buat tautan undangan",
+      "title": "Undang seseorang"
+    },
+    "leave": {
+      "button": "Tinggalkan ruang kerja",
+      "confirm": "Tinggalkan",
+      "description": "Anda langsung kehilangan akses ke ruang kerja ini beserta datanya.",
+      "done": "Anda telah meninggalkan ruang kerja",
+      "last_owner": "Anda adalah pemilik terakhir, jadi Anda tidak bisa pergi. Jadikan anggota lain sebagai pemilik terlebih dahulu.",
+      "refresh_failed": "Anda telah keluar dari ruang kerja, tetapi gagal memuat ruang kerja Anda. Coba lagi.",
+      "title": "Tinggalkan ruang kerja ini"
+    },
+    "list": {
+      "description": "Semua orang yang bekerja di ruang kerja ini beserta perannya.",
+      "email": "Email",
+      "joined": "Bergabung",
+      "role": "Peran",
+      "title": "Anggota",
+      "you": "Anda"
+    },
+    "page_name": "Anggota",
+    "pending": {
+      "description": "Undangan yang belum digunakan. Tautan undangan yang dicabut tidak lagi berfungsi.",
+      "email": "Email",
+      "empty": "Tidak ada undangan tertunda.",
+      "expired": "Kedaluwarsa",
+      "expires": "Berakhir",
+      "revoke": "Cabut",
+      "revoke_aria": "Cabut undangan untuk {{email}}",
+      "revoked": "Undangan dicabut",
+      "role": "Peran",
+      "title": "Undangan tertunda"
+    },
+    "remove": "Hapus",
+    "remove_aria": "Hapus {{email}}",
+    "remove_dialog": {
+      "confirm": "Hapus",
+      "description": "{{email}} langsung kehilangan akses ke ruang kerja ini.",
+      "title": "Hapus anggota"
+    },
+    "removed": "Anggota dihapus",
+    "role_updated": "Peran diperbarui",
+    "roles": {
+      "admin": "Admin",
+      "member": "Anggota",
+      "owner": "Pemilik"
+    },
+    "settings_card": {
+      "description": "Lihat siapa saja yang bekerja di ruang kerja ini dan, jika Anda admin atau pemilik, undang orang serta kelola peran mereka.",
+      "open": "Buka anggota",
+      "title": "Anggota"
+    }
+  },
   "messages": {
     "login_error": "Terjadi kesalahan saat login",
     "login_no_tokens": "Login berhasil, tetapi tidak ada token yang diterima",
@@ -248,6 +671,7 @@
     },
     "empty_state": {
       "action": "Buat monitor pertama Anda",
+      "add_channel": "Tambahkan saluran notifikasi",
       "description": "Mulailah dengan membuat monitor pertama Anda untuk melacak kesehatan layanan Anda.",
       "title": "Tidak ada monitor yang ditemukan"
     },
@@ -490,12 +914,25 @@
       "shared": {
         "intervals": {
           "heartbeat_retry": "Interval Ulang Heartbeat (Ulang setiap {{seconds}} detik)",
+          "interval_too_short": "Tidak boleh kurang dari {{minimum}} detik",
           "max_retries_description": "Maksimum percobaan ulang sebelum layanan dinyatakan tidak aktif dan notifikasi dikirim",
           "request_timeout": "Waktu Permintaan Habis (Timeout setelah {{seconds}} detik)",
-          "resend_notification": "Kirim ulang pemberitahuan jika Down X kali berturut-turut (Kirim ulang dinonaktifkan)"
+          "resend_notification": "Kirim ulang pemberitahuan jika Down X kali berturut-turut (Kirim ulang dinonaktifkan)",
+          "timeout_too_long": "Tidak boleh lebih dari 80% interval pemeriksaan"
+        },
+        "location_rule": {
+          "all": "semua lokasi tidak tersedia",
+          "any": "salah satu lokasi tidak tersedia",
+          "at_least": "setidaknya N lokasi tidak tersedia",
+          "description": "Lokasi yang probe-nya offline, atau belum melaporkan hasil, tidak dihitung.",
+          "label": "Tandai monitor sebagai tidak tersedia ketika",
+          "threshold_invalid": "Masukkan bilangan bulat, 1 atau lebih",
+          "threshold_label": "Jumlah lokasi",
+          "threshold_too_high": "Tidak boleh lebih dari jumlah probe yang Anda pilih"
         },
         "notifications": {
           "add_notifier": "Tambah Pemberitahuan",
+          "load_failed": "Gagal memuat saluran notifikasi",
           "new_notifier": "+ Notifier Baru",
           "no_channels": "Tidak ada saluran notifikasi, buat satu terlebih dahulu",
           "no_channels_available": "Tidak ada saluran tersedia",
@@ -503,6 +940,15 @@
           "select_notifier_placeholder": "Pilih Notifier",
           "selected_channels": "Saluran Notifikasi yang Dipilih",
           "title": "Saluran Pemberitahuan"
+        },
+        "probe": {
+          "description": "Monitor berjalan di setiap probe yang Anda pilih dan menampilkan hasil masing-masing sebagai lokasi.",
+          "label": "Probe",
+          "option_unsupported": "{{name}} (tidak menjalankan tipe ini)",
+          "placeholder": "Pilih probe",
+          "push_fixed": "Monitor Push selalu berjalan pada probe lokal.",
+          "required": "Pilih setidaknya satu probe",
+          "unsupported": "Probe ini tidak menjalankan tipe monitor ini. Pilih probe lain."
         },
         "proxy": {
           "add_proxy": "Tambahkan Proxy",
@@ -512,6 +958,10 @@
           "select_proxy_placeholder": "Pilih Proxy",
           "selected_proxy": "Proxy Terpilih",
           "title": "Proksi"
+        },
+        "run_from": {
+          "default_locations": "Berjalan di lokasi bawaan",
+          "label": "Jalankan dari"
         },
         "tags": {
           "label": "Tag",
@@ -563,6 +1013,8 @@
         "docker": "Kontainer Docker",
         "grpc": "Pemantau Kata Kunci gRPC",
         "http": "Pemantau HTTP(S)",
+        "http_json_query": "HTTP(s) - Kueri JSON",
+        "http_keyword": "HTTP(s) - Kata Kunci",
         "kafka": "Pemantau Produser Kafka",
         "mongodb": "Pemantau Database MongoDB",
         "mqtt": "Pemantau Broker MQTT",
@@ -617,9 +1069,12 @@
     "toasts": {
       "deleted": "Monitor dihapus",
       "paused": "Pemantauan dijeda",
+      "push_token_already_used": "Monitor lain sudah menggunakan token push ini. Buat token baru.",
       "reset_success": "Data monitor berhasil direset",
       "resumed": "Pemantauan dilanjutkan"
     },
+    "type_disabled": "Tipe {{type}} dinonaktifkan pada instalasi ini",
+    "over_limit": "Tidak diperiksa: ruang kerja memiliki lebih banyak monitor aktif daripada yang diizinkan batasnya",
     "view": {
       "buttons": {
         "clone": "Duplikat",
@@ -649,6 +1104,15 @@
       "expiring_soon": "Segera kedaluwarsa",
       "for": "untuk",
       "live_status": "Status Langsung",
+      "locations": {
+        "all": "Semua lokasi",
+        "no_result": "Belum ada hasil",
+        "probe_offline": "Probe sedang offline",
+        "probe_unsupported": "Tidak menjalankan tipe ini",
+        "response_time": "Waktu respons",
+        "select_label": "Lokasi",
+        "title": "Lokasi"
+      },
       "monitor_for": "Pantau untuk",
       "no_certificate_data": "Tidak ada data sertifikat",
       "seconds": "detik",
@@ -671,9 +1135,11 @@
     }
   },
   "navigation": {
+    "admin": "Admin",
     "maintenance": "Pemeliharaan",
     "monitors": "Pengawasan",
     "notification_channels": "Saluran Pemberitahuan",
+    "probes": "Probe",
     "proxies": "Proksi",
     "settings": "Pengaturan",
     "status_pages": "Halaman Status",
@@ -854,9 +1320,9 @@
       "pagerduty": {
         "auto_resolve_acknowledge": "Otomatis Mengakui",
         "auto_resolve_acknowledge_description": "Mengakui insiden secara otomatis",
-        "auto_resolve_description": "Pilih tindakan apa yang akan diambil ketika monitor kembali online",
+        "auto_resolve_description": "Pilih apa yang dikirim ketika monitor kembali berjalan atau probe kembali online",
         "auto_resolve_do_nothing": "Tidak melakukan apa-apa",
-        "auto_resolve_do_nothing_description": "Tidak ada tindakan yang diambil pada status UP",
+        "auto_resolve_do_nothing_description": "Tidak ada yang dikirim ketika monitor kembali berjalan atau probe kembali online, sehingga insiden tetap terbuka sampai Anda menyelesaikannya di PagerDuty",
         "auto_resolve_label": "Selesaikan Otomatis atau Konfirmasi",
         "auto_resolve_placeholder": "Pilih perilaku penyelesaian otomatis",
         "auto_resolve_resolve": "Resolusi Otomatis",
@@ -879,7 +1345,7 @@
         "authentication_token_description": "Token autentikasi opsional untuk keamanan yang lebih baik. Token ini akan dikirim dalam header pagertree-token.",
         "authentication_token_label": "Token Autentikasi (Opsional)",
         "authentication_token_placeholder": "Masukkan token otentikasi jika diperlukan",
-        "auto_resolve_alerts_description": "Secara otomatis menyelesaikan peringatan PagerTree ketika monitor pulih.",
+        "auto_resolve_alerts_description": "Secara otomatis menyelesaikan peringatan PagerTree ketika monitor kembali berjalan atau probe kembali online.",
         "auto_resolve_alerts_label": "Selesaikan Peringatan Otomatis",
         "how_to_get_integration_url_label": "Cara mendapatkan URL integrasi",
         "integration_url_description": "Masukkan URL integrasi webhook PagerTree Anda.",
@@ -1082,6 +1548,12 @@
         "signing_secret_docs_link": "Cara memverifikasi tanda tangan",
         "signing_secret_label": "Rahasia Penandatanganan",
         "signing_secret_placeholder": "Biarkan kosong untuk mengirim permintaan tanpa tanda tangan"
+      },
+      "install_email": {
+        "description": "Dikirim oleh instalasi ini, tidak perlu server SMTP.",
+        "to_description": "Anggota ruang kerja ini. Notifikasi dikirim setelah ia memverifikasi alamatnya.",
+        "to_label": "Penerima",
+        "to_placeholder": "Pilih anggota"
       }
     },
     "important": "Notifikasi Penting",
@@ -1100,13 +1572,150 @@
       "updated_success": "Notifier berhasil diperbarui"
     },
     "new": {
-      "title": "Saluran Pemberitahuan Baru"
+      "title": "Saluran Pemberitahuan Baru",
+      "default_hint": "Saluran ini akan dicentang pada monitor baru."
     },
     "no_important": "Tidak ada notifikasi penting.",
     "placeholders": {
       "select_type": "Pilih tipe notifier"
     },
-    "search_placeholder": "Cari saluran notifikasi berdasarkan nama..."
+    "search_placeholder": "Cari saluran notifikasi berdasarkan nama...",
+    "secret": {
+      "reenter_error": "Masukkan ulang rahasia ini atau hapus: tujuan pengirimannya berubah",
+      "reenter_hint": "Masukkan ulang rahasia ini: tujuan pengirimannya berubah",
+      "reenter_url_error": "Ketik ulang kredensial URL ini: URL berubah sejak disimpan",
+      "remove": "Hapus",
+      "saved_hint": "Tersimpan — ketik untuk mengganti"
+    }
+  },
+  "probes": {
+    "default": {
+      "description": "Monitor yang dibuat tanpa memilih probe berjalan di probe default yang tidak nonaktif dan mendukung tipenya, dan di probe lokal jika tidak ada. Monitor yang sudah ada tetap memakai probenya.",
+      "failed": "Gagal mengubah status default probe.",
+      "label": "Probe default",
+      "off": "{{name}} tidak lagi menjadi probe default",
+      "on": "{{name}} kini menjadi probe default",
+      "title": "Default untuk monitor baru"
+    },
+    "default_badge": "Default",
+    "page_name": "Probe",
+    "description": "Probe menjalankan pemeriksaan monitor dari tempat probe tersebut dipasang. Probe lokal adalah Peekaping itu sendiri.",
+    "local_name": "Lokal",
+    "monitor_probe": "Probe: {{name}}",
+    "monitor_probe_unsupported": "{{name}} tidak menjalankan monitor {{type}}",
+    "empty_list": {
+      "title": "Tidak ada probe ditemukan",
+      "text": "Buat probe untuk menjalankan pemeriksaan dari tempat lain.",
+      "action_text": "Buat probe pertama Anda"
+    },
+    "table": {
+      "headers": {
+        "name": "Nama",
+        "location": "Lokasi",
+        "status": "Status",
+        "disabled": "Nonaktif",
+        "token": "Token",
+        "instances": "Instans",
+        "actions": "Aksi"
+      },
+      "status": {
+        "online": "Online",
+        "offline": "Offline"
+      },
+      "disabled": "Nonaktif",
+      "no_instances": "Belum ada instans",
+      "last_seen": "terakhir terlihat {{date}}",
+      "actions": {
+        "edit": "Edit probe {{name}}",
+        "rotate": "Ganti token probe {{name}}",
+        "assign_all": "Tetapkan probe {{name}} ke semua monitor",
+        "delete": "Hapus probe {{name}}"
+      }
+    },
+    "create_dialog": {
+      "title": "Buat probe",
+      "description": "Probe menjalankan pemeriksaan dari tempat Anda memasangnya. Tokennya hanya ditampilkan sekali, setelah Anda membuatnya.",
+      "submit": "Buat probe",
+      "creating": "Membuat..."
+    },
+    "assign_all": {
+      "warning": "Token membaca konfigurasi setiap monitor yang ditetapkan ke probe, termasuk kredensial.",
+      "docs_link": "Apa yang dapat dibaca token"
+    },
+    "assign_all_dialog": {
+      "title": "Tetapkan ke semua monitor",
+      "description": "Tambahkan probe {{name}} ke setiap monitor yang dapat dijalankannya, kecuali monitor push. Probe yang belum punya instans ditambahkan saat instans pertamanya terhubung.",
+      "confirm": "Tetapkan ke semua monitor",
+      "assigning": "Menetapkan..."
+    },
+    "edit_dialog": {
+      "title": "Edit probe",
+      "description": "Ubah pengaturan {{name}}."
+    },
+    "form": {
+      "name_label": "Nama",
+      "name_placeholder": "mis., Frankfurt",
+      "location_label": "Lokasi (opsional)",
+      "location_placeholder": "mis., Frankfurt, Jerman",
+      "assign_all_label": "Tetapkan ke semua monitor",
+      "assign_all_description": "Saat instans pertamanya terhubung, probe ditambahkan ke setiap monitor yang dapat dijalankannya, kecuali monitor push.",
+      "name_required": "Nama wajib diisi",
+      "name_too_long": "Nama terlalu panjang",
+      "location_too_long": "Lokasi terlalu panjang",
+      "disabled_label": "Nonaktif",
+      "disabled_description": "Token probe yang dinonaktifkan berhenti berfungsi sampai Anda mengaktifkannya lagi.",
+      "notifications_hint": "Biarkan kosong untuk memberi tahu saluran dari pengawasan probe ini."
+    },
+    "rotate_dialog": {
+      "title": "Ganti token",
+      "description": "Token lama probe {{name}} langsung berhenti berfungsi. Instansnya harus dimulai ulang dengan token baru.",
+      "confirm": "Ganti token",
+      "rotating": "Mengganti..."
+    },
+    "delete_dialog": {
+      "title": "Hapus probe",
+      "description": "Yakin ingin menghapus probe \"{{name}}\"? Tokennya akan berhenti berfungsi. Tindakan ini tidak dapat dibatalkan."
+    },
+    "token_alert": {
+      "title_created": "Probe {{name}} dibuat",
+      "title_rotated": "Token baru untuk probe {{name}}",
+      "note": "Token ini membaca konfigurasi monitor yang ditetapkan ke probe. Token hanya ditampilkan sekali.",
+      "token_label": "Token",
+      "docker_label": "Jalankan probe dengan Docker",
+      "copy_token": "Salin token",
+      "copy_command": "Salin perintah docker"
+    },
+    "messages": {
+      "created_successfully": "Probe berhasil dibuat",
+      "updated_successfully": "Probe berhasil diperbarui",
+      "rotated_successfully": "Token berhasil diganti",
+      "assigned_successfully": "Monitor ditambahkan: {{added}}",
+      "assign_pending": "Probe akan ditambahkan ke setiap monitor yang dijalankannya saat terhubung",
+      "deleted_successfully": "Probe berhasil dihapus",
+      "failed_to_create": "Gagal membuat probe",
+      "failed_to_update": "Gagal memperbarui probe",
+      "failed_to_rotate": "Gagal mengganti token",
+      "failed_to_assign": "Gagal menetapkan probe ke semua monitor",
+      "failed_to_delete": "Gagal menghapus probe",
+      "failed_to_load": "Gagal memuat probe",
+      "copy_success": "Disalin ke clipboard",
+      "copy_failed": "Tidak dapat menyalin ke clipboard"
+    },
+    "detail": {
+      "assign_all_pending": "Menunggu instans pertamanya: probe akan ditambahkan ke setiap monitor yang dijalankannya saat terhubung.",
+      "not_found": "Probe tidak ditemukan"
+    },
+    "availability": {
+      "title": "Ketersediaan",
+      "range_label": "Rentang waktu",
+      "bar_label": "Riwayat ketersediaan",
+      "instance_bar_label": "Koneksi {{name}}",
+      "no_data": "Tidak ada data",
+      "now": "Sekarang",
+      "instances_title": "Instans, 24 jam terakhir",
+      "in_process_note": "Peekaping sendiri yang memeriksa monitor probe lokal, sehingga probe ini tidak memiliki riwayat ketersediaan.",
+      "connected_since": "Terhubung sejak {{start}}"
+    }
   },
   "proxies": {
     "delete_dialog": {
@@ -1145,6 +1754,20 @@
     "search_placeholder": "Cari proksi berdasarkan host..."
   },
   "security": {
+    "delete_account": {
+      "button": "Hapus akun",
+      "description": "Menghapus akun Anda dan mengakhiri sesi Anda. Anda keluar dari semua ruang kerja yang Anda ikuti. Tindakan ini tidak dapat dibatalkan.",
+      "dialog_description": "Akun Anda langsung dihapus dan Anda keluar. Anda keluar dari semua ruang kerja yang Anda ikuti. Tindakan ini tidak dapat dibatalkan.",
+      "errors": {
+        "last_instance_admin": "Anda adalah admin instans terakhir di instalasi ini. Diperlukan admin instans lain sebelum Anda dapat menghapus akun Anda.",
+        "last_owner": "Anda satu-satunya pemilik {{workspaces}}. Jadikan anggota lain sebagai pemilik, atau hapus ruang kerja terlebih dahulu.",
+        "wrong_password": "Kata sandi salah"
+      },
+      "failed": "Gagal menghapus akun",
+      "password_label": "Kata sandi Anda",
+      "success": "Akun Anda telah dihapus",
+      "title": "Hapus akun"
+    },
     "enable_2fa": {
       "form": {
         "authenticator_code_label": "Kode Authenticator",
@@ -1267,10 +1890,35 @@
     "to_email_label": "Email Tujuan"
   },
   "settings": {
+    "danger_zone": {
+      "button": "Hapus ruang kerja",
+      "description": "Menghapus ruang kerja ini menghapus semua isinya secara permanen: pengawasan, detak jantung, halaman status, dan lainnya. Penghapusan terjadi 7 hari setelah Anda mengonfirmasi. Pengawasannya langsung berhenti, dan pemilik dapat membatalkan penghapusan hingga saat itu.",
+      "dialog_description": "Ini menghapus {{name}} beserta semua isinya, 7 hari dari sekarang. Pengawasannya langsung berhenti, dan Anda dapat membatalkan penghapusan hingga saat itu.",
+      "failed": "Gagal menjadwalkan penghapusan",
+      "name_label": "Ketik nama ruang kerja, {{name}}, untuk mengonfirmasi",
+      "scheduled": "Ruang kerja ini akan dihapus pada {{date}}. Pengawasannya tidak berjalan hingga saat itu. Batalkan penghapusan untuk memulihkan semuanya.",
+      "title": "Zona berbahaya"
+    },
     "data_retention": {
       "days_label": "Hari",
       "description": "Tetapkan berapa hari data akan disimpan (KEEP_DATA_PERIOD_DAYS).",
-      "title": "Periode Retensi Data"
+      "read_only": "Hanya admin atau pemilik ruang kerja yang dapat mengubah ini.",
+      "title": "Periode Retensi Data",
+      "capped": "Hingga {{max}} hari di ruang kerja ini"
+    },
+    "error_reporting": {
+      "cluster_note": "Dalam mode klaster, perubahan sampai ke setiap proses dalam waktu satu menit.",
+      "description": "Kirim laporan ke Sentry saat server mengalami crash. Aktif secara default; Anda dapat menonaktifkannya di sini kapan saja.",
+      "forced_off": "Variabel lingkungan ERROR_REPORTING=off menonaktifkan ini. Tidak ada yang dikirim, apa pun isi pengaturan ini.",
+      "title": "Laporan kesalahan"
+    },
+    "telemetry": {
+      "description": "Kirim statistik anonim tentang cara instalasi ini diatur, paling banyak sekali sehari. Aktif secara default; Anda dapat menonaktifkannya di sini kapan saja.",
+      "forced_off": "Variabel lingkungan TELEMETRY=off menonaktifkan ini. Tidak ada yang dikirim, apa pun isi pengaturan ini.",
+      "id_note": "ID instans dibuat selama opsi ini aktif dan dihapus saat Anda menonaktifkannya. Mengaktifkannya lagi akan membuat ID baru.",
+      "payload_off": "Tidak ada yang dikirim selama ini nonaktif. Inilah isi ping penggunaan jika Anda mengaktifkannya.",
+      "payload_title": "Apa yang akan dikirim ping penggunaan berikutnya",
+      "title": "Statistik penggunaan"
     },
     "timezone": {
       "description": "Pilih zona waktu yang Anda sukai untuk menampilkan semua waktu di aplikasi.",
@@ -1282,6 +1930,73 @@
     },
     "validation": {
       "min_days": "Harus minimal 1 hari"
+    },
+    "workspace_name": {
+      "description": "Nama yang ditampilkan di pengalih ruang kerja dan kepada anggotanya.",
+      "title": "Nama ruang kerja"
+    },
+    "workspace_export": {
+      "title": "Ekspor",
+      "description": "Unduh pengaturan ruang kerja ini sebagai satu file JSON: pengaturan, tag, proxy, saluran pemberitahuan, monitor, jendela pemeliharaan, dan halaman status. Pemilik dapat mengimpor file ini ke ruang kerja lain.",
+      "warning_title": "File ini berisi rahasia tersimpan",
+      "warning": "Token bot, kata sandi, dan URL webhook dari saluran pemberitahuan dan proxy Anda ada di dalamnya secara lengkap, tidak disembunyikan. Simpan file ini seperti kata sandi, dan jangan bagikan kepada siapa pun yang tidak boleh memilikinya.",
+      "download_workspace": "Unduh ruang kerja",
+      "download_heartbeats": "Unduh riwayat detak jantung",
+      "heartbeats_note": "Riwayat detak jantung adalah file terpisah dan bisa berukuran besar. Isinya satu baris untuk setiap pemeriksaan dari setiap monitor.",
+      "downloading": "Mengunduh...",
+      "failed": "Gagal mengunduh ruang kerja",
+      "heartbeats_failed": "Gagal mengunduh riwayat detak jantung"
+    },
+    "workspace_import": {
+      "title": "Impor",
+      "description": "Tambahkan data dari file ekspor ruang kerja ke ruang kerja ini. Tidak ada yang diganti: data masuk berdampingan dengan yang sudah ada.",
+      "file_label": "File ekspor ruang kerja (.json)",
+      "choose": "Pilih file",
+      "not_json": "File ini bukan JSON yang valid, jadi tidak ada yang dikirim.",
+      "too_large": "File ini lebih besar dari 16 MB, batas maksimum untuk impor, jadi tidak ada yang dikirim.",
+      "unreadable": "File ini tidak dapat dibaca. Pilih lagi, atau pastikan file tersebut masih ada.",
+      "confirm_title": "Impor {{file}}?",
+      "confirm_description": "Datanya ditambahkan berdampingan dengan yang sudah ada di ruang kerja ini. Tidak ada yang diganti, dan mengimpor file yang sama dua kali akan menambahkannya dua kali. Monitor mulai berjalan segera setelah ditambahkan.",
+      "confirm_button": "Impor",
+      "importing": "Mengimpor...",
+      "failed": "Gagal mengimpor file",
+      "problems_title": "File tidak dapat diimpor",
+      "problems_description": "Tidak ada yang ditambahkan ke ruang kerja ini. Perbaiki masalah berikut di file, lalu impor lagi:",
+      "result_title": "Impor selesai",
+      "created_title": "Ditambahkan ke ruang kerja ini",
+      "nothing_created": "Tidak ada yang ditambahkan.",
+      "changes_title": "Diubah agar sesuai dengan ruang kerja ini",
+      "no_changes": "Semuanya masuk sesuai isi file.",
+      "close": "Tutup",
+      "created": {
+        "tags": "Tag",
+        "proxies": "Proxy",
+        "notificationChannels": "Saluran pemberitahuan",
+        "monitors": "Monitor",
+        "maintenances": "Jendela pemeliharaan",
+        "statusPages": "Halaman status"
+      },
+      "changes": {
+        "tag_reused": "Tag \"{{name}}\" sudah ada di ruang kerja ini, jadi monitornya memakai tag tersebut.",
+        "proxy_skipped_target_not_allowed": "Proxy {{name}} dilewati: instalasi ini memblokir alamatnya.",
+        "monitor_proxy_dropped": "Monitor \"{{name}}\" masuk tanpa proxy {{from}}, yang dilewati.",
+        "channel_skipped": "Saluran pemberitahuan \"{{name}}\" dilewati: instalasi atau ruang kerja ini tidak dapat menerimanya.",
+        "channel_skipped_target_not_allowed": "Saluran pemberitahuan \"{{name}}\" dilewati: instalasi ini memblokir alamat tujuan pengirimannya.",
+        "channel_skipped_no_install_sender": "Saluran pemberitahuan \"{{name}}\" dilewati: instalasi ini tidak memiliki pengirim untuk email.",
+        "channel_skipped_recipient_not_member": "Saluran pemberitahuan \"{{name}}\" dilewati: penerima emailnya bukan anggota ruang kerja ini.",
+        "monitor_skipped_type_disabled": "Monitor \"{{name}}\" dilewati: instalasi ini menonaktifkan monitor bertipe {{reason}}.",
+        "monitor_skipped_target_not_allowed": "Monitor \"{{name}}\" dilewati: instalasi ini memblokir targetnya {{reason}}.",
+        "monitor_interval_raised": "Monitor \"{{name}}\" memeriksa setiap {{to}} detik, bukan {{from}}, yaitu yang tersingkat yang diizinkan instalasi ini.",
+        "monitor_retry_interval_raised": "Monitor \"{{name}}\" mencoba ulang pemeriksaan yang gagal setiap {{to}} detik, bukan {{from}}, yaitu yang tersingkat yang diizinkan instalasi ini.",
+        "push_token_replaced": "Monitor \"{{name}}\" mendapat token push baru, karena monitor lain memegang token yang ada di file. Perbarui alamat tujuan pengiriman job Anda.",
+        "monitor_paused_over_limit": "Monitor \"{{name}}\" masuk dalam keadaan dijeda: paket ruang kerja ini tidak punya ruang untuk monitor lain yang berjalan.",
+        "status_page_slug_changed": "Halaman status \"{{name}}\" memiliki alamat {{to}}, bukan {{from}}, karena alamat itu sudah dipakai.",
+        "status_page_skipped_over_limit": "Halaman status \"{{name}}\" dilewati: paket ruang kerja ini tidak punya ruang untuk halaman lainnya.",
+        "custom_domain_dropped": "Domain kustom {{name}} dilewati: halaman status lain sudah memakainya.",
+        "custom_domain_dropped_over_limit": "Domain kustom {{name}} dilewati: paket ruang kerja ini tidak punya ruang untuk domain lainnya.",
+        "retention_capped": "Periode retensi data adalah {{to}} hari, bukan {{from}}, yaitu yang terlama yang diizinkan paket ruang kerja ini.",
+        "unknown": "Impor mengubah {{subject}} ({{kind}})."
+      }
     }
   },
   "status": {
@@ -1291,12 +2006,14 @@
       "last_updated": "Terakhir Diperbarui",
       "maintenance": "Pemeliharaan",
       "no_monitors_configured": "Tidak ada monitor yang dikonfigurasi untuk halaman status ini.",
+      "not_monitored": "Tidak dipantau",
       "operational": "Operasional",
       "partial_system_outage": "Gangguan Sistem Parsial",
       "powered_by": "Didukung oleh",
       "refresh_in": "Segarkan dalam",
       "refresh_now": "Segarkan Sekarang",
       "status_page_not_found": "Halaman status tidak ditemukan atau belum dipublikasikan.",
+      "status_page_unavailable": "Halaman status ini tidak tersedia",
       "under_maintenance": "Sedang dalam Pemeliharaan",
       "unknown": "Tidak diketahui"
     }
@@ -1315,7 +2032,35 @@
     "description": "Masukkan deskripsi halaman status",
     "domain_already_used": "Domain {{domain}} sudah digunakan oleh halaman status lain",
     "domain_host_warning": "Domain ini sama dengan URL host Anda saat ini. Hal ini dapat menyebabkan konflik.",
+    "domain_verification": {
+      "add_one_record": "Tambahkan salah satu rekaman ini di penyedia DNS Anda. Satu sudah cukup.",
+      "check_failed": "Tidak dapat memeriksa {{domain}}",
+      "check_now": "Periksa sekarang",
+      "checking": "Memeriksa...",
+      "cname_record": "Rekaman CNAME",
+      "copy": "Salin {{label}}",
+      "copy_failed": "Gagal menyalin ke papan klip",
+      "copy_success": "Disalin ke papan klip",
+      "info": "Setiap domain menyajikan halaman ini setelah rekaman DNS membuktikan bahwa domain itu mengarah ke Peekaping.",
+      "last_checked": "Terakhir diperiksa: {{time}}",
+      "name": "Nama",
+      "not_checked": "Belum diperiksa",
+      "pending_note": "Domain yang menunggu tidak menyajikan halaman ini dan tidak mendapat sertifikat.",
+      "records_load_failed": "Catatan DNS tidak dapat dimuat",
+      "records_missing_note": "Rekaman DNS-nya hilang sejak {{time}}. Setelah 24 jam, domain kembali menunggu.",
+      "removed_on": "Akan dihapus pada {{date}} jika tidak diverifikasi",
+      "save_to_see_records": "Simpan halaman untuk melihat rekaman DNS yang perlu ditambahkan",
+      "state": {
+        "pending": "Menunggu",
+        "records_missing": "Rekaman hilang",
+        "verified": "Terverifikasi"
+      },
+      "target": "Mengarah ke",
+      "txt_record": "Rekaman TXT",
+      "value": "Nilai"
+    },
     "domains": "Domain",
+    "domains_docs_link": "Domain kustom dan HTTPS",
     "domains_info_warning": "Jangan lupa menambahkan catatan CNAME ke DNS Anda untuk setiap domain.",
     "draft_status": "Konsep",
     "edit_page_name": "Ubah Halaman Status",
@@ -1338,6 +2083,9 @@
     "published_status": "Terbit",
     "search_label": "Cari",
     "search_placeholder": "Cari halaman status berdasarkan judul...",
+    "show_locations": "Tampilkan setiap lokasi",
+    "show_locations_info": "Untuk monitor yang diperiksa dari beberapa lokasi, tampilkan status dan riwayat setiap lokasi",
+    "slug_already_used": "Halaman status lain sudah menggunakan alamat ini",
     "update_status_page": "Perbarui Halaman Status",
     "view_page": "Lihat Halaman"
   },
@@ -1368,6 +2116,18 @@
     "new_page_name": "Tag Baru",
     "search_placeholder": "Cari tag..."
   },
+  "telemetry": {
+    "docs_link": "Apa yang dikirim dan cara mematikannya",
+    "label": "Kirim statistik penggunaan anonim",
+    "not_saved": "Pilihan Anda tentang statistik penggunaan tidak tersimpan. Periksa di “Pengaturan”."
+  },
+  "telemetry_notice": {
+    "error_reports": "Laporan kesalahan aktif. Jika Peekaping mengalami crash, ia mengirim jenis kesalahan dan lokasi di dalam kode tempat terjadinya, versinya, mode, backend penyimpanan, dan sistem operasi. Tidak pernah mengirim pesan kesalahan, URL, atau nama host.",
+    "settings_errors": "Nonaktifkan laporan kesalahan di “Pengaturan”",
+    "settings_usage": "Nonaktifkan statistik penggunaan di “Pengaturan”",
+    "title": "Pengiriman data anonim aktif secara default",
+    "usage_statistics": "Statistik penggunaan aktif. Paling banyak sekali sehari, Peekaping mengirim ID instans acak, versinya, mode, backend penyimpanan, dan sistem operasi, rentang jumlah pengawasan Anda, jenis pengawasan dan saluran notifikasi yang Anda gunakan, serta apakah Anda menggunakan halaman status, jendela pemeliharaan, dan metrik. Tidak pernah mengirim nama, URL, host, atau pengaturan."
+  },
   "theme": {
     "dark": "Gelap",
     "light": "Terang",
@@ -1391,5 +2151,123 @@
   "ui": {
     "general": "Umum",
     "intervals_retries": "Interval, Ulang, Timeout"
+  },
+  "workspaces": {
+    "create": "Buat ruang kerja",
+    "create_error": "Gagal membuat ruang kerja",
+    "create_first": "Buat ruang kerja",
+    "creating": "Membuat...",
+    "deletion": {
+      "cancel": "Batalkan penghapusan",
+      "cancel_failed": "Gagal membatalkan penghapusan",
+      "cancelled": "Penghapusan dibatalkan",
+      "member_message": "Ruang kerja ini akan dihapus pada {{date}}. Pengawasannya tidak berjalan, dan halaman statusnya tidak tersedia. Pemilik dapat membatalkan penghapusan hingga saat itu.",
+      "message": "Ruang kerja ini akan dihapus pada {{date}}. Pengawasannya tidak berjalan, dan halaman statusnya tidak tersedia. Anda dapat membatalkan penghapusan hingga saat itu."
+    },
+    "enter": "Buka ruang kerja",
+    "entering": "Membuka...",
+    "entry_failed": "Ruang kerja berhasil dibuat, tetapi gagal dibuka. Coba lagi.",
+    "name_label": "Nama",
+    "name_placeholder": "Tim saya",
+    "name_required": "Masukkan nama",
+    "new": "Ruang kerja baru",
+    "new_description": "Ruang kerja memiliki pengawasan, saluran pemberitahuan, halaman status, dan anggotanya sendiri. Anda akan menjadi pemiliknya.",
+    "new_title": "Ruang kerja baru",
+    "none_description": "Akun Anda bukan anggota ruang kerja mana pun, jadi tidak ada yang bisa ditampilkan di sini. Minta seseorang yang mengelola ruang kerja untuk menambahkan Anda.",
+    "none_title": "Anda belum berada di ruang kerja mana pun",
+    "refresh_failed": "Ruang kerja Anda tidak dapat dimuat. Periksa koneksi Anda dan coba lagi.",
+    "rename_error": "Gagal mengganti nama ruang kerja",
+    "rename_success": "Ruang kerja diganti namanya",
+    "suspended_banner": {
+      "contact": "Untuk menghubungi:",
+      "message": "Ruang kerja ini ditangguhkan oleh administrator instalasi ini. Pengawasannya tidak berjalan, dan halaman statusnya tidak tersedia.",
+      "no_contact": "Hubungi orang yang mengelola instalasi ini."
+    },
+    "switcher_label": "Ganti ruang kerja"
+  },
+  "get_started": {
+    "page_name": "Mulai",
+    "skip": "Lewati penyiapan",
+    "step_of": "Langkah {{current}} dari {{total}}",
+    "name": {
+      "description": "Di sini tempat monitor, saluran notifikasi, dan halaman status Anda. Anda dapat mengganti namanya nanti di Pengaturan.",
+      "title": "Beri nama ruang kerja Anda"
+    },
+    "monitor": {
+      "create": "Buat monitor",
+      "create_failed": "Gagal membuat monitor",
+      "creating": "Membuat...",
+      "description": "Masukkan alamat situs web atau API. Peekaping memeriksanya dan memberi tahu Anda saat berhenti merespons.",
+      "full_form": "Atau siapkan monitor dengan semua opsi",
+      "title": "Tambahkan monitor pertama Anda",
+      "url_invalid": "Masukkan alamat yang diawali http:// atau https://",
+      "url_label": "Alamat yang dipantau"
+    },
+    "channel": {
+      "continue_unlinked": "Lanjutkan tanpa menautkan",
+      "description": "Pilih ke mana Peekaping mengirim peringatan saat monitor Anda mati. Ini menjadi default untuk monitor baru.",
+      "link_failed": "Saluran telah disimpan, tetapi gagal menautkannya ke monitor Anda. Tambahkan di halaman edit monitor.",
+      "retry_link": "Coba tautkan lagi",
+      "title": "Dapatkan notifikasi"
+    },
+    "done": {
+      "description": "Peekaping sedang memantau layanan Anda. Berikut yang bisa Anda lakukan selanjutnya.",
+      "title": "Semua siap",
+      "unverified": "Monitor Anda berjalan setelah alamat email Anda diverifikasi. Periksa kotak masuk untuk tautan verifikasi.",
+      "links": {
+        "members": "Undang tim Anda",
+        "monitor": "Buka monitor Anda",
+        "monitors": "Buka daftar monitor",
+        "probes": "Kelola probe",
+        "status_pages": "Publikasikan halaman status"
+      }
+    }
+  },
+  "limits": {
+    "reached": {
+      "monitors": "Ruang kerja ini dapat memiliki paling banyak {{max}} monitor yang berjalan",
+      "status_pages": "Ruang kerja ini dapat memiliki paling banyak {{max}} halaman status",
+      "custom_domains": "Halaman status ruang kerja ini dapat memiliki paling banyak {{max}} domain kustom secara total",
+      "members": "Ruang kerja ini dapat memiliki paling banyak {{max}} anggota, termasuk undangan yang tertunda",
+      "owned_workspaces": "Anda dapat memiliki paling banyak {{max}} ruang kerja",
+      "probes": "Sebuah monitor di ruang kerja ini dapat berjalan di paling banyak {{max}} probe",
+      "retention_days": "Ruang kerja ini dapat menyimpan data paling lama {{max}} hari"
+    },
+    "names": {
+      "monitors": "Monitor aktif",
+      "min_check_interval": "Interval pemeriksaan terpendek (detik)",
+      "status_pages": "Halaman status",
+      "custom_domains": "Domain kustom",
+      "members": "Anggota",
+      "owned_workspaces": "Ruang kerja yang boleh dimiliki satu pengguna",
+      "probes_per_monitor": "Probe per monitor",
+      "retention_days": "Retensi data (hari)"
+    },
+    "none": "Tanpa batas",
+    "invalid": "Masukkan bilangan bulat 1 atau lebih, atau kosongkan untuk tanpa batas.",
+    "retention_too_long": "Tidak boleh lebih dari {{max}} hari"
+  },
+  "usage": {
+    "title": "Penggunaan",
+    "description": "Seberapa banyak batas yang dipakai ruang kerja ini.",
+    "open": "Buka penggunaan",
+    "plan": "Paket",
+    "set_by_admin": "Ditetapkan oleh administrator Anda",
+    "count": {
+      "monitors": "{{used}} dari {{max}} monitor",
+      "status_pages": "{{used}} dari {{max}} halaman status",
+      "custom_domains": "{{used}} dari {{max}} domain kustom",
+      "members": "{{used}} dari {{max}} anggota, termasuk undangan yang tertunda",
+      "owned_workspaces": "Anda memiliki {{used}} dari {{max}} ruang kerja",
+      "probes_per_monitor": "Hingga {{used}} dari {{max}} probe pada satu monitor"
+    },
+    "labels": {
+      "min_check_interval": "Interval pemeriksaan terpendek",
+      "retention_days": "Retensi data terlama"
+    },
+    "seconds": "{{value}} detik",
+    "days": "{{value}} hari",
+    "near": "Mendekati batas",
+    "reached": "Mencapai batas"
   }
 }

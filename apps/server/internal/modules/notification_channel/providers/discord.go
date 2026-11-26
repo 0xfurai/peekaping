@@ -16,7 +16,7 @@ import (
 )
 
 type DiscordConfig struct {
-	WebhookURL          string `json:"webhook_url" validate:"required,url"`
+	WebhookURL          string `json:"webhook_url" validate:"required,url" secret:"true" endpoint:"true" target:"url"`
 	BotDisplayName      string `json:"bot_display_name"`
 	CustomMessagePrefix string `json:"custom_message_prefix"`
 	MessageType         string `json:"message_type" validate:"omitempty,oneof=send_to_channel send_to_new_forum_post send_to_thread"`
@@ -62,55 +62,17 @@ func (s *DiscordSender) Send(
 	bindings := PrepareTemplateBindings(monitor, heartbeat, message)
 
 	s.logger.Infof("Sending Discord message: %s", message)
-	s.logger.Debugf("Available bindings: %s", bindings)
-
-	var finalMessage string
 
 	finalEmbed := createDiscordEmbed(bindings, heartbeat != nil)
 
 	s.logger.Debug(finalEmbed)
 
-	// Add custom message prefix if provided
-	if cfg.CustomMessagePrefix != "" {
-		finalMessage = cfg.CustomMessagePrefix
+	webhookURL, err := discordWebhookURL(cfg)
+	if err != nil {
+		return err
 	}
 
-	// Prepare Discord webhook payload
-	var payload map[string]interface{}
-
-	if cfg.MessageType == "send_to_new_forum_post" {
-		payload = map[string]interface{}{
-			"content":     finalMessage,
-			"embeds":      [1]map[string]interface{}{finalEmbed},
-			"attachments": []*string{},
-			"thread_name": cfg.ThreadName,
-		}
-	} else {
-		payload = map[string]interface{}{
-			"content":     finalMessage,
-			"embeds":      [1]map[string]interface{}{finalEmbed},
-			"attachments": []*string{},
-		}
-	}
-
-	if cfg.MessageType == "send_to_thread" {
-		if cfg.ThreadID != "" {
-			parsedURL, err := url.Parse(cfg.WebhookURL)
-			if err == nil {
-				q := parsedURL.Query()
-				q.Set("thread_id", cfg.ThreadID)
-				parsedURL.RawQuery = q.Encode()
-				cfg.WebhookURL = parsedURL.String()
-			} else {
-				return fmt.Errorf("invalid webhook URL: %w", err)
-			}
-		}
-	}
-
-	// Add bot display name if provided
-	if cfg.BotDisplayName != "" {
-		payload["username"] = cfg.BotDisplayName
-	}
+	payload := discordPayload(cfg, finalEmbed)
 
 	// Convert payload to JSON
 	jsonPayload, err := json.Marshal(payload)
@@ -119,7 +81,7 @@ func (s *DiscordSender) Send(
 	}
 
 	// Create HTTP request
-	req, err := http.NewRequestWithContext(ctx, "POST", cfg.WebhookURL, bytes.NewBuffer(jsonPayload))
+	req, err := http.NewRequestWithContext(ctx, "POST", webhookURL, bytes.NewBuffer(jsonPayload))
 	if err != nil {
 		return fmt.Errorf("failed to create request: %w", err)
 	}
@@ -141,6 +103,39 @@ func (s *DiscordSender) Send(
 
 	s.logger.Infof("Discord message sent successfully")
 	return nil
+}
+
+// discordPayload builds the webhook payload: the custom message prefix as the content, the embed,
+// the bot's display name if one is set, and for a new forum post the name of its thread
+func discordPayload(cfg *DiscordConfig, embed map[string]interface{}) map[string]interface{} {
+	payload := map[string]interface{}{
+		"content":     cfg.CustomMessagePrefix,
+		"embeds":      [1]map[string]interface{}{embed},
+		"attachments": []*string{},
+	}
+	if cfg.MessageType == "send_to_new_forum_post" {
+		payload["thread_name"] = cfg.ThreadName
+	}
+	if cfg.BotDisplayName != "" {
+		payload["username"] = cfg.BotDisplayName
+	}
+	return payload
+}
+
+// discordWebhookURL returns the URL to post to: the webhook URL, with the thread ID in its query
+// for a message sent to a thread
+func discordWebhookURL(cfg *DiscordConfig) (string, error) {
+	if cfg.MessageType != "send_to_thread" || cfg.ThreadID == "" {
+		return cfg.WebhookURL, nil
+	}
+	parsedURL, err := url.Parse(cfg.WebhookURL)
+	if err != nil {
+		return "", fmt.Errorf("invalid webhook URL: %w", err)
+	}
+	q := parsedURL.Query()
+	q.Set("thread_id", cfg.ThreadID)
+	parsedURL.RawQuery = q.Encode()
+	return parsedURL.String(), nil
 }
 
 func createDiscordEmbed(bindings map[string]any, hasHeartbeat bool) map[string]interface{} {

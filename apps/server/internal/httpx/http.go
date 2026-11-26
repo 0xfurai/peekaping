@@ -4,9 +4,7 @@ package httpx
 import (
 	"context"
 	"encoding/json"
-	"net"
 	"net/http"
-	"strings"
 )
 
 type Middleware func(http.Handler) http.Handler
@@ -47,28 +45,5 @@ func WithValue(r *http.Request, key string, value any) *http.Request {
 	return r.WithContext(context.WithValue(r.Context(), identityKey(key), value))
 }
 func Value(ctx context.Context, key string) any { return ctx.Value(identityKey(key)) }
-
-// ClientIP retains the existing forwarded-header policy. Trusted proxy policy
-// and account-level lockout hardening are tracked separately in PP-50.
-func ClientIP(r *http.Request) string {
-	remote, _, err := net.SplitHostPort(strings.TrimSpace(r.RemoteAddr))
-	if err != nil {
-		return ""
-	}
-	for _, header := range []string{"X-Forwarded-For", "X-Real-IP"} {
-		values := strings.Split(r.Header.Get(header), ",")
-		valid := true
-		for _, value := range values {
-			if net.ParseIP(strings.TrimSpace(value)) == nil {
-				valid = false
-				break
-			}
-		}
-		if valid {
-			return strings.TrimSpace(values[0])
-		}
-	}
-	return remote
-}
 
 func Lookup(ctx context.Context, key string) (any, bool) { v := Value(ctx, key); return v, v != nil }

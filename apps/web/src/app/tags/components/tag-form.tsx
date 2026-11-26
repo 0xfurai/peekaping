@@ -29,6 +29,7 @@ import {
 } from "@/lib/utils";
 import type { TagModel } from "@/api";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
+import { useWorkspacePath } from "@/hooks/useWorkspacePath";
 
 const tagSchema = z.object({
   name: z
@@ -39,7 +40,7 @@ const tagSchema = z.object({
   description: z.string().optional(),
 });
 
-type TagFormData = z.infer<typeof tagSchema>;
+type TagFormValues = z.infer<typeof tagSchema>;
 
 interface TagFormProps {
   mode: "create" | "edit";
@@ -49,9 +50,10 @@ interface TagFormProps {
 const TagForm = ({ mode, tag }: TagFormProps) => {
   const { t } = useLocalizedTranslation();
   const navigate = useNavigate();
+  const workspacePath = useWorkspacePath();
   const queryClient = useQueryClient();
 
-  const form = useForm<TagFormData>({
+  const form = useForm<TagFormValues>({
     resolver: zodResolver(tagSchema),
     defaultValues: {
       name: tag?.name || "",
@@ -66,7 +68,7 @@ const TagForm = ({ mode, tag }: TagFormProps) => {
     onSuccess: () => {
       toast.success(t("messages.tag_create_success"));
       invalidateByPartialQueryKey(queryClient, { _id: "getTags" });
-      navigate("/tags");
+      navigate(workspacePath("/tags"));
     },
     onError: commonMutationErrorHandler(t("messages.tag_create_error")),
   });
@@ -80,12 +82,12 @@ const TagForm = ({ mode, tag }: TagFormProps) => {
       queryClient.removeQueries({
         queryKey: getTagsByIdQueryKey({ path: { id: tag?.id || "" } }),
       });
-      navigate("/tags");
+      navigate(workspacePath("/tags"));
     },
     onError: commonMutationErrorHandler(t("messages.tag_update_error")),
   });
 
-  const onSubmit = (data: TagFormData) => {
+  const onSubmit = (data: TagFormValues) => {
     if (mode === "create") {
       createMutation.mutate({ body: data });
     } else {
@@ -169,7 +171,7 @@ const TagForm = ({ mode, tag }: TagFormProps) => {
           <Button
             type="button"
             variant="outline"
-            onClick={() => navigate("/tags")}
+            onClick={() => navigate(workspacePath("/tags"))}
             disabled={isPending}
           >
             {t("common.cancel")}

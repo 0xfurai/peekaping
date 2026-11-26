@@ -1,8 +1,8 @@
 import { test, expect, type Page } from '@playwright/test';
 import { adminAPI, createHTTPMonitor, deleteCreated, randomID } from './support/api';
-import { targetURL } from './support/fake-target';
+import { setTargetStatus, targetURL } from './support/fake-target';
 
-test('A published status page shows visitors its own monitors, and a draft shows nothing', async ({ page, browser }) => {
+test('@critical A published status page shows visitors its own monitors, and a draft shows nothing', async ({ page, browser }) => {
   const id = randomID();
   const api = await adminAPI(page);
   const onPublished = `Published monitor ${id}`;
@@ -31,6 +31,137 @@ test('A published status page shows visitors its own monitors, and a draft shows
     await visitorPage.goto(`/status/draft-${id}`);
     await expect(visitorPage.getByText('Status page not found or is not published.')).toBeVisible();
     await expect(visitorPage.getByText(`Draft ${id}`)).toHaveCount(0);
+
+    await visitor.close();
+  } finally {
+    for (const path of created.reverse()) await deleteCreated(api, path);
+    await api.dispose();
+  }
+});
+
+test('A status page lists each location of a monitor only once it is asked to', async ({ page, browser }) => {
+  const id = randomID();
+  const api = await adminAPI(page);
+  const probeName = `Frankfurt ${id}`;
+  const monitorName = `Located monitor ${id}`;
+  const slug = `located-${id}`;
+  const created: string[] = [];
+
+  try {
+    // The probe has no instance, so it is offline and never reports. It is deleted last: a probe
+    // that has monitors can't be deleted.
+    const probe = await api.post('probes', { data: { name: probeName } });
+    expect(probe.status(), await probe.text()).toBe(201);
+    const probeID = (await probe.json()).data.id;
+    created.push(`probes/${probeID}`);
+    const monitor = await createHTTPMonitor(api, monitorName, targetURL(id), { probeIds: ['local', probeID] });
+    created.push(`monitors/${monitor.id}`);
+
+    await createStatusPage(page, created, `Located ${id}`, slug, monitorName, true);
+    const statusPageID = created[created.length - 1].replace('status-pages/', '');
+
+    const visitor = await browser.newContext({
+      baseURL: test.info().project.use.baseURL,
+      storageState: { cookies: [], origins: [] },
+    });
+    const visitorPage = await visitor.newPage();
+    const locations = visitorPage.getByTestId('status-page-location');
+
+    // The setting is off by default: the card is the monitor's own, with one bar.
+    await visitorPage.goto(`/status/${slug}`);
+    await expect(visitorPage.getByRole('heading', { level: 3 })).toHaveText([monitorName]);
+    await expect(locations).toHaveCount(0);
+
+    const setShowLocations = async (on: boolean) => {
+      await page.goto(`/status-pages/${statusPageID}/edit`);
+      const showLocations = page.getByRole('switch', { name: 'Show each location' });
+      await expect(showLocations).toBeChecked({ checked: !on });
+      await showLocations.setChecked(on);
+      const saved = page.waitForResponse(
+        (response) => response.url().endsWith(`/status-pages/${statusPageID}`) && response.request().method() === 'PATCH',
+      );
+      await page.getByRole('button', { name: 'Update Status Page' }).click();
+      const response = await saved;
+      expect(response.status(), await response.text()).toBe(200);
+      await expect(page).toHaveURL(/\/status-pages$/);
+    };
+
+    // Turned on in the form, the card lists Local, then the remote probe, each with its own row.
+    await setShowLocations(true);
+    await visitorPage.reload();
+    await expect(locations).toHaveCount(2);
+    await expect(visitorPage.getByTestId('status-page-location-name')).toHaveText(['Local', probeName]);
+    // Local checks the monitor, and its row follows. The page refreshes every five minutes, so reload.
+    await expect(async () => {
+      await visitorPage.reload();
+      await expect(visitorPage.getByTestId('status-page-location-status').first()).toHaveText('Operational', {
+        timeout: 2000,
+      });
+    }).toPass({ timeout: 60000 });
+
+    // Turned off again, the single bar is back.
+    await setShowLocations(false);
+    await visitorPage.reload();
+    await expect(visitorPage.getByRole('heading', { level: 3 })).toHaveText([monitorName]);
+    await expect(locations).toHaveCount(0);
+
+    await visitor.close();
+  } finally {
+    for (const path of created.reverse()) await deleteCreated(api, path);
+    await api.dispose();
+  }
+});
+
+// A monitor that isn't checked is Not monitored and doesn't make the page an outage (PP-387). A Down
+// monitor still does. That a monitor that is checked but has no heartbeat yet is Pending, not Down, is
+// covered by the unit tests of the status page (PP-361).
+test('A status page shows a paused monitor as Not monitored and a Down one as Down', async ({ page, browser, request }) => {
+  // The Down monitor's first check can take up to 60 seconds to reach the page.
+  test.setTimeout(180_000);
+  const id = randomID();
+  const api = await adminAPI(page);
+  const pausedName = `Paused monitor ${id}`;
+  const failing = `Failing monitor ${id}`;
+  const created: string[] = [];
+
+  try {
+    // A paused monitor runs no checks.
+    const paused = await createHTTPMonitor(api, pausedName, targetURL(id), { active: false });
+    created.push(`monitors/${paused.id}`);
+    const publish = async (slug: string, monitorID: string) => {
+      const response = await api.post('status-pages', {
+        data: { slug, title: slug, published: true, monitor_ids: [monitorID] },
+      });
+      expect(response.status(), await response.text()).toBe(201);
+      created.push(`status-pages/${(await response.json()).data.id}`);
+    };
+    await publish(`paused-${id}`, paused.id);
+
+    // With no retries, the first failed check is Down.
+    await setTargetStatus(request, `down-${id}`, 500);
+    const down = await createHTTPMonitor(api, failing, targetURL(`down-${id}`));
+    created.push(`monitors/${down.id}`);
+    await publish(`down-${id}`, down.id);
+
+    const visitor = await browser.newContext({
+      baseURL: test.info().project.use.baseURL,
+      storageState: { cookies: [], origins: [] },
+    });
+    const visitorPage = await visitor.newPage();
+    const monitorStatus = visitorPage.getByTestId('status-page-monitor').getByTestId('status-page-monitor-status');
+    const overallStatus = visitorPage.getByTestId('status-page-overall-status');
+
+    await visitorPage.goto(`/status/paused-${id}`);
+    await expect(monitorStatus).toHaveText('Not monitored');
+    await expect(overallStatus).toHaveText('All Systems Operational');
+
+    // The monitor has no status until its first check, which fails.
+    await visitorPage.goto(`/status/down-${id}`);
+    await expect(async () => {
+      await visitorPage.reload();
+      await expect(monitorStatus).toHaveText('Down', { timeout: 2_000 });
+    }).toPass({ timeout: 60_000 });
+    await expect(overallStatus).toHaveText('Partial System Outage');
 
     await visitor.close();
   } finally {

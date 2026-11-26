@@ -33,13 +33,16 @@ import { useDebounce } from "@/hooks/useDebounce";
 import { useSearchParams } from "@/hooks/useSearchParams";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
+import { useDelayedLoading } from "@/hooks/useDelayedLoading";
 import { commonMutationErrorHandler } from "@/lib/utils";
 import EmptyList from "@/components/empty-list";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
+import { useWorkspacePath } from "@/hooks/useWorkspacePath";
 
 export default function MaintenancePage() {
   const { t } = useLocalizedTranslation();
   const navigate = useNavigate();
+  const workspacePath = useWorkspacePath();
   const queryClient = useQueryClient();
   const { getParam, updateSearchParams, clearAllParams, hasParams } =
     useSearchParams();
@@ -81,6 +84,8 @@ export default function MaintenancePage() {
       },
       initialPageParam: 0,
     });
+
+  const shouldShowSkeleton = useDelayedLoading(isLoading, 200);
 
   const maintenances = data?.pages.flatMap((page) => page.data || []) || [];
 
@@ -222,11 +227,11 @@ export default function MaintenancePage() {
   };
 
   const handleCreateClick = () => {
-    navigate("/maintenances/new");
+    navigate(workspacePath("/maintenances/new"));
   };
 
   const handleEditClick = (id: string) => {
-    navigate(`/maintenances/${id}/edit`);
+    navigate(workspacePath(`/maintenances/${id}/edit`));
   };
 
   const handleObserver = useCallback(
@@ -273,11 +278,13 @@ export default function MaintenancePage() {
         </div>
 
         {isLoading ? (
-          <div className="flex flex-col space-y-2 mb-2">
-            {Array.from({ length: 7 }, (_, id) => (
-              <Skeleton className="h-[68px] w-full rounded-xl" key={id} />
-            ))}
-          </div>
+          shouldShowSkeleton && (
+            <div className="flex flex-col space-y-2 mb-2">
+              {Array.from({ length: 7 }, (_, id) => (
+                <Skeleton className="h-[68px] w-full rounded-xl" key={id} />
+              ))}
+            </div>
+          )
         ) : maintenances.length > 0 ? (
           <div>
             {maintenances.map((maintenance: MaintenanceModel) => (
@@ -309,7 +316,7 @@ export default function MaintenancePage() {
             title={t("maintenance.page.empty_state.title")}
             text={t("maintenance.page.empty_state.description")}
             actionText={t("maintenance.page.empty_state.action")}
-            onClick={() => navigate("/maintenances/new")}
+            onClick={() => navigate(workspacePath("/maintenances/new"))}
           />
         )}
 

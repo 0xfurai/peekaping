@@ -3,20 +3,294 @@
     "cancel": "Tühista",
     "saving": "Salvestamine…"
   },
+  "admin": {
+    "nav": {
+      "back_to_workspace": "Tagasi: {{name}}",
+      "probes": "Sondid",
+      "title": "Haldus",
+      "users": "Kasutajad",
+      "workspaces": "Tööruumid",
+      "settings": "Seaded"
+    },
+    "users": {
+      "actions": {
+        "delete": "Kustuta kasutaja",
+        "disable": "Keela kasutaja",
+        "disableTwoFactor": "Lülita 2FA välja",
+        "enable": "Luba kasutaja",
+        "grantAdmin": "Tee paigalduse haldur",
+        "resetLink": "Loo lähtestuslink",
+        "revokeAdmin": "Eemalda paigalduse haldur"
+      },
+      "actions_aria": "Toimingud kasutajale {{email}}",
+      "columns": {
+        "created": "Loodud",
+        "email": "E-post",
+        "email_verified": "E-post kinnitatud",
+        "instance_admin": "Paigalduse haldur",
+        "last_sign_in": "Viimane sisselogimine",
+        "status": "Olek",
+        "two_factor": "2FA",
+        "workspaces": "Tööruumid"
+      },
+      "confirm": {
+        "cancel": "Tühista",
+        "delete": {
+          "confirm": "Kustuta kasutaja",
+          "description": "Kas kustutada {{email}}? Tema konto eemaldatakse, samuti tema kohad tööruumides. Seda ei saa tagasi võtta.",
+          "title": "Kustuta kasutaja"
+        },
+        "disable": {
+          "confirm": "Keela",
+          "description": "{{email}} ei saa sisse logida ja on nüüd kõikjalt välja logitud. Tema tööruumid jäävad tööle. Saad ta hiljem uuesti lubada.",
+          "title": "Keela kasutaja"
+        },
+        "disableTwoFactor": {
+          "confirm": "Lülita 2FA välja",
+          "description": "{{email}} logib sisse ainult parooliga ja saab 2FA uuesti seadistada. Tee seda alles siis, kui oled kindel, et just tema seda palub.",
+          "title": "Lülita 2FA välja"
+        }
+      },
+      "description": "Kõik, kellel on selles paigalduses konto. Paigalduse haldurid haldavad paigaldust ennast, näiteks sonde ja kasutajaid. Kasutaja rolli tööruumis määravad selle tööruumi omanikud.",
+      "empty": "Kasutajaid ei leitud",
+      "errors": {
+        "last_instance_admin": "Paigaldusel peab olema vähemalt üks paigalduse haldur.",
+        "last_owner": "Kasutaja on nende tööruumide viimane omanik: {{workspaces}}. Tee kõigepealt keegi teine omanikuks või kustuta tööruum.",
+        "self": "Seda ei saa oma kontoga teha."
+      },
+      "load_failed": "Kasutajate laadimine ebaõnnestus.",
+      "messages": {
+        "admin_granted": "{{email}} on nüüd paigalduse haldur",
+        "admin_revoked": "{{email}} ei ole enam paigalduse haldur",
+        "deleted": "{{email}} on kustutatud",
+        "disabled": "{{email}} on keelatud ja välja logitud",
+        "enabled": "{{email}} on lubatud",
+        "two_factor_off": "2FA on kasutajal {{email}} välja lülitatud",
+        "update_failed": "Kasutaja värskendamine ebaõnnestus."
+      },
+      "never": "Mitte kunagi",
+      "none": "Puudub",
+      "page_name": "Kasutajad",
+      "paging": {
+        "next": "Järgmine",
+        "page": "Leht {{page}} / {{pages}}",
+        "previous": "Eelmine"
+      },
+      "reset_link": {
+        "close": "Sulge",
+        "copied": "Link kopeeritud",
+        "copy": "Kopeeri link",
+        "copy_failed": "Lingi kopeerimine ebaõnnestus. Vali see ja kopeeri käsitsi.",
+        "description": "Link, mille abil {{email}} valib uue parooli. Kopeeri see ja anna kohe edasi: seda näidatakse ainult üks kord.",
+        "emailed": "See paigaldus saadab konto e-kirju, seega saab kasutaja e-posti teel teada, et temale loodi link.",
+        "expires": "Link töötab ainult ühe korra ja aegub {{when}}.",
+        "failed": "Lingi loomine ebaõnnestus.",
+        "label": "Link",
+        "making": "Lingi loomine...",
+        "signs_out": "Lingi kasutamine logib kasutaja kõikjalt välja.",
+        "title": "Parooli lähtestuslink"
+      },
+      "search_label": "Otsi kasutajaid e-posti järgi",
+      "search_placeholder": "Otsi e-posti järgi",
+      "total": "Leitud: {{total}}",
+      "values": {
+        "active": "Aktiivne",
+        "disabled": "Keelatud",
+        "no": "Ei",
+        "two_factor_off": "Väljas",
+        "two_factor_on": "Sees",
+        "yes": "Jah"
+      },
+      "you": "sina"
+    },
+    "workspaces": {
+      "actions": {
+        "delete": "Kustuta tööruum",
+        "resume": "Taasta tööruum",
+        "suspend": "Peata tööruum",
+        "limits": "Limiidid"
+      },
+      "actions_aria": "Tööruumi {{name}} toimingud",
+      "columns": {
+        "created": "Loodud",
+        "custom_domains": "Kohandatud domeenid",
+        "members": "Liikmed",
+        "monitors": "Monitoorid",
+        "name": "Nimi",
+        "owners": "Omanikud",
+        "status": "Olek",
+        "status_pages": "Olekusivud",
+        "limits": "Limiidid"
+      },
+      "confirm": {
+        "cancel": "Tühista",
+        "delete": {
+          "confirm": "Kustuta tööruum",
+          "description": "Kas kustutada {{name}}? Kõik selles kaob: selle monitoorid ja nende ajalugu, olekusivud, teavituskanalid ja liikmete juurdepääs. Seda ei saa tagasi võtta.",
+          "name_label": "Kinnitamiseks sisesta tööruumi nimi: {{name}}",
+          "title": "Kustuta tööruum"
+        },
+        "resume": {
+          "confirm": "Taasta",
+          "description": "Tööruumi {{name}} monitoorid töötavad uuesti selles olekus, milles nad olid, ja selle liikmed saavad seda kasutada nagu varem. Tööruum, mis ootab, et omanik oma e-posti kinnitaks, jääb ootama.",
+          "title": "Taasta tööruum"
+        },
+        "suspend": {
+          "confirm": "Peata",
+          "description": "Tööruumi {{name}} monitoorid lõpetavad töö, selle avalikud olekusivud teatavad, et need pole saadaval, ja selle liikmed näevad, et see on peatatud. Midagi ei kustutata ja saad selle hiljem taastada.",
+          "title": "Peata tööruum"
+        }
+      },
+      "description": "Kõik selle paigalduse tööruumid koos omanike, liikmete ja sisu mahuga. Näidatakse ainult arve, mitte midagi tööruumi seest.",
+      "empty": "Tööruume ei leitud",
+      "load_failed": "Tööruumide laadimine ebaõnnestus.",
+      "messages": {
+        "deleted": "{{name}} on kustutatud",
+        "failed": "Tööruumi muutmine ebaõnnestus.",
+        "resumed": "{{name}} on taastatud",
+        "suspended": "{{name}} on peatatud"
+      },
+      "monitors": "{{active}} aktiivset, {{paused}} peatatud",
+      "none": "Puudub",
+      "page_name": "Tööruumid",
+      "paging": {
+        "next": "Järgmine",
+        "page": "Leht {{page}} / {{pages}}",
+        "previous": "Eelmine"
+      },
+      "search_label": "Otsi tööruume nime või omaniku e-posti järgi",
+      "search_placeholder": "Otsi nime või omaniku e-posti järgi",
+      "status": {
+        "running": "Töötab",
+        "suspended_admin": "Halduri poolt peatatud",
+        "suspended_unverified": "Peatatud, kuni omanik oma e-posti kinnitab"
+      },
+      "total": "Leitud: {{total}}",
+      "limits": {
+        "item": "{{name}}: {{value}}",
+        "more": "+{{number}} veel",
+        "unlimited": "Limiite pole",
+        "source": {
+          "workspace": "Oma",
+          "install": "Paigalduse vaikeväärtused",
+          "none": "Määramata"
+        },
+        "dialog": {
+          "title": "Tööruumi {{name}} limiidid",
+          "description": "Mille järgi see tööruum töötab. Limiidi vähendamine ei peata ega kustuta midagi: limiiti ületavad uusimad monitoorid lõpetavad töö, kuni jälle on ruumi.",
+          "own": "Omad limiidid",
+          "own_help": "Need asendavad paigalduse vaikeväärtused. Jäta limiit tühjaks, kui seda ei ole.",
+          "unlimited": "Limiite pole",
+          "unlimited_help": "Üldse ei mingit limiiti, olenemata paigalduse vaikeväärtustest.",
+          "defaults": "Kasuta paigalduse vaikeväärtusi",
+          "defaults_help": "Vaikelimiidid jaotises Haldus → Seaded või mitte ühtegi, kui paigaldus ei määra.",
+          "save": "Salvesta limiidid",
+          "cancel": "Tühista",
+          "saved": "Tööruumi {{name}} limiidid on salvestatud",
+          "failed": "Limiitide salvestamine ebaõnnestus."
+        }
+      }
+    },
+    "settings": {
+      "page_name": "Seaded",
+      "description": "Kogu paigalduse seaded. Serveri keskkonna määratud väärtus on siin lukus.",
+      "load_failed": "Seadeid ei õnnestunud laadida.",
+      "saved": "Seaded salvestatud",
+      "save_failed": "Seadeid ei salvestatud.",
+      "locked": "Määratud serveri keskkonnaga",
+      "source": {
+        "environment": "Serveri keskkonnast",
+        "saved": "Siin salvestatud",
+        "default": "Vaikimisi"
+      },
+      "signup": {
+        "title": "Registreerumine",
+        "description": "Kes võib selles paigalduses konto luua.",
+        "label": "Registreerumise režiim",
+        "invite": "Ainult kutsega",
+        "open": "Avatud",
+        "invite_help": "Esimene kasutaja registreerub ja kõik järgmised liituvad tööruumiga kutse kaudu.",
+        "open_help": "Igaüks võib registreeruda ja saab oma tööruumi. Uued kontod kinnitavad oma e-posti aadressi, seega on vaja e-kirjade saatjat."
+      },
+      "sender": {
+        "title": "E-kirjade saatja",
+        "description": "SMTP-server, mis saadab kontoga seotud e-kirju: parooli lähtestamise lingid, e-posti kinnitamise ja kutsed.",
+        "on": "Konto e-kirjad on sees.",
+        "off": "Konto e-kirjad on väljas: SMTP-hosti pole.",
+        "host": "SMTP host",
+        "port": "Port",
+        "tls": "Turvalisus",
+        "tls_starttls": "STARTTLS",
+        "tls_tls": "TLS",
+        "tls_none": "Puudub",
+        "user": "Kasutaja",
+        "password": "Parool",
+        "password_set": "Parool on määratud. Asendamiseks sisesta uus.",
+        "password_not_set": "Parool pole määratud",
+        "password_removed": "Parool eemaldatakse salvestamisel.",
+        "password_reenter": "Hosti, pordi, turvalisuse või kasutaja muutmine eemaldab salvestatud parooli. Sisestage see uuesti.",
+        "remove_password": "Eemalda parool",
+        "keep_password": "Jäta parool alles",
+        "from": "Saatja aadress"
+      },
+      "public_url": {
+        "title": "Avalik URL",
+        "description": "Veebirakenduse aadress, mille e-kirjade ja teavituste lingid avavad.",
+        "label": "Avalik URL"
+      },
+      "test_email": {
+        "title": "Saada testkiri",
+        "description": "Saadab salvestatud saatja kaudu lühikese e-kirja, et kontrollida, kas see töötab.",
+        "to": "Saada aadressile",
+        "send": "Saada testkiri",
+        "sending": "Saatmine…",
+        "sent": "Testkiri saadeti aadressile {{to}}.",
+        "failed": "Testkirja ei saadetud.",
+        "unsaved": "Saatjal on salvestamata muudatusi. Test kasutab salvestatud saatjat, seega salvesta enne."
+      },
+      "validation": {
+        "port": "Sisesta port vahemikus 1 kuni 65535 või jäta tühjaks vaikeväärtuse jaoks."
+      },
+      "errors": {
+        "locked": "{{field}} on määratud serveri keskkonnaga ja seda ei saa siin muuta.",
+        "open_needs_sender": "Avatud registreerumine vajab e-kirjade saatjat, sest uued kontod kinnitavad oma e-posti aadressi. Seadista esmalt saatja või tee seda samas salvestuses.",
+        "sender_needed": "Registreerumine on avatud ja uued kontod vajavad saatjat oma e-posti aadressi kinnitamiseks. Lülita esmalt registreerumine ainult kutsega režiimile.",
+        "no_sender": "E-kirjade saatjat pole. Salvesta esmalt saatja."
+      },
+      "limits": {
+        "title": "Vaikelimiidid",
+        "description": "Iga sellise tööruumi limiidid, millel pole omi. Jäta limiit tühjaks, kui seda ei ole. Tööruumile lehel Tööruumid antud limiidid asendavad need.",
+        "name_label": "Vaikepiirangute nimi",
+        "name_help": "Kuvatakse tööruumi lehel Kasutus, näiteks Tasuta pakett. Tühjaks jättes teatab leht, et piirangud määras teie haldur."
+      }
+    }
+  },
   "auth": {
     "login": {
       "description": "Logi sisse oma e-posti aadressiga",
       "no_account": "Pole kontot?",
       "sign_up": "Registreeru",
       "submit": "Logi sisse",
-      "title": "Tere tulemast tagasi"
+      "title": "Tere tulemast tagasi",
+      "forgot_password": "Unustasid parooli?",
+      "ask_admin": "Küsi selle paigalduse administraatorilt kutset"
     },
     "register": {
       "description": "Loo oma admini konto",
+      "description_open": "Loo oma konto",
       "have_account": "Sul on juba konto?",
       "sign_in": "Logi sisse",
       "submit": "Loo",
-      "title": "Tere"
+      "title": "Tere",
+      "telemetry_note": "Anonüümne: ei sisalda monitoride nimesid, URL-e ega hoste. Saate seda hiljem muuta jaotises „Seaded“.",
+      "telemetry_whats_sent": "Mida saadetakse",
+      "errors": {
+        "rate_limited": "Teie võrgust tuli liiga palju registreerumisi. Proovige tunni aja pärast uuesti.",
+        "email_taken": "Selle e-posti aadressiga konto on juba olemas.",
+        "sign_in_instead": "Logige selle asemel sisse.",
+        "check_failed": "Kontroll ei läbinud. Proovige uuesti.",
+        "check_load_failed": "Kontrolli ei õnnestunud laadida. Kontrollige ühendust ja proovige uuesti."
+      }
     },
     "twofa": {
       "code_label": "2FA kood",
@@ -25,11 +299,51 @@
       "title": "Kaksfaktoriline autentimine nõutud",
       "verify_button": "Kinnita 2FA",
       "verifying": "Kontrollimine..."
+    },
+    "forgot": {
+      "title": "Lähtesta parool",
+      "description": "Sisesta oma konto e-posti aadress ja saadame sulle lingi.",
+      "submit": "Saada link",
+      "sent": "Kui selle e-posti aadressiga konto on olemas, saatsime lingi. See kehtib tund aega.",
+      "back_to_login": "Tagasi sisselogimise juurde"
+    },
+    "reset": {
+      "title": "Vali uus parool",
+      "description": "Sisesta oma kontole uus parool.",
+      "submit": "Määra parool",
+      "success": "Sinu parool on muudetud ja sind logiti kõikjalt välja. Logi sisse uue parooliga.",
+      "sign_in": "Logi sisse",
+      "invalid_link": "See link on kasutatud või aegunud.",
+      "request_new": "Küsi uut linki"
+    },
+    "verify": {
+      "title": "Kinnita oma e-posti aadress",
+      "verifying": "E-posti aadressi kinnitamine...",
+      "success": "Sinu e-posti aadress on kinnitatud.",
+      "open_app": "Ava Peekaping",
+      "invalid_link": "See link on kasutatud või aegunud."
+    },
+    "errors": {
+      "rate_limited": "Liiga palju päringuid. Proovi hiljem uuesti.",
+      "generic": "Midagi läks valesti. Proovi uuesti.",
+      "already_verified": "Sinu e-posti aadress on juba kinnitatud."
+    },
+    "resend": {
+      "button": "Saada uuesti",
+      "sent": "Saatsime uue lingi. Vaata oma postkasti."
+    },
+    "verification_banner": {
+      "message": "Kinnita oma e-posti aadress: saatsime lingi aadressile {{email}}."
+    },
+    "suspension_notice": {
+      "message": "Teie monitorid käivituvad pärast e-posti aadressi kinnitamist.",
+      "member_message": "Selle tööruumi monitorid käivituvad pärast seda, kui selle omanik on oma e-posti aadressi kinnitanud."
     }
   },
   "bars": {
     "down_count": "Allolekute arv",
     "important": "Oluline",
+    "instance": "Instants",
     "interval": "Intervall",
     "message": "Sõnum",
     "ms": "ms",
@@ -65,10 +379,12 @@
     "loading": "Laadimine...",
     "logout": "Logi välja",
     "maintenance": "Hooldus",
+    "no_data": "Andmed puuduvad",
     "no_options_found": "Valikuid ei leitud",
     "no_tags_available": "Siltid pole saadaval",
     "please_refresh_page": "Palun värskenda lehte.",
     "required": "Vajalik",
+    "retry": "Proovi uuesti",
     "save": "Salvesta",
     "saving": "Salvestamine...",
     "search": "Otsi",
@@ -83,6 +399,12 @@
     "up": "Üles",
     "update": "Uuenda",
     "verifying": "Kontrollitakse..."
+  },
+  "error_reporting": {
+    "label": "Saada veaaruandeid",
+    "never_sent": "Ei saadeta kunagi: veateateid, URL-e, päiseid, veebikonksu URL-e, nimesid ega hostinimesid. Aruanne ei sisalda IP-aadressi ning Peekapingi Sentry projekt on seadistatud saatja IP-d mitte salvestama.",
+    "not_saved": "Teie valikut veaaruannete kohta ei salvestatud. Kontrollige seda jaotises „Seaded“.",
+    "sent": "Saadetakse ainult siis, kui Peekaping ise kokku jookseb. Aruanne sisaldab vea tüüpi ja kohta koodis, kus see juhtus, Peekapingi versiooni, ühe- või klastrirežiimi, andmesalve ning operatsioonisüsteemi."
   },
   "forms": {
     "labels": {
@@ -113,7 +435,35 @@
       "email_invalid": "Palun sisesta kehtiv e-posti aadress",
       "password_required": "Parool on nõutav",
       "password_min_length": "Parool peab olema vähemalt 8 tähemärki",
+      "password_complexity": "Parool peab sisaldama suurtähte, väiketähte, numbrit ja erimärki",
       "passwords_mismatch": "Paroolid ei ühti"
+    }
+  },
+  "invite": {
+    "accept": "Võta kutse vastu",
+    "accepting": "Liitumine...",
+    "creating": "Loomine...",
+    "description": "Sind on kutsutud liituma tööruumiga {{workspace}} rolliga: {{role}}.",
+    "enter_failed": "Liitusite tööruumiga, kuid selle avamine ebaõnnestus. Proovige uuesti.",
+    "errors": {
+      "other_email": "See kutse on mõeldud teisele e-posti aadressile."
+    },
+    "for_email": "See kutse on mõeldud aadressile {{email}}.",
+    "have_account": "Sul on juba konto?",
+    "open_app": "Ava Peekaping",
+    "other_account": "Oled sisse logitud kasutajana {{current}}, kuid see kutse on mõeldud aadressile {{invited}}. Logi välja ning seejärel logi sisse või registreeru aadressiga {{invited}}, et see vastu võtta.",
+    "sign_in_instead": "Logi hoopis sisse",
+    "sign_out": "Logi välja",
+    "signup_description": "Vali parool, et luua oma konto ja liituda tööruumiga {{workspace}} rolliga: {{role}}.",
+    "signup_submit": "Loo konto ja liitu",
+    "title": "Liitu tööruumiga {{workspace}}",
+    "unavailable": {
+      "accepted": "Seda kutset on juba kasutatud.",
+      "expired": "See kutse on aegunud. Palu uut.",
+      "not_found": "Seda kutselinki ei ole olemas. Kontrolli, kas kopeerisid selle täielikult.",
+      "revoked": "See kutse on tühistatud. Palu uut.",
+      "title": "Seda kutset ei saa kasutada",
+      "unknown": "Seda kutset ei saa kasutada. Palu uut."
     }
   },
   "maintenance": {
@@ -221,6 +571,79 @@
       "wed": "Kol"
     }
   },
+  "members": {
+    "change_role_aria": "Muuda kasutaja {{email}} rolli",
+    "errors": {
+      "account_exists": "Selle e-posti aadressiga konto on juba olemas. Logi sisse ja võta kutse vastu.",
+      "already_member": "See inimene on juba selle tööruumi liige.",
+      "forbidden": "Sinu roll selles tööruumis seda ei luba.",
+      "generic": "Midagi läks valesti. Proovi uuesti.",
+      "last_owner": "Tööruumil peab olema vähemalt üks omanik.",
+      "member_not_found": "See liige ei ole enam tööruumis."
+    },
+    "invite": {
+      "copied": "Link on kopeeritud",
+      "copy": "Kopeeri",
+      "creating": "Loomine...",
+      "description": "Loo link e-posti aadressi ja rolli jaoks. E-kirja ei saadeta: kopeeri link ja saada see ise.",
+      "done": "Valmis",
+      "email_label": "E-post",
+      "link_note": "See link töötab ainult üks kord ja aegub 7 päeva pärast. Seda näidatakse ainult praegu, seega kopeeri see enne selle lehe lahkumist.",
+      "link_title": "Kutselink",
+      "role_label": "Roll",
+      "submit": "Loo kutselink",
+      "title": "Kutsu keegi"
+    },
+    "leave": {
+      "button": "Lahku tööruumist",
+      "confirm": "Lahku",
+      "description": "Kaotad kohe juurdepääsu sellele tööruumile ja selle andmetele.",
+      "done": "Sa lahkusid tööruumist",
+      "last_owner": "Sa oled viimane omanik, seega ei saa lahkuda. Tee esmalt mõni teine liige omanikuks.",
+      "refresh_failed": "Lahkusite tööruumist, kuid teie tööruumide laadimine ebaõnnestus. Proovige uuesti.",
+      "title": "Lahku sellest tööruumist"
+    },
+    "list": {
+      "description": "Kõik, kes selles tööruumis töötavad, ja nende roll.",
+      "email": "E-post",
+      "joined": "Liitus",
+      "role": "Roll",
+      "title": "Liikmed",
+      "you": "sina"
+    },
+    "page_name": "Liikmed",
+    "pending": {
+      "description": "Kutsed, mida pole veel kasutatud. Tühistatud kutse link lakkab töötamast.",
+      "email": "E-post",
+      "empty": "Ootel kutseid pole.",
+      "expired": "Aegunud",
+      "expires": "Aegub",
+      "revoke": "Tühista",
+      "revoke_aria": "Tühista kasutaja {{email}} kutse",
+      "revoked": "Kutse on tühistatud",
+      "role": "Roll",
+      "title": "Ootel kutsed"
+    },
+    "remove": "Eemalda",
+    "remove_aria": "Eemalda {{email}}",
+    "remove_dialog": {
+      "confirm": "Eemalda",
+      "description": "{{email}} kaotab kohe juurdepääsu sellele tööruumile.",
+      "title": "Eemalda liige"
+    },
+    "removed": "Liige on eemaldatud",
+    "role_updated": "Roll on uuendatud",
+    "roles": {
+      "admin": "Haldur",
+      "member": "Liige",
+      "owner": "Omanik"
+    },
+    "settings_card": {
+      "description": "Vaata, kes selles tööruumis töötavad, ning kui oled haldur või omanik, kutsu inimesi ja halda nende rolle.",
+      "open": "Ava liikmed",
+      "title": "Liikmed"
+    }
+  },
   "messages": {
     "login_error": "Sisselogimisel tekkis viga",
     "login_no_tokens": "Sisselogimine õnnestus, kuid tokenid ei ole saadud",
@@ -248,6 +671,7 @@
     },
     "empty_state": {
       "action": "Loo esimene jälgija",
+      "add_channel": "Lisa teavituskanal",
       "description": "Alustamiseks looge oma esimene monitor, et jälgida oma teenuste tervist.",
       "title": "Monitoore ei leitud"
     },
@@ -490,12 +914,25 @@
       "shared": {
         "intervals": {
           "heartbeat_retry": "Püütise taaste intervall (Taasta iga {{seconds}} sekundit)",
+          "interval_too_short": "Ei tohi olla alla {{minimum}} sekundi",
           "max_retries_description": "Maksimaalne ürituste arv enne, kui teenus märgitakse alla ja teavitus saadetakse",
           "request_timeout": "Päringu aegumine (aegumine pärast {{seconds}} sekundit)",
-          "resend_notification": "Saada teavitus uuesti, kui alla X korda järjest (Uuesti saatmine keelatud)"
+          "resend_notification": "Saada teavitus uuesti, kui alla X korda järjest (Uuesti saatmine keelatud)",
+          "timeout_too_long": "Ei tohi olla üle 80% kontrolliintervallist"
+        },
+        "location_rule": {
+          "all": "kõik asukohad on all",
+          "any": "mis tahes asukoht on all",
+          "at_least": "vähemalt N asukohta on all",
+          "description": "Asukohta, mille sond on võrguühenduseta või pole veel tulemust andnud, ei arvestata.",
+          "label": "Märgi monitor alla, kui",
+          "threshold_invalid": "Sisesta täisarv, 1 või rohkem",
+          "threshold_label": "Asukohtade arv",
+          "threshold_too_high": "Ei tohi olla suurem kui valitud sondide arv"
         },
         "notifications": {
           "add_notifier": "Lisa teavitaja",
+          "load_failed": "Teavituskanaleid ei õnnestunud laadida",
           "new_notifier": "+ Lisa uus teavituskanal",
           "no_channels": "Teavituskanaleid ei leitud, loo kõigepealt üks",
           "no_channels_available": "Kanalid pole saadaval",
@@ -503,6 +940,15 @@
           "select_notifier_placeholder": "Vali teavitaja",
           "selected_channels": "Valitud teavituskanalid",
           "title": "Teavituskanalid"
+        },
+        "probe": {
+          "description": "Monitor töötab igal valitud sondil ja näitab iga sondi tulemusi asukohana.",
+          "label": "Sond",
+          "option_unsupported": "{{name}} (ei toeta seda tüüpi)",
+          "placeholder": "Vali sond",
+          "push_fixed": "Push-monitor töötab alati kohalikul sondil.",
+          "required": "Vali vähemalt üks sond",
+          "unsupported": "See sond ei toeta seda tüüpi monitori. Vali teine sond."
         },
         "proxy": {
           "add_proxy": "Lisa proksi",
@@ -512,6 +958,10 @@
           "select_proxy_placeholder": "Vali proksi",
           "selected_proxy": "Valitud proksi",
           "title": "Proksi"
+        },
+        "run_from": {
+          "default_locations": "Töötab vaikimisi asukohtades",
+          "label": "Käivita asukohtadest"
         },
         "tags": {
           "label": "Märgid",
@@ -563,6 +1013,8 @@
         "docker": "Docker konteiner",
         "grpc": "gRPC märksõna jälgija",
         "http": "HTTP(S) jälgija",
+        "http_json_query": "HTTP(s) - JSON-päring",
+        "http_keyword": "HTTP(s) - Märksõna",
         "kafka": "Kafka tootja monitor",
         "mongodb": "MongoDB andmebaasi jälgija",
         "mqtt": "MQTT Brokeri jälgija",
@@ -617,9 +1069,12 @@
     "toasts": {
       "deleted": "Monitor kustutatud",
       "paused": "Jälgimine peatatud",
+      "push_token_already_used": "Teine monitor kasutab seda push-tokenit juba. Loo uus.",
       "reset_success": "Monitordi andmed lähtestati edukalt",
       "resumed": "Kontroll jätkati"
     },
+    "type_disabled": "Tüüp {{type}} on selles paigalduses välja lülitatud",
+    "over_limit": "Ei kontrollita: tööruumis on rohkem aktiivseid monitore, kui selle limiit lubab",
     "view": {
       "buttons": {
         "clone": "Kopeeri",
@@ -649,6 +1104,15 @@
       "expiring_soon": "Aegumine varsti",
       "for": "selleks",
       "live_status": "Reaalajas olek",
+      "locations": {
+        "all": "Kõik asukohad",
+        "no_result": "Tulemust pole veel",
+        "probe_offline": "Sond on võrguühenduseta",
+        "probe_unsupported": "Ei toeta seda tüüpi",
+        "response_time": "Vastusaeg",
+        "select_label": "Asukoht",
+        "title": "Asukohad"
+      },
       "monitor_for": "Monitoorimiseks",
       "no_certificate_data": "Sertifikaatiandmeid pole",
       "seconds": "sekundit",
@@ -671,9 +1135,11 @@
     }
   },
   "navigation": {
+    "admin": "Haldus",
     "maintenance": "Hooldus",
     "monitors": "Monitoorid",
     "notification_channels": "Teavituskanalid",
+    "probes": "Sondid",
     "proxies": "Proksid",
     "settings": "Seaded",
     "status_pages": "Olekusivud",
@@ -854,9 +1320,9 @@
       "pagerduty": {
         "auto_resolve_acknowledge": "Automaatselt tunnistamine",
         "auto_resolve_acknowledge_description": "Tunnista automaatselt juhtumit",
-        "auto_resolve_description": "Vali toiming, mida teha, kui monitoor taastub",
+        "auto_resolve_description": "Vali, mida saata, kui monitoor taastub või sond on taas võrgus",
         "auto_resolve_do_nothing": "Ära tee midagi",
-        "auto_resolve_do_nothing_description": "UP-olekus ei tehta midagi",
+        "auto_resolve_do_nothing_description": "Midagi ei saadeta, kui monitoor taastub või sond on taas võrgus, seega jääb juhtum avatuks, kuni lahendad selle teenuses PagerDuty",
         "auto_resolve_label": "Automaatne lahendamine või tunnistamine",
         "auto_resolve_placeholder": "Vali automaatse lahendamise käitumine",
         "auto_resolve_resolve": "Automaatne lahendamine",
@@ -879,7 +1345,7 @@
         "authentication_token_description": "Valikuline autentimiskood kõrgema turvalisuse tagamiseks. See saadetakse pagertree-token päises.",
         "authentication_token_label": "Autentimisetoken (Valikuline)",
         "authentication_token_placeholder": "Sisesta autentimiste token, kui see on vajalik",
-        "auto_resolve_alerts_description": "Automaatselt lahendatakse PagerTree hoiatused, kui monitor taastub",
+        "auto_resolve_alerts_description": "Automaatselt lahendatakse PagerTree hoiatused, kui monitoor taastub või sond on taas võrgus",
         "auto_resolve_alerts_label": "Automaatne häirete lahendamine",
         "how_to_get_integration_url_label": "Kuidas saada integratsiooni URL",
         "integration_url_description": "Sisesta oma PagerTree webhooki integreerimise URL.",
@@ -1082,6 +1548,12 @@
         "signing_secret_docs_link": "Kuidas allkirja kontrollida",
         "signing_secret_label": "Allkirjastamise saladus",
         "signing_secret_placeholder": "Jäta tühjaks, et saata allkirjastamata päringuid"
+      },
+      "install_email": {
+        "description": "Saadab see paigaldus, SMTP-serverit pole vaja.",
+        "to_description": "Selle tööruumi liige. Teavitused saadetakse pärast seda, kui ta on aadressi kinnitanud.",
+        "to_label": "Saaja",
+        "to_placeholder": "Vali liige"
       }
     },
     "important": "Olulised teated",
@@ -1100,13 +1572,150 @@
       "updated_success": "Teavitaja uuendati edukalt"
     },
     "new": {
-      "title": "Uus teavituskanal"
+      "title": "Uus teavituskanal",
+      "default_hint": "See kanal märgitakse uutel monitoridel."
     },
     "no_important": "Ühtegi olulist teadet ei leitud.",
     "placeholders": {
       "select_type": "Vali teavitustüüp"
     },
-    "search_placeholder": "Otsige teavituskanaale nime järgi…"
+    "search_placeholder": "Otsige teavituskanaale nime järgi…",
+    "secret": {
+      "reenter_error": "Sisesta see saladus uuesti või eemalda see: koht, kuhu saadetakse, muutus",
+      "reenter_hint": "Sisesta see saladus uuesti: koht, kuhu saadetakse, muutus",
+      "reenter_url_error": "Sisesta selle URL-i mandaadid uuesti: URL on pärast salvestamist muutunud",
+      "remove": "Eemalda",
+      "saved_hint": "Salvestatud — asendamiseks sisesta uus"
+    }
+  },
+  "probes": {
+    "default": {
+      "description": "Monitoor, mis luuakse sonde valimata, töötab vaikesondidel, mis ei ole keelatud ja käitavad selle tüüpi, ning kohalikul sondil, kui ükski ei käita. Olemasolevad monitoorid säilitavad oma sondid.",
+      "failed": "Sondi vaikesondiks olemise muutmine ebaõnnestus.",
+      "label": "Vaikesond",
+      "off": "{{name}} ei ole enam vaikesond",
+      "on": "{{name}} on nüüd vaikesond",
+      "title": "Vaikimisi uutele monitooridele"
+    },
+    "default_badge": "Vaikimisi",
+    "page_name": "Sondid",
+    "description": "Sondid teostavad monitooride kontrolle kohtadest, kuhu need on paigaldatud. Kohalik sond on Peekaping ise.",
+    "local_name": "Kohalik",
+    "monitor_probe": "Sond: {{name}}",
+    "monitor_probe_unsupported": "{{name}} ei toeta {{type}}-tüüpi monitore",
+    "empty_list": {
+      "title": "Sonde ei leitud",
+      "text": "Looge sond, et teha kontrolle mujalt.",
+      "action_text": "Looge oma esimene sond"
+    },
+    "table": {
+      "headers": {
+        "name": "Nimi",
+        "location": "Asukoht",
+        "status": "Olek",
+        "disabled": "Keelatud",
+        "token": "Token",
+        "instances": "Instantsid",
+        "actions": "Toimingud"
+      },
+      "status": {
+        "online": "Võrgus",
+        "offline": "Võrguühenduseta"
+      },
+      "disabled": "Keelatud",
+      "no_instances": "Instantse veel pole",
+      "last_seen": "viimati nähtud {{date}}",
+      "actions": {
+        "edit": "Muuda sondi {{name}}",
+        "rotate": "Vaheta sondi {{name}} token",
+        "assign_all": "Määra sond {{name}} kõigile monitooridele",
+        "delete": "Kustuta sond {{name}}"
+      }
+    },
+    "create_dialog": {
+      "title": "Loo sond",
+      "description": "Sond teeb kontrolle kohast, kuhu selle paigaldate. Selle token kuvatakse ainult üks kord, pärast loomist.",
+      "submit": "Loo sond",
+      "creating": "Loomine..."
+    },
+    "assign_all": {
+      "warning": "Token loeb iga sondile määratud monitoori konfiguratsiooni, sealhulgas volitusandmeid.",
+      "docs_link": "Mida token lugeda saab"
+    },
+    "assign_all_dialog": {
+      "title": "Määra kõigile monitooridele",
+      "description": "Lisa sond {{name}} igale monitoorile, mida see saab käitada, välja arvatud push-monitoorid. Sond, millel pole veel instantse, lisatakse, kui selle esimene instants ühendub.",
+      "confirm": "Määra kõigile monitooridele",
+      "assigning": "Määramine..."
+    },
+    "edit_dialog": {
+      "title": "Muuda sondi",
+      "description": "Muutke sondi {{name}} seadeid."
+    },
+    "form": {
+      "name_label": "Nimi",
+      "name_placeholder": "nt Frankfurt",
+      "location_label": "Asukoht (valikuline)",
+      "location_placeholder": "nt Frankfurt, Saksamaa",
+      "assign_all_label": "Määra kõigile monitooridele",
+      "assign_all_description": "Kui sondi esimene instants ühendub, lisatakse sond igale monitoorile, mida see saab käitada, välja arvatud push-monitoorid.",
+      "name_required": "Nimi on kohustuslik",
+      "name_too_long": "Nimi on liiga pikk",
+      "location_too_long": "Asukoht on liiga pikk",
+      "disabled_label": "Keelatud",
+      "disabled_description": "Keelatud sondi token lakkab töötamast, kuni selle uuesti lubate.",
+      "notifications_hint": "Jätke tühjaks, et teavitada selle sondi monitooride kanaleid."
+    },
+    "rotate_dialog": {
+      "title": "Vaheta token",
+      "description": "Sondi {{name}} vana token lakkab kohe töötamast. Selle instantsid tuleb uue tokeniga taaskäivitada.",
+      "confirm": "Vaheta token",
+      "rotating": "Vahetamine..."
+    },
+    "delete_dialog": {
+      "title": "Kustuta sond",
+      "description": "Kas olete kindel, et soovite sondi „{{name}}“ kustutada? Selle token lakkab töötamast. Seda toimingut ei saa tagasi võtta."
+    },
+    "token_alert": {
+      "title_created": "Sond {{name}} loodud",
+      "title_rotated": "Uus token sondile {{name}}",
+      "note": "See token loeb sondile määratud monitooride konfiguratsioone. Seda kuvatakse ainult üks kord.",
+      "token_label": "Token",
+      "docker_label": "Käivitage sond Dockeriga",
+      "copy_token": "Kopeeri token",
+      "copy_command": "Kopeeri docker-käsk"
+    },
+    "messages": {
+      "created_successfully": "Sond loodi edukalt",
+      "updated_successfully": "Sond uuendati edukalt",
+      "rotated_successfully": "Token vahetati edukalt",
+      "assigned_successfully": "Lisatud monitoore: {{added}}",
+      "assign_pending": "See lisatakse igale monitoorile, mida see käitab, kui see ühendub",
+      "deleted_successfully": "Sond kustutati edukalt",
+      "failed_to_create": "Sondi loomine ebaõnnestus",
+      "failed_to_update": "Sondi uuendamine ebaõnnestus",
+      "failed_to_rotate": "Tokeni vahetamine ebaõnnestus",
+      "failed_to_assign": "Sondi määramine kõigile monitooridele ebaõnnestus",
+      "failed_to_delete": "Sondi kustutamine ebaõnnestus",
+      "failed_to_load": "Sondide laadimine ebaõnnestus",
+      "copy_success": "Kopeeritud lõikelauale",
+      "copy_failed": "Lõikelauale kopeerimine ebaõnnestus"
+    },
+    "detail": {
+      "assign_all_pending": "Ootab oma esimest instantsi: see lisatakse igale monitoorile, mida see käitab, kui see ühendub.",
+      "not_found": "Sondi ei leitud"
+    },
+    "availability": {
+      "title": "Kättesaadavus",
+      "range_label": "Ajavahemik",
+      "bar_label": "Kättesaadavuse ajalugu",
+      "instance_bar_label": "Sondi {{name}} ühendused",
+      "no_data": "Andmed puuduvad",
+      "now": "Praegu",
+      "instances_title": "Instantsid, viimased 24 tundi",
+      "in_process_note": "Kohaliku sondi monitore kontrollib Peekaping ise, seega ei ole sellel kättesaadavuse ajalugu.",
+      "connected_since": "Ühendatud alates {{start}}"
+    }
   },
   "proxies": {
     "delete_dialog": {
@@ -1145,6 +1754,20 @@
     "search_placeholder": "Otsi proksid hosti järgi..."
   },
   "security": {
+    "delete_account": {
+      "button": "Kustuta konto",
+      "description": "Kustutab sinu konto ja lõpetab sinu seansid. Lahkud kõigist tööruumidest, kus oled. Seda ei saa tagasi võtta.",
+      "dialog_description": "Sinu konto kustutatakse kohe ja sind logitakse välja. Lahkud kõigist tööruumidest, kus oled. Seda ei saa tagasi võtta.",
+      "errors": {
+        "last_instance_admin": "Oled selle paigalduse viimane paigalduse haldur. Enne konto kustutamist on vaja teist paigalduse haldurit.",
+        "last_owner": "Oled ainus omanik: {{workspaces}}. Tee mõni teine liige omanikuks või kustuta tööruum enne ära.",
+        "wrong_password": "Parool on vale"
+      },
+      "failed": "Konto kustutamine ebaõnnestus",
+      "password_label": "Sinu parool",
+      "success": "Sinu konto on kustutatud",
+      "title": "Kustuta konto"
+    },
     "enable_2fa": {
       "form": {
         "authenticator_code_label": "Autentikaatori kood",
@@ -1267,10 +1890,35 @@
     "to_email_label": "Saaja e-posti aadress"
   },
   "settings": {
+    "danger_zone": {
+      "button": "Kustuta tööruum",
+      "description": "Tööruumi kustutamine kustutab kõik selles oleva jäädavalt: monitoorid, südamelöögid, olekusivud ja ülejäänu. Kustutamine toimub 7 päeva pärast kinnitamist. Selle monitoorid peatuvad kohe ja omanik saab kustutamise selle ajani tühistada.",
+      "dialog_description": "See kustutab tööruumi {{name}} ja kõik selles 7 päeva pärast. Selle monitoorid peatuvad kohe ja saad kustutamise selle ajani tühistada.",
+      "failed": "Kustutamise ajastamine ebaõnnestus",
+      "name_label": "Kinnitamiseks sisesta tööruumi nimi: {{name}}",
+      "scheduled": "See tööruum kustutatakse {{date}}. Selle monitoorid ei tööta selle ajani. Tühista kustutamine, et kõik tagasi saada.",
+      "title": "Ohutsoon"
+    },
     "data_retention": {
       "days_label": "päevad",
       "description": "Määrake, mitu päeva andmeid hoitakse (KEEP_DATA_PERIOD_DAYS).",
-      "title": "Andmete säilitamise periood"
+      "read_only": "Seda saab muuta ainult tööruumi administraator või omanik.",
+      "title": "Andmete säilitamise periood",
+      "capped": "Kuni {{max}} päeva selles tööruumis"
+    },
+    "error_reporting": {
+      "cluster_note": "Klastrirežiimis jõuab muudatus kõigi protsessideni ühe minuti jooksul.",
+      "description": "Saada aruanne Sentryle, kui server kokku jookseb. Vaikimisi sisse lülitatud; saate selle siin igal ajal välja lülitada.",
+      "forced_off": "Keskkonnamuutuja ERROR_REPORTING=off lülitab selle välja. Midagi ei saadeta, olenemata sellest, mida see säte ütleb.",
+      "title": "Veaaruanded"
+    },
+    "telemetry": {
+      "description": "Saada anonüümset statistikat selle kohta, kuidas see paigaldus on seadistatud, kõige rohkem kord päevas. Vaikimisi sisse lülitatud; saate selle siin igal ajal välja lülitada.",
+      "forced_off": "Keskkonnamuutuja TELEMETRY=off lülitab selle välja. Midagi ei saadeta, olenemata sellest, mida see säte ütleb.",
+      "id_note": "Eksemplari ID luuakse sisselülitatud oleku ajal ja kustutatakse väljalülitamisel. Uuesti sisselülitamisel luuakse uus.",
+      "payload_off": "Kuni see on välja lülitatud, ei saadeta midagi. Selline oleks kasutusping, kui selle sisse lülitaksite.",
+      "payload_title": "Mida järgmine kasutusping saadab",
+      "title": "Kasutusstatistika"
     },
     "timezone": {
       "description": "Vali oma eelistatud ajavöönd, mille alusel rakendus kuvab kõik ajatükkid.",
@@ -1282,6 +1930,73 @@
     },
     "validation": {
       "min_days": "Peab olema vähemalt 1 päev"
+    },
+    "workspace_name": {
+      "description": "Nimi, mida näidatakse tööruumi vahetajas ja selle liikmetele.",
+      "title": "Tööruumi nimi"
+    },
+    "workspace_export": {
+      "title": "Eksport",
+      "description": "Laadi selle tööruumi seadistus alla ühe JSON-failina: selle seaded, sildid, proksid, teavituskanalid, monitoorid, hoolduse ajavahemikud ja olekusivud. Omanik saab faili importida teise tööruumi.",
+      "warning_title": "Fail sisaldab salvestatud saladusi",
+      "warning": "Teavituskanalite ja proksite boti tokenid, paroolid ja webhooki URL-id on selles täielikult olemas, peitmata. Hoia faili nagu parooli ja ära jaga seda kellegagi, kes ei tohi neid näha.",
+      "download_workspace": "Laadi tööruum alla",
+      "download_heartbeats": "Laadi südamelöökide ajalugu alla",
+      "heartbeats_note": "Südamelöökide ajalugu on eraldi fail ja see võib olla suur. Selles on üks rida iga monitoori iga kontrolli kohta.",
+      "downloading": "Allalaadimine...",
+      "failed": "Tööruumi allalaadimine ebaõnnestus",
+      "heartbeats_failed": "Südamelöökide ajaloo allalaadimine ebaõnnestus"
+    },
+    "workspace_import": {
+      "title": "Import",
+      "description": "Lisa tööruumi eksportfaili kirjed sellesse tööruumi. Midagi ei asendata: need tulevad siia juba olemasolevate kõrvale.",
+      "file_label": "Tööruumi eksportfail (.json)",
+      "choose": "Vali fail",
+      "not_json": "See fail ei ole kehtiv JSON, seega ei saadetud midagi.",
+      "too_large": "See fail on suurem kui 16 MB, mis on impordi lubatud maksimum, seega ei saadetud midagi.",
+      "unreadable": "Seda faili ei saa lugeda. Valige see uuesti või kontrollige, et see on veel olemas.",
+      "confirm_title": "Kas importida {{file}}?",
+      "confirm_description": "Selle kirjed lisatakse selles tööruumis juba olemasolevate kõrvale. Midagi ei asendata ja sama faili kaks korda importimine lisab need kaks korda. Monitoorid hakkavad tööle kohe, kui need on lisatud.",
+      "confirm_button": "Impordi",
+      "importing": "Importimine...",
+      "failed": "Faili importimine ebaõnnestus",
+      "problems_title": "Faili ei saa importida",
+      "problems_description": "Sellesse tööruumi ei lisatud midagi. Paranda need probleemid failis ja impordi see uuesti:",
+      "result_title": "Import on lõppenud",
+      "created_title": "Sellesse tööruumi lisatud",
+      "nothing_created": "Midagi ei lisatud.",
+      "changes_title": "Muudetud sellele tööruumile sobivaks",
+      "no_changes": "Kõik tuli sisse nii, nagu on failis.",
+      "close": "Sulge",
+      "created": {
+        "tags": "Sildid",
+        "proxies": "Proksid",
+        "notificationChannels": "Teavituskanalid",
+        "monitors": "Monitoorid",
+        "maintenances": "Hoolduse ajavahemikud",
+        "statusPages": "Olekusivud"
+      },
+      "changes": {
+        "tag_reused": "Silt \"{{name}}\" on selles tööruumis juba olemas, seega kasutavad monitoorid seda.",
+        "proxy_skipped_target_not_allowed": "Proksi {{name}} jäeti välja: see paigaldus blokeerib selle aadressi.",
+        "monitor_proxy_dropped": "Monitoor \"{{name}}\" tuleb sisse ilma oma proksita {{from}}, mis jäeti välja.",
+        "channel_skipped": "Teavituskanal \"{{name}}\" jäeti välja: see paigaldus või tööruum ei saa seda vastu võtta.",
+        "channel_skipped_target_not_allowed": "Teavituskanal \"{{name}}\" jäeti välja: see paigaldus blokeerib aadressi, kuhu see saadab.",
+        "channel_skipped_no_install_sender": "Teavituskanal \"{{name}}\" jäeti välja: sellel paigaldusel pole e-kirjade saatjat.",
+        "channel_skipped_recipient_not_member": "Teavituskanal \"{{name}}\" jäeti välja: selle e-kirja saaja ei ole selle tööruumi liige.",
+        "monitor_skipped_type_disabled": "Monitoor \"{{name}}\" jäeti välja: see paigaldus lülitab välja tüüpi {{reason}} monitoorid.",
+        "monitor_skipped_target_not_allowed": "Monitoor \"{{name}}\" jäeti välja: see paigaldus blokeerib selle sihtmärgi {{reason}}.",
+        "monitor_interval_raised": "Monitoor \"{{name}}\" kontrollib iga {{to}} sekundi tagant {{from}} asemel, mis on lühim intervall, mida see paigaldus lubab.",
+        "monitor_retry_interval_raised": "Monitoor \"{{name}}\" kordab ebaõnnestunud kontrolli iga {{to}} sekundi tagant {{from}} asemel, mis on lühim intervall, mida see paigaldus lubab.",
+        "push_token_replaced": "Monitoor \"{{name}}\" sai uue push-tokeni, sest failis oleva tokeni omab teine monitoor. Uuenda aadressi, kuhu sinu ülesanne saadab.",
+        "monitor_paused_over_limit": "Monitoor \"{{name}}\" tuleb sisse peatatuna: selle tööruumi paketis pole ruumi veel ühele töötavale monitoorile.",
+        "status_page_slug_changed": "Olekusivu \"{{name}}\" aadress on {{to}}, mitte {{from}}, sest see on hõivatud.",
+        "status_page_skipped_over_limit": "Olekusivu \"{{name}}\" jäeti välja: selle tööruumi paketis pole ruumi veel ühele.",
+        "custom_domain_dropped": "Kohandatud domeen {{name}} jäeti välja: see on teisel olekusivul.",
+        "custom_domain_dropped_over_limit": "Kohandatud domeen {{name}} jäeti välja: selle tööruumi paketis pole ruumi veel ühele.",
+        "retention_capped": "Andmete säilitamise periood on {{to}} päeva {{from}} asemel, mis on maksimum, mida selle tööruumi pakett lubab.",
+        "unknown": "Import muutis: {{subject}} ({{kind}})."
+      }
     }
   },
   "status": {
@@ -1291,12 +2006,14 @@
       "last_updated": "Viimati uuendatud",
       "maintenance": "Hooldus",
       "no_monitors_configured": "Selle oleku lehe jaoks pole monitoore seadistatud.",
+      "not_monitored": "Ei monitoorita",
       "operational": "Töökorras",
       "partial_system_outage": "Osaline süsteemi katkestus",
       "powered_by": "Põhineb",
       "refresh_in": "Värskendamine",
       "refresh_now": "Värskenda kohe",
       "status_page_not_found": "Statuse lehte ei leitud või pole avaldatud.",
+      "status_page_unavailable": "See olekusivu pole saadaval",
       "under_maintenance": "Hooldusel",
       "unknown": "Tundmatu"
     }
@@ -1315,7 +2032,35 @@
     "description": "Sisesta oleku lehe kirjeldus",
     "domain_already_used": "Domeen {{domain}} on juba kasutusel teise olekukirjelduse lehe jaoks",
     "domain_host_warning": "See domeen on sama, mis on teie praeguse hosti URL. See võib põhjustada konflikte.",
+    "domain_verification": {
+      "add_one_record": "Lisa oma DNS-teenuse pakkuja juures üks neist kirjetest. Piisab ühest.",
+      "check_failed": "Domeeni {{domain}} ei saanud kontrollida",
+      "check_now": "Kontrolli kohe",
+      "checking": "Kontrollin...",
+      "cname_record": "CNAME-kirje",
+      "copy": "Kopeeri {{label}}",
+      "copy_failed": "Lõikelauale kopeerimine ebaõnnestus",
+      "copy_success": "Kopeeritud lõikelauale",
+      "info": "Iga domeen serveerib seda lehte, kui DNS-kirje tõestab, et see viitab Peekapingile.",
+      "last_checked": "Viimati kontrollitud: {{time}}",
+      "name": "Nimi",
+      "not_checked": "Pole veel kontrollitud",
+      "pending_note": "Ootel domeen ei serveeri seda lehte ega saa sertifikaati.",
+      "records_load_failed": "DNS-kirjeid ei õnnestunud laadida",
+      "records_missing_note": "Selle DNS-kirjed on puudunud alates {{time}}. 24 tunni pärast läheb domeen tagasi ootele.",
+      "removed_on": "Eemaldatakse {{date}}, kui seda ei kinnitata",
+      "save_to_see_records": "Salvesta leht, et näha lisatavaid DNS-kirjeid",
+      "state": {
+        "pending": "Ootel",
+        "records_missing": "Kirjed puuduvad",
+        "verified": "Kinnitatud"
+      },
+      "target": "Viitab",
+      "txt_record": "TXT-kirje",
+      "value": "Väärtus"
+    },
     "domains": "domeenid",
+    "domains_docs_link": "Kohandatud domeenid ja HTTPS",
     "domains_info_warning": "Ära unusta iga domeeni jaoks CNAME kirjeid oma DNS-s lisada.",
     "draft_status": "Mustand",
     "edit_page_name": "Muuda olekukirja lehte",
@@ -1338,6 +2083,9 @@
     "published_status": "Avaldatud",
     "search_label": "Otsi",
     "search_placeholder": "Otsi olekupäevikke pealkirja järgi...",
+    "show_locations": "Näita iga asukohta",
+    "show_locations_info": "Mitmest asukohast kontrollitavate monitooride puhul näidatakse iga asukoha olekut ja ajalugu",
+    "slug_already_used": "Teine olekuleht kasutab seda aadressi juba",
     "update_status_page": "Uuenda olekulehte",
     "view_page": "Vaata lehte"
   },
@@ -1368,6 +2116,18 @@
     "new_page_name": "Uus silt",
     "search_placeholder": "Otsi sildid..."
   },
+  "telemetry": {
+    "docs_link": "Mida saadetakse ja kuidas selle välja lülitada",
+    "label": "Saada anonüümset kasutusstatistikat",
+    "not_saved": "Teie valikut kasutusstatistika kohta ei salvestatud. Kontrollige seda jaotises „Seaded“."
+  },
+  "telemetry_notice": {
+    "error_reports": "Veaaruanded on sisse lülitatud. Kui Peekaping kokku jookseb, saadab ta vea tüübi ja koha koodis, kus see juhtus, oma versiooni, režiimi, andmesalve ja operatsioonisüsteemi. Kunagi ei saadeta veateateid, URL-e ega hostinimesid.",
+    "settings_errors": "Lülita veaaruanded välja jaotises „Seaded“",
+    "settings_usage": "Lülita kasutusstatistika välja jaotises „Seaded“",
+    "title": "Anonüümsete andmete saatmine on vaikimisi sisse lülitatud",
+    "usage_statistics": "Kasutusstatistika on sisse lülitatud. Kõige rohkem kord päevas saadab Peekaping juhusliku eksemplari ID, oma versiooni, režiimi, andmesalve ja operatsioonisüsteemi, vahemiku monitoride arvu kohta, kasutatavate monitoride ja teavituskanalite liigid ning selle, kas kasutate olekusivusid, hooldusaknaid ja mõõdikuid. Kunagi ei saadeta nimesid, URL-e, hoste ega seadeid."
+  },
   "theme": {
     "dark": "Tumine",
     "light": "Hele",
@@ -1391,5 +2151,123 @@
   "ui": {
     "general": "Üldine",
     "intervals_retries": "Intervallid, Kordused, Aegumised"
+  },
+  "workspaces": {
+    "create": "Loo tööruum",
+    "create_error": "Tööruumi loomine ebaõnnestus",
+    "create_first": "Loo tööruum",
+    "creating": "Loomine...",
+    "deletion": {
+      "cancel": "Tühista kustutamine",
+      "cancel_failed": "Kustutamise tühistamine ebaõnnestus",
+      "cancelled": "Kustutamine tühistatud",
+      "member_message": "See tööruum kustutatakse {{date}}. Selle monitoorid ei tööta ja olekusivud pole saadaval. Omanik saab kustutamise selle ajani tühistada.",
+      "message": "See tööruum kustutatakse {{date}}. Selle monitoorid ei tööta ja olekusivud pole saadaval. Saad kustutamise selle ajani tühistada."
+    },
+    "enter": "Ava tööruum",
+    "entering": "Avamine...",
+    "entry_failed": "Tööruum loodi, kuid selle avamine ebaõnnestus. Proovi uuesti.",
+    "name_label": "Nimi",
+    "name_placeholder": "Minu meeskond",
+    "name_required": "Sisesta nimi",
+    "new": "Uus tööruum",
+    "new_description": "Tööruumil on oma monitoorid, teavituskanalid, olekusivud ja liikmed. Sinust saab selle omanik.",
+    "new_title": "Uus tööruum",
+    "none_description": "Sinu konto ei kuulu ühtegi tööruumi, seega pole siin midagi näidata. Palu tööruumi haldajal sind lisada.",
+    "none_title": "Sa ei ole veel üheski tööruumis",
+    "refresh_failed": "Teie tööruume ei õnnestunud laadida. Kontrollige ühendust ja proovige uuesti.",
+    "rename_error": "Tööruumi ümbernimetamine ebaõnnestus",
+    "rename_success": "Tööruum on ümber nimetatud",
+    "suspended_banner": {
+      "contact": "Kontakt:",
+      "message": "Selle paigalduse haldur on selle tööruumi peatanud. Selle monitoorid ei tööta ja olekusivud pole saadaval.",
+      "no_contact": "Võta ühendust inimesega, kes seda paigaldust haldab."
+    },
+    "switcher_label": "Vaheta tööruumi"
+  },
+  "get_started": {
+    "page_name": "Alustamine",
+    "skip": "Jäta seadistamine vahele",
+    "step_of": "Samm {{current}} / {{total}}",
+    "name": {
+      "description": "Siin asuvad sinu monitoorid, teavituskanalid ja olekulehed. Nime saad hiljem seadetes muuta.",
+      "title": "Pane oma tööruumile nimi"
+    },
+    "monitor": {
+      "create": "Loo monitoor",
+      "create_failed": "Monitoori loomine ebaõnnestus",
+      "creating": "Loomine...",
+      "description": "Sisesta veebisaidi või API aadress. Peekaping kontrollib seda ja annab teada, kui see enam ei vasta.",
+      "full_form": "Või seadista monitoor kõigi valikutega",
+      "title": "Lisa oma esimene monitoor",
+      "url_invalid": "Sisesta aadress, mis algab http:// või https://",
+      "url_label": "Jälgitav aadress"
+    },
+    "channel": {
+      "continue_unlinked": "Jätka sidumata",
+      "description": "Vali, kuhu Peekaping saadab hoiatuse, kui sinu monitoor kukub. See muutub uute monitooride vaikeväärtuseks.",
+      "link_failed": "Kanal salvestati, kuid selle sidumine monitooriga ebaõnnestus. Lisa see monitoori muutmise lehel.",
+      "retry_link": "Proovi uuesti siduda",
+      "title": "Saa teavitusi"
+    },
+    "done": {
+      "description": "Peekaping jälgib sinu teenust. Siin on, mida saad edasi teha.",
+      "title": "Kõik valmis",
+      "unverified": "Sinu monitoor hakkab tööle, kui e-posti aadress on kinnitatud. Kinnituslingi leiad oma postkastist.",
+      "links": {
+        "members": "Kutsu oma meeskond",
+        "monitor": "Ava oma monitoor",
+        "monitors": "Mine monitooride juurde",
+        "probes": "Halda sonde",
+        "status_pages": "Avalda olekuleht"
+      }
+    }
+  },
+  "limits": {
+    "reached": {
+      "monitors": "Sellel tööruumil võib olla kuni {{max}} töötavat monitoori",
+      "status_pages": "Sellel tööruumil võib olla kuni {{max}} olekusivu",
+      "custom_domains": "Selle tööruumi olekusivudel võib kokku olla kuni {{max}} kohandatud domeeni",
+      "members": "Sellel tööruumil võib olla kuni {{max}} liiget, ootel kutsed kaasa arvatud",
+      "owned_workspaces": "Sa võid olla kuni {{max}} tööruumi omanik",
+      "probes": "Selle tööruumi monitoor võib töötada kuni {{max}} sondil",
+      "retention_days": "See tööruum võib andmeid säilitada kuni {{max}} päeva"
+    },
+    "names": {
+      "monitors": "Aktiivsed monitoorid",
+      "min_check_interval": "Lühim kontrollintervall (sekundites)",
+      "status_pages": "Olekusivud",
+      "custom_domains": "Kohandatud domeenid",
+      "members": "Liikmed",
+      "owned_workspaces": "Tööruumid, mida üks kasutaja võib omada",
+      "probes_per_monitor": "Sonde monitoori kohta",
+      "retention_days": "Andmete säilitamine (päevades)"
+    },
+    "none": "Limiiti pole",
+    "invalid": "Sisesta täisarv alates 1 või jäta tühjaks, kui limiiti ei ole.",
+    "retention_too_long": "Ei tohi olla üle {{max}} päeva"
+  },
+  "usage": {
+    "title": "Kasutus",
+    "description": "Kui palju see tööruum oma piirangutest kasutab.",
+    "open": "Ava kasutus",
+    "plan": "Pakett",
+    "set_by_admin": "Määranud teie haldur",
+    "count": {
+      "monitors": "{{used}} / {{max}} monitoori",
+      "status_pages": "{{used}} / {{max}} olekusivu",
+      "custom_domains": "{{used}} / {{max}} kohandatud domeeni",
+      "members": "{{used}} / {{max}} liiget, ootel kutsed kaasa arvatud",
+      "owned_workspaces": "Sa omad {{used}} / {{max}} tööruumi",
+      "probes_per_monitor": "Kuni {{used}} / {{max}} sondi ühel monitooril"
+    },
+    "labels": {
+      "min_check_interval": "Lühim kontrollintervall",
+      "retention_days": "Pikim andmete säilitamine"
+    },
+    "seconds": "{{value}} sekundit",
+    "days": "{{value}} päeva",
+    "near": "Piirangu lähedal",
+    "reached": "Piiril"
   }
 }

@@ -1,0 +1,46 @@
+POST https://slack.com/api/chat.postMessage
+Authorization: Bearer xoxb-token
+Content-Type: application/json
+User-Agent: Peekaping-Slack/<version>
+
+{
+  "attachments": [
+    {
+      "blocks": [
+        {
+          "text": {
+            "text": "Peekaping Alert",
+            "type": "plain_text"
+          },
+          "type": "header"
+        },
+        {
+          "fields": [
+            {
+              "text": "*Message*\nProbe Frankfurt is online",
+              "type": "mrkdwn"
+            }
+          ],
+          "type": "section"
+        },
+        {
+          "elements": [
+            {
+              "text": {
+                "text": "Visit Peekaping",
+                "type": "plain_text"
+              },
+              "type": "button",
+              "url": "https://peekaping.example.com/probes",
+              "value": "Peekaping"
+            }
+          ],
+          "type": "actions"
+        }
+      ],
+      "color": "#808080"
+    }
+  ],
+  "channel": "#alerts",
+  "text": "Probe Frankfurt is online"
+}

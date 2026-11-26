@@ -1,0 +1,10 @@
+To: oncall@example.com
+Subject: Peekaping Notification
+
+Time: 2026-10-17 09:30:00 UTC
+
+connection refused
+
+--- HTML
+<p>Time: <strong>2026-10-17 09:30:00 UTC</strong></p>
+<p>connection refused</p>

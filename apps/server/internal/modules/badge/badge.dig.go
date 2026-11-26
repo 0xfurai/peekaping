@@ -1,22 +1,20 @@
 package badge
 
 import (
-	"peekaping/internal/config"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/monitor_tls_info"
 	"peekaping/internal/modules/stats"
 	"peekaping/internal/modules/status_page"
+	"peekaping/internal/utils"
 
 	"go.uber.org/dig"
 	"go.uber.org/zap"
 )
 
 // RegisterDependencies registers badge module dependencies
-func RegisterDependencies(container *dig.Container, cfg *config.Config) {
-	container.Provide(NewBadgeService)
-	container.Provide(NewController)
-	container.Provide(NewRoute)
+func RegisterDependencies(container *dig.Container) error {
+	return utils.Provide(container, NewBadgeService, NewController, NewRoute)
 }
 
 // ServiceDependencies represents the dependencies for the badge service

@@ -1,23 +1,21 @@
-import CreateEditNotificationChannel, {
-  type NotificationForm,
-} from "../components/create-edit-notification-channel";
+import CreateEditNotificationChannel from "../components/create-edit-notification-channel";
+import type { NotificationChannelFormValues } from "../channel-types/registry";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  getNotificationChannelsInfiniteQueryKey,
-  postNotificationChannelsMutation,
-} from "@/api/@tanstack/react-query.gen";
+import { postNotificationChannelsMutation } from "@/api/@tanstack/react-query.gen";
 import { toast } from "sonner";
 import { commonMutationErrorHandler } from "@/lib/utils";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
-import type {
-  NotificationChannelCreateUpdateDto,
-  NotificationChannelModel,
-} from "@/api";
+import type { NotificationChannelModel } from "@/api";
+import { channelCreateBody } from "../channel-payload";
+import { invalidateChannelLists } from "../channel-queries";
 
+// The form that creates a channel. `isDefault` makes it a default channel for new monitors.
 const CreateNotificationChannel = ({
   onSuccess,
+  isDefault = false,
 }: {
   onSuccess: (notifier: NotificationChannelModel) => void;
+  isDefault?: boolean;
 }) => {
   const { t } = useLocalizedTranslation();
   const queryClient = useQueryClient();
@@ -27,25 +25,15 @@ const CreateNotificationChannel = ({
     onSuccess: (response) => {
       toast.success(t("notifications.messages.created_success"));
 
-      queryClient.invalidateQueries({
-        queryKey: getNotificationChannelsInfiniteQueryKey(),
-      });
+      invalidateChannelLists(queryClient);
       onSuccess(response.data);
     },
     onError: commonMutationErrorHandler(t("notifications.messages.create_failed")),
   });
 
-  const handleSubmit = (data: NotificationForm) => {
-    const payload: NotificationChannelCreateUpdateDto = {
-      name: data.name,
-      type: data.type,
-      config: JSON.stringify(data),
-      active: true,
-      is_default: false,
-    };
-
+  const handleSubmit = (data: NotificationChannelFormValues) => {
     createNotifierMutation.mutate({
-      body: payload,
+      body: channelCreateBody(data, isDefault),
     });
   };
 

@@ -1,0 +1,219 @@
+// Package check loads what a check needs to run: the monitor with its proxy, its
+// maintenance state, and for a push monitor its latest heartbeat. Single mode's scheduler
+// and the cluster api's push monitor checks load their checks here.
+package check
+
+import (
+	"context"
+	"fmt"
+
+	"go.uber.org/zap"
+
+	"peekaping/internal/modules/check/job"
+	"peekaping/internal/modules/maintenance"
+	"peekaping/internal/modules/shared"
+	"peekaping/internal/modules/workspace"
+)
+
+// Job and the errors Load returns are package job's, where the probe's scheduler reaches them
+// without the loader's services. They are aliased here for the rest of the server.
+type Job = job.Job
+
+var (
+	ErrMonitorNotFound = job.ErrMonitorNotFound
+	ErrMonitorPaused   = job.ErrMonitorPaused
+	// ErrWorkspaceSuspended is for a monitor whose workspace is suspended
+	ErrWorkspaceSuspended = job.ErrWorkspaceSuspended
+	// ErrMonitorTypeDisabled is for a monitor of a type the install turns off
+	ErrMonitorTypeDisabled = job.ErrMonitorTypeDisabled
+	// ErrMonitorOverLimit is for a monitor past its workspace's limit of active monitors
+	ErrMonitorOverLimit = job.ErrMonitorOverLimit
+)
+
+// MonitorFinder is the part of the monitor service the loader reads
+type MonitorFinder interface {
+	// FindByIDAnyWorkspace loads the monitor a check was queued for, whatever its workspace
+	FindByIDAnyWorkspace(ctx context.Context, id string) (*shared.Monitor, error)
+}
+
+// ProxyFinder is the part of the proxy service the loader reads
+type ProxyFinder interface {
+	// FindByID reads the proxy in the workspace of the monitor that names it
+	FindByID(ctx context.Context, workspaceID workspace.ID, id string) (*shared.Proxy, error)
+}
+
+// MaintenanceReader is the part of the maintenance service the loader reads
+type MaintenanceReader interface {
+	GetMaintenancesByMonitorIDAnyWorkspace(ctx context.Context, monitorID string) ([]*maintenance.Model, error)
+	IsUnderMaintenance(ctx context.Context, m *maintenance.Model) (bool, error)
+}
+
+// HeartbeatFinder is the part of the heartbeat service the loader reads
+type HeartbeatFinder interface {
+	FindByMonitorIDPaginated(ctx context.Context, monitorID string, limit, page int, important *bool, reverse bool) ([]*shared.HeartBeatModel, error)
+}
+
+// Loader loads the Job for a monitor's check
+type Loader struct {
+	monitorService     MonitorFinder
+	proxyService       ProxyFinder
+	maintenanceService MaintenanceReader
+	heartbeatService   HeartbeatFinder
+	logger             *zap.SugaredLogger
+}
+
+// NewLoader creates a loader
+func NewLoader(
+	monitorService MonitorFinder,
+	proxyService ProxyFinder,
+	maintenanceService MaintenanceReader,
+	heartbeatService HeartbeatFinder,
+	logger *zap.SugaredLogger,
+) *Loader {
+	return &Loader{
+		monitorService:     monitorService,
+		proxyService:       proxyService,
+		maintenanceService: maintenanceService,
+		heartbeatService:   heartbeatService,
+		logger:             logger.With("component", "check_loader"),
+	}
+}
+
+// Load reads what a check of the monitor needs. The job is nil whenever the error is not:
+//   - ErrMonitorNotFound: there is no such monitor (anymore). Callers drop the check.
+//   - ErrMonitorPaused: the monitor is paused. Callers drop the check.
+//   - ErrWorkspaceSuspended: the monitor's workspace is suspended. Callers drop the check.
+//   - ErrMonitorTypeDisabled: the install turns the monitor's type off. Callers drop the check.
+//   - ErrMonitorOverLimit: the monitor is past its workspace's limit of active monitors. Callers
+//     drop the check.
+//   - any other error: a read that must succeed failed (the monitor or its maintenance
+//     windows). Callers may try again later.
+//
+// A proxy or a push monitor's latest heartbeat that can't be read doesn't fail the load.
+// The check runs without it, and the failure is logged.
+func (l *Loader) Load(ctx context.Context, monitorID string) (*Job, error) {
+	mon, err := l.monitorService.FindByIDAnyWorkspace(ctx, monitorID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to find monitor: %w", err)
+	}
+
+	if err := refusal(mon); err != nil {
+		return nil, err
+	}
+
+	isUnderMaintenance, err := l.isUnderMaintenance(ctx, monitorID)
+	if err != nil {
+		l.logger.Errorw("Failed to check if monitor is under maintenance", "monitor_id", monitorID, "error", err)
+		return nil, err
+	}
+
+	loaded := &Job{
+		Monitor:            mon,
+		IsUnderMaintenance: isUnderMaintenance,
+		CheckCertExpiry:    l.checkCertExpiry(mon),
+	}
+
+	// Fetch proxy if configured
+	if mon.ProxyId != "" {
+		l.loadProxy(ctx, loaded, monitorID)
+	}
+
+	// For push monitors, fetch the latest heartbeat
+	if mon.Type == "push" {
+		l.loadLatestHeartbeat(ctx, loaded)
+	}
+
+	return loaded, nil
+}
+
+// refusal is why a check of the monitor must not run, or nil
+func refusal(mon *shared.Monitor) error {
+	switch {
+	// The monitor might have been deleted
+	case mon == nil:
+		return ErrMonitorNotFound
+	case !mon.Active:
+		return ErrMonitorPaused
+	// A check queued before the workspace was suspended runs no more
+	case mon.WorkspaceSuspended:
+		return ErrWorkspaceSuspended
+	// So does a check queued before the type was turned off
+	case mon.TypeDisabled:
+		return ErrMonitorTypeDisabled
+	// And one queued before the monitor went past its workspace's limit (PP-160)
+	case mon.OverLimit:
+		return ErrMonitorOverLimit
+	}
+	return nil
+}
+
+// loadProxy gives the job the proxy its monitor names. A proxy that can't be read is logged and
+// the check goes without it.
+func (l *Loader) loadProxy(ctx context.Context, loaded *Job, monitorID string) {
+	mon := loaded.Monitor
+	proxyModel, err := l.proxyService.FindByID(ctx, mon.WorkspaceID, mon.ProxyId)
+	if err != nil {
+		l.logger.Warnw("Failed to fetch proxy, continuing without it",
+			"monitor_id", monitorID,
+			"proxy_id", mon.ProxyId,
+			"error", err)
+		return
+	}
+	loaded.Proxy = proxyModel
+}
+
+// loadLatestHeartbeat gives the job the latest heartbeat of its push monitor. One that can't be
+// read is logged and the check goes without it.
+func (l *Loader) loadLatestHeartbeat(ctx context.Context, loaded *Job) {
+	mon := loaded.Monitor
+	latestHeartbeats, err := l.heartbeatService.FindByMonitorIDPaginated(ctx, mon.ID, 1, 0, nil, false)
+	if err != nil {
+		l.logger.Warnw("Failed to fetch latest heartbeat for push monitor",
+			"monitor_id", mon.ID,
+			"error", err)
+	} else if len(latestHeartbeats) > 0 {
+		loaded.LastHeartbeat = latestHeartbeats[0]
+	}
+}
+
+func (l *Loader) isUnderMaintenance(ctx context.Context, monitorID string) (bool, error) {
+	maintenances, err := l.maintenanceService.GetMaintenancesByMonitorIDAnyWorkspace(ctx, monitorID)
+	if err != nil {
+		return false, err
+	}
+
+	l.logger.Debugf("Found %d maintenances for monitor %s", len(maintenances), monitorID)
+
+	for _, m := range maintenances {
+		underMaintenance, err := l.maintenanceService.IsUnderMaintenance(ctx, m)
+		if err != nil {
+			l.logger.Warnf("Failed to get maintenance status for maintenance %s: %v", m.ID, err)
+			continue
+		}
+
+		// If any maintenance is under-maintenance, the monitor is under maintenance
+		if underMaintenance {
+			return true, nil
+		}
+	}
+
+	return false, nil
+}
+
+// checkCertExpiry reads whether the monitor's config asks for certificate expiry checking.
+// It reads the flag for every type, so a monitor that supports TLS (http, smtp) only has
+// to put check_cert_expiry in its config.
+func (l *Loader) checkCertExpiry(mon *shared.Monitor) bool {
+	checkCertExpiry, err := job.CertExpiryRequested(mon.Config)
+	if err != nil {
+		l.logger.Warnw("Failed to parse monitor config for certificate expiry check",
+			"monitor_id", mon.ID,
+			"monitor_name", mon.Name,
+			"error", err)
+	}
+	l.logger.Debugw("Certificate expiry checking configured",
+		"monitor_id", mon.ID,
+		"monitor_name", mon.Name,
+		"check_cert_expiry", checkCertExpiry)
+	return checkCertExpiry
+}

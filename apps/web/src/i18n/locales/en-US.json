@@ -3,20 +3,294 @@
     "cancel": "Cancel",
     "saving": "Saving..."
   },
+  "admin": {
+    "nav": {
+      "back_to_workspace": "Back to {{name}}",
+      "probes": "Probes",
+      "title": "Admin",
+      "users": "Users",
+      "workspaces": "Workspaces",
+      "settings": "Settings"
+    },
+    "users": {
+      "actions": {
+        "delete": "Delete user",
+        "disable": "Disable user",
+        "disableTwoFactor": "Turn off 2FA",
+        "enable": "Enable user",
+        "grantAdmin": "Make instance admin",
+        "resetLink": "Make reset link",
+        "revokeAdmin": "Remove instance admin"
+      },
+      "actions_aria": "Actions for {{email}}",
+      "columns": {
+        "created": "Created",
+        "email": "Email",
+        "email_verified": "Email verified",
+        "instance_admin": "Instance admin",
+        "last_sign_in": "Last sign-in",
+        "status": "Status",
+        "two_factor": "2FA",
+        "workspaces": "Workspaces"
+      },
+      "confirm": {
+        "cancel": "Cancel",
+        "delete": {
+          "confirm": "Delete user",
+          "description": "Delete {{email}}? Their account is removed, and so are their places in workspaces. This can't be undone.",
+          "title": "Delete user"
+        },
+        "disable": {
+          "confirm": "Disable",
+          "description": "{{email}} can't sign in and is signed out everywhere now. Their workspaces keep running. You can enable them again later.",
+          "title": "Disable user"
+        },
+        "disableTwoFactor": {
+          "confirm": "Turn off 2FA",
+          "description": "{{email}} will sign in with their password alone, and can set 2FA up again. Do this only once you are sure it is them asking.",
+          "title": "Turn off 2FA"
+        }
+      },
+      "description": "Everyone with an account on this install. Instance admins manage the install itself, such as probes and users. A user's role in a workspace is set by that workspace's owners.",
+      "empty": "No users found",
+      "errors": {
+        "last_instance_admin": "The install needs at least one instance admin.",
+        "last_owner": "The user is the last owner of {{workspaces}}. Make someone else an owner, or delete the workspace, first.",
+        "self": "You can't do this to your own account."
+      },
+      "load_failed": "Couldn't load the users.",
+      "messages": {
+        "admin_granted": "{{email}} is now an instance admin",
+        "admin_revoked": "{{email}} is no longer an instance admin",
+        "deleted": "{{email}} is deleted",
+        "disabled": "{{email}} is disabled and signed out",
+        "enabled": "{{email}} is enabled",
+        "two_factor_off": "2FA is off for {{email}}",
+        "update_failed": "Couldn't update the user."
+      },
+      "never": "Never",
+      "none": "None",
+      "page_name": "Users",
+      "paging": {
+        "next": "Next",
+        "page": "Page {{page}} of {{pages}}",
+        "previous": "Previous"
+      },
+      "reset_link": {
+        "close": "Close",
+        "copied": "Link copied",
+        "copy": "Copy link",
+        "copy_failed": "Couldn't copy the link. Select it and copy it by hand.",
+        "description": "A link for {{email}} to choose a new password. Copy it and pass it on now: it is shown only once.",
+        "emailed": "This install sends account emails, so the user is told by email that a link was made for them.",
+        "expires": "The link works once and expires {{when}}.",
+        "failed": "Couldn't make the link.",
+        "label": "Link",
+        "making": "Making the link...",
+        "signs_out": "Using the link signs the user out everywhere.",
+        "title": "Password reset link"
+      },
+      "search_label": "Search users by email",
+      "search_placeholder": "Search by email",
+      "total": "{{total}} found",
+      "values": {
+        "active": "Active",
+        "disabled": "Disabled",
+        "no": "No",
+        "two_factor_off": "Off",
+        "two_factor_on": "On",
+        "yes": "Yes"
+      },
+      "you": "you"
+    },
+    "workspaces": {
+      "actions": {
+        "delete": "Delete workspace",
+        "resume": "Resume workspace",
+        "suspend": "Suspend workspace",
+        "limits": "Limits"
+      },
+      "actions_aria": "Actions for {{name}}",
+      "columns": {
+        "created": "Created",
+        "custom_domains": "Custom domains",
+        "members": "Members",
+        "monitors": "Monitors",
+        "name": "Name",
+        "owners": "Owners",
+        "status": "Status",
+        "status_pages": "Status pages",
+        "limits": "Limits"
+      },
+      "confirm": {
+        "cancel": "Cancel",
+        "delete": {
+          "confirm": "Delete workspace",
+          "description": "Delete {{name}}? Everything in it goes: its monitors and their history, status pages, notification channels, and its members' access. This can't be undone.",
+          "name_label": "Type the workspace's name to confirm: {{name}}",
+          "title": "Delete workspace"
+        },
+        "resume": {
+          "confirm": "Resume",
+          "description": "The monitors of {{name}} run again in the state they had, and its members can use it as before. A workspace that waits for its owner's email verification keeps waiting.",
+          "title": "Resume workspace"
+        },
+        "suspend": {
+          "confirm": "Suspend",
+          "description": "The monitors of {{name}} stop running, its public status pages say they are unavailable, and its members see that it is suspended. Nothing is deleted, and you can resume it later.",
+          "title": "Suspend workspace"
+        }
+      },
+      "description": "Every workspace on this install, with its owners, its members and how much it holds. Only counts are shown, nothing inside a workspace.",
+      "empty": "No workspaces found",
+      "load_failed": "Couldn't load the workspaces.",
+      "messages": {
+        "deleted": "{{name}} is deleted",
+        "failed": "Couldn't change the workspace.",
+        "resumed": "{{name}} is resumed",
+        "suspended": "{{name}} is suspended"
+      },
+      "monitors": "{{active}} active, {{paused}} paused",
+      "none": "None",
+      "page_name": "Workspaces",
+      "paging": {
+        "next": "Next",
+        "page": "Page {{page}} of {{pages}}",
+        "previous": "Previous"
+      },
+      "search_label": "Search workspaces by name or owner email",
+      "search_placeholder": "Search by name or owner email",
+      "status": {
+        "running": "Running",
+        "suspended_admin": "Suspended by an admin",
+        "suspended_unverified": "Suspended until the owner verifies their email"
+      },
+      "total": "{{total}} found",
+      "limits": {
+        "item": "{{name}}: {{value}}",
+        "more": "+{{number}} more",
+        "unlimited": "No limits",
+        "source": {
+          "workspace": "Its own",
+          "install": "Install's defaults",
+          "none": "None set"
+        },
+        "dialog": {
+          "title": "Limits of {{name}}",
+          "description": "What this workspace is held to. Lowering a limit pauses and deletes nothing: the newest monitors past it stop running until there is room again.",
+          "own": "Its own limits",
+          "own_help": "These replace the install's defaults. Leave a limit blank for none.",
+          "unlimited": "No limits",
+          "unlimited_help": "No limit at all, whatever the install's defaults say.",
+          "defaults": "Use the install's defaults",
+          "defaults_help": "The default limits of Admin → Settings, or none when the install sets none.",
+          "save": "Save limits",
+          "cancel": "Cancel",
+          "saved": "The limits of {{name}} are saved",
+          "failed": "Couldn't save the limits."
+        }
+      }
+    },
+    "settings": {
+      "page_name": "Settings",
+      "description": "Settings of the whole install. A value the server's environment sets is locked here.",
+      "load_failed": "The settings couldn't be loaded.",
+      "saved": "Settings saved",
+      "save_failed": "The settings weren't saved.",
+      "locked": "Set by the server's environment",
+      "source": {
+        "environment": "From the server's environment",
+        "saved": "Saved here",
+        "default": "Default"
+      },
+      "signup": {
+        "title": "Signup",
+        "description": "Who may create an account on this install.",
+        "label": "Signup mode",
+        "invite": "Invite only",
+        "open": "Open",
+        "invite_help": "The first user signs up, and everyone after joins a workspace through an invite.",
+        "open_help": "Anyone may sign up and gets a workspace of their own. New accounts verify their email address, so this needs an email sender."
+      },
+      "sender": {
+        "title": "Email sender",
+        "description": "The SMTP server that sends account emails: password reset links, email verification and invites.",
+        "on": "Account emails are on.",
+        "off": "Account emails are off: there is no SMTP host.",
+        "host": "SMTP Host",
+        "port": "Port",
+        "tls": "Security",
+        "tls_starttls": "STARTTLS",
+        "tls_tls": "TLS",
+        "tls_none": "None",
+        "user": "User",
+        "password": "Password",
+        "password_set": "A password is set. Type to replace it.",
+        "password_not_set": "No password set",
+        "password_removed": "The password is removed when you save.",
+        "password_reenter": "Changing the host, port, security or user removes the saved password. Enter it again.",
+        "remove_password": "Remove password",
+        "keep_password": "Keep password",
+        "from": "From address"
+      },
+      "public_url": {
+        "title": "Public URL",
+        "description": "The web app's address, which the links in emails and notifications open.",
+        "label": "Public URL"
+      },
+      "test_email": {
+        "title": "Send a test email",
+        "description": "Sends a short email through the saved sender, to check that it works.",
+        "to": "Send to",
+        "send": "Send a test email",
+        "sending": "Sending…",
+        "sent": "Test email sent to {{to}}.",
+        "failed": "The test email wasn't sent.",
+        "unsaved": "The sender has unsaved changes. The test uses the saved sender, so save first."
+      },
+      "validation": {
+        "port": "Enter a port from 1 to 65535, or leave it empty for the default."
+      },
+      "errors": {
+        "locked": "{{field}} is set by the server's environment and can't be changed here.",
+        "open_needs_sender": "Open signup needs an email sender, because new accounts verify their email address. Set up the sender first, or in the same save.",
+        "sender_needed": "Signup is open, and new accounts need the sender to verify their email address. Switch signup to invite only first.",
+        "no_sender": "There is no email sender. Save a sender first."
+      },
+      "limits": {
+        "title": "Default limits",
+        "description": "The limits of every workspace that has none of its own. Leave a limit blank for none. Limits a workspace is given on the Workspaces page replace these.",
+        "name_label": "Name of the default limits",
+        "name_help": "Shown on a workspace's Usage page, such as Free tier. Left blank, the page says your administrator set the limits."
+      }
+    }
+  },
   "auth": {
     "login": {
       "description": "Login with your Email",
       "no_account": "Don't have an account?",
       "sign_up": "Sign up",
       "submit": "Login",
-      "title": "Welcome back"
+      "title": "Welcome back",
+      "forgot_password": "Forgot password?",
+      "ask_admin": "Ask an admin of this install for an invite"
     },
     "register": {
       "description": "Create your admin account",
+      "description_open": "Create your account",
       "have_account": "Already have an account?",
       "sign_in": "Sign in",
       "submit": "Create",
-      "title": "Hello"
+      "title": "Hello",
+      "telemetry_note": "Anonymous: no monitor names, URLs or hosts. You can change this later in Settings.",
+      "telemetry_whats_sent": "What's sent",
+      "errors": {
+        "rate_limited": "Too many signups from your network. Try again in an hour.",
+        "email_taken": "An account with this email exists.",
+        "sign_in_instead": "Sign in instead.",
+        "check_failed": "The check didn't pass. Try again.",
+        "check_load_failed": "The check couldn't load. Check your connection and try again."
+      }
     },
     "twofa": {
       "code_label": "2FA Code",
@@ -25,11 +299,51 @@
       "title": "Two-Factor Authentication Required",
       "verify_button": "Verify 2FA",
       "verifying": "Verifying..."
+    },
+    "forgot": {
+      "title": "Reset your password",
+      "description": "Enter the email of your account and we'll send you a link.",
+      "submit": "Send link",
+      "sent": "If an account exists for this email, we sent a link. It works for an hour.",
+      "back_to_login": "Back to sign in"
+    },
+    "reset": {
+      "title": "Choose a new password",
+      "description": "Enter a new password for your account.",
+      "submit": "Set password",
+      "success": "Your password is changed, and you were signed out everywhere. Sign in with the new password.",
+      "sign_in": "Sign in",
+      "invalid_link": "This link is used or expired.",
+      "request_new": "Request a new link"
+    },
+    "verify": {
+      "title": "Verify your email",
+      "verifying": "Verifying your email...",
+      "success": "Your email is verified.",
+      "open_app": "Open Peekaping",
+      "invalid_link": "This link is used or expired."
+    },
+    "errors": {
+      "rate_limited": "Too many requests. Try again later.",
+      "generic": "Something went wrong. Try again.",
+      "already_verified": "Your email is already verified."
+    },
+    "resend": {
+      "button": "Resend",
+      "sent": "We sent a new link. Check your inbox."
+    },
+    "verification_banner": {
+      "message": "Verify your email: we sent a link to {{email}}."
+    },
+    "suspension_notice": {
+      "message": "Your monitors start once you verify your email.",
+      "member_message": "This workspace's monitors start once its owner verifies their email."
     }
   },
   "bars": {
     "down_count": "Down Count",
     "important": "Important",
+    "instance": "Instance",
     "interval": "Interval",
     "message": "Message",
     "ms": "ms",
@@ -65,10 +379,12 @@
     "loading": "Loading...",
     "logout": "Log out",
     "maintenance": "Maintenance",
+    "no_data": "No data",
     "no_options_found": "No options found",
     "no_tags_available": "No tags available",
     "please_refresh_page": "Please refresh the page.",
     "required": "Required",
+    "retry": "Retry",
     "save": "Save",
     "saving": "Saving...",
     "search": "Search",
@@ -83,6 +399,12 @@
     "up": "Up",
     "update": "Update",
     "verifying": "Verifying..."
+  },
+  "error_reporting": {
+    "label": "Send error reports",
+    "never_sent": "Never sent: error messages, URLs, headers, webhook URLs, names or hostnames. A report holds no IP address, and Peekaping's Sentry project is set not to store the sender's IP.",
+    "not_saved": "Your choice about error reports wasn't saved. Check it in Settings.",
+    "sent": "Sent only when Peekaping itself crashes. A report holds the error type and where in the code it happened, the Peekaping version, single or cluster mode, the storage backend, and the operating system."
   },
   "forms": {
     "labels": {
@@ -113,7 +435,35 @@
       "email_invalid": "Please enter a valid email address",
       "password_required": "Password is required",
       "password_min_length": "Password must be at least 8 characters",
+      "password_complexity": "Password must include an uppercase letter, a lowercase letter, a number and a special character",
       "passwords_mismatch": "Passwords don't match"
+    }
+  },
+  "invite": {
+    "accept": "Accept invite",
+    "accepting": "Joining...",
+    "creating": "Creating...",
+    "description": "You are invited to join {{workspace}} as {{role}}.",
+    "enter_failed": "You joined the workspace, but opening it failed. Try again.",
+    "errors": {
+      "other_email": "This invite is for another email address."
+    },
+    "for_email": "This invite is for {{email}}.",
+    "have_account": "Already have an account?",
+    "open_app": "Open Peekaping",
+    "other_account": "You are signed in as {{current}}, but this invite is for {{invited}}. Sign out, then sign in or sign up with {{invited}} to accept it.",
+    "sign_in_instead": "Sign in instead",
+    "sign_out": "Sign out",
+    "signup_description": "Choose a password to create your account and join {{workspace}} as {{role}}.",
+    "signup_submit": "Create account and join",
+    "title": "Join {{workspace}}",
+    "unavailable": {
+      "accepted": "This invite was already used.",
+      "expired": "This invite has expired. Ask for a new one.",
+      "not_found": "This invite link doesn't exist. Check that you copied all of it.",
+      "revoked": "This invite was revoked. Ask for a new one.",
+      "title": "This invite can't be used",
+      "unknown": "This invite can't be used. Ask for a new one."
     }
   },
   "maintenance": {
@@ -221,6 +571,79 @@
       "wed": "Wed"
     }
   },
+  "members": {
+    "change_role_aria": "Change the role of {{email}}",
+    "errors": {
+      "account_exists": "An account with this email exists already. Sign in and accept the invite.",
+      "already_member": "This person is already a member of this workspace.",
+      "forbidden": "Your role in this workspace doesn't allow this.",
+      "generic": "Something went wrong. Please try again.",
+      "last_owner": "A workspace needs at least one owner.",
+      "member_not_found": "This member isn't in the workspace any more."
+    },
+    "invite": {
+      "copied": "Link copied",
+      "copy": "Copy",
+      "creating": "Creating...",
+      "description": "Make a link for an email address and a role. Nothing is emailed: copy the link and send it yourself.",
+      "done": "Done",
+      "email_label": "Email",
+      "link_note": "This link works once and expires in 7 days. It is shown only now, so copy it before you leave this page.",
+      "link_title": "Invite link",
+      "role_label": "Role",
+      "submit": "Create invite link",
+      "title": "Invite someone"
+    },
+    "leave": {
+      "button": "Leave workspace",
+      "confirm": "Leave",
+      "description": "You lose access to this workspace and its data at once.",
+      "done": "You left the workspace",
+      "last_owner": "You are the last owner, so you can't leave. Make another member an owner first.",
+      "refresh_failed": "You left the workspace, but loading your workspaces failed. Try again.",
+      "title": "Leave this workspace"
+    },
+    "list": {
+      "description": "Everyone who works in this workspace, and their role.",
+      "email": "Email",
+      "joined": "Joined",
+      "role": "Role",
+      "title": "Members",
+      "you": "you"
+    },
+    "page_name": "Members",
+    "pending": {
+      "description": "Invites that were not used yet. A revoked invite's link stops working.",
+      "email": "Email",
+      "empty": "No pending invites.",
+      "expired": "Expired",
+      "expires": "Expires",
+      "revoke": "Revoke",
+      "revoke_aria": "Revoke the invite for {{email}}",
+      "revoked": "Invite revoked",
+      "role": "Role",
+      "title": "Pending invites"
+    },
+    "remove": "Remove",
+    "remove_aria": "Remove {{email}}",
+    "remove_dialog": {
+      "confirm": "Remove",
+      "description": "{{email}} loses access to this workspace at once.",
+      "title": "Remove member"
+    },
+    "removed": "Member removed",
+    "role_updated": "Role updated",
+    "roles": {
+      "admin": "Admin",
+      "member": "Member",
+      "owner": "Owner"
+    },
+    "settings_card": {
+      "description": "See who works in this workspace and, if you are an admin or owner, invite people and manage their roles.",
+      "open": "Open members",
+      "title": "Members"
+    }
+  },
   "messages": {
     "login_error": "An error occurred during login",
     "login_no_tokens": "Login successful but no tokens received",
@@ -248,6 +671,7 @@
     },
     "empty_state": {
       "action": "Create your first monitor",
+      "add_channel": "Add a notification channel",
       "description": "Get started by creating your first monitor to track the health of your services.",
       "title": "No monitors found"
     },
@@ -490,12 +914,25 @@
       "shared": {
         "intervals": {
           "heartbeat_retry": "Heartbeat Retry Interval (Retry every {{seconds}} seconds)",
+          "interval_too_short": "Can't be less than {{minimum}} seconds",
           "max_retries_description": "Maximum retries before the service is marked as down and a notification is sent",
           "request_timeout": "Request Timeout (Timeout after {{seconds}} seconds)",
-          "resend_notification": "Resend Notification if Down X times consecutively (Resend disabled)"
+          "resend_notification": "Resend Notification if Down X times consecutively (Resend disabled)",
+          "timeout_too_long": "Can't be more than 80% of the check interval"
+        },
+        "location_rule": {
+          "all": "All locations are Down",
+          "any": "Any location is Down",
+          "at_least": "At least N locations are Down",
+          "description": "A location whose probe is offline, or that hasn't reported yet, doesn't count.",
+          "label": "Mark the monitor Down when",
+          "threshold_invalid": "Enter a whole number, 1 or more",
+          "threshold_label": "Number of locations",
+          "threshold_too_high": "Can't be more than the number of probes you chose"
         },
         "notifications": {
           "add_notifier": "Add Notifier",
+          "load_failed": "Could not load the notification channels",
           "new_notifier": "+ New Notifier",
           "no_channels": "No notification channels found, create one first",
           "no_channels_available": "No channels available",
@@ -503,6 +940,15 @@
           "select_notifier_placeholder": "Select Notifier",
           "selected_channels": "Selected Notification channels",
           "title": "Notification channels"
+        },
+        "probe": {
+          "description": "The monitor runs on every probe you choose and shows each one's results as a location.",
+          "label": "Probe",
+          "option_unsupported": "{{name}} (doesn't run this type)",
+          "placeholder": "Select probe",
+          "push_fixed": "A push monitor always runs on the local probe.",
+          "required": "Choose at least one probe",
+          "unsupported": "This probe doesn't run this type of monitor. Choose another probe."
         },
         "proxy": {
           "add_proxy": "Add Proxy",
@@ -512,6 +958,10 @@
           "select_proxy_placeholder": "Select Proxy",
           "selected_proxy": "Selected Proxy",
           "title": "Proxy"
+        },
+        "run_from": {
+          "default_locations": "Runs on the default locations",
+          "label": "Run from"
         },
         "tags": {
           "label": "Tags",
@@ -593,6 +1043,8 @@
         "docker": "Docker Container",
         "grpc": "gRPC Keyword Monitor",
         "http": "HTTP(S) Monitor",
+        "http_json_query": "HTTP(s) - Json Query",
+        "http_keyword": "HTTP(s) - Keyword",
         "kafka": "Kafka Producer Monitor",
         "mongodb": "MongoDB Database Monitor",
         "mqtt": "MQTT Broker Monitor",
@@ -617,9 +1069,12 @@
     "toasts": {
       "deleted": "Monitor deleted",
       "paused": "Monitor paused",
+      "push_token_already_used": "Another monitor already uses this push token. Generate a new one.",
       "reset_success": "Monitor data reset successfully",
       "resumed": "Monitor resumed"
     },
+    "type_disabled": "The {{type}} type is turned off on this install",
+    "over_limit": "Not checked: the workspace has more active monitors than its limit allows",
     "view": {
       "buttons": {
         "clone": "Clone",
@@ -649,6 +1104,15 @@
       "expiring_soon": "Expiring soon",
       "for": "for",
       "live_status": "Live Status",
+      "locations": {
+        "all": "All locations",
+        "no_result": "No result yet",
+        "probe_offline": "Probe offline",
+        "probe_unsupported": "Doesn't run this type",
+        "response_time": "Response time",
+        "select_label": "Location",
+        "title": "Locations"
+      },
       "monitor_for": "monitor for",
       "no_certificate_data": "No certificate data",
       "seconds": "seconds",
@@ -671,9 +1135,11 @@
     }
   },
   "navigation": {
+    "admin": "Admin",
     "maintenance": "Maintenance",
     "monitors": "Monitors",
     "notification_channels": "Notification Channels",
+    "probes": "Probes",
     "proxies": "Proxies",
     "settings": "Settings",
     "status_pages": "Status Pages",
@@ -854,9 +1320,9 @@
       "pagerduty": {
         "auto_resolve_acknowledge": "Auto acknowledge",
         "auto_resolve_acknowledge_description": "Automatically acknowledge the incident",
-        "auto_resolve_description": "Choose what action to take when a monitor comes back up",
+        "auto_resolve_description": "Choose what to send when a monitor comes back up or a probe comes back online",
         "auto_resolve_do_nothing": "Do nothing",
-        "auto_resolve_do_nothing_description": "No action taken on UP status",
+        "auto_resolve_do_nothing_description": "Nothing is sent when a monitor comes back up or a probe comes back online, so the incident stays open until you resolve it in PagerDuty",
         "auto_resolve_label": "Auto Resolve or Acknowledge",
         "auto_resolve_placeholder": "Select auto-resolve behavior",
         "auto_resolve_resolve": "Auto resolve",
@@ -879,7 +1345,7 @@
         "authentication_token_description": "Optional authentication token for enhanced security. This will be sent in the pagertree-token header.",
         "authentication_token_label": "Authentication Token (Optional)",
         "authentication_token_placeholder": "Enter auth token if required",
-        "auto_resolve_alerts_description": "Automatically resolve PagerTree alerts when the monitor recovers",
+        "auto_resolve_alerts_description": "Automatically resolve PagerTree alerts when a monitor comes back up or a probe comes back online",
         "auto_resolve_alerts_label": "Auto-Resolve Alerts",
         "how_to_get_integration_url_label": "How to get integration URL",
         "integration_url_description": "Enter your PagerTree webhook integration URL.",
@@ -1082,6 +1548,12 @@
         "signing_secret_docs_link": "How to verify the signature",
         "signing_secret_label": "Signing Secret",
         "signing_secret_placeholder": "Leave empty to send unsigned requests"
+      },
+      "install_email": {
+        "description": "Sent by this install, no SMTP server needed.",
+        "to_description": "A member of this workspace. Notifications are sent once they have verified the address.",
+        "to_label": "Recipient",
+        "to_placeholder": "Choose a member"
       }
     },
     "important": "Important Notifications",
@@ -1100,13 +1572,150 @@
       "updated_success": "Notifier updated successfully"
     },
     "new": {
-      "title": "New Notification Channel"
+      "title": "New Notification Channel",
+      "default_hint": "This channel will be ticked on new monitors."
     },
     "no_important": "No important notifications found.",
     "placeholders": {
       "select_type": "Select notifier type"
     },
-    "search_placeholder": "Search notification channels by name..."
+    "search_placeholder": "Search notification channels by name...",
+    "secret": {
+      "reenter_error": "Re-enter this secret or remove it: where it's sent changed",
+      "reenter_hint": "Re-enter this secret: where it's sent changed",
+      "reenter_url_error": "Type this URL's credentials again: the URL changed since it was saved",
+      "remove": "Remove",
+      "saved_hint": "Saved — type to replace"
+    }
+  },
+  "probes": {
+    "default": {
+      "description": "A monitor created without choosing probes runs on the default probes that aren't disabled and run its type, and on the local probe when none does. Monitors that exist keep their probes.",
+      "failed": "Couldn't change whether the probe is a default.",
+      "label": "Default probe",
+      "off": "{{name}} is no longer a default probe",
+      "on": "{{name}} is now a default probe",
+      "title": "Default for new monitors"
+    },
+    "default_badge": "Default",
+    "page_name": "Probes",
+    "description": "Probes run monitor checks from the places where they are installed. The local probe is Peekaping itself.",
+    "local_name": "Local",
+    "monitor_probe": "Probe: {{name}}",
+    "monitor_probe_unsupported": "{{name}} doesn't run {{type}} monitors",
+    "empty_list": {
+      "title": "No probes found",
+      "text": "Create a probe to run checks from another place.",
+      "action_text": "Create your first probe"
+    },
+    "table": {
+      "headers": {
+        "name": "Name",
+        "location": "Location",
+        "status": "Status",
+        "disabled": "Disabled",
+        "token": "Token",
+        "instances": "Instances",
+        "actions": "Actions"
+      },
+      "status": {
+        "online": "Online",
+        "offline": "Offline"
+      },
+      "disabled": "Disabled",
+      "no_instances": "No instances yet",
+      "last_seen": "last seen {{date}}",
+      "actions": {
+        "edit": "Edit probe {{name}}",
+        "rotate": "Rotate token of probe {{name}}",
+        "assign_all": "Assign probe {{name}} to all monitors",
+        "delete": "Delete probe {{name}}"
+      }
+    },
+    "create_dialog": {
+      "title": "Create probe",
+      "description": "A probe runs checks from the place where you install it. Its token is shown only once, after you create it.",
+      "submit": "Create probe",
+      "creating": "Creating..."
+    },
+    "assign_all": {
+      "warning": "The token reads the config of every monitor assigned to the probe, credentials included.",
+      "docs_link": "What the token can read"
+    },
+    "assign_all_dialog": {
+      "title": "Assign to all monitors",
+      "description": "Add probe {{name}} to every monitor it can run, except push monitors. A probe with no instance yet is added when its first instance connects.",
+      "confirm": "Assign to all monitors",
+      "assigning": "Assigning..."
+    },
+    "edit_dialog": {
+      "title": "Edit probe",
+      "description": "Change the settings of {{name}}."
+    },
+    "form": {
+      "name_label": "Name",
+      "name_placeholder": "e.g., Frankfurt",
+      "location_label": "Location (optional)",
+      "location_placeholder": "e.g., Frankfurt, Germany",
+      "assign_all_label": "Assign to all monitors",
+      "assign_all_description": "When its first instance connects, the probe is added to every monitor it can run, except push monitors.",
+      "name_required": "Name is required",
+      "name_too_long": "Name is too long",
+      "location_too_long": "Location is too long",
+      "disabled_label": "Disabled",
+      "disabled_description": "A disabled probe's token stops working until you enable it again.",
+      "notifications_hint": "Leave empty to notify the channels of this probe's monitors."
+    },
+    "rotate_dialog": {
+      "title": "Rotate token",
+      "description": "The old token of probe {{name}} stops working at once. Its instances must restart with the new token.",
+      "confirm": "Rotate token",
+      "rotating": "Rotating..."
+    },
+    "delete_dialog": {
+      "title": "Delete probe",
+      "description": "Are you sure you want to delete the probe \"{{name}}\"? Its token stops working. This action cannot be undone."
+    },
+    "token_alert": {
+      "title_created": "Probe {{name}} created",
+      "title_rotated": "New token for probe {{name}}",
+      "note": "This token reads the configs of the monitors assigned to the probe. It is shown only once.",
+      "token_label": "Token",
+      "docker_label": "Start the probe with Docker",
+      "copy_token": "Copy token",
+      "copy_command": "Copy docker command"
+    },
+    "messages": {
+      "created_successfully": "Probe created successfully",
+      "updated_successfully": "Probe updated successfully",
+      "rotated_successfully": "Token rotated successfully",
+      "assigned_successfully": "Monitors added: {{added}}",
+      "assign_pending": "It will be added to every monitor it runs when it connects",
+      "deleted_successfully": "Probe deleted successfully",
+      "failed_to_create": "Failed to create probe",
+      "failed_to_update": "Failed to update probe",
+      "failed_to_rotate": "Failed to rotate the token",
+      "failed_to_assign": "Failed to assign the probe to all monitors",
+      "failed_to_delete": "Failed to delete probe",
+      "failed_to_load": "Failed to load probes",
+      "copy_success": "Copied to clipboard",
+      "copy_failed": "Could not copy to clipboard"
+    },
+    "detail": {
+      "assign_all_pending": "Waiting for its first instance: it will be added to every monitor it runs when it connects.",
+      "not_found": "Probe not found"
+    },
+    "availability": {
+      "title": "Availability",
+      "range_label": "Time range",
+      "bar_label": "Availability history",
+      "instance_bar_label": "Connections of {{name}}",
+      "no_data": "No data",
+      "now": "Now",
+      "instances_title": "Instances, last 24 hours",
+      "in_process_note": "Peekaping itself checks the monitors of the local probe, so it has no availability history.",
+      "connected_since": "Connected since {{start}}"
+    }
   },
   "proxies": {
     "delete_dialog": {
@@ -1145,6 +1754,20 @@
     "search_placeholder": "Search proxies by host..."
   },
   "security": {
+    "delete_account": {
+      "button": "Delete account",
+      "description": "Deletes your account and ends your sessions. You leave every workspace you are in. This can't be undone.",
+      "dialog_description": "Your account is deleted at once and you are signed out. You leave every workspace you are in. This can't be undone.",
+      "errors": {
+        "last_instance_admin": "You are the last instance admin of this install. Another instance admin is needed before you can delete your account.",
+        "last_owner": "You are the only owner of {{workspaces}}. Make another member an owner, or delete the workspace first.",
+        "wrong_password": "The password is incorrect"
+      },
+      "failed": "Failed to delete the account",
+      "password_label": "Your password",
+      "success": "Your account was deleted",
+      "title": "Delete account"
+    },
     "enable_2fa": {
       "form": {
         "authenticator_code_label": "Authenticator Code",
@@ -1267,10 +1890,35 @@
     "to_email_label": "To Email"
   },
   "settings": {
+    "danger_zone": {
+      "button": "Delete workspace",
+      "description": "Deleting this workspace deletes everything in it for good: its monitors, heartbeats, status pages and the rest. The deletion happens 7 days after you confirm. Its monitors stop at once, and an owner can cancel the deletion until then.",
+      "dialog_description": "This deletes {{name}} and everything in it, 7 days from now. Its monitors stop at once, and you can cancel the deletion until then.",
+      "failed": "Failed to schedule the deletion",
+      "name_label": "Type the workspace name, {{name}}, to confirm",
+      "scheduled": "This workspace will be deleted on {{date}}. Its monitors don't run until then. Cancel the deletion to bring everything back.",
+      "title": "Danger zone"
+    },
     "data_retention": {
       "days_label": "Days",
       "description": "Set how many days to keep data (KEEP_DATA_PERIOD_DAYS).",
-      "title": "Data Retention Period"
+      "read_only": "Only a workspace admin or owner can change this.",
+      "title": "Data Retention Period",
+      "capped": "Up to {{max}} days on this workspace"
+    },
+    "error_reporting": {
+      "cluster_note": "In cluster mode, a change reaches every process within a minute.",
+      "description": "Send a report to Sentry when the server crashes. On by default; you can turn it off here at any time.",
+      "forced_off": "The ERROR_REPORTING=off environment variable switches this off. Nothing is sent, whatever this setting says.",
+      "title": "Error reports"
+    },
+    "telemetry": {
+      "description": "Send anonymous statistics about how this install is set up, at most once a day. On by default; you can turn it off here at any time.",
+      "forced_off": "The TELEMETRY=off environment variable switches this off. Nothing is sent, whatever this setting says.",
+      "id_note": "The instance ID is created while this is on and deleted when you turn it off. Turning it on again creates a new one.",
+      "payload_off": "Nothing is sent while this is off. This is what a usage ping would contain if you turned it on.",
+      "payload_title": "What the next usage ping sends",
+      "title": "Usage statistics"
     },
     "timezone": {
       "description": "Select your preferred timezone for displaying all times in the app.",
@@ -1282,6 +1930,73 @@
     },
     "validation": {
       "min_days": "Must be at least 1 day"
+    },
+    "workspace_name": {
+      "description": "The name shown in the workspace switcher and to its members.",
+      "title": "Workspace name"
+    },
+    "workspace_export": {
+      "title": "Export",
+      "description": "Download this workspace's setup as one JSON file: its settings, tags, proxies, notification channels, monitors, maintenance windows and status pages. An owner can import the file into another workspace.",
+      "warning_title": "The file holds saved secrets",
+      "warning": "Bot tokens, passwords and webhook URLs of your notification channels and proxies are in it in full, not hidden. Store the file like a password, and don't share it with anyone who shouldn't have them.",
+      "download_workspace": "Download workspace",
+      "download_heartbeats": "Download heartbeat history",
+      "heartbeats_note": "The heartbeat history is a separate file and can be large. It holds one line for each check of each monitor.",
+      "downloading": "Downloading...",
+      "failed": "Failed to download the workspace",
+      "heartbeats_failed": "Failed to download the heartbeat history"
+    },
+    "workspace_import": {
+      "title": "Import",
+      "description": "Add the records of a workspace export file to this workspace. Nothing is replaced: they come in beside the ones already here.",
+      "file_label": "Workspace export file (.json)",
+      "choose": "Choose a file",
+      "not_json": "This file is not valid JSON, so nothing was sent.",
+      "too_large": "This file is larger than 16 MB, the most an import takes, so nothing was sent.",
+      "unreadable": "This file can't be read. Choose it again, or check that it still exists.",
+      "confirm_title": "Import {{file}}?",
+      "confirm_description": "Its records are added beside the ones already in this workspace. Nothing is replaced, and importing the same file twice adds them twice. Monitors start running as soon as they are added.",
+      "confirm_button": "Import",
+      "importing": "Importing...",
+      "failed": "Failed to import the file",
+      "problems_title": "The file can't be imported",
+      "problems_description": "Nothing was added to this workspace. Fix these problems in the file and import it again:",
+      "result_title": "Import finished",
+      "created_title": "Added to this workspace",
+      "nothing_created": "Nothing was added.",
+      "changes_title": "Changed to fit this workspace",
+      "no_changes": "Everything came in as the file has it.",
+      "close": "Close",
+      "created": {
+        "tags": "Tags",
+        "proxies": "Proxies",
+        "notificationChannels": "Notification channels",
+        "monitors": "Monitors",
+        "maintenances": "Maintenance windows",
+        "statusPages": "Status pages"
+      },
+      "changes": {
+        "tag_reused": "The tag \"{{name}}\" is already in this workspace, so its monitors use it.",
+        "proxy_skipped_target_not_allowed": "The proxy {{name}} was left out: this install blocks its address.",
+        "monitor_proxy_dropped": "The monitor \"{{name}}\" comes in without its proxy {{from}}, which was left out.",
+        "channel_skipped": "The notification channel \"{{name}}\" was left out: this install or workspace can't take it.",
+        "channel_skipped_target_not_allowed": "The notification channel \"{{name}}\" was left out: this install blocks the address it sends to.",
+        "channel_skipped_no_install_sender": "The notification channel \"{{name}}\" was left out: this install has no sender for emails.",
+        "channel_skipped_recipient_not_member": "The notification channel \"{{name}}\" was left out: its email recipient is not a member of this workspace.",
+        "monitor_skipped_type_disabled": "The monitor \"{{name}}\" was left out: this install turns off monitors of type {{reason}}.",
+        "monitor_skipped_target_not_allowed": "The monitor \"{{name}}\" was left out: this install blocks its target {{reason}}.",
+        "monitor_interval_raised": "The monitor \"{{name}}\" checks every {{to}} seconds instead of {{from}}, the shortest this install allows.",
+        "monitor_retry_interval_raised": "The monitor \"{{name}}\" retries a failed check every {{to}} seconds instead of {{from}}, the shortest this install allows.",
+        "push_token_replaced": "The monitor \"{{name}}\" got a new push token, since another monitor holds the one in the file. Update the address your job sends to.",
+        "monitor_paused_over_limit": "The monitor \"{{name}}\" comes in paused: this workspace's plan has no room for another running monitor.",
+        "status_page_slug_changed": "The status page \"{{name}}\" has the address {{to}} instead of {{from}}, since that one is taken.",
+        "status_page_skipped_over_limit": "The status page \"{{name}}\" was left out: this workspace's plan has no room for another one.",
+        "custom_domain_dropped": "The custom domain {{name}} was left out: another status page holds it.",
+        "custom_domain_dropped_over_limit": "The custom domain {{name}} was left out: this workspace's plan has no room for another one.",
+        "retention_capped": "The data retention period is {{to}} days instead of {{from}}, the most this workspace's plan allows.",
+        "unknown": "The import changed {{subject}} ({{kind}})."
+      }
     }
   },
   "status": {
@@ -1291,12 +2006,14 @@
       "last_updated": "Last Updated",
       "maintenance": "Maintenance",
       "no_monitors_configured": "No monitors configured for this status page.",
+      "not_monitored": "Not monitored",
       "operational": "Operational",
       "partial_system_outage": "Partial System Outage",
       "powered_by": "Powered by",
       "refresh_in": "Refresh in",
       "refresh_now": "Refresh Now",
       "status_page_not_found": "Status page not found or is not published.",
+      "status_page_unavailable": "This status page is unavailable",
       "under_maintenance": "Under Maintenance",
       "unknown": "Unknown"
     }
@@ -1315,7 +2032,35 @@
     "description": "Enter status page description",
     "domain_already_used": "Domain {{domain}} is already used by another status page",
     "domain_host_warning": "This domain is the same as your current host URL. This may cause conflicts.",
+    "domain_verification": {
+      "add_one_record": "Add one of these records at your DNS provider. Either one is enough.",
+      "check_failed": "Could not check {{domain}}",
+      "check_now": "Check now",
+      "checking": "Checking...",
+      "cname_record": "CNAME record",
+      "copy": "Copy {{label}}",
+      "copy_failed": "Could not copy to the clipboard",
+      "copy_success": "Copied to clipboard",
+      "info": "Each domain serves this page once a DNS record proves it points to Peekaping.",
+      "last_checked": "Last checked {{time}}",
+      "name": "Name",
+      "not_checked": "Not checked yet",
+      "pending_note": "A pending domain does not serve this page and gets no certificate.",
+      "records_load_failed": "Could not load the DNS records",
+      "records_missing_note": "Its DNS records have been missing since {{time}}. After 24 hours the domain goes back to pending.",
+      "removed_on": "Removed on {{date}} unless verified",
+      "save_to_see_records": "Save the page to see the DNS records to add",
+      "state": {
+        "pending": "Pending",
+        "records_missing": "Records missing",
+        "verified": "Verified"
+      },
+      "target": "Points to",
+      "txt_record": "TXT record",
+      "value": "Value"
+    },
     "domains": "Domains",
+    "domains_docs_link": "Custom domains and HTTPS",
     "domains_info_warning": "Don't forget to add the CNAME records to your DNS for each domain.",
     "draft_status": "Draft",
     "edit_page_name": "Edit Status Page",
@@ -1338,6 +2083,9 @@
     "published_status": "Published",
     "search_label": "Search",
     "search_placeholder": "Search status pages by title...",
+    "show_locations": "Show each location",
+    "show_locations_info": "For monitors checked from several locations, list each location's status and history",
+    "slug_already_used": "Another status page already uses this address",
     "update_status_page": "Update Status Page",
     "view_page": "View Page"
   },
@@ -1368,6 +2116,18 @@
     "new_page_name": "New Tag",
     "search_placeholder": "Search tags..."
   },
+  "telemetry": {
+    "docs_link": "What is sent, and how to turn it off",
+    "label": "Send anonymous usage statistics",
+    "not_saved": "Your choice about usage statistics wasn't saved. Check it in Settings."
+  },
+  "telemetry_notice": {
+    "error_reports": "Error reports are on. If Peekaping crashes, it sends the error type and where in the code it happened, its version, mode, storage backend and operating system. It never sends error messages, URLs or hostnames.",
+    "settings_errors": "Turn off error reports in Settings",
+    "settings_usage": "Turn off usage statistics in Settings",
+    "title": "Sharing anonymous data is on by default",
+    "usage_statistics": "Usage statistics are on. At most once a day, Peekaping sends a random instance ID, its version, mode, storage backend and operating system, a range for how many monitors you have, the kinds of monitors and notification channels you use, and whether you use status pages, maintenance windows and metrics. It never sends names, URLs, hosts or settings."
+  },
   "theme": {
     "dark": "Dark",
     "light": "Light",
@@ -1391,5 +2151,123 @@
   "ui": {
     "general": "General",
     "intervals_retries": "Intervals, Retries, Timeouts"
+  },
+  "workspaces": {
+    "create": "Create workspace",
+    "create_error": "Failed to create the workspace",
+    "create_first": "Create a workspace",
+    "creating": "Creating...",
+    "deletion": {
+      "cancel": "Cancel deletion",
+      "cancel_failed": "Failed to cancel the deletion",
+      "cancelled": "Deletion cancelled",
+      "member_message": "This workspace will be deleted on {{date}}. Its monitors don't run, and its status pages are unavailable. An owner can cancel the deletion until then.",
+      "message": "This workspace will be deleted on {{date}}. Its monitors don't run, and its status pages are unavailable. You can cancel the deletion until then."
+    },
+    "enter": "Open workspace",
+    "entering": "Opening...",
+    "entry_failed": "The workspace was created, but opening it failed. Try again.",
+    "name_label": "Name",
+    "name_placeholder": "My team",
+    "name_required": "Enter a name",
+    "new": "New workspace",
+    "new_description": "A workspace has its own monitors, notification channels, status pages and members. You will be its owner.",
+    "new_title": "New workspace",
+    "none_description": "Your account isn't a member of any workspace, so there is nothing to show here. Ask someone who runs a workspace to add you.",
+    "none_title": "You're not in a workspace yet",
+    "refresh_failed": "Couldn't load your workspaces. Check your connection and try again.",
+    "rename_error": "Failed to rename the workspace",
+    "rename_success": "Workspace renamed",
+    "suspended_banner": {
+      "contact": "To get in touch:",
+      "message": "This workspace is suspended by the administrator of this install. Its monitors don't run, and its status pages are unavailable.",
+      "no_contact": "Contact the person who runs this install."
+    },
+    "switcher_label": "Switch workspace"
+  },
+  "get_started": {
+    "page_name": "Get started",
+    "skip": "Skip setup",
+    "step_of": "Step {{current}} of {{total}}",
+    "name": {
+      "description": "Your monitors, notification channels and status pages live here. You can rename it later in Settings.",
+      "title": "Name your workspace"
+    },
+    "monitor": {
+      "create": "Create monitor",
+      "create_failed": "Failed to create monitor",
+      "creating": "Creating...",
+      "description": "Enter the address of a website or API. Peekaping checks it and tells you when it stops responding.",
+      "full_form": "Set up a monitor with all the options instead",
+      "title": "Add your first monitor",
+      "url_invalid": "Enter an address that starts with http:// or https://",
+      "url_label": "Address to monitor"
+    },
+    "channel": {
+      "continue_unlinked": "Continue without linking",
+      "description": "Choose where Peekaping sends an alert when your monitor goes down. It becomes the default for new monitors.",
+      "link_failed": "The channel was saved, but linking it to your monitor failed. Add it on the monitor's edit page.",
+      "retry_link": "Try linking again",
+      "title": "Get notified"
+    },
+    "done": {
+      "description": "Peekaping is watching your service. Here is what you can do next.",
+      "title": "You're all set",
+      "unverified": "Your monitor runs once your email address is verified. Check your inbox for the verification link.",
+      "links": {
+        "members": "Invite your team",
+        "monitor": "Open your monitor",
+        "monitors": "Go to monitors",
+        "probes": "Manage probes",
+        "status_pages": "Publish a status page"
+      }
+    }
+  },
+  "limits": {
+    "reached": {
+      "monitors": "This workspace can have at most {{max}} monitors running",
+      "status_pages": "This workspace can have at most {{max}} status pages",
+      "custom_domains": "This workspace's status pages can have at most {{max}} custom domains together",
+      "members": "This workspace can have at most {{max}} members, pending invites included",
+      "owned_workspaces": "You can own at most {{max}} workspaces",
+      "probes": "A monitor in this workspace can run on at most {{max}} probes",
+      "retention_days": "This workspace can keep data for at most {{max}} days"
+    },
+    "names": {
+      "monitors": "Active monitors",
+      "min_check_interval": "Shortest check interval (seconds)",
+      "status_pages": "Status pages",
+      "custom_domains": "Custom domains",
+      "members": "Members",
+      "owned_workspaces": "Workspaces one user may own",
+      "probes_per_monitor": "Probes per monitor",
+      "retention_days": "Data retention (days)"
+    },
+    "none": "No limit",
+    "invalid": "Enter a whole number of 1 or more, or leave it blank for no limit.",
+    "retention_too_long": "Can't be more than {{max}} days"
+  },
+  "usage": {
+    "title": "Usage",
+    "description": "What this workspace uses of its limits.",
+    "open": "Open usage",
+    "plan": "Plan",
+    "set_by_admin": "Set by your administrator",
+    "count": {
+      "monitors": "{{used}} of {{max}} monitors",
+      "status_pages": "{{used}} of {{max}} status pages",
+      "custom_domains": "{{used}} of {{max}} custom domains",
+      "members": "{{used}} of {{max}} members, pending invites included",
+      "owned_workspaces": "You own {{used}} of {{max}} workspaces",
+      "probes_per_monitor": "Up to {{used}} of {{max}} probes on one monitor"
+    },
+    "labels": {
+      "min_check_interval": "Shortest check interval",
+      "retention_days": "Longest data retention"
+    },
+    "seconds": "{{value}} seconds",
+    "days": "{{value}} days",
+    "near": "Close to the limit",
+    "reached": "At the limit"
   }
 }

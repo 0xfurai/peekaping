@@ -4,6 +4,9 @@ import BaseBody from "../components/BaseBody.astro";
 import Footer from "../components/Footer.astro";
 import Header from "../components/Header.astro";
 import { SITE_DESCRIPTION, SITE_TITLE } from "../consts";
+import Hero from "../components/Hero.astro";
+import Features from "../components/Features.astro";
+import Quickstart from "../components/Quickstart.astro";
 import Testimonials from "../components/Testimonials.astro";
 import FAQ from "../components/FAQ.astro";
 import Monitors from "../components/Monitors.astro";
@@ -16,6 +19,8 @@ import faqItems from "../data/faq";
 <html lang="en">
   <head>
     <BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
+    <!-- Lets .reveal hide content only when the script that shows it will run -->
+    <script is:inline>document.documentElement.classList.add("js");</script>
     <script
       type="application/ld+json"
       set:html={JSON.stringify({
@@ -33,96 +38,17 @@ import faqItems from "../data/faq";
     />
   </head>
 
-  <body>
+  <body class="dark-page">
     <BaseBody />
 
     <Header />
-    <main class="">
-      <section
-        class="relative px-4 sm:px-8 pt-16 sm:pt-24 lg:pt-28 m-4 sm:m-8 rounded-3xl"
-      >
-        <div
-          class="absolute top-0 left-0 bg-gradient w-full h-[600px] md:h-[700px] rounded-3xl -z-10"
-        >
-        </div>
-        <h1
-          class="text-3xl sm:text-5xl font-bold text-center max-w-[1100px] mx-auto leading-[122%] text-zinc-950 px-2"
-        >
-          <span class="text-gradient">Open Source</span> & <span class="text-gradient">Self-Hosted</span> uptime monitoring for <span class="text-gradient">small teams</span> to catch outages before users do
-        </h1>
-
-        <p
-          class="text-lg sm:text-xl text-center text-zinc-950 max-w-[678px] mx-auto my-6 px-3"
-        >
-          Engineer-grade uptime monitoring that you own and control. No cloud dependencies, no vendor lock-in.
-        </p>
-
-        <!-- Open Source & Self-Hosted labels -->
-        <div class="flex flex-wrap items-center justify-center gap-2 mb-6 text-md text-zinc-800">
-          <span>🔓 100% Open Source</span>
-          <span class="opacity-50">•</span>
-          <span>🏠 Self-Hosted Only (for now)</span>
-        </div>
-
-        <div
-          class="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4 mt-2"
-        >
-          <a
-            href="https://demo.peekaping.com"
-            class="bg-white text-[#353535] px-4 py-2 rounded-full hover:bg-white/80 font-semibold w-full sm:w-auto text-center"
-            target="_blank"
-          >
-            Try the Demo
-          </a>
-          <a
-            href="https://github.com/0xfurai/peekaping?tab=readme-ov-file#quick-start-docker--sqlite"
-            class="bg-black text-white px-4 py-2 rounded-full hover:bg-gray-800 font-semibold w-full sm:w-auto text-center"
-            target="_blank"
-          >
-            Quickstart
-          </a>
-          <a
-            href="https://github.com/0xfurai/peekaping"
-            class="bg-white text-[#353535] px-4 py-2 rounded-full hover:bg-white/80 font-semibold w-full sm:w-auto text-center"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <span>⭐</span>
-            <span>Star on GitHub</span>
-            <span id="github-stars" class="opacity-70 ml-1 text-gradient"
-            ></span>
-          </a>
-        </div>
-
-        <!-- Mobile image -->
-        <div class="mt-8 md:hidden">
-          <img
-            src="/demo.webp"
-            alt="Peekaping"
-            class="w-full max-w-[800px] mx-auto rounded-xl"
-          />
-        </div>
-
-        <!-- Desktop image with mascot -->
-        <div class="hidden md:flex justify-center">
-          <div class="relative">
-            <img
-              src="/demo.webp"
-              alt="Peekaping"
-              class="w-full max-w-[1056px] mx-auto"
-            />
-            <img
-              src="/meerkat.webp"
-              alt="Meerkat mascot"
-              class="absolute -bottom-[100px] -right-[180px] w-[280px] lg:w-[400px] z-10"
-            />
-          </div>
-        </div>
-      </section>
-
+    <main>
+      <Hero />
+      <TechStack />
+      <Features />
       <Monitors />
       <Alerts />
-      <TechStack />
+      <Quickstart />
       <Testimonials />
       <FAQ />
 
@@ -131,7 +57,7 @@ import faqItems from "../data/faq";
         <div class="flex justify-center mb-4">
           <button
             id="seo-toggle"
-            class="text-zinc-600 hover:text-zinc-900 font-semibold px-4 py-2 rounded-full border border-zinc-300 hover:border-zinc-400 transition-colors"
+            class="text-sm text-zinc-500 hover:text-zinc-200 font-semibold px-4 py-2 rounded-full border border-white/10 hover:border-white/25 transition-colors"
             aria-expanded="false"
             aria-controls="seo-content"
           >
@@ -141,9 +67,9 @@ import faqItems from "../data/faq";
         </div>
         <div
           id="seo-content"
-          class="seo-content-hidden prose prose-zinc max-w-none text-zinc-600 text-sm sm:text-base leading-relaxed"
+          class="seo-content-hidden max-w-none text-zinc-400 text-sm sm:text-base leading-relaxed"
         >
-          <h2 class="text-2xl font-bold text-zinc-900 mb-4">Self hosted uptime monitor for service availability control</h2>
+          <h2 class="text-2xl font-bold text-zinc-100 mb-4">Self hosted uptime monitor for service availability control</h2>
 
           <p class="mb-4">
             A self hosted uptime monitor is the foundation of a stable and predictable infrastructure. When websites, APIs, or internal services become unavailable, it is important to know about it immediately, not from users. Our service allows you to track the availability and operability of infrastructure in real time, fully within your environment and under your control.
@@ -159,7 +85,7 @@ import faqItems from "../data/faq";
 
 
 
-          <h3 class="text-xl font-semibold text-zinc-900 mt-6 mb-3">Capabilities of the self hosted uptime monitor          </h3>
+          <h3 class="text-xl font-semibold text-zinc-100 mt-6 mb-3">Capabilities of the self hosted uptime monitor</h3>
           <p class="mb-4">
             The platform supports a wide range of checks required for modern availability monitoring. You can track HTTP and HTTPS websites, API endpoints, TCP ports, ICMP ping, DNS queries, Webhook checks in push mode, databases, and message brokers. Monitoring of Docker containers, gRPC services, and SNMP services is also supported, which allows you to control both the external perimeter and internal components of the infrastructure.
           </p>
@@ -206,6 +132,26 @@ import faqItems from "../data/faq";
         } catch (err) {
           console.log(err);
         }
+      })();
+
+      // Reveal sections as they scroll into view
+      (() => {
+        const items = document.querySelectorAll(".reveal");
+        if (!("IntersectionObserver" in window)) {
+          items.forEach((el) => el.classList.add("is-visible"));
+          return;
+        }
+        const observer = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (!entry.isIntersecting) return;
+              entry.target.classList.add("is-visible");
+              observer.unobserve(entry.target);
+            });
+          },
+          { rootMargin: "0px 0px -8% 0px" }
+        );
+        items.forEach((el) => observer.observe(el));
       })();
 
       // SEO content toggle functionality
@@ -259,29 +205,3 @@ import faqItems from "../data/faq";
     visibility: visible;
   }
 </style>
-
-<svg
-  xmlns="http://www.w3.org/2000/svg"
-  width="0"
-  height="0"
-  style="position:absolute; overflow:hidden"
->
-  <defs>
-    <filter id="glass-distortion" x="0%" y="0%" width="100%" height="100%">
-      <feTurbulence
-        type="fractalNoise"
-        baseFrequency="0.008 0.008"
-        numOctaves="2"
-        seed="92"
-        result="noise"></feTurbulence>
-      <feGaussianBlur in="noise" stdDeviation="2" result="blurred"
-      ></feGaussianBlur>
-      <feDisplacementMap
-        in="SourceGraphic"
-        in2="blurred"
-        scale="12"
-        xChannelSelector="R"
-        yChannelSelector="G"></feDisplacementMap>
-    </filter>
-  </defs>
-</svg>

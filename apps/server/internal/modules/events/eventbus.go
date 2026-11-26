@@ -75,7 +75,7 @@ func Publish[T any](ctx context.Context, bus EventBus, topic Topic[T], payload T
 // Subscriber is a named group of handlers. The bus gives each subscriber its own queues, so
 // one monitor's events stay in order across all the subscriber's topics, and a slow handler
 // delays only the events behind it for the same monitor. Name a subscriber after the part of
-// the program that owns the handlers, for example "producer" or "notification".
+// the program that owns the handlers, for example "websocket" or "notification".
 type Subscriber struct {
 	bus     EventBus
 	name    string

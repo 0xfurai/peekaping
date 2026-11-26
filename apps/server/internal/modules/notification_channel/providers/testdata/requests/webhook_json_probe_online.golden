@@ -1,0 +1,29 @@
+POST https://hooks.example.com/peekaping
+Content-Type: application/json
+User-Agent: Peekaping-Webhook/<version>
+
+{
+  "heartbeat": null,
+  "monitor": {
+    "id": "probe-1",
+    "type": "probe",
+    "name": "Probe Frankfurt",
+    "interval": 0,
+    "timeout": 0,
+    "max_retries": 0,
+    "retry_interval": 0,
+    "resend_interval": 0,
+    "location_rule": "",
+    "location_threshold": null,
+    "active": false,
+    "status": 1,
+    "config": "",
+    "proxy_id": "",
+    "push_token": "",
+    "probe_ids": null,
+    "locations": null,
+    "created_at": "0001-01-01T00:00:00Z",
+    "updated_at": "0001-01-01T00:00:00Z"
+  },
+  "msg": "Probe Frankfurt is online"
+}

@@ -8,11 +8,11 @@ import Layout from "@/layout";
 import { useNavigate } from "react-router-dom";
 import {
   type HeartbeatModel,
-  type MonitorModel,
+  type MonitorMonitorResponseDto,
   type UtilsApiResponseArrayHeartbeatModel,
   type TagModel,
 } from "@/api";
-import { useWebSocket, WebSocketStatus } from "@/context/websocket-context";
+import { useWorkspaceHeartbeats } from "@/context/websocket-context";
 import { useEffect, useState, useCallback } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useSearchParams } from "@/hooks/useSearchParams";
@@ -28,7 +28,7 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import EmptyList from "@/components/empty-list";
+import { MonitorsEmptyState } from "./components/monitors-empty-state";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 import { useQuery } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
@@ -42,11 +42,15 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { getContrastingTextColor } from "@/lib/utils";
 import { useDelayedLoading } from "@/hooks/useDelayedLoading";
+import { useProbes } from "@/hooks/useProbes";
+import { useWorkspacePath } from "@/hooks/useWorkspacePath";
 
 const MonitorsPage = () => {
   const navigate = useNavigate();
+  const workspacePath = useWorkspacePath();
   const queryClient = useQueryClient();
   const { t } = useLocalizedTranslation();
+  const { hasRemoteProbe, monitorProbes, unsupportedProbeIds } = useProbes();
   const { getParam, updateSearchParams, clearAllParams, hasParams } =
     useSearchParams();
 
@@ -137,52 +141,34 @@ const MonitorsPage = () => {
     });
 
   const allMonitors = (data?.pages.flatMap((page) => page.data || []) ||
-    []) as MonitorModel[];
+    []) as MonitorMonitorResponseDto[];
 
   // No more client-side filtering needed since API now supports tag filtering
   const monitors = allMonitors;
 
-  const { socket, status: socketStatus } = useWebSocket();
-
-  useEffect(() => {
-    if (!socket || socketStatus !== WebSocketStatus.CONNECTED) return;
-
-    const roomName = "monitor:all";
-
-    const handleHeartbeat = (newHeartbeat: HeartbeatModel) => {
-      queryClient.setQueryData(
-        getMonitorsByIdHeartbeatsQueryKey({
-          path: {
-            id: newHeartbeat.monitor_id!,
-          },
-          query: {
-            limit: 50,
-            reverse: true,
-          },
-        }),
-        (oldData: UtilsApiResponseArrayHeartbeatModel) => {
-          if (!oldData) return oldData;
-          return {
-            ...oldData,
-            data: [...(oldData.data || []), newHeartbeat].slice(-50),
-          };
-        }
-      );
-    };
-
-    socket.on(`${roomName}:heartbeat`, handleHeartbeat);
-    socket.emit("join_room", roomName);
-    console.log("Subscribed to heartbeat", roomName);
-
-    return () => {
-      socket.off(`${roomName}:heartbeat`, handleHeartbeat);
-      console.log("Unsubscribed from heartbeat", `${roomName}:heartbeat`);
-
-      if (socket.connected) {
-        socket.emit("leave_room", roomName);
+  // Joined again after a reconnect (PP-205), and not left while the list stays mounted
+  const handleHeartbeat = (newHeartbeat: HeartbeatModel) => {
+    queryClient.setQueryData(
+      getMonitorsByIdHeartbeatsQueryKey({
+        path: {
+          id: newHeartbeat.monitor_id!,
+        },
+        query: {
+          limit: 50,
+          reverse: true,
+        },
+      }),
+      (oldData: UtilsApiResponseArrayHeartbeatModel) => {
+        if (!oldData) return oldData;
+        return {
+          ...oldData,
+          data: [...(oldData.data || []), newHeartbeat].slice(-50),
+        };
       }
-    };
-  }, [socket, socketStatus, queryClient]);
+    );
+  };
+
+  useWorkspaceHeartbeats(handleHeartbeat);
 
   // Infinite scroll logic using the reusable hook
   const handleObserver = useCallback(
@@ -233,7 +219,7 @@ const MonitorsPage = () => {
     <Layout
       pageName={t("monitors.title")}
       onCreate={() => {
-        navigate("/monitors/new");
+        navigate(workspacePath("/monitors/new"));
       }}
     >
       <div>
@@ -398,17 +384,17 @@ const MonitorsPage = () => {
 
         {/* No monitors state */}
         {monitors.length === 0 && !isLoading && (
-          <EmptyList
-            title={t("monitors.empty_state.title")}
-            text={t("monitors.empty_state.description")}
-            actionText={t("monitors.empty_state.action")}
-            onClick={() => navigate("/monitors/new")}
-          />
+          <MonitorsEmptyState />
         )}
 
         {/* Monitors list */}
         {monitors.map((monitor) => (
-          <MonitorCard key={monitor.id} monitor={monitor} />
+          <MonitorCard
+            key={monitor.id}
+            monitor={monitor}
+            probes={hasRemoteProbe ? monitorProbes(monitor.probe_ids) : undefined}
+            unsupportedProbeIds={hasRemoteProbe ? unsupportedProbeIds(monitor) : undefined}
+          />
         ))}
 
         {/* Sentinel for infinite scroll */}

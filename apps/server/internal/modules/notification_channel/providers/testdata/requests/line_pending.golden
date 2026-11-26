@@ -1,0 +1,13 @@
+POST https://api.line.me/v2/bot/message/push
+Authorization: Bearer line-token
+Content-Type: application/json
+
+{
+  "messages": [
+    {
+      "text": "slow response",
+      "type": "text"
+    }
+  ],
+  "to": "U123"
+}

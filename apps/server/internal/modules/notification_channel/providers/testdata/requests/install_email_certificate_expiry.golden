@@ -1,0 +1,30 @@
+To: oncall@example.com
+Subject: Peekaping Notification: Public API
+
+Monitor: Public API
+
+🚨 Certificate Expiry Warning
+
+Monitor: Public API
+Certificate: api.example.com (server)
+Expires in: 7 days
+Valid until: 2026-10-24 09:30:00
+Notification threshold: 7 days
+Valid for: api.example.com
+Issuer: CN=R11,O=Let's Encrypt,C=US
+
+Open the monitor:
+https://peekaping.example.com/w/ws-1/monitors/mon-1
+
+--- HTML
+<p>Monitor: <strong>Public API</strong></p>
+<p>🚨 Certificate Expiry Warning<br>
+<br>
+Monitor: Public API<br>
+Certificate: api.example.com (server)<br>
+Expires in: 7 days<br>
+Valid until: 2026-10-24 09:30:00<br>
+Notification threshold: 7 days<br>
+Valid for: api.example.com<br>
+Issuer: CN=R11,O=Let&#39;s Encrypt,C=US</p>
+<p><a href="https://peekaping.example.com/w/ws-1/monitors/mon-1">Open the monitor</a></p>

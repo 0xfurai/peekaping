@@ -21,6 +21,7 @@ import {
 import { useAuthStore } from "@/store/auth";
 import { useNavigate } from "react-router-dom";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
+import { useWorkspacePath } from "@/hooks/useWorkspacePath";
 
 export function NavUser({
   user,
@@ -33,6 +34,7 @@ export function NavUser({
   const { isMobile } = useSidebar();
   const clearTokens = useAuthStore((state) => state.clearTokens);
   const navigate = useNavigate();
+  const workspacePath = useWorkspacePath();
   const { t } = useLocalizedTranslation();
 
   const handleLogout = () => {
@@ -92,12 +94,12 @@ export function NavUser({
             <DropdownMenuSeparator />
 
             <DropdownMenuGroup>
-              <DropdownMenuItem onClick={() => navigate("/security")}>
+              <DropdownMenuItem onClick={() => navigate(workspacePath("/security"))}>
                 <ShieldCheckIcon />
                 {t("common.security")}
               </DropdownMenuItem>
 
-              <DropdownMenuItem onClick={() => navigate("/settings")}>
+              <DropdownMenuItem onClick={() => navigate(workspacePath("/settings"))}>
                 <SettingsIcon />
                 {t("common.settings")}
               </DropdownMenuItem>

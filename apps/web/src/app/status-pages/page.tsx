@@ -11,12 +11,15 @@ import { Skeleton } from "@/components/ui/skeleton";
 import StatusPageCard from "./components/status-page-card";
 import { Label } from "@/components/ui/label";
 import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
+import { useDelayedLoading } from "@/hooks/useDelayedLoading";
 import EmptyList from "@/components/empty-list";
 import { Button } from "@/components/ui/button";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
+import { useWorkspacePath } from "@/hooks/useWorkspacePath";
 
 const StatusPagesPage = () => {
   const navigate = useNavigate();
+  const workspacePath = useWorkspacePath();
   const { getParam, updateSearchParams, clearAllParams, hasParams } =
     useSearchParams();
   const { t } = useLocalizedTranslation();
@@ -52,7 +55,9 @@ const StatusPagesPage = () => {
       enabled: true,
     });
 
-  const statusPages = (data?.pages.flatMap((page) => page.data || []) ||
+  const shouldShowSkeleton = useDelayedLoading(isLoading, 200);
+
+  const statusPages =(data?.pages.flatMap((page) => page.data || []) ||
     []) as StatusPageModel[];
 
   const handleObserver = useCallback(
@@ -72,7 +77,7 @@ const StatusPagesPage = () => {
     <Layout
       pageName={t("status_pages.page_name")}
       onCreate={() => {
-        navigate("/status-pages/new");
+        navigate(workspacePath("/status-pages/new"));
       }}
     >
       <div>
@@ -103,7 +108,7 @@ const StatusPagesPage = () => {
           </div>
         </div>
 
-        {statusPages.length === 0 && isLoading && (
+        {statusPages.length === 0 && shouldShowSkeleton && (
           <div className="flex flex-col space-y-2 mb-2">
             {Array.from({ length: 7 }, (_, id) => (
               <Skeleton className="h-[68px] w-full rounded-xl" key={id} />
@@ -116,7 +121,7 @@ const StatusPagesPage = () => {
           <StatusPageCard
             key={statusPage.id}
             statusPage={statusPage}
-            onClick={() => navigate(`/status-pages/${statusPage.id}/edit`)}
+            onClick={() => navigate(workspacePath(`/status-pages/${statusPage.id}/edit`))}
           />
         ))}
 
@@ -136,7 +141,7 @@ const StatusPagesPage = () => {
             title={t("status_pages.messages.no_status_pages_found")}
             text={t("status_pages.messages.get_started_by_creating_your_first_status_page")}
             actionText={t("status_pages.messages.create_your_first_status_page")}
-            onClick={() => navigate("/status-pages/new")}
+            onClick={() => navigate(workspacePath("/status-pages/new"))}
           />
         )}
       </div>

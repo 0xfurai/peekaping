@@ -37,6 +37,14 @@ func (m *MockSettingService) SetByKey(ctx context.Context, key string, entity *s
 	return args.Get(0).(*shared.SettingModel), args.Error(1)
 }
 
+func (m *MockSettingService) CreateIfAbsent(ctx context.Context, key string, entity *shared.SettingModel) (*shared.SettingModel, error) {
+	args := m.Called(ctx, key, entity)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*shared.SettingModel), args.Error(1)
+}
+
 func (m *MockSettingService) DeleteByKey(ctx context.Context, key string) error {
 	args := m.Called(ctx, key)
 	return args.Error(0)
@@ -705,6 +713,140 @@ func TestTokenMaker_VerifyToken_InvalidSigningMethod(t *testing.T) {
 	mockSettingService.AssertExpectations(t)
 }
 
+// Only HS256 is accepted: a token signed with another HMAC algorithm and the
+// right secret is rejected, as an access token and as a refresh token.
+func TestTokenMaker_VerifyToken_OnlyHS256(t *testing.T) {
+	ctx := context.Background()
+	secrets := map[string]string{
+		"access":  "test-access-secret",
+		"refresh": "test-refresh-secret",
+	}
+	mockSettingService := &MockSettingService{}
+	mockSettingService.On("GetByKey", ctx, shared.AccessTokenSecretKey).Return(&shared.SettingModel{
+		Key:   shared.AccessTokenSecretKey,
+		Value: secrets["access"],
+	}, nil)
+	mockSettingService.On("GetByKey", ctx, shared.RefreshTokenSecretKey).Return(&shared.SettingModel{
+		Key:   shared.RefreshTokenSecretKey,
+		Value: secrets["refresh"],
+	}, nil)
+	tokenMaker := NewTokenMaker(mockSettingService, zap.NewNop().Sugar())
+
+	for tokenType, secret := range secrets {
+		claims := &Claims{
+			UserID: "user123",
+			Email:  "test@example.com",
+			Type:   tokenType,
+			RegisteredClaims: jwt.RegisteredClaims{
+				ExpiresAt: jwt.NewNumericDate(time.Now().UTC().Add(time.Hour)),
+				IssuedAt:  jwt.NewNumericDate(time.Now().UTC()),
+				NotBefore: jwt.NewNumericDate(time.Now().UTC()),
+			},
+		}
+		sign := func(method jwt.SigningMethod) string {
+			signed, err := jwt.NewWithClaims(method, claims).SignedString([]byte(secret))
+			require.NoError(t, err)
+			return signed
+		}
+
+		t.Run(tokenType+" HS256", func(t *testing.T) {
+			verified, err := tokenMaker.VerifyToken(ctx, sign(jwt.SigningMethodHS256), tokenType)
+			require.NoError(t, err)
+			assert.Equal(t, "user123", verified.UserID)
+		})
+		for _, method := range []jwt.SigningMethod{jwt.SigningMethodHS384, jwt.SigningMethodHS512} {
+			t.Run(tokenType+" "+method.Alg(), func(t *testing.T) {
+				verified, err := tokenMaker.VerifyToken(ctx, sign(method), tokenType)
+				assert.Equal(t, ErrInvalidToken, err)
+				assert.Nil(t, verified)
+			})
+		}
+	}
+}
+
+// Verifying a token doesn't read the signing secret from the database each
+// time: many verifies read it once.
+func TestTokenMaker_VerifyToken_ReadsSecretOnce(t *testing.T) {
+	ctx := context.Background()
+	mockSettingService := &MockSettingService{}
+	mockSettingService.On("GetByKey", ctx, shared.AccessTokenSecretKey).Return(&shared.SettingModel{
+		Key:   shared.AccessTokenSecretKey,
+		Value: "test-secret-key",
+	}, nil)
+	tokenMaker := NewTokenMaker(mockSettingService, zap.NewNop().Sugar())
+
+	token, err := jwt.NewWithClaims(jwt.SigningMethodHS256, &Claims{
+		UserID: "user123",
+		Type:   "access",
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().UTC().Add(time.Hour)),
+		},
+	}).SignedString([]byte("test-secret-key"))
+	require.NoError(t, err)
+
+	for range 50 {
+		claims, err := tokenMaker.VerifyToken(ctx, token, "access")
+		require.NoError(t, err)
+		assert.Equal(t, "user123", claims.UserID)
+	}
+
+	mockSettingService.AssertNumberOfCalls(t, "GetByKey", 1)
+}
+
+// A secret that changes in the database is used within a minute: the cached one
+// is read again once it is a minute old.
+func TestTokenMaker_SecretIsReadAgainAfterAMinute(t *testing.T) {
+	ctx := context.Background()
+	mockSettingService := &MockSettingService{}
+	secretSetting := func(value string) *shared.SettingModel {
+		return &shared.SettingModel{Key: shared.AccessTokenSecretKey, Value: value}
+	}
+	mockSettingService.On("GetByKey", ctx, shared.AccessTokenSecretKey).Return(secretSetting("old-secret"), nil).Once()
+	mockSettingService.On("GetByKey", ctx, shared.AccessTokenSecretKey).Return(secretSetting("new-secret"), nil)
+	tokenMaker := NewTokenMaker(mockSettingService, zap.NewNop().Sugar())
+	now := time.Now()
+	tokenMaker.clock = func() time.Time { return now }
+
+	signedWith := func(secret string) string {
+		token, err := jwt.NewWithClaims(jwt.SigningMethodHS256, &Claims{
+			UserID: "user123",
+			Type:   "access",
+			RegisteredClaims: jwt.RegisteredClaims{
+				ExpiresAt: jwt.NewNumericDate(time.Now().UTC().Add(time.Hour)),
+			},
+		}).SignedString([]byte(secret))
+		require.NoError(t, err)
+		return token
+	}
+	oldToken, newToken := signedWith("old-secret"), signedWith("new-secret")
+
+	_, err := tokenMaker.VerifyToken(ctx, oldToken, "access")
+	require.NoError(t, err)
+
+	// The database has the new secret now, but the old one is under a minute old
+	now = now.Add(59 * time.Second)
+	_, err = tokenMaker.VerifyToken(ctx, oldToken, "access")
+	require.NoError(t, err)
+	_, err = tokenMaker.VerifyToken(ctx, newToken, "access")
+	require.Error(t, err)
+	mockSettingService.AssertNumberOfCalls(t, "GetByKey", 1)
+
+	now = now.Add(2 * time.Second)
+	_, err = tokenMaker.VerifyToken(ctx, newToken, "access")
+	require.NoError(t, err)
+	_, err = tokenMaker.VerifyToken(ctx, oldToken, "access")
+	require.Error(t, err)
+	mockSettingService.AssertNumberOfCalls(t, "GetByKey", 2)
+
+	// Creating a token uses the cached secret too
+	mockSettingService.On("GetByKey", ctx, "ACCESS_TOKEN_EXPIRED_IN").Return(&shared.SettingModel{Key: "ACCESS_TOKEN_EXPIRED_IN", Value: "15m"}, nil)
+	created, err := tokenMaker.CreateAccessToken(ctx, &Model{ID: "user123", Email: "test@example.com"})
+	require.NoError(t, err)
+	_, err = tokenMaker.VerifyToken(ctx, created, "access")
+	require.NoError(t, err)
+	mockSettingService.AssertNumberOfCalls(t, "GetByKey", 3) // the expiry only
+}
+
 func TestTokenMaker_CreateToken_EdgeCases(t *testing.T) {
 	mockSettingService := &MockSettingService{}
 	logger := zap.NewNop().Sugar()
@@ -746,4 +888,47 @@ func TestTokenMaker_CreateToken_EdgeCases(t *testing.T) {
 	assert.True(t, claims.ExpiresAt.Time.Before(time.Now().UTC().Add(6*time.Second)))
 
 	mockSettingService.AssertExpectations(t)
+}
+
+// PP-152: replicas' clocks differ by a few milliseconds, and nbf is exact to the millisecond, so a
+// token made on one replica must verify on another whose clock is a little behind.
+func TestTokenMaker_VerifyToken_AllowsAFewSecondsOfClockSkewInNotBefore(t *testing.T) {
+	for _, tc := range []struct {
+		name  string
+		ahead time.Duration
+		valid bool
+	}{
+		{"2s ahead verifies", 2 * time.Second, true},
+		{"10s ahead is refused", 10 * time.Second, false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			mockSettingService := &MockSettingService{}
+			tokenMaker := NewTokenMaker(mockSettingService, zap.NewNop().Sugar())
+			ctx := context.Background()
+			future := time.Now().UTC().Add(tc.ahead)
+			claims := &Claims{
+				UserID: "user123",
+				Type:   "access",
+				RegisteredClaims: jwt.RegisteredClaims{
+					ExpiresAt: jwt.NewNumericDate(future.Add(time.Hour)),
+					IssuedAt:  jwt.NewNumericDate(future),
+					NotBefore: jwt.NewNumericDate(future),
+				},
+			}
+			tokenString, err := jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString([]byte("test-secret-key"))
+			require.NoError(t, err)
+			mockSettingService.On("GetByKey", ctx, shared.AccessTokenSecretKey).Return(&shared.SettingModel{
+				Key:   shared.AccessTokenSecretKey,
+				Value: "test-secret-key",
+			}, nil)
+
+			_, err = tokenMaker.VerifyToken(ctx, tokenString, "access")
+
+			if tc.valid {
+				assert.NoError(t, err)
+			} else {
+				assert.ErrorIs(t, err, ErrInvalidToken)
+			}
+		})
+	}
 }

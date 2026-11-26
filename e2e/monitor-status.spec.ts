@@ -1,11 +1,12 @@
 import { test, expect, type APIRequestContext, type Page } from '@playwright/test';
 import { adminAPI, createHTTPMonitor, deleteCreated, randomID } from './support/api';
 import { setTargetStatus, targetURL } from './support/fake-target';
-import { cardStatusOf, listFor, openLive } from './support/monitor-list';
+import { WORKSPACE_ROOM, cardStatusOf, listFor, openLive } from './support/monitor-list';
 
 // A new monitor is checked at once and then every 20 seconds, the minimum
-// check interval. If the producer misses the create event, its 30-second
-// refresh picks the monitor up. The heartbeat then still has to reach the page.
+// check interval. If whatever runs the checks misses the create event, its next
+// refresh (within about 30 seconds) picks the monitor up. The heartbeat then still has to reach
+// the page.
 const nextCheck = { timeout: 60_000 };
 
 // A page that has joined its websocket room shows a heartbeat within moments of
@@ -25,15 +26,15 @@ test('a failing target shows Pending, then Down, on the card and the page', asyn
   await setTargetStatus(request, id, 200);
   const api = await adminAPI(page);
   try {
-    // One failed check with max retries 1 is Pending, the next one Down. A
-    // monitor's first check is Down at once, so it has to start Up.
+    // One failed check with max retries 1 is Pending, the next one Down. It starts
+    // Up so the test sees the Up to Pending to Down run on one monitor.
     const monitor = await createHTTPMonitor(api, name, targetURL(id), { maxRetries: 1 });
     created.push(`monitors/${monitor.id}`);
 
     // Both pages join their rooms before the target fails and stay put until
     // Down: Pending is too short to reload for, and they update live.
     const monitorPage = await context.newPage();
-    await openLive(page, listFor(id), 'monitor:all');
+    await openLive(page, listFor(id), WORKSPACE_ROOM);
     await openLive(monitorPage, `/monitors/${monitor.id}`, `monitor:${monitor.id}`);
     const onCard = cardStatusOf(page, name);
     const onPage = pageStatusOf(monitorPage);
@@ -70,7 +71,7 @@ test('a monitor in a maintenance window shows Maintenance on the card and the pa
     created.push(`maintenances/${await createManualMaintenance(api, `Window ${id}`, [monitor.id])}`);
 
     const monitorPage = await context.newPage();
-    await openLive(page, listFor(id), 'monitor:all');
+    await openLive(page, listFor(id), WORKSPACE_ROOM);
     await openLive(monitorPage, `/monitors/${monitor.id}`, `monitor:${monitor.id}`);
 
     await expect(cardStatusOf(page, name)).toHaveText('Maintenance', nextCheck);

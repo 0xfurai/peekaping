@@ -2,6 +2,8 @@ package monitor_maintenance
 
 import (
 	"context"
+
+	"peekaping/internal/modules/workspace"
 )
 
 type Repository interface {
@@ -12,4 +14,7 @@ type Repository interface {
 	Delete(ctx context.Context, id string) error
 	DeleteByMonitorID(ctx context.Context, monitorID string) error
 	DeleteByMaintenanceID(ctx context.Context, maintenanceID string) error
+	// FindMonitorIDsInWorkspace returns which of the monitors are in the workspace. The ID of a
+	// monitor of another workspace, or of none, is left out.
+	FindMonitorIDsInWorkspace(ctx context.Context, workspaceID workspace.ID, ids []string) ([]string, error)
 }

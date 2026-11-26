@@ -3,6 +3,8 @@ package shared
 import (
 	"context"
 	"time"
+
+	"peekaping/internal/modules/workspace/workspaceid"
 )
 
 // Keys of the JWT signing secrets. Releases before the settings API was
@@ -16,11 +18,31 @@ const (
 	RefreshTokenSecretKey = "auth.refresh_token_secret"
 )
 
+// TelemetryNoticeSeenKey holds "true" once the one-time notice about the usage ping and error
+// reports is out of the way: the admin dismissed it, or made a choice for either feature. Until
+// then an install that upgraded shows the notice. It is not user-editable, so the settings API can't
+// reach it: the telemetry API is the only way to read or change it.
+const TelemetryNoticeSeenKey = "TELEMETRY_NOTICE_SEEN"
+
 type SettingService interface {
 	GetByKey(ctx context.Context, key string) (*SettingModel, error)
 	SetByKey(ctx context.Context, key string, entity *SettingModel) (*SettingModel, error)
+	// CreateIfAbsent stores entity under key unless the key is already stored, and returns what is
+	// stored under the key afterwards. Callers that race to create the same key all get the one
+	// value that won, which SetByKey (update, then insert) can't promise.
+	CreateIfAbsent(ctx context.Context, key string, entity *SettingModel) (*SettingModel, error)
 	DeleteByKey(ctx context.Context, key string) error
 	InitializeSettings(ctx context.Context) error
+}
+
+// WorkspaceSettingService stores the settings that belong to a workspace, such as its data
+// retention period (docs/adr/0005 section 5). The workspace is an argument of every method: a
+// caller serving a request passes the request's workspace, and background work passes the
+// workspace of the monitor it works on.
+type WorkspaceSettingService interface {
+	GetByKey(ctx context.Context, workspaceID workspaceid.ID, key string) (*SettingModel, error)
+	SetByKey(ctx context.Context, workspaceID workspaceid.ID, key string, entity *SettingModel) (*SettingModel, error)
+	DeleteByKey(ctx context.Context, workspaceID workspaceid.ID, key string) error
 }
 
 type SettingModel struct {

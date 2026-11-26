@@ -4,6 +4,8 @@ import (
 	"context"
 	"runtime/debug"
 	"sync"
+
+	"peekaping/internal/reporting"
 )
 
 // subscriber is a named group of handlers with its own queues and worker goroutines.
@@ -158,12 +160,14 @@ func (s *subscriber) work() {
 func (s *subscriber) handle(ev event) {
 	defer func() {
 		if r := recover(); r != nil {
+			stack := debug.Stack()
 			s.bus.logger.Errorw("Event handler panicked",
 				"subscriber", s.name,
 				"topic", ev.topic,
 				"panic", r,
-				"stack", string(debug.Stack()),
+				"stack", string(stack),
 			)
+			reporting.CapturePanic("events", r, stack)
 		}
 	}()
 	ev.call(s.bus.handlerCtx)

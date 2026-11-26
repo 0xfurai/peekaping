@@ -1,0 +1,12 @@
+To: oncall@example.com
+Subject: Probe Frankfurt is offline
+
+Probe: Probe Frankfurt
+Status: offline
+
+Probe Frankfurt has been offline since 2026-10-22 08:30:00 UTC
+
+--- HTML
+<p>Probe: <strong>Probe Frankfurt</strong><br>
+Status: <strong>offline</strong></p>
+<p>Probe Frankfurt has been offline since 2026-10-22 08:30:00 UTC</p>

@@ -1,7 +1,6 @@
 package api_key
 
 import (
-	"context"
 	"database/sql"
 	"net/http"
 	"net/http/httptest"
@@ -27,6 +26,7 @@ func setupTestDB(t *testing.T) *bun.DB {
 	_, err = db.Exec(`
 		CREATE TABLE api_keys (
 			id TEXT PRIMARY KEY,
+			workspace_id TEXT NOT NULL,
 			name TEXT NOT NULL,
 			key_hash TEXT NOT NULL,
 			display_key TEXT NOT NULL,
@@ -53,7 +53,7 @@ func TestIntegration_CreateAndValidateAPIKey(t *testing.T) {
 	logger := zap.NewNop().Sugar()
 	service := NewService(repo, logger)
 
-	ctx := context.Background()
+	ctx := adminContext()
 
 	// Create API key
 	req := &CreateRequest{
@@ -77,7 +77,7 @@ func TestIntegration_CreateAndValidateAPIKey(t *testing.T) {
 	assert.Equal(t, result.Name, validated.Name)
 
 	// Fetch updated values from database to verify usage count was incremented
-	updatedKey, err := service.FindByID(ctx, result.ID)
+	updatedKey, err := service.FindByID(ctx, testWorkspace, result.ID)
 	require.NoError(t, err)
 	assert.Equal(t, int64(1), updatedKey.UsageCount)
 	assert.NotNil(t, updatedKey.LastUsed)
@@ -89,7 +89,7 @@ func TestIntegration_ExpiredKeyValidation(t *testing.T) {
 	logger := zap.NewNop().Sugar()
 	service := NewService(repo, logger)
 
-	ctx := context.Background()
+	ctx := adminContext()
 
 	// Create API key with expiration in the past
 	expiredTime := time.Now().Add(-1 * time.Hour)
@@ -115,7 +115,7 @@ func TestIntegration_UsageLimitEnforcement(t *testing.T) {
 	logger := zap.NewNop().Sugar()
 	service := NewService(repo, logger)
 
-	ctx := context.Background()
+	ctx := adminContext()
 
 	// Create API key with usage limit
 	maxUsage := int64(2)
@@ -133,7 +133,7 @@ func TestIntegration_UsageLimitEnforcement(t *testing.T) {
 	require.NoError(t, err)
 
 	// Fetch updated values from database
-	updatedKey, err := service.FindByID(ctx, result.ID)
+	updatedKey, err := service.FindByID(ctx, testWorkspace, result.ID)
 	require.NoError(t, err)
 	assert.Equal(t, int64(1), updatedKey.UsageCount)
 
@@ -142,7 +142,7 @@ func TestIntegration_UsageLimitEnforcement(t *testing.T) {
 	require.NoError(t, err)
 
 	// Fetch updated values from database
-	updatedKey, err = service.FindByID(ctx, result.ID)
+	updatedKey, err = service.FindByID(ctx, testWorkspace, result.ID)
 	require.NoError(t, err)
 	assert.Equal(t, int64(2), updatedKey.UsageCount)
 
@@ -161,7 +161,7 @@ func TestIntegration_MiddlewareWithRealDB(t *testing.T) {
 	service := NewService(repo, logger)
 	middleware := NewMiddlewareProvider(service)
 
-	ctx := context.Background()
+	ctx := adminContext()
 
 	// Create a real API key
 	req := &CreateRequest{
@@ -196,7 +196,7 @@ func TestIntegration_MiddlewareWithRealDB(t *testing.T) {
 	assert.Equal(t, "api_key", authType)
 
 	// Verify usage count was incremented in database
-	updatedKey, err := service.FindByID(ctx, result.ID)
+	updatedKey, err := service.FindByID(ctx, testWorkspace, result.ID)
 	require.NoError(t, err)
 	assert.Equal(t, int64(1), updatedKey.UsageCount)
 	assert.NotNil(t, updatedKey.LastUsed)
@@ -208,7 +208,7 @@ func TestIntegration_UpdateLastUsed(t *testing.T) {
 	logger := zap.NewNop().Sugar()
 	service := NewService(repo, logger)
 
-	ctx := context.Background()
+	ctx := adminContext()
 
 	// Create API key
 	req := &CreateRequest{
@@ -221,7 +221,7 @@ func TestIntegration_UpdateLastUsed(t *testing.T) {
 	require.NoError(t, err)
 
 	// Verify initial state
-	initialKey, err := service.FindByID(ctx, result.ID)
+	initialKey, err := service.FindByID(ctx, testWorkspace, result.ID)
 	require.NoError(t, err)
 	assert.Equal(t, int64(0), initialKey.UsageCount)
 	assert.Nil(t, initialKey.LastUsed)
@@ -231,7 +231,7 @@ func TestIntegration_UpdateLastUsed(t *testing.T) {
 	require.NoError(t, err)
 
 	// Verify usage was updated by fetching from database
-	dbKey, err := service.FindByID(ctx, result.ID)
+	dbKey, err := service.FindByID(ctx, testWorkspace, result.ID)
 	require.NoError(t, err)
 	assert.Equal(t, int64(1), dbKey.UsageCount)
 	assert.NotNil(t, dbKey.LastUsed)
@@ -244,7 +244,7 @@ func TestIntegration_CreateWithExpiration(t *testing.T) {
 	logger := zap.NewNop().Sugar()
 	service := NewService(repo, logger)
 
-	ctx := context.Background()
+	ctx := adminContext()
 
 	// Create API key with future expiration
 	futureTime := time.Now().Add(1 * time.Hour)
@@ -271,7 +271,7 @@ func TestIntegration_CreateWithUsageLimit(t *testing.T) {
 	logger := zap.NewNop().Sugar()
 	service := NewService(repo, logger)
 
-	ctx := context.Background()
+	ctx := adminContext()
 
 	// Create API key with usage limit
 	maxUsage := int64(5)
@@ -285,7 +285,7 @@ func TestIntegration_CreateWithUsageLimit(t *testing.T) {
 	require.NoError(t, err)
 
 	// Verify the key was created with usage limit
-	createdKey, err := service.FindByID(ctx, result.ID)
+	createdKey, err := service.FindByID(ctx, testWorkspace, result.ID)
 	require.NoError(t, err)
 	assert.Equal(t, maxUsage, *createdKey.MaxUsageCount)
 	assert.Equal(t, int64(0), createdKey.UsageCount)
@@ -297,7 +297,7 @@ func TestIntegration_FindAllWithRealData(t *testing.T) {
 	logger := zap.NewNop().Sugar()
 	service := NewService(repo, logger)
 
-	ctx := context.Background()
+	ctx := adminContext()
 
 	// Create multiple API keys
 	keys := []*CreateRequest{
@@ -314,7 +314,7 @@ func TestIntegration_FindAllWithRealData(t *testing.T) {
 	}
 
 	// Find all keys
-	allKeys, err := service.FindAll(ctx)
+	allKeys, err := service.FindAll(ctx, testWorkspace)
 	require.NoError(t, err)
 
 	// Verify all keys were found

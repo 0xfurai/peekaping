@@ -48,6 +48,8 @@ https://your-peekaping-instance.com/api/v1/badge/{monitorId}/uptime/{duration}
 
 **Example:** `Uptime (24h): 99.9%`
 
+When the monitor has no heartbeats in the period, the badge reads `N/A` in grey, not `0%`.
+
 ### Ping Badge
 
 Shows average response time for your monitor.
@@ -60,6 +62,8 @@ https://your-peekaping-instance.com/api/v1/badge/{monitorId}/ping/{duration}
 **Duration options:** Same as uptime badge
 
 **Example:** `Ping (30d): 45ms`
+
+When the monitor has no heartbeats in the period, the badge reads `N/A`.
 
 
 
@@ -102,8 +106,24 @@ All badges support query parameters for customization:
 
 | Parameter | Values | Description |
 |-----------|--------|-------------|
-| `color` | Hex color (e.g., `4c1`, `007ec6`) | Override value background color |
-| `labelColor` | Hex color (e.g., `555`, `333`) | Override label background color |
+| `color` | Color (e.g., `4c1`, `brightgreen`) | Override value background color |
+| `labelColor` | Color (e.g., `555`, `grey`) | Override label background color |
+
+A color is a hex color of 3 or 6 digits, with or without the leading `#` (a `#` in a URL is written `%23`, so `4c1` is the simplest), or one of these names, in any case:
+
+| Name | Color |
+|------|-------|
+| `brightgreen`, `success` | `#4c1` |
+| `green` | `#97ca00` |
+| `yellowgreen` | `#a4a61d` |
+| `yellow` | `#dfb317` |
+| `orange`, `important` | `#fe7d37` |
+| `red`, `critical` | `#e05d44` |
+| `blue`, `informational` | `#007ec6` |
+| `grey`, `gray` | `#555` |
+| `lightgrey`, `lightgray`, `inactive` | `#9f9f9f` |
+
+Any other value is ignored, and the badge keeps its default color for that option.
 
 ### Text Customization
 
@@ -121,8 +141,8 @@ All badges support query parameters for customization:
 |-----------|--------|-------------|
 | `upLabel` | Any text | Custom text for "Up" status |
 | `downLabel` | Any text | Custom text for "Down" status |
-| `upColor` | Hex color | Color for "Up" status |
-| `downColor` | Hex color | Color for "Down" status |
+| `upColor` | Color | Color for "Up" status |
+| `downColor` | Color | Color for "Down" status |
 
 ### Certificate Badge Options
 

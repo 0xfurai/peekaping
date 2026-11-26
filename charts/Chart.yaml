@@ -1,13 +1,20 @@
 apiVersion: v2
 name: peekaping
-version: 1.0.0
+description: Peekaping in cluster mode, as api, web and probe deployments. The api replicas share the database and Redis, and the probes run the checks
+# The release workflow sets both when it packages the chart
+# (scripts/package-chart.sh): the version and the appVersion are the release,
+# such as 0.0.48. An empty image.tag in values.yaml means the appVersion, so a
+# published chart installs the images of its release. These values are for a
+# checkout, whose images are `latest`.
+version: 0.0.0
+appVersion: latest
 dependencies:
 - name: redis
-  version: 24.0.0
+  version: 28.3.10
   repository: oci://registry-1.docker.io/bitnamicharts
   condition: redis.enabled
 
 - name: postgresql
-  version: 18.1.13
+  version: 18.12.16
   repository: oci://registry-1.docker.io/bitnamicharts
   condition: postgresql.enabled

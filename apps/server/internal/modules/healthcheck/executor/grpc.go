@@ -1,11 +1,17 @@
+//go:build !slim
+
 package executor
 
 import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net"
+	"net/url"
 	"peekaping/internal/modules/shared"
+	"peekaping/internal/netguard"
 	"regexp"
+	"slices"
 	"strings"
 	"time"
 
@@ -34,6 +40,7 @@ type GRPCConfig struct {
 }
 
 type GRPCExecutor struct {
+	guarded
 	logger *zap.SugaredLogger
 }
 
@@ -42,6 +49,8 @@ func NewGRPCExecutor(logger *zap.SugaredLogger) *GRPCExecutor {
 		logger: logger,
 	}
 }
+
+func init() { registerOptional("grpc-keyword", NewGRPCExecutor) }
 
 func (g *GRPCExecutor) Unmarshal(configJSON string) (any, error) {
 	return GenericUnmarshal[GRPCConfig](configJSON)
@@ -55,16 +64,79 @@ func (g *GRPCExecutor) Validate(configJSON string) error {
 	return GenericValidator(cfg.(*GRPCConfig))
 }
 
+// Targets lists the hosts a gRPC check connects to: the server's, and the DNS server the target
+// names when it names one
+func (g *GRPCExecutor) Targets(configJSON string) ([]string, error) {
+	cfg, err := GenericUnmarshal[GRPCConfig](configJSON)
+	if err != nil {
+		return nil, err
+	}
+	target := parseGRPCTarget(cfg.GrpcUrl)
+	return append(slices.Clone(target.hosts), target.dnsServer...), nil
+}
+
+// grpcTarget is what a gRPC target string says about where the client connects
+type grpcTarget struct {
+	hosts     []string // the servers
+	dnsServer []string // the DNS server of a dns://server/host:port target
+	unix      bool     // a unix: or unix-abstract: target
+}
+
+// parseGRPCTarget reads a target like grpc.NewClient does: with a scheme it knows, or else as the
+// name of a server for the dns resolver
+func parseGRPCTarget(target string) grpcTarget {
+	u, err := url.Parse(target)
+	if err != nil {
+		return grpcTarget{hosts: []string{hostOf(target)}}
+	}
+	switch u.Scheme {
+	case "unix", "unix-abstract":
+		return grpcTarget{unix: true}
+	case "dns", "passthrough":
+		endpoint := strings.TrimPrefix(u.Path, "/")
+		if endpoint == "" {
+			endpoint = u.Opaque // dns:host:port
+		}
+		t := grpcTarget{hosts: []string{hostOf(endpoint)}}
+		if u.Scheme == "dns" && u.Host != "" {
+			t.dnsServer = []string{hostOf(u.Host)}
+		}
+		return t
+	case "ipv4", "ipv6":
+		// ipv4:addr[:port][,addr[:port]...]
+		var t grpcTarget
+		for _, address := range strings.Split(strings.TrimPrefix(u.Opaque+u.Path, "//"), ",") {
+			t.hosts = append(t.hosts, hostOf(address))
+		}
+		return t
+	}
+	return grpcTarget{hosts: []string{hostOf(target)}}
+}
+
+// guardedOptions makes the client dial through the guard. The dialer is given the address, with
+// "unix:" in front of a Unix socket (grpc keeps the network of the target out of it). The DNS
+// resolver that a dns://server/host target names would query that server on its own, with no dialer
+// of ours, so such a target is refused: a name is resolved with the system's resolver otherwise.
+func (g *GRPCExecutor) guardedOptions(target string) ([]grpc.DialOption, error) {
+	if parsed := parseGRPCTarget(target); len(parsed.dnsServer) > 0 {
+		return nil, fmt.Errorf("%w: a DNS server in the target", netguard.ErrBlocked)
+	}
+	return []grpc.DialOption{grpc.WithContextDialer(func(ctx context.Context, address string) (net.Conn, error) {
+		if path, ok := strings.CutPrefix(address, "unix:"); ok {
+			return g.guard.DialContext(ctx, "unix", strings.TrimPrefix(path, "//"))
+		}
+		return g.guard.DialContext(ctx, "tcp", address)
+	})}, nil
+}
+
 func (g *GRPCExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Proxy) *Result {
-	startTime := time.Now().UTC()
+	startTime := time.Now()
 
 	cfgAny, err := g.Unmarshal(m.Config)
 	if err != nil {
-		return DownResult(fmt.Errorf("invalid config: %w", err), startTime, time.Now().UTC())
+		return DownResult(fmt.Errorf("invalid config: %w", err), startTime, time.Now())
 	}
 	cfg := cfgAny.(*GRPCConfig)
-
-	g.logger.Debugf("execute grpc cfg: %+v", cfg)
 
 	// Set up connection options
 	var opts []grpc.DialOption
@@ -74,10 +146,19 @@ func (g *GRPCExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 		opts = append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	}
 
+	// Dial through the guard while it is on
+	if g.on() {
+		guardOpts, err := g.guardedOptions(cfg.GrpcUrl)
+		if err != nil {
+			return DownResult(err, startTime, time.Now())
+		}
+		opts = append(opts, guardOpts...)
+	}
+
 	// Connect to gRPC server using modern API
 	conn, err := grpc.NewClient(cfg.GrpcUrl, opts...)
 	if err != nil {
-		return DownResult(fmt.Errorf("failed to create gRPC client: %w", err), startTime, time.Now().UTC())
+		return DownResult(fmt.Errorf("failed to create gRPC client: %w", err), startTime, time.Now())
 	}
 	defer conn.Close()
 
@@ -87,7 +168,7 @@ func (g *GRPCExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 
 	// Execute gRPC call using reflection (simplified approach)
 	response, err := g.executeGRPCCall(callCtx, conn, cfg)
-	endTime := time.Now().UTC()
+	endTime := time.Now()
 
 	if err != nil {
 		g.logger.Infof("gRPC call failed: %s, %s", m.Name, err.Error())
@@ -191,20 +272,8 @@ func (g *GRPCExecutor) tryDirectCall(ctx context.Context, conn *grpc.ClientConn,
 	g.logger.Debugf("Extracted types - Request: %s, Response: %s, Package: %s", requestTypeName, responseTypeName, packageName)
 
 	// If extraction failed, use defaults based on service name
-	if requestTypeName == "" {
-		if cfg.GrpcServiceName == "Health" {
-			requestTypeName = "HealthCheckRequest"
-		} else {
-			requestTypeName = "Request"
-		}
-	}
-	if responseTypeName == "" {
-		if cfg.GrpcServiceName == "Health" {
-			responseTypeName = "HealthCheckResponse"
-		} else {
-			responseTypeName = "Response"
-		}
-	}
+	requestTypeName = messageNameOrDefault(requestTypeName, cfg.GrpcServiceName, "HealthCheckRequest", "Request")
+	responseTypeName = messageNameOrDefault(responseTypeName, cfg.GrpcServiceName, "HealthCheckResponse", "Response")
 
 	// Try to create simplified descriptors for common patterns
 	requestDesc, responseDesc, err := g.createSimpleDescriptors(requestTypeName, responseTypeName, packageName)
@@ -217,16 +286,8 @@ func (g *GRPCExecutor) tryDirectCall(ctx context.Context, conn *grpc.ClientConn,
 	responseMsg := dynamicpb.NewMessage(responseDesc)
 
 	// Parse and populate the request message from JSON body
-	if cfg.GrpcBody != "" {
-		if err := protojson.Unmarshal([]byte(cfg.GrpcBody), requestMsg); err != nil {
-			// If protojson fails, try to parse as regular JSON and set fields manually
-			var jsonData map[string]interface{}
-			if jsonErr := json.Unmarshal([]byte(cfg.GrpcBody), &jsonData); jsonErr == nil {
-				g.setFieldsFromJSON(requestMsg, jsonData)
-			} else {
-				return "", fmt.Errorf("failed to unmarshal request body: %w", err)
-			}
-		}
+	if err := g.populateRequest(requestMsg, cfg.GrpcBody); err != nil {
+		return "", err
 	}
 
 	// Construct the full method name
@@ -244,17 +305,53 @@ func (g *GRPCExecutor) tryDirectCall(ctx context.Context, conn *grpc.ClientConn,
 		return "", err
 	}
 
-	// Convert response to JSON string
+	return g.responseJSON(responseMsg), nil
+}
+
+// messageNameOrDefault returns the message name extracted from the proto. When there is none, it
+// returns the Health service's name for the message, or the generic one for any other service.
+func messageNameOrDefault(extracted, serviceName, healthName, genericName string) string {
+	if extracted != "" {
+		return extracted
+	}
+	if serviceName == "Health" {
+		return healthName
+	}
+	return genericName
+}
+
+// populateRequest fills the request message from the JSON body, if there is one
+func (g *GRPCExecutor) populateRequest(requestMsg *dynamicpb.Message, body string) error {
+	if body == "" {
+		return nil
+	}
+
+	err := protojson.Unmarshal([]byte(body), requestMsg)
+	if err == nil {
+		return nil
+	}
+
+	// If protojson fails, try to parse as regular JSON and set fields manually
+	var jsonData map[string]interface{}
+	if json.Unmarshal([]byte(body), &jsonData) != nil {
+		return fmt.Errorf("failed to unmarshal request body: %w", err)
+	}
+	g.setFieldsFromJSON(requestMsg, jsonData)
+	return nil
+}
+
+// responseJSON converts the response message to a JSON string
+func (g *GRPCExecutor) responseJSON(responseMsg *dynamicpb.Message) string {
 	responseJSON, err := protojson.Marshal(responseMsg)
 	if err != nil {
 		// If protojson fails, try manual conversion
 		responseStr := g.convertMessageToJSON(responseMsg)
 		g.logger.Debugf("gRPC response (manual conversion): %s", responseStr)
-		return responseStr, nil
+		return responseStr
 	}
 
 	g.logger.Debugf("gRPC response: %s", string(responseJSON))
-	return string(responseJSON), nil
+	return string(responseJSON)
 }
 
 // createSimpleDescriptors creates basic message descriptors for common proto patterns

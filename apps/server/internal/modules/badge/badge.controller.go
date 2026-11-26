@@ -2,9 +2,12 @@ package badge
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"peekaping/internal/httpx"
+	"peekaping/internal/modules/status_page"
 	"peekaping/internal/utils"
 	"strconv"
 
@@ -23,70 +26,93 @@ func NewController(service Service, logger *zap.SugaredLogger) *Controller {
 	}
 }
 
+// requirePublic is nil for a monitor on a published status page, 404 for any other, and the 503 of
+// an unavailable status page when the monitor's workspace is suspended: a badge says no more than
+// its page does (PP-372)
+func (c *Controller) requirePublic(ctx context.Context, monitorID string) error {
+	isPublic, err := c.service.IsMonitorPublic(ctx, monitorID)
+	if errors.Is(err, status_page.ErrUnavailable) {
+		return status_page.Unavailable()
+	}
+	if err != nil {
+		c.logger.Errorw("Failed to check if monitor is public", "error", err, "monitorID", monitorID)
+		return httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+	}
+	if !isPublic {
+		return httpx.Fail(http.StatusNotFound, utils.NewFailResponse("Monitor not found or not public"))
+	}
+	return nil
+}
+
 // parseQueryOptions parses badge options from query parameters
 func (c *Controller) parseQueryOptions(r *http.Request) *BadgeOptions {
 	options := DefaultBadgeOptions()
+	query := r.URL.Query()
 
 	// Parse style
-	if style := r.URL.Query().Get("style"); style != "" {
-		switch style {
-		case "flat", "flat-square", "plastic", "for-the-badge", "social":
-			options.Style = BadgeStyle(style)
+	switch style := query.Get("style"); style {
+	case "flat", "flat-square", "plastic", "for-the-badge", "social":
+		options.Style = BadgeStyle(style)
+	}
+
+	parseColorOptions(query, options)
+	parseTextOptions(query, options)
+	parseCertExpiryOptions(query, options)
+
+	return options
+}
+
+// parseColorOptions reads the color options. A color that isn't one leaves the default.
+func parseColorOptions(query url.Values, options *BadgeOptions) {
+	for _, option := range []struct {
+		key    string
+		target *string
+	}{
+		{"color", &options.Color},
+		{"labelColor", &options.LabelColor},
+		{"upColor", &options.UpColor},
+		{"downColor", &options.DownColor},
+	} {
+		if color, ok := parseColor(query.Get(option.key)); ok {
+			*option.target = color
 		}
 	}
+}
 
-	// Parse common options
-	if color := r.URL.Query().Get("color"); color != "" {
-		options.Color = color
+// parseTextOptions reads the status badge labels and the text customization options. An empty
+// one leaves the default.
+func parseTextOptions(query url.Values, options *BadgeOptions) {
+	for _, option := range []struct {
+		key    string
+		target *string
+	}{
+		{"upLabel", &options.UpLabel},
+		{"downLabel", &options.DownLabel},
+		{"labelPrefix", &options.LabelPrefix},
+		{"label", &options.Label},
+		{"labelSuffix", &options.LabelSuffix},
+		{"prefix", &options.Prefix},
+		{"suffix", &options.Suffix},
+	} {
+		if text := query.Get(option.key); text != "" {
+			*option.target = text
+		}
 	}
-	if labelColor := r.URL.Query().Get("labelColor"); labelColor != "" {
-		options.LabelColor = labelColor
-	}
+}
 
-	// Parse status badge options
-	if upLabel := r.URL.Query().Get("upLabel"); upLabel != "" {
-		options.UpLabel = upLabel
-	}
-	if downLabel := r.URL.Query().Get("downLabel"); downLabel != "" {
-		options.DownLabel = downLabel
-	}
-	if upColor := r.URL.Query().Get("upColor"); upColor != "" {
-		options.UpColor = upColor
-	}
-	if downColor := r.URL.Query().Get("downColor"); downColor != "" {
-		options.DownColor = downColor
-	}
-
-	// Parse text customization options
-	if labelPrefix := r.URL.Query().Get("labelPrefix"); labelPrefix != "" {
-		options.LabelPrefix = labelPrefix
-	}
-	if label := r.URL.Query().Get("label"); label != "" {
-		options.Label = label
-	}
-	if labelSuffix := r.URL.Query().Get("labelSuffix"); labelSuffix != "" {
-		options.LabelSuffix = labelSuffix
-	}
-	if prefix := r.URL.Query().Get("prefix"); prefix != "" {
-		options.Prefix = prefix
-	}
-	if suffix := r.URL.Query().Get("suffix"); suffix != "" {
-		options.Suffix = suffix
-	}
-
-	// Parse certificate expiry options
-	if warnDays := r.URL.Query().Get("warnDays"); warnDays != "" {
+// parseCertExpiryOptions reads the certificate expiry options: warnDays above zero, downDays zero
+// or more
+func parseCertExpiryOptions(query url.Values, options *BadgeOptions) {
+	if warnDays := query.Get("warnDays"); warnDays != "" {
 		if days, err := strconv.Atoi(warnDays); err == nil && days > 0 {
 			options.WarnDays = days
 		}
 	}
-	if downDays := r.URL.Query().Get("downDays"); downDays != "" {
+	if downDays := query.Get("downDays"); downDays != "" {
 		if days, err := strconv.Atoi(downDays); err == nil && days >= 0 {
 			options.DownDays = days
 		}
 	}
-
-	return options
 }
 func (c *Controller) GetStatusBadge(ctx context.Context, input *GetStatusBadgeInput) (*httpx.Output[httpx.SVGBody], error) {
 	r := input.Request
@@ -94,15 +120,11 @@ func (c *Controller) GetStatusBadge(ctx context.Context, input *GetStatusBadgeIn
 	if monitorID == "" {
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Monitor ID is required"))
 	}
+	monitorID = c.service.ResolveMonitorID(ctx, monitorID)
 
 	// Check if monitor is public (published on a status page)
-	isPublic, err := c.service.IsMonitorPublic(ctx, monitorID)
-	if err != nil {
-		c.logger.Errorw("Failed to check if monitor is public", "error", err, "monitorID", monitorID)
-		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-	}
-	if !isPublic {
-		return nil, httpx.Fail(http.StatusNotFound, utils.NewFailResponse("Monitor not found or not public"))
+	if err := c.requirePublic(ctx, monitorID); err != nil {
+		return nil, err
 	}
 
 	options := c.parseQueryOptions(r)
@@ -120,6 +142,7 @@ func (c *Controller) GetUptimeBadge(ctx context.Context, input *GetUptimeBadgeIn
 	if monitorID == "" {
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Monitor ID is required"))
 	}
+	monitorID = c.service.ResolveMonitorID(ctx, monitorID)
 
 	durationStr := r.PathValue("duration")
 	duration, err := strconv.Atoi(durationStr)
@@ -129,13 +152,8 @@ func (c *Controller) GetUptimeBadge(ctx context.Context, input *GetUptimeBadgeIn
 	}
 
 	// Check if monitor is public
-	isPublic, err := c.service.IsMonitorPublic(ctx, monitorID)
-	if err != nil {
-		c.logger.Errorw("Failed to check if monitor is public", "error", err, "monitorID", monitorID)
-		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-	}
-	if !isPublic {
-		return nil, httpx.Fail(http.StatusNotFound, utils.NewFailResponse("Monitor not found or not public"))
+	if err := c.requirePublic(ctx, monitorID); err != nil {
+		return nil, err
 	}
 
 	options := c.parseQueryOptions(r)
@@ -153,6 +171,7 @@ func (c *Controller) GetPingBadge(ctx context.Context, input *GetPingBadgeInput)
 	if monitorID == "" {
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Monitor ID is required"))
 	}
+	monitorID = c.service.ResolveMonitorID(ctx, monitorID)
 
 	durationStr := r.PathValue("duration")
 	duration, err := strconv.Atoi(durationStr)
@@ -161,13 +180,8 @@ func (c *Controller) GetPingBadge(ctx context.Context, input *GetPingBadgeInput)
 	}
 
 	// Check if monitor is public
-	isPublic, err := c.service.IsMonitorPublic(ctx, monitorID)
-	if err != nil {
-		c.logger.Errorw("Failed to check if monitor is public", "error", err, "monitorID", monitorID)
-		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-	}
-	if !isPublic {
-		return nil, httpx.Fail(http.StatusNotFound, utils.NewFailResponse("Monitor not found or not public"))
+	if err := c.requirePublic(ctx, monitorID); err != nil {
+		return nil, err
 	}
 
 	options := c.parseQueryOptions(r)
@@ -185,15 +199,11 @@ func (c *Controller) GetCertExpBadge(ctx context.Context, input *GetCertExpBadge
 	if monitorID == "" {
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Monitor ID is required"))
 	}
+	monitorID = c.service.ResolveMonitorID(ctx, monitorID)
 
 	// Check if monitor is public
-	isPublic, err := c.service.IsMonitorPublic(ctx, monitorID)
-	if err != nil {
-		c.logger.Errorw("Failed to check if monitor is public", "error", err, "monitorID", monitorID)
-		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-	}
-	if !isPublic {
-		return nil, httpx.Fail(http.StatusNotFound, utils.NewFailResponse("Monitor not found or not public"))
+	if err := c.requirePublic(ctx, monitorID); err != nil {
+		return nil, err
 	}
 
 	options := c.parseQueryOptions(r)
@@ -211,15 +221,11 @@ func (c *Controller) GetResponseBadge(ctx context.Context, input *GetResponseBad
 	if monitorID == "" {
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Monitor ID is required"))
 	}
+	monitorID = c.service.ResolveMonitorID(ctx, monitorID)
 
 	// Check if monitor is public
-	isPublic, err := c.service.IsMonitorPublic(ctx, monitorID)
-	if err != nil {
-		c.logger.Errorw("Failed to check if monitor is public", "error", err, "monitorID", monitorID)
-		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-	}
-	if !isPublic {
-		return nil, httpx.Fail(http.StatusNotFound, utils.NewFailResponse("Monitor not found or not public"))
+	if err := c.requirePublic(ctx, monitorID); err != nil {
+		return nil, err
 	}
 
 	options := c.parseQueryOptions(r)

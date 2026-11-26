@@ -5,9 +5,9 @@ import (
 	"database/sql"
 	"os"
 	"path/filepath"
+	"peekaping/internal/modules/workspace/workspacetest"
 	"strings"
 	"testing"
-	"time"
 
 	"peekaping/cmd/bun/migrations"
 	"peekaping/internal/config"
@@ -21,9 +21,6 @@ import (
 	"github.com/uptrace/bun/dialect/pgdialect"
 	"github.com/uptrace/bun/driver/pgdriver"
 	"github.com/uptrace/bun/migrate"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
 )
 
@@ -61,8 +58,9 @@ func postgresDB(t *testing.T) *bun.DB {
 	return db
 }
 
-// forEachBackend runs fn against a sent-history service on every database backend.
-func forEachBackend(t *testing.T, fn func(t *testing.T, svc notification_sent_history.Service)) {
+// forEachBackend runs fn against a sent-history service on every database backend. newMonitor
+// makes a monitor in the database and returns its id: history belongs to a monitor.
+func forEachBackend(t *testing.T, fn func(t *testing.T, svc notification_sent_history.Service, newMonitor func() string)) {
 	sqlBackend := func(open func(*testing.T) *bun.DB) func(*testing.T) {
 		return func(t *testing.T) {
 			db := open(t)
@@ -71,28 +69,18 @@ func forEachBackend(t *testing.T, fn func(t *testing.T, svc notification_sent_hi
 			require.NoError(t, migrator.Init(ctx))
 			_, err := migrator.Migrate(ctx)
 			require.NoError(t, err)
-			fn(t, notification_sent_history.NewService(notification_sent_history.NewSQLRepository(db), zap.NewNop().Sugar()))
+			newMonitor := func() string {
+				id := uuid.NewString()
+				workspacetest.OldestOrAdd(t, db)
+				_, err := db.Exec(`INSERT INTO monitors (id, workspace_id, type, name, interval, timeout, max_retries, retry_interval, resend_interval) VALUES (?, (SELECT id FROM workspaces ORDER BY created_at, id LIMIT 1), 'http', 'Monitor', 60, 10, 1, 10, 0)`, id)
+				require.NoError(t, err)
+				return id
+			}
+			fn(t, notification_sent_history.NewService(notification_sent_history.NewSQLRepository(db), zap.NewNop().Sugar()), newMonitor)
 		}
 	}
 	t.Run("SQLite", sqlBackend(sqliteDB))
 	t.Run("Postgres", sqlBackend(postgresDB))
-	t.Run("Mongo", func(t *testing.T) {
-		uri := os.Getenv("PEE_TEST_MONGO_URI")
-		if uri == "" {
-			t.Skip("set PEE_TEST_MONGO_URI to run the MongoDB tests")
-		}
-		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-		defer cancel()
-		client, err := mongo.Connect(ctx, options.Client().ApplyURI(uri))
-		require.NoError(t, err)
-		require.NoError(t, client.Ping(ctx, nil))
-		cfg := &config.Config{DBName: "history_" + primitive.NewObjectID().Hex()}
-		t.Cleanup(func() {
-			assert.NoError(t, client.Database(cfg.DBName).Drop(context.Background()))
-			assert.NoError(t, client.Disconnect(context.Background()))
-		})
-		fn(t, notification_sent_history.NewService(notification_sent_history.NewMongoRepository(client, cfg), zap.NewNop().Sugar()))
-	})
 }
 
 func record(t *testing.T, svc notification_sent_history.Service, notificationType, monitorID string, days int) {
@@ -120,8 +108,8 @@ func history(t *testing.T, svc notification_sent_history.Service, monitorID, not
 }
 
 func TestRecordNotificationSent_IsIdempotent(t *testing.T) {
-	forEachBackend(t, func(t *testing.T, svc notification_sent_history.Service) {
-		monitorID := uuid.NewString()
+	forEachBackend(t, func(t *testing.T, svc notification_sent_history.Service, newMonitor func() string) {
+		monitorID := newMonitor()
 
 		record(t, svc, certificate, monitorID, 7)
 		record(t, svc, certificate, monitorID, 7)
@@ -131,8 +119,8 @@ func TestRecordNotificationSent_IsIdempotent(t *testing.T) {
 }
 
 func TestCheckIfNotificationSent_ThresholdOrANearerOne(t *testing.T) {
-	forEachBackend(t, func(t *testing.T, svc notification_sent_history.Service) {
-		monitorID, otherMonitorID := uuid.NewString(), uuid.NewString()
+	forEachBackend(t, func(t *testing.T, svc notification_sent_history.Service, newMonitor func() string) {
+		monitorID, otherMonitorID := newMonitor(), newMonitor()
 
 		record(t, svc, certificate, monitorID, 21)
 		assert.True(t, sent(t, svc, certificate, monitorID, 21))
@@ -148,8 +136,8 @@ func TestCheckIfNotificationSent_ThresholdOrANearerOne(t *testing.T) {
 }
 
 func TestClearNotificationHistory_ClearsOnlyThatMonitorAndType(t *testing.T) {
-	forEachBackend(t, func(t *testing.T, svc notification_sent_history.Service) {
-		monitorID, otherMonitorID := uuid.NewString(), uuid.NewString()
+	forEachBackend(t, func(t *testing.T, svc notification_sent_history.Service, newMonitor func() string) {
+		monitorID, otherMonitorID := newMonitor(), newMonitor()
 		record(t, svc, certificate, monitorID, 7)
 		record(t, svc, certificate, monitorID, 14)
 		record(t, svc, certificate, otherMonitorID, 7)
@@ -164,8 +152,8 @@ func TestClearNotificationHistory_ClearsOnlyThatMonitorAndType(t *testing.T) {
 }
 
 func TestCleanupOldRecords_KeepsRecentRows(t *testing.T) {
-	forEachBackend(t, func(t *testing.T, svc notification_sent_history.Service) {
-		monitorID := uuid.NewString()
+	forEachBackend(t, func(t *testing.T, svc notification_sent_history.Service, newMonitor func() string) {
+		monitorID := newMonitor()
 		record(t, svc, certificate, monitorID, 7)
 
 		require.NoError(t, svc.CleanupOldRecords(context.Background(), 90))
@@ -177,12 +165,24 @@ func TestCleanupOldRecords_KeepsRecentRows(t *testing.T) {
 // A cutoff a day in the future makes every row old, which tests the delete
 // without backdating rows.
 func TestCleanupOldRecords_RemovesRowsCreatedBeforeTheCutoff(t *testing.T) {
-	forEachBackend(t, func(t *testing.T, svc notification_sent_history.Service) {
-		monitorID := uuid.NewString()
+	forEachBackend(t, func(t *testing.T, svc notification_sent_history.Service, newMonitor func() string) {
+		monitorID := newMonitor()
 		record(t, svc, certificate, monitorID, 7)
 
 		require.NoError(t, svc.CleanupOldRecords(context.Background(), -1))
 
 		assert.Empty(t, history(t, svc, monitorID, certificate))
+	})
+}
+
+// A monitor can be deleted while a check of it is still being handled. The record for it has
+// nothing to belong to then, and is dropped without a failure.
+func TestRecordNotificationSent_ForADeletedMonitorIsSkipped(t *testing.T) {
+	forEachBackend(t, func(t *testing.T, svc notification_sent_history.Service, newMonitor func() string) {
+		deleted := uuid.NewString()
+
+		require.NoError(t, svc.RecordNotificationSent(context.Background(), certificate, deleted, 7))
+
+		assert.Empty(t, history(t, svc, deleted, certificate))
 	})
 }

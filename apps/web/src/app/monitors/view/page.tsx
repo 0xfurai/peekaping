@@ -1,4 +1,7 @@
-import { type HeartbeatModel, type UtilsApiResponseMonitorModel } from "@/api";
+import {
+  type HeartbeatModel,
+  type UtilsApiResponseMonitorMonitorResponseDto,
+} from "@/api";
 import {
   deleteMonitorsByIdMutation,
   getMonitorsByIdHeartbeatsInfiniteQueryKey,
@@ -9,6 +12,7 @@ import {
   getMonitorsByIdStatsUptimeQueryKey,
   getMonitorsByIdTlsOptions,
   getMonitorsInfiniteQueryKey,
+  getProbesQueryKey,
   patchMonitorsByIdMutation,
   postMonitorsByIdResetMutation,
 } from "@/api/@tanstack/react-query.gen";
@@ -26,7 +30,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { useWebSocket, WebSocketStatus } from "@/context/websocket-context";
+import { useSocketRoom } from "@/context/websocket-context";
+import { heartbeatEvent, monitorRoom } from "@/lib/socket-rooms";
 import Layout from "@/layout";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -40,19 +45,26 @@ import {
   Shield,
   AlertTriangle,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { cn, commonMutationErrorHandler } from "@/lib/utils";
+import { showLimitReached } from "@/lib/limit-errors";
 import ImportantNotificationsList from "../components/important-notifications-list";
 import { BackButton } from "@/components/back-button";
 import dayjs from "dayjs";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
+import { useProbes } from "@/hooks/useProbes";
 import clsx from "clsx";
-import { formatMonitorTarget } from "../components/monitor-registry";
-import { parseMonitorConfig } from "../components/monitor-target";
+import { formatMonitorTarget } from "../monitor-types/registry";
+import { monitorTypeDisabledReason } from "../monitor-types/disabled";
+import { parseMonitorConfig } from "../monitor-types/monitor-target";
 import StaleMarker from "../components/stale-marker";
 import { getMonitorStatusView } from "../components/monitor-status";
+import { currentStatus, hasLocations, heartbeatsOfProbe, instanceToLookUp, monitorStatusOf, sortLocations } from "../locations";
+import LocationsSection from "./locations-section";
+import { NoData } from "@/components/no-data";
+import { useWorkspacePath } from "@/hooks/useWorkspacePath";
 
 function formatDuration(ms: number, t: (key: string) => string): string {
   // Handle negative durations (clock skew) by returning empty string
@@ -98,18 +110,28 @@ interface TLSInfo {
   certInfo?: CertificateInfo;
 }
 
-const MonitorPage = () => {
+const MonitorPageContent = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const workspacePath = useWorkspacePath();
   const { t } = useLocalizedTranslation();
   const queryClient = useQueryClient();
-  const { socket, status: socketStatus } = useWebSocket();
+  const { probeNames, unsupportedProbeIds, instanceHostnames, isPending: probesPending } = useProbes();
+
+  // Read by the heartbeat handler, which must not resubscribe when the probes load
+  const probesRef = useRef({ instanceHostnames, probesPending });
+  probesRef.current = { instanceHostnames, probesPending };
+  // The instance ids a live heartbeat already refreshed the probes list for
+  const askedInstanceIds = useRef(new Set<string>());
 
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const [showConfirmPause, setShowConfirmPause] = useState(false);
   const [showConfirmReset, setShowConfirmReset] = useState(false);
 
   const [heartbeatData, setHeartbeatData] = useState<HeartbeatModel[]>([]);
+  // The heartbeats of every location that arrived since the page loaded, for a monitor on more
+  // than one probe. Each location's bar adds its own to the ones it fetched.
+  const [liveHeartbeats, setLiveHeartbeats] = useState<HeartbeatModel[]>([]);
 
   const { data, error, isLoading } = useQuery({
     ...getMonitorsByIdOptions({
@@ -118,9 +140,23 @@ const MonitorPage = () => {
       },
     }),
     enabled: !!id,
+    // A location's probe goes offline and online without a heartbeat to say so
+    refetchInterval: (query) =>
+      hasLocations(query.state.data?.data?.locations) ? 30 * 1000 : false,
   });
 
   const monitor = data?.data;
+  // The install turned the monitor's type off: nothing checks it, whatever its own setting is, so
+  // it reads as paused and can be neither paused nor resumed until the type is back on
+  const typeDisabled = monitor?.type_disabled === true;
+  // A monitor past its workspace's limit of active monitors isn't checked either, so it reads as
+  // paused; it can still be paused, which is how the owner chooses the monitors that stay
+  const overLimit = monitor?.over_limit === true;
+  const running = !!monitor?.active && !typeDisabled && !overLimit;
+  const pausable = !!monitor?.active && !typeDisabled;
+  const typeDisabledReason = typeDisabled ? monitorTypeDisabledReason(t, monitor?.type ?? "") : undefined;
+  const locations = useMemo(() => sortLocations(monitor?.locations ?? []), [monitor?.locations]);
+  const showLocations = hasLocations(locations);
   // Parsed once here, since the page re-renders on every heartbeat
   const config = useMemo(
     () => parseMonitorConfig(monitor?.config),
@@ -182,7 +218,7 @@ const MonitorPage = () => {
       queryClient.invalidateQueries({
         queryKey: getMonitorsInfiniteQueryKey(),
       });
-      navigate("/monitors");
+      navigate(workspacePath("/monitors"));
     },
     onError: commonMutationErrorHandler("Failed to delete monitor"),
   });
@@ -199,7 +235,7 @@ const MonitorPage = () => {
             id: id!,
           },
         }),
-        (oldData: UtilsApiResponseMonitorModel) => {
+        (oldData: UtilsApiResponseMonitorMonitorResponseDto) => {
           if (!oldData) return oldData;
           return {
             ...oldData,
@@ -211,7 +247,8 @@ const MonitorPage = () => {
         }
       );
     },
-    onError: commonMutationErrorHandler("Failed to pause monitor"),
+    // Resuming one in a workspace with as many active monitors as its limit is refused
+    onError: showLimitReached(t, commonMutationErrorHandler("Failed to pause monitor")),
   });
 
   const { data: heartbeatsResponse } = useQuery({
@@ -241,7 +278,20 @@ const MonitorPage = () => {
 
   const lastHeartbeat =
     heartbeatData?.length > 0 ? heartbeatData[heartbeatData.length - 1] : null;
-  const lastStatusView = getMonitorStatusView(lastHeartbeat?.status);
+  // A monitor on several probes is judged from its locations by its location rule, not from
+  // whichever heartbeat came last
+  const lastStatusView = getMonitorStatusView(
+    showLocations
+      ? monitorStatusOf(
+          locations.map((location) => ({
+            online: location.online,
+            status: currentStatus(location, heartbeatsOfProbe(liveHeartbeats, location.probe_id)),
+          })),
+          monitor?.location_rule ?? "any",
+          monitor?.location_threshold
+        )
+      : lastHeartbeat?.status
+  );
 
   const { data: stats, refetch: refetchUptimeStats } = useQuery({
     ...getMonitorsByIdStatsUptimeOptions({
@@ -266,79 +316,73 @@ const MonitorPage = () => {
     enabled: !!id,
   });
 
-  useEffect(() => {
-    if (!socket || !heartbeatsResponse) return;
+  // The page joins the monitor's room once the heartbeats have loaded. The handler is read
+  // through a ref, so a refetch that changes its callbacks does not leave and join the room again.
+  const handleHeartbeat = (newHeartbeat: HeartbeatModel) => {
+    // TODO: new heartbeats have different timestamp then from the api response
+    setHeartbeatData((p) => [...p, newHeartbeat].slice(-150));
+    setLiveHeartbeats((p) => [...p, newHeartbeat].slice(-1500));
 
-    const roomName = `monitor:${id}`;
-
-    const handleHeartbeat = (newHeartbeat: HeartbeatModel) => {
-      // TODO: new heartbeats have different timestamp then from the api response
-      setHeartbeatData((p) => [...p, newHeartbeat].slice(-150));
-
-      // If it's important, update the react-query cache for important heartbeats
-      if (newHeartbeat.important) {
-        const queryKey = getMonitorsByIdHeartbeatsInfiniteQueryKey({
-          path: { id: id! },
-          query: { important: true, limit: 20 },
-        });
-
-        queryClient.setQueryData(
-          queryKey,
-          (oldData: {
-            pageParams: number[];
-            pages: { data: HeartbeatModel[] }[];
-          }) => {
-            if (!oldData) {
-              // If no data, create a new structure
-              return {
-                pageParams: [0],
-                pages: [{ data: [newHeartbeat] }],
-              };
-            }
-
-            const flat = oldData.pages.flatMap((page) => page.data);
-            const filtered = flat.filter((hb) => hb.id !== newHeartbeat.id);
-            const newData = [newHeartbeat, ...filtered];
-
-            // convert array to pages by 20
-            const pages = [];
-            for (let i = 0; i < newData.length; i += 20) {
-              pages.push({ data: newData.slice(i, i + 20) });
-            }
-
-            return {
-              pageParams: oldData.pageParams,
-              pages: pages,
-            };
-          }
-        );
-      }
-
-      refetchUptimeStats();
-      refetchLastImportantHeartbeat();
-    };
-
-    if (socketStatus === WebSocketStatus.CONNECTED) {
-      socket.on(`${roomName}:heartbeat`, handleHeartbeat);
-      socket.emit("join_room", roomName);
-      console.log("Subscribed to heartbeat", roomName);
+    // A probe instance that started after the page loaded isn't in the probes list yet, so
+    // refresh it to name the instance by its hostname. While the probes query is loading it
+    // fetches the instance anyway.
+    const { instanceHostnames: hostnames, probesPending: pending } = probesRef.current;
+    const lookUp = pending
+      ? null
+      : instanceToLookUp(newHeartbeat.instance_id, hostnames, askedInstanceIds.current);
+    if (lookUp) {
+      askedInstanceIds.current.add(lookUp);
+      queryClient.invalidateQueries({ queryKey: getProbesQueryKey() });
     }
 
-    return () => {
-      socket.off(`${roomName}:heartbeat`, handleHeartbeat);
-      if (socketStatus === WebSocketStatus.CONNECTED) {
-        socket.emit("leave_room", roomName);
-      }
-    };
-  }, [
-    socket,
-    socketStatus,
-    id,
-    heartbeatsResponse,
-    queryClient,
-    refetchUptimeStats,
-    refetchLastImportantHeartbeat,
-  ]);
+    // If it's important, update the react-query cache for important heartbeats
+    if (newHeartbeat.important) {
+      const queryKey = getMonitorsByIdHeartbeatsInfiniteQueryKey({
+        path: { id: id! },
+        query: { important: true, limit: 20 },
+      });
+
+      queryClient.setQueryData(
+        queryKey,
+        (oldData: {
+          pageParams: number[];
+          pages: { data: HeartbeatModel[] }[];
+        }) => {
+          if (!oldData) {
+            // If no data, create a new structure
+            return {
+              pageParams: [0],
+              pages: [{ data: [newHeartbeat] }],
+            };
+          }
+
+          const flat = oldData.pages.flatMap((page) => page.data);
+          const filtered = flat.filter((hb) => hb.id !== newHeartbeat.id);
+          const newData = [newHeartbeat, ...filtered];
+
+          // convert array to pages by 20
+          const pages = [];
+          for (let i = 0; i < newData.length; i += 20) {
+            pages.push({ data: newData.slice(i, i + 20) });
+          }
+
+          return {
+            pageParams: oldData.pageParams,
+            pages: pages,
+          };
+        }
+      );
+    }
+
+    refetchUptimeStats();
+    refetchLastImportantHeartbeat();
+  };
+
+  useSocketRoom(
+    heartbeatsResponse && id ? monitorRoom(id) : null,
+    heartbeatEvent(monitorRoom(id ?? "")),
+    handleHeartbeat,
+  );
 
   const dataStats = useMemo(() => {
     if (!stats) return [];
@@ -400,6 +444,7 @@ const MonitorPage = () => {
 
       // Clear local heartbeat data
       setHeartbeatData([]);
+      setLiveHeartbeats([]);
     },
     onError: commonMutationErrorHandler("Failed to reset monitor data"),
   });
@@ -439,6 +484,18 @@ const MonitorPage = () => {
               {monitorTarget.label}
             </span>
           ) : null}
+          {/* A monitor on several probes lists them as locations below */}
+          {monitor && !probesPending && !showLocations && (
+            <div className="flex flex-wrap items-center gap-x-3 text-sm text-muted-foreground" data-testid="monitor-probe">
+              <span>{t("probes.monitor_probe", { name: probeNames(monitor.probe_ids)[0] })}</span>
+              {unsupportedProbeIds(monitor).length > 0 && (
+                <span className="flex items-center gap-1 text-amber-500" data-testid="monitor-probe-unsupported">
+                  <AlertTriangle className="w-3 h-3 shrink-0" aria-hidden />
+                  {t("probes.monitor_probe_unsupported", { name: probeNames(monitor.probe_ids)[0], type: monitor.type })}
+                </span>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="mt-4 mb-4">
@@ -446,7 +503,9 @@ const MonitorPage = () => {
             <Button
               variant="ghost"
               className="rounded-none border-r"
-              disabled={pauseMutation.isPending}
+              disabled={pauseMutation.isPending || typeDisabled}
+              title={typeDisabledReason}
+              data-testid="monitor-pause-toggle"
               onClick={() => {
                 if (monitor?.active) {
                   setShowConfirmPause(true);
@@ -462,7 +521,7 @@ const MonitorPage = () => {
                 }
               }}
             >
-              {monitor?.active ? (
+              {pausable ? (
                 <>
                   {pauseMutation.isPending ? (
                     <Loader2 className="animate-spin" />
@@ -485,7 +544,7 @@ const MonitorPage = () => {
             <Button
               variant="ghost"
               className="rounded-none border-r"
-              onClick={() => navigate("/monitors/" + id + "/edit")}
+              onClick={() => navigate(workspacePath(`/monitors/${id}/edit`))}
             >
               <Edit />
               {t("monitors.view.buttons.edit")}
@@ -493,8 +552,10 @@ const MonitorPage = () => {
             <Button
               variant="ghost"
               className="rounded-none border-r"
+              disabled={typeDisabled}
+              title={typeDisabledReason}
               onClick={() => {
-                navigate("/monitors/new", {
+                navigate(workspacePath("/monitors/new"), {
                   state: {
                     cloneData: monitor,
                   },
@@ -528,6 +589,17 @@ const MonitorPage = () => {
           </div>
         </div>
 
+        {typeDisabledReason && (
+          <p className="mb-4 text-sm text-amber-500" data-testid="monitor-type-disabled">
+            {typeDisabledReason}
+          </p>
+        )}
+        {overLimit && (
+          <p className="mb-4 text-sm text-amber-500" data-testid="monitor-over-limit">
+            {t("monitors.over_limit")}
+          </p>
+        )}
+
         <div className="text-white space-y-6 mt-4">
           <div className="grid grid-cols-4 gap-4 mb-4">
             <Card
@@ -537,7 +609,7 @@ const MonitorPage = () => {
               )}
             >
               <div className="font-semibold">{t("monitors.view.current_status")}</div>
-              {monitor?.active ? (
+              {running ? (
                 <div
                   className={cn(
                     "font-semibold text-2xl",
@@ -550,16 +622,16 @@ const MonitorPage = () => {
                 <div className="font-semibold text-2xl">{t("monitors.view.status.paused")}</div>
               )}
 
-              {monitor?.active && lastImportantHeartbeatDuration > 0 && (
+              {running && lastImportantHeartbeatDuration > 0 && (
                 <div className="text-sm text-gray-400">{lihText}</div>
               )}
-              {monitor?.active && (
+              {running && (
                 <StaleMarker
                   staleSince={monitor?.stale_since}
                   lastHeartbeatTime={lastHeartbeat?.time}
                 />
               )}
-              {!monitor?.active && lastHeartbeat?.time && (
+              {!running && lastHeartbeat?.time && (
                 <div className="text-sm text-gray-400">
                   {formatDuration(
                     dayjs().diff(dayjs(lastHeartbeat?.time), "milliseconds"),
@@ -634,8 +706,21 @@ const MonitorPage = () => {
                 hasCertCheckExpire ? "lg:col-span-2" : "lg:col-span-3"
               )}
             >
-              <div className="text-white font-semibold">{t("monitors.view.live_status")}</div>
-              <BarHistory data={heartbeatData} />
+              {showLocations && id ? (
+                <LocationsSection
+                  monitorId={id}
+                  monitorType={monitor?.type ?? ""}
+                  locations={locations}
+                  unsupportedProbeIds={monitor ? unsupportedProbeIds(monitor) : []}
+                  liveHeartbeats={liveHeartbeats}
+                  instanceHostnames={instanceHostnames}
+                />
+              ) : (
+                <>
+                  <div className="text-white font-semibold">{t("monitors.view.live_status")}</div>
+                  <BarHistory data={heartbeatData} instanceHostnames={instanceHostnames} />
+                </>
+              )}
               <div className="text-sm text-gray-400">
                 {t("monitors.view.check_every")} {monitor?.interval} {t("monitors.view.seconds")}
               </div>
@@ -656,10 +741,16 @@ const MonitorPage = () => {
                       {item.label}
                     </span>
                     <span className="text-xl font-bold leading-none sm:text-3xl">
-                      {item.value?.toLocaleString()}{" "}
-                      <span className="text-sm font-normal text-muted-foreground">
-                        %
-                      </span>
+                      {item.value == null ? (
+                        <NoData />
+                      ) : (
+                        <>
+                          {item.value.toLocaleString()}{" "}
+                          <span className="text-sm font-normal text-muted-foreground">
+                            %
+                          </span>
+                        </>
+                      )}
                     </span>
                   </div>
                 );
@@ -668,9 +759,9 @@ const MonitorPage = () => {
           </CardContent>
         </Card>
 
-        <Chart id={id!} />
+        <Chart id={id!} locations={showLocations ? locations : undefined} />
 
-        {id && <ImportantNotificationsList monitorId={id} />}
+        {id && <ImportantNotificationsList monitorId={id} instanceHostnames={instanceHostnames} />}
       </div>
 
       <AlertDialog open={showConfirmDelete}>
@@ -767,6 +858,13 @@ const MonitorPage = () => {
       </AlertDialog>
     </Layout>
   );
+};
+
+// The route /monitors/:id keeps the page mounted when only the id changes, so its state would carry
+// the previous monitor's heartbeats and dialogs over. Keyed by id, each monitor starts clean.
+const MonitorPage = () => {
+  const { id } = useParams();
+  return <MonitorPageContent key={id} />;
 };
 
 export default MonitorPage;

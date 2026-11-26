@@ -32,10 +32,11 @@ import {
 } from "@/components/ui/select";
 import { useQuery } from "@tanstack/react-query";
 import { getMonitorsByIdStatsPointsOptions } from "@/api/@tanstack/react-query.gen";
-import type { MonitorStatPoint } from "@/api";
+import type { MonitorModelLocation, MonitorStatPoint } from "@/api";
 import { useTimezone } from "../context/timezone-context";
 import { formatDateToTimezone } from "../lib/formatDateToTimezone";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
+import { NoData } from "@/components/no-data";
 // import { useMemo } from "react";
 
 function getStatusRanges(data: MonitorStatPoint[]) {
@@ -104,10 +105,27 @@ const chartConfig = {
   // },
 } satisfies ChartConfig;
 
-export function Chart({ id }: { id: string }) {
+// The location select's value for the monitor as a whole. A probe's id can't be this: ids are
+// generated, and the local probe's is "local".
+const ALL_LOCATIONS = "all-locations";
+
+// `locations` are the monitor's, given when it runs on more than one probe: the chart can then be
+// filtered to one of them.
+export function Chart({
+  id,
+  locations,
+}: {
+  id: string;
+  locations?: MonitorModelLocation[];
+}) {
   const [timeRange, setTimeRange] = React.useState<
     "30m" | "3h" | "6h" | "24h" | "1week"
   >("30m");
+  const [location, setLocation] = React.useState(ALL_LOCATIONS);
+  // A location the monitor no longer has, such as after its probes changed, is all of them
+  const probeId = locations?.some((l) => l.probe_id === location)
+    ? location
+    : undefined;
   const { timezone } = useTimezone();
   const { t } = useLocalizedTranslation();
 
@@ -156,7 +174,7 @@ export function Chart({ id }: { id: string }) {
   const { data: statpointsDataRaw } = useQuery({
     ...getMonitorsByIdStatsPointsOptions({
       path: { id: id! },
-      query: getCustomUptimeParams(timeRange),
+      query: { ...getCustomUptimeParams(timeRange), probe_id: probeId },
     }),
     refetchInterval: 20 * 1000,
     enabled: !!id,
@@ -190,26 +208,32 @@ export function Chart({ id }: { id: string }) {
 
   const statusRanges = getStatusRanges(chartData as MonitorStatPoint[]);
 
+  // undefined while the first response is pending, so the footer stays blank instead of reading
+  // "No data"; null once the API says there is nothing to measure
+  const loaded = statpointsDataRaw?.data !== undefined;
+  const stat = (value: number | null | undefined) =>
+    loaded ? (value ?? null) : undefined;
+
   const statsArray = [
     {
       key: "min",
       label: t("timezone.minimum"),
-      value: statpointsDataRaw?.data?.minPing || 0,
+      value: stat(statpointsDataRaw?.data?.minPing),
     },
     {
       key: "max",
       label: t("timezone.maximum"),
-      value: statpointsDataRaw?.data?.maxPing || 0,
+      value: stat(statpointsDataRaw?.data?.maxPing),
     },
     {
       key: "avg",
       label: t("timezone.average"),
-      value: statpointsDataRaw?.data?.avgPing || 0,
+      value: stat(statpointsDataRaw?.data?.avgPing),
     },
     {
       key: "uptime",
       label: t("timezone.uptime"),
-      value: statpointsDataRaw?.data?.uptime || 0,
+      value: stat(statpointsDataRaw?.data?.uptime),
     },
   ];
 
@@ -220,6 +244,31 @@ export function Chart({ id }: { id: string }) {
           <CardTitle>{t("timezone.response_time")}</CardTitle>
         </div>
         <div className="flex gap-2 items-center">
+          {locations && locations.length > 1 && (
+            <Select value={probeId ?? ALL_LOCATIONS} onValueChange={setLocation}>
+              <SelectTrigger
+                className="w-[180px] rounded-lg sm:ml-auto"
+                aria-label={t("monitors.view.locations.select_label")}
+                data-testid="chart-location-select"
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="rounded-xl">
+                <SelectItem value={ALL_LOCATIONS} className="rounded-lg">
+                  {t("monitors.view.locations.all")}
+                </SelectItem>
+                {locations.map((l) => (
+                  <SelectItem
+                    key={l.probe_id}
+                    value={l.probe_id}
+                    className="rounded-lg"
+                  >
+                    {l.probe_name || l.probe_id}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
           <Select
             value={timeRange}
             onValueChange={(v: typeof timeRange) => setTimeRange(v)}
@@ -365,7 +414,11 @@ export function Chart({ id }: { id: string }) {
       <CardFooter className="flex flex-col items-stretch space-y-0 border-t p-0">
         <div className="grid grid-cols-1 md:grid-cols-4">
           {statsArray.map(
-            (item: { key: string; label: string; value: number }) => (
+            (item: {
+              key: string;
+              label: string;
+              value: number | null | undefined;
+            }) => (
               <div
                 key={item.key}
                 className="flex flex-1 flex-col justify-center gap-1  px-6 py-4 text-left even:border-l sm:border-l sm:border-t-0 sm:px-8 sm:py-6"
@@ -374,10 +427,18 @@ export function Chart({ id }: { id: string }) {
                   {item.label}
                 </span>
                 <span className="text-lg font-bold leading-none sm:text-3xl">
-                  {item.value.toLocaleString()}{" "}
-                  <span className="text-sm font-normal text-muted-foreground">
-                    {item.key === "uptime" ? "%" : "ms"}
-                  </span>
+                  {item.value === undefined ? (
+                    <>&nbsp;</>
+                  ) : item.value === null ? (
+                    <NoData />
+                  ) : (
+                    <>
+                      {item.value.toLocaleString()}{" "}
+                      <span className="text-sm font-normal text-muted-foreground">
+                        {item.key === "uptime" ? "%" : "ms"}
+                      </span>
+                    </>
+                  )}
                 </span>
               </div>
             )

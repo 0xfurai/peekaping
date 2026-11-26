@@ -1,6 +1,6 @@
 # Triage Labels
 
-The skills speak in terms of five canonical triage roles. This file maps those roles to the actual label strings used in this repo's issue tracker (labels in the `0xfurai/peekaping-tracker` repo).
+The skills speak in terms of five canonical triage roles. This file maps those roles to the actual label strings used in this repo's issue tracker (labels in the Linear **Peekaping** team).
 
 | Label in mattpocock/skills | Label in our tracker | Meaning                                  |
 | -------------------------- | -------------------- | ---------------------------------------- |
@@ -16,10 +16,10 @@ Edit the "Label in our tracker" column to match whatever vocabulary you actually
 
 ## Category roles
 
-The two category roles map to the tracker repo's `bug`, `feature` and `improvement` labels (Linear's categories, kept). Apply these; don't use GitHub's default `enhancement`.
+The two category roles map to Linear's existing workspace labels. Apply these; don't create `bug` or `enhancement`.
 
 | Role in mattpocock/skills | Label in our tracker | When                                      |
 | ------------------------- | -------------------- | ----------------------------------------- |
-| `bug`                     | `bug`                | Something is broken                       |
-| `enhancement`             | `feature`            | A new capability                          |
-| `enhancement`             | `improvement`        | A change to existing behavior             |
+| `bug`                     | `Bug`                | Something is broken                       |
+| `enhancement`             | `Feature`            | A new capability                          |
+| `enhancement`             | `Improvement`        | A change to existing behavior             |

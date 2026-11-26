@@ -1,0 +1,20 @@
+POST https://api.pagertree.com/integration/int_123
+Content-Type: application/json
+
+{
+  "event_type": "create",
+  "id": "monitor-",
+  "title": "Monitor Unknown Monitor is DOWN",
+  "description": "connection refused - Last checked: 2026-10-17T09:30:00Z",
+  "urgency": "medium",
+  "tags": [
+    "peekaping",
+    "monitor-type:"
+  ],
+  "meta": {
+    "monitor_id": "",
+    "monitor_name": "Unknown Monitor",
+    "monitor_type": "",
+    "status": 0
+  }
+}

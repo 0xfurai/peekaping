@@ -23,6 +23,7 @@ type SnmpConfig struct {
 }
 
 type SnmpExecutor struct {
+	guarded
 	logger *zap.SugaredLogger
 }
 
@@ -44,10 +45,19 @@ func (s *SnmpExecutor) Validate(configJSON string) error {
 	return GenericValidator(cfg.(*SnmpConfig))
 }
 
+// Targets lists the host an SNMP check queries
+func (s *SnmpExecutor) Targets(configJSON string) ([]string, error) {
+	cfg, err := GenericUnmarshal[SnmpConfig](configJSON)
+	if err != nil {
+		return nil, err
+	}
+	return []string{cfg.Host}, nil
+}
+
 func (s *SnmpExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Proxy) *Result {
 	cfgAny, err := s.Unmarshal(m.Config)
 	if err != nil {
-		return DownResult(err, time.Now().UTC(), time.Now().UTC())
+		return DownResult(err, time.Now(), time.Now())
 	}
 	cfg := cfgAny.(*SnmpConfig)
 
@@ -56,9 +66,7 @@ func (s *SnmpExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 		cfg.Port = 161
 	}
 
-	s.logger.Debugf("execute snmp cfg: %+v", cfg)
-
-	startTime := time.Now().UTC()
+	startTime := time.Now()
 
 	// Create SNMP connection
 	snmpClient := &gosnmp.GoSNMP{
@@ -68,11 +76,13 @@ func (s *SnmpExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 		Version:   s.parseSnmpVersion(cfg.SnmpVersion),
 		Timeout:   time.Duration(m.Timeout) * time.Second,
 		Retries:   m.MaxRetries,
+		// The guard checks the address the target resolves to, before the socket connects
+		Control: s.guard.Control,
 	}
 
 	err = snmpClient.Connect()
 	if err != nil {
-		endTime := time.Now().UTC()
+		endTime := time.Now()
 		s.logger.Infof("SNMP connection failed: %s, %s", m.Name, err.Error())
 		return &Result{
 			Status:    shared.MonitorStatusDown,
@@ -87,7 +97,7 @@ func (s *SnmpExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 	oids := []string{cfg.Oid}
 	result, err := snmpClient.Get(oids)
 	if err != nil {
-		endTime := time.Now().UTC()
+		endTime := time.Now()
 		s.logger.Infof("SNMP GET failed: %s, %s", m.Name, err.Error())
 		return &Result{
 			Status:    shared.MonitorStatusDown,
@@ -97,39 +107,37 @@ func (s *SnmpExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 		}
 	}
 
-	endTime := time.Now().UTC()
+	endTime := time.Now()
 
-	if len(result.Variables) == 0 {
+	status, message := s.checkVariables(m, cfg, result.Variables)
+	return &Result{
+		Status:    status,
+		Message:   message,
+		StartTime: startTime,
+		EndTime:   endTime,
+	}
+}
+
+// snmpMissingValues describes the values an SNMP agent gives for an OID it has nothing for
+var snmpMissingValues = map[gosnmp.Asn1BER]struct{ log, message string }{
+	gosnmp.NoSuchObject:   {"SNMP OID not found: %s, %s", "The SNMP query returned that no object exists for OID %s"},
+	gosnmp.NoSuchInstance: {"SNMP instance not found: %s, %s", "The SNMP query returned that no instance exists for OID %s"},
+}
+
+// checkVariables judges what the agent answered the GET with: Down unless it gave a value and,
+// when the config has a condition, the value passes it
+func (s *SnmpExecutor) checkVariables(m *Monitor, cfg *SnmpConfig, variables []gosnmp.SnmpPDU) (shared.MonitorStatus, string) {
+	if len(variables) == 0 {
 		s.logger.Infof("SNMP GET returned no variables: %s", m.Name)
-		return &Result{
-			Status:    shared.MonitorStatusDown,
-			Message:   fmt.Sprintf("No varbinds returned from SNMP session (OID: %s)", cfg.Oid),
-			StartTime: startTime,
-			EndTime:   endTime,
-		}
+		return shared.MonitorStatusDown, fmt.Sprintf("No varbinds returned from SNMP session (OID: %s)", cfg.Oid)
 	}
 
-	variable := result.Variables[0]
+	variable := variables[0]
 
 	// Check for SNMP errors
-	if variable.Type == gosnmp.NoSuchObject {
-		s.logger.Infof("SNMP OID not found: %s, %s", m.Name, cfg.Oid)
-		return &Result{
-			Status:    shared.MonitorStatusDown,
-			Message:   fmt.Sprintf("The SNMP query returned that no object exists for OID %s", cfg.Oid),
-			StartTime: startTime,
-			EndTime:   endTime,
-		}
-	}
-
-	if variable.Type == gosnmp.NoSuchInstance {
-		s.logger.Infof("SNMP instance not found: %s, %s", m.Name, cfg.Oid)
-		return &Result{
-			Status:    shared.MonitorStatusDown,
-			Message:   fmt.Sprintf("The SNMP query returned that no instance exists for OID %s", cfg.Oid),
-			StartTime: startTime,
-			EndTime:   endTime,
-		}
+	if missing, ok := snmpMissingValues[variable.Type]; ok {
+		s.logger.Infof(missing.log, m.Name, cfg.Oid)
+		return shared.MonitorStatusDown, fmt.Sprintf(missing.message, cfg.Oid)
 	}
 
 	s.logger.Debugf("SNMP: Received variable (Type: %s Value: %v)", variable.Type, variable.Value)
@@ -140,12 +148,7 @@ func (s *SnmpExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 	// If no json path or expected value is provided, consider it successful
 	if cfg.JsonPath == "" || cfg.ExpectedValue == "" {
 		s.logger.Infof("SNMP successful: %s, Value: %s", m.Name, valueStr)
-		return &Result{
-			Status:    shared.MonitorStatusUp,
-			Message:   fmt.Sprintf("SNMP query successful, received value: %s", valueStr),
-			StartTime: startTime,
-			EndTime:   endTime,
-		}
+		return shared.MonitorStatusUp, fmt.Sprintf("SNMP query successful, received value: %s", valueStr)
 	}
 
 	// Evaluate the condition (simplified version of JSON path evaluation)
@@ -153,21 +156,10 @@ func (s *SnmpExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 
 	if success {
 		s.logger.Infof("SNMP condition passed: %s, comparing %s %s %s", m.Name, valueStr, cfg.JsonPathOperator, cfg.ExpectedValue)
-		return &Result{
-			Status:    shared.MonitorStatusUp,
-			Message:   fmt.Sprintf("SNMP condition passes (comparing %s %s %s)", valueStr, cfg.JsonPathOperator, cfg.ExpectedValue),
-			StartTime: startTime,
-			EndTime:   endTime,
-		}
-	} else {
-		s.logger.Infof("SNMP condition failed: %s, comparing %s %s %s", m.Name, valueStr, cfg.JsonPathOperator, cfg.ExpectedValue)
-		return &Result{
-			Status:    shared.MonitorStatusDown,
-			Message:   fmt.Sprintf("SNMP condition does not pass (comparing %s %s %s)", valueStr, cfg.JsonPathOperator, cfg.ExpectedValue),
-			StartTime: startTime,
-			EndTime:   endTime,
-		}
+		return shared.MonitorStatusUp, fmt.Sprintf("SNMP condition passes (comparing %s %s %s)", valueStr, cfg.JsonPathOperator, cfg.ExpectedValue)
 	}
+	s.logger.Infof("SNMP condition failed: %s, comparing %s %s %s", m.Name, valueStr, cfg.JsonPathOperator, cfg.ExpectedValue)
+	return shared.MonitorStatusDown, fmt.Sprintf("SNMP condition does not pass (comparing %s %s %s)", valueStr, cfg.JsonPathOperator, cfg.ExpectedValue)
 }
 
 func (s *SnmpExecutor) parseSnmpVersion(version string) gosnmp.SnmpVersion {

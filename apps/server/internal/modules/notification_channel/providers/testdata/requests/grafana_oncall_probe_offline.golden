@@ -1,0 +1,14 @@
+POST https://oncall.example.com/integrations/v1/formatted_webhook/abc/
+Content-Type: application/json
+User-Agent: Peekaping/<version>
+
+{
+  "alert_uid": "Peekaping/probe-1",
+  "message": "Probe Frankfurt has been offline since 2026-10-22 08:30:00 UTC",
+  "monitor_id": "probe-1",
+  "monitor_type": "probe",
+  "state": "alerting",
+  "status": "DOWN",
+  "tags": [],
+  "title": "Probe Frankfurt is offline"
+}

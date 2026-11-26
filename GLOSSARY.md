@@ -14,6 +14,14 @@ _Avoid_: Check (that's one run), probe, service
 The kind of check a monitor runs, such as HTTP, TCP, ping, DNS, Docker or push.
 _Avoid_: Connection type, check type
 
+**Disabled monitor type**:
+A monitor type the install turns off with `DISABLED_MONITOR_TYPES`, empty by default. No monitor can be created with it or changed to it. A monitor that already has it is kept and listed, but it runs nothing: no checks, no missed-push detection, no notifications, and a push to it answers 403. Its stored settings, `active` among them, are left as they are, so it runs again once the type is turned back on. The cloud turns off `docker`, since the Docker monitor reads the Docker socket of the machine the server runs on.
+_Avoid_: Paused (that's a monitor switched off by a person), unsupported
+
+**Private target block**:
+`BLOCK_PRIVATE_TARGETS`, off by default, keeps checks from reaching the internal network: loopback, private and link-local addresses (cloud metadata at `169.254.169.254` among them), carrier-grade NAT, multicast, broadcast, IPv6 unique-local addresses and Unix sockets. It checks the address a check really connects to, so a hostname that resolves to a blocked address, a redirect to one and a changing DNS answer are all refused, and the check is Down with "target address is not allowed". Saving a monitor whose target is a blocked IP address, or a proxy whose host is one, answers 400 with `TARGET_NOT_ALLOWED`. Notification channels are checked the same way (a webhook, ntfy or SMTP server at a blocked address sends nothing), except the Install email channel and Account emails, which are the install's own. A remote probe blocks when its own setting is on or the server's is, and a probe from before the setting, which would ignore the server's, gets no monitors while the server's is on. The cloud turns it on, since a monitor must not reach the network the server runs in.
+_Avoid_: Firewall, SSRF protection, allowlist
+
 **Check**:
 One attempt by a monitor to reach its target and judge whether it's healthy.
 _Avoid_: Health check, probe, ping
@@ -39,16 +47,56 @@ How long a check took to get its answer, in milliseconds.
 _Avoid_: Ping (that's a monitor type), latency
 
 **Uptime**:
-The share of a monitor's heartbeats in a period that were Up.
-_Avoid_: Availability, SLA
+The share of a monitor's heartbeats in a period that were Up. A probe's uptime is the share of a range it was online (see Probe availability).
+_Avoid_: Availability (that's a probe's online and offline history), SLA
 
 **Paused**:
 A monitor that's switched off. It runs no checks until it's resumed.
 _Avoid_: Inactive, disabled, stopped
 
 **Stale monitor**:
-An active monitor Peekaping has stopped checking: its latest heartbeat is older than max(3 × check interval, check interval + timeout + 60s). The producer's watchdog looks for them every minute, enqueues a check, and notifies the monitor's channels if that doesn't help.
+An active monitor Peekaping has stopped checking: its latest heartbeat is older than max(3 × check interval, check interval + timeout + 60s). The watchdog looks for them every minute, gets each one checked again right away, and notifies the monitor's channels if that doesn't help. A monitor that doesn't run on the local probe isn't checked again from here, and neither is any monitor in cluster mode on SQLite or PostgreSQL, where probe instances do the checks: its channels are notified once that same wait has passed. A monitor whose probe is offline isn't stale: the probe's own notification says so.
 _Avoid_: Stuck monitor, dead monitor, overdue
+
+**Probe**:
+A place Peekaping runs checks from. A monitor runs on one or more probes, the local probe unless it's assigned to remote ones. Probes belong to the install, not to a workspace: once workspaces are built, any workspace's monitors can run on them, and only instance admins manage them.
+_Avoid_: Agent, worker
+
+**Local probe**:
+The probe that is Peekaping itself. Every install has it, and it can't be deleted. In single mode the `peekaping` process checks its monitors and the local probe takes no probe instances: `peekaping` refuses a `peekaping-probe` that uses its token, and ignores `PROBE_BOOTSTRAP_TOKEN`. In cluster mode on SQLite and PostgreSQL its probe instances do: `peekaping-probe` copies started with its token (`PROBE_BOOTSTRAP_TOKEN` on the api, the same value as `PROBE_TOKEN` on the probe), so it is offline while none is connected, as a remote probe is.
+_Avoid_: Built-in probe
+
+**Default probe**:
+A probe an instance admin marked as one that new monitors run on. A monitor created without choosing probes runs on the default probes that aren't disabled and run its type, and on the local probe when none does. The local probe is a default probe until an instance admin says otherwise. Monitors that exist keep their probes.
+_Avoid_: Preferred probe, primary probe
+
+**Remote probe**:
+A probe that runs on another machine. It connects out to Peekaping with its token, gets the monitors assigned to it, and sends back their results.
+_Avoid_: Private location, remote agent
+
+**Probe instance**:
+One running copy of a probe's program. Every copy started with the probe's token is an instance of that probe, with a random id of its own, and the probe's monitors are dealt among its instances. Each instance lists the monitor types its build runs (the full image and the slim one differ), a monitor goes only to instances that run its type, and the probe runs the types of its online instances together.
+_Avoid_: Agent, worker, node; "instance ID" alone, which is the usage ping's
+
+**Probe availability**:
+When a probe was online and offline over the last 24 hours, 7 days or 30 days, and its uptime over that range. It comes from the probe's status changes, each dated when the status really changed: a probe that went offline did so when its instances were last seen, not when Peekaping noticed. It counts from when the probe's history begins, its creation or the upgrade that started recording it, and changes older than the data retention period are deleted, except the one that says what the probe was at the cutoff. The local probe in single mode has none: the `peekaping` process checks its monitors.
+_Avoid_: Probe uptime chart, probe SLA
+
+**Instance connection**:
+A stretch of time a probe instance was connected: from its hello, or its first request after more than a minute of quiet, to its bye or its last request. An instance's connections are kept as long as the instance is, a day after it was last seen.
+_Avoid_: Session
+
+**Location**:
+A monitor's results from one of its probes: that probe's latest status, response time and heartbeats for the monitor. A monitor on three probes has three locations. A monitor's status follows its locations: it is Down while its location rule is met, otherwise Maintenance while any location is in Maintenance, otherwise Up while any is Up, otherwise Pending. A location whose probe is offline, or that hasn't reported yet, doesn't count. Only a result can change the monitor's status, and only toward its own: an Up result never takes the monitor Down, a Down result never takes it Up, and a Down monitor stays Down while another location retries, until an Up result arrives.
+_Avoid_: Region, probe (that's the place the checks run from)
+
+**Location rule**:
+How many of a monitor's locations must be Down for the monitor to be Down: any of them (the default), all of them, or at least a given number. Locations whose probe is offline or that haven't reported don't count, neither as Down nor in the number "all" is measured against, so "all" needs at least one location that counts, and a number higher than the locations that can report never takes the monitor Down.
+_Avoid_: Alert rule, quorum
+
+**Assignment**:
+The monitors a probe instance checks, with what each check needs, as the server deals them. The instance keeps checking its last assignment while it can't reach the server.
+_Avoid_: Job list, schedule
 
 ### Status
 
@@ -69,7 +117,7 @@ The monitor's latest check failed, but it still has retries left before it count
 _Avoid_: Degraded, warning, retrying
 
 **Maintenance**:
-The status of a monitor inside an active maintenance window. Its checks count as neither Up nor Down.
+The status of a monitor inside an active maintenance window. Uptime counts its checks as Up; they are never Down.
 _Avoid_: Paused (that's a monitor switched off)
 
 **Important heartbeat**:
@@ -87,11 +135,28 @@ _Avoid_: Heartbeat retry interval
 ### Notifications
 
 **Notification channel**:
-A configured destination for notifications, such as an email address, a Slack webhook or a Telegram chat. A monitor sends to the channels attached to it.
+A configured destination for notifications, such as an email address, a Slack webhook or a Telegram chat. A monitor sends to the channels attached to it. A probe sends its offline and online notifications to its own channels, or, with none, to the channels of its active monitors.
 _Avoid_: Notifier, notification provider, integration
 
+**Channel type**:
+The kind of destination a notification channel sends to, such as Slack, Telegram or SMTP. Each has its own config fields and form (`channel-types/<type>/`).
+_Avoid_: Integration, provider, notifier type
+
+**Install email channel**:
+A channel type (`install_email`) that emails a notification through the install's sender for account emails, to one address that must be a member of the channel's workspace. Saving the channel needs only a member's address, verified or not: a cloud signup sets it up in onboarding before verifying. A send, including a test, needs the member to have verified the address, and the member check is made again at each send: a recipient who has left the workspace or has not verified gets nothing and the send fails (a test answers 400). Only verified members are mailed so that a workspace can't use the install's sender to mail strangers, not even by signing up with a stranger's address and joining a workspace of their own with it. Without a sender it can't be created or tested (400). The SMTP channel, with a server of its own and any recipient, is a different type and stays as it is.
+_Avoid_: System email channel, built-in email
+
+**Saved secret**:
+A secret field of a notification channel's config, such as a bot token, an SMTP password or a webhook URL that works as a credential. The API never returns it: it shows `********` instead, and a save or test that sends `********` back keeps the stored value.
+A URL a channel sends to, such as a webhook or server URL, isn't a saved secret, but the API masks the parts of it that can hold a password or token: the password of its user info, a user name that stands alone, and every query value show as `********`. A save or test that sends the URL back exactly as shown keeps the stored one; changing any other part of it means typing those parts again.
+_Avoid_: Credential, masked field, hidden value
+
+**Endpoint field**:
+A config field that decides where a notification channel sends, such as a server URL, an SMTP host and port, or the webhook URL. Saved secrets are kept only while the endpoint fields stay as they are; changing one means entering the saved secrets again, so a secret is never sent somewhere new.
+_Avoid_: Target field, destination, address
+
 **Notification**:
-A message sent to a monitor's notification channels when the monitor goes Down or comes back Up. Its certificate expiry notifications, and a stale monitor's "not checked since" and "checking again" messages, go to the same channels.
+A message sent to a monitor's notification channels when the monitor goes Down or comes back Up. Its certificate expiry notifications, and a stale monitor's "not checked since" and "checking again" messages, go to the same channels. A probe's offline and online notifications go to the probe's own channels, or to its active monitors' channels when it has none.
 _Avoid_: Alert
 
 **Resend interval**:
@@ -122,6 +187,10 @@ _Avoid_: Dashboard, public page
 A domain name that serves a status page, such as `status.example.com`.
 _Avoid_: Domain status page, CNAME
 
+**Verified domain**:
+A custom domain that has proved it points at the install, when `VERIFY_CUSTOM_DOMAINS` is on (off by default). It serves its status page and gets a certificate. A **Pending** domain, which is every new one, does neither: it answers like an unknown host and the TLS ask says no, but it keeps its name, so no other page can add it. A domain is verified when a TXT record at `_peekaping-verify.<domain>` holds `peekaping-verify=<its token>`, or the domain is a CNAME to the install's status page host (`CUSTOM_DOMAIN_CNAME_TARGET`, the public URL's host by default; on `localhost` or an IP address only the TXT record verifies). A check runs every 5 minutes. A Verified domain whose records are missing for 24 hours is Pending again. A Pending domain is removed from its page after 7 days of checks that found it unverified, which frees the name; days when no check ran (verification off, the server down) don't count, so the 7 days start again at the first check after a pause of more than an hour. Turning verification on leaves Pending every domain that hasn't been verified, and the ones already pointing at the install verify on the next check, while a domain checked with its records in place beforehand is already Verified and is re-checked within the hour like any Verified domain.
+_Avoid_: Confirmed domain, active domain
+
 **Badge**:
 An embeddable image showing one live figure about a monitor: its status, uptime, response time or certificate expiry.
 _Avoid_: Shield, widget
@@ -133,13 +202,65 @@ A named, colored label attached to monitors for filtering.
 _Avoid_: Label, group, category
 
 **Data retention period**:
-How many days heartbeats are kept before they're deleted.
+How many days heartbeats are kept before they're deleted. Once workspaces are built, each workspace sets its own, and its plan may cap it.
 _Avoid_: Keep-data period, history limit
+
+### Workspaces
+
+Decided in [ADR 0005](docs/adr/0005-workspaces-and-data-isolation.md) and built in Peekaping Cloud's milestone 2. Until that milestone is done, an install has one workspace, and every signed-in user sees everything in it.
+
+**Workspace**:
+What owns monitors and everything around them: notification channels, status pages, maintenance windows, tags, proxies, API keys, its settings and its plan. People work in it as its members, and it sees nothing of another workspace. A user can be a member of several, and a request runs in one of them: the one it names, or else the user's default workspace, the one they joined first. Probes and install settings belong to the install, not to a workspace. See [ADR 0005](docs/adr/0005-workspaces-and-data-isolation.md).
+_Avoid_: Organization, team (kept for a level inside a workspace, which Peekaping doesn't have), account (that's a user's login), tenant, project
+
+**Member**:
+A user's place in a workspace, with one role. A user in two workspaces is a member twice, with a role in each.
+_Avoid_: Seat (that's billing), user (that's the account itself)
+
+**Role**:
+What a member may do in their workspace. There are three. The member role manages monitors, notification channels, status pages, maintenance windows, tags and proxies. The admin role adds the workspace's people, API keys and settings, and sees its plan. The owner role adds changing the plan, deleting the workspace and making other owners; every workspace has at least one owner. An API key acts with the admin role in its workspace.
+_Avoid_: Permission, access level
+
+**Instance admin**:
+A user who manages what belongs to the install rather than to a workspace: probes, the usage ping and error reports, the install settings, and the install's users (the admin area). It's a flag on the user, not a role, and gives no access to any workspace's data. The first user to sign up gets it, and an install upgraded to workspaces gives it to its existing users.
+_Avoid_: Superuser, site admin, root
+
+**Install setting**:
+A setting of the whole install that an instance admin can change in the admin area: the signup mode, the sender of account emails, the public URL (`CLIENT_URL`, the address links open) the default limits of a workspace (`WORKSPACE_LIMIT_*`) and the install's name for them (`WORKSPACE_LIMITS_NAME`, such as "Free tier"). Its value comes from the server's environment when its variable is set, which locks it, then from the value saved in the admin area, then from the default. The usage ping and error reports are install settings too, with switches of their own.
+_Avoid_: Global setting, system setting
+
+**Plan**:
+The limits a workspace is held to, such as how many active monitors it may have and its shortest check interval. They are the workspace's own, which an instance admin sets ("no limits" is one), or else the install's defaults, which are install settings (`WORKSPACE_LIMIT_*`), or else none: a self-hosted install that sets nothing has no limits, and on the cloud the defaults are the free tier. A write over a limit is refused, and lowering one pauses and deletes nothing: the newest active monitors past it are kept but don't run, which a monitor shows as over the limit.
+_Avoid_: Tier, subscription (that's the billing record), package, quota
+
+**Invite**:
+A link an admin or owner makes for an email address and a role. It works once, for 7 days, until it is revoked. Opening it adds the account with that email to the workspace with the invite's role, or lets someone without an account sign up as a member of that workspace, with no workspace of their own. When the install has a sender for account emails, the link is also emailed to the invited address; the inviter can always copy it. The link's token is shown once and stored only as a hash.
+_Avoid_: Invitation, join link
+
+**Signup mode**:
+Who may create an account on an install, an install setting (`SIGNUP_MODE`). In `invite`, the default, the first user signs up and everyone after joins a workspace through an invite. In `open` anyone may sign up, and each new user gets a workspace of their own, unless they sign up through an invite: then they join the inviting workspace instead. The cloud runs `open`.
+_Avoid_: Registration mode, signup policy
+
+**Suspension**:
+A workspace held back with a reason. Its monitors are kept, listed and editable, but none runs: no checks, no missed-push detection, no notifications, and a push to one of them answers 403. The reason `unverified` is for a workspace made by an open signup, and it ends when an owner of the workspace has a verified email address: when its owner verifies theirs, or when a user with a verified address becomes an owner. The reason `admin` is for a workspace an instance admin suspended, and it ends when an instance admin resumes it. The two are holds of their own, and a workspace under both is told as `admin` (a scheduled deletion is a third hold, told before them): each lifts only itself, so resuming leaves a workspace that still waits for verification waiting. A suspended workspace's public status pages and badges answer "unavailable" without saying why. Nothing is suspended on an install that runs `invite` or was upgraded to workspaces, until an instance admin suspends a workspace.
+_Avoid_: Disabled, frozen, paused (that's a monitor switched off by a person)
+
+**Scheduled deletion**:
+A workspace an owner chose to delete, by typing its name. It is held for 7 days as a suspended workspace is: its monitors are kept but none runs, and its public status pages and badges answer "unavailable". An owner can cancel it in that time, which lifts only this hold. After the 7 days the workspace and everything in it are deleted, and its members keep their accounts. A user who is the only owner of a workspace can delete their account only once that workspace is scheduled for deletion or has another owner.
+_Avoid_: Soft delete, trash, pending deletion
+
+**Workspace export**:
+One JSON file with a workspace's setup: its settings, tags, proxies, notification channels, monitors, maintenance windows and status pages, and the links between them. It holds saved secrets in full and lists them as sensitive. Only an owner downloads it, and its heartbeat history is a file of its own. An owner can import it into a workspace on the same install or another one, which adds its records beside the ones there: a tag whose name is there already is reused, and what the target refuses or already holds elsewhere is changed or left out, and listed.
+_Avoid_: Backup (it holds no members, API keys or stats), dump
+
+**Account emails**:
+The emails an account gets: a password reset link, a verification link for its address, and an invite. It is also told, in a notice that carries no link, when an instance admin makes a password reset link for it or turns off its two-step verification. One sender sends them for the whole install, an install setting (`ACCOUNT_SMTP_*`); it is separate from the SMTP settings of an email notification channel, and an install email channel is the one notification channel that sends through it. Without a sender they are off: there is no "Forgot password", nobody is asked to verify and invites are copied. A reset link works once for an hour and ends every session of the user; a verification link works once for 3 days, and the account records when it was verified.
+_Avoid_: Transactional email, system email
 
 ### Deployment
 
 **Storage backend**:
-The database an install keeps its data in: SQLite, PostgreSQL or MongoDB. It's set with `DB_TYPE`. MongoDB is deprecated and frozen under [ADR 0001](docs/adr/0001-deprecate-mongodb-storage.md); new installs use SQLite or PostgreSQL.
+The database an install keeps its data in: SQLite or PostgreSQL. It's set with `DB_TYPE`. MongoDB storage was removed ([ADR 0001](docs/adr/0001-deprecate-mongodb-storage.md)): `DB_TYPE=mongo` and `mongodb` stop every binary, and `bun db import-mongo` moves a MongoDB install to SQLite or PostgreSQL.
 _Avoid_: Database type, DB driver
 
 **MongoDB monitor type**:
@@ -147,9 +268,23 @@ A monitor type that checks someone else's MongoDB server. It has nothing to do w
 _Avoid_: Mongo storage, MongoDB database
 
 **Single mode**:
-Peekaping running as one process (the `peekaping` binary) with every role inside it (api, producer, worker and ingester) and no Redis. The SQLite and PostgreSQL bundle images run it. It supports those two storage backends only. See [ADR 0002](docs/adr/0002-single-process-runtime.md).
+Peekaping running as one process (the `peekaping` binary) with everything inside it (the api, the scheduler and its check pool, ingest and the watchdog) and no Redis. One image runs it, `0xfurai/peekaping` (also published as `peekaping-bundle-sqlite` through release 0.1.0), with SQLite in a file or, with `DB_TYPE=postgres`, with PostgreSQL in a container of its own. It supports those two storage backends only. See [ADR 0002](docs/adr/0002-single-process-runtime.md).
 _Avoid_: Monolithic mode, standalone, all-in-one
 
 **Cluster mode**:
-Peekaping running as separate api, producer, worker and ingester processes that talk through Redis. Helm, the compose stacks and the Mongo bundle run it.
+Peekaping running as separate processes: api replicas that share the database and talk to each other through Redis, and probe instances that connect to the api and run the checks. The api stores the results, and the api replica that holds the leader lock runs the watchdog. Helm and the SQLite and PostgreSQL compose stacks run it. See [ADR 0002](docs/adr/0002-single-process-runtime.md).
 _Avoid_: Microservice mode, distributed mode, HA mode
+
+### Telemetry
+
+**Usage ping**:
+An anonymous summary of how an install is set up, sent at most once a day to Peekaping's telemetry Worker. It is on until an admin opts out, and the environment kill switch `TELEMETRY=off` turns it off whatever the admin chose (`DO_NOT_TRACK` is not read: it was dropped on 2026-10-22). It holds the version, mode, storage backend, OS, a bucket for the number of monitors, the monitor types and notification channel types in use (names of kinds, nothing about individual monitors), and which features are on. The UI calls the feature "usage statistics" (the setup checkbox "Send anonymous usage statistics" has its label fixed by the ticket, and it starts ticked). It is the same thing as the usage ping, not a second one. An install that upgrades shows its admin a one-time **upgrade notice** that the usage ping and error reports are on. See [ADR 0003](docs/adr/0003-telemetry-and-error-reporting.md).
+_Avoid_: Analytics, phone-home, tracking, heartbeat (that's a monitor's result), ping (that's a monitor type)
+
+**Instance ID**:
+The random UUID an install creates the first time it is needed while the usage ping is on, and deletes when an admin opts out. It is the only identifier in a usage ping, and it comes from nothing about the install. Opting in again creates a new one.
+_Avoid_: Install ID, machine ID, user ID
+
+**Error report**:
+A crash report sent to Sentry. It is on until an admin opts out, separately from the usage ping, and the environment kill switch `ERROR_REPORTING=off` turns it off whatever the admin chose. It holds the error type; the stack frames (function, package, file, line, and whether it is Peekaping's own code); the release; the level (`error` or `fatal`); the tags `mode`, `db`, `os` and `component` (where the panic was recovered); and the event ID, timestamp, platform `go` and the DSN (the project's address, in the envelope header) the Sentry protocol needs. It holds no message text, no IP address and nothing else. Only panics are reported for now, and one place reports at most once a minute. See [ADR 0003](docs/adr/0003-telemetry-and-error-reporting.md).
+_Avoid_: Crash dump, error log, bug report (that's what a person files)

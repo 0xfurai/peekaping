@@ -5,12 +5,11 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"time"
 
 	"peekaping/internal/httpx"
+	"peekaping/internal/modules/ingester"
 	"peekaping/internal/modules/maintenance"
 	"peekaping/internal/modules/monitor"
-	"peekaping/internal/modules/queue"
 	"peekaping/internal/modules/shared"
 
 	"github.com/stretchr/testify/assert"
@@ -80,47 +79,46 @@ type pushMonitorService struct {
 	monitor *monitor.Model
 }
 
-func (s *pushMonitorService) FindOneByPushToken(_ context.Context, token string) (*monitor.Model, error) {
+func (s *pushMonitorService) FindOneByPushTokenAnyWorkspace(_ context.Context, token string) (*monitor.Model, error) {
 	if token != s.monitor.PushToken {
 		return nil, nil
 	}
 	return s.monitor, nil
 }
 
-// capturingQueue records the payload of every unique enqueue.
-type capturingQueue struct {
-	queue.Service
-	payloads []PushIngesterPayload
+// capturingIngester records every result it is asked to ingest.
+type capturingIngester struct {
+	results []*ingester.Result
 }
 
-func (q *capturingQueue) EnqueueUnique(_ context.Context, _ string, payload interface{}, _ string, _ time.Duration, _ *queue.EnqueueOptions) (*queue.TaskInfo, error) {
-	q.payloads = append(q.payloads, payload.(PushIngesterPayload))
-	return &queue.TaskInfo{}, nil
+func (c *capturingIngester) Ingest(_ context.Context, r *ingester.Result) error {
+	c.results = append(c.results, r)
+	return nil
 }
 
 // noMaintenance is a maintenance service with no windows, so a pushed
 // heartbeat keeps the status it reports.
 type noMaintenance struct{ maintenance.Service }
 
-func (noMaintenance) GetMaintenancesByMonitorID(context.Context, string) ([]*maintenance.Model, error) {
+func (noMaintenance) GetMaintenancesByMonitorIDAnyWorkspace(context.Context, string) ([]*maintenance.Model, error) {
 	return nil, nil
 }
 
 func TestPushEndpoint(t *testing.T) {
 
-	push := func(t *testing.T, query string) PushIngesterPayload {
+	push := func(t *testing.T, query string) *ingester.Result {
 		t.Helper()
 		monitors := &pushMonitorService{monitor: &monitor.Model{ID: "mon-1", Type: "push", Active: true, PushToken: "token"}}
-		q := &capturingQueue{}
+		results := &capturingIngester{}
 		router := httpx.NewRouter()
-		RegisterPushEndpoint(router.Group("/api/v1"), monitors, nil, q, noMaintenance{}, zap.NewNop().Sugar())
+		RegisterPushEndpoint(router.Group("/api/v1"), monitors, nil, results, noMaintenance{}, zap.NewNop().Sugar())
 
 		rec := httptest.NewRecorder()
 		router.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/api/v1/push/token?"+query, nil))
 
 		require.Equal(t, http.StatusOK, rec.Code, rec.Body.String())
-		require.Len(t, q.payloads, 1)
-		return q.payloads[0]
+		require.Len(t, results.results, 1)
+		return results.results[0]
 	}
 
 	t.Run("URL copied from the UI records an up beat", func(t *testing.T) {
@@ -147,4 +145,19 @@ func TestPushEndpoint(t *testing.T) {
 		assert.Equal(t, shared.MonitorStatusUp, payload.Status)
 		assert.Equal(t, 0, payload.PingMs)
 	})
+}
+
+// PP-157: a push to a monitor whose type the install turns off answers 403 and stores nothing
+func TestPushEndpoint_RefusesAMonitorOfADisabledType(t *testing.T) {
+	monitors := &pushMonitorService{monitor: &monitor.Model{ID: "mon-1", Type: "push", Active: true, PushToken: "token", TypeDisabled: true}}
+	results := &capturingIngester{}
+	router := httpx.NewRouter()
+	RegisterPushEndpoint(router.Group("/api/v1"), monitors, nil, results, noMaintenance{}, zap.NewNop().Sugar())
+
+	rec := httptest.NewRecorder()
+	router.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/api/v1/push/token?status=up", nil))
+
+	assert.Equal(t, http.StatusForbidden, rec.Code, rec.Body.String())
+	assert.Contains(t, rec.Body.String(), "turned off")
+	assert.Empty(t, results.results)
 }

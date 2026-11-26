@@ -35,9 +35,11 @@ import EmptyList from "@/components/empty-list";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useDelayedLoading } from "@/hooks/useDelayedLoading";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
+import { useWorkspacePath } from "@/hooks/useWorkspacePath";
 
 const ProxiesPage = () => {
   const navigate = useNavigate();
+  const workspacePath = useWorkspacePath();
   const queryClient = useQueryClient();
   const { getParam, updateSearchParams } = useSearchParams();
   const { t } = useLocalizedTranslation();
@@ -120,7 +122,7 @@ const ProxiesPage = () => {
     useIntersectionObserver<HTMLDivElement>(handleObserver);
 
   return (
-    <Layout pageName={t("proxies.page_name")} onCreate={() => navigate("/proxies/new")}>
+    <Layout pageName={t("proxies.page_name")} onCreate={() => navigate(workspacePath("/proxies/new"))}>
       <div>
         <div className="mb-4 flex justify-center sm:justify-end gap-4">
           <div className="flex flex-col gap-1 w-full sm:w-auto">
@@ -148,7 +150,7 @@ const ProxiesPage = () => {
           <ProxyCard
             key={proxy.id}
             proxy={proxy}
-            onClick={() => navigate(`/proxies/${proxy.id}/edit`)}
+            onClick={() => navigate(workspacePath(`/proxies/${proxy.id}/edit`))}
             onDelete={() => handleDeleteClick(proxy)}
           />
         ))}
@@ -167,7 +169,7 @@ const ProxiesPage = () => {
             title={t("proxies.empty_list.title")}
             text={t("proxies.empty_list.text")}
             actionText={t("proxies.empty_list.action_text")}
-            onClick={() => navigate("/proxies/new")}
+            onClick={() => navigate(workspacePath("/proxies/new"))}
           />
         )}
       </div>

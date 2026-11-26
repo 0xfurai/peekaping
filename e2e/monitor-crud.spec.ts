@@ -238,8 +238,45 @@ async function deleteMonitor(page: Page, monitorName: string) {
 }
 
 test.describe('Monitor CRUD Operations', () => {
+  test('HTTP monitor forms start without a Content-Type header', async ({ page }) => {
+    for (const type of [null, 'HTTP(s) - Keyword', 'HTTP(s) - Json Query']) {
+      await page.goto('/monitors/new');
+      if (type) {
+        const select = page.getByRole('combobox', { name: 'Type', exact: true });
+        await select.click();
+        await page.getByRole('option', { name: type, exact: true }).click();
+        await expect(select).toHaveText(type);
+      }
+      await expect(page.locator('[name="httpOptions.headers"]')).toHaveValue('');
+    }
+  });
+
+  test('A timeout error clears when the interval is raised enough', async ({ page }) => {
+    const monitorName = randomMonitorName();
+    const tooLong = page.getByText("Can't be more than 80% of the check interval");
+    await page.goto('/monitors/new');
+    await page.locator('input[name="name"]').fill(monitorName);
+    await page.locator('input[name="url"]').fill(targetURL('monitor-crud-timeout'));
+    await page.locator('input[name="interval"]').fill('60');
+    await page.locator('input[name="timeout"]').fill('49');
+
+    // 49 s is above 80% of 60 s: the form doesn't submit and says why under the timeout
+    await page.getByRole('button', { name: 'Create', exact: true }).click();
+    await expect(tooLong).toBeVisible();
+    await expect(page).toHaveURL(/\/monitors\/new$/);
+
+    // A longer interval makes the timeout fit, and the message goes without touching the timeout
+    await page.locator('input[name="interval"]').fill('100');
+    await expect(tooLong).toBeHidden();
+
+    await page.getByRole('button', { name: 'Create', exact: true }).click();
+    await expect(page).toHaveURL(/\/monitors\/(?!new$)[A-Za-z0-9-]+$/, { timeout: 10000 });
+    await deleteMonitor(page, monitorName);
+  });
+
   for (const [type, form] of Object.entries(monitorForms)) {
-    test(`${type} Monitor CRUD`, async ({ page }) => {
+    // The HTTP monitor's create, edit and delete is among the critical specs a PR runs
+    test(`${type === 'HTTP' ? '@critical ' : ''}${type} Monitor CRUD`, async ({ page }) => {
       const monitorName = randomMonitorName();
 
       await createMonitor(page, monitorName, form);

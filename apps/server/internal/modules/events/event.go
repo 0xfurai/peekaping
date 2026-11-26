@@ -6,7 +6,7 @@
 //
 //	events.Publish(ctx, bus, events.MonitorDeleted, monitorID)
 //
-//	subscriber := events.NewSubscriber(bus, "producer")
+//	subscriber := events.NewSubscriber(bus, "metrics")
 //	events.Subscribe(subscriber, events.MonitorDeleted, func(ctx context.Context, monitorID string) { ... })
 //
 // A subscriber is a named group of handlers that shares queues. It handles one monitor's

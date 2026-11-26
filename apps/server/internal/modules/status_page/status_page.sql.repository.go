@@ -2,7 +2,13 @@ package status_page
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"time"
+
+	"peekaping/internal/dbtx"
+	"peekaping/internal/limits"
+	"peekaping/internal/modules/workspace"
 
 	"github.com/google/uuid"
 	"github.com/uptrace/bun"
@@ -11,13 +17,16 @@ import (
 type sqlModel struct {
 	bun.BaseModel `bun:"table:status_pages,alias:sp"`
 
-	ID                  string    `bun:"id,pk"`
+	ID string `bun:"id,pk"`
+	// WorkspaceID is set when the page is created and never changes
+	WorkspaceID         string    `bun:"workspace_id,notnull"`
 	Slug                string    `bun:"slug,unique,notnull"`
 	Title               string    `bun:"title,notnull"`
 	Description         string    `bun:"description"`
 	Icon                string    `bun:"icon"`
 	Theme               string    `bun:"theme,notnull,default:'light'"`
 	Published           bool      `bun:"published,notnull,default:false"`
+	ShowLocations       bool      `bun:"show_locations,notnull,default:false"`
 	CreatedAt           time.Time `bun:"created_at,nullzero,notnull,default:current_timestamp"`
 	UpdatedAt           time.Time `bun:"updated_at,nullzero,notnull,default:current_timestamp"`
 	FooterText          string    `bun:"footer_text"`
@@ -27,12 +36,14 @@ type sqlModel struct {
 func toDomainModelFromSQL(sm *sqlModel) *Model {
 	return &Model{
 		ID:                  sm.ID,
+		WorkspaceID:         workspace.ID(sm.WorkspaceID),
 		Title:               sm.Title,
 		Description:         sm.Description,
 		Slug:                sm.Slug,
 		Icon:                sm.Icon,
 		Theme:               sm.Theme,
 		Published:           sm.Published,
+		ShowLocations:       sm.ShowLocations,
 		CreatedAt:           sm.CreatedAt,
 		UpdatedAt:           sm.UpdatedAt,
 		FooterText:          sm.FooterText,
@@ -43,12 +54,14 @@ func toDomainModelFromSQL(sm *sqlModel) *Model {
 func toSQLModel(m *Model) *sqlModel {
 	return &sqlModel{
 		ID:                  m.ID,
+		WorkspaceID:         string(m.WorkspaceID),
 		Title:               m.Title,
 		Description:         m.Description,
 		Slug:                m.Slug,
 		Icon:                m.Icon,
 		Theme:               m.Theme,
 		Published:           m.Published,
+		ShowLocations:       m.ShowLocations,
 		CreatedAt:           m.CreatedAt,
 		UpdatedAt:           m.UpdatedAt,
 		FooterText:          m.FooterText,
@@ -64,13 +77,14 @@ func NewSQLRepository(db *bun.DB) Repository {
 	return &SQLRepositoryImpl{db: db}
 }
 
-func (r *SQLRepositoryImpl) Create(ctx context.Context, statusPage *Model) (*Model, error) {
+func (r *SQLRepositoryImpl) Create(ctx context.Context, workspaceID workspace.ID, statusPage *Model) (*Model, error) {
 	sm := toSQLModel(statusPage)
 	sm.ID = uuid.New().String()
+	sm.WorkspaceID = string(workspaceID) // whatever the page says
 	sm.CreatedAt = time.Now()
 	sm.UpdatedAt = time.Now()
 
-	_, err := r.db.NewInsert().Model(sm).Returning("*").Exec(ctx)
+	_, err := dbtx.DB(ctx, r.db).NewInsert().Model(sm).Returning("*").Exec(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -78,23 +92,33 @@ func (r *SQLRepositoryImpl) Create(ctx context.Context, statusPage *Model) (*Mod
 	return toDomainModelFromSQL(sm), nil
 }
 
-func (r *SQLRepositoryImpl) FindByID(ctx context.Context, id string) (*Model, error) {
-	sm := new(sqlModel)
-	err := r.db.NewSelect().Model(sm).Where("id = ?", id).Scan(ctx)
-	if err != nil {
-		if err.Error() == "sql: no rows in result set" {
-			return nil, nil
-		}
-		return nil, err
-	}
-	return toDomainModelFromSQL(sm), nil
+func (r *SQLRepositoryImpl) FindByID(ctx context.Context, workspaceID workspace.ID, id string) (*Model, error) {
+	return r.findOne(ctx, dbtx.DB(ctx, r.db).NewSelect().Where("id = ?", id).Where("workspace_id = ?", string(workspaceID)))
 }
 
-func (r *SQLRepositoryImpl) FindBySlug(ctx context.Context, slug string) (*Model, error) {
+func (r *SQLRepositoryImpl) FindByIDAnyWorkspace(ctx context.Context, id string) (*Model, error) {
+	return r.findOne(ctx, dbtx.DB(ctx, r.db).NewSelect().Where("id = ?", id))
+}
+
+func (r *SQLRepositoryImpl) FindBySlugAnyWorkspace(ctx context.Context, slug string) (*Model, error) {
+	return r.findOne(ctx, dbtx.DB(ctx, r.db).NewSelect().Where("slug = ?", slug))
+}
+
+func (r *SQLRepositoryImpl) WorkspaceSuspended(ctx context.Context, workspaceID workspace.ID) (bool, error) {
+	var suspended bool
+	err := dbtx.DB(ctx, r.db).NewSelect().Table("workspaces").
+		ColumnExpr("(suspended_at IS NOT NULL OR admin_suspended_at IS NOT NULL OR deletion_scheduled_at IS NOT NULL)").
+		Where("id = ?", string(workspaceID)).Scan(ctx, &suspended)
+	if errors.Is(err, sql.ErrNoRows) {
+		return false, nil
+	}
+	return suspended, err
+}
+
+func (r *SQLRepositoryImpl) findOne(ctx context.Context, query *bun.SelectQuery) (*Model, error) {
 	sm := new(sqlModel)
-	err := r.db.NewSelect().Model(sm).Where("slug = ?", slug).Scan(ctx)
-	if err != nil {
-		if err.Error() == "sql: no rows in result set" {
+	if err := query.Model(sm).Scan(ctx); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		}
 		return nil, err
@@ -104,16 +128,25 @@ func (r *SQLRepositoryImpl) FindBySlug(ctx context.Context, slug string) (*Model
 
 func (r *SQLRepositoryImpl) FindAll(
 	ctx context.Context,
+	workspaceID workspace.ID,
 	page int,
 	limit int,
 	q string,
 ) ([]*Model, error) {
-	query := r.db.NewSelect().Model((*sqlModel)(nil))
+	query := dbtx.DB(ctx, r.db).NewSelect().Model((*sqlModel)(nil)).Where("workspace_id = ?", string(workspaceID))
 
 	if q != "" {
-		query = query.Where("LOWER(title) LIKE ? OR LOWER(description) LIKE ?", "%"+q+"%", "%"+q+"%")
+		query = query.Where("(LOWER(title) LIKE ? OR LOWER(description) LIKE ?)", "%"+q+"%", "%"+q+"%")
 	}
 
+	return r.list(ctx, query, page, limit)
+}
+
+func (r *SQLRepositoryImpl) FindAllAnyWorkspace(ctx context.Context, page int, limit int) ([]*Model, error) {
+	return r.list(ctx, dbtx.DB(ctx, r.db).NewSelect().Model((*sqlModel)(nil)), page, limit)
+}
+
+func (r *SQLRepositoryImpl) list(ctx context.Context, query *bun.SelectQuery, page, limit int) ([]*Model, error) {
 	query = query.Order("created_at DESC").
 		Limit(limit).
 		Offset(page * limit)
@@ -131,56 +164,96 @@ func (r *SQLRepositoryImpl) FindAll(
 	return models, nil
 }
 
-func (r *SQLRepositoryImpl) Update(ctx context.Context, id string, statusPage *UpdateModel) error {
-	query := r.db.NewUpdate().Model((*sqlModel)(nil)).Where("id = ?", id)
+func (r *SQLRepositoryImpl) Update(ctx context.Context, workspaceID workspace.ID, id string, statusPage *UpdateModel) error {
+	query := dbtx.DB(ctx, r.db).NewUpdate().Model((*sqlModel)(nil)).Where("id = ?", id).Where("workspace_id = ?", string(workspaceID))
 
 	hasUpdates := false
 
-	if statusPage.Title != nil {
-		query = query.Set("title = ?", *statusPage.Title)
-		hasUpdates = true
-	}
-	if statusPage.Description != nil {
-		query = query.Set("description = ?", *statusPage.Description)
-		hasUpdates = true
-	}
-	if statusPage.Slug != nil {
-		query = query.Set("slug = ?", *statusPage.Slug)
-		hasUpdates = true
-	}
-	if statusPage.Icon != nil {
-		query = query.Set("icon = ?", *statusPage.Icon)
-		hasUpdates = true
-	}
-	if statusPage.Theme != nil {
-		query = query.Set("theme = ?", *statusPage.Theme)
-		hasUpdates = true
-	}
-	if statusPage.Published != nil {
-		query = query.Set("published = ?", *statusPage.Published)
-		hasUpdates = true
-	}
-	if statusPage.FooterText != nil {
-		query = query.Set("footer_text = ?", *statusPage.FooterText)
-		hasUpdates = true
-	}
-	if statusPage.AutoRefreshInterval != nil {
-		query = query.Set("auto_refresh_interval = ?", *statusPage.AutoRefreshInterval)
+	for _, column := range updatedColumns(statusPage) {
+		if column.value == nil {
+			continue
+		}
+		query = query.Set(column.name+" = ?", column.value)
 		hasUpdates = true
 	}
 
 	if !hasUpdates {
+		found, err := r.FindByID(ctx, workspaceID, id)
+		if err != nil {
+			return err
+		}
+		if found == nil {
+			return ErrNotFound
+		}
 		return nil
 	}
 
 	// Always set updated_at
 	query = query.Set("updated_at = ?", time.Now())
 
-	_, err := query.Exec(ctx)
-	return err
+	result, err := query.Exec(ctx)
+	return requireOneRow(result, err)
 }
 
-func (r *SQLRepositoryImpl) Delete(ctx context.Context, id string) error {
-	_, err := r.db.NewDelete().Model((*sqlModel)(nil)).Where("id = ?", id).Exec(ctx)
-	return err
+// columnValue is a column of an update, with the value the update gives it: nil when the update
+// leaves the column out
+type columnValue struct {
+	name  string
+	value any
+}
+
+// updatedColumns are the columns of an update, in the order they are set
+func updatedColumns(statusPage *UpdateModel) []columnValue {
+	return []columnValue{
+		{"title", given(statusPage.Title)},
+		{"description", given(statusPage.Description)},
+		{"slug", given(statusPage.Slug)},
+		{"icon", given(statusPage.Icon)},
+		{"theme", given(statusPage.Theme)},
+		{"published", given(statusPage.Published)},
+		{"show_locations", given(statusPage.ShowLocations)},
+		{"footer_text", given(statusPage.FooterText)},
+		{"auto_refresh_interval", given(statusPage.AutoRefreshInterval)},
+	}
+}
+
+// given is the value a pointer points to, nil if it points to none
+func given[T any](p *T) any {
+	if p == nil {
+		return nil
+	}
+	return *p
+}
+
+func (r *SQLRepositoryImpl) Delete(ctx context.Context, workspaceID workspace.ID, id string) error {
+	result, err := dbtx.DB(ctx, r.db).NewDelete().Model((*sqlModel)(nil)).Where("id = ?", id).Where("workspace_id = ?", string(workspaceID)).Exec(ctx)
+	return requireOneRow(result, err)
+}
+
+// requireOneRow turns a write that changed no row into ErrNotFound: the page doesn't exist, or
+// belongs to another workspace, and the caller can't tell which
+func requireOneRow(result sql.Result, err error) error {
+	if err != nil {
+		return err
+	}
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		return ErrNotFound
+	}
+	return nil
+}
+
+func (r *SQLRepositoryImpl) LockWorkspace(ctx context.Context, workspaceID workspace.ID) error {
+	return limits.LockWorkspace(ctx, r.db, workspaceID)
+}
+
+func (r *SQLRepositoryImpl) CountPages(ctx context.Context, workspaceID workspace.ID) (int, error) {
+	return limits.CountStatusPages(ctx, r.db, workspaceID)
+}
+
+func (r *SQLRepositoryImpl) CountDomains(ctx context.Context, workspaceID workspace.ID) (int, error) {
+	return limits.CountCustomDomains(ctx, r.db, workspaceID)
 }

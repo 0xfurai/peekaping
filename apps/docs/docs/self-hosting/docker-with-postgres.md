@@ -4,30 +4,177 @@ sidebar_position: 1
 
 # Docker + PostgreSQL
 
-## Monolithic mode
+Peekaping runs in one of two modes. See [Deployment modes](./deployment-modes.md) for what each one runs:
 
-The simplest mode of operation is the monolithic deployment mode. This mode runs all of Peekaping microservice components (db + api + web + gateway) inside a single process as a single Docker image.
+- **[Single mode](#single-mode)**: one container runs one Peekaping process, `peekaping`, and connects to PostgreSQL in a container of its own, with no Redis. Start here.
+- **[Cluster mode](#cluster-mode)**: the API and the probe run in separate containers. The API replicas share the database and talk to each other through Redis, and the probes run the checks. Use it when one process isn't enough, for example to run several probe instances.
+
+Coming from MongoDB? [Move to SQLite or PostgreSQL](./docker-with-mongo.md#move-to-sqlite-or-postgresql) copies your install, with its history, into a new PostgreSQL database.
+
+## Single mode
+
+Single mode runs two containers: `peekaping`, from the `0xfurai/peekaping` image, and PostgreSQL, from the official `postgres` image. One process, `peekaping`, serves the web app, the API and the websocket on port 8383, and connects to PostgreSQL. `DB_TYPE=postgres` makes the image use PostgreSQL in place of its SQLite file. Docker Compose connects the two, and starts `peekaping` once PostgreSQL is healthy.
+
+Put the database settings in a `.env` file next to the Compose file:
+
+```
+DB_USER=peekaping
+DB_PASS=secure_test_password_123
+DB_NAME=peekaping
+```
+
+Then create `docker-compose.yml`:
+
+```yaml
+services:
+  postgres:
+    image: postgres:17
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASS:-password}
+      POSTGRES_DB: ${DB_NAME:-peekaping}
+    volumes:
+      # Database data persistence. Not ./.data/postgres, where the old PostgreSQL bundle
+      # kept its cluster: the official image can't use that one.
+      - ./.data/postgres17:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-peekaping}",
+        ]
+      interval: 10s
+      timeout: 2s
+      retries: 5
+      start_period: 5s
+
+  peekaping:
+    image: 0xfurai/peekaping:latest
+    restart: unless-stopped
+    # peekaping takes up to 30 seconds to shut down cleanly
+    stop_grace_period: 35s
+    ports:
+      - "8383:8383"
+    environment:
+      # The user, password and database that the postgres service creates. DB_HOST and DB_PORT
+      # are the service's name and port on the Compose network.
+      DB_TYPE: postgres
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASS: ${DB_PASS:-password}
+      DB_NAME: ${DB_NAME:-peekaping}
+      # When the database wants TLS, set it in .env (see "Another PostgreSQL server")
+      DB_SSLMODE: ${DB_SSLMODE:-disable}
+      # Behind a reverse proxy, set TRUSTED_PROXIES in .env (see Reverse proxy and HTTPS)
+      TRUSTED_PROXIES: ${TRUSTED_PROXIES-}
+    depends_on:
+      postgres:
+        condition: service_healthy
+```
+
+Start it with `docker compose up -d`, then open `http://localhost:8383` and create your admin account.
+
+On the first start, the `postgres` container creates the `DB_USER` user with the password `DB_PASS`, and the `DB_NAME` database. It does that only in an empty data folder: changing `DB_PASS` in `.env` later doesn't change the password of a database that exists. `peekaping` waits until PostgreSQL is healthy, applies the migrations and starts. Keep `./.data/postgres17`, which holds the database. It is a new folder on purpose: the old `peekaping-bundle-postgres` kept its cluster in `.data/postgres`, which the official image can't use.
+
+`peekaping` runs as a non-root user. See [Single-mode user and permissions](./single-user.md) to set `PUID`/`PGID`, to start the container with `--user`, and for what Docker and ping monitors need. The `postgres` container runs as the official image does.
+
+PostgreSQL's major versions are upgraded through the official image, not through Peekaping: to move to a newer major version, follow the [`postgres` image's documentation](https://hub.docker.com/_/postgres) for a dump and restore or `pg_upgrade`, and change the image tag.
+
+### Another PostgreSQL server
+
+Single mode works with any PostgreSQL, such as a managed one. Remove the `postgres` service and the `depends_on`, and set `DB_HOST` and `DB_PORT` to the server's address, with `DB_USER`, `DB_PASS` and `DB_NAME` of a database that exists. The user needs to create tables in its public schema. `peekaping` creates its tables with the migrations at start.
+
+Set `DB_SSLMODE` when the server wants TLS, as a managed one usually does: `require`, `allow` or `prefer` encrypt the connection without checking the server's certificate, `verify-ca` checks the certificate's chain, and `verify-full` checks the host name too. The default, `disable`, connects without TLS. Unlike libpq, the driver doesn't fall back to plain on `allow` and `prefer`: those still need a server that offers TLS. The two `verify-` modes trust only the certificate authorities in the image, so a server whose certificate comes from a private authority, as some managed services use, fails them: use `require` for it. The same variable is read in cluster mode, by the `api` and the `migrate` services.
+
+### Settings
+
+The image reads the same environment variables as cluster mode (see the [`.env` file](#env-file) below), with these exceptions:
+
+- `peekaping` always listens on port 8383 in the container. The image ignores `SERVER_PORT`, so a `.env` with `SERVER_PORT=8034` works unchanged. To use another port on the host, change the published port, for example `"8080:8383"`.
+- `DB_TYPE=postgres` and `DB_HOST` are required for PostgreSQL. The Compose file above sets `DB_HOST` to `postgres`, the name of the PostgreSQL service, whatever the `.env` says: the cluster-mode `.env` sets `DB_HOST=database`, which doesn't exist here. Without `DB_TYPE`, or with `DB_TYPE=sqlite`, the image uses SQLite in `/app/data`, and ignores `DB_NAME`. Any other `DB_TYPE` stops the container with a message.
+- There is no Redis, so `REDIS_*` variables are ignored.
+- `PROBE_BOOTSTRAP_TOKEN` is ignored too, and `peekaping` logs a warning when it is set. The `peekaping` process checks the local probe's monitors, so a `peekaping-probe` connects only as a [remote probe](./remote-probes.md), with that probe's token. To check from another machine, add a remote probe. A `peekaping-probe` that uses the local probe's token is refused.
+- `MODE` defaults to `prod`.
+- Leave `API_URL` unset, so the web app calls the API on its own origin. Set it only if the web app must call an API on another origin.
+- Leave `CORS_ORIGINS` unset. The web app calls the API on its own origin, which needs no CORS entry. Set it to a comma-separated list of origins, such as `https://app.example.com`, only if a page on another origin must read the API's responses. Unset, it allows the origin of `CLIENT_URL`. `*` allows any origin.
+
+### Stopping
+
+When it stops, `peekaping` finishes open requests, stops its checks and closes the database. That can take about 30 seconds, but Docker waits only 10 seconds by default before it kills a container. The `stop_grace_period: 35s` in the Compose file above gives `peekaping` the time, so `docker compose stop` and `docker compose down` wait as long as it needs. The `postgres` container stops on its own: it needs no longer than the default.
+
+To pass the wait on the command line, name the service, not the container, because Compose adds the project's name to the container's name:
 
 ```bash
-docker run -d --restart=always \
-  -p 8383:8383 \
-  -e DB_NAME=peekaping \
-  -e DB_USER=peekaping \
-  -e DB_PASS=secure_test_password_123 \
-  -v $(pwd)/.data/postgres:/var/lib/postgresql/data \
-  --name peekaping \
-  0xfurai/peekaping-bundle-postgres:latest
-```
-To add custom caddy file add
-```
--v ./custom-Caddyfile:/etc/caddy/Caddyfile:ro
+docker compose stop -t 35 peekaping
 ```
 
-If you need more granular control on system components read [Microservice mode section](#microservice-mode)
+### Reverse proxy and HTTPS
 
-The bundle runs Peekaping's api, producer, worker and ingester processes as a non-root user. See [Bundle user and permissions](./bundle-user.md) to set `PUID`/`PGID` and for what Docker and ping monitors need.
+The image serves plain HTTP on port 8383. For HTTPS or your own domain, put a reverse proxy in front of it, such as Caddy, nginx or Traefik. The proxy must pass websocket connections on `/socket.io/`. With Caddy on the same host, this is enough:
 
-## Microservice mode
+```
+status.example.com {
+    reverse_proxy localhost:8383
+}
+```
+
+Set `CLIENT_URL` to the address people open, such as `https://status.example.com`, so links in notifications point there.
+
+The login lockout counts failed logins per client address. A client can send any `X-Forwarded-For` header it likes, so Peekaping believes that header (and `X-Real-IP`, when there is no `X-Forwarded-For`) only on requests from an address listed in `TRUSTED_PROXIES`. The list is comma-separated IP addresses and CIDR ranges. The setting is empty unless you set it, as in this image, and every request then counts as coming from the address it connected from. (The cluster Compose files and the Helm chart set loopback and the private ranges when it is unset, and an explicitly empty value there trusts nobody.) Behind a reverse proxy, set it up like this:
+
+1. Make the proxy put the client's address last in `X-Forwarded-For`. Caddy and Traefik do: they drop what the client sent and set their own. Plain nginx `proxy_pass` doesn't. It forwards the client's own `X-Forwarded-For` unchanged, and only `$proxy_add_x_forwarded_for` appends to it. So in nginx, add this next to `proxy_pass`:
+
+   ```
+   proxy_set_header X-Forwarded-For $remote_addr;
+   ```
+
+2. Set `TRUSTED_PROXIES` to the address the proxy connects from, as the container sees it. In the Compose example above, the `environment` line reads it from your `.env` file: Compose uses `.env` to fill in the file, but doesn't pass its variables to the container by itself. With `docker run`, `-e TRUSTED_PROXIES` passes on the variable from your shell, or give it a value: `-e TRUSTED_PROXIES=<address>`. List only proxies you run, because a listed address can claim to be anyone. Peekaping takes the last address in `X-Forwarded-For` that isn't in `TRUSTED_PROXIES`, so addresses a client adds to the left don't count.
+
+3. Don't let clients reach port 8383 past the proxy. When the proxy runs on the same host, publish the port on loopback only: `-p 127.0.0.1:8383:8383`, or `"127.0.0.1:8383:8383"` in Docker Compose. Then only the host can connect, and the proxy's address is usually the gateway of the container's Docker network. A Compose project has its own network, so read the gateway from the container itself:
+
+   ```bash
+   docker inspect -f '{{range $name, $net := .NetworkSettings.Networks}}{{$name}} {{$net.Gateway}}{{println}}{{end}}' $(docker compose ps -q peekaping)
+   ```
+
+   It prints each network the container is on with its gateway. Use the gateway of the network your reverse proxy shares with the container. On Docker's default network that is usually `172.17.0.1`:
+
+   ```
+   TRUSTED_PROXIES=172.17.0.1
+   ```
+
+Don't trust the gateway address while port 8383 is published on all interfaces (`-p 8383:8383`). On Docker Desktop, in rootless Docker and with the userland proxy, connections made straight to the published port arrive from the gateway address too, so anyone could send their own `X-Forwarded-For` and be believed.
+
+When another proxy sits in front of yours, for example Cloudflare in front of Traefik, your proxy sees that proxy's address, not the client's. Make your proxy trust the front proxy's addresses, so that it keeps the client's address in `X-Forwarded-For`: in Traefik, `forwardedHeaders.trustedIPs`; in Caddy, `trusted_proxies`; in nginx, the real IP module, so that `$remote_addr` is the client's address and the `proxy_set_header X-Forwarded-For $remote_addr;` from step 1 passes it on:
+
+```
+set_real_ip_from <the front proxy's address ranges>;
+real_ip_header X-Forwarded-For;
+real_ip_recursive on;
+```
+
+Keep only your own proxy in `TRUSTED_PROXIES`, not the front proxy.
+
+With `TRUSTED_PROXIES` empty behind a proxy, every login counts as coming from the proxy, so all clients behind it share the per-address counter and one person's failed logins can lock an account for everyone behind the proxy. The per-account counter below is account-wide whatever this setting is.
+
+Whatever you set, Peekaping also locks an account after `BRUTEFORCE_ACCOUNT_MAX_ATTEMPTS` failed logins (100 by default) from any addresses within `BRUTEFORCE_ACCOUNT_WINDOW` (10 minutes). A lock lasts `BRUTEFORCE_ACCOUNT_LOCKOUT` (1 minute). The count of failures is kept until the window, measured from the first failure, has passed, so until then each further failure after a lock ends locks the account again. So guessing is bounded to the limit per window plus one attempt each time a lock ends, and after an attack stops the owner is back in within the window at most. An attacker who keeps going can keep the account locked. [API Server](../architecture/api-server.md#security-configuration) lists the lockout settings.
+
+### Custom domains and HTTPS
+
+To serve a status page on a domain of its own, with a certificate for each domain, see [Custom domains and HTTPS](./docker-with-sqlite.md#custom-domains-and-https). It covers DNS, the Caddyfiles and Caddy in a container. In the Compose example there, the `peekaping` service is the one in the file above.
+
+### Upgrading from the PostgreSQL bundle
+
+If you run the `peekaping-bundle-postgres` image, from 0.0.44 to 0.0.47, which ran Redis, Caddy and PostgreSQL inside one container, see [Moving from the PostgreSQL bundle](./upgrading-to-single-mode.md#moving-from-the-postgresql-bundle). The image gets no new tags, and the page copies your database into the layout above.
+
+## Cluster mode
+
+In cluster mode, the API and the probe run in separate containers. The API replicas share the database and talk to each other through Redis. The `probe` service runs the checks of the local probe's monitors: it connects to the API, gets its monitors and sends the results back, and it needs no database, no Redis and no volume. Run more probe containers to check more monitors, and more API containers for availability. An nginx gateway serves the web app and the API on port 8383.
+
+The images run as a non-root user. See [Cluster user and permissions](./cluster-user.md) for what Docker monitors and ping monitors need.
+
+Moving from a compose file with `producer`, `worker` and `ingester` services? See [Upgrading to probes](./upgrading-to-probes.md).
 
 ### Prerequisites
 
@@ -58,14 +205,34 @@ DB_NAME=peekaping
 DB_HOST=database
 DB_PORT=5432
 DB_TYPE=postgres
+# Whether the connection to PostgreSQL uses TLS: disable (the default), allow,
+# prefer, require, verify-ca or verify-full. A managed database usually needs
+# one of the last three.
+# DB_SSLMODE=require
 
 # Server Configuration
+# The API's port inside the Docker network. The single-mode image ignores it
+# and always listens on 8383.
 SERVER_PORT=8034
 CLIENT_URL="http://localhost:8383"
+# Origins that may read the API's responses from another origin. Default: the origin of CLIENT_URL
+# CORS_ORIGINS=https://app.example.com
+
+# The token of the local probe, which checks the monitors that run on Peekaping
+# itself. The api stores it and the probe service sends it. Make it a random
+# string of at least 32 characters, such as the output of: openssl rand -hex 32
+# The compose file below refuses to start while it is empty.
+PROBE_BOOTSTRAP_TOKEN=
 
 # Application Settings
 MODE=prod
 TZ="America/New_York"
+
+# Usage statistics and error reports are on until an admin turns them off in
+# Settings. To switch them off whatever the settings say, uncomment the ones you
+# want. See "Usage statistics and error reporting".
+# TELEMETRY=off
+# ERROR_REPORTING=off
 
 # JWT settings are automatically managed in the database
 # Default settings are initialized on first startup:
@@ -73,6 +240,11 @@ TZ="America/New_York"
 # - Refresh token expiration: 720 hours (30 days)
 # - Secret keys are automatically generated securely
 ```
+
+`PROBE_BOOTSTRAP_TOKEN` is required: run `openssl rand -hex 32` and paste the result after the `=`. It is the token of the local probe, which gives access to the config of the monitors on it, so keep it secret. If you change it, run `docker compose up -d` again: it recreates the `api` and the `probe` with the new value. `docker compose up` stops with `PROBE_BOOTSTRAP_TOKEN is not set` while it is missing or empty.
+
+`TELEMETRY=off` and `ERROR_REPORTING=off` are optional. The first switches off the anonymous [usage statistics](./telemetry.md) and the second switches off the [error reports](./telemetry.md#error-reporting), whatever an admin chose. Without them, both are on until an admin turns them off in Admin → Settings.
+
 :::info JWT Settings
 JWT settings (access/refresh token expiration times and secret keys) are now automatically managed in the database. Default secure settings are initialized on first startup, and secret keys are generated automatically.
 :::
@@ -84,8 +256,11 @@ JWT settings (access/refresh token expiration times and secret keys) are now aut
 
 #### `docker-compose.yml` file
 
-Create a `docker-compose.yml` file:
+Create a `docker-compose.yml` file. The `probe` service checks the local probe's monitors. To run more of them, use `docker compose up -d --scale probe=3`: the monitors are dealt among the containers.
 
+The `probe` reaches the `api` over plain HTTP inside `appnet`, so it sets `PROBE_ALLOW_INSECURE: "true"`. Its token crosses `appnet` unencrypted. Keep `appnet` trusted and isolated: put only the services of this stack on it, and don't publish the `api` port. If the probe has to reach the API through a network you don't trust, point `PEEKAPING_URL` at an `https://` address and remove `PROBE_ALLOW_INSECURE`.
+
+<!-- snippet: docker-compose.cluster.postgres.yml -->
 ```yaml
 networks:
   appnet:
@@ -141,13 +316,26 @@ services:
   api:
     image: 0xfurai/peekaping-api:latest
     restart: unless-stopped
+    # the api takes up to 30 seconds to shut down cleanly
+    stop_grace_period: 35s
     env_file:
       - .env
+    environment:
+      # The api isn't published: only the gateway and the other services on this network reach
+      # it, all from private addresses. The gateway (nginx.conf) sets X-Forwarded-For to the
+      # client's address, and the api believes that header from these addresses only. Set
+      # TRUSTED_PROXIES in .env to change them; an empty TRUSTED_PROXIES= trusts nobody.
+      TRUSTED_PROXIES: "${TRUSTED_PROXIES-127.0.0.0/8,::1/128,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,fc00::/7}"
+      # The local probe's token: the api stores it, and the probe sends it. Without it no
+      # monitor is checked.
+      PROBE_BOOTSTRAP_TOKEN: "${PROBE_BOOTSTRAP_TOKEN:?PROBE_BOOTSTRAP_TOKEN is not set: add it to .env as a random string of at least 32 characters, such as the output of openssl rand -hex 32}"
     depends_on:
       database:
         condition: service_healthy
       redis:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     networks:
       - appnet
     healthcheck:
@@ -161,39 +349,24 @@ services:
       retries: 5
       start_period: 5s
 
-  producer:
-    image: 0xfurai/peekaping-producer:latest
+  # The local probe: its instances run the checks of the monitors that run on the local probe.
+  # They connect to the api, so they need no database, no Redis and no volume. Run more of
+  # them with `docker compose up -d --scale probe=3`: the monitors are dealt among them.
+  probe:
+    image: 0xfurai/peekaping-probe:latest
     restart: unless-stopped
-    env_file:
-      - .env
+    # the probe takes up to 25 seconds to shut down cleanly
+    stop_grace_period: 30s
+    environment:
+      PEEKAPING_URL: http://api:8034
+      # The probe refuses a plain http:// address to another host unless told otherwise.
+      # This one stays on the compose network.
+      PROBE_ALLOW_INSECURE: "true"
+      # The token the api stores on the local probe (PROBE_BOOTSTRAP_TOKEN)
+      PROBE_TOKEN: "${PROBE_BOOTSTRAP_TOKEN:?PROBE_BOOTSTRAP_TOKEN is not set: add it to .env as a random string of at least 32 characters, such as the output of openssl rand -hex 32}"
+      LOG_LEVEL: ${LOG_LEVEL:-info}
     depends_on:
-      database:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    networks:
-      - appnet
-
-  worker:
-    image: 0xfurai/peekaping-worker:latest
-    restart: unless-stopped
-    env_file:
-      - .env
-    depends_on:
-      redis:
-        condition: service_healthy
-    networks:
-      - appnet
-
-  ingester:
-    image: 0xfurai/peekaping-ingester:latest
-    restart: unless-stopped
-    env_file:
-      - .env
-    depends_on:
-      database:
-        condition: service_healthy
-      redis:
+      api:
         condition: service_healthy
     networks:
       - appnet
@@ -239,10 +412,11 @@ services:
 
 If you want to use Nginx as a reverse proxy, create this file:
 
+<!-- snippet: nginx.conf -->
 ```nginx
 events {}
 http {
-  upstream server  { server server:8034; }
+  upstream api  { server api:8034; }
   upstream web { server web:80; }
 
   server {
@@ -250,16 +424,30 @@ http {
 
     # Pure API calls
     location /api/ {
-      proxy_pass         http://server;
+      proxy_pass         http://api;
       proxy_set_header   Host $host;
       proxy_set_header   X-Real-IP $remote_addr;
+      # Replace the client's X-Forwarded-For: the api trusts this gateway's header
+      proxy_set_header   X-Forwarded-For $remote_addr;
+    }
+
+    # Remote probes (the probe protocol). A compressed results batch can be a little over
+    # 1 MiB, which is more than nginx's default client_max_body_size of 1m allows.
+    location /probe/ {
+      client_max_body_size 2m;
+      proxy_pass         http://api;
+      proxy_set_header   Host $host;
+      proxy_set_header   X-Real-IP $remote_addr;
+      # Replace the client's X-Forwarded-For: the api trusts this gateway's header
+      proxy_set_header   X-Forwarded-For $remote_addr;
     }
 
     # socket.io
     location /socket.io/ {
-      proxy_pass http://server;
+      proxy_pass http://api;
       proxy_set_header Host $host;
       proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $remote_addr;
       proxy_set_header Upgrade $http_upgrade;
       proxy_set_header Connection "upgrade";
     }
@@ -271,6 +459,8 @@ http {
   }
 }
 ```
+
+The gateway replaces the `X-Forwarded-For` header of every request with the client's address, and the `api` service believes that header from loopback and the private ranges (`TRUSTED_PROXIES` in the compose file), which cover the Docker network. Don't publish the `api` service's port: a connection to a published port reaches the container from the Docker network's gateway address, which that setting trusts, so a client could send its own `X-Forwarded-For`. The default ranges are wide: narrowing `TRUSTED_PROXIES` to the gateway's network (`docker network inspect` shows its subnet) is safer, because a client with a private address behind a gateway that appends to `X-Forwarded-For`, unlike this one, would be skipped as a trusted proxy and could pick its own address from the entries to its left. The account counter still bounds guessing either way.
 
 
 
@@ -290,6 +480,8 @@ docker compose ps
 docker compose logs -f
 ```
 
+`docker compose ps` should list the `api` and the `probe` as running. The `probe` starts once the `api` is healthy, and the Probes page in Peekaping shows the local probe as online once it has connected.
+
 ### 4. Access Peekaping
 
 Once all containers are running:
@@ -300,10 +492,18 @@ Once all containers are running:
 
 ## Docker Images
 
-Peekaping provides official Docker images:
+Peekaping provides official Docker images.
 
-- **Server**: [`0xfurai/peekaping-server`](https://hub.docker.com/r/0xfurai/peekaping-server)
+Single mode:
+
+- **Single mode**: [`0xfurai/peekaping`](https://hub.docker.com/r/0xfurai/peekaping), which uses PostgreSQL with `DB_TYPE=postgres`, and the official [`postgres`](https://hub.docker.com/_/postgres) image
+
+Cluster mode:
+
+- **API**: [`0xfurai/peekaping-api`](https://hub.docker.com/r/0xfurai/peekaping-api)
+- **Probe**: [`0xfurai/peekaping-probe`](https://hub.docker.com/r/0xfurai/peekaping-probe) runs the checks of the local probe's monitors. It also runs checks from another machine, as a remote probe. See [Remote probes](./remote-probes.md)
 - **Web**: [`0xfurai/peekaping-web`](https://hub.docker.com/r/0xfurai/peekaping-web)
+- **Migrate**: [`0xfurai/peekaping-migrate`](https://hub.docker.com/r/0xfurai/peekaping-migrate), which applies the database migrations
 
 ### Image Tags
 
@@ -312,7 +512,7 @@ Peekaping provides official Docker images:
 
 ## Persistent Data
 
-Peekaping stores data in Postgres. The docker-compose setup uses a local folder mount `./.data/postgres:/var/lib/postgresql/data` to persist your monitoring data.
+Peekaping stores data in Postgres. The cluster-mode Compose setup uses a local folder mount `./.data/postgres:/var/lib/postgresql/data` to persist your monitoring data, and the single-mode setup uses `./.data/postgres17:/var/lib/postgresql/data`.
 
 ### Storage Options
 

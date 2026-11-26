@@ -7,17 +7,19 @@ import {
   putNotificationChannelsByIdMutation,
 } from "@/api/@tanstack/react-query.gen";
 import Layout from "@/layout";
-import CreateEditNotificationChannel, {
-  type NotificationForm,
-} from "../components/create-edit-notification-channel";
+import CreateEditNotificationChannel from "../components/create-edit-notification-channel";
+import type { NotificationChannelFormValues } from "../channel-types/registry";
 import { toast } from "sonner";
 import { commonMutationErrorHandler } from "@/lib/utils";
 import type { NotificationChannelCreateUpdateDto } from "@/api";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
+import { useWorkspacePath } from "@/hooks/useWorkspacePath";
+import { invalidateChannelLists } from "../channel-queries";
 
 const EditNotificationChannel = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const workspacePath = useWorkspacePath();
   const { t } = useLocalizedTranslation();
   const queryClient = useQueryClient();
 
@@ -33,7 +35,8 @@ const EditNotificationChannel = () => {
       queryClient.removeQueries({
         queryKey: getNotificationChannelsByIdQueryKey({ path: { id: id! } }),
       });
-      navigate("/notification-channels");
+      invalidateChannelLists(queryClient);
+      navigate(workspacePath("/notification-channels"));
     },
     onError: commonMutationErrorHandler(t("notifications.messages.update_failed")),
   });
@@ -52,7 +55,7 @@ const EditNotificationChannel = () => {
     ...(config || {}),
   };
 
-  const handleSubmit = (values: NotificationForm) => {
+  const handleSubmit = (values: NotificationChannelFormValues) => {
     const payload: NotificationChannelCreateUpdateDto = {
       name: values.name,
       type: values.type,
@@ -75,6 +78,7 @@ const EditNotificationChannel = () => {
         onSubmit={handleSubmit}
         isLoading={mutation.isPending}
         mode="edit"
+        channelId={id}
       />
     </Layout>
   );

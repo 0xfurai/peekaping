@@ -1,5 +1,5 @@
 # Start from the official Golang image as a build stage
-FROM golang:1.26.4-alpine AS builder
+FROM golang:1.27.3-alpine AS builder
 
 # Set the Current Working Directory inside the container
 WORKDIR /app
@@ -18,6 +18,8 @@ RUN CGO_ENABLED=0 GOFLAGS="-trimpath" go build -o main -ldflags="-s -w" ./cmd/ap
 
 # Start a new stage from scratch
 FROM alpine
+
+USER 65532:65532
 
 WORKDIR /app
 

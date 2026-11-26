@@ -18,7 +18,7 @@ check_docker() {
 
 # Function to check if Docker Compose is available
 check_docker_compose() {
-    if ! command -v docker-compose &> /dev/null; then
+    if ! docker compose version &> /dev/null; then
         echo "❌ Docker Compose is not installed. Please install Docker Compose and try again."
         exit 1
     fi
@@ -27,7 +27,7 @@ check_docker_compose() {
 # Function to start Kafka stack
 start_kafka() {
     echo "🚀 Starting Kafka stack..."
-    docker-compose -f docker-compose.kafka.yml up -d
+    docker compose -f docker-compose.kafka.yml up -d
 
     echo "⏳ Waiting for Kafka to be ready..."
     sleep 30
@@ -70,7 +70,7 @@ consume_messages() {
 # Function to stop Kafka stack
 stop_kafka() {
     echo "🛑 Stopping Kafka stack..."
-    docker-compose -f docker-compose.kafka.yml down
+    docker compose -f docker-compose.kafka.yml down
     echo "✅ Kafka stack stopped!"
 }
 

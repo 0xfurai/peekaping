@@ -91,30 +91,67 @@ func TestPagerDutySender_getEventAction(t *testing.T) {
 	downHeartbeat := &heartbeat.Model{Status: shared.MonitorStatusDown}
 	cfg := &PagerDutyConfig{AutoResolve: "0"}
 
-	action := sender.getEventAction(downHeartbeat, cfg)
+	action := sender.getEventAction(nil, downHeartbeat, cfg)
 	if action != "trigger" {
 		t.Errorf("Expected action 'trigger' for DOWN status, got '%s'", action)
 	}
 
 	// Test UP status with no auto-resolve
 	upHeartbeat := &heartbeat.Model{Status: shared.MonitorStatusUp}
-	action = sender.getEventAction(upHeartbeat, cfg)
+	action = sender.getEventAction(nil, upHeartbeat, cfg)
 	if action != "" {
 		t.Errorf("Expected no action for UP status with no auto-resolve, got '%s'", action)
 	}
 
 	// Test UP status with auto-resolve
 	cfg.AutoResolve = "resolve"
-	action = sender.getEventAction(upHeartbeat, cfg)
+	action = sender.getEventAction(nil, upHeartbeat, cfg)
 	if action != "resolve" {
 		t.Errorf("Expected action 'resolve' for UP status with auto-resolve, got '%s'", action)
 	}
 
 	// Test UP status with auto-acknowledge
 	cfg.AutoResolve = "acknowledge"
-	action = sender.getEventAction(upHeartbeat, cfg)
+	action = sender.getEventAction(nil, upHeartbeat, cfg)
 	if action != "acknowledge" {
 		t.Errorf("Expected action 'acknowledge' for UP status with auto-acknowledge, got '%s'", action)
+	}
+}
+
+func TestPagerDutySender_getEventActionWithoutAHeartbeat(t *testing.T) {
+	sender := NewPagerDutySender(zap.NewNop().Sugar(), nil, NewHTTPClient())
+	probeOffline := &monitor.Model{ID: "probe-1", Type: shared.MonitorTypeProbe, Name: "Probe Frankfurt", Status: shared.MonitorStatusDown}
+	probeOnline := &monitor.Model{ID: "probe-1", Type: shared.MonitorTypeProbe, Name: "Probe Frankfurt", Status: shared.MonitorStatusUp}
+	// A certificate expiry or a stale-monitor notification has no heartbeat either, and what its
+	// monitor's status says is not what it is about
+	upMonitor := &monitor.Model{ID: "mon-1", Type: "http", Name: "Public API", Status: shared.MonitorStatusUp}
+
+	cases := []struct {
+		name        string
+		monitor     *monitor.Model
+		autoResolve string
+		want        string
+	}{
+		{"a test notification triggers", nil, "resolve", "trigger"},
+		{"a notification about a monitor triggers", upMonitor, "resolve", "trigger"},
+
+		{"a probe offline triggers with no auto-resolve", probeOffline, "", "trigger"},
+		{"a probe offline triggers with auto-resolve 0", probeOffline, "0", "trigger"},
+		{"a probe offline triggers with auto-acknowledge", probeOffline, "acknowledge", "trigger"},
+		{"a probe offline triggers with auto-resolve", probeOffline, "resolve", "trigger"},
+
+		{"a probe online sends nothing with no auto-resolve", probeOnline, "", ""},
+		{"a probe online sends nothing with auto-resolve 0", probeOnline, "0", ""},
+		{"a probe online acknowledges with auto-acknowledge", probeOnline, "acknowledge", "acknowledge"},
+		{"a probe online resolves with auto-resolve", probeOnline, "resolve", "resolve"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			got := sender.getEventAction(tc.monitor, nil, &PagerDutyConfig{AutoResolve: tc.autoResolve})
+			if got != tc.want {
+				t.Errorf("Expected action %q, got %q", tc.want, got)
+			}
+		})
 	}
 }
 

@@ -1,7 +1,7 @@
 ---
 name: ticket
-description: "Work a ticket (#<n>) through the team flow: plan with the user, build with tests, review against the ticket, open a PR stack, and loop on CI and review comments until merged. Use when the user hands over a ticket, or asks to run part of the flow for one: plan it, review their own branch, open its PRs, or handle its PR comments."
-argument-hint: "#<n> | <pr> [from plan|build|review|pr|loop]"
+description: "Work a Linear ticket (PP-<n>) through the team flow: plan with the user, build with tests, review against the ticket, open a PR stack, and loop on CI and review comments until merged. Use when the user hands over a ticket, or asks to run part of the flow for one: plan it, review their own branch, open its PRs, or handle its PR comments."
+argument-hint: "PP-<n> | <pr> [from plan|build|review|pr|loop]"
 ---
 
 # Ticket

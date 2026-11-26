@@ -27,7 +27,7 @@ export const faqItems: FaqItem[] = [
   {
     question: "Which databases are supported?",
     answer:
-      "Peekaping stores its data in SQLite or PostgreSQL, through its pluggable storage design. MongoDB storage still works for existing installs but is deprecated, so new installs should use SQLite or PostgreSQL.",
+      "Peekaping stores its data in SQLite or PostgreSQL, through its pluggable storage design.",
   },
   {
     question: "Is there a REST API?",

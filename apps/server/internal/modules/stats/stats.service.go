@@ -12,6 +12,7 @@ import (
 
 type HeartbeatPayload struct {
 	MonitorID string
+	ProbeID   string // the probe that ran the check; empty means the local probe
 	Status    int
 	Ping      int
 	Time      int64 // Unix seconds
@@ -20,10 +21,12 @@ type HeartbeatPayload struct {
 type Service interface {
 	AggregateHeartbeat(ctx context.Context, hb *HeartbeatPayload) error
 	RegisterEventHandlers(eventBus events.EventBus)
-	FindStatsByMonitorIDAndTimeRange(ctx context.Context, monitorID string, since, until time.Time, period StatPeriod) ([]*Stat, error)
-	FindStatsByMonitorIDAndTimeRangeWithInterval(ctx context.Context, monitorID string, since, until time.Time, period StatPeriod, monitorInterval int) ([]*Stat, error)
+	// The Find and Summarize methods take a probeID that narrows them to the checks one probe ran.
+	// An empty probeID covers every probe.
+	FindStatsByMonitorIDAndTimeRange(ctx context.Context, monitorID, probeID string, since, until time.Time, period StatPeriod) ([]*Stat, error)
+	FindStatsByMonitorIDAndTimeRangeWithInterval(ctx context.Context, monitorID, probeID string, since, until time.Time, period StatPeriod, monitorInterval int) ([]*Stat, error)
 	StatPointsSummary(statsList []*Stat) *Stats
-	Summarize(ctx context.Context, monitorID string, since, until time.Time) (*Stats, error)
+	Summarize(ctx context.Context, monitorID, probeID string, since, until time.Time) (*Stats, error)
 	DeleteByMonitorID(ctx context.Context, monitorID string) error
 	DeleteExpired(ctx context.Context, now time.Time) (map[StatPeriod]int64, error)
 }
@@ -59,7 +62,10 @@ func (s *ServiceImpl) AggregateHeartbeat(ctx context.Context, hb *HeartbeatPaylo
 	}
 
 	// The heartbeat's counts and response time, which the repository adds to each period's stat
-	add := Stat{MonitorID: hb.MonitorID}
+	add := Stat{MonitorID: hb.MonitorID, ProbeID: hb.ProbeID}
+	if add.ProbeID == "" {
+		add.ProbeID = shared.LocalProbeID
+	}
 
 	// Up/Down logic (flattened)
 	if s.flatStatus(hb.Status) == 1 { // MonitorStatusUp
@@ -92,6 +98,7 @@ func (s *ServiceImpl) RegisterEventHandlers(eventBus events.EventBus) {
 	events.Subscribe(events.NewSubscriber(eventBus, "stats"), events.HeartbeatEvent, func(ctx context.Context, payload shared.HeartBeatModel) {
 		hb := &HeartbeatPayload{
 			MonitorID: payload.MonitorID,
+			ProbeID:   payload.ProbeID,
 			Status:    int(payload.Status),
 			Ping:      payload.Ping,
 			Time:      payload.Time.Unix(),
@@ -102,125 +109,68 @@ func (s *ServiceImpl) RegisterEventHandlers(eventBus events.EventBus) {
 	})
 }
 
-func (s *ServiceImpl) FindStatsByMonitorIDAndTimeRange(ctx context.Context, monitorID string, since, until time.Time, period StatPeriod) ([]*Stat, error) {
-	return s.repo.FindStatsByMonitorIDAndTimeRange(ctx, monitorID, since, until, period)
+func (s *ServiceImpl) FindStatsByMonitorIDAndTimeRange(ctx context.Context, monitorID, probeID string, since, until time.Time, period StatPeriod) ([]*Stat, error) {
+	return s.repo.FindStatsByMonitorIDAndTimeRange(ctx, monitorID, probeID, since, until, period)
 }
 
-func (s *ServiceImpl) FindStatsByMonitorIDAndTimeRangeWithInterval(ctx context.Context, monitorID string, since, until time.Time, period StatPeriod, monitorInterval int) ([]*Stat, error) {
-	stats, err := s.repo.FindStatsByMonitorIDAndTimeRange(ctx, monitorID, since, until, period)
+// FindStatsByMonitorIDAndTimeRangeWithInterval returns one point per bucket from the bucket holding
+// since to the one holding until. A bucket is a minute, an hour or a day wide; the minute stats of a
+// monitor checked less often than every minute are grouped into buckets of its check interval, rounded up
+// to whole minutes. Buckets start on a multiple of their width from the Unix epoch, so a chart read
+// a minute later shows the same buckets. Buckets without stats are empty points.
+func (s *ServiceImpl) FindStatsByMonitorIDAndTimeRangeWithInterval(ctx context.Context, monitorID, probeID string, since, until time.Time, period StatPeriod, monitorInterval int) ([]*Stat, error) {
+	width := bucketWidth(period, monitorInterval)
+	first := alignToEpoch(since, width)
+
+	stats, err := s.repo.FindStatsByMonitorIDAndTimeRange(ctx, monitorID, probeID, first, until, period)
 	if err != nil {
 		return nil, err
 	}
 
-	// Determine bucket size
-	var bucket time.Duration
-	switch period {
-	case StatMinutely:
-		bucket = time.Minute
-	case StatHourly:
-		bucket = time.Hour
-	case StatDaily:
-		bucket = 24 * time.Hour
-	default:
-		bucket = time.Minute
+	// A stat belongs to the bucket that starts at or before its timestamp.
+	count := 0
+	if !until.Before(first) {
+		count = int(until.Sub(first)/width) + 1
 	}
-
-	// For minute-level stats, check if we need to group by monitor interval
-	if period == StatMinutely && monitorInterval > 60 {
-		// Monitor interval is greater than 1 minute, group minute stats
-		monitorIntervalDuration := time.Duration(monitorInterval) * time.Second
-		// calculate closest bigger interval that is divisible by minute (60)
-		monitorIntervalDuration = monitorIntervalDuration.Round(time.Minute)
-		return s.groupStatsByInterval(stats, since, until, monitorIntervalDuration, monitorID)
-	}
-
-	// Build a map for quick lookup
-	statMap := make(map[int64]*Stat)
+	inBucket := make([][]*Stat, count)
 	for _, stat := range stats {
-		statMap[stat.Timestamp.Unix()] = stat
-	}
-
-	// Fill missing intervals
-	targetBucketLength := int(until.Sub(since)/bucket) + 1
-	result := make([]*Stat, 0, targetBucketLength)
-	for t := since.Truncate(bucket); !t.After(until); t = t.Add(bucket) {
-		key := t.Unix()
-		if stat, ok := statMap[key]; ok {
-			result = append(result, stat)
-		} else {
-			result = append(result, &Stat{
-				ID:          "", // TODO: check if this brake ui (react key)
-				MonitorID:   monitorID,
-				Timestamp:   t,
-				Ping:        0,
-				PingMin:     0,
-				PingMax:     0,
-				Up:          0,
-				Down:        0,
-				Maintenance: 0,
-			})
+		if i := int(stat.Timestamp.Sub(first) / width); i >= 0 && i < count {
+			inBucket[i] = append(inBucket[i], stat)
 		}
 	}
 
+	result := make([]*Stat, 0, count)
+	for i, bucketStats := range inBucket {
+		result = append(result, s.aggregateStats(bucketStats, first.Add(time.Duration(i)*width), monitorID))
+	}
 	return result, nil
 }
 
-// groupStatsByInterval groups minute-level stats into monitor interval buckets
-func (s *ServiceImpl) groupStatsByInterval(minuteStats []*Stat, since, until time.Time, interval time.Duration, monitorID string) ([]*Stat, error) {
-	if len(minuteStats) == 0 {
-		return []*Stat{}, nil
+// bucketWidth is how wide a chart point is: a minute, an hour or a day, or for the minute stats of a
+// monitor checked less often than every minute its check interval rounded up to whole minutes.
+func bucketWidth(period StatPeriod, monitorInterval int) time.Duration {
+	switch period {
+	case StatHourly:
+		return time.Hour
+	case StatDaily:
+		return 24 * time.Hour
 	}
-
-	// check minuteStats are sorted
-	for i := 1; i < len(minuteStats); i++ {
-		if minuteStats[i].Timestamp.Before(minuteStats[i-1].Timestamp) {
-			return nil, fmt.Errorf("minuteStats are not sorted")
-		}
+	if period == StatMinutely && monitorInterval > 60 {
+		return (time.Duration(monitorInterval)*time.Second + time.Minute - 1).Truncate(time.Minute)
 	}
+	return time.Minute
+}
 
-	periods := int((until.Sub(since) + interval - 1) / interval)
-	result := make([]*Stat, 0, periods)
-	minuteStatsPointer := 0
-
-	for i := 0; i < periods; i++ {
-		bucketStart := since.Add(time.Duration(i) * interval)
-		bucketEnd := bucketStart.Add(interval)
-
-		bucketStats := make([]*Stat, 0)
-
-		// Skip stats that are before the current bucket start
-		for minuteStatsPointer < len(minuteStats) && minuteStats[minuteStatsPointer].Timestamp.Before(bucketStart) {
-			minuteStatsPointer++
-		}
-
-		// Include stats that are within the current bucket (inclusive of bucketStart, exclusive of bucketEnd)
-		// For the last bucket, also include stats exactly at the until timestamp
-		for minuteStatsPointer < len(minuteStats) &&
-			(minuteStats[minuteStatsPointer].Timestamp.Before(bucketEnd) ||
-				(i == periods-1 && minuteStats[minuteStatsPointer].Timestamp.Equal(until))) {
-			bucketStats = append(bucketStats, minuteStats[minuteStatsPointer])
-			minuteStatsPointer++
-		}
-
-		if len(bucketStats) > 0 {
-			aggregated := s.aggregateStats(bucketStats, bucketStart, monitorID)
-			result = append(result, aggregated)
-		} else {
-			result = append(result, &Stat{
-				ID:          "",
-				MonitorID:   monitorID,
-				Timestamp:   bucketStart,
-				Ping:        0,
-				PingMin:     0,
-				PingMax:     0,
-				Up:          0,
-				Down:        0,
-				Maintenance: 0,
-			})
-		}
+// alignToEpoch returns the latest moment at or before t that is a multiple of width from the Unix
+// epoch, in t's location. time.Time.Truncate counts from year 1, which differs from the epoch for
+// widths that don't divide the time between them, such as 7 minutes.
+func alignToEpoch(t time.Time, width time.Duration) time.Time {
+	widthSeconds := int64(width / time.Second)
+	remainder := t.Unix() % widthSeconds
+	if remainder < 0 {
+		remainder += widthSeconds
 	}
-
-	return result, nil
+	return t.Add(-(time.Duration(remainder)*time.Second + time.Duration(t.Nanosecond())))
 }
 
 // aggregateStats calculates the average and aggregated values for a bucket of stats
@@ -338,7 +288,8 @@ func (s *ServiceImpl) StatPointsSummary(statsList []*Stat) *Stats {
 
 	var uptime *float64
 	var maintenance *float64
-	total := totalUp + totalDown + totalMaintenance
+	// Up already holds the maintenance checks, so adding totalMaintenance would count each twice.
+	total := totalUp + totalDown
 	if total > 0 {
 		uptimeV := float64(totalUp) / float64(total) * 100
 		uptime = &uptimeV
@@ -381,8 +332,8 @@ func summaryPeriod(window time.Duration) StatPeriod {
 
 // Summarize returns uptime and response times for the monitor's heartbeats from
 // since to until, read from the buckets that suit the window length.
-func (s *ServiceImpl) Summarize(ctx context.Context, monitorID string, since, until time.Time) (*Stats, error) {
-	statsList, err := s.repo.FindStatsByMonitorIDAndTimeRange(ctx, monitorID, since, until, summaryPeriod(until.Sub(since)))
+func (s *ServiceImpl) Summarize(ctx context.Context, monitorID, probeID string, since, until time.Time) (*Stats, error) {
+	statsList, err := s.repo.FindStatsByMonitorIDAndTimeRange(ctx, monitorID, probeID, since, until, summaryPeriod(until.Sub(since)))
 	if err != nil {
 		return nil, err
 	}

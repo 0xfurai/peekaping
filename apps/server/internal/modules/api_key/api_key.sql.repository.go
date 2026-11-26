@@ -2,7 +2,11 @@ package api_key
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"time"
+
+	"peekaping/internal/modules/workspace"
 
 	"github.com/google/uuid"
 	"github.com/uptrace/bun"
@@ -11,16 +15,17 @@ import (
 type sqlModel struct {
 	bun.BaseModel `bun:"table:api_keys,alias:ak"`
 
-	ID             string     `bun:"id,pk"`
-	Name           string     `bun:"name,notnull"`
-	KeyHash        string     `bun:"key_hash,notnull"`
-	DisplayKey     string     `bun:"display_key,notnull"`
-	LastUsed       *time.Time `bun:"last_used"`
-	ExpiresAt      *time.Time `bun:"expires_at"`
-	UsageCount     int64      `bun:"usage_count,notnull,default:0"`
-	MaxUsageCount  *int64     `bun:"max_usage_count"`
-	CreatedAt      time.Time  `bun:"created_at,nullzero,notnull,default:current_timestamp"`
-	UpdatedAt      time.Time  `bun:"updated_at,nullzero,notnull,default:current_timestamp"`
+	ID            string     `bun:"id,pk"`
+	WorkspaceID   string     `bun:"workspace_id,notnull"`
+	Name          string     `bun:"name,notnull"`
+	KeyHash       string     `bun:"key_hash,notnull"`
+	DisplayKey    string     `bun:"display_key,notnull"`
+	LastUsed      *time.Time `bun:"last_used"`
+	ExpiresAt     *time.Time `bun:"expires_at"`
+	UsageCount    int64      `bun:"usage_count,notnull,default:0"`
+	MaxUsageCount *int64     `bun:"max_usage_count"`
+	CreatedAt     time.Time  `bun:"created_at,nullzero,notnull,default:current_timestamp"`
+	UpdatedAt     time.Time  `bun:"updated_at,nullzero,notnull,default:current_timestamp"`
 }
 
 func toDomainModelFromSQL(sm *sqlModel) *Model {
@@ -29,9 +34,10 @@ func toDomainModelFromSQL(sm *sqlModel) *Model {
 	if displayKey == "" {
 		displayKey = ApiKeyPrefix + sm.ID[:6] + "..."
 	}
-	
+
 	return &Model{
 		ID:            sm.ID,
+		WorkspaceID:   workspace.ID(sm.WorkspaceID),
 		Name:          sm.Name,
 		KeyHash:       sm.KeyHash,
 		DisplayKey:    displayKey,
@@ -47,6 +53,7 @@ func toDomainModelFromSQL(sm *sqlModel) *Model {
 func toSQLModel(m *Model) *sqlModel {
 	return &sqlModel{
 		ID:            m.ID,
+		WorkspaceID:   string(m.WorkspaceID),
 		Name:          m.Name,
 		KeyHash:       m.KeyHash,
 		DisplayKey:    m.DisplayKey,
@@ -75,6 +82,7 @@ func (r *SQLRepositoryImpl) Create(ctx context.Context, apiKey *CreateModel) (*A
 
 	sm := &sqlModel{
 		ID:            apiKeyID,
+		WorkspaceID:   string(apiKey.WorkspaceID),
 		Name:          apiKey.Name,
 		KeyHash:       apiKey.KeyHash,
 		DisplayKey:    apiKey.DisplayKey,
@@ -99,11 +107,23 @@ func (r *SQLRepositoryImpl) Create(ctx context.Context, apiKey *CreateModel) (*A
 }
 
 // MARK: FindByID
-func (r *SQLRepositoryImpl) FindByID(ctx context.Context, id string) (*Model, error) {
+func (r *SQLRepositoryImpl) FindByID(ctx context.Context, workspaceID workspace.ID, id string) (*Model, error) {
+	return r.find(ctx, id, &workspaceID)
+}
+
+// MARK: FindByIDAnyWorkspace
+func (r *SQLRepositoryImpl) FindByIDAnyWorkspace(ctx context.Context, id string) (*Model, error) {
+	return r.find(ctx, id, nil)
+}
+
+func (r *SQLRepositoryImpl) find(ctx context.Context, id string, workspaceID *workspace.ID) (*Model, error) {
 	sm := new(sqlModel)
-	err := r.db.NewSelect().Model(sm).Where("id = ?", id).Scan(ctx)
-	if err != nil {
-		if err.Error() == "sql: no rows in result set" {
+	query := r.db.NewSelect().Model(sm).Where("id = ?", id)
+	if workspaceID != nil {
+		query = query.Where("workspace_id = ?", string(*workspaceID))
+	}
+	if err := query.Scan(ctx); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		}
 		return nil, err
@@ -112,9 +132,9 @@ func (r *SQLRepositoryImpl) FindByID(ctx context.Context, id string) (*Model, er
 }
 
 // MARK: FindAll
-func (r *SQLRepositoryImpl) FindAll(ctx context.Context) ([]*Model, error) {
+func (r *SQLRepositoryImpl) FindAll(ctx context.Context, workspaceID workspace.ID) ([]*Model, error) {
 	var sms []*sqlModel
-	err := r.db.NewSelect().Model(&sms).Order("created_at DESC").Scan(ctx)
+	err := r.db.NewSelect().Model(&sms).Where("workspace_id = ?", string(workspaceID)).Order("created_at DESC").Scan(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -127,12 +147,12 @@ func (r *SQLRepositoryImpl) FindAll(ctx context.Context) ([]*Model, error) {
 }
 
 // MARK: Update
-func (r *SQLRepositoryImpl) Update(ctx context.Context, id string, update *UpdateModel) (*Model, error) {
+func (r *SQLRepositoryImpl) Update(ctx context.Context, workspaceID workspace.ID, id string, update *UpdateModel) (*Model, error) {
 	sm := new(sqlModel)
-	
+
 	// Build update query dynamically
-	query := r.db.NewUpdate().Model(sm).Where("id = ?", id)
-	
+	query := r.db.NewUpdate().Model(sm).Where("id = ?", id).Where("workspace_id = ?", string(workspaceID))
+
 	if update.Name != nil {
 		query = query.Set("name = ?", *update.Name)
 	}
@@ -142,31 +162,62 @@ func (r *SQLRepositoryImpl) Update(ctx context.Context, id string, update *Updat
 	if update.MaxUsageCount != nil {
 		query = query.Set("max_usage_count = ?", *update.MaxUsageCount)
 	}
-	
+
 	query = query.Set("updated_at = ?", time.Now())
-	
-	_, err := query.Returning("*").Exec(ctx)
+
+	res, err := query.Returning("*").Exec(ctx)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrNotFound
+		}
 		return nil, err
 	}
-	
+	if err := requireRow(res); err != nil {
+		return nil, err
+	}
+
 	return toDomainModelFromSQL(sm), nil
 }
 
 // MARK: Delete
-func (r *SQLRepositoryImpl) Delete(ctx context.Context, id string) error {
-	_, err := r.db.NewDelete().Model((*sqlModel)(nil)).Where("id = ?", id).Exec(ctx)
-	return err
+func (r *SQLRepositoryImpl) Delete(ctx context.Context, workspaceID workspace.ID, id string) error {
+	res, err := r.db.NewDelete().Model((*sqlModel)(nil)).Where("id = ?", id).Where("workspace_id = ?", string(workspaceID)).Exec(ctx)
+	if err != nil {
+		return err
+	}
+	return requireRow(res)
 }
 
-// MARK: UpdateLastUsed
-func (r *SQLRepositoryImpl) UpdateLastUsed(ctx context.Context, id string) error {
-	_, err := r.db.NewUpdate().Model((*sqlModel)(nil)).
+// requireRow is ErrNotFound when the statement matched no row: the key isn't in the workspace
+func requireRow(res sql.Result) error {
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		return ErrNotFound
+	}
+	return nil
+}
+
+// MARK: ConsumeUsage
+func (r *SQLRepositoryImpl) ConsumeUsage(ctx context.Context, id string) (bool, error) {
+	// One conditional UPDATE checks the limit and counts the use, so concurrent
+	// requests can't both take the last use.
+	res, err := r.db.NewUpdate().Model((*sqlModel)(nil)).
 		Set("last_used = ?", time.Now()).
 		Set("usage_count = usage_count + 1").
 		Where("id = ?", id).
+		Where("(max_usage_count IS NULL OR usage_count < max_usage_count)").
 		Exec(ctx)
-	return err
+	if err != nil {
+		return false, err
+	}
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return false, err
+	}
+	return rows > 0, nil
 }
 
 // MARK: UpdateKeyHash

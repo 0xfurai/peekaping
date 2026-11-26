@@ -33,6 +33,14 @@ func (m *MockRepository) SetByKey(ctx context.Context, key string, entity *Model
 	return args.Get(0).(*Model), args.Error(1)
 }
 
+func (m *MockRepository) CreateIfAbsent(ctx context.Context, key string, entity *Model) (*Model, error) {
+	args := m.Called(ctx, key, entity)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*Model), args.Error(1)
+}
+
 func (m *MockRepository) DeleteByKey(ctx context.Context, key string) error {
 	args := m.Called(ctx, key)
 	return args.Error(0)
@@ -288,12 +296,6 @@ func TestServiceImpl_InitializeSettings(t *testing.T) {
 				repo.On("SetByKey", mock.Anything, shared.RefreshTokenSecretKey, mock.MatchedBy(func(dto *Model) bool {
 					return len(dto.Value) == 64 && dto.Type == "string"
 				})).Return(&Model{Key: shared.RefreshTokenSecretKey, Value: "test_secret", Type: "string"}, nil)
-
-				// cert_expiry_notify_days - not exists
-				repo.On("GetByKey", mock.Anything, "cert_expiry_notify_days").Return(nil, nil)
-				repo.On("SetByKey", mock.Anything, "cert_expiry_notify_days", mock.MatchedBy(func(dto *Model) bool {
-					return dto.Value == "[7,14,21]" && dto.Type == "json"
-				})).Return(&Model{Key: "cert_expiry_notify_days", Value: "[7,14,21]", Type: "json"}, nil)
 			},
 			expectedError: nil,
 		},
@@ -317,12 +319,6 @@ func TestServiceImpl_InitializeSettings(t *testing.T) {
 
 				// refresh token secret key - exists
 				repo.On("GetByKey", mock.Anything, shared.RefreshTokenSecretKey).Return(&Model{Key: shared.RefreshTokenSecretKey, Value: "existing_secret"}, nil)
-
-				// cert_expiry_notify_days - not exists
-				repo.On("GetByKey", mock.Anything, "cert_expiry_notify_days").Return(nil, nil)
-				repo.On("SetByKey", mock.Anything, "cert_expiry_notify_days", mock.MatchedBy(func(dto *Model) bool {
-					return dto.Value == "[7,14,21]" && dto.Type == "json"
-				})).Return(&Model{Key: "cert_expiry_notify_days", Value: "[7,14,21]", Type: "json"}, nil)
 			},
 			expectedError: nil,
 		},

@@ -8,7 +8,7 @@ export const admin = {
 };
 
 // The API base the web app calls. The dev stack serves the API on its own
-// origin (window.__CONFIG__.API_URL); bundle and prod serve it under the web
+// origin (window.__CONFIG__.API_URL); single and cluster mode serve it under the web
 // origin, with API_URL empty.
 export async function apiBaseURL(page: Page): Promise<string> {
   const configured = await page.evaluate(

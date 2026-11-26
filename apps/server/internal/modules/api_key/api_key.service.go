@@ -3,23 +3,45 @@ package api_key
 import (
 	"context"
 	"crypto/rand"
+	"crypto/sha256"
+	"crypto/subtle"
 	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"peekaping/internal/legacyid"
+	"peekaping/internal/modules/workspace"
+	"strings"
 	"time"
 
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 )
 
-// Service defines the interface for API key business logic
+// ErrWorkspaceMismatch is what ValidateKey returns for a key whose request names another workspace
+var ErrWorkspaceMismatch = errors.New("API key belongs to another workspace")
+
+type requestedWorkspaceKey struct{}
+
+// WithRequestedWorkspace tells ValidateKey which workspace the request names with its
+// X-Workspace-ID header, so that it can refuse a key of another workspace before it counts a use
+func WithRequestedWorkspace(ctx context.Context, id string) context.Context {
+	return context.WithValue(ctx, requestedWorkspaceKey{}, id)
+}
+
+// Service defines the interface for API key business logic. Keys belong to a workspace, and only
+// its admins and owners manage them: every method but ValidateKey returns workspace.ErrForbidden
+// to a member, and workspace.ErrNotFound for a context that runs in no workspace or in another
+// one than the workspace argument. A key another workspace holds is ErrNotFound.
 type Service interface {
+	// Create makes a key in the workspace the context runs in
 	Create(ctx context.Context, req *CreateRequest) (*APIKeyWithToken, error)
-	FindAll(ctx context.Context) ([]*Model, error)
-	FindByID(ctx context.Context, id string) (*Model, error)
-	Update(ctx context.Context, id string, req *UpdateRequest) (*Model, error)
-	Delete(ctx context.Context, id string) error
+	FindAll(ctx context.Context, workspaceID workspace.ID) ([]*Model, error)
+	FindByID(ctx context.Context, workspaceID workspace.ID, id string) (*Model, error)
+	Update(ctx context.Context, workspaceID workspace.ID, id string, req *UpdateRequest) (*Model, error)
+	Delete(ctx context.Context, workspaceID workspace.ID, id string) error
+	// ValidateKey checks the key of a request and returns it with its workspace
 	ValidateKey(ctx context.Context, key string) (*Model, error)
 }
 
@@ -50,12 +72,29 @@ func NewService(repo Repository, logger *zap.SugaredLogger) Service {
 	}
 }
 
+// requireAdmin checks that the caller is an admin or owner of the workspace the context runs in,
+// and that the workspace is the one asked for
+func requireAdmin(ctx context.Context, workspaceID workspace.ID) error {
+	if err := workspace.RequireRole(ctx, workspace.RoleAdmin); err != nil {
+		return err
+	}
+	if current, _, _ := workspace.FromContext(ctx); current != workspaceID {
+		return workspace.ErrNotFound
+	}
+	return nil
+}
+
 // MARK: Create
 func (s *ServiceImpl) Create(ctx context.Context, req *CreateRequest) (*APIKeyWithToken, error) {
+	if err := workspace.RequireRole(ctx, workspace.RoleAdmin); err != nil {
+		return nil, err
+	}
+	workspaceID, _, _ := workspace.FromContext(ctx)
 	s.logger.Infow("Creating API key", "name", req.Name)
 
 	// Phase 1: Create record with placeholder values to get database ID
 	createModel := &CreateModel{
+		WorkspaceID:   workspaceID,
 		Name:          req.Name,
 		KeyHash:       "", // Empty initially
 		DisplayKey:    "", // Empty initially
@@ -74,7 +113,7 @@ func (s *ServiceImpl) Create(ctx context.Context, req *CreateRequest) (*APIKeyWi
 	if err != nil {
 		s.logger.Errorw("Failed to generate API key", "apiKeyId", result.ID, "name", req.Name, "error", err)
 		// Cleanup: delete the created record
-		_ = s.repo.Delete(ctx, result.ID)
+		_ = s.repo.Delete(ctx, workspaceID, result.ID)
 		return nil, err
 	}
 
@@ -83,7 +122,7 @@ func (s *ServiceImpl) Create(ctx context.Context, req *CreateRequest) (*APIKeyWi
 	if err != nil {
 		s.logger.Errorw("Failed to update API key hash", "apiKeyId", result.ID, "name", req.Name, "error", err)
 		// Cleanup: delete the created record
-		_ = s.repo.Delete(ctx, result.ID)
+		_ = s.repo.Delete(ctx, workspaceID, result.ID)
 		return nil, err
 	}
 
@@ -97,24 +136,25 @@ func (s *ServiceImpl) Create(ctx context.Context, req *CreateRequest) (*APIKeyWi
 }
 
 // MARK: FindAll
-func (s *ServiceImpl) FindAll(ctx context.Context) ([]*Model, error) {
-	return s.repo.FindAll(ctx)
+func (s *ServiceImpl) FindAll(ctx context.Context, workspaceID workspace.ID) ([]*Model, error) {
+	if err := requireAdmin(ctx, workspaceID); err != nil {
+		return nil, err
+	}
+	return s.repo.FindAll(ctx, workspaceID)
 }
 
 // MARK: FindByID
-func (s *ServiceImpl) FindByID(ctx context.Context, id string) (*Model, error) {
-	return s.repo.FindByID(ctx, id)
+func (s *ServiceImpl) FindByID(ctx context.Context, workspaceID workspace.ID, id string) (*Model, error) {
+	if err := requireAdmin(ctx, workspaceID); err != nil {
+		return nil, err
+	}
+	return s.repo.FindByID(ctx, workspaceID, id)
 }
 
 // MARK: Update
-func (s *ServiceImpl) Update(ctx context.Context, id string, req *UpdateRequest) (*Model, error) {
-	// First, verify the API key exists
-	apiKey, err := s.repo.FindByID(ctx, id)
-	if err != nil {
+func (s *ServiceImpl) Update(ctx context.Context, workspaceID workspace.ID, id string, req *UpdateRequest) (*Model, error) {
+	if err := requireAdmin(ctx, workspaceID); err != nil {
 		return nil, err
-	}
-	if apiKey == nil {
-		return nil, errors.New("API key not found")
 	}
 
 	updateModel := &UpdateModel{
@@ -123,21 +163,15 @@ func (s *ServiceImpl) Update(ctx context.Context, id string, req *UpdateRequest)
 		MaxUsageCount: req.MaxUsageCount,
 	}
 
-	return s.repo.Update(ctx, id, updateModel)
+	return s.repo.Update(ctx, workspaceID, id, updateModel)
 }
 
 // MARK: Delete
-func (s *ServiceImpl) Delete(ctx context.Context, id string) error {
-	// First, verify the API key exists
-	apiKey, err := s.repo.FindByID(ctx, id)
-	if err != nil {
+func (s *ServiceImpl) Delete(ctx context.Context, workspaceID workspace.ID, id string) error {
+	if err := requireAdmin(ctx, workspaceID); err != nil {
 		return err
 	}
-	if apiKey == nil {
-		s.logger.Warnw("API key not found", "id", id)
-	}
-
-	return s.repo.Delete(ctx, id)
+	return s.repo.Delete(ctx, workspaceID, id)
 }
 
 // MARK: ValidateKey
@@ -151,8 +185,8 @@ func (s *ServiceImpl) ValidateKey(ctx context.Context, key string) (*Model, erro
 		return nil, errors.New("invalid API key")
 	}
 
-	// Find the API key by ID (single database query)
-	apiKey, err := s.repo.FindByID(ctx, apiKeyID)
+	// Find the API key by the ID in the token
+	apiKey, err := s.findForToken(ctx, apiKeyID)
 	if err != nil {
 		s.logger.Errorw("Error finding API key by ID", "apiKeyId", apiKeyID, "error", err)
 		return nil, err
@@ -162,35 +196,81 @@ func (s *ServiceImpl) ValidateKey(ctx context.Context, key string) (*Model, erro
 		return nil, errors.New("invalid API key")
 	}
 
-	// Check if the key has expired
-	if apiKey.ExpiresAt != nil && apiKey.ExpiresAt.Before(time.Now()) {
-		s.logger.Warnw("API key has expired", "apiKeyId", apiKey.ID, "expiresAt", apiKey.ExpiresAt)
-		return nil, errors.New("API key has expired")
+	if err := s.checkKey(ctx, apiKey, apiKeyID, actualKey); err != nil {
+		return nil, err
 	}
 
-	// Check if the key has exceeded max usage count
-	if apiKey.MaxUsageCount != nil && apiKey.UsageCount >= *apiKey.MaxUsageCount {
-		s.logger.Warnw("API key usage limit exceeded", "apiKeyId", apiKey.ID, "usageCount", apiKey.UsageCount, "maxUsageCount", *apiKey.MaxUsageCount)
-		return nil, errors.New("API key usage limit exceeded")
-	}
-
-	// Verify the actual key against the stored bcrypt hash
-	err = bcrypt.CompareHashAndPassword([]byte(apiKey.KeyHash), []byte(actualKey))
-	if err != nil {
-		s.logger.Warnw("API key verification failed", "apiKeyId", apiKeyID)
-		return nil, errors.New("invalid API key")
-	}
-
-	// Update last used timestamp and usage count
-	err = s.repo.UpdateLastUsed(ctx, apiKey.ID)
-	if err != nil {
-		// Log error but don't fail the validation
-		// This is a non-critical operation
-		s.logger.Errorw("Error updating last used timestamp and usage count", "apiKeyId", apiKey.ID, "error", err)
+	if err := s.consumeUse(ctx, apiKey); err != nil {
+		return nil, err
 	}
 
 	s.logger.Infow("API key validation successful", "apiKeyId", apiKey.ID, "name", apiKey.Name)
 	return apiKey, nil
+}
+
+// checkKey refuses a key that has expired, whose secret does not match, or whose request names
+// another workspace, in that order
+func (s *ServiceImpl) checkKey(ctx context.Context, apiKey *Model, apiKeyID, actualKey string) error {
+	// Check if the key has expired
+	if apiKey.ExpiresAt != nil && apiKey.ExpiresAt.Before(time.Now()) {
+		s.logger.Warnw("API key has expired", "apiKeyId", apiKey.ID, "expiresAt", apiKey.ExpiresAt)
+		return errors.New("API key has expired")
+	}
+
+	// Verify the actual key against the stored hash
+	if !s.verifyKeyHash(ctx, apiKey, actualKey) {
+		s.logger.Warnw("API key verification failed", "apiKeyId", apiKeyID)
+		return errors.New("invalid API key")
+	}
+
+	// A request that names another workspace is refused before the key is counted: it is not a use
+	if named, ok := ctx.Value(requestedWorkspaceKey{}).(string); ok && !strings.EqualFold(named, string(apiKey.WorkspaceID)) {
+		s.logger.Warnw("API key used with the header of another workspace", "apiKeyId", apiKey.ID)
+		return ErrWorkspaceMismatch
+	}
+	return nil
+}
+
+// consumeUse counts one use of the key, and refuses it when it has used up its limit
+func (s *ServiceImpl) consumeUse(ctx context.Context, apiKey *Model) error {
+	// Check the usage limit and count the use in one step, so that concurrent
+	// requests can't go past the limit
+	consumed, err := s.repo.ConsumeUsage(ctx, apiKey.ID)
+	if err != nil {
+		s.logger.Errorw("Error updating last used timestamp and usage count", "apiKeyId", apiKey.ID, "error", err)
+		if apiKey.MaxUsageCount != nil {
+			// Without the count, the limit can't be enforced
+			return err
+		}
+		// Without a limit, the count is non-critical: don't fail the validation
+	} else if !consumed {
+		s.logger.Warnw("API key usage limit exceeded", "apiKeyId", apiKey.ID, "maxUsageCount", apiKey.MaxUsageCount)
+		return errors.New("API key usage limit exceeded")
+	}
+	return nil
+}
+
+// MARK: findForToken
+// findForToken finds the key that a token's ID names. A MongoDB install that
+// was imported into SQL ("bun db import-mongo") keeps its tokens, which carry
+// the key's ObjectID, while the key's row has the UUID that ObjectID maps to.
+// So a 24-hex ID that finds nothing is looked up again under its UUID. Only a
+// token can name an ObjectID here, so the retry is limited to this lookup.
+func (s *ServiceImpl) findForToken(ctx context.Context, id string) (*Model, error) {
+	apiKey, err := s.repo.FindByIDAnyWorkspace(ctx, id)
+	if err == nil && apiKey != nil {
+		return apiKey, nil
+	}
+	// The first lookup may have failed instead of finding nothing: PostgreSQL
+	// rejects an ObjectID as a UUID.
+	mapped, ok := legacyid.FromObjectID(id)
+	if !ok {
+		return apiKey, err
+	}
+	if found, mappedErr := s.repo.FindByIDAnyWorkspace(ctx, mapped); mappedErr == nil && found != nil {
+		return found, nil
+	}
+	return apiKey, err
 }
 
 // MARK: generateAPIKey
@@ -211,11 +291,7 @@ func (s *ServiceImpl) generateAPIKey(apiKeyID string) (string, string, string, e
 	s.logger.Debugw("Generated actual key", "apiKeyId", apiKeyID, "keyLength", len(actualKey))
 
 	// Hash the key for storage
-	keyHash, err := s.hashAPIKey(actualKey)
-	if err != nil {
-		s.logger.Errorw("Failed to hash API key", "apiKeyId", apiKeyID, "error", err)
-		return "", "", "", fmt.Errorf("error hashing API key: %v", err)
-	}
+	keyHash := hashAPIKey(actualKey)
 
 	// Create the payload to encode in the token
 	payload := map[string]string{
@@ -283,11 +359,33 @@ func (s *ServiceImpl) parseAPIKeyToken(token string) (string, string, error) {
 }
 
 // MARK: hashAPIKey
-// hashAPIKey hashes an API key using bcrypt
-func (s *ServiceImpl) hashAPIKey(key string) (string, error) {
-	hash, err := bcrypt.GenerateFromPassword([]byte(key), bcrypt.DefaultCost)
-	if err != nil {
-		return "", err
+// hashAPIKey hashes an API key with SHA-256, as "sha256$" and the hex digest. The
+// key is 32 random bytes, so it needs no slow hash, and a fast one keeps the check
+// on every request cheap.
+func hashAPIKey(key string) string {
+	sum := sha256.Sum256([]byte(key))
+	return KeyHashPrefix + hex.EncodeToString(sum[:])
+}
+
+// MARK: verifyKeyHash
+// verifyKeyHash reports whether key matches the hash stored for apiKey. A key
+// created before SHA-256 was used is stored as a bcrypt hash, which starts with
+// "$2": it is checked with bcrypt once, and its stored hash is replaced by a
+// SHA-256 hash.
+func (s *ServiceImpl) verifyKeyHash(ctx context.Context, apiKey *Model, key string) bool {
+	switch {
+	case strings.HasPrefix(apiKey.KeyHash, KeyHashPrefix):
+		return subtle.ConstantTimeCompare([]byte(apiKey.KeyHash), []byte(hashAPIKey(key))) == 1
+	case strings.HasPrefix(apiKey.KeyHash, "$2"):
+		if bcrypt.CompareHashAndPassword([]byte(apiKey.KeyHash), []byte(key)) != nil {
+			return false
+		}
+		if err := s.repo.UpdateKeyHash(ctx, apiKey.ID, hashAPIKey(key), apiKey.DisplayKey); err != nil {
+			// Log error but don't fail the validation: the next use tries again
+			s.logger.Errorw("Error replacing the bcrypt hash of an API key", "apiKeyId", apiKey.ID, "error", err)
+		}
+		return true
+	default:
+		return false
 	}
-	return string(hash), nil
 }

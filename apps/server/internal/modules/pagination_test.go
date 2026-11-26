@@ -2,7 +2,6 @@ package modules_test
 
 import (
 	"context"
-	"github.com/danielgtaylor/huma/v2"
 	"net/http"
 	"net/http/httptest"
 	"peekaping/internal/httpx"
@@ -13,7 +12,11 @@ import (
 	"peekaping/internal/modules/proxy"
 	"peekaping/internal/modules/status_page"
 	"peekaping/internal/modules/tag"
+	"peekaping/internal/modules/workspace"
+	"peekaping/internal/modules/workspace/workspacetest"
 	"testing"
+
+	"github.com/danielgtaylor/huma/v2"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -37,7 +40,7 @@ type tagPaginationService struct {
 	*paginationCall
 }
 
-func (s *tagPaginationService) FindAll(_ context.Context, page, limit int, _ string) ([]*tag.Model, error) {
+func (s *tagPaginationService) FindAll(_ context.Context, _ workspace.ID, page, limit int, _ string) ([]*tag.Model, error) {
 	s.record(page, limit)
 	return nil, nil
 }
@@ -47,7 +50,7 @@ type proxyPaginationService struct {
 	*paginationCall
 }
 
-func (s *proxyPaginationService) FindAll(_ context.Context, page, limit int, _ string) ([]*proxy.Model, error) {
+func (s *proxyPaginationService) FindAll(_ context.Context, _ workspace.ID, page, limit int, _ string) ([]*proxy.Model, error) {
 	s.record(page, limit)
 	return nil, nil
 }
@@ -57,7 +60,7 @@ type notificationPaginationService struct {
 	*paginationCall
 }
 
-func (s *notificationPaginationService) FindAll(_ context.Context, page, limit int, _ string) ([]*notification_channel.Model, error) {
+func (s *notificationPaginationService) FindAll(_ context.Context, _ workspace.ID, page, limit int, _ string) ([]*notification_channel.Model, error) {
 	s.record(page, limit)
 	return nil, nil
 }
@@ -67,7 +70,7 @@ type maintenancePaginationService struct {
 	*paginationCall
 }
 
-func (s *maintenancePaginationService) FindAll(_ context.Context, page, limit int, _, _ string) ([]*maintenance.Model, error) {
+func (s *maintenancePaginationService) FindAll(_ context.Context, _ workspace.ID, page, limit int, _, _ string) ([]*maintenance.Model, error) {
 	s.record(page, limit)
 	return nil, nil
 }
@@ -77,7 +80,7 @@ type statusPagePaginationService struct {
 	*paginationCall
 }
 
-func (s *statusPagePaginationService) FindAll(_ context.Context, page, limit int, _ string) ([]*status_page.Model, error) {
+func (s *statusPagePaginationService) FindAll(_ context.Context, _ workspace.ID, page, limit int, _ string) ([]*status_page.Model, error) {
 	s.record(page, limit)
 	return nil, nil
 }
@@ -87,16 +90,16 @@ type monitorPaginationService struct {
 	*paginationCall
 }
 
-func (s *monitorPaginationService) FindAll(_ context.Context, page, limit int, _ string, _ *bool, _ *int, _ []string) ([]*monitor.Model, error) {
+func (s *monitorPaginationService) FindAll(_ context.Context, _ workspace.ID, page, limit int, _ string, _ *bool, _ *int, _ []string) ([]*monitor.Model, error) {
 	s.record(page, limit)
 	return nil, nil
 }
 
-func (s *monitorPaginationService) FindByID(_ context.Context, id string) (*monitor.Model, error) {
+func (s *monitorPaginationService) FindByID(_ context.Context, _ workspace.ID, id string) (*monitor.Model, error) {
 	return &monitor.Model{ID: id}, nil
 }
 
-func (s *monitorPaginationService) GetHeartbeats(_ context.Context, _ string, limit, page int, _ *bool, _ bool) ([]*heartbeat.Model, error) {
+func (s *monitorPaginationService) GetHeartbeats(_ context.Context, _ workspace.ID, _, _ string, limit, page int, _ *bool, _ bool) ([]*heartbeat.Model, error) {
 	s.record(page, limit)
 	return nil, nil
 }
@@ -116,7 +119,7 @@ func TestListEndpointsPagination(t *testing.T) {
 			httpx.Register(router, "GET", "/", huma.Operation{Errors: []int{400, 500}}, proxy.NewController(&proxyPaginationService{paginationCall: call}, logger).FindAll)
 		}},
 		{"notification-channels", 10, func(router *httpx.Router, call *paginationCall) {
-			httpx.Register(router, "GET", "/", huma.Operation{Errors: []int{400, 500}}, notification_channel.NewController(&notificationPaginationService{paginationCall: call}, logger).FindAll)
+			httpx.Register(router, "GET", "/", huma.Operation{Errors: []int{400, 500}}, notification_channel.NewController(&notificationPaginationService{paginationCall: call}, nil, logger).FindAll)
 		}},
 		{"maintenances", 10, func(router *httpx.Router, call *paginationCall) {
 			httpx.Register(router, "GET", "/", huma.Operation{Errors: []int{400, 500}}, maintenance.NewController(&maintenancePaginationService{paginationCall: call}, logger).FindAll)
@@ -161,7 +164,10 @@ func TestListEndpointsPagination(t *testing.T) {
 					router := httpx.NewRouter()
 					endpoint.register(router, call)
 					response := httptest.NewRecorder()
-					router.ServeHTTP(response, httptest.NewRequest(http.MethodGet, "/"+tc.query, nil))
+					request := httptest.NewRequest(http.MethodGet, "/"+tc.query, nil)
+					// the requests of a workspace's routes run in one
+					request = request.WithContext(workspace.WithContext(request.Context(), workspacetest.ID, workspace.RoleAdmin))
+					router.ServeHTTP(response, request)
 					require.Equal(t, tc.status, response.Code, response.Body.String())
 					if tc.status == http.StatusBadRequest {
 						assert.Zero(t, call.calls, "invalid pagination must not reach the service")

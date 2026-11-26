@@ -1,0 +1,26 @@
+POST https://mattermost.example.com/hooks/abc
+Content-Type: application/json
+User-Agent: Peekaping-Mattermost/<version>
+
+{
+  "attachments": [
+    {
+      "color": "#FF0000",
+      "fallback": "Your Public API service went down",
+      "fields": [
+        {
+          "short": false,
+          "title": "Error",
+          "value": "connection refused"
+        },
+        {
+          "short": true,
+          "title": "Time",
+          "value": "2026-10-17 09:30:00"
+        }
+      ],
+      "title": "Public API service went down"
+    }
+  ],
+  "username": "Public API Peekaping"
+}

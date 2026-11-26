@@ -1,0 +1,9 @@
+POST https://api.pushbullet.com/v2/pushes
+Access-Token: o.pushbullet
+Content-Type: application/json
+
+{
+  "body": "Planned work\n\nMonitor: Public API\nStatus: MAINTENANCE\nTime: 2026-10-17 09:30:00 UTC",
+  "title": "[PeekaPing] Public API is MAINTENANCE",
+  "type": "note"
+}

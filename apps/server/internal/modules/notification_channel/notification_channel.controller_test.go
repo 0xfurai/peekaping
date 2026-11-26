@@ -3,12 +3,15 @@ package notification_channel
 import (
 	"context"
 	"errors"
-	"github.com/danielgtaylor/huma/v2"
 	"net/http"
 	"net/http/httptest"
 	"peekaping/internal/httpx"
+	"peekaping/internal/modules/notification_channel/providers"
+	"peekaping/internal/modules/workspace"
 	"strings"
 	"testing"
+
+	"github.com/danielgtaylor/huma/v2"
 
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
@@ -23,6 +26,11 @@ func (p validatingProvider) Validate(string) error {
 	return p.err
 }
 
+func (validatingProvider) Unmarshal(string) (any, error) { return nil, nil }
+
+// testWorkspace is the workspace the tests' requests run in
+const testWorkspace = workspace.ID("0d6f1e0e-6b1c-4d49-8c37-0b5f4a1b3a01")
+
 type updateRecordingService struct {
 	Service
 	saved   *Model
@@ -30,27 +38,26 @@ type updateRecordingService struct {
 	patch   *PartialUpdateDto
 }
 
-func (s *updateRecordingService) FindByID(_ context.Context, _ string) (*Model, error) {
+func (s *updateRecordingService) FindByID(_ context.Context, _ workspace.ID, _ string) (*Model, error) {
 	return s.saved, nil
 }
 
-func (s *updateRecordingService) UpdateFull(_ context.Context, _ string, _ *CreateUpdateDto) (*Model, error) {
+func (s *updateRecordingService) UpdateFull(_ context.Context, _ workspace.ID, _ string, _ *CreateUpdateDto) (*Model, error) {
 	s.updated = true
 	return &Model{}, nil
 }
 
-func (s *updateRecordingService) UpdatePartial(_ context.Context, _ string, dto *PartialUpdateDto) (*Model, error) {
+func (s *updateRecordingService) UpdatePartial(_ context.Context, _ workspace.ID, _ string, dto *PartialUpdateDto) (*Model, error) {
 	s.updated = true
 	s.patch = dto
 	return &Model{}, nil
 }
 
 func TestControllerUpdateValidatesConfig(t *testing.T) {
-
-	RegisterNotificationChannelProvider("test-valid", validatingProvider{})
-	RegisterNotificationChannelProvider("test-rejecting", validatingProvider{err: errors.New("bad config")})
-	defer delete(NotificationChannelProviderRegistry, "test-valid")
-	defer delete(NotificationChannelProviderRegistry, "test-rejecting")
+	providers := newTestRegistry(map[string]NotificationChannelProvider{
+		"test-valid":     validatingProvider{},
+		"test-rejecting": validatingProvider{err: errors.New("bad config")},
+	})
 
 	cases := []struct {
 		name         string
@@ -68,13 +75,14 @@ func TestControllerUpdateValidatesConfig(t *testing.T) {
 		for _, tc := range cases {
 			t.Run(method+" "+tc.name, func(t *testing.T) {
 				service := &updateRecordingService{saved: &Model{Type: "test-valid", Config: stringPtr("{}")}}
-				controller := NewController(service, zap.NewNop().Sugar())
+				controller := NewController(service, providers, zap.NewNop().Sugar())
 				router := httpx.NewRouter()
 				httpx.Register(router, "PUT", "/{id}", huma.Operation{Errors: []int{400, 404, 500}}, controller.UpdateFull)
 				httpx.Register(router, "PATCH", "/{id}", huma.Operation{Errors: []int{400, 404, 500}}, controller.UpdatePartial)
 
 				body := `{"name": "Alerts", "type": "` + tc.channelType + `", "config": "{}"}`
 				req := httptest.NewRequest(method, "/channel-1", strings.NewReader(body))
+				req = req.WithContext(workspace.WithContext(req.Context(), testWorkspace, workspace.RoleAdmin))
 				req.Header.Set("Content-Type", "application/json")
 				rec := httptest.NewRecorder()
 				router.ServeHTTP(rec, req)
@@ -88,11 +96,10 @@ func TestControllerUpdateValidatesConfig(t *testing.T) {
 }
 
 func TestControllerUpdatePartialMergesSavedChannel(t *testing.T) {
-
-	RegisterNotificationChannelProvider("test-valid", validatingProvider{})
-	RegisterNotificationChannelProvider("test-rejecting", validatingProvider{err: errors.New("bad config")})
-	defer delete(NotificationChannelProviderRegistry, "test-valid")
-	defer delete(NotificationChannelProviderRegistry, "test-rejecting")
+	providers := newTestRegistry(map[string]NotificationChannelProvider{
+		"test-valid":     validatingProvider{},
+		"test-rejecting": validatingProvider{err: errors.New("bad config")},
+	})
 
 	cases := []struct {
 		name         string
@@ -115,9 +122,11 @@ func TestControllerUpdatePartialMergesSavedChannel(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			service := &updateRecordingService{saved: tc.saved}
 			router := httpx.NewRouter()
-			httpx.Register(router, "PATCH", "/{id}", huma.Operation{Errors: []int{400, 404, 500}}, NewController(service, zap.NewNop().Sugar()).UpdatePartial)
+			httpx.Register(router, "PATCH", "/{id}", huma.Operation{Errors: []int{400, 404, 500}}, NewController(service, providers, zap.NewNop().Sugar()).UpdatePartial)
 
 			req := httptest.NewRequest(http.MethodPatch, "/channel-1", strings.NewReader(tc.body))
+
+			req = req.WithContext(workspace.WithContext(req.Context(), testWorkspace, workspace.RoleAdmin))
 			req.Header.Set("Content-Type", "application/json")
 			rec := httptest.NewRecorder()
 			router.ServeHTTP(rec, req)
@@ -131,9 +140,11 @@ func TestControllerUpdatePartialMergesSavedChannel(t *testing.T) {
 	t.Run("omitted fields reach the service as nil", func(t *testing.T) {
 		service := &updateRecordingService{saved: &Model{Type: "test-valid", Config: stringPtr("{}")}}
 		router := httpx.NewRouter()
-		httpx.Register(router, "PATCH", "/{id}", huma.Operation{Errors: []int{400, 404, 500}}, NewController(service, zap.NewNop().Sugar()).UpdatePartial)
+		httpx.Register(router, "PATCH", "/{id}", huma.Operation{Errors: []int{400, 404, 500}}, NewController(service, providers, zap.NewNop().Sugar()).UpdatePartial)
 
 		req := httptest.NewRequest(http.MethodPatch, "/channel-1", strings.NewReader(`{"name": "Renamed"}`))
+
+		req = req.WithContext(workspace.WithContext(req.Context(), testWorkspace, workspace.RoleAdmin))
 		req.Header.Set("Content-Type", "application/json")
 		router.ServeHTTP(httptest.NewRecorder(), req)
 
@@ -145,23 +156,74 @@ func TestControllerUpdatePartialMergesSavedChannel(t *testing.T) {
 			assert.Nil(t, service.patch.Config)
 		}
 	})
+
+	t.Run("active only reaches the service alone", func(t *testing.T) {
+		service := &updateRecordingService{saved: &Model{Type: "test-valid", Config: stringPtr("{}")}}
+		router := httpx.NewRouter()
+		httpx.Register(router, "PATCH", "/{id}", huma.Operation{Errors: []int{400, 404, 500}}, NewController(service, providers, zap.NewNop().Sugar()).UpdatePartial)
+
+		req := httptest.NewRequest(http.MethodPatch, "/channel-1", strings.NewReader(`{"active": false}`))
+
+		req = req.WithContext(workspace.WithContext(req.Context(), testWorkspace, workspace.RoleAdmin))
+		req.Header.Set("Content-Type", "application/json")
+		rec := httptest.NewRecorder()
+		router.ServeHTTP(rec, req)
+
+		assert.Equal(t, http.StatusOK, rec.Code)
+		if assert.NotNil(t, service.patch) && assert.NotNil(t, service.patch.Active, "active: false is a value, not an omitted field") {
+			assert.False(t, *service.patch.Active)
+		}
+		if assert.NotNil(t, service.patch) {
+			assert.Nil(t, service.patch.Name)
+			assert.Nil(t, service.patch.Type)
+			assert.Nil(t, service.patch.IsDefault)
+			assert.Nil(t, service.patch.Config)
+		}
+	})
 }
 
 func TestControllerTestSendsWithADeadline(t *testing.T) {
-
 	var hasDeadline bool
-	registerTestProvider(t, "test-valid", &recordingProvider{send: func(ctx context.Context) error {
-		_, hasDeadline = ctx.Deadline()
-		return nil
-	}})
+	providers := newTestRegistry(map[string]NotificationChannelProvider{
+		"test-valid": &recordingProvider{send: func(ctx context.Context) error {
+			_, hasDeadline = ctx.Deadline()
+			return nil
+		}},
+	})
 	router := httpx.NewRouter()
-	httpx.Register(router, "POST", "/test", huma.Operation{Errors: []int{400, 404, 500}}, NewController(nil, zap.NewNop().Sugar()).Test)
+	httpx.Register(router, "POST", "/test", huma.Operation{Errors: []int{400, 404, 500}}, NewController(nil, providers, zap.NewNop().Sugar()).Test)
 
 	req := httptest.NewRequest(http.MethodPost, "/test", strings.NewReader(`{"name": "Alerts", "type": "test-valid", "config": "{}"}`))
+
+	req = req.WithContext(workspace.WithContext(req.Context(), testWorkspace, workspace.RoleAdmin))
 	req.Header.Set("Content-Type", "application/json")
 	rec := httptest.NewRecorder()
 	router.ServeHTTP(rec, req)
 
 	assert.Equal(t, http.StatusOK, rec.Code)
 	assert.True(t, hasDeadline, "a test notification must stop at a deadline, like any other send")
+}
+
+func TestControllerTestKeepsTheTelegramTokenOutOfAFailedSend(t *testing.T) {
+	// A closed server refuses the connection, so the send fails with a *url.Error
+	// that carries the request URL, and the Telegram bot token is part of that URL
+	server := httptest.NewServer(http.NotFoundHandler())
+	server.Close()
+	registry := newTestRegistry(map[string]NotificationChannelProvider{
+		"telegram": providers.NewTelegramSender(zap.NewNop().Sugar(), providers.NewHTTPClient()),
+	})
+	router := httpx.NewRouter()
+	httpx.Register(router, "POST", "/test", huma.Operation{Errors: []int{400, 404, 500}}, NewController(nil, registry, zap.NewNop().Sugar()).Test)
+
+	const botToken = "123456:secret-bot-token"
+	body := `{"name": "Alerts", "type": "telegram", "config": "{\"bot_token\": \"` + botToken + `\", \"chat_id\": \"42\", \"server_url\": \"` + server.URL + `\"}"}`
+	req := httptest.NewRequest(http.MethodPost, "/test", strings.NewReader(body))
+	req = req.WithContext(workspace.WithContext(req.Context(), testWorkspace, workspace.RoleAdmin))
+	req.Header.Set("Content-Type", "application/json")
+	rec := httptest.NewRecorder()
+	router.ServeHTTP(rec, req)
+
+	assert.Equal(t, http.StatusInternalServerError, rec.Code)
+	assert.Contains(t, rec.Body.String(), "Failed to send test notification")
+	assert.NotContains(t, rec.Body.String(), botToken)
 }

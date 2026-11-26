@@ -16,34 +16,34 @@ import { toast } from "sonner";
 import { useMutation } from "@tanstack/react-query";
 import { TypographyH4 } from "@/components/ui/typography";
 import { commonMutationErrorHandler } from "@/lib/utils";
+import { createNewPasswordSchema } from "@/lib/password";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
-const passwordSchema = z
-  .object({
-    currentPassword: z.string().min(1, { message: "Old password is required" }),
-    newPassword: z
-      .string()
-      .min(8, { message: "New password must be at least 8 characters" }),
-    confirmPassword: z
-      .string()
-      .min(1, { message: "Please confirm new password" }),
-  })
-  .refine((data) => data.newPassword === data.confirmPassword, {
-    message: "Passwords do not match",
-    path: ["confirmPassword"],
-  });
+const createUpdatePasswordSchema = (t: (key: string) => string) =>
+  z
+    .object({
+      currentPassword: z.string().min(1, { message: "Old password is required" }),
+      newPassword: createNewPasswordSchema(t),
+      confirmPassword: z
+        .string()
+        .min(1, { message: "Please confirm new password" }),
+    })
+    .refine((data) => data.newPassword === data.confirmPassword, {
+      message: "Passwords do not match",
+      path: ["confirmPassword"],
+    });
 
-type PasswordFormType = z.infer<typeof passwordSchema>;
+type UpdatePasswordFormValues = z.infer<ReturnType<typeof createUpdatePasswordSchema>>;
 
 const UpdatePassword = () => {
   const { t } = useLocalizedTranslation();
-  const form = useForm<PasswordFormType>({
+  const form = useForm<UpdatePasswordFormValues>({
     defaultValues: {
       currentPassword: "",
       newPassword: "",
       confirmPassword: "",
     },
-    resolver: zodResolver(passwordSchema),
+    resolver: zodResolver(createUpdatePasswordSchema(t)),
   });
 
   const updatePasswordMutation = useMutation({
@@ -55,7 +55,7 @@ const UpdatePassword = () => {
     onError: commonMutationErrorHandler(t("security.update_password.messages.failed_to_update_password")),
   });
 
-  const onSubmit = (data: PasswordFormType) => {
+  const onSubmit = (data: UpdatePasswordFormValues) => {
     updatePasswordMutation.mutate({
       body: {
         currentPassword: data.currentPassword,

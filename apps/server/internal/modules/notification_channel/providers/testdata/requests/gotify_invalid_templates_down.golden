@@ -1,0 +1,9 @@
+POST https://gotify.example.com/message?token=app-token
+Content-Type: application/json
+User-Agent: Peekaping-Gotify/<version>
+
+{
+  "message": "{{ msg | nofilter }}",
+  "priority": 8,
+  "title": "{{ name | nofilter }}"
+}

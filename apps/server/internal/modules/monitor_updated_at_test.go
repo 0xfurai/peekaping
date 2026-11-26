@@ -5,12 +5,12 @@ import (
 	"database/sql"
 	"os"
 	"path/filepath"
+	"peekaping/internal/modules/workspace/workspacetest"
 	"strings"
 	"testing"
 	"time"
 
 	"peekaping/cmd/bun/migrations"
-	"peekaping/internal/config"
 	"peekaping/internal/modules/monitor"
 
 	"github.com/google/uuid"
@@ -22,9 +22,6 @@ import (
 	"github.com/uptrace/bun/driver/pgdriver"
 	"github.com/uptrace/bun/driver/sqliteshim"
 	"github.com/uptrace/bun/migrate"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 // The stale-monitor watchdog counts a resumed monitor as checked at the moment it was
@@ -32,16 +29,16 @@ import (
 func TestMonitorPartialUpdateMovesUpdatedAt(t *testing.T) {
 	exercise := func(t *testing.T, repo monitor.MonitorRepository) {
 		ctx := context.Background()
-		created, err := repo.Create(ctx, &monitor.Model{Type: "http", Name: "Monitor", Interval: 60, Timeout: 10, Active: true, Config: "{}"})
+		created, err := repo.Create(ctx, workspacetest.ID, &monitor.Model{Type: "http", Name: "Monitor", Interval: 60, Timeout: 10, Active: true, Config: "{}"})
 		require.NoError(t, err)
-		before, err := repo.FindByID(ctx, created.ID)
+		before, err := repo.FindByID(ctx, workspacetest.ID, created.ID)
 		require.NoError(t, err)
 
 		time.Sleep(50 * time.Millisecond)
 		active := true
-		require.NoError(t, repo.UpdatePartial(ctx, created.ID, &monitor.UpdateModel{Active: &active}))
+		require.NoError(t, repo.UpdatePartial(ctx, workspacetest.ID, created.ID, &monitor.UpdateModel{Active: &active}))
 
-		after, err := repo.FindByID(ctx, created.ID)
+		after, err := repo.FindByID(ctx, workspacetest.ID, created.ID)
 		require.NoError(t, err)
 		assert.True(t, after.UpdatedAt.After(before.UpdatedAt), "updated_at %v should move past %v", after.UpdatedAt, before.UpdatedAt)
 	}
@@ -52,6 +49,7 @@ func TestMonitorPartialUpdateMovesUpdatedAt(t *testing.T) {
 		require.NoError(t, migrator.Init(context.Background()))
 		_, err := migrator.Migrate(context.Background())
 		require.NoError(t, err)
+		workspacetest.OldestOrAdd(t, db)
 		return monitor.NewSQLRepository(db)
 	}
 
@@ -76,22 +74,5 @@ func TestMonitorPartialUpdateMovesUpdatedAt(t *testing.T) {
 		})
 		connector := pgdriver.NewConnector(pgdriver.WithDSN(dsn), pgdriver.WithConnParams(map[string]any{"search_path": schema}))
 		exercise(t, sqlRepo(t, bun.NewDB(sql.OpenDB(connector), pgdialect.New())))
-	})
-	t.Run("Mongo", func(t *testing.T) {
-		uri := os.Getenv("PEE_TEST_MONGO_URI")
-		if uri == "" {
-			t.Skip("set PEE_TEST_MONGO_URI to run MongoDB integration checks")
-		}
-		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-		defer cancel()
-		client, err := mongo.Connect(ctx, options.Client().ApplyURI(uri))
-		require.NoError(t, err)
-		require.NoError(t, client.Ping(ctx, nil))
-		cfg := &config.Config{DBName: "pp16_" + primitive.NewObjectID().Hex()}
-		t.Cleanup(func() {
-			require.NoError(t, client.Database(cfg.DBName).Drop(context.Background()))
-			require.NoError(t, client.Disconnect(context.Background()))
-		})
-		exercise(t, monitor.NewMongoRepository(client, cfg))
 	})
 }

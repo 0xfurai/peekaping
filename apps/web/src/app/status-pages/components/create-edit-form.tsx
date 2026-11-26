@@ -24,13 +24,21 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   getStatusPagesInfiniteQueryKey,
   getStatusPagesByIdQueryKey,
+  getStatusPagesDomainsByIdQueryKey,
   postStatusPagesMutation,
   patchStatusPagesByIdMutation,
 } from "@/api/@tanstack/react-query.gen";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { commonMutationErrorHandler } from "@/lib/utils";
+import { showLimitReached } from "@/lib/limit-errors";
 import type { AxiosError } from "axios";
+import { useWorkspacePath } from "@/hooks/useWorkspacePath";
+import { useVerifyCustomDomains } from "@/hooks/useVerifyCustomDomains";
+
+// DNS, ports 80 and 443 and the Caddyfiles that give each custom domain a certificate
+const DOMAINS_DOCS_URL =
+  "https://docs.peekaping.com/self-hosting/docker-with-sqlite#custom-domains-and-https";
 
 const statusPageSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -46,6 +54,7 @@ const statusPageSchema = z.object({
   footer_text: z.string().optional(),
   auto_refresh_interval: z.number().min(0).optional(),
   published: z.boolean(),
+  show_locations: z.boolean(),
   monitors: z
     .array(
       z.object({
@@ -57,14 +66,19 @@ const statusPageSchema = z.object({
   domains: z.array(z.string()).optional(),
 });
 
-export type StatusPageForm = z.infer<typeof statusPageSchema>;
+export type StatusPageFormValues = z.infer<typeof statusPageSchema>;
 
 type DomainAlreadyUsedError = {
   code: "DOMAIN_EXISTS";
   domain: string;
 };
 
-const formDefaultValues: StatusPageForm = {
+type SlugAlreadyUsedError = {
+  code: "SLUG_EXISTS";
+  slug: string;
+};
+
+const statusPageDefaultValues: StatusPageFormValues = {
   title: "",
   slug: "",
   description: "",
@@ -72,6 +86,7 @@ const formDefaultValues: StatusPageForm = {
   footer_text: "",
   auto_refresh_interval: 300,
   published: true,
+  show_locations: false,
   monitors: [],
   domains: [],
 };
@@ -81,24 +96,27 @@ const CreateEditForm = ({
   mode = "create",
   id,
 }: {
-  initialValues?: StatusPageForm;
+  initialValues?: StatusPageFormValues;
   mode?: "create" | "edit";
   id?: string;
 }) => {
   const { t } = useLocalizedTranslation();
   const navigate = useNavigate();
+  const workspacePath = useWorkspacePath();
   const queryClient = useQueryClient();
+  const verifyDomains = useVerifyCustomDomains();
   const [domainToHighlight, setDomainToHighlight] = useState<string | undefined>(undefined);
 
-  const form = useForm<StatusPageForm>({
-    defaultValues: initialValues || formDefaultValues,
+  const form = useForm<StatusPageFormValues>({
+    defaultValues: initialValues || statusPageDefaultValues,
     resolver: zodResolver(statusPageSchema),
   });
 
-  const handleMutationError = (error: AxiosError<{error: DomainAlreadyUsedError}>) => {
+  const handleMutationError = (error: AxiosError<{error: DomainAlreadyUsedError | SlugAlreadyUsedError}>) => {
     // Fallback toast
     const fallbackMessage = mode === "create" ? "Failed to create status page" : "Failed to update status page";
-    commonMutationErrorHandler(fallbackMessage)(error);
+    // Too many status pages, or custom domains across them
+    showLimitReached(t, commonMutationErrorHandler(fallbackMessage))(error);
     
     // Handle structured error response
     const errorData = error.response?.data?.error;
@@ -112,6 +130,10 @@ const CreateEditForm = ({
         setDomainToHighlight(errorData.domain);
       }
     }
+
+    if (errorData?.code === "SLUG_EXISTS") {
+      form.setError("slug", { message: t("status_pages.slug_already_used") });
+    }
   };
 
   const createStatusPageMutation = useMutation({
@@ -121,7 +143,7 @@ const CreateEditForm = ({
       queryClient.invalidateQueries({
         queryKey: getStatusPagesInfiniteQueryKey(),
       });
-      navigate("/status-pages");
+      navigate(workspacePath("/status-pages"));
     },
     onError: handleMutationError,
   });
@@ -138,14 +160,17 @@ const CreateEditForm = ({
       queryClient.removeQueries({
         queryKey: getStatusPagesByIdQueryKey({ path: { id: id! } }),
       });
-      navigate("/status-pages");
+      queryClient.invalidateQueries({
+        queryKey: getStatusPagesDomainsByIdQueryKey({ path: { id: id! } }),
+      });
+      navigate(workspacePath("/status-pages"));
     },
     onError: handleMutationError,
   });
 
-  const handleSubmit = (data: StatusPageForm) => {
+  const handleSubmit = (data: StatusPageFormValues) => {
     // Clear previous errors
-    form.clearErrors("domains");
+    form.clearErrors(["domains", "slug"]);
     setDomainToHighlight(undefined);
     
     const { monitors, ...rest } = data;
@@ -330,12 +355,36 @@ const CreateEditForm = ({
             />
             <FormField
               control={form.control}
+              name="show_locations"
+              render={({ field }) => (
+                <FormItem>
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <FormLabel>{t("status_pages.show_locations")}</FormLabel>
+                      <p className="text-sm text-muted-foreground">
+                        {t("status_pages.show_locations_info")}
+                      </p>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
               name="domains"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t("status_pages.domains")}</FormLabel>
                   <FormControl>
                     <DomainsManager
+                      pageId={mode === "edit" ? id : undefined}
                       value={field.value || []}
                       onChange={field.onChange}
                       error={{
@@ -347,7 +396,17 @@ const CreateEditForm = ({
                   <Alert className="mt-1">
                     <AlertCircleIcon className="w-4 h-4" />
                     <AlertDescription>
-                      {t("status_pages.domains_info_warning")}
+                      {verifyDomains
+                        ? t("status_pages.domain_verification.info")
+                        : t("status_pages.domains_info_warning")}{" "}
+                      <a
+                        href={DOMAINS_DOCS_URL}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="underline text-blue-600"
+                      >
+                        {t("status_pages.domains_docs_link")}
+                      </a>
                     </AlertDescription>
                   </Alert>
                 </FormItem>

@@ -1,0 +1,7 @@
+POST https://ntfy.example.com/peekaping
+Content-Type: text/plain
+User-Agent: Peekaping-NTFY/<version>
+X-Priority: 2
+X-Title: Peekaping Notification
+
+Public API is DOWN

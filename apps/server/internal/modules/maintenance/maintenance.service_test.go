@@ -13,64 +13,73 @@ import (
 
 	"peekaping/internal/modules/maintenance/utils"
 	"peekaping/internal/modules/monitor_maintenance"
+	"peekaping/internal/modules/workspace"
 )
+
+// testWorkspace is the workspace the tests' requests run in
+const testWorkspace = workspace.ID("0d6f1e0e-6b1c-4d49-8c37-0b5f4a1b3a01")
 
 // Mock dependencies
 type MockRepository struct {
 	mock.Mock
 }
 
-func (m *MockRepository) Create(ctx context.Context, entity *Model) (*Model, error) {
-	args := m.Called(ctx, entity)
+func (m *MockRepository) Create(ctx context.Context, workspaceID workspace.ID, entity *Model) (*Model, error) {
+	args := m.Called(ctx, workspaceID, entity)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
 	return args.Get(0).(*Model), args.Error(1)
 }
 
-func (m *MockRepository) FindByID(ctx context.Context, id string) (*Model, error) {
-	args := m.Called(ctx, id)
+func (m *MockRepository) FindByID(ctx context.Context, workspaceID workspace.ID, id string) (*Model, error) {
+	args := m.Called(ctx, workspaceID, id)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
 	return args.Get(0).(*Model), args.Error(1)
 }
 
-func (m *MockRepository) FindAll(ctx context.Context, page int, limit int, q string, strategy string) ([]*Model, error) {
-	args := m.Called(ctx, page, limit, q, strategy)
+func (m *MockRepository) FindAll(ctx context.Context, workspaceID workspace.ID, page int, limit int, q string, strategy string) ([]*Model, error) {
+	args := m.Called(ctx, workspaceID, page, limit, q, strategy)
 	return args.Get(0).([]*Model), args.Error(1)
 }
 
-func (m *MockRepository) UpdateFull(ctx context.Context, id string, entity *Model) (*Model, error) {
-	args := m.Called(ctx, id, entity)
+func (m *MockRepository) UpdateFull(ctx context.Context, workspaceID workspace.ID, id string, entity *Model) (*Model, error) {
+	args := m.Called(ctx, workspaceID, id, entity)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
 	return args.Get(0).(*Model), args.Error(1)
 }
 
-func (m *MockRepository) UpdatePartial(ctx context.Context, id string, entity *UpdateModel) (*Model, error) {
-	args := m.Called(ctx, id, entity)
+func (m *MockRepository) UpdatePartial(ctx context.Context, workspaceID workspace.ID, id string, entity *UpdateModel) (*Model, error) {
+	args := m.Called(ctx, workspaceID, id, entity)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
 	return args.Get(0).(*Model), args.Error(1)
 }
 
-func (m *MockRepository) Delete(ctx context.Context, id string) error {
-	args := m.Called(ctx, id)
+func (m *MockRepository) Delete(ctx context.Context, workspaceID workspace.ID, id string) error {
+	args := m.Called(ctx, workspaceID, id)
 	return args.Error(0)
 }
 
-func (m *MockRepository) SetActive(ctx context.Context, id string, active bool) (*Model, error) {
-	args := m.Called(ctx, id, active)
+func (m *MockRepository) SetActive(ctx context.Context, workspaceID workspace.ID, id string, active bool) (*Model, error) {
+	args := m.Called(ctx, workspaceID, id, active)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
 	return args.Get(0).(*Model), args.Error(1)
 }
 
-func (m *MockRepository) GetMaintenancesByMonitorID(ctx context.Context, monitorID string) ([]*Model, error) {
+func (m *MockRepository) FindAllAnyWorkspace(ctx context.Context, page int, limit int) ([]*Model, error) {
+	args := m.Called(ctx, page, limit)
+	return args.Get(0).([]*Model), args.Error(1)
+}
+
+func (m *MockRepository) GetMaintenancesByMonitorIDAnyWorkspace(ctx context.Context, monitorID string) ([]*Model, error) {
 	args := m.Called(ctx, monitorID)
 	return args.Get(0).([]*Model), args.Error(1)
 }
@@ -117,6 +126,19 @@ func (m *MockMonitorMaintenanceService) DeleteByMaintenanceID(ctx context.Contex
 func (m *MockMonitorMaintenanceService) SetMonitors(ctx context.Context, maintenanceID string, monitorIDs []string) error {
 	args := m.Called(ctx, maintenanceID, monitorIDs)
 	return args.Error(0)
+}
+
+// RequireMonitors accepts every monitor unless a test says one is unknown
+func (m *MockMonitorMaintenanceService) RequireMonitors(ctx context.Context, workspaceID workspace.ID, monitorIDs []string) error {
+	if len(m.ExpectedCalls) == 0 {
+		return nil
+	}
+	for _, call := range m.ExpectedCalls {
+		if call.Method == "RequireMonitors" {
+			return m.Called(ctx, workspaceID, monitorIDs).Error(0)
+		}
+	}
+	return nil
 }
 
 func (m *MockMonitorMaintenanceService) GetMonitors(ctx context.Context, maintenanceID string) ([]string, error) {
@@ -271,10 +293,10 @@ func TestServiceImpl_Create_Success(t *testing.T) {
 	mockValidator.On("ValidateCronAndDuration", mock.AnythingOfType("*utils.ValidationParams")).Return(nil)
 	// For "single" strategy, cron generator returns nil
 	mockCronGenerator.On("GenerateCronExpression", model.Strategy, mock.AnythingOfType("*utils.CronParams")).Return(nil, nil)
-	mockRepo.On("Create", mock.Anything, model).Return(expectedModel, nil)
+	mockRepo.On("Create", mock.Anything, testWorkspace, model).Return(expectedModel, nil)
 	mockMonitorMaintenanceService.On("SetMonitors", mock.Anything, expectedModel.ID, []string{"monitor1", "monitor2"}).Return(nil)
 
-	result, err := service.Create(context.Background(), model, []string{"monitor1", "monitor2"})
+	result, err := service.Create(context.Background(), testWorkspace, model, []string{"monitor1", "monitor2"})
 
 	assert.NoError(t, err)
 	assert.Equal(t, expectedModel, result)
@@ -292,7 +314,7 @@ func TestServiceImpl_Create_ValidationError(t *testing.T) {
 
 	mockValidator.On("ValidateCronAndDuration", mock.AnythingOfType("*utils.ValidationParams")).Return(expectedError)
 
-	result, err := service.Create(context.Background(), model, []string{"monitor1", "monitor2"})
+	result, err := service.Create(context.Background(), testWorkspace, model, []string{"monitor1", "monitor2"})
 
 	assert.Error(t, err)
 	assert.Nil(t, result)
@@ -313,12 +335,12 @@ func TestServiceImpl_Create_WithCronGeneration(t *testing.T) {
 
 	mockValidator.On("ValidateCronAndDuration", mock.AnythingOfType("*utils.ValidationParams")).Return(nil)
 	mockCronGenerator.On("GenerateCronExpression", model.Strategy, mock.AnythingOfType("*utils.CronParams")).Return(&generatedCron, nil)
-	mockRepo.On("Create", mock.Anything, mock.MatchedBy(func(d *Model) bool {
+	mockRepo.On("Create", mock.Anything, testWorkspace, mock.MatchedBy(func(d *Model) bool {
 		return d.Cron != nil && *d.Cron == generatedCron
 	})).Return(expectedModel, nil)
 	mockMonitorMaintenanceService.On("SetMonitors", mock.Anything, expectedModel.ID, []string{"monitor1", "monitor2"}).Return(nil)
 
-	result, err := service.Create(context.Background(), model, []string{"monitor1", "monitor2"})
+	result, err := service.Create(context.Background(), testWorkspace, model, []string{"monitor1", "monitor2"})
 
 	assert.NoError(t, err)
 	assert.Equal(t, expectedModel, result)
@@ -338,12 +360,12 @@ func TestServiceImpl_Create_WithDurationCalculation(t *testing.T) {
 	// For "single" strategy, cron generator returns nil
 	mockCronGenerator.On("GenerateCronExpression", model.Strategy, mock.AnythingOfType("*utils.CronParams")).Return(nil, nil)
 	mockTimeUtils.On("CalculateDurationFromTimes", *model.StartTime, *model.EndTime).Return(expectedDuration, nil)
-	mockRepo.On("Create", mock.Anything, mock.MatchedBy(func(d *Model) bool {
+	mockRepo.On("Create", mock.Anything, testWorkspace, mock.MatchedBy(func(d *Model) bool {
 		return d.Duration != nil && *d.Duration == expectedDuration
 	})).Return(expectedModel, nil)
 	mockMonitorMaintenanceService.On("SetMonitors", mock.Anything, expectedModel.ID, []string{"monitor1", "monitor2"}).Return(nil)
 
-	result, err := service.Create(context.Background(), model, []string{"monitor1", "monitor2"})
+	result, err := service.Create(context.Background(), testWorkspace, model, []string{"monitor1", "monitor2"})
 
 	assert.NoError(t, err)
 	assert.Equal(t, expectedModel, result)
@@ -357,9 +379,9 @@ func TestServiceImpl_FindByID_Success(t *testing.T) {
 
 	expectedModel := createTestModel()
 
-	mockRepo.On("FindByID", mock.Anything, "test-id").Return(expectedModel, nil)
+	mockRepo.On("FindByID", mock.Anything, testWorkspace, "test-id").Return(expectedModel, nil)
 
-	result, err := service.FindByID(context.Background(), "test-id")
+	result, err := service.FindByID(context.Background(), testWorkspace, "test-id")
 
 	assert.NoError(t, err)
 	assert.Equal(t, expectedModel, result)
@@ -371,9 +393,9 @@ func TestServiceImpl_FindByID_NotFound(t *testing.T) {
 
 	expectedError := errors.New("not found")
 
-	mockRepo.On("FindByID", mock.Anything, "nonexistent-id").Return(nil, expectedError)
+	mockRepo.On("FindByID", mock.Anything, testWorkspace, "nonexistent-id").Return(nil, expectedError)
 
-	result, err := service.FindByID(context.Background(), "nonexistent-id")
+	result, err := service.FindByID(context.Background(), testWorkspace, "nonexistent-id")
 
 	assert.Error(t, err)
 	assert.Nil(t, result)
@@ -387,9 +409,9 @@ func TestServiceImpl_FindAll_Success(t *testing.T) {
 
 	expectedModels := []*Model{createTestModel()}
 
-	mockRepo.On("FindAll", mock.Anything, 1, 10, "test", "single").Return(expectedModels, nil)
+	mockRepo.On("FindAll", mock.Anything, testWorkspace, 1, 10, "test", "single").Return(expectedModels, nil)
 
-	result, err := service.FindAll(context.Background(), 1, 10, "test", "single")
+	result, err := service.FindAll(context.Background(), testWorkspace, 1, 10, "test", "single")
 
 	assert.NoError(t, err)
 	assert.Equal(t, expectedModels, result)
@@ -406,10 +428,11 @@ func TestServiceImpl_UpdateFull_Success(t *testing.T) {
 	mockValidator.On("ValidateCronAndDuration", mock.AnythingOfType("*utils.ValidationParams")).Return(nil)
 	// For "single" strategy, cron generator returns nil
 	mockCronGenerator.On("GenerateCronExpression", model.Strategy, mock.AnythingOfType("*utils.CronParams")).Return(nil, nil)
-	mockRepo.On("UpdateFull", mock.Anything, "test-id", model).Return(expectedModel, nil)
+	mockRepo.On("FindByID", mock.Anything, testWorkspace, "test-id").Return(expectedModel, nil)
+	mockRepo.On("UpdateFull", mock.Anything, testWorkspace, "test-id", model).Return(expectedModel, nil)
 	mockMonitorMaintenanceService.On("SetMonitors", mock.Anything, "test-id", []string{"monitor1", "monitor2"}).Return(nil)
 
-	result, err := service.UpdateFull(context.Background(), "test-id", model, []string{"monitor1", "monitor2"})
+	result, err := service.UpdateFull(context.Background(), testWorkspace, "test-id", model, []string{"monitor1", "monitor2"})
 
 	assert.NoError(t, err)
 	assert.Equal(t, expectedModel, result)
@@ -436,14 +459,14 @@ func TestServiceImpl_UpdatePartial_Success(t *testing.T) {
 	expectedModel.Active = active
 
 	// UpdatePartial calls FindByID to get current maintenance for duration calculation
-	mockRepo.On("FindByID", mock.Anything, "test-id").Return(currentModel, nil)
+	mockRepo.On("FindByID", mock.Anything, testWorkspace, "test-id").Return(currentModel, nil)
 	// UpdatePartial also calls CalculateDurationFromTimes since start and end times are available
 	mockTimeUtils.On("CalculateDurationFromTimes", *currentModel.StartTime, *currentModel.EndTime).Return(480, nil)
 	mockValidator.On("ValidateCronAndDuration", mock.AnythingOfType("*utils.ValidationParams")).Return(nil)
-	mockRepo.On("UpdatePartial", mock.Anything, "test-id", mock.AnythingOfType("*maintenance.UpdateModel")).Return(expectedModel, nil)
+	mockRepo.On("UpdatePartial", mock.Anything, testWorkspace, "test-id", mock.AnythingOfType("*maintenance.UpdateModel")).Return(expectedModel, nil)
 	mockMonitorMaintenanceService.On("SetMonitors", mock.Anything, "test-id", []string{"monitor1"}).Return(nil)
 
-	result, err := service.UpdatePartial(context.Background(), "test-id", model, []string{"monitor1"})
+	result, err := service.UpdatePartial(context.Background(), testWorkspace, "test-id", model, []string{"monitor1"})
 
 	assert.NoError(t, err)
 	assert.Equal(t, expectedModel, result)
@@ -467,16 +490,16 @@ func TestServiceImpl_UpdatePartial_WithStrategyChange(t *testing.T) {
 
 	generatedCron := "0 9 * * 1-5"
 
-	mockRepo.On("FindByID", mock.Anything, "test-id").Return(currentModel, nil)
+	mockRepo.On("FindByID", mock.Anything, testWorkspace, "test-id").Return(currentModel, nil)
 	mockCronGenerator.On("GenerateCronExpression", newStrategy, mock.AnythingOfType("*utils.CronParams")).Return(&generatedCron, nil)
 	// UpdatePartial also calls CalculateDurationFromTimes since start and end times are available
 	mockTimeUtils.On("CalculateDurationFromTimes", *currentModel.StartTime, *currentModel.EndTime).Return(480, nil)
 	mockValidator.On("ValidateCronAndDuration", mock.AnythingOfType("*utils.ValidationParams")).Return(nil)
-	mockRepo.On("UpdatePartial", mock.Anything, "test-id", mock.MatchedBy(func(d *UpdateModel) bool {
+	mockRepo.On("UpdatePartial", mock.Anything, testWorkspace, "test-id", mock.MatchedBy(func(d *UpdateModel) bool {
 		return d.Cron != nil && *d.Cron == generatedCron
 	})).Return(expectedModel, nil)
 
-	result, err := service.UpdatePartial(context.Background(), "test-id", model, nil)
+	result, err := service.UpdatePartial(context.Background(), testWorkspace, "test-id", model, nil)
 
 	assert.NoError(t, err)
 	assert.Equal(t, expectedModel, result)
@@ -488,9 +511,9 @@ func TestServiceImpl_UpdatePartial_WithStrategyChange(t *testing.T) {
 func TestServiceImpl_Delete_Success(t *testing.T) {
 	service, mockRepo, _, _, _, _, _ := createTestService()
 
-	mockRepo.On("Delete", mock.Anything, "test-id").Return(nil)
+	mockRepo.On("Delete", mock.Anything, testWorkspace, "test-id").Return(nil)
 
-	err := service.Delete(context.Background(), "test-id")
+	err := service.Delete(context.Background(), testWorkspace, "test-id")
 
 	assert.NoError(t, err)
 	mockRepo.AssertExpectations(t)
@@ -503,9 +526,9 @@ func TestServiceImpl_SetActive_Success(t *testing.T) {
 	expectedModel := createTestModel()
 	expectedModel.Active = false
 
-	mockRepo.On("SetActive", mock.Anything, "test-id", false).Return(expectedModel, nil)
+	mockRepo.On("SetActive", mock.Anything, testWorkspace, "test-id", false).Return(expectedModel, nil)
 
-	result, err := service.SetActive(context.Background(), "test-id", false)
+	result, err := service.SetActive(context.Background(), testWorkspace, "test-id", false)
 
 	assert.NoError(t, err)
 	assert.Equal(t, expectedModel, result)
@@ -591,14 +614,14 @@ func TestServiceImpl_IsUnderMaintenance_TimedStrategies(t *testing.T) {
 }
 
 // Test GetMaintenancesByMonitorID method
-func TestServiceImpl_GetMaintenancesByMonitorID_Success(t *testing.T) {
+func TestServiceImpl_GetMaintenancesByMonitorIDAnyWorkspace_Success(t *testing.T) {
 	service, mockRepo, _, _, _, _, _ := createTestService()
 
 	expectedModels := []*Model{createTestModel()}
 
-	mockRepo.On("GetMaintenancesByMonitorID", mock.Anything, "monitor1").Return(expectedModels, nil)
+	mockRepo.On("GetMaintenancesByMonitorIDAnyWorkspace", mock.Anything, "monitor1").Return(expectedModels, nil)
 
-	result, err := service.GetMaintenancesByMonitorID(context.Background(), "monitor1")
+	result, err := service.GetMaintenancesByMonitorIDAnyWorkspace(context.Background(), "monitor1")
 
 	assert.NoError(t, err)
 	assert.Equal(t, expectedModels, result)
@@ -630,9 +653,9 @@ func TestServiceImpl_Create_RepositoryError(t *testing.T) {
 	mockValidator.On("ValidateCronAndDuration", mock.AnythingOfType("*utils.ValidationParams")).Return(nil)
 	// For "single" strategy, cron generator returns nil
 	mockCronGenerator.On("GenerateCronExpression", model.Strategy, mock.AnythingOfType("*utils.CronParams")).Return(nil, nil)
-	mockRepo.On("Create", mock.Anything, model).Return(nil, expectedError)
+	mockRepo.On("Create", mock.Anything, testWorkspace, model).Return(nil, expectedError)
 
-	result, err := service.Create(context.Background(), model, []string{"monitor1", "monitor2"})
+	result, err := service.Create(context.Background(), testWorkspace, model, []string{"monitor1", "monitor2"})
 
 	assert.Error(t, err)
 	assert.Nil(t, result)
@@ -652,10 +675,10 @@ func TestServiceImpl_Create_MonitorMaintenanceServiceError(t *testing.T) {
 	mockValidator.On("ValidateCronAndDuration", mock.AnythingOfType("*utils.ValidationParams")).Return(nil)
 	// For "single" strategy, cron generator returns nil
 	mockCronGenerator.On("GenerateCronExpression", model.Strategy, mock.AnythingOfType("*utils.CronParams")).Return(nil, nil)
-	mockRepo.On("Create", mock.Anything, model).Return(expectedModel, nil)
+	mockRepo.On("Create", mock.Anything, testWorkspace, model).Return(expectedModel, nil)
 	mockMonitorMaintenanceService.On("SetMonitors", mock.Anything, expectedModel.ID, []string{"monitor1", "monitor2"}).Return(expectedError)
 
-	result, err := service.Create(context.Background(), model, []string{"monitor1", "monitor2"})
+	result, err := service.Create(context.Background(), testWorkspace, model, []string{"monitor1", "monitor2"})
 
 	assert.Error(t, err)
 	assert.Nil(t, result)
@@ -679,7 +702,7 @@ func TestServiceImpl_Create_CronGenerationError(t *testing.T) {
 	mockValidator.On("ValidateCronAndDuration", mock.AnythingOfType("*utils.ValidationParams")).Return(nil)
 	mockCronGenerator.On("GenerateCronExpression", model.Strategy, mock.AnythingOfType("*utils.CronParams")).Return(nil, expectedError)
 
-	result, err := service.Create(context.Background(), model, []string{"monitor1", "monitor2"})
+	result, err := service.Create(context.Background(), testWorkspace, model, []string{"monitor1", "monitor2"})
 
 	assert.Error(t, err)
 	assert.Nil(t, result)
@@ -739,12 +762,13 @@ func TestServiceImpl_UpdatePartial_MonitorPresence(t *testing.T) {
 			service, repo, monitors, _, _, _, validator := createTestService()
 			duration := 90
 			patch := &UpdateModel{Duration: &duration}
-			repo.On("UpdatePartial", mock.Anything, "maintenance", patch).Return(&Model{ID: "maintenance"}, nil)
+			repo.On("FindByID", mock.Anything, testWorkspace, "maintenance").Return(&Model{ID: "maintenance"}, nil)
+			repo.On("UpdatePartial", mock.Anything, testWorkspace, "maintenance", patch).Return(&Model{ID: "maintenance"}, nil)
 			validator.On("ValidateCronAndDuration", mock.Anything).Return(nil)
 			if monitorIDs != nil {
 				monitors.On("SetMonitors", mock.Anything, "maintenance", monitorIDs).Return(nil).Once()
 			}
-			_, err := service.UpdatePartial(context.Background(), "maintenance", patch, monitorIDs)
+			_, err := service.UpdatePartial(context.Background(), testWorkspace, "maintenance", patch, monitorIDs)
 			assert.NoError(t, err)
 			repo.AssertExpectations(t)
 			monitors.AssertExpectations(t)
@@ -753,4 +777,64 @@ func TestServiceImpl_UpdatePartial_MonitorPresence(t *testing.T) {
 			}
 		})
 	}
+}
+
+// A window covers only the monitors of its own workspace, and a monitor of another workspace is
+// refused as one that doesn't exist, before the window or a link is written (AC4)
+func TestServiceImpl_Create_RefusesAMonitorOfAnotherWorkspaceBeforeWritingAnything(t *testing.T) {
+	service, repo, monitors, cron, _, _, validator := createTestService()
+	validator.On("ValidateCronAndDuration", mock.Anything).Return(nil)
+	cron.On("GenerateCronExpression", mock.Anything, mock.Anything).Return(nil, nil)
+	unknown := fmt.Errorf("%w: monitor1", monitor_maintenance.ErrUnknownMonitor)
+	monitors.On("RequireMonitors", mock.Anything, testWorkspace, []string{"mine", "monitor1"}).Return(unknown)
+
+	result, err := service.Create(context.Background(), testWorkspace, createTestCreateModel(), []string{"mine", "monitor1"})
+
+	assert.ErrorIs(t, err, monitor_maintenance.ErrUnknownMonitor)
+	assert.Nil(t, result)
+	repo.AssertNotCalled(t, "Create", mock.Anything, mock.Anything, mock.Anything)
+	monitors.AssertNotCalled(t, "SetMonitors", mock.Anything, mock.Anything, mock.Anything)
+}
+
+func TestServiceImpl_Updates_RefuseAMonitorOfAnotherWorkspaceBeforeWritingAnything(t *testing.T) {
+	for name, update := range map[string]func(s *ServiceImpl) error{
+		"full": func(s *ServiceImpl) error {
+			_, err := s.UpdateFull(context.Background(), testWorkspace, "window", createTestCreateModel(), []string{"monitor1"})
+			return err
+		},
+		"partial": func(s *ServiceImpl) error {
+			duration := 90
+			_, err := s.UpdatePartial(context.Background(), testWorkspace, "window", &UpdateModel{Duration: &duration}, []string{"monitor1"})
+			return err
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			service, repo, monitors, cron, _, _, validator := createTestService()
+			validator.On("ValidateCronAndDuration", mock.Anything).Return(nil)
+			cron.On("GenerateCronExpression", mock.Anything, mock.Anything).Return(nil, nil)
+			repo.On("FindByID", mock.Anything, testWorkspace, "window").Return(&Model{ID: "window"}, nil)
+			monitors.On("RequireMonitors", mock.Anything, testWorkspace, []string{"monitor1"}).Return(fmt.Errorf("%w: monitor1", monitor_maintenance.ErrUnknownMonitor))
+
+			err := update(service)
+
+			assert.ErrorIs(t, err, monitor_maintenance.ErrUnknownMonitor)
+			repo.AssertNotCalled(t, "UpdateFull", mock.Anything, mock.Anything, mock.Anything, mock.Anything)
+			repo.AssertNotCalled(t, "UpdatePartial", mock.Anything, mock.Anything, mock.Anything, mock.Anything)
+			monitors.AssertNotCalled(t, "SetMonitors", mock.Anything, mock.Anything, mock.Anything)
+		})
+	}
+}
+
+// A window of another workspace is not found, whatever monitors the request names
+func TestServiceImpl_Updates_AWindowOfAnotherWorkspaceIsNotFound(t *testing.T) {
+	service, repo, monitors, cron, _, _, validator := createTestService()
+	validator.On("ValidateCronAndDuration", mock.Anything).Return(nil)
+	cron.On("GenerateCronExpression", mock.Anything, mock.Anything).Return(nil, nil)
+	repo.On("FindByID", mock.Anything, testWorkspace, "window").Return(nil, nil)
+	monitors.On("RequireMonitors", mock.Anything, testWorkspace, []string{"monitor1"}).Return(fmt.Errorf("%w: monitor1", monitor_maintenance.ErrUnknownMonitor))
+
+	_, err := service.UpdateFull(context.Background(), testWorkspace, "window", createTestCreateModel(), []string{"monitor1"})
+
+	assert.ErrorIs(t, err, ErrNotFound, "and not the answer for a monitor that isn't there")
+	monitors.AssertNotCalled(t, "RequireMonitors", mock.Anything, mock.Anything, mock.Anything)
 }

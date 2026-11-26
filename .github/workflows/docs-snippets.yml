@@ -1,0 +1,35 @@
+name: Docs Snippets
+
+# Docs code blocks marked as copies of a repo file (<!-- snippet: <path> -->) must match it.
+# See scripts/test-docs-snippets.sh.
+on:
+  pull_request:
+    paths:
+      - 'apps/docs/**'
+      - 'docker-compose*.yml'
+      - 'nginx.conf'
+      - 'scripts/test-docs-snippets.sh'
+      - '.github/workflows/docs-snippets.yml'
+    branches: [ main ]
+  push:
+    paths:
+      - 'apps/docs/**'
+      - 'docker-compose*.yml'
+      - 'nginx.conf'
+      - 'scripts/test-docs-snippets.sh'
+      - '.github/workflows/docs-snippets.yml'
+    branches: [ main ]
+
+jobs:
+  docs-snippets:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Check the docs snippets against the files they copy
+        run: scripts/test-docs-snippets.sh

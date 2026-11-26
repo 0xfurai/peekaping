@@ -32,11 +32,11 @@ fi
 
 # Stop any existing containers
 echo -e "${YELLOW}🛑 Stopping any existing SQL Server containers...${NC}"
-docker-compose -f "$COMPOSE_FILE" down --remove-orphans 2>/dev/null || true
+docker compose -f "$COMPOSE_FILE" down --remove-orphans 2>/dev/null || true
 
 # Start the containers
 echo -e "${YELLOW}🏗️  Starting SQL Server containers...${NC}"
-if docker-compose -f "$COMPOSE_FILE" up -d; then
+if docker compose -f "$COMPOSE_FILE" up -d; then
     echo -e "${GREEN}✅ SQL Server containers started successfully!${NC}"
 else
     echo -e "${RED}❌ Failed to start SQL Server containers${NC}"
@@ -49,7 +49,7 @@ sleep 10
 
 # Check container status
 echo -e "\n${BLUE}📊 Container Status:${NC}"
-docker-compose -f "$COMPOSE_FILE" ps
+docker compose -f "$COMPOSE_FILE" ps
 
 # Show running containers
 echo -e "\n${BLUE}🐳 Running SQL Server containers:${NC}"
@@ -93,9 +93,9 @@ echo "2. Run './test-connection.sh' to test connections"
 echo "3. Or use 'make test-mssql' from the project root"
 
 echo -e "\n${BLUE}💡 Helpful Commands:${NC}"
-echo "  View logs: docker-compose -f $COMPOSE_FILE logs"
-echo "  Stop containers: docker-compose -f $COMPOSE_FILE down"
+echo "  View logs: docker compose -f $COMPOSE_FILE logs"
+echo "  Stop containers: docker compose -f $COMPOSE_FILE down"
 echo "  Test connections: ./test-connection.sh"
-echo "  Monitor status: docker-compose -f $COMPOSE_FILE ps"
+echo "  Monitor status: docker compose -f $COMPOSE_FILE ps"
 
 echo -e "\n${GREEN}✨ SQL Server containers are starting up!${NC}"

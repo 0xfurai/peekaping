@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/santhosh-tekuri/jsonschema/v6"
 
@@ -58,7 +59,8 @@ func TestHTTPContract_DecodingAndErrorOrder(t *testing.T) {
 func TestHTTPContract_FormatsAndBodySize(t *testing.T) {
 	a := newAppWithAdmin(t)
 	for n, contentType := range []string{"", "text/plain", "application/json"} {
-		body := fmt.Sprintf(`{"name":"Formats %d","color":"#3B82F6","description":%q}`, n, strings.Repeat("x", 1024*1024+1))
+		// Nearly 1 MiB, the most a request may send
+		body := fmt.Sprintf(`{"name":"Formats %d","color":"#3B82F6","description":%q}`, n, strings.Repeat("x", 1024*1024-1024))
 		req := httptest.NewRequest("POST", "/api/v1/tags", strings.NewReader(body))
 		req.Header.Set("Content-Type", contentType)
 		req.Header.Set("Accept", "text/csv")
@@ -117,7 +119,7 @@ func TestOpenAPI_CompleteAndAccurateContract(t *testing.T) {
 	count := 0
 	ids := map[string]bool{}
 	for _, route := range a.routes() {
-		if route.path != "/health" && !strings.HasPrefix(route.path, "/api/v1/") {
+		if route.path != "/health" && !strings.HasPrefix(route.path, "/api/v1/") && !strings.HasPrefix(route.path, "/probe/v1/") {
 			continue
 		}
 		count++
@@ -131,6 +133,9 @@ func TestOpenAPI_CompleteAndAccurateContract(t *testing.T) {
 			assert.Empty(t, op.Security, route.key())
 		} else if jwtOnlyRoutes[route.key()] {
 			assert.Equal(t, []map[string][]string{{"JwtAuth": {}}}, op.Security, route.key())
+		} else if probeRoutes[route.key()] {
+			assert.Equal(t, []map[string][]string{{"ProbeAuth": {}}}, op.Security, route.key())
+			assert.True(t, strings.HasPrefix(op.OperationID, "probe"), "%s: probe operations are prefixed so they can't collide", route.key())
 		} else {
 			assert.Equal(t, []map[string][]string{{"JwtAuth": {}}, {"ApiKeyAuth": {}}}, op.Security, route.key())
 		}
@@ -139,7 +144,7 @@ func TestOpenAPI_CompleteAndAccurateContract(t *testing.T) {
 			assert.Contains(t, op.Responses["404"].Content, "application/json")
 		}
 	}
-	assert.Equal(t, 75, count)
+	assert.Equal(t, 131, count)
 	specCount := 0
 	for _, methods := range spec.Paths {
 		specCount += len(methods)
@@ -149,6 +154,7 @@ func TestOpenAPI_CompleteAndAccurateContract(t *testing.T) {
 	assert.Equal(t, true, spec.Components.Schemas["auth.LoginDto"].AdditionalProperties)
 	assert.ElementsMatch(t, []string{"name", "color"}, spec.Components.Schemas["tag.CreateUpdateDto"].Required)
 	assert.Empty(t, spec.Components.Schemas["monitor.PartialUpdateDto"].Required)
+	assert.ElementsMatch(t, []string{"to"}, spec.Components.Schemas["admin.SendTestEmailDto"].Required)
 	assert.Empty(t, spec.Paths["/api/v1/api-keys/{id}"]["delete"].Responses["204"].Content)
 }
 
@@ -159,10 +165,24 @@ func TestOpenAPI_ExportMatchesRuntime(t *testing.T) {
 }
 
 func TestOpenAPI_ResponsesMatchSchemas(t *testing.T) {
-	a := newAppWithAdmin(t)
+	a := localProbeApp(t, nil)
 	id := a.createMonitor(t, "Contract monitor", "contract-push")
+	contractProxy := decode[created](t, a.request(t, "POST", "/api/v1/proxies", map[string]any{
+		"protocol": "http", "host": "contract.proxy.example", "port": 3128, "auth": true, "username": "u", "password": "p",
+	}, a.asAdmin), 201).ID
+	contractHTTPID := a.createHTTPMonitor(t, "Contract http monitor", contractProxy)
+	checkedAt := time.Now().UTC().Add(-time.Minute)
+	contractResults := map[string]any{"results": []map[string]any{
+		{"id": "contract-result-1", "monitor_id": contractHTTPID, "status": "up", "message": "200 - OK", "ping_ms": 12,
+			"start_time": checkedAt.Format(time.RFC3339Nano), "end_time": checkedAt.Add(12 * time.Millisecond).Format(time.RFC3339Nano)},
+		{"id": "contract-result-2", "monitor_id": "no-such-monitor", "status": "down", "message": "", "ping_ms": 0,
+			"start_time": checkedAt.Format(time.RFC3339Nano), "end_time": checkedAt.Format(time.RFC3339Nano)},
+	}}
 	a.createStatusPage(t, statusPage{slug: "contract", published: true, monitors: []string{id}, domains: []string{"contract.example"}})
 	decode[created](t, a.request(t, "POST", "/api/v1/tags", tagBody("Contract"), a.asAdmin), 201)
+	protocolProbe := a.createProbe(t, map[string]any{"name": "Contract protocol probe"})
+	oldHello := helloFrom("contract-old")
+	oldHello.ProtocolVersion = 0
 	doc, err := jsonschema.UnmarshalJSON(a.request(t, "GET", "/openapi.json", nil).Body)
 	require.NoError(t, err)
 	compiler := jsonschema.NewCompiler()
@@ -193,6 +213,8 @@ func TestOpenAPI_ResponsesMatchSchemas(t *testing.T) {
 		{"list", "GET", "/api/v1/monitors", "/api/v1/monitors", nil, 200, a.asAdmin},
 		{"monitor detail", "GET", "/api/v1/monitors/{id}", "/api/v1/monitors/" + id, nil, 200, a.asAdmin},
 		{"missing TLS", "GET", "/api/v1/monitors/{id}/tls", "/api/v1/monitors/" + id + "/tls", nil, 200, a.asAdmin},
+		{"workspace export", "GET", "/api/v1/workspace/export", "/api/v1/workspace/export", nil, 200, a.asAdmin},
+		{"workspace export, no sign-in", "GET", "/api/v1/workspace/export", "/api/v1/workspace/export", nil, 401, nil},
 		{"unauthenticated", "GET", "/api/v1/tags", "/api/v1/tags", nil, 401, nil},
 		{"malformed JSON", "POST", "/api/v1/tags", "/api/v1/tags", "{", 400, a.asAdmin},
 		{"not found", "GET", "/api/v1/tags/{id}", "/api/v1/tags/missing", nil, 404, a.asAdmin},
@@ -200,6 +222,34 @@ func TestOpenAPI_ResponsesMatchSchemas(t *testing.T) {
 		{"domain error", "POST", "/api/v1/status-pages", "/api/v1/status-pages", map[string]any{"slug": "another", "title": "Another", "domains": []string{"contract.example"}}, 400, a.asAdmin},
 		{"bare 2FA error", "POST", "/api/v1/auth/2fa/verify", "/api/v1/auth/2fa/verify", map[string]any{"email": adminEmail, "code": "123456"}, 400, a.asAdmin},
 		{"push", "GET", "/api/v1/push/{token}", "/api/v1/push/contract-push", nil, 200, nil},
+		{"probe with its token", "POST", "/api/v1/probes", "/api/v1/probes", map[string]any{"name": "Contract probe", "location": "eu"}, 201, a.asAdmin},
+		{"probe list", "GET", "/api/v1/probes", "/api/v1/probes", nil, 200, a.asAdmin},
+		{"probe detail", "GET", "/api/v1/probes/{id}", "/api/v1/probes/local", nil, 200, a.asAdmin},
+		{"local probe delete conflict", "DELETE", "/api/v1/probes/{id}", "/api/v1/probes/local", nil, 409, a.asAdmin},
+		{"local probe rotate conflict", "POST", "/api/v1/probes/{id}/rotate-token", "/api/v1/probes/local/rotate-token", nil, 409, a.asAdmin},
+		{"probe not found", "GET", "/api/v1/probes/{id}", "/api/v1/probes/missing", nil, 404, a.asAdmin},
+		{"local probe assign conflict", "POST", "/api/v1/probes/{id}/assign-all-monitors", "/api/v1/probes/local/assign-all-monitors", nil, 409, a.asAdmin},
+		{"probe assign, not found", "POST", "/api/v1/probes/{id}/assign-all-monitors", "/api/v1/probes/missing/assign-all-monitors", nil, 404, a.asAdmin},
+		{"probe availability list", "GET", "/api/v1/probes/availability", "/api/v1/probes/availability?range=7d", nil, 200, a.asAdmin},
+		{"probe availability list, bad range", "GET", "/api/v1/probes/availability", "/api/v1/probes/availability?range=1y", nil, 400, a.asAdmin},
+		{"probe availability", "GET", "/api/v1/probes/{id}/availability", "/api/v1/probes/local/availability", nil, 200, a.asAdmin},
+		{"probe availability, bad range", "GET", "/api/v1/probes/{id}/availability", "/api/v1/probes/local/availability?range=1y", nil, 400, a.asAdmin},
+		{"probe availability not found", "GET", "/api/v1/probes/{id}/availability", "/api/v1/probes/missing/availability", nil, 404, a.asAdmin},
+		{"probe protocol hello", "POST", "/probe/v1/hello", "/probe/v1/hello", helloFrom("contract-instance"), 200, asProbe(protocolProbe.Token, "contract-instance")},
+		{"probe protocol assignments", "GET", "/probe/v1/assignments", "/probe/v1/assignments?version=", nil, 200, asProbe(protocolProbe.Token, "contract-instance")},
+		{"probe protocol hello of the local probe", "POST", "/probe/v1/hello", "/probe/v1/hello", helloFrom("contract-local"), 200, asProbe(localToken, "contract-local")},
+		{"probe protocol assignments with a monitor and its proxy", "GET", "/probe/v1/assignments", "/probe/v1/assignments?version=", nil, 200, asProbe(localToken, "contract-local")},
+		{"probe protocol results with an accepted and a rejected result", "POST", "/probe/v1/results", "/probe/v1/results", contractResults, 200, asProbe(localToken, "contract-local")},
+		{"probe protocol results, bad body", "POST", "/probe/v1/results", "/probe/v1/results", "{", 400, asProbe(localToken, "contract-local")},
+		{"probe protocol results, too many", "POST", "/probe/v1/results", "/probe/v1/results", map[string]any{"results": make([]map[string]any, 501)}, 400, asProbe(localToken, "contract-local")},
+		{"probe protocol results, unknown instance", "POST", "/probe/v1/results", "/probe/v1/results", contractResults, 409, asProbe(protocolProbe.Token, "contract-unknown")},
+		{"probe assign all monitors", "POST", "/api/v1/probes/{id}/assign-all-monitors", "/api/v1/probes/" + protocolProbe.ID + "/assign-all-monitors", nil, 200, a.asAdmin},
+		{"probe protocol assignments, unknown instance", "GET", "/probe/v1/assignments", "/probe/v1/assignments?version=", nil, 409, asProbe(protocolProbe.Token, "contract-unknown")},
+		{"probe protocol hello, old version", "POST", "/probe/v1/hello", "/probe/v1/hello", oldHello, 426, asProbe(protocolProbe.Token, "contract-old")},
+		{"probe protocol hello, bad body", "POST", "/probe/v1/hello", "/probe/v1/hello", "{", 400, asProbe(protocolProbe.Token, "contract-bad")},
+		{"probe protocol, unknown token", "POST", "/probe/v1/hello", "/probe/v1/hello", helloFrom("contract-instance"), 401, asProbe("pkp_no-probe-has-it", "contract-instance")},
+		{"probe protocol, no instance id", "POST", "/probe/v1/bye", "/probe/v1/bye", nil, 400, withHeader("Authorization", "Bearer "+protocolProbe.Token)},
+		{"probe protocol bye, unknown instance", "POST", "/probe/v1/bye", "/probe/v1/bye", nil, 409, asProbe(protocolProbe.Token, "contract-unknown")},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			var creds []credentials
@@ -294,6 +344,111 @@ func TestOpenAPI_RequiredValuesMatchValidation(t *testing.T) {
 			check(true)
 			tc.body[tc.field] = tc.invalid
 			check(false)
+		})
+	}
+}
+
+func TestOpenAPI_TelemetryEnabledIsNotNullable(t *testing.T) {
+	a := newAppWithAdmin(t)
+	doc, err := jsonschema.UnmarshalJSON(a.request(t, "GET", "/openapi.json", nil).Body)
+	require.NoError(t, err)
+	compiler := jsonschema.NewCompiler()
+	compiler.DefaultDraft(jsonschema.Draft2020)
+	require.NoError(t, compiler.AddResource("https://peekaping.test/openapi.json", doc))
+	schema, err := compiler.Compile("https://peekaping.test/openapi.json#/components/schemas/telemetry.UpdateDto")
+	require.NoError(t, err)
+	for _, tc := range []struct {
+		body   string
+		valid  bool
+		status int
+	}{
+		{`{"enabled":true}`, true, 200},
+		{`{"enabled":false}`, true, 200},
+		{`{"enabled":null}`, false, 400},
+		{`{}`, false, 400},
+	} {
+		t.Run(tc.body, func(t *testing.T) {
+			value, err := jsonschema.UnmarshalJSON(strings.NewReader(tc.body))
+			require.NoError(t, err)
+			if tc.valid {
+				assert.NoError(t, schema.Validate(value))
+			} else {
+				assert.Error(t, schema.Validate(value))
+			}
+			w := a.request(t, "PUT", "/api/v1/telemetry", tc.body, a.asAdmin)
+			assert.Equal(t, tc.status, w.Code, w.Body.String())
+		})
+	}
+}
+
+// A workspace PATCH refuses a null suspended or limits like a missing one, so the description leaves
+// null out.
+// The field stays optional: the PATCH grows other fields, and refusing an empty change is the
+// handler's job.
+func TestOpenAPI_WorkspaceSuspendedIsNotNullable(t *testing.T) {
+	a := newAppWithAdmin(t)
+	acme := a.createAcme(t)
+	doc, err := jsonschema.UnmarshalJSON(a.request(t, "GET", "/openapi.json", nil).Body)
+	require.NoError(t, err)
+	compiler := jsonschema.NewCompiler()
+	compiler.DefaultDraft(jsonschema.Draft2020)
+	require.NoError(t, compiler.AddResource("https://peekaping.test/openapi.json", doc))
+	schema, err := compiler.Compile("https://peekaping.test/openapi.json#/components/schemas/admin.UpdateWorkspaceDto")
+	require.NoError(t, err)
+	for _, tc := range []struct {
+		body   string
+		valid  bool
+		status int
+	}{
+		{`{"suspended":true}`, true, 200},
+		{`{"suspended":false}`, true, 200},
+		{`{"suspended":null}`, false, 400},
+		{`{"limits":{}}`, true, 200},
+		{`{"limits":null}`, false, 400},
+	} {
+		t.Run(tc.body, func(t *testing.T) {
+			value, err := jsonschema.UnmarshalJSON(strings.NewReader(tc.body))
+			require.NoError(t, err)
+			if tc.valid {
+				assert.NoError(t, schema.Validate(value))
+			} else {
+				assert.Error(t, schema.Validate(value))
+			}
+			w := a.request(t, "PATCH", "/api/v1/admin/workspaces/"+string(acme.id), tc.body, a.asAdmin)
+			assert.Equal(t, tc.status, w.Code, w.Body.String())
+		})
+	}
+}
+
+// The description bounds a default retention_days as the server does, 1 to 36500 days
+func TestOpenAPI_DefaultRetentionDaysIsBounded(t *testing.T) {
+	a := newAppWithAdmin(t)
+	doc, err := jsonschema.UnmarshalJSON(a.request(t, "GET", "/openapi.json", nil).Body)
+	require.NoError(t, err)
+	compiler := jsonschema.NewCompiler()
+	compiler.DefaultDraft(jsonschema.Draft2020)
+	require.NoError(t, compiler.AddResource("https://peekaping.test/openapi.json", doc))
+	schema, err := compiler.Compile("https://peekaping.test/openapi.json#/components/schemas/admin.UpdateDefaultLimitsDto")
+	require.NoError(t, err)
+	for _, tc := range []struct {
+		days   int
+		valid  bool
+		status int
+	}{
+		{1, true, http.StatusOK},
+		{36500, true, http.StatusOK},
+		{0, false, http.StatusBadRequest},
+		{36501, false, http.StatusBadRequest},
+	} {
+		t.Run(strconv.Itoa(tc.days), func(t *testing.T) {
+			body := map[string]any{"retention_days": tc.days}
+			if tc.valid {
+				assert.NoError(t, schema.Validate(body))
+			} else {
+				assert.Error(t, schema.Validate(body))
+			}
+			w := a.putSettings(t, map[string]any{"workspaceLimits": body})
+			assert.Equal(t, tc.status, w.Code, w.Body.String())
 		})
 	}
 }

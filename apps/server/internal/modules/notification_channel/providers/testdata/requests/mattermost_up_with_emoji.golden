@@ -1,0 +1,28 @@
+POST https://mattermost.example.com/hooks/abc
+Content-Type: application/json
+User-Agent: Peekaping-Mattermost/<version>
+
+{
+  "attachments": [
+    {
+      "color": "#32CD32",
+      "fallback": "Your Public API service went up",
+      "fields": [
+        {
+          "short": false,
+          "title": "Ping",
+          "value": "42ms"
+        },
+        {
+          "short": true,
+          "title": "Time",
+          "value": "2026-10-17 09:35:00"
+        }
+      ],
+      "title": "Public API service went up",
+      "title_link": "https://api.example.com/health"
+    }
+  ],
+  "icon_emoji": ":white_check_mark:",
+  "username": "Public API Peekaping"
+}

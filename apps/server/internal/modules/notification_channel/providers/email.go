@@ -2,13 +2,14 @@ package providers
 
 import (
 	"context"
-	"crypto/tls"
-	"errors"
 	"fmt"
 	"net"
 	"net/smtp"
+	"peekaping/internal/hostport"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
+	"peekaping/internal/netguard"
+	"peekaping/internal/smtpclient"
 
 	liquid "github.com/osteele/liquid"
 	"go.uber.org/zap"
@@ -18,11 +19,11 @@ import (
 // Should match the JSON structure stored in the DB
 // Example JSON: {"smtp_host":"smtp.example.com","smtp_port":587,"username":"user","password":"pass","from":"noreply@example.com"}
 type EmailConfig struct {
-	SMTPSecure    bool   `json:"smtp_secure"`
-	SMTPHost      string `json:"smtp_host" validate:"required"`
-	SMTPPort      int    `json:"smtp_port" validate:"required"`
+	SMTPSecure    bool   `json:"smtp_secure" endpoint:"true"`
+	SMTPHost      string `json:"smtp_host" validate:"required" endpoint:"true" target:"host"`
+	SMTPPort      int    `json:"smtp_port" validate:"required" endpoint:"true"`
 	SMTPUsername  string `json:"username" validate:"required"`
-	SMTPPassword  string `json:"password" validate:"required"`
+	SMTPPassword  string `json:"password" validate:"required" secret:"true"`
 	SMTPFrom      string `json:"from" validate:"required"`
 	SMTPTo        string `json:"to" validate:"required"`
 	SMTPCC        string `json:"cc"`
@@ -31,13 +32,24 @@ type EmailConfig struct {
 	CustomBody    string `json:"custom_body"`
 }
 
+// defaultEmailSubject is the subject of a notification email that has no custom one
+const defaultEmailSubject = "Peekaping Notification"
+
 type EmailSender struct {
 	logger *zap.SugaredLogger
+	// guard refuses a server at an address the install blocks (BLOCK_PRIVATE_TARGETS, PP-158). A nil
+	// guard blocks nothing.
+	guard *netguard.Guard
 }
 
 // NewEmailSender creates an EmailSender
 func NewEmailSender(logger *zap.SugaredLogger) *EmailSender {
-	return &EmailSender{logger: logger}
+	return NewGuardedEmailSender(logger, nil)
+}
+
+// NewGuardedEmailSender creates an EmailSender that connects to its SMTP server through the guard
+func NewGuardedEmailSender(logger *zap.SugaredLogger, guard *netguard.Guard) *EmailSender {
+	return &EmailSender{logger: logger, guard: guard}
 }
 
 func (e *EmailSender) Unmarshal(configJSON string) (any, error) {
@@ -69,7 +81,7 @@ func (e *EmailSender) Send(
 
 	bindings := PrepareTemplateBindings(m, heartbeat, message)
 
-	finalSubject := "Peekaping Notification"
+	finalSubject := defaultEmailSubject
 	if cfg.CustomSubject != "" {
 		if rendered, err := engine.ParseAndRenderString(cfg.CustomSubject, bindings); err == nil {
 			finalSubject = rendered
@@ -84,77 +96,19 @@ func (e *EmailSender) Send(
 	}
 
 	to := cfg.SMTPTo
-	auth := smtp.PlainAuth("", cfg.SMTPUsername, cfg.SMTPPassword, cfg.SMTPHost)
+	auth := smtp.PlainAuth("", cfg.SMTPUsername, cfg.SMTPPassword, hostport.Bare(cfg.SMTPHost))
 	msg := []byte(fmt.Sprintf("To: %s\r\nSubject: %s\r\nFrom: %s\r\n\r\n%s", to, finalSubject, cfg.SMTPFrom, finalBody))
-	addr := fmt.Sprintf("%s:%d", cfg.SMTPHost, cfg.SMTPPort)
-	fmt.Println("Sending email to:", to, "from:", cfg.SMTPFrom, "subject:", finalSubject, "body:", finalBody)
-	return sendMail(ctx, addr, auth, cfg.SMTPFrom, []string{to}, msg)
-}
-
-// sendMail does what smtp.SendMail does, but stops when ctx is done. smtp.SendMail has no
-// context or timeout, so a server that never answers would hold the send forever.
-func sendMail(ctx context.Context, addr string, auth smtp.Auth, from string, to []string, msg []byte) error {
-	host, _, err := net.SplitHostPort(addr)
-	if err != nil {
+	tlsMode := smtpclient.Opportunistic
+	if cfg.SMTPSecure {
+		tlsMode = smtpclient.TLS
+	}
+	server := smtpclient.Server{Host: cfg.SMTPHost, Port: cfg.SMTPPort, Auth: auth, TLS: tlsMode}
+	if e.guard != nil {
+		server.Dialer = e.guard.Dialer(&net.Dialer{})
+	}
+	if err := smtpclient.Send(ctx, server, cfg.SMTPFrom, []string{to}, msg); err != nil {
 		return err
 	}
-	var dialer net.Dialer
-	conn, err := dialer.DialContext(ctx, "tcp", addr)
-	if err != nil {
-		return err
-	}
-	// Closing the connection unblocks the SMTP client once ctx is done
-	stop := context.AfterFunc(ctx, func() { _ = conn.Close() })
-	defer stop()
-
-	err = sendMailOn(conn, host, auth, from, to, msg)
-	if err != nil && ctx.Err() != nil {
-		return fmt.Errorf("failed to send email: %w", ctx.Err())
-	}
-	return err
-}
-
-func sendMailOn(conn net.Conn, host string, auth smtp.Auth, from string, to []string, msg []byte) error {
-	c, err := smtp.NewClient(conn, host)
-	if err != nil {
-		_ = conn.Close()
-		return err
-	}
-	defer c.Close()
-
-	if err := c.Hello("localhost"); err != nil {
-		return err
-	}
-	if ok, _ := c.Extension("STARTTLS"); ok {
-		if err := c.StartTLS(&tls.Config{ServerName: host}); err != nil {
-			return err
-		}
-	}
-	if auth != nil {
-		if ok, _ := c.Extension("AUTH"); !ok {
-			return errors.New("smtp: server doesn't support AUTH")
-		}
-		if err := c.Auth(auth); err != nil {
-			return err
-		}
-	}
-	if err := c.Mail(from); err != nil {
-		return err
-	}
-	for _, rcpt := range to {
-		if err := c.Rcpt(rcpt); err != nil {
-			return err
-		}
-	}
-	w, err := c.Data()
-	if err != nil {
-		return err
-	}
-	if _, err := w.Write(msg); err != nil {
-		return err
-	}
-	if err := w.Close(); err != nil {
-		return err
-	}
-	return c.Quit()
+	e.logger.Infof("Email notification sent successfully")
+	return nil
 }

@@ -1,0 +1,2 @@
+GET https://api.telegram.org/bot123456:bot-token/sendMessage?chat_id=-1001234&disable_notification=false&protect_content=false&text=Public+API+is+UP
+

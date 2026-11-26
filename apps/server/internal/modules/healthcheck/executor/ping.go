@@ -6,9 +6,11 @@ import (
 	"fmt"
 	"math/rand/v2"
 	"net"
+	"net/netip"
 	"os"
 	"os/exec"
 	"peekaping/internal/modules/shared"
+	"peekaping/internal/netguard"
 	"runtime"
 	"strconv"
 	"strings"
@@ -48,6 +50,7 @@ type PingConfig struct {
 }
 
 type PingExecutor struct {
+	guarded
 	logger *zap.SugaredLogger
 }
 
@@ -69,10 +72,47 @@ func (s *PingExecutor) Validate(configJSON string) error {
 	return GenericValidator(cfg.(*PingConfig))
 }
 
+// Targets lists the host a ping check sends to
+func (s *PingExecutor) Targets(configJSON string) ([]string, error) {
+	cfg, err := GenericUnmarshal[PingConfig](configJSON)
+	if err != nil {
+		return nil, err
+	}
+	return []string{cfg.Host}, nil
+}
+
+// guardedHost checks the address a ping would send to, when the guard is on, and returns the host
+// to use. An echo request is not a dial the guard can see, so the name is resolved here and the
+// checks go to the address that was checked, as a literal: resolving it again could give another.
+// With the guard off the host is returned as it is.
+func (p *PingExecutor) guardedHost(ctx context.Context, host string) (string, error) {
+	if !p.guard.Enabled() {
+		return host, nil
+	}
+	addrs, err := p.guard.ResolveAndCheck(ctx, host)
+	if errors.Is(err, netguard.ErrBlocked) {
+		return "", err
+	}
+	if err != nil {
+		return "", fmt.Errorf("failed to resolve host: %v", err)
+	}
+	return preferIPv4(addrs).String(), nil
+}
+
+// preferIPv4 picks the address to ping from a resolved list that is not empty
+func preferIPv4(addrs []netip.Addr) netip.Addr {
+	for _, addr := range addrs {
+		if addr.Unmap().Is4() {
+			return addr.Unmap()
+		}
+	}
+	return addrs[0]
+}
+
 func (p *PingExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Proxy) *Result {
 	cfgAny, err := p.Unmarshal(m.Config)
 	if err != nil {
-		return DownResult(err, time.Now().UTC(), time.Now().UTC())
+		return DownResult(err, time.Now(), time.Now())
 	}
 	cfg := cfgAny.(*PingConfig)
 
@@ -81,21 +121,30 @@ func (p *PingExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 		cfg.PacketSize = 32
 	}
 
-	p.logger.Debugf("execute ping cfg: %+v", cfg)
-
-	startTime := time.Now().UTC()
+	startTime := time.Now()
 	timeout := time.Duration(m.Timeout) * time.Second
 	pingCtx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
+	host, err := p.guardedHost(pingCtx, cfg.Host)
+	if err != nil {
+		p.logger.Infof("Ping failed: %s, %s", m.Name, err.Error())
+		return &Result{
+			Status:    shared.MonitorStatusDown,
+			Message:   fmt.Sprintf("Ping failed: %v", err),
+			StartTime: startTime,
+			EndTime:   time.Now(),
+		}
+	}
+
 	// The system ping command is only a fallback for hosts where no ICMP socket
 	// can be opened. A timeout from the native ping is a real result.
-	success, rtt, err := p.tryNativePing(pingCtx, cfg.Host, cfg.PacketSize, timeout)
+	success, rtt, err := p.tryNativePing(pingCtx, host, cfg.PacketSize, timeout)
 	if errors.Is(err, errNoICMPSocket) {
 		p.logger.Debugf("Ping failed: %s, %s, %s", m.Name, err.Error(), "trying system ping")
 		nativeErr := err
-		startTime = time.Now().UTC() // reset start time
-		success, rtt, err = p.trySystemPing(pingCtx, cfg.Host, cfg.PacketSize, timeout)
+		startTime = time.Now() // reset start time
+		success, rtt, err = p.trySystemPing(pingCtx, host, cfg.PacketSize, timeout)
 		switch {
 		case errors.Is(err, exec.ErrNotFound):
 			err = nativeErr
@@ -104,7 +153,7 @@ func (p *PingExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 		}
 	}
 
-	endTime := time.Now().UTC()
+	endTime := time.Now()
 
 	if err != nil {
 		p.logger.Infof("Ping failed: %s, %s", m.Name, err.Error())
@@ -140,10 +189,7 @@ func (p *PingExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 // whichever comes first.
 func (p *PingExecutor) tryNativePing(ctx context.Context, host string, packetSize int, timeout time.Duration) (bool, time.Duration, error) {
 	start := time.Now()
-	deadline := start.Add(timeout)
-	if d, ok := ctx.Deadline(); ok && d.Before(deadline) {
-		deadline = d
-	}
+	deadline := pingDeadline(ctx, start, timeout)
 	ctx, cancel := context.WithDeadline(ctx, deadline)
 	defer cancel()
 
@@ -181,6 +227,21 @@ func (p *PingExecutor) tryNativePing(ctx context.Context, host string, packetSiz
 	p.logger.Debugf("Native ping: host=%s, ip=%s, dgram=%t, dataSize=%d, totalPacketSize=%d", host, dst, dgram, len(data), len(data)+8)
 
 	rtt, err := exchangeEcho(conn, target, req, v6, checkID)
+	return echoOutcome(ctx, dst, rtt, err, start, deadline)
+}
+
+// pingDeadline is when a ping that starts now has to be answered by: the timeout from start, or
+// the context's deadline when that is sooner.
+func pingDeadline(ctx context.Context, start time.Time, timeout time.Duration) time.Time {
+	deadline := start.Add(timeout)
+	if d, ok := ctx.Deadline(); ok && d.Before(deadline) {
+		deadline = d
+	}
+	return deadline
+}
+
+// echoOutcome is the result of a native ping from how the echo exchange went
+func echoOutcome(ctx context.Context, dst *net.IPAddr, rtt time.Duration, err error, start, deadline time.Time) (bool, time.Duration, error) {
 	switch {
 	case err == nil:
 		return true, rtt, nil
@@ -231,7 +292,7 @@ func listenICMP(v6 bool) (*icmp.PacketConn, bool, error) {
 	}
 	err := fmt.Errorf("%w: %s: %v, %v", errNoICMPSocket, dgramNetwork, dgramErr, rawErr)
 	if errors.Is(rawErr, os.ErrPermission) {
-		err = fmt.Errorf("%w; allow unprivileged ICMP with the net.ipv4.ping_group_range sysctl, or run the worker as root with the NET_RAW capability", err)
+		err = fmt.Errorf("%w; allow unprivileged ICMP with the net.ipv4.ping_group_range sysctl, or run Peekaping as root with the NET_RAW capability", err)
 	}
 	return nil, false, err
 }
@@ -239,11 +300,7 @@ func listenICMP(v6 bool) (*icmp.PacketConn, bool, error) {
 // exchangeEcho sends req to dst and returns the round-trip time of its reply.
 // Packets that aren't the reply to req are skipped until conn's deadline.
 func exchangeEcho(conn packetConn, dst net.Addr, req *icmp.Echo, v6, checkID bool) (time.Duration, error) {
-	var requestType, replyType icmp.Type = ipv4.ICMPTypeEcho, ipv4.ICMPTypeEchoReply
-	proto := protocolICMP
-	if v6 {
-		requestType, replyType, proto = ipv6.ICMPTypeEchoRequest, ipv6.ICMPTypeEchoReply, protocolIPv6ICMP
-	}
+	requestType, replyType, proto := echoTypes(v6)
 
 	msg, err := (&icmp.Message{Type: requestType, Body: req}).Marshal(nil)
 	if err != nil {
@@ -261,16 +318,38 @@ func exchangeEcho(conn packetConn, dst net.Addr, req *icmp.Echo, v6, checkID boo
 		if err != nil {
 			return 0, err
 		}
-		reply, err := icmp.ParseMessage(proto, buf[:n])
-		if err != nil || reply.Type != replyType {
-			continue
-		}
-		echo, ok := reply.Body.(*icmp.Echo)
-		if !ok || echo.Seq != req.Seq || (checkID && echo.ID != req.ID) || !sameIP(peer, dst) {
+		echo, ok := parseEchoReply(proto, replyType, buf[:n])
+		if !ok || !answersRequest(echo, req, checkID, peer, dst) {
 			continue
 		}
 		return time.Since(start), nil
 	}
+}
+
+// echoTypes is the ICMP types of an echo request and its reply, and the protocol number of the
+// messages, for IPv4 or IPv6
+func echoTypes(v6 bool) (requestType, replyType icmp.Type, proto int) {
+	if v6 {
+		return ipv6.ICMPTypeEchoRequest, ipv6.ICMPTypeEchoReply, protocolIPv6ICMP
+	}
+	return ipv4.ICMPTypeEcho, ipv4.ICMPTypeEchoReply, protocolICMP
+}
+
+// parseEchoReply parses the packet as an echo reply of the given type. It reports false for any
+// other packet.
+func parseEchoReply(proto int, replyType icmp.Type, packet []byte) (*icmp.Echo, bool) {
+	reply, err := icmp.ParseMessage(proto, packet)
+	if err != nil || reply.Type != replyType {
+		return nil, false
+	}
+	echo, ok := reply.Body.(*icmp.Echo)
+	return echo, ok
+}
+
+// answersRequest reports whether the echo reply, which came from peer, is the reply to req sent to
+// dst. checkID is false where the kernel rewrites the ID.
+func answersRequest(echo, req *icmp.Echo, checkID bool, peer, dst net.Addr) bool {
+	return echo.Seq == req.Seq && (!checkID || echo.ID == req.ID) && sameIP(peer, dst)
 }
 
 func sameIP(a, b net.Addr) bool {
@@ -290,18 +369,9 @@ func addrIP(addr net.Addr) net.IP {
 
 // trySystemPing falls back to using the system ping command
 func (p *PingExecutor) trySystemPing(ctx context.Context, host string, packetSize int, timeout time.Duration) (bool, time.Duration, error) {
-	var cmd *exec.Cmd
-
 	p.logger.Debugf("System ping: host=%s, dataSize=%d, totalPacketSize=%d", host, packetSize, packetSize+8)
 
-	switch runtime.GOOS {
-	case "windows":
-		cmd = exec.CommandContext(ctx, "ping", "-n", "1", "-l", strconv.Itoa(packetSize), "-w", strconv.Itoa(int(timeout.Milliseconds())), host)
-	case "darwin":
-		cmd = exec.CommandContext(ctx, "ping", "-c", "1", "-s", strconv.Itoa(packetSize), "-W", strconv.Itoa(int(timeout.Milliseconds())), host)
-	default: // linux and others
-		cmd = exec.CommandContext(ctx, "ping", "-c", "1", "-s", strconv.Itoa(packetSize), "-W", strconv.Itoa(int(timeout.Seconds())), host)
-	}
+	cmd := exec.CommandContext(ctx, "ping", systemPingArgs(runtime.GOOS, host, packetSize, timeout)...)
 
 	start := time.Now()
 	output, err := cmd.Output()
@@ -320,23 +390,52 @@ func (p *PingExecutor) trySystemPing(ctx context.Context, host string, packetSiz
 		return false, 0, fmt.Errorf("ping command failed: %w", err)
 	}
 
-	outputStr := string(output)
+	success, err := readPingOutput(string(output))
+	return success, rtt, err
+}
 
+// systemPingArgs is the arguments of the ping command on the operating system: one packet of the
+// given data size, answered within the timeout (which Windows and macOS give in milliseconds, and
+// other systems in seconds)
+func systemPingArgs(goos, host string, packetSize int, timeout time.Duration) []string {
+	switch goos {
+	case "windows":
+		return []string{"-n", "1", "-l", strconv.Itoa(packetSize), "-w", strconv.Itoa(int(timeout.Milliseconds())), host}
+	case "darwin":
+		return []string{"-c", "1", "-s", strconv.Itoa(packetSize), "-W", strconv.Itoa(int(timeout.Milliseconds())), host}
+	default: // linux and others
+		return []string{"-c", "1", "-s", strconv.Itoa(packetSize), "-W", strconv.Itoa(int(timeout.Seconds())), host}
+	}
+}
+
+var (
+	pingFailureMarkers = []string{"100% packet loss", "100% loss", "Request timed out", "Destination host unreachable"}
+	pingSuccessMarkers = []string{"bytes from", "Reply from"}
+)
+
+// containsAny reports whether s contains any of the substrings
+func containsAny(s string, substrs []string) bool {
+	for _, substr := range substrs {
+		if strings.Contains(s, substr) {
+			return true
+		}
+	}
+	return false
+}
+
+// readPingOutput says from the output of the ping command whether the host replied
+func readPingOutput(outputStr string) (bool, error) {
 	// Check if ping was successful based on output
-	if strings.Contains(outputStr, "100% packet loss") ||
-		strings.Contains(outputStr, "100% loss") ||
-		strings.Contains(outputStr, "Request timed out") ||
-		strings.Contains(outputStr, "Destination host unreachable") {
-		return false, rtt, nil
+	if containsAny(outputStr, pingFailureMarkers) {
+		return false, nil
 	}
 
 	// Look for success indicators
-	if strings.Contains(outputStr, "bytes from") ||
-		strings.Contains(outputStr, "Reply from") ||
+	if containsAny(outputStr, pingSuccessMarkers) ||
 		(strings.Contains(outputStr, "packets transmitted") && !strings.Contains(outputStr, "100% packet loss")) {
-		return true, rtt, nil
+		return true, nil
 	}
 
 	// If we can't determine from output, assume failure
-	return false, rtt, fmt.Errorf("unable to determine ping result from output: %s", outputStr)
+	return false, fmt.Errorf("unable to determine ping result from output: %s", outputStr)
 }

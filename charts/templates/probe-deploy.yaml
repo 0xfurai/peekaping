@@ -1,0 +1,127 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-probe
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ .Release.Name }}-probe
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/name: {{ .Release.Name }}
+    app.kubernetes.io/component: probe
+spec:
+  replicas: {{ .Values.probe.replicaCount }}
+
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-probe
+
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-probe
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/name: {{ .Release.Name }}
+        app.kubernetes.io/component: probe
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/config.yaml") . | sha256sum }}
+        {{- if .Values.probe.apparmor.enabled }}
+        # AppArmor annotation key must match container name
+        container.apparmor.security.beta.kubernetes.io/{{ .Release.Name }}-probe: runtime/default
+        {{- end }}
+
+    spec:
+      serviceAccountName: {{ .Release.Name }}-sa
+      automountServiceAccountToken: false
+
+      # The probe takes up to 25 seconds to shut down cleanly
+      terminationGracePeriodSeconds: 35
+
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app: {{ .Release.Name }}-probe
+
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+        {{- with .Values.probe.sysctls }}
+        sysctls:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+
+      # The probe talks to the api over HTTP and keeps nothing on disk. It has no database
+      # or Redis settings and no init container: it retries until the api is up.
+      containers:
+        - name: {{ .Release.Name }}-probe
+          image: {{ include "peekaping.image" (dict "image" .Values.probe.image "root" .) }}
+          imagePullPolicy: {{ .Values.probe.image.pullPolicy }}
+
+          # Only the ConfigMap, for LOG_LEVEL and TZ: the config secret holds the database
+          # password, which the probe doesn't need
+          envFrom:
+            - configMapRef:
+                name: {{ .Release.Name }}-config
+
+          env:
+            # The api Service, inside the cluster
+            - name: PEEKAPING_URL
+              value: {{ printf "http://%s-api.%s.svc:%v" .Release.Name .Release.Namespace .Values.api.service.port | quote }}
+            # The probe refuses a plain http:// address to another host unless told otherwise.
+            # This one never leaves the cluster.
+            - name: PROBE_ALLOW_INSECURE
+              value: "true"
+            # The same token the api stores on the local probe (PROBE_BOOTSTRAP_TOKEN)
+            - name: PROBE_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "peekaping.probeTokenSecretName" . }}
+                  key: {{ include "peekaping.probeTokenSecretKey" . }}
+            # Listen on the pod's address so that the readiness probe can reach /ready
+            - name: PROBE_READY_ADDR
+              value: {{ printf "0.0.0.0:%v" .Values.probe.readyPort | quote }}
+
+          ports:
+            - containerPort: {{ .Values.probe.readyPort }}
+              name: ready
+
+          resources:
+            requests:
+              cpu: {{ .Values.probe.resources.requests.cpu }}
+              memory: {{ .Values.probe.resources.requests.memory }}
+            limits:
+              cpu: {{ .Values.probe.resources.limits.cpu }}
+              memory: {{ .Values.probe.resources.limits.memory }}
+
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            privileged: false
+            capabilities:
+              drop: ["ALL"]
+
+          # /ready answers 503 until the probe has its first assignment from the api, and 200
+          # from then on, also while the api is unreachable. So a rolling update keeps the old
+          # pods until the new ones are connected, and a pod with a refused token never
+          # replaces a working one. There is no liveness probe: /ready stays 200 by design.
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: {{ .Values.probe.readyPort }}
+            initialDelaySeconds: {{ .Values.probe.probes.readiness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probe.probes.readiness.periodSeconds }}
+            timeoutSeconds: {{ .Values.probe.probes.readiness.timeoutSeconds }}
+            failureThreshold: {{ .Values.probe.probes.readiness.failureThreshold }}

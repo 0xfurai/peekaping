@@ -1,0 +1,144 @@
+---
+import SectionHeading from "./SectionHeading.astro";
+import { channelCount } from "../data/integrations";
+
+const statusServices = [
+  { name: "Website", down: [] as number[] },
+  { name: "Public API", down: [21] },
+  { name: "Payments", down: [] },
+];
+
+---
+
+<section id="features" class="relative px-4 sm:px-8 py-24 sm:py-32">
+  <div class="max-w-screen-lg mx-auto">
+    <SectionHeading eyebrow="Features" title="Everything you need to <span class='text-gradient'>sleep at night</span>">
+      Monitoring, alerting and status pages in one place, running on hardware you control.
+    </SectionHeading>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <!-- Status pages -->
+      <article class="glow-card reveal p-6 sm:p-8 md:col-span-2 overflow-hidden">
+        <h3 class="text-xl font-semibold text-white">Status pages your users trust</h3>
+        <p class="mt-2 text-zinc-400 max-w-md">
+          Public pages for customers or private ones for your team, on your own domain. Fewer
+          "is it down?" tickets.
+        </p>
+        <div class="mt-6 rounded-2xl border border-white/10 bg-black/30 p-4 sm:p-5">
+          <div class="flex items-center gap-3 rounded-xl bg-up/10 border border-up/25 px-4 py-3">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-up" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+            <span class="font-semibold text-white">All systems operational</span>
+          </div>
+          <ul class="mt-4 space-y-3">
+            {
+              statusServices.map((service) => (
+                <li>
+                  <div class="flex justify-between text-sm">
+                    <span class="text-zinc-200">{service.name}</span>
+                    <span class="text-zinc-500 tabular-nums">
+                      {service.down.length ? "99.93%" : "100%"}
+                    </span>
+                  </div>
+                  <div class="mt-1.5 flex gap-[3px]" aria-hidden="true">
+                    {Array.from({ length: 30 }, (_, i) => (
+                      <span
+                        class:list={[
+                          "h-6 flex-1 rounded-[3px]",
+                          service.down.includes(i) ? "bg-amber-400/80" : "bg-up/70",
+                        ]}
+                      />
+                    ))}
+                  </div>
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+      </article>
+
+      <!-- Alerts -->
+      <article class="glow-card reveal p-6 sm:p-8 flex flex-col" style="--delay: 80ms">
+        <h3 class="text-xl font-semibold text-white">Alerts where your team lives</h3>
+        <p class="mt-2 text-zinc-400">
+          {channelCount} channels, from Slack and Telegram to PagerDuty and plain webhooks.
+        </p>
+        <div class="mt-auto pt-6 space-y-2" aria-hidden="true">
+          <div class="rounded-xl border border-white/10 bg-black/30 px-3.5 py-2.5 text-sm">
+            <div class="flex items-center gap-2">
+              <span class="h-2 w-2 rounded-full bg-down"></span>
+              <span class="font-semibold text-white">api.acme.dev is Down</span>
+            </div>
+            <div class="text-zinc-500 text-xs mt-1 pl-4">HTTP 503 · 2 min ago</div>
+          </div>
+          <div class="rounded-xl border border-white/10 bg-black/30 px-3.5 py-2.5 text-sm opacity-70">
+            <div class="flex items-center gap-2">
+              <span class="h-2 w-2 rounded-full bg-up"></span>
+              <span class="font-semibold text-white">api.acme.dev is Up</span>
+            </div>
+            <div class="text-zinc-500 text-xs mt-1 pl-4">Back after 4 min · just now</div>
+          </div>
+        </div>
+      </article>
+
+      <!-- Lightweight -->
+      <article class="glow-card reveal p-6 sm:p-8">
+        <div class="h-10 w-10 rounded-xl bg-violet-500/15 border border-violet-400/25 grid place-items-center text-violet-300">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        </div>
+        <h3 class="mt-5 text-lg font-semibold text-white">Fast and light</h3>
+        <p class="mt-2 text-zinc-400">
+          Written in Go, easy on RAM and CPU. SQLite for a quick start, PostgreSQL for production.
+        </p>
+      </article>
+
+      <!-- Maintenance -->
+      <article class="glow-card reveal p-6 sm:p-8" style="--delay: 80ms">
+        <div class="h-10 w-10 rounded-xl bg-violet-500/15 border border-violet-400/25 grid place-items-center text-violet-300">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        </div>
+        <h3 class="mt-5 text-lg font-semibold text-white">Maintenance windows</h3>
+        <p class="mt-2 text-zinc-400">
+          Schedule planned work once or on repeat, and nobody gets paged for a deploy.
+        </p>
+      </article>
+
+      <!-- Security -->
+      <article class="glow-card reveal p-6 sm:p-8" style="--delay: 160ms">
+        <div class="h-10 w-10 rounded-xl bg-violet-500/15 border border-violet-400/25 grid place-items-center text-violet-300">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <h3 class="mt-5 text-lg font-semibold text-white">Secure by default</h3>
+        <p class="mt-2 text-zinc-400">
+          Two-factor login, brute-force protection, API keys and TLS certificate expiry
+          alerts.
+        </p>
+      </article>
+      <!-- API -->
+      <article
+        class="glow-card reveal p-6 sm:p-8 md:col-span-2 lg:col-span-3 grid lg:grid-cols-2 gap-6 lg:gap-10 items-center"
+      >
+        <div>
+          <h3 class="text-xl font-semibold text-white">API-first</h3>
+          <p class="mt-2 text-zinc-400">
+            Everything in the app has a REST endpoint with an OpenAPI spec. Script it, wire it
+            into CI, or manage it with Terraform.
+          </p>
+        </div>
+        <pre
+          class="text-[12px] sm:text-[13px] leading-relaxed font-mono text-zinc-300 overflow-x-auto"><code class="block rounded-xl border border-white/10 bg-black/40 p-4 sm:p-5"><span class="text-violet-400">curl</span> -H <span class="text-amber-200">"X-API-Key: $KEY"</span> \
+  $PEEKAPING_URL/api/v1/monitors</code></pre>
+      </article>
+    </div>
+  </div>
+</section>
+
+<script>
+  // Point each card's hover glow at the cursor
+  document.querySelectorAll<HTMLElement>(".glow-card").forEach((card) => {
+    card.addEventListener("pointermove", (event) => {
+      const rect = card.getBoundingClientRect();
+      card.style.setProperty("--mx", `${event.clientX - rect.left}px`);
+      card.style.setProperty("--my", `${event.clientY - rect.top}px`);
+    });
+  });
+</script>

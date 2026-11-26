@@ -3,20 +3,294 @@
     "cancel": "取消",
     "saving": "儲存中…"
   },
+  "admin": {
+    "nav": {
+      "back_to_workspace": "返回 {{name}}",
+      "probes": "探針",
+      "title": "管理",
+      "users": "使用者",
+      "workspaces": "工作區",
+      "settings": "設定"
+    },
+    "users": {
+      "actions": {
+        "delete": "刪除使用者",
+        "disable": "停用使用者",
+        "disableTwoFactor": "關閉 2FA",
+        "enable": "啟用使用者",
+        "grantAdmin": "設為執行個體管理員",
+        "resetLink": "產生重設連結",
+        "revokeAdmin": "移除執行個體管理員"
+      },
+      "actions_aria": "{{email}} 的操作",
+      "columns": {
+        "created": "建立時間",
+        "email": "電子郵件",
+        "email_verified": "電子郵件已驗證",
+        "instance_admin": "執行個體管理員",
+        "last_sign_in": "上次登入",
+        "status": "狀態",
+        "two_factor": "2FA",
+        "workspaces": "工作區"
+      },
+      "confirm": {
+        "cancel": "取消",
+        "delete": {
+          "confirm": "刪除使用者",
+          "description": "刪除 {{email}}？其帳號會被移除，其在工作區中的位置也會一併移除。此操作無法復原。",
+          "title": "刪除使用者"
+        },
+        "disable": {
+          "confirm": "停用",
+          "description": "{{email}} 將無法登入，並會在所有裝置上登出。其工作區會繼續運作。你之後可以重新啟用。",
+          "title": "停用使用者"
+        },
+        "disableTwoFactor": {
+          "confirm": "關閉 2FA",
+          "description": "{{email}} 將只使用密碼登入，並可重新設定 2FA。請確認確實是本人提出要求後再執行。",
+          "title": "關閉 2FA"
+        }
+      },
+      "description": "此部署上所有擁有帳號的人。執行個體管理員負責管理部署本身，例如探針和使用者。使用者在工作區中的角色由該工作區的擁有者設定。",
+      "empty": "找不到使用者",
+      "errors": {
+        "last_instance_admin": "部署至少需要一位執行個體管理員。",
+        "last_owner": "該使用者是 {{workspaces}} 的最後一位擁有者。請先指定其他擁有者，或刪除該工作區。",
+        "self": "你不能對自己的帳號執行此操作。"
+      },
+      "load_failed": "無法載入使用者。",
+      "messages": {
+        "admin_granted": "{{email}} 現在是執行個體管理員",
+        "admin_revoked": "{{email}} 不再是執行個體管理員",
+        "deleted": "{{email}} 已刪除",
+        "disabled": "{{email}} 已停用並登出",
+        "enabled": "{{email}} 已啟用",
+        "two_factor_off": "已關閉 {{email}} 的 2FA",
+        "update_failed": "無法更新使用者。"
+      },
+      "never": "從未",
+      "none": "無",
+      "page_name": "使用者",
+      "paging": {
+        "next": "下一頁",
+        "page": "第 {{page}} 頁，共 {{pages}} 頁",
+        "previous": "上一頁"
+      },
+      "reset_link": {
+        "close": "關閉",
+        "copied": "連結已複製",
+        "copy": "複製連結",
+        "copy_failed": "無法複製連結。請選取後手動複製。",
+        "description": "供 {{email}} 設定新密碼的連結。請立即複製並轉交：它只會顯示一次。",
+        "emailed": "此部署會寄送帳號電子郵件，因此使用者會收到郵件，告知已為其產生連結。",
+        "expires": "此連結只能使用一次，將於{{when}}過期。",
+        "failed": "無法產生連結。",
+        "label": "連結",
+        "making": "正在產生連結...",
+        "signs_out": "使用此連結會讓使用者在所有裝置上登出。",
+        "title": "密碼重設連結"
+      },
+      "search_label": "依電子郵件搜尋使用者",
+      "search_placeholder": "依電子郵件搜尋",
+      "total": "找到 {{total}} 位",
+      "values": {
+        "active": "啟用中",
+        "disabled": "已停用",
+        "no": "否",
+        "two_factor_off": "關",
+        "two_factor_on": "開",
+        "yes": "是"
+      },
+      "you": "你"
+    },
+    "workspaces": {
+      "actions": {
+        "delete": "刪除工作區",
+        "resume": "恢復工作區",
+        "suspend": "暫停工作區",
+        "limits": "上限"
+      },
+      "actions_aria": "{{name}} 的操作",
+      "columns": {
+        "created": "建立時間",
+        "custom_domains": "自訂網域",
+        "members": "成員",
+        "monitors": "監控",
+        "name": "名稱",
+        "owners": "擁有者",
+        "status": "狀態",
+        "status_pages": "狀態頁面",
+        "limits": "上限"
+      },
+      "confirm": {
+        "cancel": "取消",
+        "delete": {
+          "confirm": "刪除工作區",
+          "description": "要刪除 {{name}} 嗎？其中的所有內容都會被移除：監控及其歷史紀錄、狀態頁面、通知頻道，以及成員的存取權。此操作無法復原。",
+          "name_label": "輸入工作區名稱以確認：{{name}}",
+          "title": "刪除工作區"
+        },
+        "resume": {
+          "confirm": "恢復",
+          "description": "{{name}} 的監控會以原本的狀態重新執行，成員也能照常使用。正在等待擁有者驗證電子郵件的工作區會繼續等待。",
+          "title": "恢復工作區"
+        },
+        "suspend": {
+          "confirm": "暫停",
+          "description": "{{name}} 的監控會停止執行，其公開狀態頁面會顯示無法使用，成員會看到工作區已暫停。不會刪除任何內容，你之後可以恢復。",
+          "title": "暫停工作區"
+        }
+      },
+      "description": "此部署上的所有工作區，以及其擁有者、成員和內容數量。只顯示數量，不會顯示工作區內的任何內容。",
+      "empty": "找不到工作區",
+      "load_failed": "無法載入工作區。",
+      "messages": {
+        "deleted": "{{name}} 已刪除",
+        "failed": "無法變更工作區。",
+        "resumed": "{{name}} 已恢復",
+        "suspended": "{{name}} 已暫停"
+      },
+      "monitors": "{{active}} 個執行中，{{paused}} 個已暫停",
+      "none": "無",
+      "page_name": "工作區",
+      "paging": {
+        "next": "下一頁",
+        "page": "第 {{page}} 頁，共 {{pages}} 頁",
+        "previous": "上一頁"
+      },
+      "search_label": "依名稱或擁有者電子郵件搜尋工作區",
+      "search_placeholder": "依名稱或擁有者電子郵件搜尋",
+      "status": {
+        "running": "執行中",
+        "suspended_admin": "已被管理員暫停",
+        "suspended_unverified": "已暫停，直到擁有者驗證電子郵件"
+      },
+      "total": "找到 {{total}} 個",
+      "limits": {
+        "item": "{{name}}：{{value}}",
+        "more": "另有 {{number}} 項",
+        "unlimited": "無上限",
+        "source": {
+          "workspace": "自行設定",
+          "install": "安裝的預設值",
+          "none": "未設定"
+        },
+        "dialog": {
+          "title": "{{name}} 的上限",
+          "description": "此工作區受到的限制。調低上限不會暫停或刪除任何內容：超出上限的最新監控會停止執行，直到再有空位為止。",
+          "own": "自有上限",
+          "own_help": "這些會取代安裝的預設值。若不設某項上限，請將其留空。",
+          "unlimited": "無上限",
+          "unlimited_help": "完全沒有上限，無論安裝的預設值如何設定。",
+          "defaults": "使用安裝的預設值",
+          "defaults_help": "管理 → 設定中的預設上限；若安裝未設定，則沒有上限。",
+          "save": "儲存上限",
+          "cancel": "取消",
+          "saved": "已儲存 {{name}} 的上限",
+          "failed": "無法儲存上限。"
+        }
+      }
+    },
+    "settings": {
+      "page_name": "設定",
+      "description": "整個安裝的設定。由伺服器環境設定的值在這裡會被鎖定。",
+      "load_failed": "無法載入設定。",
+      "saved": "設定已儲存",
+      "save_failed": "設定未儲存。",
+      "locked": "由伺服器環境設定",
+      "source": {
+        "environment": "來自伺服器環境",
+        "saved": "儲存在此",
+        "default": "預設"
+      },
+      "signup": {
+        "title": "註冊",
+        "description": "誰可以在此安裝上建立帳號。",
+        "label": "註冊模式",
+        "invite": "僅限邀請",
+        "open": "開放",
+        "invite_help": "第一位使用者註冊，之後的所有人透過邀請加入工作區。",
+        "open_help": "任何人都可以註冊，並取得自己的工作區。新帳號需要驗證電子郵件地址，因此需要郵件寄件者。"
+      },
+      "sender": {
+        "title": "郵件寄件者",
+        "description": "寄送帳號郵件的 SMTP 伺服器：重設密碼連結、電子郵件驗證與邀請。",
+        "on": "帳號郵件已開啟。",
+        "off": "帳號郵件已關閉：沒有 SMTP 主機。",
+        "host": "SMTP 主機",
+        "port": "埠號",
+        "tls": "安全",
+        "tls_starttls": "STARTTLS",
+        "tls_tls": "TLS",
+        "tls_none": "無",
+        "user": "使用者",
+        "password": "密碼",
+        "password_set": "已設定密碼。輸入新密碼即可取代。",
+        "password_not_set": "未設定密碼",
+        "password_removed": "儲存時將移除密碼。",
+        "password_reenter": "變更主機、連接埠、安全性或使用者會移除已儲存的密碼。請重新輸入。",
+        "remove_password": "移除密碼",
+        "keep_password": "保留密碼",
+        "from": "寄件地址"
+      },
+      "public_url": {
+        "title": "公開 URL",
+        "description": "網頁應用程式的位址，郵件與通知中的連結會開啟它。",
+        "label": "公開 URL"
+      },
+      "test_email": {
+        "title": "寄送測試郵件",
+        "description": "透過已儲存的寄件者寄送一封簡短郵件，以檢查其是否正常運作。",
+        "to": "寄送至",
+        "send": "寄送測試郵件",
+        "sending": "正在寄送…",
+        "sent": "測試郵件已寄送至 {{to}}。",
+        "failed": "測試郵件未寄出。",
+        "unsaved": "寄件者有未儲存的變更。測試使用已儲存的寄件者，請先儲存。"
+      },
+      "validation": {
+        "port": "請輸入 1 到 65535 之間的連接埠，或留空以使用預設值。"
+      },
+      "errors": {
+        "locked": "{{field}} 由伺服器環境設定，無法在此變更。",
+        "open_needs_sender": "開放註冊需要郵件寄件者，因為新帳號需要驗證電子郵件地址。請先設定寄件者，或在同一次儲存中設定。",
+        "sender_needed": "註冊已開放，新帳號需要寄件者來驗證電子郵件地址。請先將註冊切換為僅限邀請。",
+        "no_sender": "沒有郵件寄件者。請先儲存寄件者。"
+      },
+      "limits": {
+        "title": "預設上限",
+        "description": "所有沒有自有上限的工作區的上限。若不設某項上限，請將其留空。在「工作區」頁面為某個工作區設定的上限會取代這些預設值。",
+        "name_label": "預設限額的名稱",
+        "name_help": "顯示在工作區的用量頁面上，例如「免費版」。留空時，頁面會顯示限額由你的管理員設定。"
+      }
+    }
+  },
   "auth": {
     "login": {
       "description": "使用您的電子郵件登入",
       "no_account": "還沒有帳號？",
       "sign_up": "註冊",
       "submit": "登入",
-      "title": "歡迎回來"
+      "title": "歡迎回來",
+      "forgot_password": "忘記密碼?",
+      "ask_admin": "請向此安裝的管理員索取邀請"
     },
     "register": {
       "description": "建立您的管理員帳戶",
+      "description_open": "建立您的帳戶",
       "have_account": "已有帳號？",
       "sign_in": "登入",
       "submit": "建立",
-      "title": "您好"
+      "title": "您好",
+      "telemetry_note": "匿名：不含監控名稱、URL 或主機。你之後可以在「設定」中變更。",
+      "telemetry_whats_sent": "會傳送什麼",
+      "errors": {
+        "rate_limited": "你所在網路的註冊次數過多。請一小時後再試。",
+        "email_taken": "使用此電子郵件的帳戶已存在。",
+        "sign_in_instead": "請改為登入。",
+        "check_failed": "驗證未通過。請再試一次。",
+        "check_load_failed": "無法載入驗證。請檢查網路連線後再試一次。"
+      }
     },
     "twofa": {
       "code_label": "兩步驗證碼",
@@ -25,11 +299,51 @@
       "title": "需要雙因素認證",
       "verify_button": "驗證 2FA",
       "verifying": "驗證中…"
+    },
+    "forgot": {
+      "title": "重設密碼",
+      "description": "輸入你帳號的電子郵件,我們會寄一個連結給你。",
+      "submit": "寄出連結",
+      "sent": "如果此電子郵件有對應的帳號,我們已寄出連結。連結一小時內有效。",
+      "back_to_login": "返回登入"
+    },
+    "reset": {
+      "title": "選擇新密碼",
+      "description": "為你的帳號輸入新密碼。",
+      "submit": "設定密碼",
+      "success": "你的密碼已變更,而且已在所有裝置登出。請使用新密碼登入。",
+      "sign_in": "登入",
+      "invalid_link": "此連結已被使用或已過期。",
+      "request_new": "索取新連結"
+    },
+    "verify": {
+      "title": "驗證你的電子郵件",
+      "verifying": "正在驗證你的電子郵件...",
+      "success": "你的電子郵件已驗證。",
+      "open_app": "開啟 Peekaping",
+      "invalid_link": "此連結已被使用或已過期。"
+    },
+    "errors": {
+      "rate_limited": "要求過於頻繁,請稍後再試。",
+      "generic": "發生問題,請再試一次。",
+      "already_verified": "你的電子郵件已經驗證過了。"
+    },
+    "resend": {
+      "button": "重新寄出",
+      "sent": "我們已寄出新連結,請查看你的收件匣。"
+    },
+    "verification_banner": {
+      "message": "請驗證你的電子郵件:我們已向 {{email}} 寄出連結。"
+    },
+    "suspension_notice": {
+      "message": "驗證電子郵件後，你的監控項目才會開始運作。",
+      "member_message": "此工作區的監控項目會在其擁有者驗證電子郵件後開始運作。"
     }
   },
   "bars": {
     "down_count": "停機次數",
     "important": "重要",
+    "instance": "執行個體",
     "interval": "間隔",
     "message": "訊息",
     "ms": "毫秒",
@@ -65,10 +379,12 @@
     "loading": "載入中…",
     "logout": "登出",
     "maintenance": "維護",
+    "no_data": "無資料",
     "no_options_found": "找不到選項",
     "no_tags_available": "尚無標籤可用",
     "please_refresh_page": "請刷新頁面。",
     "required": "必填",
+    "retry": "重試",
     "save": "儲存",
     "saving": "儲存中…",
     "search": "搜尋",
@@ -83,6 +399,12 @@
     "up": "正常",
     "update": "更新",
     "verifying": "驗證中…"
+  },
+  "error_reporting": {
+    "label": "傳送錯誤報告",
+    "never_sent": "絕不傳送：錯誤訊息、URL、標頭、Webhook URL、名稱或主機名稱。報告不包含 IP 位址，Peekaping 的 Sentry 專案也已設定為不儲存傳送方的 IP。",
+    "not_saved": "你關於錯誤報告的選擇未能儲存。請在「設定」中檢查。",
+    "sent": "只在 Peekaping 本身當機時傳送。報告包含錯誤類型及其在程式碼中發生的位置、Peekaping 版本、單機模式或叢集模式、儲存後端以及作業系統。"
   },
   "forms": {
     "labels": {
@@ -113,7 +435,35 @@
       "email_invalid": "請輸入有效的電子郵件地址",
       "password_required": "密碼為必填",
       "password_min_length": "密碼至少要 8 個字元",
+      "password_complexity": "密碼必須包含大寫字母、小寫字母、數字和特殊字元",
       "passwords_mismatch": "密碼不一致"
+    }
+  },
+  "invite": {
+    "accept": "接受邀請",
+    "accepting": "加入中...",
+    "creating": "建立中...",
+    "description": "你受邀以 {{role}} 身分加入 {{workspace}}。",
+    "enter_failed": "您已加入該工作區，但開啟失敗。請重試。",
+    "errors": {
+      "other_email": "此邀請是寄給另一個電子郵件地址的。"
+    },
+    "for_email": "此邀請是寄給 {{email}} 的。",
+    "have_account": "已有帳號？",
+    "open_app": "開啟 Peekaping",
+    "other_account": "你目前以 {{current}} 登入，但此邀請是寄給 {{invited}} 的。請先登出，再用 {{invited}} 登入或註冊以接受邀請。",
+    "sign_in_instead": "改為登入",
+    "sign_out": "登出",
+    "signup_description": "設定密碼以建立帳號，並以 {{role}} 身分加入 {{workspace}}。",
+    "signup_submit": "建立帳號並加入",
+    "title": "加入 {{workspace}}",
+    "unavailable": {
+      "accepted": "此邀請已被使用。",
+      "expired": "此邀請已過期，請重新索取。",
+      "not_found": "此邀請連結不存在。請檢查是否完整複製了連結。",
+      "revoked": "此邀請已被撤銷，請重新索取。",
+      "title": "此邀請無法使用",
+      "unknown": "此邀請無法使用，請重新索取。"
     }
   },
   "maintenance": {
@@ -221,6 +571,79 @@
       "wed": "週三"
     }
   },
+  "members": {
+    "change_role_aria": "變更 {{email}} 的角色",
+    "errors": {
+      "account_exists": "使用此電子郵件的帳號已存在。請登入並接受邀請。",
+      "already_member": "此人已是該工作區的成員。",
+      "forbidden": "你在此工作區中的角色無權執行此操作。",
+      "generic": "發生錯誤，請再試一次。",
+      "last_owner": "工作區至少需要一位擁有者。",
+      "member_not_found": "此成員已不在該工作區中。"
+    },
+    "invite": {
+      "copied": "連結已複製",
+      "copy": "複製",
+      "creating": "建立中...",
+      "description": "為某個電子郵件地址和角色建立連結。系統不會寄送郵件：請複製連結並自行傳送。",
+      "done": "完成",
+      "email_label": "電子郵件",
+      "link_note": "此連結只能使用一次，7 天後過期。它只會在此刻顯示，請在離開此頁面前複製。",
+      "link_title": "邀請連結",
+      "role_label": "角色",
+      "submit": "建立邀請連結",
+      "title": "邀請他人"
+    },
+    "leave": {
+      "button": "離開工作區",
+      "confirm": "離開",
+      "description": "你將立即失去對此工作區及其資料的存取權限。",
+      "done": "你已離開工作區",
+      "last_owner": "你是最後一位擁有者，因此無法離開。請先將另一位成員設為擁有者。",
+      "refresh_failed": "您已離開該工作區，但載入您的工作區失敗。請重試。",
+      "title": "離開此工作區"
+    },
+    "list": {
+      "description": "在此工作區中工作的所有人及其角色。",
+      "email": "電子郵件",
+      "joined": "加入時間",
+      "role": "角色",
+      "title": "成員",
+      "you": "你"
+    },
+    "page_name": "成員",
+    "pending": {
+      "description": "尚未使用的邀請。已撤銷邀請的連結將失效。",
+      "email": "電子郵件",
+      "empty": "沒有待處理的邀請。",
+      "expired": "已過期",
+      "expires": "到期時間",
+      "revoke": "撤銷",
+      "revoke_aria": "撤銷寄給 {{email}} 的邀請",
+      "revoked": "邀請已撤銷",
+      "role": "角色",
+      "title": "待處理的邀請"
+    },
+    "remove": "移除",
+    "remove_aria": "移除 {{email}}",
+    "remove_dialog": {
+      "confirm": "移除",
+      "description": "{{email}} 將立即失去對此工作區的存取權限。",
+      "title": "移除成員"
+    },
+    "removed": "成員已移除",
+    "role_updated": "角色已更新",
+    "roles": {
+      "admin": "管理員",
+      "member": "成員",
+      "owner": "擁有者"
+    },
+    "settings_card": {
+      "description": "查看誰在此工作區中工作；如果你是管理員或擁有者，還可以邀請他人並管理其角色。",
+      "open": "開啟成員",
+      "title": "成員"
+    }
+  },
   "messages": {
     "login_error": "登入時發生錯誤",
     "login_no_tokens": "登入成功，但未收到權杖",
@@ -248,6 +671,7 @@
     },
     "empty_state": {
       "action": "建立您的第一個監控",
+      "add_channel": "新增通知頻道",
       "description": "先建立第一個監控，以追蹤您的服務健康狀態。",
       "title": "未找到任何監控項目"
     },
@@ -490,12 +914,25 @@
       "shared": {
         "intervals": {
           "heartbeat_retry": "心跳重試間隔 (每 {{seconds}} 秒重試一次)",
+          "interval_too_short": "不能少於 {{minimum}} 秒",
           "max_retries_description": "在將服務標記為停機並發送通知之前的最大重試次數",
           "request_timeout": "請求逾時 ({{seconds}} 秒後逾時)",
-          "resend_notification": "若連續失效 X 次，重新發送通知（已停用）"
+          "resend_notification": "若連續失效 X 次，重新發送通知（已停用）",
+          "timeout_too_long": "不能超過檢查間隔的 80%"
+        },
+        "location_rule": {
+          "all": "所有位置都宕機",
+          "any": "任一位置宕機",
+          "at_least": "至少 N 個位置宕機",
+          "description": "探針離線或尚未回報的位置不會計入。",
+          "label": "在以下情況將監控標記為宕機",
+          "threshold_invalid": "請輸入 1 或以上的整數",
+          "threshold_label": "位置數量",
+          "threshold_too_high": "不能超過你選擇的探針數量"
         },
         "notifications": {
           "add_notifier": "新增通知器",
+          "load_failed": "無法載入通知通道",
           "new_notifier": "+ 新增通知者",
           "no_channels": "尚未找到通知通道，請先建立一個",
           "no_channels_available": "尚無可用頻道",
@@ -503,6 +940,15 @@
           "select_notifier_placeholder": "選擇通知器",
           "selected_channels": "已選通知頻道",
           "title": "通知頻道"
+        },
+        "probe": {
+          "description": "監控會在你選擇的每個探針上執行，並把每個探針的結果顯示為一個位置。",
+          "label": "探針",
+          "option_unsupported": "{{name}}（不支援此類型）",
+          "placeholder": "選擇探針",
+          "push_fixed": "推送監控一律在本機探針上執行。",
+          "required": "請至少選擇一個探針",
+          "unsupported": "此探針不支援這種類型的監控，請選擇其他探針。"
         },
         "proxy": {
           "add_proxy": "新增代理",
@@ -512,6 +958,10 @@
           "select_proxy_placeholder": "選擇代理",
           "selected_proxy": "已選代理",
           "title": "代理"
+        },
+        "run_from": {
+          "default_locations": "在預設位置執行",
+          "label": "執行位置"
         },
         "tags": {
           "label": "標籤",
@@ -563,6 +1013,8 @@
         "docker": "Docker 容器",
         "grpc": "gRPC 關鍵字監控",
         "http": "HTTP(S) 監控",
+        "http_json_query": "HTTP(s) - JSON 查詢",
+        "http_keyword": "HTTP(s) - 關鍵字",
         "kafka": "Kafka 產生器監控",
         "mongodb": "MongoDB 資料庫監控",
         "mqtt": "MQTT 代理監控",
@@ -617,9 +1069,12 @@
     "toasts": {
       "deleted": "監控已刪除",
       "paused": "監控已暫停",
+      "push_token_already_used": "已有另一個監控項目使用此推送權杖。請產生一個新的。",
       "reset_success": "監控資料已成功重置",
       "resumed": "監控已恢復"
     },
+    "type_disabled": "此安裝已關閉 {{type}} 類型",
+    "over_limit": "不會檢查：此工作區的啟用監控數超過其上限",
     "view": {
       "buttons": {
         "clone": "複製",
@@ -649,6 +1104,15 @@
       "expiring_soon": "即將到期",
       "for": "針對",
       "live_status": "即時狀態",
+      "locations": {
+        "all": "所有位置",
+        "no_result": "暫無結果",
+        "probe_offline": "探針離線",
+        "probe_unsupported": "不支援此類型",
+        "response_time": "回應時間",
+        "select_label": "位置",
+        "title": "位置"
+      },
       "monitor_for": "監控對象",
       "no_certificate_data": "無憑證資料",
       "seconds": "秒",
@@ -671,9 +1135,11 @@
     }
   },
   "navigation": {
+    "admin": "管理",
     "maintenance": "維護",
     "monitors": "監控",
     "notification_channels": "通知頻道",
+    "probes": "探針",
     "proxies": "代理",
     "settings": "設定",
     "status_pages": "狀態頁面",
@@ -854,9 +1320,9 @@
       "pagerduty": {
         "auto_resolve_acknowledge": "自動確認",
         "auto_resolve_acknowledge_description": "自動確認事件",
-        "auto_resolve_description": "當監控恢復時，選擇要執行的動作",
+        "auto_resolve_description": "當監控恢復或探針重新上線時，選擇要傳送的內容",
         "auto_resolve_do_nothing": "不執行",
-        "auto_resolve_do_nothing_description": "UP 狀態不採取任何動作",
+        "auto_resolve_do_nothing_description": "監控恢復或探針重新上線時不會傳送任何內容，因此事件會維持開啟，直到你在 PagerDuty 中解決為止",
         "auto_resolve_label": "自動解除或確認",
         "auto_resolve_placeholder": "選擇自動解決行為",
         "auto_resolve_resolve": "自動解除",
@@ -879,7 +1345,7 @@
         "authentication_token_description": "可選的驗證令牌，以提升安全性。這將在 pagertree-token 標頭中發送。",
         "authentication_token_label": "認證令牌（可選）",
         "authentication_token_placeholder": "若需要，請輸入授權碼",
-        "auto_resolve_alerts_description": "當監控恢復時，自動解決 PagerTree 警報",
+        "auto_resolve_alerts_description": "當監控恢復或探針重新上線時，自動解決 PagerTree 警報",
         "auto_resolve_alerts_label": "自動解除警報",
         "how_to_get_integration_url_label": "如何取得整合網址",
         "integration_url_description": "輸入您的 PagerTree webhook 整合 URL。",
@@ -1082,6 +1548,12 @@
         "signing_secret_docs_link": "如何驗證簽章",
         "signing_secret_label": "簽章密鑰",
         "signing_secret_placeholder": "留空則傳送未簽章的請求"
+      },
+      "install_email": {
+        "description": "由此安裝直接發送，不需要 SMTP 伺服器。",
+        "to_description": "此工作區的成員。其驗證地址後才會發送通知。",
+        "to_label": "收件人",
+        "to_placeholder": "選擇成員"
       }
     },
     "important": "重要通知",
@@ -1100,13 +1572,150 @@
       "updated_success": "通知器已成功更新"
     },
     "new": {
-      "title": "新增通知頻道"
+      "title": "新增通知頻道",
+      "default_hint": "新增監控時將預設勾選此頻道。"
     },
     "no_important": "未發現重要通知。",
     "placeholders": {
       "select_type": "選擇通知器類型"
     },
-    "search_placeholder": "搜尋通知頻道名稱..."
+    "search_placeholder": "搜尋通知頻道名稱...",
+    "secret": {
+      "reenter_error": "請重新輸入此密鑰或將其移除：傳送目標已變更",
+      "reenter_hint": "請重新輸入此密鑰：傳送目標已變更",
+      "reenter_url_error": "請重新輸入此 URL 的憑證：URL 自儲存後已變更",
+      "remove": "移除",
+      "saved_hint": "已儲存 — 輸入即可取代"
+    }
+  },
+  "probes": {
+    "default": {
+      "description": "建立時未選擇探針的監控項目，會在未停用且支援其類型的預設探針上執行；若沒有，則在本機探針上執行。既有的監控項目會保留其探針。",
+      "failed": "無法變更該探針是否為預設。",
+      "label": "預設探針",
+      "off": "{{name}} 不再是預設探針",
+      "on": "{{name}} 現在是預設探針",
+      "title": "新監控項目的預設值"
+    },
+    "default_badge": "預設",
+    "page_name": "探針",
+    "description": "探針會在其安裝的位置執行監控的檢查。本機探針就是 Peekaping 本身。",
+    "local_name": "本機",
+    "monitor_probe": "探針：{{name}}",
+    "monitor_probe_unsupported": "{{name}} 不支援 {{type}} 類型的監控",
+    "empty_list": {
+      "title": "找不到探針",
+      "text": "建立探針，從其他位置執行檢查。",
+      "action_text": "建立您的第一個探針"
+    },
+    "table": {
+      "headers": {
+        "name": "名稱",
+        "location": "位置",
+        "status": "狀態",
+        "disabled": "已停用",
+        "token": "權杖",
+        "instances": "執行個體",
+        "actions": "操作"
+      },
+      "status": {
+        "online": "線上",
+        "offline": "離線"
+      },
+      "disabled": "已停用",
+      "no_instances": "尚無執行個體",
+      "last_seen": "最後上線時間：{{date}}",
+      "actions": {
+        "edit": "編輯探針 {{name}}",
+        "rotate": "更換探針 {{name}} 的權杖",
+        "assign_all": "將探針 {{name}} 指派給所有監控",
+        "delete": "刪除探針 {{name}}"
+      }
+    },
+    "create_dialog": {
+      "title": "建立探針",
+      "description": "探針會從您安裝它的位置執行檢查。它的權杖只會在建立後顯示一次。",
+      "submit": "建立探針",
+      "creating": "建立中…"
+    },
+    "assign_all": {
+      "warning": "權杖會讀取指派給該探針的每個監控的設定，包括憑證。",
+      "docs_link": "權杖能讀取什麼"
+    },
+    "assign_all_dialog": {
+      "title": "指派給所有監控",
+      "description": "將探針 {{name}} 加入它能執行的所有監控，推送監控除外。尚無執行個體的探針會在第一個執行個體連線時加入。",
+      "confirm": "指派給所有監控",
+      "assigning": "正在指派..."
+    },
+    "edit_dialog": {
+      "title": "編輯探針",
+      "description": "變更 {{name}} 的設定。"
+    },
+    "form": {
+      "name_label": "名稱",
+      "name_placeholder": "例如：法蘭克福",
+      "location_label": "位置（選填）",
+      "location_placeholder": "例如：法蘭克福，德國",
+      "assign_all_label": "指派給所有監控",
+      "assign_all_description": "第一個執行個體連線後，探針會加入它能執行的所有監控，推送監控除外。",
+      "name_required": "名稱為必填",
+      "name_too_long": "名稱過長",
+      "location_too_long": "位置過長",
+      "disabled_label": "已停用",
+      "disabled_description": "已停用探針的權杖會失效，直到您重新啟用。",
+      "notifications_hint": "留空則通知此探針的監控所使用的頻道。"
+    },
+    "rotate_dialog": {
+      "title": "更換權杖",
+      "description": "探針 {{name}} 的舊權杖會立即失效。其執行個體必須使用新權杖重新啟動。",
+      "confirm": "更換權杖",
+      "rotating": "更換中…"
+    },
+    "delete_dialog": {
+      "title": "刪除探針",
+      "description": "確定要刪除探針「{{name}}」嗎？其權杖將會失效。此操作無法復原。"
+    },
+    "token_alert": {
+      "title_created": "已建立探針 {{name}}",
+      "title_rotated": "探針 {{name}} 的新權杖",
+      "note": "此權杖用於讀取指派給該探針的監控設定。它只會顯示一次。",
+      "token_label": "權杖",
+      "docker_label": "使用 Docker 啟動探針",
+      "copy_token": "複製權杖",
+      "copy_command": "複製 docker 指令"
+    },
+    "messages": {
+      "created_successfully": "成功建立探針",
+      "updated_successfully": "成功更新探針",
+      "rotated_successfully": "成功更換權杖",
+      "assigned_successfully": "已加入的監控數量：{{added}}",
+      "assign_pending": "連線後，它會加入它執行的所有監控",
+      "deleted_successfully": "成功刪除探針",
+      "failed_to_create": "建立探針失敗",
+      "failed_to_update": "更新探針失敗",
+      "failed_to_rotate": "更換權杖失敗",
+      "failed_to_assign": "無法將探針指派給所有監控",
+      "failed_to_delete": "刪除探針失敗",
+      "failed_to_load": "載入探針失敗",
+      "copy_success": "已複製到剪貼簿",
+      "copy_failed": "無法複製到剪貼簿"
+    },
+    "detail": {
+      "assign_all_pending": "正在等待第一個執行個體：連線後，它會加入它執行的所有監控。",
+      "not_found": "找不到探針"
+    },
+    "availability": {
+      "title": "可用性",
+      "range_label": "時間範圍",
+      "bar_label": "可用性歷史記錄",
+      "instance_bar_label": "{{name}} 的連線",
+      "no_data": "無資料",
+      "now": "現在",
+      "instances_title": "執行個體，最近 24 小時",
+      "in_process_note": "本機探針的監控由 Peekaping 自行檢查，因此沒有可用性歷史記錄。",
+      "connected_since": "自 {{start}} 起已連線"
+    }
   },
   "proxies": {
     "delete_dialog": {
@@ -1145,6 +1754,20 @@
     "search_placeholder": "根據主機搜尋代理..."
   },
   "security": {
+    "delete_account": {
+      "button": "刪除帳號",
+      "description": "刪除你的帳號並結束你的工作階段。你將退出所屬的所有工作區。此操作無法復原。",
+      "dialog_description": "你的帳號將立即刪除，你也會登出。你將退出所屬的所有工作區。此操作無法復原。",
+      "errors": {
+        "last_instance_admin": "你是此部署的最後一位執行個體管理員。需要先有另一位執行個體管理員，才能刪除你的帳號。",
+        "last_owner": "你是 {{workspaces}} 的唯一擁有者。請先指定其他成員為擁有者，或先刪除該工作區。",
+        "wrong_password": "密碼不正確"
+      },
+      "failed": "刪除帳號失敗",
+      "password_label": "你的密碼",
+      "success": "你的帳號已刪除",
+      "title": "刪除帳號"
+    },
     "enable_2fa": {
       "form": {
         "authenticator_code_label": "驗證碼",
@@ -1267,10 +1890,35 @@
     "to_email_label": "收件人電子郵件"
   },
   "settings": {
+    "danger_zone": {
+      "button": "刪除工作區",
+      "description": "刪除此工作區會永久刪除其中的所有內容：監控、心跳、狀態頁面等。確認後 7 天才會執行刪除。其監控會立即停止，擁有者可在此之前取消刪除。",
+      "dialog_description": "此操作會在 7 天後刪除 {{name}} 及其中的所有內容。其監控會立即停止，你可在此之前取消刪除。",
+      "failed": "排程刪除失敗",
+      "name_label": "輸入工作區名稱 {{name}} 以確認",
+      "scheduled": "此工作區將於 {{date}} 刪除。在此之前其監控不會執行。取消刪除即可還原所有內容。",
+      "title": "危險區域"
+    },
     "data_retention": {
       "days_label": "天",
       "description": "設定保留資料的天數 (KEEP_DATA_PERIOD_DAYS)。",
-      "title": "資料保留期限"
+      "read_only": "只有工作區的管理員或擁有者可以變更此項。",
+      "title": "資料保留期限",
+      "capped": "此工作區最多 {{max}} 天"
+    },
+    "error_reporting": {
+      "cluster_note": "在叢集模式下，變更會在一分鐘內傳達到每個程序。",
+      "description": "伺服器當機時向 Sentry 傳送報告。預設開啟，你可以隨時在這裡關閉。",
+      "forced_off": "環境變數 ERROR_REPORTING=off 已將此選項關閉。無論此設定為何，都不會傳送任何內容。",
+      "title": "錯誤報告"
+    },
+    "telemetry": {
+      "description": "每天最多一次傳送關於此安裝如何設定的匿名統計。預設開啟，你可以隨時在這裡關閉。",
+      "forced_off": "環境變數 TELEMETRY=off 已將此選項關閉。無論此設定為何，都不會傳送任何內容。",
+      "id_note": "執行個體 ID 在此選項開啟期間建立，關閉時刪除。再次開啟會建立新的 ID。",
+      "payload_off": "關閉期間不會傳送任何內容。如果你開啟，使用情況 ping 將包含以下內容。",
+      "payload_title": "下一次使用情況 ping 會傳送什麼",
+      "title": "使用統計"
     },
     "timezone": {
       "description": "選擇您在應用程式中顯示所有時間時所偏好的時區。",
@@ -1282,6 +1930,73 @@
     },
     "validation": {
       "min_days": "至少 1 天"
+    },
+    "workspace_name": {
+      "description": "顯示在工作區切換器中以及對成員顯示的名稱。",
+      "title": "工作區名稱"
+    },
+    "workspace_export": {
+      "title": "匯出",
+      "description": "將此工作區的設定下載為一個 JSON 檔案：包含其設定、標籤、代理、通知頻道、監控、維護時段和狀態頁面。擁有者可以把該檔案匯入到另一個工作區。",
+      "warning_title": "檔案包含已儲存的機密資料",
+      "warning": "你的通知頻道和代理的機器人權杖、密碼和 Webhook URL 會完整寫在檔案裡，不會被隱藏。請像保管密碼一樣保管該檔案，不要分享給不該擁有這些資訊的人。",
+      "download_workspace": "下載工作區",
+      "download_heartbeats": "下載心跳紀錄",
+      "heartbeats_note": "心跳紀錄是獨立的檔案，可能很大。其中每個監控的每次檢查佔一行。",
+      "downloading": "正在下載...",
+      "failed": "下載工作區失敗",
+      "heartbeats_failed": "下載心跳紀錄失敗"
+    },
+    "workspace_import": {
+      "title": "匯入",
+      "description": "將工作區匯出檔案中的紀錄新增到此工作區。不會取代任何內容：它們會與此處已有的紀錄並存。",
+      "file_label": "工作區匯出檔案（.json）",
+      "choose": "選擇檔案",
+      "not_json": "此檔案不是有效的 JSON，因此沒有傳送任何內容。",
+      "too_large": "此檔案大於 16 MB（匯入可接受的上限），因此沒有傳送任何內容。",
+      "unreadable": "無法讀取此檔案。請重新選擇，或檢查該檔案是否仍然存在。",
+      "confirm_title": "匯入 {{file}}？",
+      "confirm_description": "其中的紀錄會新增到此工作區已有的紀錄旁邊。不會取代任何內容，而且重複匯入同一個檔案會重複新增。監控一新增就會開始執行。",
+      "confirm_button": "匯入",
+      "importing": "正在匯入...",
+      "failed": "匯入檔案失敗",
+      "problems_title": "無法匯入該檔案",
+      "problems_description": "沒有任何內容新增到此工作區。請修正檔案中的這些問題後再匯入：",
+      "result_title": "匯入完成",
+      "created_title": "已新增到此工作區",
+      "nothing_created": "沒有新增任何內容。",
+      "changes_title": "為配合此工作區而變更",
+      "no_changes": "所有內容都已依檔案原樣匯入。",
+      "close": "關閉",
+      "created": {
+        "tags": "標籤",
+        "proxies": "代理",
+        "notificationChannels": "通知頻道",
+        "monitors": "監控",
+        "maintenances": "維護時段",
+        "statusPages": "狀態頁面"
+      },
+      "changes": {
+        "tag_reused": "標籤「{{name}}」已存在於此工作區，因此其監控會使用它。",
+        "proxy_skipped_target_not_allowed": "代理 {{name}} 已被略過：此部署封鎖了它的位址。",
+        "monitor_proxy_dropped": "監控「{{name}}」匯入時沒有帶上代理 {{from}}，該代理已被略過。",
+        "channel_skipped": "通知頻道「{{name}}」已被略過：此部署或工作區無法接收它。",
+        "channel_skipped_target_not_allowed": "通知頻道「{{name}}」已被略過：此部署封鎖了它傳送的目標位址。",
+        "channel_skipped_no_install_sender": "通知頻道「{{name}}」已被略過：此部署沒有電子郵件寄件者。",
+        "channel_skipped_recipient_not_member": "通知頻道「{{name}}」已被略過：其電子郵件收件者不是此工作區的成員。",
+        "monitor_skipped_type_disabled": "監控「{{name}}」已被略過：此部署已停用 {{reason}} 類型的監控。",
+        "monitor_skipped_target_not_allowed": "監控「{{name}}」已被略過：此部署封鎖了它的目標 {{reason}}。",
+        "monitor_interval_raised": "監控「{{name}}」每 {{to}} 秒檢查一次，而不是 {{from}} 秒，這是此部署允許的最短間隔。",
+        "monitor_retry_interval_raised": "監控「{{name}}」每 {{to}} 秒重試一次失敗的檢查，而不是 {{from}} 秒，這是此部署允許的最短間隔。",
+        "push_token_replaced": "監控「{{name}}」取得了新的推送權杖，因為檔案中的權杖已被另一個監控佔用。請更新你的工作傳送到的位址。",
+        "monitor_paused_over_limit": "監控「{{name}}」匯入時處於暫停狀態：此工作區的方案已沒有空間再執行一個監控。",
+        "status_page_slug_changed": "狀態頁面「{{name}}」的位址是 {{to}}，而不是 {{from}}，因為該位址已被佔用。",
+        "status_page_skipped_over_limit": "狀態頁面「{{name}}」已被略過：此工作區的方案已沒有空間再新增一個。",
+        "custom_domain_dropped": "自訂網域 {{name}} 已被略過：另一個狀態頁面正在使用它。",
+        "custom_domain_dropped_over_limit": "自訂網域 {{name}} 已被略過：此工作區的方案已沒有空間再新增一個。",
+        "retention_capped": "資料保留期限為 {{to}} 天，而不是 {{from}} 天，這是此工作區的方案允許的最長期限。",
+        "unknown": "匯入變更了 {{subject}}（{{kind}}）。"
+      }
     }
   },
   "status": {
@@ -1291,12 +2006,14 @@
       "last_updated": "最後更新",
       "maintenance": "維護",
       "no_monitors_configured": "此狀態頁面尚未設定監控項目。",
+      "not_monitored": "未監控",
       "operational": "正常",
       "partial_system_outage": "部分系統停機",
       "powered_by": "由…提供",
       "refresh_in": "刷新倒數",
       "refresh_now": "立即刷新",
       "status_page_not_found": "找不到狀態頁面，或尚未發佈。",
+      "status_page_unavailable": "此狀態頁面無法使用",
       "under_maintenance": "維護中",
       "unknown": "未知"
     }
@@ -1315,7 +2032,35 @@
     "description": "輸入狀態頁說明",
     "domain_already_used": "域名 {{domain}} 已被其他狀態頁使用",
     "domain_host_warning": "此域名與您目前的主機網址相同，可能會導致衝突。",
+    "domain_verification": {
+      "add_one_record": "請在您的 DNS 供應商處新增以下任一記錄，新增一筆即可。",
+      "check_failed": "無法檢查 {{domain}}",
+      "check_now": "立即檢查",
+      "checking": "檢查中...",
+      "cname_record": "CNAME 記錄",
+      "copy": "複製{{label}}",
+      "copy_failed": "無法複製到剪貼簿",
+      "copy_success": "已複製到剪貼簿",
+      "info": "當 DNS 記錄證明網域指向 Peekaping 後，每個網域才會提供此頁面。",
+      "last_checked": "上次檢查：{{time}}",
+      "name": "名稱",
+      "not_checked": "尚未檢查",
+      "pending_note": "待驗證的網域不會提供此頁面，也不會取得憑證。",
+      "records_load_failed": "無法載入 DNS 記錄",
+      "records_missing_note": "自 {{time}} 起缺少其 DNS 記錄。24 小時後該網域將恢復為待驗證。",
+      "removed_on": "若未驗證，將於 {{date}} 移除",
+      "save_to_see_records": "儲存頁面後即可查看需要新增的 DNS 記錄",
+      "state": {
+        "pending": "待驗證",
+        "records_missing": "記錄遺失",
+        "verified": "已驗證"
+      },
+      "target": "指向",
+      "txt_record": "TXT 記錄",
+      "value": "值"
+    },
     "domains": "網域",
+    "domains_docs_link": "自訂網域與 HTTPS",
     "domains_info_warning": "别忘了为每个域名在 DNS 中添加 CNAME 记录。",
     "draft_status": "草稿",
     "edit_page_name": "編輯狀態頁面",
@@ -1338,6 +2083,9 @@
     "published_status": "已發佈",
     "search_label": "搜尋",
     "search_placeholder": "按標題搜尋狀態頁面…",
+    "show_locations": "顯示每個位置",
+    "show_locations_info": "對於從多個位置檢查的監控項目，顯示每個位置的狀態與歷史記錄",
+    "slug_already_used": "另一個狀態頁面已在使用此地址",
     "update_status_page": "更新狀態頁面",
     "view_page": "查看頁面"
   },
@@ -1368,6 +2116,18 @@
     "new_page_name": "新增標籤",
     "search_placeholder": "搜尋標籤…"
   },
+  "telemetry": {
+    "docs_link": "會傳送什麼，以及如何關閉",
+    "label": "傳送匿名使用統計",
+    "not_saved": "你關於使用統計的選擇未能儲存。請在「設定」中檢查。"
+  },
+  "telemetry_notice": {
+    "error_reports": "錯誤報告已開啟。如果 Peekaping 當機，會傳送錯誤類型及其在程式碼中發生的位置、自身的版本、模式、儲存後端和作業系統。絕不會傳送錯誤訊息、URL 或主機名稱。",
+    "settings_errors": "在「設定」中關閉錯誤報告",
+    "settings_usage": "在「設定」中關閉使用統計",
+    "title": "預設開啟匿名資料傳送",
+    "usage_statistics": "使用統計已開啟。Peekaping 每天最多傳送一次隨機的實例 ID、自身的版本、模式、儲存後端和作業系統、監控數量的範圍、你使用的監控和通知管道的類型，以及你是否使用狀態頁面、維護時段和指標。絕不會傳送名稱、URL、主機或設定。"
+  },
   "theme": {
     "dark": "深色",
     "light": "亮色",
@@ -1391,5 +2151,123 @@
   "ui": {
     "general": "一般",
     "intervals_retries": "間隔、重試、逾時"
+  },
+  "workspaces": {
+    "create": "建立工作區",
+    "create_error": "建立工作區失敗",
+    "create_first": "建立工作區",
+    "creating": "建立中...",
+    "deletion": {
+      "cancel": "取消刪除",
+      "cancel_failed": "取消刪除失敗",
+      "cancelled": "已取消刪除",
+      "member_message": "此工作區將於 {{date}} 刪除。其監控將不再執行，狀態頁面也將無法使用。擁有者可在此之前取消刪除。",
+      "message": "此工作區將於 {{date}} 刪除。其監控將不再執行，狀態頁面也將無法使用。你可在此之前取消刪除。"
+    },
+    "enter": "開啟工作區",
+    "entering": "開啟中...",
+    "entry_failed": "工作區已建立，但開啟失敗。請再試一次。",
+    "name_label": "名稱",
+    "name_placeholder": "我的團隊",
+    "name_required": "請輸入名稱",
+    "new": "新增工作區",
+    "new_description": "工作區擁有各自的監控項目、通知管道、狀態頁面和成員。你將成為它的擁有者。",
+    "new_title": "新增工作區",
+    "none_description": "你的帳號還不是任何工作區的成員，所以這裡沒有可顯示的內容。請讓管理工作區的人把你加入。",
+    "none_title": "你還不在任何工作區中",
+    "refresh_failed": "無法載入您的工作區。請檢查網路連線後重試。",
+    "rename_error": "重新命名工作區失敗",
+    "rename_success": "工作區已重新命名",
+    "suspended_banner": {
+      "contact": "聯絡方式：",
+      "message": "此工作區已被此部署的管理員暫停。其監控不會執行，狀態頁面也無法使用。",
+      "no_contact": "請聯絡負責管理此部署的人。"
+    },
+    "switcher_label": "切換工作區"
+  },
+  "get_started": {
+    "page_name": "開始使用",
+    "skip": "略過設定",
+    "step_of": "第 {{current}} 步，共 {{total}} 步",
+    "name": {
+      "description": "你的監控、通知頻道和狀態頁都在這裡。之後可以在設定中重新命名。",
+      "title": "為你的工作區命名"
+    },
+    "monitor": {
+      "create": "建立監控",
+      "create_failed": "建立監控失敗",
+      "creating": "正在建立...",
+      "description": "輸入網站或 API 的位址。Peekaping 會檢查它，並在它停止回應時通知你。",
+      "full_form": "或者使用全部選項來設定監控",
+      "title": "新增你的第一個監控",
+      "url_invalid": "請輸入以 http:// 或 https:// 開頭的位址",
+      "url_label": "要監控的位址"
+    },
+    "channel": {
+      "continue_unlinked": "不連結並繼續",
+      "description": "選擇監控當機時 Peekaping 把警報傳送到哪裡。它將成為新監控的預設頻道。",
+      "link_failed": "頻道已儲存，但關聯到監控失敗。請在監控的編輯頁面中加入。",
+      "retry_link": "再次嘗試連結",
+      "title": "接收通知"
+    },
+    "done": {
+      "description": "Peekaping 正在監控你的服務。接下來你可以這樣做。",
+      "title": "一切就緒",
+      "unverified": "電子郵件地址驗證後，你的監控才會執行。請在收件匣中查看驗證連結。",
+      "links": {
+        "members": "邀請你的團隊",
+        "monitor": "開啟你的監控",
+        "monitors": "前往監控列表",
+        "probes": "管理探針",
+        "status_pages": "發布狀態頁面"
+      }
+    }
+  },
+  "limits": {
+    "reached": {
+      "monitors": "此工作區最多可以執行 {{max}} 個監控",
+      "status_pages": "此工作區最多可以有 {{max}} 個狀態頁面",
+      "custom_domains": "此工作區的狀態頁面加起來最多可以有 {{max}} 個自訂網域",
+      "members": "此工作區最多可以有 {{max}} 位成員（含待處理的邀請）",
+      "owned_workspaces": "你最多可以擁有 {{max}} 個工作區",
+      "probes": "此工作區中的一個監控最多可以在 {{max}} 個探針上執行",
+      "retention_days": "此工作區最多可以保留資料 {{max}} 天"
+    },
+    "names": {
+      "monitors": "已啟用的監控",
+      "min_check_interval": "最短檢查間隔（秒）",
+      "status_pages": "狀態頁面",
+      "custom_domains": "自訂網域",
+      "members": "成員",
+      "owned_workspaces": "一位使用者可以擁有的工作區",
+      "probes_per_monitor": "每個監控的探針數",
+      "retention_days": "資料保留期限（天）"
+    },
+    "none": "無上限",
+    "invalid": "請輸入 1 或更大的整數；若不設上限，請留空。",
+    "retention_too_long": "不能多於 {{max}} 天"
+  },
+  "usage": {
+    "title": "用量",
+    "description": "此工作區已使用其限額的多少。",
+    "open": "開啟用量",
+    "plan": "方案",
+    "set_by_admin": "由你的管理員設定",
+    "count": {
+      "monitors": "{{used}} / {{max}} 個監控",
+      "status_pages": "{{used}} / {{max}} 個狀態頁面",
+      "custom_domains": "{{used}} / {{max}} 個自訂網域",
+      "members": "{{used}} / {{max}} 位成員（含待處理的邀請）",
+      "owned_workspaces": "你擁有 {{used}} / {{max}} 個工作區",
+      "probes_per_monitor": "單一監控最多使用 {{used}} / {{max}} 個探針"
+    },
+    "labels": {
+      "min_check_interval": "最短檢查間隔",
+      "retention_days": "最長資料保留期限"
+    },
+    "seconds": "{{value}} 秒",
+    "days": "{{value}} 天",
+    "near": "接近限額",
+    "reached": "已達限額"
   }
 }

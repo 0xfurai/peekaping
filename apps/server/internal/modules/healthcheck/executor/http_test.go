@@ -277,6 +277,29 @@ func TestHTTPExecutor_Validate(t *testing.T) {
 			expectedError: false,
 		},
 		{
+			name: "valid config with zero max redirects",
+			config: `{
+				"url": "http://example.com",
+				"method": "GET",
+				"encoding": "json",
+				"accepted_statuscodes": ["2XX"],
+				"authMethod": "none",
+				"max_redirects": 0
+			}`,
+			expectedError: false,
+		},
+		{
+			name: "valid config without max redirects",
+			config: `{
+				"url": "http://example.com",
+				"method": "GET",
+				"encoding": "json",
+				"accepted_statuscodes": ["2XX"],
+				"authMethod": "none"
+			}`,
+			expectedError: false,
+		},
+		{
 			name: "invalid config with negative max redirects",
 			config: `{
 				"url": "http://example.com",
@@ -620,19 +643,21 @@ func TestHTTPExecutor_Execute(t *testing.T) {
 
 	// Create test server
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Test headers
-		if r.Header.Get("Content-Type") != "application/json" {
-			w.WriteHeader(http.StatusBadRequest)
-			return
-		}
-
-		// Test body
-		if r.Method == "POST" {
+		if r.ContentLength > 0 {
+			// A request with a body carries the encoding's Content-Type.
+			if r.Header.Get("Content-Type") != "application/json" {
+				w.WriteHeader(http.StatusBadRequest)
+				return
+			}
 			var body map[string]interface{}
 			if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 				w.WriteHeader(http.StatusBadRequest)
 				return
 			}
+		} else if r.Header.Get("Content-Type") != "" {
+			// A bodyless request must not carry one (issue #395).
+			w.WriteHeader(http.StatusBadRequest)
+			return
 		}
 
 		w.WriteHeader(http.StatusOK)
@@ -709,6 +734,146 @@ func TestHTTPExecutor_Execute(t *testing.T) {
 			result := executor.Execute(context.Background(), tt.monitor, nil)
 			assert.Equal(t, tt.expectedStatus, result.Status)
 		})
+	}
+}
+
+func TestHTTPExecutor_Execute_ContentTypeFollowsTheBody(t *testing.T) {
+	executor := NewHTTPExecutor(zap.NewNop().Sugar())
+
+	tests := []struct {
+		name            string
+		method          string
+		encoding        string
+		body            string
+		headers         string
+		wantContentType string
+	}{
+		{
+			name:     "bodyless GET sends none",
+			method:   "GET",
+			encoding: "json",
+		},
+		{
+			name:     "bodyless HEAD sends none",
+			method:   "HEAD",
+			encoding: "json",
+		},
+		{
+			name:     "bodyless POST sends none",
+			method:   "POST",
+			encoding: "json",
+		},
+		{
+			name:     "bodyless PUT with form encoding sends none",
+			method:   "PUT",
+			encoding: "form",
+		},
+		{
+			name:     "bodyless DELETE with xml encoding sends none",
+			method:   "DELETE",
+			encoding: "xml",
+		},
+		{
+			name:     "bodyless GET drops the legacy web default",
+			method:   "GET",
+			encoding: "json",
+			headers:  `{"Content-Type":"application/json"}`,
+		},
+		{
+			name:            "bodyless GET keeps an explicit content type",
+			method:          "GET",
+			encoding:        "json",
+			headers:         `{"Content-Type":"application/vnd.api+json"}`,
+			wantContentType: "application/vnd.api+json",
+		},
+		{
+			name:            "bodyless GET keeps an explicitly cased content type",
+			method:          "GET",
+			encoding:        "json",
+			headers:         `{"content-type":"application/json"}`,
+			wantContentType: "application/json",
+		},
+		{
+			name:            "bodyless GET keeps an explicitly padded content type",
+			method:          "GET",
+			encoding:        "json",
+			headers:         `{"Content-Type":" application/json "}`,
+			wantContentType: "application/json",
+		},
+		{
+			name:     "bodyless GET with Accept sends no content type",
+			method:   "GET",
+			encoding: "text",
+			headers:  `{"Accept":"application/json"}`,
+		},
+		{
+			name:     "bodyless JSON GET with other headers sends no content type",
+			method:   "GET",
+			encoding: "json",
+			headers:  `{"Accept":"application/json","X-Trace":"1"}`,
+		},
+		{
+			name:            "body sends the encoding content type",
+			method:          "POST",
+			encoding:        "xml",
+			body:            "<root/>",
+			wantContentType: "application/xml",
+		},
+		{
+			name:            "body infers content type with other headers",
+			method:          "POST",
+			encoding:        "json",
+			body:            `{"key":"value"}`,
+			headers:         `{"Accept":"application/json"}`,
+			wantContentType: "application/json",
+		},
+		{
+			name:            "body keeps an explicit content type",
+			method:          "POST",
+			encoding:        "json",
+			body:            `{"key":"value"}`,
+			headers:         `{"Content-Type":"application/vnd.api+json"}`,
+			wantContentType: "application/vnd.api+json",
+		},
+	}
+
+	for _, monitorType := range []string{"http", "http-keyword", "http-json-query"} {
+		for _, tt := range tests {
+			t.Run(monitorType+" "+tt.name, func(t *testing.T) {
+				server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					if got := r.Header.Get("Content-Type"); got != tt.wantContentType {
+						w.WriteHeader(http.StatusBadRequest)
+						return
+					}
+					w.WriteHeader(http.StatusOK)
+				}))
+				defer server.Close()
+
+				cfg := HTTPConfig{
+					Url:                 server.URL,
+					Method:              tt.method,
+					Encoding:            tt.encoding,
+					Body:                tt.body,
+					Headers:             tt.headers,
+					AcceptedStatusCodes: []string{"2XX"},
+					AuthMethod:          "none",
+				}
+				config, err := json.Marshal(cfg)
+				require.NoError(t, err)
+
+				monitor := &Monitor{
+					ID:       "monitor1",
+					Type:     monitorType,
+					Name:     "Test Monitor",
+					Interval: 30,
+					Timeout:  5,
+					Config:   string(config),
+				}
+
+				result := executor.Execute(context.Background(), monitor, nil)
+				assert.Equal(t, shared.MonitorStatusUp, result.Status, result.Message)
+			})
+		}
 	}
 }
 
@@ -1102,6 +1267,12 @@ func TestHTTPExecutor_Execute_OAuth2(t *testing.T) {
 		clientId := r.Form.Get("client_id")
 		clientSecret := r.Form.Get("client_secret")
 
+		// Reject request if more than one authentication method is used (RFC 6749 §2.3)
+		if authHeader != "" && (clientId != "" || clientSecret != "") {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
 		if authHeader == "" && (clientId == "" || clientSecret == "") {
 			w.WriteHeader(http.StatusUnauthorized)
 			return
@@ -1202,6 +1373,119 @@ func TestHTTPExecutor_Execute_OAuth2_Failures(t *testing.T) {
 	result := executor.Execute(context.Background(), monitor, nil)
 	assert.Equal(t, shared.MonitorStatusDown, result.Status)
 	assert.Contains(t, result.Message, "oauth2 token endpoint returned status")
+}
+
+func TestHTTPExecutor_Execute_OAuth2_CredentialsPlacement(t *testing.T) {
+	logger := zap.NewNop().Sugar()
+	executor := NewHTTPExecutor(logger)
+
+	type capturedReq struct {
+		authHeader string
+		basicUser  string
+		basicPass  string
+		basicOK    bool
+		clientID   string
+		secret     string
+		grantType  string
+		scope      string
+	}
+	captured := make(chan capturedReq, 2)
+
+	tokenServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_ = r.ParseForm()
+		user, pass, ok := r.BasicAuth()
+		captured <- capturedReq{
+			authHeader: r.Header.Get("Authorization"),
+			basicUser:  user,
+			basicPass:  pass,
+			basicOK:    ok,
+			clientID:   r.Form.Get("client_id"),
+			secret:     r.Form.Get("client_secret"),
+			grantType:  r.Form.Get("grant_type"),
+			scope:      r.Form.Get("scope"),
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(`{"access_token": "token-xyz"}`))
+	}))
+	defer tokenServer.Close()
+
+	targetServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer targetServer.Close()
+
+	t.Run("client_secret_basic sends credentials in Authorization header only", func(t *testing.T) {
+		monitor := &Monitor{
+			ID:       "m-basic",
+			Type:     "http",
+			Interval: 30,
+			Timeout:  5,
+			Config: fmt.Sprintf(`{
+				"url": %q,
+				"method": "GET",
+				"accepted_statuscodes": ["2XX"],
+				"authMethod": "oauth2-cc",
+				"oauth_auth_method": "client_secret_basic",
+				"oauth_token_url": %q,
+				"oauth_client_id": "my-client",
+				"oauth_client_secret": "my-secret",
+				"oauth_scopes": "read write"
+			}`, targetServer.URL, tokenServer.URL+"/token"),
+		}
+
+		result := executor.Execute(context.Background(), monitor, nil)
+		assert.Equal(t, shared.MonitorStatusUp, result.Status)
+
+		select {
+		case req := <-captured:
+			assert.True(t, req.basicOK, "Basic auth header should be present")
+			assert.Equal(t, "my-client", req.basicUser)
+			assert.Equal(t, "my-secret", req.basicPass)
+			assert.Empty(t, req.clientID, "client_id should not be in form body for client_secret_basic")
+			assert.Empty(t, req.secret, "client_secret should not be in form body for client_secret_basic")
+			assert.Equal(t, "client_credentials", req.grantType)
+			assert.Equal(t, "read write", req.scope)
+		case <-time.After(5 * time.Second):
+			t.Fatal("timed out waiting for token request")
+		}
+	})
+
+	t.Run("client_secret_post sends credentials in form body only", func(t *testing.T) {
+		monitor := &Monitor{
+			ID:       "m-post",
+			Type:     "http",
+			Interval: 30,
+			Timeout:  5,
+			Config: fmt.Sprintf(`{
+				"url": %q,
+				"method": "GET",
+				"accepted_statuscodes": ["2XX"],
+				"authMethod": "oauth2-cc",
+				"oauth_auth_method": "client_secret_post",
+				"oauth_token_url": %q,
+				"oauth_client_id": "my-client",
+				"oauth_client_secret": "my-secret",
+				"oauth_scopes": "read write"
+			}`, targetServer.URL, tokenServer.URL+"/token"),
+		}
+
+		result := executor.Execute(context.Background(), monitor, nil)
+		assert.Equal(t, shared.MonitorStatusUp, result.Status)
+
+		select {
+		case req := <-captured:
+			assert.False(t, req.basicOK, "Basic auth should not be set for client_secret_post")
+			assert.Empty(t, req.authHeader, "Authorization header should not be set for client_secret_post")
+			assert.Equal(t, "my-client", req.clientID)
+			assert.Equal(t, "my-secret", req.secret)
+			assert.Equal(t, "client_credentials", req.grantType)
+			assert.Equal(t, "read write", req.scope)
+		case <-time.After(5 * time.Second):
+			t.Fatal("timed out waiting for token request")
+		}
+	})
 }
 
 func TestHTTPExecutor_Execute_Timeout(t *testing.T) {
@@ -1379,37 +1663,95 @@ func TestHTTPExecutor_Execute_MaxRedirects_Success(t *testing.T) {
 	assert.Equal(t, shared.MonitorStatusUp, result.Status)
 }
 
-func TestHTTPExecutor_Execute_DisabledRedirects(t *testing.T) {
-	// Setup
-	logger := zap.NewNop().Sugar()
-	executor := NewHTTPExecutor(logger)
+func intPtr(n int) *int { return &n }
 
-	// Create test server that redirects
+// redirectingServer redirects with a 302 to the same address with one more hop until it has
+// redirected hops times, and then answers 200
+func redirectingServer(t *testing.T, hops int) *httptest.Server {
+	t.Helper()
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		http.Redirect(w, r, r.URL.String()+"?redirected", http.StatusFound)
+		followed, _ := strconv.Atoi(r.URL.Query().Get("hop"))
+		if followed < hops {
+			http.Redirect(w, r, fmt.Sprintf("http://%s/?hop=%d", r.Host, followed+1), http.StatusFound)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
 	}))
-	defer server.Close()
+	t.Cleanup(server.Close)
+	return server
+}
 
-	monitor := &Monitor{
+// redirectMonitor is an HTTP monitor of url; maxRedirects is the config's max_redirects member
+// with its leading comma, or empty to leave the member out
+func redirectMonitor(url string, acceptedStatusCodes string, maxRedirects string) *Monitor {
+	return &Monitor{
 		ID:       "monitor1",
 		Type:     "http",
 		Name:     "Test Monitor",
 		Interval: 30,
 		Timeout:  5,
 		Config: `{
-			"url": "` + server.URL + `",
+			"url": "` + url + `",
 			"method": "GET",
 			"encoding": "json",
-			"accepted_statuscodes": ["2XX"],
-			"authMethod": "none",
-			"max_redirects": 0
+			"accepted_statuscodes": ` + acceptedStatusCodes + `,
+			"authMethod": "none"` + maxRedirects + `
 		}`,
 	}
+}
 
-	result := executor.Execute(context.Background(), monitor, nil)
-	// Should fail because redirects are disabled
+func TestHTTPExecutor_Execute_ZeroMaxRedirectsAcceptsARedirectStatusThatIsAccepted(t *testing.T) {
+	executor := NewHTTPExecutor(zap.NewNop().Sugar())
+	server := redirectingServer(t, 1)
+
+	result := executor.Execute(context.Background(), redirectMonitor(server.URL, `["3XX"]`, `, "max_redirects": 0`), nil)
+
+	assert.Equal(t, shared.MonitorStatusUp, result.Status, result.Message)
+	assert.Contains(t, result.Message, "302")
+}
+
+func TestHTTPExecutor_Execute_ZeroMaxRedirectsFailsOnARedirectStatusThatIsNotAccepted(t *testing.T) {
+	executor := NewHTTPExecutor(zap.NewNop().Sugar())
+	server := redirectingServer(t, 1)
+
+	result := executor.Execute(context.Background(), redirectMonitor(server.URL, `["2XX"]`, `, "max_redirects": 0`), nil)
+
 	assert.Equal(t, shared.MonitorStatusDown, result.Status)
-	assert.Contains(t, result.Message, "redirects disabled")
+	assert.Equal(t, "HTTP request failed with status: 302", result.Message)
+}
+
+func TestHTTPExecutor_Execute_WithoutMaxRedirectsFollowsUpToTen(t *testing.T) {
+	executor := NewHTTPExecutor(zap.NewNop().Sugar())
+
+	tests := []struct {
+		name       string
+		hops       int
+		wantStatus shared.MonitorStatus
+		wantInMsg  string
+	}{
+		{name: "one redirect", hops: 1, wantStatus: shared.MonitorStatusUp},
+		{name: "ten redirects", hops: 10, wantStatus: shared.MonitorStatusUp},
+		{name: "eleven redirects", hops: 11, wantStatus: shared.MonitorStatusDown, wantInMsg: "maximum allowed is 10"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			server := redirectingServer(t, tt.hops)
+
+			result := executor.Execute(context.Background(), redirectMonitor(server.URL, `["2XX"]`, ""), nil)
+
+			assert.Equal(t, tt.wantStatus, result.Status, result.Message)
+			assert.Contains(t, result.Message, tt.wantInMsg)
+		})
+	}
+}
+
+func TestHTTPExecutor_Execute_NullMaxRedirectsFollowsUpToTen(t *testing.T) {
+	executor := NewHTTPExecutor(zap.NewNop().Sugar())
+	server := redirectingServer(t, 3)
+
+	result := executor.Execute(context.Background(), redirectMonitor(server.URL, `["2XX"]`, `, "max_redirects": null`), nil)
+
+	assert.Equal(t, shared.MonitorStatusUp, result.Status, result.Message)
 }
 
 func TestIsStatusAccepted(t *testing.T) {
@@ -1428,6 +1770,19 @@ func TestIsStatusAccepted(t *testing.T) {
 		{"404 with 3XX,4XX", 404, []string{"3XX", "4XX"}, true},
 		{"302 with 3XX", 302, []string{"3XX"}, true},
 		{"100 with 2XX", 100, []string{"2XX"}, false},
+		{"199 with 2XX", 199, []string{"2XX"}, false},
+		{"399 with 3XX", 399, []string{"3XX"}, true},
+		{"400 with 3XX", 400, []string{"3XX"}, false},
+		{"299 with 3XX", 299, []string{"3XX"}, false},
+		{"399 with 4XX", 399, []string{"4XX"}, false},
+		{"499 with 4XX", 499, []string{"4XX"}, true},
+		{"500 with 4XX", 500, []string{"4XX"}, false},
+		{"499 with 5XX", 499, []string{"5XX"}, false},
+		{"599 with 5XX", 599, []string{"5XX"}, true},
+		{"600 with 5XX", 600, []string{"5XX"}, false},
+		{"200 with no patterns", 200, nil, false},
+		{"200 with an unknown pattern", 200, []string{"200", "2xx", "6XX"}, false},
+		{"500 with an unknown pattern first", 500, []string{"6XX", "5XX"}, true},
 	}
 
 	for _, tt := range tests {
@@ -1472,6 +1827,18 @@ func TestBuildProxyTransport(t *testing.T) {
 		assert.NotNil(t, result)
 		transport := result.(*http.Transport)
 		assert.NotNil(t, transport.Proxy)
+	})
+
+	t.Run("http proxy on an IPv6 host", func(t *testing.T) {
+		proxy := &Proxy{Host: "2001:db8::1", Port: 8080, Protocol: "http"}
+		transport := buildProxyTransport(base, proxy).(*http.Transport)
+		req, err := http.NewRequest(http.MethodGet, "http://example.com", nil)
+		require.NoError(t, err)
+
+		proxyURL, err := transport.Proxy(req)
+
+		require.NoError(t, err)
+		assert.Equal(t, "http://[2001:db8::1]:8080", proxyURL.String())
 	})
 
 	t.Run("socks5 proxy", func(t *testing.T) {
@@ -2062,6 +2429,59 @@ func TestCheckJsonQuery_Comparisons(t *testing.T) {
 	}
 }
 
+func TestCheckJsonQuery_ConditionEdges(t *testing.T) {
+	tests := []struct {
+		name      string
+		body      string
+		query     string
+		condition string
+		expected  string
+		want      bool
+		wantErr   string
+	}{
+		{name: "nothing to check", body: "anything", want: true},
+		{name: "missing path", body: `{"a": 1}`, query: "b", condition: "==", expected: "1", wantErr: "JSON query path not found: b"},
+		{name: "path only", body: `{"a": 1}`, query: "a", want: true},
+		{name: "path with the default condition, equal", body: `{"a": 1}`, query: "a", expected: "1", want: true},
+		{name: "path with the default condition, different", body: `{"a": 1}`, query: "a", expected: "2", want: false},
+		{name: "path not equal", body: `{"a": 1}`, query: "a", condition: "!=", expected: "2", want: true},
+		{name: "unsupported condition on a path", body: `{"a": 1}`, query: "a", condition: "~=", expected: "1", wantErr: "unsupported condition: ~="},
+		{name: "unsupported condition without a value", body: `{"a": 1}`, query: "a", condition: "~=", wantErr: "unsupported condition: ~="},
+		{name: "full response with the default condition, same JSON", body: `{"a": 1, "b": 2}`, expected: `{"b": 2, "a": 1}`, want: true},
+		{name: "full response with the default condition, different JSON", body: `{"a": 1}`, expected: `{"a": 2}`, want: false},
+		{name: "full response with the default condition, same text", body: "plain", expected: "plain", want: true},
+		{name: "full response with the default condition, different text", body: "plain", expected: "other", want: false},
+		{name: "full response, different text, not equal", body: "plain", condition: "!=", expected: "other", want: true},
+		{name: "full response, same text, not equal", body: "plain", condition: "!=", expected: "plain", want: false},
+		{name: "full response, same JSON, not equal", body: `{"a": 1}`, condition: "!=", expected: `{"a":1}`, want: false},
+		{name: "full response, JSON and text", body: `{"a": 1}`, condition: "==", expected: "text", want: false},
+		{name: "full JSON with an ordering condition", body: `{"a": 1}`, condition: "<", expected: `{"a": 1}`, wantErr: "unsupported condition '<' for full JSON comparison: only '==' and '!=' are supported"},
+		{name: "text with an ordering condition", body: "plain", condition: ">=", expected: "other", wantErr: "unsupported condition '>=' for non-JSON comparison: only '==' and '!=' are supported"},
+		{name: "full response as the actual value, no expected value", body: "plain", condition: "==", want: false},
+		{name: "empty response as the actual value, no expected value", body: "", condition: "==", want: true},
+		{name: "full response not equal to no expected value", body: "plain", condition: "!=", want: true},
+		{name: "ordering a number as a string", body: `{"v": "abc"}`, query: "v", condition: ">", expected: "1", want: true},
+		{name: "ordering a string as a number", body: `{"v": "1"}`, query: "v", condition: "<", expected: "abc", want: true},
+		{name: "ordering equal strings", body: `{"v": "abc"}`, query: "v", condition: ">=", expected: "abc", want: true},
+		{name: "NaN is not less than or equal to anything", body: `{"v": "NaN"}`, query: "v", condition: "<=", expected: "1", want: false},
+		{name: "NaN is not greater than or equal to anything", body: `{"v": "NaN"}`, query: "v", condition: ">=", expected: "1", want: false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := checkJsonQuery(tt.body, tt.query, tt.condition, tt.expected)
+
+			if tt.wantErr != "" {
+				assert.EqualError(t, err, tt.wantErr)
+				assert.False(t, got)
+				return
+			}
+			assert.NoError(t, err)
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
 func TestCheckJsonQueryNonJsonResponse(t *testing.T) {
 	nonJsonResponse := "This is not a JSON response"
 
@@ -2266,4 +2686,63 @@ func TestHTTPExecutor_Execute_DoesNotLeakConnections(t *testing.T) {
 		defer mu.Unlock()
 		return open <= 1
 	}, 3*time.Second, 20*time.Millisecond, "established connections should not accumulate across checks")
+}
+
+// Every HTTP check shares one executor, and single mode runs up to
+// CHECK_CONCURRENCY checks at once. Each check must use the client built
+// from its own monitor: the TLS-skip monitor's client, not the strict one's,
+// and the short-timeout monitor's client, not the long one's.
+func TestHTTPExecutor_Execute_ConcurrentChecksKeepTheirOwnClient(t *testing.T) {
+	executor := NewHTTPExecutor(zap.NewNop().Sugar())
+
+	selfSigned := startTLSServer(t, generateTestCerts(t, time.Now().Add(24*time.Hour)), false,
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
+	slow := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		select {
+		case <-time.After(2 * time.Second):
+		case <-r.Context().Done():
+		}
+	}))
+	t.Cleanup(slow.Close)
+
+	skipTLS := httpMonitor(t, "http", HTTPConfig{Url: selfSigned.URL, AuthMethod: "none", IgnoreTlsErrors: true})
+	skipTLS.Name = "skip tls errors"
+	strictTLS := httpMonitor(t, "http", HTTPConfig{Url: selfSigned.URL, AuthMethod: "none"})
+	strictTLS.Name = "strict tls"
+	shortTimeout := httpMonitor(t, "http", HTTPConfig{Url: slow.URL, AuthMethod: "none"})
+	shortTimeout.Name = "short timeout"
+	shortTimeout.Timeout = 1
+
+	type check struct {
+		monitor     *Monitor
+		want        shared.MonitorStatus
+		wantMessage string // a Down for another reason doesn't count
+	}
+	checks := []check{
+		{skipTLS, shared.MonitorStatusUp, "200"},
+		{strictTLS, shared.MonitorStatusDown, "certificate"},
+		{shortTimeout, shared.MonitorStatusDown, "exceeded"}, // "context deadline exceeded" or "Client.Timeout exceeded"
+	}
+
+	const rounds = 20
+	var wg sync.WaitGroup
+	results := make([]*Result, rounds*len(checks))
+	for i := 0; i < rounds; i++ {
+		for j, c := range checks {
+			wg.Add(1)
+			go func(slot int, c check) {
+				defer wg.Done()
+				results[slot] = executor.Execute(context.Background(), c.monitor, nil)
+			}(i*len(checks)+j, c)
+		}
+	}
+	wg.Wait()
+
+	for i := 0; i < rounds; i++ {
+		for j, c := range checks {
+			r := results[i*len(checks)+j]
+			assert.Equalf(t, c.want, r.Status, "%s (round %d): %s", c.monitor.Name, i, r.Message)
+			assert.Containsf(t, r.Message, c.wantMessage, "%s (round %d)", c.monitor.Name, i)
+		}
+	}
 }

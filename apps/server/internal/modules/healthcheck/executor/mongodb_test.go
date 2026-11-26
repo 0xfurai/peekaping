@@ -1,15 +1,62 @@
+//go:build !slim
+
 package executor
 
 import (
 	"context"
+	"encoding/json"
 	"testing"
+	"time"
 
 	"peekaping/internal/modules/shared"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.uber.org/zap"
 )
+
+func mongoMonitor(t *testing.T, timeout int, cfg MongoDBConfig) *Monitor {
+	t.Helper()
+	raw, err := json.Marshal(cfg)
+	require.NoError(t, err)
+	return &Monitor{ID: "mongodb-test", Name: "MongoDB test", Type: "mongodb", Timeout: timeout, Config: string(raw)}
+}
+
+func TestMongoDBExecutor_ServerRefusesConnection(t *testing.T) {
+	addr := refusedAddr(t)
+
+	exec := NewMongoDBExecutor(zap.NewNop().Sugar())
+	start := time.Now()
+	result := exec.Execute(context.Background(), mongoMonitor(t, 2, MongoDBConfig{
+		ConnectionString: "mongodb://root:secret@" + addr + "/admin",
+	}), nil)
+	elapsed := time.Since(start)
+
+	assert.Equal(t, shared.MonitorStatusDown, result.Status)
+	assert.Contains(t, result.Message, "MongoDB command failed: failed to execute MongoDB command: server selection error: ")
+	assert.Contains(t, result.Message, "Last error: dial tcp "+addr+": connect: connection refused")
+	assert.Less(t, elapsed, 3*time.Second, "the check must end within the monitor's timeout plus 1s")
+}
+
+func TestMongoDBExecutor_ServerNeverAnswers(t *testing.T) {
+	addr, _ := silentServer(t)
+
+	exec := NewMongoDBExecutor(zap.NewNop().Sugar())
+	start := time.Now()
+	result := exec.Execute(context.Background(), mongoMonitor(t, 2, MongoDBConfig{
+		ConnectionString: "mongodb://root:secret@" + addr + "/admin",
+	}), nil)
+	elapsed := time.Since(start)
+
+	assert.Equal(t, shared.MonitorStatusDown, result.Status)
+	assert.Contains(t, result.Message, "MongoDB command failed: failed to execute MongoDB command: server selection error: ")
+	// The server is known by its address, but never said what it is. The driver's handshake and its
+	// server selection share the monitor's timeout, so the handshake's read timeout may or may not
+	// be in the topology as the server's last error by the time selection gives up.
+	assert.Contains(t, result.Message, "{ Addr: "+addr+", Type: Unknown")
+	assert.Less(t, elapsed, 3*time.Second, "the check must end within the monitor's timeout plus 1s")
+}
 
 func TestMongoDBExecutor_Unmarshal(t *testing.T) {
 	logger := zap.NewNop().Sugar()
@@ -371,6 +418,81 @@ func TestMongoDBExecutor_Execute_InvalidCommand(t *testing.T) {
 	assert.Contains(t, result.Message, "invalid MongoDB command JSON")
 }
 
+func TestParseMongoDBCommand(t *testing.T) {
+	t.Run("an empty command is a ping", func(t *testing.T) {
+		command, err := parseMongoDBCommand("")
+
+		require.NoError(t, err)
+		assert.Equal(t, bson.D{{Key: "ping", Value: 1}}, command)
+	})
+
+	t.Run("a command with one key", func(t *testing.T) {
+		command, err := parseMongoDBCommand(`{"serverStatus": 1}`)
+
+		require.NoError(t, err)
+		assert.Equal(t, bson.D{{Key: "serverStatus", Value: int32(1)}}, command)
+	})
+
+	t.Run("a command with more than one key keeps the order as typed, the command name first", func(t *testing.T) {
+		command, err := parseMongoDBCommand(`{"dbStats": 1, "scale": 1024, "freeStorage": 1}`)
+
+		require.NoError(t, err)
+		assert.Equal(t, bson.D{
+			{Key: "dbStats", Value: int32(1)},
+			{Key: "scale", Value: int32(1024)},
+			{Key: "freeStorage", Value: int32(1)},
+		}, command)
+	})
+
+	t.Run("an empty object parses to an empty command, which the server then refuses", func(t *testing.T) {
+		command, err := parseMongoDBCommand(`{}`)
+
+		require.NoError(t, err)
+		assert.Empty(t, command)
+	})
+
+	t.Run("a nested document keeps its order too", func(t *testing.T) {
+		command, err := parseMongoDBCommand(`{"find": "users", "filter": {"b": 2, "a": 1}}`)
+
+		require.NoError(t, err)
+		assert.Equal(t, bson.D{
+			{Key: "find", Value: "users"},
+			{Key: "filter", Value: bson.D{{Key: "b", Value: int32(2)}, {Key: "a", Value: int32(1)}}},
+		}, command)
+	})
+
+	t.Run("says why it refuses", func(t *testing.T) {
+		for invalid, want := range map[string]string{
+			"   ":                  "not valid JSON",
+			`{"ping": 1} trailing`: "not valid JSON",
+			`{"ping": 1}{"a": 1}`:  "not valid JSON",
+			"null":                 "not a JSON object",
+			`[{"ping": 1}]`:        "not a JSON object",
+		} {
+			_, err := parseMongoDBCommand(invalid)
+
+			assert.EqualError(t, err, want, invalid)
+		}
+	})
+
+	for name, invalid := range map[string]string{
+		"text that is not JSON":      "invalid json",
+		"JSON that is cut off":       `{"dbStats": 1,`,
+		"JSON that is not an object": `[{"ping": 1}]`,
+		"JSON followed by text":      `{"ping": 1} trailing`,
+		"two JSON documents":         `{"ping": 1}{"a": 1}`,
+		"blank text":                 "   ",
+		"null":                       "null",
+	} {
+		t.Run("is refused for "+name, func(t *testing.T) {
+			command, err := parseMongoDBCommand(invalid)
+
+			assert.Error(t, err)
+			assert.Nil(t, command)
+		})
+	}
+}
+
 func TestMongoDBExecutor_validateConnectionString(t *testing.T) {
 	tests := []struct {
 		name          string
@@ -418,9 +540,9 @@ func TestMongoDBExecutor_validateConnectionString(t *testing.T) {
 			expectedError: false,
 		},
 		{
-			name:          "empty username with password (valid for MongoDB)",
+			name:          "empty username with password (the driver refuses it)",
 			connectionStr: "mongodb://:password@localhost:27017/testdb",
-			expectedError: false,
+			expectedError: true,
 		},
 		{
 			name:          "missing database name",
@@ -446,7 +568,7 @@ func TestMongoDBExecutor_validateConnectionString(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := ValidateConnectionStringWithOptions(tt.connectionStr, []string{"mongodb", "mongodb+srv"}, true)
+			err := validateMongoConnectionString(tt.connectionStr)
 			if tt.expectedError {
 				assert.Error(t, err)
 			} else {

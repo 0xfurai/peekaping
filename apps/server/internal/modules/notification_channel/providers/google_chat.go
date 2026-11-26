@@ -6,32 +6,30 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"peekaping/internal/config"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/version"
-	"strings"
 
 	"go.uber.org/zap"
 )
 
 type GoogleChatConfig struct {
-	WebhookURL string `json:"webhook_url" validate:"required,url"`
+	WebhookURL string `json:"webhook_url" validate:"required,url" secret:"true" endpoint:"true" target:"url"`
 }
 
 type GoogleChatSender struct {
-	logger *zap.SugaredLogger
-	client *http.Client
-	config *config.Config
+	logger    *zap.SugaredLogger
+	client    *http.Client
+	publicURL PublicURLSource
 }
 
 // NewGoogleChatSender creates a GoogleChatSender
-func NewGoogleChatSender(logger *zap.SugaredLogger, config *config.Config, client *http.Client) *GoogleChatSender {
+func NewGoogleChatSender(logger *zap.SugaredLogger, publicURL PublicURLSource, client *http.Client) *GoogleChatSender {
 	return &GoogleChatSender{
-		logger: logger,
-		config: config,
-		client: client,
+		logger:    logger,
+		publicURL: publicURL,
+		client:    client,
 	}
 }
 
@@ -47,36 +45,23 @@ func (g *GoogleChatSender) Validate(configJSON string) error {
 	return GenericValidator(cfg.(*GoogleChatConfig))
 }
 
-func (g *GoogleChatSender) Send(
-	ctx context.Context,
-	configJSON string,
-	message string,
-	m *monitor.Model,
-	hb *heartbeat.Model,
-) error {
-	cfgAny, err := g.Unmarshal(configJSON)
-	if err != nil {
-		return fmt.Errorf("failed to unmarshal config: %w", err)
+// googleChatTitle is the header of the card: the monitor's name and whether it went down or came
+// back, or a plain title for a notification without a monitor or a heartbeat
+func googleChatTitle(m *monitor.Model, hb *heartbeat.Model) string {
+	if m == nil || hb == nil {
+		return "Peekaping Alert"
 	}
-	cfg := cfgAny.(*GoogleChatConfig)
-
-	g.logger.Infof("Sending Google Chat notification to webhook: %s", cfg.WebhookURL)
-
-	// Google Chat message formatting: https://developers.google.com/chat/api/guides/message-formats/basic
-	chatHeader := map[string]string{
-		"title": "Peekaping Alert",
+	if hb.Status == shared.MonitorStatusUp {
+		return fmt.Sprintf("✅ %s is back online", m.Name)
 	}
+	return fmt.Sprintf("🔴 %s went down", m.Name)
+}
 
-	if m != nil && hb != nil {
-		if hb.Status == shared.MonitorStatusUp {
-			chatHeader["title"] = fmt.Sprintf("✅ %s is back online", m.Name)
-		} else {
-			chatHeader["title"] = fmt.Sprintf("🔴 %s went down", m.Name)
-		}
-	}
-
+// googleChatWidgets are the widgets of the card: the message, the time of the heartbeat if there
+// is one, and a button to buttonURL if there is one
+func googleChatWidgets(message string, hb *heartbeat.Model, buttonURL string) []map[string]any {
 	// Always show message
-	sectionWidgets := []map[string]any{
+	widgets := []map[string]any{
 		{
 			"textParagraph": map[string]string{
 				"text": fmt.Sprintf("<b>Message:</b>\n%s", message),
@@ -88,18 +73,15 @@ func (g *GoogleChatSender) Send(
 	if hb != nil {
 		// Format timestamp (Note: In a real implementation, you might want to add timezone support)
 		timeStr := hb.Time.Format("2006-01-02 15:04:05")
-		sectionWidgets = append(sectionWidgets, map[string]any{
+		widgets = append(widgets, map[string]any{
 			"textParagraph": map[string]string{
 				"text": fmt.Sprintf("<b>Time:</b>\n%s", timeStr),
 			},
 		})
 	}
 
-	// Add button for monitor link if available
-	if m != nil && g.config.ClientURL != "" {
-		buttonURL := fmt.Sprintf("%s/monitors/%s", strings.TrimRight(g.config.ClientURL, "/"), m.ID)
-
-		sectionWidgets = append(sectionWidgets, map[string]any{
+	if buttonURL != "" {
+		widgets = append(widgets, map[string]any{
 			"buttonList": map[string][]map[string]any{
 				"buttons": {
 					{
@@ -114,6 +96,32 @@ func (g *GoogleChatSender) Send(
 			},
 		})
 	}
+	return widgets
+}
+
+func (g *GoogleChatSender) Send(
+	ctx context.Context,
+	configJSON string,
+	message string,
+	m *monitor.Model,
+	hb *heartbeat.Model,
+) error {
+	cfgAny, err := g.Unmarshal(configJSON)
+	if err != nil {
+		return fmt.Errorf("failed to unmarshal config: %w", err)
+	}
+	cfg := cfgAny.(*GoogleChatConfig)
+
+	g.logger.Infof("Sending Google Chat notification")
+
+	// Google Chat message formatting: https://developers.google.com/chat/api/guides/message-formats/basic
+	chatHeader := map[string]string{
+		"title": googleChatTitle(m, hb),
+	}
+
+	// Add button for the monitor's page, or the Probes page for a probe, if available
+	buttonURL := peekapingLink(publicURL(ctx, g.publicURL), m)
+	sectionWidgets := googleChatWidgets(message, hb, buttonURL)
 
 	chatSections := []map[string]any{
 		{

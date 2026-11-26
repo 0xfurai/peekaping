@@ -29,11 +29,11 @@ interface TwoFADialogProps {
   loading?: boolean;
 }
 
-const twoFASchema = z.object({
+const twoFaSchema = z.object({
   code: z.string().min(1, "auth.twofa.validation.code_required"),
 });
 
-type TwoFAFormValues = z.infer<typeof twoFASchema>;
+type TwoFaFormValues = z.infer<typeof twoFaSchema>;
 
 export function TwoFADialog({
   email,
@@ -44,12 +44,12 @@ export function TwoFADialog({
 }: TwoFADialogProps) {
   const { t } = useLocalizedTranslation();
 
-  const form = useForm<TwoFAFormValues>({
-    resolver: zodResolver(twoFASchema),
+  const form = useForm<TwoFaFormValues>({
+    resolver: zodResolver(twoFaSchema),
     defaultValues: { code: "" },
   });
 
-  function handleSubmit(values: TwoFAFormValues) {
+  function handleSubmit(values: TwoFaFormValues) {
     onSubmit({ email, password, code: values.code });
   }
 

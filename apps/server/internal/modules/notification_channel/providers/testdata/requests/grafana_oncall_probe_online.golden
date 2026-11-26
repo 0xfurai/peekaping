@@ -1,0 +1,14 @@
+POST https://oncall.example.com/integrations/v1/formatted_webhook/abc/
+Content-Type: application/json
+User-Agent: Peekaping/<version>
+
+{
+  "alert_uid": "Peekaping/probe-1",
+  "message": "Probe Frankfurt is online",
+  "monitor_id": "probe-1",
+  "monitor_type": "probe",
+  "state": "ok",
+  "status": "UP",
+  "tags": [],
+  "title": "Probe Frankfurt is online"
+}

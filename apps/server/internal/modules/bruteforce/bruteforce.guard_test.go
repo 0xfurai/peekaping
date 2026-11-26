@@ -5,10 +5,12 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"peekaping/internal/config"
 	"peekaping/internal/httpx"
+	"strings"
 	"testing"
 	"time"
 
@@ -90,7 +92,7 @@ func TestKeyByIPAndBodyField_JSON(t *testing.T) {
 	r := httptest.NewRequest("POST", "/", bytes.NewReader(b))
 	r.Header.Set("Content-Type", "application/json")
 	r.RemoteAddr = "1.2.3.4:5678"
-	key, err := KeyByIPAndBodyField("email")(r)
+	key, err := KeyByIPAndBodyField("email", nil)(r)
 	assert.NoError(t, err)
 	assert.Equal(t, "1.2.3.4:user@example.com", key)
 }
@@ -102,7 +104,7 @@ func TestKeyByIPAndBodyField_JSON_no_field(t *testing.T) {
 	r := httptest.NewRequest("POST", "/", bytes.NewReader(b))
 	r.Header.Set("Content-Type", "application/json")
 	r.RemoteAddr = "5.6.7.8:1234"
-	key, err := KeyByIPAndBodyField("email")(r)
+	key, err := KeyByIPAndBodyField("email", nil)(r)
 	assert.NoError(t, err)
 	assert.Equal(t, "5.6.7.8", key)
 }
@@ -114,9 +116,33 @@ func TestKeyByIPAndBodyField_Form(t *testing.T) {
 	r.RemoteAddr = "9.8.7.6:4321"
 	r.ParseForm()
 	r.PostForm.Set("email", "TestUser")
-	key, err := KeyByIPAndBodyField("email")(r)
+	key, err := KeyByIPAndBodyField("email", nil)(r)
 	assert.NoError(t, err)
 	assert.Equal(t, "9.8.7.6:testuser", key)
+}
+
+func TestKeyByIPAndBodyField_ForwardedFor(t *testing.T) {
+	trusted, err := httpx.ParseTrustedProxies("10.0.0.0/8")
+	assert.NoError(t, err)
+
+	for _, tc := range []struct {
+		name, remote, want string
+		proxies            *httpx.TrustedProxies
+	}{
+		{"a client's forged header is ignored when no proxy is trusted", "1.2.3.4:5678", "1.2.3.4:user@example.com", nil},
+		{"a client's forged header is ignored from outside the trusted proxies", "1.2.3.4:5678", "1.2.3.4:user@example.com", trusted},
+		{"a trusted proxy's client is the key", "10.0.0.1:5678", "198.51.100.7:user@example.com", trusted},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			r := httptest.NewRequest("POST", "/", bytes.NewReader([]byte(`{"email":"User@EXAMPLE.com"}`)))
+			r.Header.Set("Content-Type", "application/json")
+			r.Header.Set("X-Forwarded-For", "203.0.113.9, 198.51.100.7")
+			r.RemoteAddr = tc.remote
+			key, err := KeyByIPAndBodyField("email", tc.proxies)(r)
+			assert.NoError(t, err)
+			assert.Equal(t, tc.want, key)
+		})
+	}
 }
 
 func TestKeyByIPAndBodyField_Error(t *testing.T) {
@@ -124,9 +150,125 @@ func TestKeyByIPAndBodyField_Error(t *testing.T) {
 	r := httptest.NewRequest("POST", "/", &errReader{})
 	r.Header.Set("Content-Type", "application/json")
 	r.RemoteAddr = "1.1.1.1:1111"
-	key, err := KeyByIPAndBodyField("email")(r)
+	key, err := KeyByIPAndBodyField("email", nil)(r)
 	assert.NoError(t, err)
 	assert.Equal(t, "1.1.1.1", key)
+}
+
+func TestKeyByAccountEmail(t *testing.T) {
+	for _, tc := range []struct {
+		name, contentType, body, want string
+		wantNoKey                     bool
+	}{
+		{"an email", "application/json", `{"email":"User@EXAMPLE.com","password":"x"}`, "account:user@example.com", false},
+		{"no Content-Type, which the login handler accepts", "", `{"email":"User@EXAMPLE.com","password":"x"}`, "account:user@example.com", false},
+		{"another Content-Type, which the login handler accepts", "text/plain", `{"email":"User@EXAMPLE.com"}`, "account:user@example.com", false},
+		{"a field name in another case, which the login handler accepts", "application/json", `{"EMAIL":"User@EXAMPLE.com"}`, "account:user@example.com", false},
+		{"the last of two emails, as the login handler reads it", "application/json", `{"email":"a@example.com","Email":"b@example.com"}`, "account:b@example.com", false},
+		{"a JSON value followed by more text, as the login handler reads it", "application/json", `{"email":"a@example.com"} trailing`, "account:a@example.com", false},
+		{"no email", "application/json", `{"password":"x"}`, "", true},
+		{"an empty email", "application/json", `{"email":""}`, "", true},
+		{"an email that isn't a string", "application/json", `{"email":["a@example.com"]}`, "", true},
+		{"a body that isn't JSON", "application/json", `email=a@example.com`, "", true},
+		{"an empty body", "application/json", ``, "", true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			r := httptest.NewRequest("POST", "/", bytes.NewReader([]byte(tc.body)))
+			if tc.contentType != "" {
+				r.Header.Set("Content-Type", tc.contentType)
+			}
+			r.RemoteAddr = "1.2.3.4:5678"
+			r.Header.Set("X-Forwarded-For", "198.51.100.7")
+
+			key, err := KeyByAccountEmail()(r)
+
+			if tc.wantNoKey {
+				assert.ErrorIs(t, err, ErrNoKey)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tc.want, key, "the key doesn't depend on the client's address")
+			}
+			rest, readErr := io.ReadAll(r.Body)
+			assert.NoError(t, readErr)
+			assert.Equal(t, tc.body, string(rest), "the handler still gets the body")
+		})
+	}
+
+	t.Run("a request without a body", func(t *testing.T) {
+		r := httptest.NewRequest("POST", "/", nil)
+		r.Body = nil
+		_, err := KeyByAccountEmail()(r)
+		assert.ErrorIs(t, err, ErrNoKey)
+	})
+	t.Run("a body that can't be read is not a request without a key", func(t *testing.T) {
+		r := httptest.NewRequest("POST", "/", &errReader{})
+		_, err := KeyByAccountEmail()(r)
+		assert.ErrorIs(t, err, ErrBodyUnreadable)
+		assert.NotErrorIs(t, err, ErrNoKey)
+	})
+	t.Run("a body over the limit", func(t *testing.T) {
+		r := httptest.NewRequest("POST", "/", strings.NewReader(`{"padding":"`+strings.Repeat("a", 100)+`","email":"a@example.com"}`))
+		r.Body = http.MaxBytesReader(httptest.NewRecorder(), r.Body, 64)
+		_, err := KeyByAccountEmail()(r)
+		var tooLarge *http.MaxBytesError
+		assert.ErrorAs(t, err, &tooLarge)
+		assert.NotErrorIs(t, err, ErrNoKey)
+	})
+	t.Run("a large body under the limit keeps its email", func(t *testing.T) {
+		r := httptest.NewRequest("POST", "/", strings.NewReader(`{"padding":"`+strings.Repeat("a", 60<<10)+`","email":"A@example.com"}`))
+		r.Body = http.MaxBytesReader(httptest.NewRecorder(), r.Body, 64<<10)
+		key, err := KeyByAccountEmail()(r)
+		assert.NoError(t, err)
+		assert.Equal(t, "account:a@example.com", key)
+	})
+}
+
+// A request whose body can't be read is answered, not passed on: skipping the guard would let a
+// client hide its email from the counter and still have the handler check a password.
+func TestGuard_Middleware_AnswersABodyItCannotRead(t *testing.T) {
+	for _, tc := range []struct {
+		name   string
+		body   io.Reader
+		limit  int64
+		status int
+	}{
+		{"a body that fails to read", &errReader{}, 0, http.StatusBadRequest},
+		{"a body over the limit", strings.NewReader(`{"padding":"` + strings.Repeat("a", 100) + `","email":"a@example.com"}`), 64, http.StatusRequestEntityTooLarge},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			mockSvc := &MockService{}
+			guard := New(Config{FailureStatuses: []int{401}}, mockSvc, KeyByAccountEmail(), zap.NewNop().Sugar())
+			ran := false
+			handler := guard.Middleware()(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { ran = true }))
+			r := httptest.NewRequest("POST", "/", tc.body)
+			w := httptest.NewRecorder()
+			if tc.limit > 0 {
+				r.Body = http.MaxBytesReader(w, r.Body, tc.limit)
+			}
+
+			handler.ServeHTTP(w, r)
+
+			assert.Equal(t, tc.status, w.Code)
+			assert.False(t, ran, "the handler doesn't run")
+			assert.Empty(t, mockSvc.Calls, "nothing is counted")
+			var body map[string]any
+			assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &body))
+			assert.NotEmpty(t, body["message"])
+		})
+	}
+}
+
+func TestGuard_Middleware_LetsARequestWithoutAKeyThrough(t *testing.T) {
+	mockSvc := &MockService{}
+	guard := New(Config{FailureStatuses: []int{401}}, mockSvc, func(*http.Request) (string, error) { return "", ErrNoKey }, zap.NewNop().Sugar())
+
+	w, ran := serveLogin(guard)
+
+	assert.True(t, ran, "the login handler runs")
+	assert.Equal(t, http.StatusOK, w.Code)
+	mockSvc.AssertNotCalled(t, "IsLocked")
+	mockSvc.AssertNotCalled(t, "OnFailure")
+	mockSvc.AssertNotCalled(t, "Reset")
 }
 
 type errReader struct{}
@@ -251,10 +393,29 @@ func TestNewGuard(t *testing.T) {
 		BruteforceLockout:     30 * time.Minute,
 	}
 
-	guard := NewGuard(mockService, logger, cfg)
+	guard := NewGuard(mockService, logger, cfg, nil)
 	assert.NotNil(t, guard)
 	assert.Equal(t, 10, guard.cfg.MaxAttempts)
 	assert.Equal(t, 2*time.Minute, guard.cfg.Window)
 	assert.Equal(t, 30*time.Minute, guard.cfg.Lockout)
+	assert.Equal(t, []int{401, 403}, guard.cfg.FailureStatuses)
+}
+
+func TestNewAccountGuard(t *testing.T) {
+	cfg := &config.Config{
+		BruteforceMaxAttempts:        10,
+		BruteforceWindow:             2 * time.Minute,
+		BruteforceLockout:            30 * time.Minute,
+		BruteforceAccountMaxAttempts: 100,
+		BruteforceAccountWindow:      10 * time.Minute,
+		BruteforceAccountLockout:     time.Minute,
+	}
+
+	guard := NewAccountGuard(&MockService{}, zap.NewNop().Sugar(), cfg)
+
+	assert.NotNil(t, guard)
+	assert.Equal(t, 100, guard.cfg.MaxAttempts)
+	assert.Equal(t, 10*time.Minute, guard.cfg.Window)
+	assert.Equal(t, time.Minute, guard.cfg.Lockout)
 	assert.Equal(t, []int{401, 403}, guard.cfg.FailureStatuses)
 }

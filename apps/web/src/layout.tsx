@@ -3,8 +3,15 @@ import {
   SidebarProvider,
   // SidebarTrigger
 } from "@/components/ui/sidebar";
+import { useLocation } from "react-router-dom";
+import { AdminSidebar } from "@/components/admin-sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
+import { isAdminPath } from "@/lib/workspace-path";
 import { SiteHeader } from "./components/app-header";
+import { SuspendedWorkspaceBanner } from "./components/suspended-workspace-banner";
+import { TelemetryNotice } from "./components/telemetry-notice";
+import { VerificationBanner } from "./components/verification-banner";
+import { WorkspaceDeletionBanner } from "./components/workspace-deletion-banner";
 import { useLocalizedTranslation } from "./hooks/useTranslation";
 
 export default function Layout({
@@ -21,12 +28,30 @@ export default function Layout({
   isLoading?: boolean;
   }) {
   const { t } = useLocalizedTranslation();
+  // The admin area has a sidebar of its own, since it is outside every workspace
+  const { pathname } = useLocation();
 
   return (
     <SidebarProvider>
-      <AppSidebar variant="inset" />
+      {isAdminPath(pathname) ? (
+        <AdminSidebar variant="inset" />
+      ) : (
+        <AppSidebar variant="inset" />
+      )}
       <SidebarInset>
         <SiteHeader pageName={pageName} onCreate={onCreate} />
+        <div className="empty:hidden px-4 pt-4">
+          <SuspendedWorkspaceBanner />
+        </div>
+        <div className="empty:hidden px-4 pt-4">
+          <WorkspaceDeletionBanner />
+        </div>
+        <div className="empty:hidden px-4 pt-4">
+          <VerificationBanner />
+        </div>
+        <div className="empty:hidden px-4 pt-4">
+          <TelemetryNotice />
+        </div>
         {isLoading ? (
           <div className="p-4 w-full">{t("common.loading")}</div>
         ) : (

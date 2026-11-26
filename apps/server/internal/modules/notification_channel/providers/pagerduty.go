@@ -6,34 +6,32 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"peekaping/internal/config"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/version"
-	"strings"
 
 	"go.uber.org/zap"
 )
 
 // PagerDutyConfig holds the configuration for PagerDuty notifications
 type PagerDutyConfig struct {
-	IntegrationKey string `json:"pagerduty_integration_key" validate:"required"`
-	IntegrationURL string `json:"pagerduty_integration_url" validate:"required,url"`
+	IntegrationKey string `json:"pagerduty_integration_key" validate:"required" secret:"true"`
+	IntegrationURL string `json:"pagerduty_integration_url" validate:"required,url" endpoint:"true" urlCredentials:"true" target:"url"`
 	Priority       string `json:"pagerduty_priority"`
 	AutoResolve    string `json:"pagerduty_auto_resolve"`
 }
 
 // PagerDutySender handles sending notifications to PagerDuty
 type PagerDutySender struct {
-	logger *zap.SugaredLogger
-	client *http.Client
-	config *config.Config
+	logger    *zap.SugaredLogger
+	client    *http.Client
+	publicURL PublicURLSource
 }
 
 // NewPagerDutySender creates a new PagerDutySender
-func NewPagerDutySender(logger *zap.SugaredLogger, config *config.Config, client *http.Client) *PagerDutySender {
-	return &PagerDutySender{logger: logger, config: config, client: client}
+func NewPagerDutySender(logger *zap.SugaredLogger, publicURL PublicURLSource, client *http.Client) *PagerDutySender {
+	return &PagerDutySender{logger: logger, publicURL: publicURL, client: client}
 }
 
 func (p *PagerDutySender) Unmarshal(configJSON string) (any, error) {
@@ -59,13 +57,23 @@ func (p *PagerDutySender) getMonitorURL(monitor *monitor.Model) string {
 	return monitor.Name
 }
 
-// getEventAction determines the PagerDuty event action based on heartbeat status and config
-func (p *PagerDutySender) getEventAction(heartbeat *heartbeat.Model, cfg *PagerDutyConfig) string {
-	if heartbeat == nil {
+// getEventAction determines the PagerDuty event action based on heartbeat status and config. A
+// probe's notification has no heartbeat, so the status of its stand-in monitor says whether the
+// probe went offline or came back online. Any other notification without a heartbeat triggers.
+func (p *PagerDutySender) getEventAction(monitor *monitor.Model, heartbeat *heartbeat.Model, cfg *PagerDutyConfig) string {
+	switch {
+	case heartbeat != nil:
+		return eventActionForStatus(heartbeat.Status, cfg)
+	case monitor.IsProbeEvent():
+		return eventActionForStatus(monitor.Status, cfg)
+	default:
 		return "trigger"
 	}
+}
 
-	switch heartbeat.Status {
+// eventActionForStatus is the event action for a monitor, or a probe, that has this status
+func eventActionForStatus(status shared.MonitorStatus, cfg *PagerDutyConfig) string {
+	switch status {
 	case shared.MonitorStatusUp:
 		if cfg.AutoResolve == "acknowledge" {
 			return "acknowledge"
@@ -108,6 +116,75 @@ func (p *PagerDutySender) getSeverity(cfg *PagerDutyConfig) string {
 	return cfg.Priority
 }
 
+// getSource returns the source field of the alert: what the monitor checks, or its name. A
+// notification with no monitor has Peekaping as its source, since PagerDuty needs one.
+func (p *PagerDutySender) getSource(monitor *monitor.Model) string {
+	if source := p.getMonitorURL(monitor); source != "" {
+		return source
+	}
+	if monitor == nil {
+		return "Peekaping"
+	}
+	return monitor.Name
+}
+
+// buildPayload is the event to send, without the link back to Peekaping
+func (p *PagerDutySender) buildPayload(message string, monitor *monitor.Model, title, eventAction string, cfg *PagerDutyConfig) map[string]any {
+	monitorName := unknownMonitorName
+	if monitor != nil {
+		monitorName = monitor.Name
+	}
+
+	payload := map[string]any{
+		"payload": map[string]any{
+			"summary":  fmt.Sprintf("[%s] [%s] %s", title, monitorName, message),
+			"severity": p.getSeverity(cfg),
+			"source":   p.getSource(monitor),
+		},
+		"routing_key":  cfg.IntegrationKey,
+		"event_action": eventAction,
+	}
+	// Alerts of one monitor, or one probe, are one incident. With no monitor, PagerDuty makes up a
+	// key for a trigger, so each is an incident of its own.
+	if monitor != nil {
+		payload["dedup_key"] = fmt.Sprintf("Peekaping/%s", monitor.ID)
+	}
+	return payload
+}
+
+// post sends the payload to the integration URL
+func (p *PagerDutySender) post(ctx context.Context, cfg *PagerDutyConfig, payload map[string]any) error {
+	// Convert payload to JSON
+	jsonPayload, err := json.Marshal(payload)
+	if err != nil {
+		return fmt.Errorf("failed to marshal PagerDuty payload: %w", err)
+	}
+
+	// Create HTTP request
+	req, err := http.NewRequestWithContext(ctx, "POST", cfg.IntegrationURL, bytes.NewBuffer(jsonPayload))
+	if err != nil {
+		return fmt.Errorf("failed to create HTTP request: %w", err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("User-Agent", "Peekaping-PagerDuty/"+version.Version)
+
+	p.logger.Debugf("Sending PagerDuty request to: %s", logHost(cfg.IntegrationURL))
+
+	// Send request
+	resp, err := p.client.Do(req)
+	if err != nil {
+		return fmt.Errorf("failed to send PagerDuty notification: %w", err)
+	}
+	defer resp.Body.Close()
+
+	// Check response status
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return fmt.Errorf("PagerDuty notification failed with status code: %d", resp.StatusCode)
+	}
+	return nil
+}
+
 func (p *PagerDutySender) Send(
 	ctx context.Context,
 	configJSON string,
@@ -121,13 +198,10 @@ func (p *PagerDutySender) Send(
 	}
 	cfg := cfgAny.(*PagerDutyConfig)
 
-	// Debug logging
-	jsonDebug, _ := json.MarshalIndent(cfg, "", "  ")
-	p.logger.Debugf("PagerDuty config: %s", string(jsonDebug))
-	p.logger.Infof("Sending PagerDuty notification to: %s", cfg.IntegrationURL)
+	p.logger.Infof("Sending PagerDuty notification to: %s", logHost(cfg.IntegrationURL))
 
 	// Determine event action
-	eventAction := p.getEventAction(heartbeat, cfg)
+	eventAction := p.getEventAction(monitor, heartbeat, cfg)
 	if eventAction == "" {
 		p.logger.Infof("No action required for PagerDuty notification")
 		return nil
@@ -136,60 +210,17 @@ func (p *PagerDutySender) Send(
 	// Generate title
 	title := p.getTitle(heartbeat)
 
-	// Get monitor URL for source field
-	monitorURL := p.getMonitorURL(monitor)
-	if monitorURL == "" && monitor != nil {
-		// Fallback to monitor name if URL is not available
-		monitorURL = monitor.Name
-	}
-
 	// Prepare PagerDuty payload
-	payload := map[string]any{
-		"payload": map[string]any{
-			"summary":  fmt.Sprintf("[%s] [%s] %s", title, monitor.Name, message),
-			"severity": p.getSeverity(cfg),
-			"source":   monitorURL,
-		},
-		"routing_key":  cfg.IntegrationKey,
-		"event_action": eventAction,
-		"dedup_key":    fmt.Sprintf("Peekaping/%s", monitor.ID),
-	}
+	payload := p.buildPayload(message, monitor, title, eventAction, cfg)
 
 	// Add client information if base URL is available
-	if p.config.ClientURL != "" && monitor != nil {
+	if link := peekapingLink(publicURL(ctx, p.publicURL), monitor); link != "" {
 		payload["client"] = "Peekaping"
-		payload["client_url"] = fmt.Sprintf("%s/monitors/%s", strings.TrimRight(p.config.ClientURL, "/"), monitor.ID)
+		payload["client_url"] = link
 	}
 
-	// Convert payload to JSON
-	jsonPayload, err := json.Marshal(payload)
-	if err != nil {
-		return fmt.Errorf("failed to marshal PagerDuty payload: %w", err)
-	}
-
-	p.logger.Debugf("PagerDuty payload: %s", string(jsonPayload))
-
-	// Create HTTP request
-	req, err := http.NewRequestWithContext(ctx, "POST", cfg.IntegrationURL, bytes.NewBuffer(jsonPayload))
-	if err != nil {
-		return fmt.Errorf("failed to create HTTP request: %w", err)
-	}
-
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("User-Agent", "Peekaping-PagerDuty/"+version.Version)
-
-	p.logger.Debugf("Sending PagerDuty request: %s", req.URL.String())
-
-	// Send request
-	resp, err := p.client.Do(req)
-	if err != nil {
-		return fmt.Errorf("failed to send PagerDuty notification: %w", err)
-	}
-	defer resp.Body.Close()
-
-	// Check response status
-	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return fmt.Errorf("PagerDuty notification failed with status code: %d", resp.StatusCode)
+	if err := p.post(ctx, cfg, payload); err != nil {
+		return err
 	}
 
 	p.logger.Infof("PagerDuty notification sent successfully")

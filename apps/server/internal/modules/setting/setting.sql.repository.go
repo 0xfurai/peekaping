@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	"peekaping/internal/dbtx"
+
 	"github.com/uptrace/bun"
 )
 
@@ -35,9 +37,11 @@ func NewSQLRepository(db *bun.DB) Repository {
 	return &SQLRepositoryImpl{db: db}
 }
 
+// GetByKey joins the transaction ctx carries, if any (dbtx): the install settings are read inside
+// one when a write reads a workspace's limits, and a SQLite database has a single connection
 func (r *SQLRepositoryImpl) GetByKey(ctx context.Context, key string) (*Model, error) {
 	sm := new(sqlModel)
-	err := r.db.NewSelect().Model(sm).Where("key = ?", key).Scan(ctx)
+	err := dbtx.DB(ctx, r.db).NewSelect().Model(sm).Where("key = ?", key).Scan(ctx)
 	if err != nil {
 		if err.Error() == "sql: no rows in result set" {
 			return nil, nil
@@ -91,6 +95,21 @@ func (r *SQLRepositoryImpl) SetByKey(ctx context.Context, key string, entity *Mo
 	}
 
 	return toDomainModelFromSQL(sm), nil
+}
+
+func (r *SQLRepositoryImpl) CreateIfAbsent(ctx context.Context, key string, entity *Model) (*Model, error) {
+	now := time.Now()
+	sm := &sqlModel{Key: key, Value: entity.Value, Type: entity.Type, CreatedAt: now, UpdatedAt: now}
+	// The key is the primary key, so a row that is already there makes this a no-op (INSERT ...
+	// ON CONFLICT DO NOTHING; INSERT IGNORE on MySQL). Whoever lost the race reads the winner's row.
+	if _, err := r.db.NewInsert().Model(sm).Ignore().Exec(ctx); err != nil {
+		return nil, err
+	}
+	stored := new(sqlModel)
+	if err := r.db.NewSelect().Model(stored).Where("key = ?", key).Scan(ctx); err != nil {
+		return nil, err
+	}
+	return toDomainModelFromSQL(stored), nil
 }
 
 func (r *SQLRepositoryImpl) DeleteByKey(ctx context.Context, key string) error {

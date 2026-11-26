@@ -52,6 +52,45 @@ func TestMaintenancesAPI_ManagesMaintenanceWindow(t *testing.T) {
 	assert.Equal(t, http.StatusNotFound, a.request(t, http.MethodGet, path, nil, a.asAdmin).Code)
 }
 
+func TestMaintenancesAPI_CreatesInactiveMaintenanceWindow(t *testing.T) {
+	a := newAppWithAdmin(t)
+	body := with(maintenanceBody("Inactive maintenance"), "active", false)
+
+	created := decode[maintenanceResponse](t, a.request(t, http.MethodPost, "/api/v1/maintenances", body, a.asAdmin), http.StatusCreated)
+	assert.False(t, created.Active)
+
+	got := decode[maintenanceResponse](t, a.request(t, http.MethodGet, "/api/v1/maintenances/"+created.ID, nil, a.asAdmin), http.StatusOK)
+	assert.False(t, got.Active)
+}
+
+func TestMaintenancesAPI_DefaultsMaintenanceToActiveWhenActiveOmitted(t *testing.T) {
+	a := newAppWithAdmin(t)
+	body := maintenanceBody("Default maintenance")
+	delete(body, "active")
+
+	created := decode[maintenanceResponse](t, a.request(t, http.MethodPost, "/api/v1/maintenances", body, a.asAdmin), http.StatusCreated)
+	assert.True(t, created.Active)
+
+	got := decode[maintenanceResponse](t, a.request(t, http.MethodGet, "/api/v1/maintenances/"+created.ID, nil, a.asAdmin), http.StatusOK)
+	assert.True(t, got.Active)
+}
+
+func TestMaintenancesAPI_UpdateFullDoesNotEnableInactiveMaintenanceWhenActiveOmitted(t *testing.T) {
+	a := newAppWithAdmin(t)
+	createBody := maintenanceBody("Inactive maintenance")
+	createBody["active"] = false
+	created := decode[maintenanceResponse](t, a.request(t, http.MethodPost, "/api/v1/maintenances", createBody, a.asAdmin), http.StatusCreated)
+	require.False(t, created.Active)
+
+	updateBody := maintenanceBody("Inactive maintenance")
+	delete(updateBody, "active")
+	updated := decode[maintenanceResponse](t, a.request(t, http.MethodPut, "/api/v1/maintenances/"+created.ID, updateBody, a.asAdmin), http.StatusOK)
+	assert.False(t, updated.Active)
+
+	got := decode[maintenanceResponse](t, a.request(t, http.MethodGet, "/api/v1/maintenances/"+created.ID, nil, a.asAdmin), http.StatusOK)
+	assert.False(t, got.Active)
+}
+
 func TestMaintenancesAPI_RejectsInvalidInput(t *testing.T) {
 	a := newAppWithAdmin(t)
 	id := decode[created](t, a.request(t, http.MethodPost, "/api/v1/maintenances", maintenanceBody("Database upgrade"), a.asAdmin), http.StatusCreated).ID

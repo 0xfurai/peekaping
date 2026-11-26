@@ -5,9 +5,9 @@ import (
 	"database/sql"
 	"os"
 	"path/filepath"
+	"peekaping/internal/modules/workspace/workspacetest"
 	"strings"
 	"testing"
-	"time"
 
 	"peekaping/cmd/bun/migrations"
 	"peekaping/internal/config"
@@ -21,9 +21,6 @@ import (
 	"github.com/uptrace/bun/dialect/pgdialect"
 	"github.com/uptrace/bun/driver/pgdriver"
 	"github.com/uptrace/bun/migrate"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
 )
 
@@ -79,14 +76,14 @@ func forEachBackend(t *testing.T, fn func(t *testing.T, f fixture)) {
 				svc: monitor_maintenance.NewService(monitor_maintenance.NewSQLRepository(db), zap.NewNop().Sugar()),
 				monitor: func() string {
 					id := uuid.NewString()
-					_, err := db.Exec(`INSERT INTO monitors (id, type, name, interval, timeout, max_retries, retry_interval, resend_interval) VALUES (?, 'http', 'Monitor', 60, 10, 1, 10, 0)`, id)
+					workspacetest.OldestOrAdd(t, db)
+					_, err := db.Exec(`INSERT INTO monitors (id, workspace_id, type, name, interval, timeout, max_retries, retry_interval, resend_interval) VALUES (?, (SELECT id FROM workspaces ORDER BY created_at, id LIMIT 1), 'http', 'Monitor', 60, 10, 1, 10, 0)`, id)
 					require.NoError(t, err)
 					return id
 				},
 				window: func() string {
 					id := uuid.NewString()
-					_, err := db.Exec("INSERT INTO maintenances (id, title, strategy) VALUES (?, 'Upgrade', 'manual')", id)
-					require.NoError(t, err)
+					workspacetest.InsertMaintenance(t, db, id)
 					return id
 				},
 			})
@@ -94,27 +91,6 @@ func forEachBackend(t *testing.T, fn func(t *testing.T, f fixture)) {
 	}
 	t.Run("SQLite", sqlBackend(sqliteDB))
 	t.Run("Postgres", sqlBackend(postgresDB))
-	t.Run("Mongo", func(t *testing.T) {
-		uri := os.Getenv("PEE_TEST_MONGO_URI")
-		if uri == "" {
-			t.Skip("set PEE_TEST_MONGO_URI to run the MongoDB tests")
-		}
-		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-		defer cancel()
-		client, err := mongo.Connect(ctx, options.Client().ApplyURI(uri))
-		require.NoError(t, err)
-		if err := client.Ping(ctx, nil); err != nil {
-			_ = client.Disconnect(context.Background())
-			require.NoError(t, err)
-		}
-		cfg := &config.Config{DBName: "monitor_maintenance_" + primitive.NewObjectID().Hex()}
-		t.Cleanup(func() {
-			require.NoError(t, client.Database(cfg.DBName).Drop(context.Background()))
-			require.NoError(t, client.Disconnect(context.Background()))
-		})
-		newID := func() string { return primitive.NewObjectID().Hex() }
-		fn(t, fixture{monitor_maintenance.NewService(monitor_maintenance.NewMongoRepository(client, cfg), zap.NewNop().Sugar()), newID, newID})
-	})
 }
 
 func monitorsOf(t *testing.T, svc monitor_maintenance.Service, windowID string) []string {

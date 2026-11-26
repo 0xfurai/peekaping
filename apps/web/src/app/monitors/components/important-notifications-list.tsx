@@ -8,8 +8,16 @@ import { formatDateToTimezone } from "../../../lib/formatDateToTimezone";
 import { useTimezone } from "../../../context/timezone-context";
 import { cn } from "@/lib/utils";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
+import { instanceLabel } from "../locations";
 
-const ImportantNotificationsList = ({ monitorId }: { monitorId: string }) => {
+type ImportantNotificationsListProps = {
+  monitorId: string;
+  // The hostname of every probe instance on record, by id. A heartbeat names its instance by the
+  // hostname here, else by the first 8 characters of the id.
+  instanceHostnames?: ReadonlyMap<string, string>;
+};
+
+const ImportantNotificationsList = ({ monitorId, instanceHostnames }: ImportantNotificationsListProps) => {
   const { t } = useLocalizedTranslation();
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const { timezone } = useTimezone();
@@ -82,6 +90,11 @@ const ImportantNotificationsList = ({ monitorId }: { monitorId: string }) => {
                 {hb.time && formatDateToTimezone(hb.time, timezone)}
               </span>
             </div>
+            {instanceLabel(hb.instance_id, instanceHostnames) && (
+              <div className="text-xs text-muted-foreground" data-testid="important-heartbeat-instance">
+                {t("bars.instance")}: {instanceLabel(hb.instance_id, instanceHostnames)}
+              </div>
+            )}
             <div className="font-medium text-sm">{hb.msg}</div>
           </CardContent>
         </Card>

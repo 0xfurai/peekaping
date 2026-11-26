@@ -3,6 +3,7 @@ package apitest
 import (
 	"net/http"
 	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -11,25 +12,31 @@ import (
 
 // publicRoutes answer without credentials. Every other route must return 401.
 var publicRoutes = map[string]string{
-	"GET /openapi.json":           "OpenAPI spec",
-	"GET /openapi.yaml":           "OpenAPI spec",
-	"GET /openapi-3.0.json":       "OpenAPI 3.0 spec",
-	"GET /openapi-3.0.yaml":       "OpenAPI 3.0 spec",
-	"GET /docs":                   "API reference",
-	"GET /health":                 "server liveness",
-	"GET /metrics":                "Prometheus scrape target, served only when METRICS_ENABLED is set",
-	"GET /api/v1/health":          "server liveness",
-	"GET /api/v1/version":         "server version",
-	"GET /swagger/{any...}":       "API docs",
-	"GET /socket.io/{f...}":       "socket.io checks the access token when the socket connects",
-	"POST /socket.io/{f...}":      "socket.io checks the access token when the socket connects",
-	"POST /api/v1/auth/register":  "creates the first admin and refuses once one exists",
-	"POST /api/v1/auth/login":     "login",
-	"POST /api/v1/auth/refresh":   "authenticated by the refresh token in the body",
-	"GET /api/v1/api-keys/config": "the API key prefix",
+	"GET /openapi.json":          "OpenAPI spec",
+	"GET /openapi.yaml":          "OpenAPI spec",
+	"GET /openapi-3.0.json":      "OpenAPI 3.0 spec",
+	"GET /openapi-3.0.yaml":      "OpenAPI 3.0 spec",
+	"GET /docs":                  "API reference",
+	"GET /health":                "server liveness",
+	"GET /metrics":               "Prometheus scrape target, served only when METRICS_ENABLED is set",
+	"GET /api/v1/health":         "server liveness",
+	"GET /api/v1/version":        "server version",
+	"GET /swagger/{any...}":      "API docs",
+	"GET /socket.io/{f...}":      "socket.io checks the access token when the socket connects",
+	"POST /socket.io/{f...}":     "socket.io checks the access token when the socket connects",
+	"POST /api/v1/auth/register": "creates the first admin and refuses once one exists",
+	"POST /api/v1/auth/login":    "login",
+	"POST /api/v1/auth/refresh":  "authenticated by the refresh token in the body",
+
+	"GET /api/v1/auth/config":           "whether the install sends account emails, which the sign-in page needs before anyone is signed in",
+	"POST /api/v1/auth/forgot-password": "a visitor who forgot the password has no session; the answer is the same for every address and the route is rate limited",
+	"POST /api/v1/auth/reset-password":  "authenticated by the single-use reset token in the body",
+	"POST /api/v1/auth/verify-email":    "authenticated by the single-use verification token in the body",
+	"GET /api/v1/api-keys/config":       "the API key prefix",
 
 	"GET /api/v1/status-pages/slug/{slug}":                   "published status page",
 	"GET /api/v1/status-pages/domain/{domain}":               "published status page on a custom domain",
+	"GET /api/v1/status-pages/tls-ask":                       "Caddy's on_demand_tls ask: whether a domain is on a status page's custom domain list, yes or no",
 	"GET /api/v1/status-pages/slug/{slug}/monitors":          "monitors on a published status page",
 	"GET /api/v1/status-pages/slug/{slug}/monitors/homepage": "monitors on a published status page",
 
@@ -42,20 +49,85 @@ var publicRoutes = map[string]string{
 	"GET /api/v1/badge/{monitorId}/response":          "badge for a monitor on a published status page",
 
 	"GET /api/v1/push/{token}": "push URL, authenticated by its push token",
+
+	"GET /api/v1/invites/{token}": "an invite link's preview, authenticated by its token: only the workspace's name, the invited email, the role and whether it can still be used",
 }
 
-// jwtOnlyRoutes manage the account and its API keys, so an API key must not
-// reach them.
+// jwtOnlyRoutes manage the account, its API keys, and install-wide choices that are the
+// instance admin's alone (telemetry, error reports, changing a probe), so an API key must not reach them.
 var jwtOnlyRoutes = map[string]bool{
-	"POST /api/v1/auth/2fa/setup":   true,
-	"POST /api/v1/auth/2fa/verify":  true,
-	"POST /api/v1/auth/2fa/disable": true,
-	"PUT /api/v1/auth/password":     true,
-	"POST /api/v1/api-keys":         true,
-	"GET /api/v1/api-keys":          true,
-	"GET /api/v1/api-keys/{id}":     true,
-	"PUT /api/v1/api-keys/{id}":     true,
-	"DELETE /api/v1/api-keys/{id}":  true,
+	"GET /api/v1/me":                               true,
+	"POST /api/v1/auth/2fa/setup":                  true,
+	"POST /api/v1/auth/2fa/verify":                 true,
+	"POST /api/v1/auth/2fa/disable":                true,
+	"PUT /api/v1/auth/password":                    true,
+	"DELETE /api/v1/auth/me":                       true,
+	"POST /api/v1/auth/verify-email/resend":        true,
+	"POST /api/v1/workspaces":                      true,
+	"POST /api/v1/workspace/leave":                 true,
+	"POST /api/v1/workspace/deletion":              true,
+	"DELETE /api/v1/workspace/deletion":            true,
+	"GET /api/v1/workspace/export":                 true,
+	"GET /api/v1/workspace/export/heartbeats":      true,
+	"POST /api/v1/workspace/import":                true,
+	"POST /api/v1/invites/{token}/accept":          true,
+	"POST /api/v1/api-keys":                        true,
+	"GET /api/v1/api-keys":                         true,
+	"GET /api/v1/api-keys/{id}":                    true,
+	"PUT /api/v1/api-keys/{id}":                    true,
+	"DELETE /api/v1/api-keys/{id}":                 true,
+	"PUT /api/v1/telemetry":                        true,
+	"POST /api/v1/telemetry/notice":                true,
+	"PUT /api/v1/error-reporting":                  true,
+	"POST /api/v1/probes":                          true,
+	"PUT /api/v1/probes/{id}":                      true,
+	"DELETE /api/v1/probes/{id}":                   true,
+	"POST /api/v1/probes/{id}/assign-all-monitors": true,
+	"POST /api/v1/probes/{id}/rotate-token":        true,
+	"GET /api/v1/admin/users":                      true,
+	"PATCH /api/v1/admin/users/{id}":               true,
+	"POST /api/v1/admin/users/{id}/reset-link":     true,
+	"POST /api/v1/admin/users/{id}/disable-2fa":    true,
+	"DELETE /api/v1/admin/users/{id}":              true,
+	"GET /api/v1/admin/workspaces":                 true,
+	"PATCH /api/v1/admin/workspaces/{id}":          true,
+	"DELETE /api/v1/admin/workspaces/{id}":         true,
+	"GET /api/v1/admin/settings":                   true,
+	"PUT /api/v1/admin/settings":                   true,
+	"POST /api/v1/admin/settings/test-email":       true,
+}
+
+// instanceAdminRoutes are the jwtOnlyRoutes that an API key reaches the check of: it is
+// authenticated and then answered 403, since it is never an instance admin
+var instanceAdminRoutes = map[string]bool{
+	"PUT /api/v1/telemetry":                        true,
+	"POST /api/v1/telemetry/notice":                true,
+	"PUT /api/v1/error-reporting":                  true,
+	"POST /api/v1/probes":                          true,
+	"PUT /api/v1/probes/{id}":                      true,
+	"DELETE /api/v1/probes/{id}":                   true,
+	"POST /api/v1/probes/{id}/assign-all-monitors": true,
+	"POST /api/v1/probes/{id}/rotate-token":        true,
+	"GET /api/v1/admin/users":                      true,
+	"PATCH /api/v1/admin/users/{id}":               true,
+	"POST /api/v1/admin/users/{id}/reset-link":     true,
+	"POST /api/v1/admin/users/{id}/disable-2fa":    true,
+	"DELETE /api/v1/admin/users/{id}":              true,
+	"GET /api/v1/admin/workspaces":                 true,
+	"PATCH /api/v1/admin/workspaces/{id}":          true,
+	"DELETE /api/v1/admin/workspaces/{id}":         true,
+	"GET /api/v1/admin/settings":                   true,
+	"PUT /api/v1/admin/settings":                   true,
+	"POST /api/v1/admin/settings/test-email":       true,
+}
+
+// probeRoutes are the probe protocol's. A probe authenticates with its token and an instance id,
+// and the admin's JWT and API keys open none of them.
+var probeRoutes = map[string]bool{
+	"POST /probe/v1/hello":      true,
+	"GET /probe/v1/assignments": true,
+	"POST /probe/v1/results":    true,
+	"POST /probe/v1/bye":        true,
 }
 
 var pathParam = regexp.MustCompile(`\{[^}]+\}`)
@@ -86,6 +158,17 @@ func TestRouteTable_AllowlistsOnlyRegisteredRoutes(t *testing.T) {
 	for key := range jwtOnlyRoutes {
 		assert.True(t, registered[key], "JWT-only route %q is not registered", key)
 		assert.NotContains(t, publicRoutes, key)
+	}
+	for key := range probeRoutes {
+		assert.True(t, registered[key], "probe route %q is not registered", key)
+		assert.NotContains(t, publicRoutes, key)
+		assert.NotContains(t, jwtOnlyRoutes, key)
+	}
+	// Every route under /probe/ is listed, so that a new one can't skip the checks below
+	for key := range registered {
+		if strings.Contains(key, " /probe/") {
+			assert.True(t, probeRoutes[key], "%q is a probe route that probeRoutes doesn't list", key)
+		}
 	}
 }
 
@@ -121,12 +204,38 @@ func TestRouteTable_APIKeysReachOnlySharedRoutes(t *testing.T) {
 		}
 		t.Run(r.key(), func(t *testing.T) {
 			w := a.request(t, r.method, r.url(), nil, a.withAPIKey)
-			if jwtOnlyRoutes[r.key()] {
+			if instanceAdminRoutes[r.key()] {
+				assert.Equal(t, http.StatusForbidden, w.Code, w.Body.String())
+			} else if jwtOnlyRoutes[r.key()] || probeRoutes[r.key()] {
 				assert.Equal(t, http.StatusUnauthorized, w.Code, w.Body.String())
 			} else {
 				assert.NotEqual(t, http.StatusUnauthorized, w.Code, w.Body.String())
 			}
 		})
+	}
+}
+
+// The admin's credentials are not a probe's: neither the JWT nor an API key, sent the way a probe
+// sends its token, opens a probe route.
+func TestRouteTable_AdminCredentialsOpenNoProbeRoute(t *testing.T) {
+	a := newAppWithAdmin(t, withMetrics)
+	instance := "3f6b1c1e-6f0a-4d0a-8d3b-2d9c1f6a7b10"
+	for _, r := range a.routes() {
+		if !probeRoutes[r.key()] {
+			continue
+		}
+		for name, creds := range map[string][]credentials{
+			"the JWT as a probe token":    {asProbe(a.accessToken, instance)},
+			"an API key as a probe token": {asProbe(a.apiKey, instance)},
+			"the JWT":                     {a.asAdmin, withHeader("X-Probe-Instance", instance)},
+			"an API key":                  {a.withAPIKey, withHeader("X-Probe-Instance", instance)},
+		} {
+			t.Run(r.key()+"/"+name, func(t *testing.T) {
+				w := a.request(t, r.method, r.url(), nil, creds...)
+
+				assert.Equal(t, http.StatusUnauthorized, w.Code, w.Body.String())
+			})
+		}
 	}
 }
 

@@ -1,0 +1,12 @@
+POST https://api.opsgenie.com/v2/alerts
+Authorization: GenieKey genie-key
+Content-Type: application/json
+User-Agent: Peekaping-Opsgenie/<version>
+
+{
+  "alias": "Peekaping/probe-1",
+  "description": "Probe Frankfurt has been offline since 2026-10-22 08:30:00 UTC",
+  "message": "Peekaping Alert: Probe Frankfurt",
+  "priority": "P2",
+  "source": "Peekaping"
+}

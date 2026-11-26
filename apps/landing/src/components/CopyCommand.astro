@@ -1,0 +1,41 @@
+---
+interface Props {
+  command: string;
+}
+
+const { command } = Astro.props;
+---
+
+<div
+  class="copy-command group flex items-center gap-3 max-w-full rounded-xl border border-white/10 bg-black/40 backdrop-blur pl-4 pr-1.5 py-1.5 font-mono text-[13px] text-zinc-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
+>
+  <span class="text-violet-400 select-none" aria-hidden="true">$</span>
+  <code class="overflow-x-auto whitespace-nowrap [scrollbar-width:none] text-left">{command}</code>
+  <button
+    type="button"
+    class="shrink-0 rounded-lg p-2 text-zinc-400 hover:text-white hover:bg-white/10 transition-colors"
+    data-command={command}
+    aria-label="Copy command"
+  >
+    <svg class="icon-copy" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+    <svg class="icon-check hidden text-up" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+  </button>
+</div>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>(".copy-command button").forEach((button) => {
+    button.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(button.dataset.command ?? "");
+      } catch {
+        return;
+      }
+      button.querySelector(".icon-copy")?.classList.add("hidden");
+      button.querySelector(".icon-check")?.classList.remove("hidden");
+      setTimeout(() => {
+        button.querySelector(".icon-copy")?.classList.remove("hidden");
+        button.querySelector(".icon-check")?.classList.add("hidden");
+      }, 1600);
+    });
+  });
+</script>

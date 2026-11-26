@@ -1,0 +1,13 @@
+POST https://events.pagerduty.com/v2/enqueue
+Content-Type: application/json
+User-Agent: Peekaping-PagerDuty/<version>
+
+{
+  "event_action": "trigger",
+  "payload": {
+    "severity": "warning",
+    "source": "Peekaping",
+    "summary": "[Peekaping Monitor 🔴 Down] [Unknown Monitor] connection refused"
+  },
+  "routing_key": "routing-key"
+}

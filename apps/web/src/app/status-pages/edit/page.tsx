@@ -64,6 +64,7 @@ const EditStatusPageContent = () => {
             footer_text: statusPageData.footer_text || "",
             auto_refresh_interval: statusPageData?.auto_refresh_interval || 0,
             published: Boolean(statusPageData?.published),
+            show_locations: Boolean(statusPageData?.show_locations),
             domains: statusPageData.domains || [],
             monitors: monitorsData?.data?.map((monitor) => ({
               label: monitor.name || "",
