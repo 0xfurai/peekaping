@@ -74,7 +74,7 @@ func TestHTTPExecutor_Execute_OAuth2TokenFailures(t *testing.T) {
 			name:         "token response has no token",
 			tokenHandler: func(w http.ResponseWriter, r *http.Request) { _, _ = w.Write([]byte(`{}`)) },
 			tokenURL:     func(serverURL string) string { return serverURL + "/token" },
-			wantMessage:  "failed to parse oauth2 token response: %!w(<nil>)",
+			wantMessage:  "oauth2 token response has no access_token",
 		},
 	}
 
