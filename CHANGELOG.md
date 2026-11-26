@@ -62,6 +62,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Upgrade note: an install with such a value stops starting after the upgrade, with a message naming the variable; fix or remove it. The `.env` loader does not strip comments, so a trailing comment on a number line (`MIN_CHECK_INTERVAL=20 # seconds`) is part of the value and now stops startup: put the comment on its own line. In a Helm values file, quote large numbers: an unquoted value of 1000000 or more is rendered as `1e+06`.
 - fix: a RabbitMQ monitor tries its next node when one hangs. Each node now gets a share of the monitor's timeout (what is left divided by the nodes left to try), where before a node that never answered used all of it and hid the healthy nodes after it
 - fix: the monitor list cards showed only a monitor's name and type, so monitors of one type, such as several TCP monitors, looked alike. Each card now shows what its monitor checks under the name, as the monitor page's header does: the URL, `1.1.1.1:443` for TCP or `example.com (A @ 8.8.8.8:53)` for DNS. A long one is cut short, with the whole of it on hover (#269)
+- fix: a push monitor updated through the API with its token only in `config.pushToken` stopped taking pushes: a full update emptied the token the push URL is looked up by, and a partial update kept the old one. An update now stores the config's token, as a create does (#234)
 
 ## [0.1.0] - 2026-10-28
 
