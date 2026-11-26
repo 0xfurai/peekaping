@@ -355,6 +355,8 @@ func TestDNSExecutor_Execute_ResolveTypeEdges(t *testing.T) {
 	}{
 		{name: "lower case type", host: "peekaping.test", resolveType: "a", wantStatus: shared.MonitorStatusUp, wantMessage: "A records: 192.0.2.10"},
 		{name: "unsupported type", host: "peekaping.test", resolveType: "HINFO", wantStatus: shared.MonitorStatusDown, wantMessage: "DNS lookup failed: unsupported record type: HINFO"},
+		{name: "no CNAME record", host: "peekaping.test", resolveType: "CNAME", wantStatus: shared.MonitorStatusDown, wantMessage: "No CNAME records found for peekaping.test"},
+		{name: "no CNAME record for NXDOMAIN", host: "missing.peekaping.test", resolveType: "CNAME", wantStatus: shared.MonitorStatusDown, wantMessage: "No CNAME records found for missing.peekaping.test"},
 		{name: "no SOA record", host: "mail.peekaping.test", resolveType: "SOA", wantStatus: shared.MonitorStatusDown, wantMessage: "No SOA records found for mail.peekaping.test"},
 	}
 

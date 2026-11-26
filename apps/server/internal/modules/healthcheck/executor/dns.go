@@ -165,11 +165,19 @@ func lookupIPs(ctx context.Context, q dnsQuery, network, recordType string) (str
 }
 
 func (d *DNSExecutor) lookupCNAME(ctx context.Context, q dnsQuery) (string, error) {
-	cname, err := q.resolver.LookupCNAME(ctx, q.cfg.Host)
-	if err != nil || cname == "" {
+	// Use miekg/dns directly: net.Resolver.LookupCNAME returns the canonical
+	// name for hosts with no CNAME record rather than returning an error.
+	resp, err := d.exchange(q, dns.TypeCNAME)
+	if err != nil || resp == nil {
 		return "", err
 	}
-	return fmt.Sprintf("CNAME: %s", cname), nil
+
+	for _, ans := range resp.Answer {
+		if cname, ok := ans.(*dns.CNAME); ok {
+			return fmt.Sprintf("CNAME: %s", cname.Target), nil
+		}
+	}
+	return "", nil
 }
 
 func (d *DNSExecutor) lookupMX(ctx context.Context, q dnsQuery) (string, error) {
