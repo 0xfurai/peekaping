@@ -448,6 +448,31 @@ func TestDNSExecutor_Execute_CNAME_TruncatedRetriesOverTCP(t *testing.T) {
 	assert.Equal(t, "CNAME: peekaping.test.", result.Message)
 }
 
+func TestDNSExecutor_Execute_CNAME_ResolverFailureRcode(t *testing.T) {
+	pc, err := net.ListenPacket("udp", "127.0.0.1:0")
+	require.NoError(t, err)
+	port := pc.LocalAddr().(*net.UDPAddr).Port
+
+	started := make(chan struct{})
+	srv := &dns.Server{
+		PacketConn: pc,
+		Handler: dns.HandlerFunc(func(w dns.ResponseWriter, req *dns.Msg) {
+			resp := new(dns.Msg)
+			resp.SetReply(req)
+			resp.Rcode = dns.RcodeServerFailure
+			_ = w.WriteMsg(resp)
+		}),
+		NotifyStartedFunc: func() { close(started) },
+	}
+	go srv.ActivateAndServe()
+	<-started
+	t.Cleanup(func() { _ = srv.Shutdown() })
+
+	result := NewDNSExecutor(zap.NewNop().Sugar()).Execute(context.Background(), dnsMonitor(port, "www.peekaping.test", "CNAME", 2), nil)
+	assert.Equal(t, shared.MonitorStatusDown, result.Status)
+	assert.Contains(t, result.Message, "DNS lookup failed: resolver returned SERVFAIL")
+}
+
 func TestDNSExecutor_Execute_InvalidConfig(t *testing.T) {
 	monitor := &Monitor{ID: "dns", Type: "dns", Name: "dns", Timeout: 2, Config: `{invalid json}`}
 

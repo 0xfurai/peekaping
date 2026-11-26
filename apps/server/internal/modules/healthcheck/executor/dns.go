@@ -177,6 +177,13 @@ func (d *DNSExecutor) lookupCNAME(ctx context.Context, q dnsQuery) (string, erro
 			return "", err
 		}
 	}
+	if resp.Rcode != dns.RcodeSuccess && resp.Rcode != dns.RcodeNameError {
+		rcodeName := dns.RcodeToString[resp.Rcode]
+		if rcodeName == "" {
+			rcodeName = strconv.Itoa(resp.Rcode)
+		}
+		return "", fmt.Errorf("resolver returned %s", rcodeName)
+	}
 
 	for _, ans := range resp.Answer {
 		if cname, ok := ans.(*dns.CNAME); ok {
