@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { buildQueries, formatTable, parseDays, sqlApiRequest } from "./queries";
+import { activeDaysQuery, buildQueries, formatTable, installSummaryQuery, parseDays, sqlApiRequest } from "./queries";
 
 const DATASET = "peekaping_telemetry";
 
@@ -58,6 +58,53 @@ describe("buildQueries", () => {
       expect(() => buildQueries(days)).toThrow();
     },
   );
+});
+
+describe("installSummaryQuery", () => {
+  test("summarises each install over the 92 retained days", () => {
+    expect(compact(installSummaryQuery())).toBe(
+      `SELECT toStartOfDay(min(timestamp)) AS first_day, toStartOfDay(max(timestamp)) AS last_day, ` +
+        `max(if(timestamp >= toStartOfDay(NOW()) - INTERVAL '1' DAY AND timestamp < toStartOfDay(NOW()), 1, 0)) AS in_day, ` +
+        `max(if(timestamp >= toStartOfDay(NOW()) - INTERVAL '7' DAY AND timestamp < toStartOfDay(NOW()), 1, 0)) AS in_week, ` +
+        `max(if(timestamp >= toStartOfDay(NOW()) - INTERVAL '30' DAY AND timestamp < toStartOfDay(NOW()), 1, 0)) AS in_month, ` +
+        `argMax(blob6, timestamp) AS monitors, argMax(blob7, timestamp) AS status_pages, ` +
+        `argMax(blob8, timestamp) AS maintenance, argMax(blob9, timestamp) AS metrics ` +
+        `FROM ${DATASET} WHERE blob1 = 'ping' AND timestamp >= toStartOfDay(NOW() - INTERVAL '91' DAY) ` +
+        `GROUP BY index1`,
+    );
+  });
+
+  test("groups by the instance ID without selecting it, so IDs stay in Cloudflare", () => {
+    const select = compact(installSummaryQuery()).split(" FROM ")[0]!;
+    expect(select).not.toContain("index1");
+    expect(compact(installSummaryQuery())).toContain("GROUP BY index1");
+  });
+
+  test("is not part of the report", () => {
+    expect(buildQueries(30).map((q) => q.sql)).not.toContain(installSummaryQuery());
+  });
+});
+
+describe("activeDaysQuery", () => {
+  const sqlFor = (days: number) =>
+    `SELECT days, count() AS installs FROM (` +
+    `SELECT count(DISTINCT toStartOfDay(timestamp)) AS days FROM ${DATASET} ` +
+    `WHERE blob1 = 'ping' AND timestamp >= toStartOfDay(NOW()) - INTERVAL '${days}' DAY AND timestamp < toStartOfDay(NOW()) ` +
+    `GROUP BY index1) GROUP BY days ORDER BY days`;
+
+  test.each([7, 30, 90])("counts the installs by the number of UTC days with a usage ping in the last %p finished days", (days) => {
+    expect(compact(activeDaysQuery(days))).toBe(sqlFor(days));
+  });
+
+  test("never selects the instance ID, and is not part of the report", () => {
+    const sql = compact(activeDaysQuery(7));
+    expect(sql.replace("GROUP BY index1", "")).not.toContain("index1");
+    expect(buildQueries(30).map((q) => q.sql)).not.toContain(activeDaysQuery(7));
+  });
+
+  test.each([0, -1, 1.5, 93])("refuses %p days", (days) => {
+    expect(() => activeDaysQuery(days)).toThrow();
+  });
 });
 
 describe("parseDays", () => {
