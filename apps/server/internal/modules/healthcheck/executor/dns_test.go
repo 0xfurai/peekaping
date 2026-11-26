@@ -229,7 +229,7 @@ func startDNSServerOn(t *testing.T, addr string) int {
 		var answer []dns.RR
 		for _, rr := range zone {
 			h := rr.Header()
-			if strings.EqualFold(h.Name, name) && (h.Rrtype == qtype || h.Rrtype == dns.TypeCNAME) {
+			if strings.EqualFold(h.Name, name) && (qtype == dns.TypeANY || h.Rrtype == qtype || h.Rrtype == dns.TypeCNAME) {
 				answer = append(answer, rr)
 			}
 		}
@@ -378,8 +378,8 @@ func TestDNSExecutor_Execute_Timeout(t *testing.T) {
 	defer silent.Close()
 	port := silent.LocalAddr().(*net.UDPAddr).Port
 
-	// A goes through net.Resolver, SOA through miekg/dns.
-	for _, resolveType := range []string{"A", "SOA"} {
+	// A goes through net.Resolver, SOA and CNAME through miekg/dns.
+	for _, resolveType := range []string{"A", "SOA", "CNAME"} {
 		t.Run(resolveType, func(t *testing.T) {
 			start := time.Now()
 			result := executor.Execute(context.Background(), dnsMonitor(port, "peekaping.test", resolveType, 1), nil)
@@ -389,6 +389,63 @@ func TestDNSExecutor_Execute_Timeout(t *testing.T) {
 			assert.Less(t, time.Since(start), 1500*time.Millisecond, "should give up after the 1s monitor timeout")
 		})
 	}
+
+	t.Run("CNAME honors caller deadline earlier than monitor timeout", func(t *testing.T) {
+		ctx, cancel := context.WithTimeout(context.Background(), 150*time.Millisecond)
+		defer cancel()
+		start := time.Now()
+		result := executor.Execute(ctx, dnsMonitor(port, "peekaping.test", "CNAME", 10), nil)
+
+		assert.Equal(t, shared.MonitorStatusDown, result.Status)
+		assert.Contains(t, result.Message, "DNS lookup failed")
+		assert.Less(t, time.Since(start), time.Second)
+	})
+}
+
+func TestDNSExecutor_Execute_CNAME_TruncatedRetriesOverTCP(t *testing.T) {
+	pc, err := net.ListenPacket("udp", "127.0.0.1:0")
+	require.NoError(t, err)
+	port := pc.LocalAddr().(*net.UDPAddr).Port
+
+	ln, err := net.Listen("tcp", fmt.Sprintf("127.0.0.1:%d", port))
+	require.NoError(t, err)
+
+	targetRR, err := dns.NewRR("www.peekaping.test. 300 IN CNAME peekaping.test.")
+	require.NoError(t, err)
+
+	udpStarted := make(chan struct{})
+	udpSrv := &dns.Server{
+		PacketConn: pc,
+		Handler: dns.HandlerFunc(func(w dns.ResponseWriter, req *dns.Msg) {
+			resp := new(dns.Msg)
+			resp.SetReply(req)
+			resp.Truncated = true
+			_ = w.WriteMsg(resp)
+		}),
+		NotifyStartedFunc: func() { close(udpStarted) },
+	}
+	go udpSrv.ActivateAndServe()
+	<-udpStarted
+	t.Cleanup(func() { _ = udpSrv.Shutdown() })
+
+	tcpStarted := make(chan struct{})
+	tcpSrv := &dns.Server{
+		Listener: ln,
+		Handler: dns.HandlerFunc(func(w dns.ResponseWriter, req *dns.Msg) {
+			resp := new(dns.Msg)
+			resp.SetReply(req)
+			resp.Answer = []dns.RR{targetRR}
+			_ = w.WriteMsg(resp)
+		}),
+		NotifyStartedFunc: func() { close(tcpStarted) },
+	}
+	go tcpSrv.ActivateAndServe()
+	<-tcpStarted
+	t.Cleanup(func() { _ = tcpSrv.Shutdown() })
+
+	result := NewDNSExecutor(zap.NewNop().Sugar()).Execute(context.Background(), dnsMonitor(port, "www.peekaping.test", "CNAME", 2), nil)
+	assert.Equal(t, shared.MonitorStatusUp, result.Status, result.Message)
+	assert.Equal(t, "CNAME: peekaping.test.", result.Message)
 }
 
 func TestDNSExecutor_Execute_InvalidConfig(t *testing.T) {
