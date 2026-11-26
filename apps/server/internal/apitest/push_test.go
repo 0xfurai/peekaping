@@ -277,3 +277,28 @@ func TestPush_ATokenAnotherMonitorHoldsIsRefused(t *testing.T) {
 	kept := decode[createdPushMonitor](t, a.request(t, http.MethodGet, path, nil, a.asAdmin), http.StatusOK)
 	assert.Equal(t, "other-token", kept.PushToken, "a refused write changes nothing")
 }
+
+// An API client that updates a push monitor often sends the token in the config alone. The push
+// URL is looked up by push_token, so the update has to carry the config's token there (issue 234).
+func TestPush_UpdateWithTheTokenOnlyInConfigKeepsThePushURLWorking(t *testing.T) {
+	for name, method := range map[string]string{"full update": http.MethodPut, "partial update": http.MethodPatch} {
+		t.Run(name, func(t *testing.T) {
+			a := newAppWithAdmin(t)
+			monitor := a.createPushMonitorWithout(t, map[string]any{"push_token": "first-token"})
+
+			body := pushMonitorBody("Nightly backup", "")
+			delete(body, "push_token")
+			body["config"] = `{"pushToken":"second-token"}`
+			if method == http.MethodPatch {
+				body = map[string]any{"config": body["config"]}
+			}
+			updated := decode[createdPushMonitor](t, a.request(t, method, "/api/v1/monitors/"+monitor.ID, body, a.asAdmin), http.StatusOK)
+
+			assert.Equal(t, "second-token", updated.PushToken)
+			assert.Equal(t, "second-token", configToken(t, updated.Config))
+			assert.Equal(t, http.StatusOK, a.request(t, http.MethodGet, "/api/v1/push/second-token?status=up&msg=done", nil).Code)
+			assert.Equal(t, http.StatusNotFound, a.request(t, http.MethodGet, "/api/v1/push/first-token", nil).Code)
+			assert.Len(t, a.storedHeartbeats(t, monitor.ID), 1)
+		})
+	}
+}
