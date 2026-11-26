@@ -164,12 +164,45 @@ func lookupIPs(ctx context.Context, q dnsQuery, network, recordType string) (str
 	return fmt.Sprintf("%s records: %s", recordType, strings.Join(ipStrings, ", ")), nil
 }
 
+func dnsResponseError(resp *dns.Msg) error {
+	if resp.Rcode == dns.RcodeSuccess || resp.Rcode == dns.RcodeNameError {
+		return nil
+	}
+	rcodeName := dns.RcodeToString[resp.Rcode]
+	if rcodeName == "" {
+		rcodeName = strconv.Itoa(resp.Rcode)
+	}
+	return fmt.Errorf("resolver returned %s", rcodeName)
+}
+
+func (d *DNSExecutor) exchangeWithTCPRetry(ctx context.Context, q dnsQuery, qtype uint16) (*dns.Msg, error) {
+	resp, err := d.exchange(ctx, q, qtype)
+	if err != nil || resp == nil {
+		return nil, err
+	}
+	if resp.Truncated {
+		resp, err = d.exchangeNet(ctx, q, qtype, "tcp")
+		if err != nil || resp == nil {
+			return nil, err
+		}
+	}
+	return resp, dnsResponseError(resp)
+}
+
 func (d *DNSExecutor) lookupCNAME(ctx context.Context, q dnsQuery) (string, error) {
-	cname, err := q.resolver.LookupCNAME(ctx, q.cfg.Host)
-	if err != nil || cname == "" {
+	// Use miekg/dns directly: net.Resolver.LookupCNAME returns the canonical
+	// name for hosts with no CNAME record rather than returning an error.
+	resp, err := d.exchangeWithTCPRetry(ctx, q, dns.TypeCNAME)
+	if err != nil || resp == nil {
 		return "", err
 	}
-	return fmt.Sprintf("CNAME: %s", cname), nil
+
+	for _, ans := range resp.Answer {
+		if cname, ok := ans.(*dns.CNAME); ok {
+			return fmt.Sprintf("CNAME: %s", cname.Target), nil
+		}
+	}
+	return "", nil
 }
 
 func (d *DNSExecutor) lookupMX(ctx context.Context, q dnsQuery) (string, error) {
@@ -229,21 +262,26 @@ func (d *DNSExecutor) lookupSRV(ctx context.Context, q dnsQuery) (string, error)
 }
 
 // exchange asks the resolver server directly, with miekg/dns, for records of one type
-func (d *DNSExecutor) exchange(q dnsQuery, qtype uint16) (*dns.Msg, error) {
+func (d *DNSExecutor) exchange(ctx context.Context, q dnsQuery, qtype uint16) (*dns.Msg, error) {
+	return d.exchangeNet(ctx, q, qtype, "")
+}
+
+func (d *DNSExecutor) exchangeNet(ctx context.Context, q dnsQuery, qtype uint16, network string) (*dns.Msg, error) {
 	msg := new(dns.Msg)
 	msg.SetQuestion(dns.Fqdn(q.cfg.Host), qtype)
 
 	client := new(dns.Client)
+	client.Net = network
 	client.Timeout = q.timeout
 	client.Dialer = d.dialer(&net.Dialer{Timeout: client.Timeout})
 
-	resp, _, err := client.Exchange(msg, net.JoinHostPort(q.cfg.ResolverServer, strconv.Itoa(q.cfg.Port)))
+	resp, _, err := client.ExchangeContext(ctx, msg, net.JoinHostPort(q.cfg.ResolverServer, strconv.Itoa(q.cfg.Port)))
 	return resp, err
 }
 
 func (d *DNSExecutor) lookupCAA(ctx context.Context, q dnsQuery) (string, error) {
 	// Use miekg/dns for CAA record lookup
-	resp, err := d.exchange(q, dns.TypeCAA)
+	resp, err := d.exchange(ctx, q, dns.TypeCAA)
 	if err != nil || resp == nil {
 		return "", err
 	}
@@ -262,7 +300,7 @@ func (d *DNSExecutor) lookupCAA(ctx context.Context, q dnsQuery) (string, error)
 
 func (d *DNSExecutor) lookupSOA(ctx context.Context, q dnsQuery) (string, error) {
 	// Use miekg/dns for SOA record lookup
-	resp, err := d.exchange(q, dns.TypeSOA)
+	resp, err := d.exchange(ctx, q, dns.TypeSOA)
 	if err != nil || resp == nil {
 		return "", err
 	}
