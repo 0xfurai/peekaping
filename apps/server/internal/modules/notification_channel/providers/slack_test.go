@@ -189,3 +189,83 @@ func TestSlackSender_SendRejectsHTTPSDowngradeRedirect(t *testing.T) {
 	assert.Contains(t, err.Error(), "307")
 	assert.False(t, plainHit, "the bot token must not follow a redirect to plain HTTP")
 }
+
+func TestSlackSender_RichMessageAddress(t *testing.T) {
+	cases := []struct {
+		name        string
+		monitorType string
+		config      string
+		wantField   string
+		wantSiteURL string
+	}{
+		{
+			name:        "http url drops credentials, query and fragment",
+			monitorType: "http-keyword",
+			config:      `{"url": "https://user:pass@api.example.com/wiki/Foo_(bar)?token=abc#top"}`,
+			wantField:   "*URL*\nhttps://api.example.com/wiki/Foo_(bar)",
+			wantSiteURL: "https://api.example.com/wiki/Foo_(bar)",
+		},
+		{
+			name:        "mrkdwn characters in the url are escaped in the field only",
+			monitorType: "http",
+			config:      `{"url": "https://example.com/a&b"}`,
+			wantField:   "*URL*\nhttps://example.com/a&amp;b",
+			wantSiteURL: "https://example.com/a&b",
+		},
+		{
+			name:        "tcp host and port are not a link",
+			monitorType: "tcp",
+			config:      `{"host": "10.0.0.5", "port": 5432}`,
+			wantField:   "*Host*\n10.0.0.5:5432",
+		},
+		{
+			name:        "tcp ipv6 host is bracketed",
+			monitorType: "tcp",
+			config:      `{"host": "2001:db8::1", "port": 443}`,
+			wantField:   "*Host*\n[2001:db8::1]:443",
+		},
+		{
+			name:        "dns host without the resolver port",
+			monitorType: "dns",
+			config:      `{"host": "example.com", "resolver_server": "1.1.1.1", "port": 53}`,
+			wantField:   "*Host*\nexample.com",
+		},
+		{
+			name:        "push monitor has no address",
+			monitorType: "push",
+			config:      `{"pushToken": "secret"}`,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			blocks := newTestSlackSender().buildBlocks(
+				"",
+				&monitor.Model{Type: tc.monitorType, Config: tc.config},
+				&heartbeat.Model{Status: shared.MonitorStatusDown},
+				"Peekaping Alert",
+				"down",
+			)
+
+			// The message and the time come first, then the address when there is one
+			fields := blocks[1]["fields"].([]map[string]any)
+			if tc.wantField == "" {
+				assert.Len(t, fields, 2)
+			} else {
+				require.Len(t, fields, 3)
+				assert.Equal(t, tc.wantField, fields[2]["text"])
+			}
+
+			// With no public URL, the only button is the one to the site
+			if tc.wantSiteURL == "" {
+				assert.Len(t, blocks, 2, "no actions block without a link")
+			} else {
+				require.Len(t, blocks, 3)
+				elements := blocks[2]["elements"].([]map[string]any)
+				require.Len(t, elements, 1)
+				assert.Equal(t, "Visit site", elements[0]["text"].(map[string]any)["text"])
+				assert.Equal(t, tc.wantSiteURL, elements[0]["url"])
+			}
+		})
+	}
+}
