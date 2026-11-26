@@ -23,6 +23,10 @@ User-Agent: Peekaping-Slack/<version>
             {
               "text": "*Time*\n2026-10-17 09:35:00",
               "type": "mrkdwn"
+            },
+            {
+              "text": "*URL*\nhttps://api.example.com/health",
+              "type": "mrkdwn"
             }
           ],
           "type": "section"
@@ -37,6 +41,15 @@ User-Agent: Peekaping-Slack/<version>
               "type": "button",
               "url": "https://peekaping.example.com/monitors/mon-1",
               "value": "Peekaping"
+            },
+            {
+              "text": {
+                "text": "Visit site",
+                "type": "plain_text"
+              },
+              "type": "button",
+              "url": "https://api.example.com/health",
+              "value": "Site"
             }
           ],
           "type": "actions"
