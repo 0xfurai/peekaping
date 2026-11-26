@@ -164,25 +164,37 @@ func lookupIPs(ctx context.Context, q dnsQuery, network, recordType string) (str
 	return fmt.Sprintf("%s records: %s", recordType, strings.Join(ipStrings, ", ")), nil
 }
 
+func dnsResponseError(resp *dns.Msg) error {
+	if resp.Rcode == dns.RcodeSuccess || resp.Rcode == dns.RcodeNameError {
+		return nil
+	}
+	rcodeName := dns.RcodeToString[resp.Rcode]
+	if rcodeName == "" {
+		rcodeName = strconv.Itoa(resp.Rcode)
+	}
+	return fmt.Errorf("resolver returned %s", rcodeName)
+}
+
+func (d *DNSExecutor) exchangeWithTCPRetry(ctx context.Context, q dnsQuery, qtype uint16) (*dns.Msg, error) {
+	resp, err := d.exchange(ctx, q, qtype)
+	if err != nil || resp == nil {
+		return nil, err
+	}
+	if resp.Truncated {
+		resp, err = d.exchangeNet(ctx, q, qtype, "tcp")
+		if err != nil || resp == nil {
+			return nil, err
+		}
+	}
+	return resp, dnsResponseError(resp)
+}
+
 func (d *DNSExecutor) lookupCNAME(ctx context.Context, q dnsQuery) (string, error) {
 	// Use miekg/dns directly: net.Resolver.LookupCNAME returns the canonical
 	// name for hosts with no CNAME record rather than returning an error.
-	resp, err := d.exchange(ctx, q, dns.TypeCNAME)
+	resp, err := d.exchangeWithTCPRetry(ctx, q, dns.TypeCNAME)
 	if err != nil || resp == nil {
 		return "", err
-	}
-	if resp.Truncated {
-		resp, err = d.exchangeNet(ctx, q, dns.TypeCNAME, "tcp")
-		if err != nil || resp == nil {
-			return "", err
-		}
-	}
-	if resp.Rcode != dns.RcodeSuccess && resp.Rcode != dns.RcodeNameError {
-		rcodeName := dns.RcodeToString[resp.Rcode]
-		if rcodeName == "" {
-			rcodeName = strconv.Itoa(resp.Rcode)
-		}
-		return "", fmt.Errorf("resolver returned %s", rcodeName)
 	}
 
 	for _, ans := range resp.Answer {
