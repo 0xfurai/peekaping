@@ -101,6 +101,9 @@ func (s *fakeSMTPServer) serve() {
 // smtpConfig is an SMTP channel's config without its server, which tests fill in
 const smtpConfig = `{"username": "alerts@example.com", "password": "smtp-pass", "from": "alerts@example.com", "to": "oncall@example.com"}`
 
+// smtpSecureConfig is smtpConfig with the SSL/TLS switch on
+const smtpSecureConfig = `{"smtp_secure": true, "username": "alerts@example.com", "password": "smtp-pass", "from": "alerts@example.com", "to": "oncall@example.com"}`
+
 // emailGoldenCases have no sender; they all use EmailSender. Their configs leave out the
 // SMTP server, which the test fills in.
 var emailGoldenCases = []goldenCase{
@@ -167,6 +170,19 @@ func withSMTPServer(t *testing.T, config string, port int) string {
 	t.Helper()
 	require.True(t, strings.HasPrefix(config, "{"))
 	return fmt.Sprintf(`{"smtp_host": "127.0.0.1", "smtp_port": %d, %s`, port, config[1:])
+}
+
+// TestEmailSender_SecureSpeaksTLSFirst checks that the SSL/TLS switch wraps the connection in TLS
+// from the first byte: against a server that answers in the clear, the send must fail in the TLS
+// handshake, not in an SMTP exchange as it would if the switch only asked for STARTTLS
+func TestEmailSender_SecureSpeaksTLSFirst(t *testing.T) {
+	server := startFakeSMTPServer(t)
+	config := withSMTPServer(t, smtpSecureConfig, server.port())
+
+	err := NewEmailSender(nopLogger()).Send(context.Background(), config, "Monitor is down", testMonitor(), testHeartbeat())
+
+	require.Error(t, err, "the fake server answers in the clear, so the TLS handshake must fail")
+	assert.NotContains(t, err.Error(), "STARTTLS")
 }
 
 func TestEmailSender_SendStopsAtContextDeadline(t *testing.T) {
