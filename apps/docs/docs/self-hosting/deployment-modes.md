@@ -22,6 +22,8 @@ You run it from one image, `0xfurai/peekaping`. It holds `peekaping` and nothing
 
 Single mode supports SQLite and PostgreSQL only. It doesn't scale out: one process runs every check.
 
+The same process also runs without Docker, built from source and started by systemd. See [Without Docker](./without-docker.md).
+
 The image has a new name from release 0.0.48: see [The image has a new name](./upgrading-to-single-mode.md#the-image-has-a-new-name).
 
 Because the `peekaping` process checks the local probe's monitors, a `peekaping-probe` connects to single mode only as a [remote probe](./remote-probes.md), with that probe's own token. A probe instance that uses the local probe's token would check the same monitors a second time, so `peekaping` refuses it with a message that says why, and the probe logs that message. `peekaping` also ignores `PROBE_BOOTSTRAP_TOKEN`: it doesn't store it, and logs a warning at startup when it is set.
